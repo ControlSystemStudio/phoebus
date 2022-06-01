@@ -34,6 +34,7 @@ public class DockItemRepresentation extends JFXRepresentation
 {
     private final DisplayRuntimeInstance app_instance;
 
+    /** @param app_instance {@link DisplayRuntimeInstance} */
     public DockItemRepresentation(final DisplayRuntimeInstance app_instance)
     {
         super(false);

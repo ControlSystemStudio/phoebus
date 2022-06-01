@@ -16,9 +16,11 @@ import org.phoebus.framework.preferences.Preference;
 @SuppressWarnings("nls")
 public class Preferences
 {
+    /** Setting */
     @Preference
     public static String user, password;
 
+    /** Setting */
     @Preference
     public static int timeout_secs, fetch_size;
 

@@ -17,7 +17,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
-import javafx.scene.text.TextAlignment;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
@@ -48,6 +47,7 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Font;
+import javafx.scene.text.TextAlignment;
 
 /** View for an Alarm Area.
  *  Displays alarm status of all areas on a specified level.
@@ -87,6 +87,7 @@ public class AlarmAreaView extends StackPane implements AlarmClientListener
     private final Font font = new Font(AlarmSystem.alarm_area_font_size);
     private final Border border = new Border(new BorderStroke(Color.BLACK, style, radii, new BorderWidths(2)));
 
+    /** @param model Model */
     public AlarmAreaView(final AlarmClient model)
     {
         if (model.isRunning())
@@ -252,6 +253,7 @@ public class AlarmAreaView extends StackPane implements AlarmClientListener
         );
     }
 
+    /** @return Context menu */
     public ContextMenu getMenu()
     {
         return menu;

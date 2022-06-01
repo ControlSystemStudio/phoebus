@@ -16,6 +16,7 @@ import org.phoebus.pv.PVFactory;
 @SuppressWarnings("nls")
 public class MQTT_PVFactory implements PVFactory
 {
+    /** PV type implemented by this factory */
     final public static String TYPE = "mqtt";
 
     @Override

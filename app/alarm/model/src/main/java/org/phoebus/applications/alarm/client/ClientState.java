@@ -21,9 +21,19 @@ import org.phoebus.util.time.TimestampFormats;
 @SuppressWarnings("nls")
 public class ClientState extends AlarmState
 {
+    /** Current severity of PV */
     public final SeverityLevel current_severity;
+    /** Current status message of PV */
     public final String current_message;
 
+    /** @param severity Alarm severity
+     *  @param message Alarm message
+     *  @param value Alarm value
+     *  @param time Alarm time
+     *  @param current_severity Current severity of PV
+     *  @param current_message Current status message of PV
+     *  @param latch Did alarm just 'latch'?
+     */
     public ClientState(final SeverityLevel severity, final String message, final String value,
                        final Instant time, final SeverityLevel current_severity,
                        final String current_message,
@@ -34,6 +44,13 @@ public class ClientState extends AlarmState
         this.current_message = Objects.requireNonNull(current_message);
     }
 
+    /** @param severity Alarm severity
+     *  @param message Alarm message
+     *  @param value Alarm value
+     *  @param time Alarm time
+     *  @param current_severity Current severity of PV
+     *  @param current_message Current status message of PV
+     */
     public ClientState(final SeverityLevel severity, final String message, final String value,
                        final Instant time, final SeverityLevel current_severity,
                        final String current_message)
@@ -41,6 +58,10 @@ public class ClientState extends AlarmState
         this(severity, message, value, time, current_severity, current_message, false);
     }
 
+    /** @param state Alarm state
+     *  @param current_severity Current severity of PV
+     *  @param current_message Current status message of PV
+     */
     public ClientState(final AlarmState state,
                        final SeverityLevel current_severity,
                        final String current_message)

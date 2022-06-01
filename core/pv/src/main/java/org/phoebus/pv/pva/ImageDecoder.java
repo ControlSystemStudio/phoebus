@@ -49,6 +49,10 @@ public class ImageDecoder
             VImageType.TYPE_RGB1, VImageType.TYPE_RGB2, VImageType.TYPE_RGB3, VImageType.TYPE_YUV444,
             VImageType.TYPE_YUV422, VImageType.TYPE_YUV411 };
 
+    /** @param struct Structure with image
+     *  @return VType for image
+     *  @throws Exception on error
+     */
     public static VType decode(final PVAStructure struct) throws Exception
     {
         // Get dimensions

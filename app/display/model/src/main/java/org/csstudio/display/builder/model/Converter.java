@@ -62,6 +62,7 @@ public class Converter
         convert(infile, outfile);
     }
 
+    /** @param args Command line arguments */
     public static void main(final String[] args)
     {
         if (args.length == 0  || args[0].startsWith("-h"))

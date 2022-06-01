@@ -81,8 +81,10 @@ public class NamedWidgetColors extends ConfigFileParser
                                BUTTON_BACKGROUND = "Button_Background",
                                GRID = "Grid";
 
-    // Any color with alpha=0 is transparent.
-    // Using 'white' as canonical transparent color
+    /** Transparent color
+     *  Any color with alpha=0 is transparent.
+     *  Using 'white' as canonical transparent color
+     */
     public static final NamedWidgetColor TRANSPARENT = new NamedWidgetColor("Transparent", 255, 255, 255, 0);
 
     private static final NamedWidgetColor DEFAULT_ALARM_OK = new NamedWidgetColor(ALARM_OK, 0, 255, 0);
@@ -141,7 +143,7 @@ public class NamedWidgetColors extends ConfigFileParser
     }
 
     /** Resolve a named color
-     *  @param name Named color
+     *  @param color Predefined color
      *  @return Color as provided unless it was redefined
      */
     public NamedWidgetColor resolve(final NamedWidgetColor color)

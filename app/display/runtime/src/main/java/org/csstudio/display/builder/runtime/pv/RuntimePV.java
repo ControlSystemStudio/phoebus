@@ -155,6 +155,7 @@ public class RuntimePV // TODO (Almost) remove. Use vtype.pv, only add setValue 
         write(new_value);
     }
 
+    /** @return {@link PV} */
     public PV getPV()
     {
         return pv;

@@ -1,5 +1,11 @@
 package org.phoebus.security.managers;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.security.KeyStore;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+
 /**
  * Taken from http://java.sun.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html
  */
@@ -7,12 +13,8 @@ package org.phoebus.security.managers;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
-import java.io.File;
-import java.io.FileInputStream;
-import java.security.KeyStore;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 
+/** Trust manager that allows access */
 public class DummyX509TrustManager implements X509TrustManager {
 
     /*
@@ -22,14 +24,23 @@ public class DummyX509TrustManager implements X509TrustManager {
      */
     X509TrustManager pkixTrustManager;
 
+    /** Constructor */
     public DummyX509TrustManager() {
 
     }
 
+    /**@param trustStore Trust store
+     * @param password Password
+     * @throws Exception on error
+     */
     public DummyX509TrustManager(String trustStore, char[] password) throws Exception {
         this(new File(trustStore), password);
     }
 
+    /**@param trustStore Trust store
+     * @param password Password
+     * @throws Exception on error
+     */
     public DummyX509TrustManager(File trustStore, char[] password) throws Exception {
         // create a "default" JSSE X509TrustManager.
         KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
@@ -60,9 +71,10 @@ public class DummyX509TrustManager implements X509TrustManager {
         throw new Exception("Couldn't initialize");
     }
 
-    /*
+    /**
      * Delegate to the default trust manager.
      */
+    @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType)
             throws CertificateException {
         // TODO implement checks for certificate and provide options to
@@ -70,18 +82,20 @@ public class DummyX509TrustManager implements X509TrustManager {
 
     }
 
-    /*
+    /**
      * Delegate to the default trust manager.
      */
+    @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType)
             throws CertificateException {
         // TODO implement checks for certificate and provide options to
         // automatically acccept all, reject all or promt user
     }
 
-    /*
+    /**
      * Merely pass this through.
      */
+    @Override
     public X509Certificate[] getAcceptedIssuers() {
         if (pkixTrustManager == null)
             return new X509Certificate[0];

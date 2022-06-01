@@ -22,6 +22,9 @@ public class SaveWidgetSnapshotAction extends RuntimeAction
 {
     private final Widget widget;
 
+    /** @param widget Widget to save
+     *  @param title Title of action
+     */
     public SaveWidgetSnapshotAction(final Widget widget, final String title)
     {
         super(title, "/icons/save_edit.png");

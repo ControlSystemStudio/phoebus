@@ -23,6 +23,8 @@ public interface WidgetRepresentationsService
      *
      *  @return Map where key is descriptor of widget that this service can represent,
      *          and value is a factory for creating representation of that widget.
+     *  @param <TWP> Widget parent type
+     *  @param <TW> Widget type
      */
     public <TWP, TW> Map<WidgetDescriptor,
                          WidgetRepresentationFactory<TWP, TW>> getWidgetRepresentationFactories();

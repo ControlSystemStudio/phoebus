@@ -1,5 +1,7 @@
 package org.phoebus.applications.alarm.messages;
 
+import static org.phoebus.applications.alarm.AlarmSystem.logger;
+
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -7,14 +9,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.phoebus.util.time.TimestampFormats;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
-import static org.phoebus.applications.alarm.AlarmSystem.logger;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  * A bean representing a alarm state message
@@ -43,108 +43,133 @@ public class AlarmStateMessage {
     private String config;
     private String pv;
 
-
+    /** @return data */
     public String getConfig() {
         return config;
     }
 
+    /** @param config New value */
     public void setConfig(String config) {
         this.config = config;
     }
 
+    /** @return data */
     public String getPv() {
         return pv;
     }
 
+    /** @param pv New value */
     public void setPv(String pv) {
         this.pv = pv;
     }
 
+    /** @return data */
     public String getSeverity() {
         return severity;
     }
 
+    /** @param severity New value */
     public void setSeverity(String severity) {
         this.severity = severity;
     }
 
+    /** @return data */
     public boolean isLatch() {
         return latch;
     }
 
+    /** @param latch New value */
     public void setLatch(boolean latch) {
         this.latch = latch;
     }
 
+    /** @return data */
     public String getMessage() {
         return message;
     }
 
+    /** @param message New value */
     public void setMessage(String message) {
         this.message = message;
     }
 
+    /** @return data */
     public String getValue() {
         return value;
     }
 
+    /** @param value New value */
     public void setValue(String value) {
         this.value = value;
     }
 
+    /** @return data */
     public Map<String, String> getTime() {
         return time;
     }
 
+    /** @param time New value */
     public void setTime(Map<String, String> time) {
         this.time = time;
     }
 
+    /** @return data */
     public String getCurrent_severity() {
         return current_severity;
     }
 
+    /** @param current_severity New value */
     public void setCurrent_severity(String current_severity) {
         this.current_severity = current_severity;
     }
 
+    /** @return data */
     public String getCurrent_message() {
         return current_message;
     }
 
+    /** @param current_message New value */
     public void setCurrent_message(String current_message) {
         this.current_message = current_message;
     }
 
+    /** @return data */
     public String getMode() {
         return mode;
     }
 
+    /** @param mode New value */
     public void setMode(String mode) {
         this.mode = mode;
     }
 
+    /** @return data */
     public boolean getNotify() {
         return notify;
     }
 
+    /** @param notify New value */
     public void setNotify(boolean notify) {
         this.notify = notify;
     }
 
+    /** @return data */
     public Instant getMessage_time() {
         return message_time;
     }
 
+    /** @param message_time New value */
     public void setMessage_time(Instant message_time) {
         this.message_time = message_time;
     }
 
+    /** @return data */
     @JsonIgnore
     public Instant getInstant() {
         return Instant.ofEpochSecond(Long.parseLong(time.get("seconds")), Long.parseLong(time.get("nano")));
     }
 
+    /** @param instant New value */
     @JsonIgnore
     public void setInstant(Instant instant) {
         this.time = new HashMap<>();
@@ -152,11 +177,13 @@ public class AlarmStateMessage {
         this.time.put("nano", String.valueOf(instant.getNano()));
     }
 
+    /** @return Is this a leaf node, i.e. a PV? */
     @JsonIgnore
     public boolean isLeaf() {
         return value != null && message != null && time != null && current_severity != null && current_message != null;
     }
 
+    /** @return Map of original data */
     @JsonIgnore
     public Map<String, String> sourceMap() {
         Map<String, String> map = new HashMap<>();

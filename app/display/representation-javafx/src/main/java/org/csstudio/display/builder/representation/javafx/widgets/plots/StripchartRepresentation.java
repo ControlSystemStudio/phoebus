@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -72,8 +72,9 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
     private final WidgetPropertyListener<Instant> config_dialog_listener = (p, o, n) -> plot.getPlot().showConfigurationDialog();
     private final WidgetPropertyListener<Instant> open_databrowser_listener = (p, o, n) ->
         DataBrowserRepresentation.openFullDataBrowser(model, model_widget.getMacrosOrProperties(), model_widget.propToolbar().getValue());
+    private final WidgetPropertyListener<Instant> refresh_plot_listener = (p, o, n) -> controller.refresh();
 
-
+    
     @Override
     protected Pane createJFXNode() throws Exception
     {
@@ -124,6 +125,7 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
         {
             model_widget.runtimePropConfigure().addPropertyListener(config_dialog_listener);
             model_widget.runtimePropOpenDataBrowser().addPropertyListener(open_databrowser_listener);
+            model_widget.runtimePropRefreshPlot().addPropertyListener(refresh_plot_listener);
         }
 
         // Initial update
@@ -153,6 +155,7 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
         {
             model_widget.runtimePropConfigure().removePropertyListener(config_dialog_listener);
             model_widget.runtimePropOpenDataBrowser().removePropertyListener(open_databrowser_listener);
+            model_widget.runtimePropRefreshPlot().removePropertyListener(refresh_plot_listener);
         }
 
         super.unregisterListeners();
@@ -318,6 +321,7 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
             item.setLineWidth(trace.traceWidth().getValue());
             item.setPointType(XYPlotRepresentation.map(trace.tracePointType().getValue()));
             item.setPointSize(trace.tracePointSize().getValue());
+            item.useDefaultArchiveDataSources();
             try
             {
                 model.addItem(item);

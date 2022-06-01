@@ -49,8 +49,6 @@ import org.phoebus.pv.formula.FormulaPVFactory;
 @SuppressWarnings("nls")
 public class PVPool
 {
-    public static final String DEFAULT = "default";
-
     /** Separator between PV type indicator and rest of PV name.
      *  <p>
      *  This one is URL-like, and works OK with EPICS PVs because

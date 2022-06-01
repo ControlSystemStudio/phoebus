@@ -212,6 +212,7 @@ public class ScaledSliderWidget extends WritablePVWidget
     private volatile WidgetProperty<Boolean> show_lolo;
     private volatile RuntimeEventProperty configure;
 
+    /** Constructor */
     public ScaledSliderWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 400, 55);

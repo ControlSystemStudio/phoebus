@@ -122,6 +122,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     // XXX Would be good to understand this value instead of 2-by-trial-and-error
     private static final int SCROLLBAR_ADJUST = 2;
 
+    /** Property for the DisplayModel that's represented */
     public static final String ACTIVE_MODEL = "_active_model";
 
     /** Zoom to fit display */

@@ -204,7 +204,7 @@ public class TrackerSnapConstraint extends TrackerConstraint
         }
     }
 
-    /** @param toolkit
+    /** @param toolkit JFXRepresentation
      *  @param group Group where snap lines are added
      */
     public TrackerSnapConstraint(final JFXRepresentation toolkit, final Group group)

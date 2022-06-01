@@ -15,9 +15,9 @@ import org.csstudio.display.builder.model.Widget;
  *  for the corresponding model widget, i.e. a LabelWidget.
  *
  *  @author Kay Kasemir
- *  @param <TWP> Toolkit widget parent class
- *  @param <TW> Toolkit widget base class
- *  @param <MW> Toolkit widget base class
+ *  @param <TWP> Toolkit widget parent class (JFX 'Parent')
+ *  @param <TW> Toolkit widget base class (JFX 'Node')
+ *  @param <MW> Model widget base class ('Widget')
  */
 abstract public class WidgetRepresentation<TWP, TW, MW extends Widget>
 {

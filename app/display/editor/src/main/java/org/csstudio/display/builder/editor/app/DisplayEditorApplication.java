@@ -25,13 +25,14 @@ import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
+import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.dialog.SaveAsDialog;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
-import org.phoebus.security.authorization.AuthorizationService;
+import org.phoebus.util.FileExtensionUtil;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
@@ -40,7 +41,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Window;
 import javafx.util.Duration;
-import org.phoebus.util.FileExtensionUtil;
 
 /** Display Runtime Application
  *  @author Kay Kasemir
@@ -49,7 +49,11 @@ import org.phoebus.util.FileExtensionUtil;
 public class DisplayEditorApplication implements AppResourceDescriptor
 {
     private static final List<String> FILE_EXTENSIONS = List.of(DisplayModel.FILE_EXTENSION, DisplayModel.LEGACY_FILE_EXTENSION, WidgetClassSupport.FILE_EXTENSION);
+
+    /** App name */
     public static final String NAME = "display_editor";
+
+    /** Human readable name */
     public static final String DISPLAY_NAME = Messages.DisplayApplicationName;
 
     /** Last local file that was opened.
@@ -101,7 +105,7 @@ public class DisplayEditorApplication implements AppResourceDescriptor
                 btn.fire();
             });
             wait.play();
-            
+
             alert.showAndWait();
             return null;
         }

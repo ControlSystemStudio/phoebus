@@ -42,6 +42,7 @@ public class ArchiveListPane extends BorderPane
 {
     private final TableView<ArchiveDataSource> archive_list;
 
+    /** Constructor */
     public ArchiveListPane()
     {
         archive_list = new TableView<>(FXCollections.observableArrayList(Preferences.archive_urls));

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -40,8 +40,11 @@ public class PVAHeader
 
     /** Segmented message? Else: Single */
     public static final byte FLAG_SEGMENT_MASK  = 3 << 4;
+    /** Segment hint */
     public static final byte FLAG_FIRST      = 1 << 4;
+    /** Segment hint */
     public static final byte FLAG_LAST       = 2 << 4;
+    /** Segment hint */
     public static final byte FLAG_MIDDLE     = 3 << 4;
 
     /** Server message? Else: Client */
@@ -121,7 +124,7 @@ public class PVAHeader
     public static final byte CMD_SUB_GET = 0x40;
 
 
-    /** Control message command to set byte order */
+    /** Control message command to set byte order, aka 'SetEndian' */
     public static final byte CTRL_SET_BYTE_ORDER = 2;
 
     /** Size of common PVA message header */
@@ -142,6 +145,7 @@ public class PVAHeader
      */
     public static void encodeMessageHeader(final ByteBuffer buffer, byte flags, final byte command, final int payload_size)
     {
+        // Indicate byte order within message header
         if (buffer.order() == ByteOrder.BIG_ENDIAN)
             flags |= FLAG_BIG_ENDIAN;
         else
@@ -165,6 +169,8 @@ public class PVAHeader
         if (buffer.position() < PVAHeader.HEADER_SIZE)
             return PVAHeader.HEADER_SIZE;
 
+        // Byte order of message is irrelevant for
+        // parsing the initial set of bytes
         final byte magic = buffer.get(0);
         if (magic != PVAHeader.PVA_MAGIC)
             throw new Exception(String.format("Message lacks magic 0x%02X, got 0x%02X", PVAHeader.PVA_MAGIC, magic));
@@ -181,6 +187,9 @@ public class PVAHeader
         if (is_server != expect_server)
                 throw new Exception(expect_server ? "Expected server message" : "Expected client message");
 
+        // With each received message, check the byte order
+        // and adjust buffer to read further content which usually
+        // contains data larger than byte-sized, so the order matters
         if ((flags & PVAHeader.FLAG_BIG_ENDIAN) == 0)
             buffer.order(ByteOrder.LITTLE_ENDIAN);
         else

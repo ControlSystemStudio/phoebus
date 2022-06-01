@@ -47,6 +47,7 @@ import org.csstudio.display.builder.model.properties.WidgetFont;
  */
 public class TextSymbolWidget extends PVWidget {
 
+    /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR = new WidgetDescriptor(
         "text-symbol",
         WidgetCategory.MONITOR,
@@ -60,6 +61,7 @@ public class TextSymbolWidget extends PVWidget {
         }
     };
 
+    /** Property */
     public static final WidgetPropertyDescriptor<Integer>                       propArrayIndex = newIntegerPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "array_index", Messages.WidgetProperties_ArrayIndex, 0, Integer.MAX_VALUE);
 
     /** 'symbol' property: element for list of 'symbols' property */
@@ -88,54 +90,67 @@ public class TextSymbolWidget extends PVWidget {
     private volatile WidgetProperty<Boolean>                     wrap_words;
     private volatile WidgetProperty<String>                      symbol_value;
 
+    /** Constructor */
     public TextSymbolWidget ( ) {
         super(WIDGET_DESCRIPTOR.getType(), 32, 32);
     }
 
+    /** @return property */
     public WidgetProperty<Integer> propArrayIndex ( ) {
         return array_index;
     }
 
+    /** @return property */
     public WidgetProperty<WidgetColor> propBackgroundColor ( ) {
         return background;
     }
 
+    /** @return property */
     public WidgetProperty<Boolean> propEnabled ( ) {
         return enabled;
     }
 
+    /** @return property */
     public WidgetProperty<WidgetFont> propFont ( ) {
         return font;
     }
 
+    /** @return property */
     public WidgetProperty<WidgetColor> propForegroundColor ( ) {
         return foreground;
     }
 
+    /** @return property */
     public WidgetProperty<HorizontalAlignment> propHorizontalAlignment ( ) {
         return horizontal_alignment;
     }
 
+    /** @return property */
     public WidgetProperty<RotationStep> propRotationStep ( ) {
         return rotation_step;
     }
 
+    /** @return property */
     public ArrayWidgetProperty<WidgetProperty<String>> propSymbols ( ) {
         return symbols;
     }
 
+    /** @return property */
     public WidgetProperty<Boolean> propTransparent ( ) {
         return transparent;
     }
 
+    /** @return property */
     public WidgetProperty<VerticalAlignment> propVerticalAlignment ( ) {
         return vertical_alignment;
     }
 
+    /** @return property */
     public WidgetProperty<Boolean> propWrapWords ( ) {
         return wrap_words;
     }
 
+    /** @return property */
     public WidgetProperty<String> runtimePropSymbolValue ( ) {
         return symbol_value;
     }

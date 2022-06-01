@@ -91,6 +91,10 @@ public class VTypeToFromString
         return sb;
     }
 
+    /**@param value VType
+     * @return Text
+     * @throws Exception on error
+     */
     public static String ToString( Object value ) throws Exception
     {
         if (value instanceof VNumberArray)
@@ -136,6 +140,9 @@ public class VTypeToFromString
         return count;
     }
 
+    /** @param items String Items
+     *  @return Best matching VType
+     */
     public static Class<? extends VType> determineValueType(final List<String> items)
     {
         if (countQuotedStrings(items) <= 0)
@@ -161,6 +168,10 @@ public class VTypeToFromString
             return VStringArray.class;
     }
 
+    /** @param text String Item
+     *  @return Best matching VType
+     *  @throws Exception on error
+     */
     public static VType FromString ( String text ) throws Exception
     {
         List<String> items = splitStringList(text);
@@ -170,6 +181,11 @@ public class VTypeToFromString
         return FromString (text, type);
     }
 
+    /** @param text String Item
+     *  @param type Desired type
+     *  @return Best matching VType
+     *  @throws Exception on error
+     */
     public static VType FromString ( final String text, Class<? extends VType> type ) throws Exception
     {
         if (type == VDouble.class)
@@ -181,6 +197,10 @@ public class VTypeToFromString
 
     }
 
+    /** @param text String Item
+     *  @return VType
+     *  @throws Exception on error
+     */
     public static VType FromStringVDouble(final String text) throws Exception
     {
         try
@@ -193,6 +213,10 @@ public class VTypeToFromString
         }
     }
 
+    /** @param text String Item
+     *  @return VType
+     *  @throws Exception on error
+     */
     public static VType FromStringVLong(final String text) throws Exception
     {
         try
@@ -205,11 +229,18 @@ public class VTypeToFromString
         }
     }
 
+    /** @param text String Item
+     *  @return VType
+     */
     public static VType FromStringVString(final String text)
     {
         return VString.of(stripQuotes(text), Alarm.none(), Time.now());
     }
 
+    /** @param text String Item
+     *  @return VType
+     *  @throws Exception on error
+     */
     public static VType FromStringVDoubleArray(final String text) throws Exception
     {
         final List<String> items = splitStringList(text);
@@ -217,6 +248,10 @@ public class VTypeToFromString
         return VDoubleArray.of(ArrayDouble.of(numbers), Alarm.none(), Time.now(), Display.none());
     }
 
+    /** @param text String Item
+     *  @return VType
+     *  @throws Exception on error
+     */
     public static VType FromStringVStringArray(final String text) throws Exception
     {
         final List<String> strings = new ArrayList<>();
@@ -313,6 +348,9 @@ public class VTypeToFromString
         return items;
     }
 
+    /** @param text Text
+     *  @return Text
+     */
     public static String stripQuotes(final String text)
     {
         if (text.length() < 2)
@@ -352,11 +390,11 @@ public class VTypeToFromString
      *
      *  <p>For numbers, allows writing strings which are then parsed into numbers.
      *
-     * @param new_value
-     * @param type
-     * @param old_value
-     * @return
-     * @throws Exception
+     * @param new_value New value
+     * @param type desired type
+     * @param old_value Old value
+     * @return Adapted new value
+     * @throws Exception on error
      */
     public static VType convert(final Object new_value, Class<? extends VType> type, final VType old_value) throws Exception
     {

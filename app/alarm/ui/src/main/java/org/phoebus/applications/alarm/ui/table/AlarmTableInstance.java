@@ -41,6 +41,10 @@ class AlarmTableInstance implements AppInstance
     private AlarmTableMediator mediator;
     private final DockItemWithInput tab;
 
+    /** @param app Application info
+     *  @param input Input to instance
+     *  @throws Exception on error
+     */
     public AlarmTableInstance(final AlarmTableApplication app, final URI input) throws Exception
     {
         this.app = app;

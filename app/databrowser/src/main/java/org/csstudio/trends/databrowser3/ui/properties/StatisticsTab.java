@@ -18,15 +18,16 @@
 
 package org.csstudio.trends.databrowser3.ui.properties;
 
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.control.Tab;
-import org.csstudio.trends.databrowser3.Messages;
-import org.csstudio.trends.databrowser3.model.Model;
-
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.csstudio.trends.databrowser3.Messages;
+import org.csstudio.trends.databrowser3.model.Model;
+
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.control.Tab;
 
 /**
  * Tab component offering the user tools to calculate trace statistics. The calculations must
@@ -34,7 +35,7 @@ import java.util.logging.Logger;
  * updated with new samples.
  */
 public class StatisticsTab extends Tab {
-
+    /** @param model Model */
     public StatisticsTab(Model model){
         super(Messages.StatisticsTab);
         FXMLLoader fxmlLoader = new FXMLLoader();

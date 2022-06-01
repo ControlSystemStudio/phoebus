@@ -111,6 +111,7 @@ public class PolygonWidget extends PolyBaseWidget
     private volatile WidgetProperty<Integer> line_width;
     private volatile WidgetProperty<LineStyle> line_style;
 
+    /** Constructor */
     public PolygonWidget()
     {
         super(WIDGET_DESCRIPTOR.getType());

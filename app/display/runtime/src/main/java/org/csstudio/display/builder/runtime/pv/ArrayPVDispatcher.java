@@ -91,7 +91,8 @@ public class ArrayPVDispatcher implements AutoCloseable
     /** Construct dispatcher
      *
      *  @param array_pv PV that will be dispatched into per-element PVs
-     *  @param basename Base name used to create per-element PVs.
+     *  @param basename Base name used to create per-element PVs
+     *  @param listener Listener to value updates
      *  @see #close()
      */
     public ArrayPVDispatcher(final RuntimePV array_pv, final String basename,

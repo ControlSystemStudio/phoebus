@@ -66,6 +66,7 @@ public class ScrollBarWidget extends WritablePVWidget
     /** Configurator that handles legacy "step_increment" as "increment" */
     public static class IncrementConfigurator extends WidgetConfigurator
     {
+        /** @param xml_version Version of XML */
         public IncrementConfigurator(final Version xml_version)
         {
             super(xml_version);
@@ -81,6 +82,10 @@ public class ScrollBarWidget extends WritablePVWidget
             return true;
         }
 
+        /** @param widget Widget
+         *  @param xml XML
+         *  @throws Exception on error
+         */
         public static void handleLegacyIncrement(final Widget widget, final Element xml) throws Exception
         {
             XMLUtil.getChildDouble(xml, "step_increment")
@@ -98,6 +103,7 @@ public class ScrollBarWidget extends WritablePVWidget
     private volatile WidgetProperty<Boolean> enabled;
     private volatile RuntimeEventProperty configure;
 
+    /** Constructor */
     public ScrollBarWidget()
     {
         super(WIDGET_DESCRIPTOR.getType());

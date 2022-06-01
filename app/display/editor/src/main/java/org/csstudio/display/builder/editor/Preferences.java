@@ -20,8 +20,11 @@ import org.phoebus.framework.preferences.Preference;
 public class Preferences
 {
 	@Preference(name="hidden_widget_types") private static String[] hidden_widget_spec;
+	/** Setting */
     public static Set<String> hidden_widget_types = new HashSet<>();
+    /** Setting */
     @Preference public static String new_display_template;
+    /** Setting */
     @Preference public static int undo_stack_size;
 
     static

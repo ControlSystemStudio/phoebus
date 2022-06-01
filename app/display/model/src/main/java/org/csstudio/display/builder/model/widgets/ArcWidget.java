@@ -109,6 +109,7 @@ public class ArcWidget extends MacroWidget
     private WidgetProperty<Double> arc_size;
 
 
+    /** Constructor */
 	public ArcWidget()
 	{
 		super(WIDGET_DESCRIPTOR.getType(), 100, 100);

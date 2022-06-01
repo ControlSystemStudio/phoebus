@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,7 +19,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.prefs.Preferences;
-
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.ClientState;
@@ -66,6 +65,7 @@ public class AlarmServerMain implements ServerModelListener
                         "\tmode             - Show mode.\n" +
                         "\tmode normal      - Select normal mode.\n" +
                         "\tmode maintenance - Select maintenance mode.\n" +
+                        "\tresend           - Re-send all PV states to clients (for tests after network issues).\n" +
                         "\trestart          - Re-load alarm configuration and restart.\n" +
                         "\tshutdown         - Shut alarm server down and exit.\n";
 
@@ -141,6 +141,8 @@ public class AlarmServerMain implements ServerModelListener
                 restart.offer(false);
             else if (args[0].equals("restart"))
                 restart.offer(true);
+            else if (args[0].equals("resend"))
+                model.resend(model.getRoot());
             else if (args[0].equals("mode"))
                 System.out.println(AlarmLogic.getMaintenanceMode() ? "Maintenance mode" : "Normal mode");
             else if (args[0].startsWith("h"))
@@ -552,6 +554,8 @@ public class AlarmServerMain implements ServerModelListener
         boolean use_args_server = false;
         boolean use_args_config = false;
         boolean use_settings = false;
+        String import_filename = null;
+        String export_filename = null;
 
         // Handle arguments
         final List<String> args = new ArrayList<>(List.of(original_args));
@@ -627,22 +631,16 @@ public class AlarmServerMain implements ServerModelListener
                     if (! iter.hasNext())
                         throw new Exception("Missing -import file name");
                     iter.remove();
-                    final String filename = iter.next();
+                    import_filename = iter.next();
                     iter.remove();
-                    logger.info("Import model from " + filename);
-                    new AlarmConfigTool().importModel(filename, server, use_args_config ? args_config : config);
-                    return;
                 }
                 else if (cmd.equals("-export"))
                 {
                     if (! iter.hasNext())
                         throw new Exception("Missing -export file name");
                     iter.remove();
-                    final String filename = iter.next();
+                    export_filename = iter.next();
                     iter.remove();
-                    logger.info("Exporting model to " + filename);
-                    new AlarmConfigTool().exportModel(filename, server, use_args_config ? args_config : config);
-                    return;
                 }
                 else
                     throw new Exception("Unknown option " + cmd);
@@ -665,6 +663,22 @@ public class AlarmServerMain implements ServerModelListener
                 config = args_config;
             }
 
+            // Export or import requested?
+            // Actually allow _both_ export and import, first exporting
+            // so that existing config gets exported, then new one imported
+            if (export_filename != null)
+            {
+                logger.info("Exporting model to " + export_filename);
+                new AlarmConfigTool().exportModel(export_filename, server, use_args_config ? args_config : config);
+            }
+            if (import_filename != null)
+            {
+                logger.info("Import model from " + import_filename);
+                new AlarmConfigTool().importModel(import_filename, server, use_args_config ? args_config : config);
+            }
+            // Any export/import means we're done, not running alarm server
+            if (export_filename != null  ||  import_filename != null)
+                return;
         }
         catch (final Exception ex)
         {

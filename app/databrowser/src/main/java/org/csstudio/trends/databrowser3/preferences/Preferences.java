@@ -36,40 +36,66 @@ public class Preferences
         PROMPT_FOR_RAW_DATA = "prompt_for_raw_data_request",
 	    PROMPT_FOR_VISIBILITY = "prompt_for_visibility";
 
+    /** Predefined time range */
     public static class TimePreset
     {
+        /** Label */
         public final String label;
+        /** Time range */
         public final TimeRelativeInterval range;
 
-        public TimePreset(final String label, final TimeRelativeInterval range)
+        TimePreset(final String label, final TimeRelativeInterval range)
         {
             this.label = label;
             this.range = range;
         }
     }
 
+    /** Setting */
     @Preference public static int archive_fetch_delay;
+    /** Setting */
     @Preference public static int concurrent_requests;
+    /** Setting */
     @Preference public static ArchiveRescale archive_rescale;
+    /** Setting */
     public static List<ArchiveDataSource> archive_urls;
+    /** Setting */
     public static List<ArchiveDataSource> archives;
+    /** Setting */
     @Preference public static boolean automatic_history_refresh;
+    /** Setting */
     @Preference public static int live_buffer_size;
+    /** Setting */
     @Preference public static int line_width;
+    /** Setting */
     @Preference public static int opacity;
+    /** Setting */
     @Preference public static int plot_bins;
+    /** Setting */
     @Preference public static double scan_period;
+    /** Setting */
     public static Duration scroll_step;
+    /** Setting */
     public static Duration time_span;
+    /** Setting */
     @Preference public static TraceType trace_type;
+    /** Setting */
     @Preference public static double update_period;
+    /** Setting */
     @Preference public static boolean use_auto_scale;
+    /** Setting */
     @Preference public static boolean use_default_archives;
+    /** Setting */
     @Preference public static boolean drop_failed_archives;
+    /** Setting */
     @Preference public static boolean use_trace_names;
+    /** Setting */
     @Preference public static boolean prompt_for_raw_data_request;
+    /** Setting */
     @Preference public static boolean prompt_for_visibility;
+    /** Setting */
     public static final List<TimePreset> time_presets = new ArrayList<>();
+    /** Setting */
     @Preference public static boolean config_dialog_supported;
 
     static
@@ -79,7 +105,7 @@ public class Preferences
         // Allow at least one at a time
         if (concurrent_requests < 1)
         	concurrent_requests = 1;
-        
+
         archive_urls = parseArchives(prefs.get("urls"));
         archives = parseArchives(prefs.get("archives"));
 
@@ -93,18 +119,19 @@ public class Preferences
         }
     }
 
-    public static void setRawDataPrompt(final boolean value)
+    /** @param show Display warning regarding raw data? */
+    public static void setRawDataPrompt(final boolean show)
     {
-        prompt_for_raw_data_request = value;
-        update(PROMPT_FOR_RAW_DATA, value);
+        prompt_for_raw_data_request = show;
+        update(PROMPT_FOR_RAW_DATA, show);
     }
 
-    public static void setVisibilityPrompt(final boolean value)
+    /** @param show Display warning regarding trace visiblity? */
+    public static void setVisibilityPrompt(final boolean show)
     {
-        prompt_for_visibility = value;
-        update(PROMPT_FOR_VISIBILITY, value);
+        prompt_for_visibility = show;
+        update(PROMPT_FOR_VISIBILITY, show);
     }
-
 
     private static void update(final String setting, final boolean value)
     {
@@ -120,6 +147,9 @@ public class Preferences
         }
     }
 
+    /** @param setting Text with list of archives, separated by 'pipe' symbol
+     *  @return List of parsed data sources
+     */
     public static List<ArchiveDataSource> parseArchives(final String setting)
     {
         final List<ArchiveDataSource> urls = new ArrayList<>();

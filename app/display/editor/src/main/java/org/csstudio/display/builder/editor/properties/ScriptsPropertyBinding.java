@@ -57,6 +57,11 @@ public class ScriptsPropertyBinding
         }
     };
 
+    /** @param undo Undo manager
+     *  @param field Gui element in editor
+     *  @param widget_property Scripts property
+     *  @param other Other selected widgets
+     */
     public ScriptsPropertyBinding(final UndoableActionManager undo,
                                   final Button field,
                                   final ScriptsWidgetProperty widget_property,

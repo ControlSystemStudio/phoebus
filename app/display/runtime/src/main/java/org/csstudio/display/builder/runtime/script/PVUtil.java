@@ -31,8 +31,10 @@ import org.phoebus.util.time.TimestampFormats;
 @SuppressWarnings("nls")
 public class PVUtil
 {
+    /** Exception that indicates a PV without value */
     public static class PVHasNoValueException extends NullPointerException
     {
+        /** @param msg Message to show with exception */
         public PVHasNoValueException(final String msg)
         {
             super(msg);

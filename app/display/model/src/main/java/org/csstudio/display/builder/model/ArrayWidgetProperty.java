@@ -66,6 +66,11 @@ public class ArrayWidgetProperty<WPE extends WidgetProperty<?>> extends WidgetPr
         final private ElementFactory<WPE> factory;
         final private int minimum_size;
 
+        /** @param category Property category
+         *  @param name Name of property
+         *  @param description Description
+         *  @param factory Factory for creating array elements
+         */
         public Descriptor(final WidgetPropertyCategory category,
                           final String name, final String description,
                           final ElementFactory<WPE> factory)
@@ -73,6 +78,12 @@ public class ArrayWidgetProperty<WPE extends WidgetProperty<?>> extends WidgetPr
             this(category, name, description, factory, 1);
         }
 
+        /** @param category Property category
+         *  @param name Name of property
+         *  @param description Description
+         *  @param factory Factory for creating array elements
+         *  @param minimum_size Minumum array size
+         */
         public Descriptor(final WidgetPropertyCategory category,
                 final String name, final String description,
                 final ElementFactory<WPE> factory,
@@ -127,7 +138,7 @@ public class ArrayWidgetProperty<WPE extends WidgetProperty<?>> extends WidgetPr
         return new CopyOnWriteArrayList<>(requested_value);
     }
 
-    /** @return List<> of current array elements. List is not modifiable (elements, however, are).
+    /** @return List of current array elements. List is not modifiable (elements, however, are).
      *  @see #addElement(WidgetProperty)
      *  @see #removeElement()
      */
@@ -152,7 +163,7 @@ public class ArrayWidgetProperty<WPE extends WidgetProperty<?>> extends WidgetPr
     /** Access element
      *  @param index Element index, 0 .. (<code>getValue().size()</code>-1)
      *  @return Element of array
-     *  @throws IndexOutOfBoundsException
+     *  @throws IndexOutOfBoundsException on invalid index
      */
     public WPE getElement(final int index)
     {

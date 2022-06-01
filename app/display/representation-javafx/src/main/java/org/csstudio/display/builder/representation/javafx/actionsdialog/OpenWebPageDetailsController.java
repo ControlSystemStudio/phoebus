@@ -18,13 +18,15 @@
 
 package org.csstudio.display.builder.representation.javafx.actionsdialog;
 
+import org.csstudio.display.builder.model.properties.ActionInfo;
+import org.csstudio.display.builder.model.properties.OpenWebpageActionInfo;
+
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
-import org.csstudio.display.builder.model.properties.ActionInfo;
-import org.csstudio.display.builder.model.properties.OpenWebpageActionInfo;
 
+/** FXML Controller */
 public class OpenWebPageDetailsController implements ActionDetailsController{
 
     private OpenWebpageActionInfo openWebpageActionInfo;
@@ -37,10 +39,12 @@ public class OpenWebPageDetailsController implements ActionDetailsController{
     private StringProperty descriptionProperty = new SimpleStringProperty();
     private StringProperty urlProperty = new SimpleStringProperty();
 
+    /** @param actionInfo ActionInfo */
     public OpenWebPageDetailsController(ActionInfo actionInfo){
         this.openWebpageActionInfo = (OpenWebpageActionInfo)actionInfo;
     }
 
+    /** Init */
     @FXML
     public void initialize(){
         descriptionProperty.setValue(openWebpageActionInfo.getDescription());
@@ -50,6 +54,7 @@ public class OpenWebPageDetailsController implements ActionDetailsController{
         url.textProperty().bindBidirectional(urlProperty);
     }
 
+    /** @return ActionInfo */
     @Override
     public ActionInfo getActionInfo(){
         return new OpenWebpageActionInfo(descriptionProperty.get(), urlProperty.get());

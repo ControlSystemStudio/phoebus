@@ -65,10 +65,15 @@ public class PolylineWidget extends PolyBaseWidget
         //The order of these enum constants is important.
         //The bits of the number returned by calling ordinal() on one
         //of them is useful for determining which arrows are used.
-        NONE(Messages.Arrows_None), //NONE.ordinal() = 0 = 0b00 has no arrows
-        FROM(Messages.Arrows_From), //FROM.ordinal() = 1 = 0b01 has only a from-arrow
-        TO(Messages.Arrows_To),     //  TO.ordinal() = 2 = 0b10 has only a to-arrow
-        BOTH(Messages.Arrows_Both); //BOTH.ordinal() = 3 = 0b11 has both arrows
+
+        /** NONE.ordinal() = 0 = 0b00 has no arrows */
+        NONE(Messages.Arrows_None),
+        /** FROM.ordinal() = 1 = 0b01 has only a from-arrow */
+        FROM(Messages.Arrows_From),
+        /** TO.ordinal() = 2 = 0b10 has only a to-arrow */
+        TO(Messages.Arrows_To),
+        /** BOTH.ordinal() = 3 = 0b11 has both arrows */
+        BOTH(Messages.Arrows_Both);
 
         private final String name;
 
@@ -144,6 +149,7 @@ public class PolylineWidget extends PolyBaseWidget
     private volatile WidgetProperty<Arrows> arrows;
     private volatile WidgetProperty<Integer> arrow_length;
 
+    /** Constructor */
     public PolylineWidget()
     {
         super(WIDGET_DESCRIPTOR.getType());

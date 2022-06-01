@@ -19,12 +19,6 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javafx.event.ActionEvent;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar.ButtonData;
-import javafx.stage.FileChooser;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetDescriptor;
@@ -48,7 +42,12 @@ import org.phoebus.ui.pv.SeverityColors;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
@@ -61,6 +60,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 
 /** Dialog for displaying widget information
  *  @author Kay Kasemir
@@ -74,13 +74,23 @@ public class WidgetInfoDialog extends Dialog<Boolean>
     private Widget widget;
     private DisplayWidgetStats stats;
 
+    /** PV info */
     public static class NameStateValue
     {
+        /** PV Name */
         public final String name;
+        /** State, incl. read-only or writable? */
         public final String state;
+        /** Last known value */
         public final VType value;
+        /** Path to Widget within display that uses the PV */
         public final String path;
 
+        /** @param name PV Name
+         *  @param state State, incl. read-only or writable?
+         *  @param value Last known value
+         *  @param path Path to Widget within display that uses the PV
+         */
         public NameStateValue(final String name, final String state, final VType value, final String path)
         {
             this.name = name;
@@ -183,7 +193,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
     }
 
     /**
-     * Writes the table contets of each tab to file.
+     * Writes the table content of each tab to file.
      *
      * Note that the pipe character "|" is used to separate items on each data row as comma
      * might conflict with the string content.

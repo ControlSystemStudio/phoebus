@@ -100,6 +100,7 @@ public class LEDWidget extends BaseLEDWidget
     private volatile WidgetProperty<WidgetColor> on_color;
     private volatile WidgetProperty<Boolean> labels_from_pv;
 
+    /** Constructor */
     public LEDWidget()
     {
         super(WIDGET_DESCRIPTOR.getType());

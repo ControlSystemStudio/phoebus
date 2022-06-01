@@ -2,7 +2,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>services</artifactId>
-    <version>4.6.9-SNAPSHOT</version>
+    <version>4.6.10-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>service-alarm-server</artifactId>
@@ -24,33 +24,33 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-framework</artifactId>
-      <version>4.6.9-SNAPSHOT</version>
+      <version>4.6.10-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-util</artifactId>
-      <version>4.6.9-SNAPSHOT</version>
+      <version>4.6.10-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-pv</artifactId>
-      <version>4.6.9-SNAPSHOT</version>
+      <version>4.6.10-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-formula</artifactId>
-      <version>4.6.9-SNAPSHOT</version>
+      <version>4.6.10-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-email</artifactId>
-      <version>4.6.9-SNAPSHOT</version>
+      <version>4.6.10-SNAPSHOT</version>
     </dependency>
 
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-alarm-model</artifactId>
-      <version>4.6.9-SNAPSHOT</version>
+      <version>4.6.10-SNAPSHOT</version>
     </dependency>
     <!--JUL bindings for sfl4j-->
     <dependency> 
@@ -155,6 +155,14 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <version>1.6.8</version>
+        <configuration>
+          <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
+        </configuration>
       </plugin>
     </plugins>
   </build>

@@ -9,7 +9,7 @@ package org.csstudio.trends.databrowser3;
 
 import org.phoebus.framework.nls.NLS;
 
-/** Eclipse string externalization
+/** String externalization
  *  @author Kay Kasemir
  */
 public class Messages
@@ -17,303 +17,304 @@ public class Messages
     // ---
     // --- Keep alphabetically sorted and 'in sync' with messages.properties!
     // ---
-    public static String AddAxis;
-    public static String AddFormula;
-    public static String AddFormulaMsg;
-    public static String AddFormula_NameTT;
-    public static String AddItemErrorFmt;
-    public static String AddPV;
-    public static String AddPV_Axis;
-    public static String AddPV_AxisTT;
-    public static String AddPVMsg;
-    public static String AddPV_NameTT;
-    public static String AddPV_NewOrEmptyAxis;
-    public static String AddPV_OnChange;
-    public static String AddPV_OnChangeTT;
-    public static String AddPV_Period;
-    public static String AddPV_PeriodTT;
-    public static String AppendSearchResults;
-    public static String AppendSearchResultsTT;
-    public static String ArchiveFetchDetailFmt;
-    public static String ArchiveFetchJobFmt;
-    public static String ArchiveFetchProgressFmt;
-    public static String ArchiveFetchStart;
-    public static String ArchiveListGUI_NoArchives;
-    public static String ArchiveName;
-    public static String ArchiveRescale_Label;
-    public static String ArchiveRescale_NONE;
-    public static String ArchiveRescale_STAGGER;
-    public static String ArchiveServerErrorFmt;
-    public static String ArchiveServerInfo;
-    public static String ArchiveServerInfoHdr;
-    public static String AutoScale;
-    public static String Axis;
-    public static String AxisMax;
-    public static String AxisMin;
-    public static String AxisOnRight;
-    public static String AxisTT;
-    public static String AxisVisibility;
-    public static String BackgroundColorLbl;
-    public static String ChangeLiveCapacityCommandErrorFmt;
-    public static String ChangeNameErrorFmt;
-    public static String Color;
-    public static String ColorTT;
-    public static String CursorValue;
-    public static String CursorValueTT;
-    public static String DataBrowser;
-    public static String DataBrowserMenuPath;
-    public static String DeleteAxis;
-    public static String DeleteAxisWarningFmt;
-    public static String DeleteItem;
-    public static String DuplicateItemFmt;
-    public static String EditItems;
-    public static String EmptyNameError;
-    public static String EndTimeLbl;
-    public static String EndTimeTT;
-    public static String Error;
-    public static String Export;
-    public static String ExportBrowse;
-    public static String ExportBrowseTT;
-    public static String ExportDefaultDigits;
-    public static String ExportDefaultFilename;
-    public static String ExportDefaultLinearInterpolation;
-    public static String ExportDefaultLinearInterpolationTT;
-    public static String ExportDefaultOptimization;
-    public static String Export_Delimiter;
-    public static String ExportDigits;
-    public static String ExportDigitsError;
-    public static String ExportDigitsTT;
-    public static String ExportEnterFilenameError;
-    public static String ExportFileExists;
-    public static String ExportFileExistsFmt;
-    public static String ExportFilename;
-    public static String ExportFilenameTT;
-    public static String ExportFormat_DecimalTT;
-    public static String ExportFormat_DefaultTT;
-    public static String ExportFormat_ExponentialTT;
-    public static String ExportGroupFormat;
-    public static String ExportGroupOutput;
-    public static String ExportGroupSource;
-    public static String ExportLinearIntervalError;
-    public static String ExportMatlabFilenameError;
-    public static String ExportMinMaxCol;
-    public static String ExportMinMaxColTT;
-    public static String Export_NoValueMarker;
-    public static String ExportOptimizationTT;
-    public static String ExportOptimizeCountError;
-    public static String ExportPlotStartEnd;
-    public static String ExportPlotStartEndTT;
-    public static String ExportSource_Linear;
-    public static String ExportSource_LinearTT;
-    public static String ExportSource_OptimizedArchive;
-    public static String ExportSource_OptimizedArchiveTT;
-    public static String ExportSource_Plot;
-    public static String ExportSource_PlotTT;
-    public static String ExportSource_RawArchive;
-    public static String ExportSource_RawArchiveTT;
-    public static String ExportStartExport;
-    public static String ExportTabular;
-    public static String ExportTabularTT;
-    public static String ExportTypeMatlab;
-    public static String ExportTypeMatlabTT;
-    public static String ExportTypeSpreadsheet;
-    public static String ExportTypeSpreadsheetTT;
-    public static String ExportValueInfo;
-    public static String ExportValueInfoTT;
-    public static String FileFilterDesc;
-    public static String FileLoadErr;
-    public static String FileLoadJobName;
-    public static String FileOpenErr;
-    public static String FileTypeAll;
-    public static String FileTypePlot;
-    public static String FontBtnBold;
-    public static String FontBtnExample;
-    public static String FontBtnItalics;
-    public static String FontBtnJobName;
-    public static String FontBtnName;
-    public static String FontBtnSize;
-    public static String FontBtnStyle;
-    public static String FontTT;
-    public static String ForegroundColorLbl;
-    public static String Format_Decimal;
-    public static String Format_Default;
-    public static String Format_Exponential;
-    public static String Formula;
-    public static String FormulaCalcPane;
-    public static String FormulaCalcs0TT;
-    public static String FormulaCalcs1TT;
-    public static String FormulaCalcs2TT;
-    public static String FormulaCalcs3TT;
-    public static String FormulaCalcs4TT;
-    public static String FormulaCalcs5TT;
-    public static String FormulaCalcs6TT;
-    public static String FormulaCalcs7TT;
-    public static String FormulaCalcs8TT;
-    public static String FormulaCalcs9TT;
-    public static String FormulaCalcsAddTT;
-    public static String FormulaCalcsBsTT;
-    public static String FormulaCalcsCbTT;
-    public static String FormulaCalcsCfTT;
-    public static String FormulaCalcsDivTT;
-    public static String FormulaCalcsDotTT;
-    public static String FormulaCalcsMulTT;
-    public static String FormulaCalcsObTT;
-    public static String FormulaCalcsSubTT;
-    public static String FormulaEmpty;
-    public static String FormulaFuncPane;
-    public static String FormulaFunctAbsTT;
-    public static String FormulaFunctAcosTT;
-    public static String FormulaFunctAsinTT;
-    public static String FormulaFunctAtan2TT;
-    public static String FormulaFunctAtanTT;
-    public static String FormulaFunctCeilTT;
-    public static String FormulaFunctCosTT;
-    public static String FormulaFunctETT;
-    public static String FormulaFunctExpTT;
-    public static String FormulaFunctFloorTT;
-    public static String FormulaFunctIfTT;
-    public static String FormulaFunctLog10TT;
-    public static String FormulaFunctLogTT;
-    public static String FormulaFunctMaxTT;
-    public static String FormulaFunctMinTT;
-    public static String FormulaFunctPiTT;
-    public static String FormulaFunctPowTT;
-    public static String FormulaFunctSinTT;
-    public static String FormulaFunctSqrtTT;
-    public static String FormulaFunctTanTT;
-    public static String FormulaLabel;
-    public static String FormulaLabelEditTT;
-    public static String FormulaParsed;
-    public static String FormulaTabInput;
-    public static String FormulaTabVariable;
-    public static String FormulaTabTT;
-    public static String Grid;
-    public static String GridLbl;
-    public static String HideTraceWarning;
-    public static String HideTraceWarningDetail;
-    public static String ImportActionLabelFmt;
-    public static String ImportTitle;
-    public static String Information;
-    public static String InspectSamples;
-    public static String InvalidScanPeriodError;
-    public static String ItemName;
-    public static String ItemNameTT;
-    public static String LabelFontLbl;
-    public static String LegendLbl;
-    public static String LegendFontLbl;
-    public static String LiveBufferSizeInfoFmt;
-    public static String LiveData;
-    public static String LiveSampleBufferSize;
-    public static String LogScale;
-    public static String Miscellaneous;
-    public static String Model_Disconnected;
-    public static String MoveItemDown;
-    public static String MoveItemUp;
-    public static String Name;
-    public static String NegErrColumn;
-    public static String NewPlot;
-    public static String NewPlotFailed;
-    public static String NewPlotSelectionEmpty;
-    public static String NewPlotTargetFolderWriteProtected;
-    public static String NewPlotFileCreateFailed;
-    public static String NewPlotOverwriteExisting;
-    public static String NewPlotOverwriteExistingTitle;
-    public static String NotApplicable;
-    public static String OpenExportView;
-    public static String OpenPropertiesView;
-    public static String OpenSearchView;
-    public static String OpenWaveformView;
-    public static String Plot_TimeAxisName;
-    public static String Plot_ValueAxisName;
-    public static String Plot_ValueAxisNameFMT;
-    public static String PointSize;
-    public static String PointSizeTT;
-    public static String PointType;
-    public static String PointTypeTT;
-    public static String PosErrColumn;
-    public static String PropertiesTabName;
-    public static String PVName;
-    public static String PVUsedInFormulaFmt;
-    public static String Refresh;
-    public static String RemoveEmptyAxes;
-    public static String ReplaceSearchResults;
-    public static String ReplaceSearchResultsTT;
-    public static String Request_optimized;
-    public static String Request_raw;
-    public static String RequestType;
-    public static String RequestTypeTT;
-    public static String RequestTypeWarning;
-    public static String RequestTypeWarningDetail;
-    public static String SampleView_Count;
-    public static String SampleView_Item;
-    public static String SampleView_Refresh;
-    public static String SampleView_RefreshTT;
-    public static String SampleView_SelectItem;
-    public static String SampleView_Source;
-    public static String Save;
-    public static String SaveChangesLbl;
-    public static String SaveChangesTT;
-    public static String ScaleFontLbl;
-    public static String ScanPeriod;
-    public static String ScanPeriodChangeErrorFmt;
-    public static String ScanPeriodTT;
-    public static String ScrollStepLbl;
-    public static String Search;
-    public static String SearchChannelFmt;
-    public static String SearchPattern;
-    public static String SearchPatternTT;
-    public static String SearchTT;
-    public static String SelectTrace;
-    public static String SeverityColumn;
-    public static String SeverityStatusFmt;
-    public static String StartEndDialogBtn;
-    public static String StartEndDialogTT;
-    public static String StartTimeLbl;
-    public static String StartTimeTT;
-    public static String StatisticsTab;
-    public static String StatisticsMean;
-    public static String StatisticsMedian;
-    public static String StatisticsStdDev;
-    public static String StatisticsMin;
-    public static String StatisticsMax;
-    public static String StatisticsSum;
-    public static String StatisticsSampleCount;
-    public static String StatusColumn;
-    public static String TimeAxis;
-    public static String TimeColumn;
-    public static String TitleFontLbl;
-    public static String TitleLbl;
-    public static String TitleTT;
-    public static String TraceDisplayName;
-    public static String TraceDisplayNameTT;
-    public static String TraceLineStyle;
-    public static String TraceLineStyleTT;
-    public static String TraceLineWidth;
-    public static String TraceLineWidthTT;
-    public static String TracesTab;
-    public static String TraceTableEmpty;
-    public static String TraceType;
-    public static String TraceTypeTT;
-    public static String TraceVisibility;
-    public static String TraceVisibilityTT;
-    public static String UpdatePeriodLbl;
-    public static String URL;
-    public static String UseAxisName;
-    public static String UseLines;
-    public static String UsePoints;
-    public static String UseTraceNames;
-    public static String UseUnixTimeStamp;
-    public static String ValueAxes;
-    public static String ValueAxisName;
-    public static String ValueColumn;
-    public static String WaveformIndex;
-    public static String WaveformIndexCol;
-    public static String WaveformIndexColTT;
-    public static String WaveformStatus;
-    public static String WaveformTimeSelector;
-    public static String WaveformTimestamp;
-    public static String WaveformView;
-    public static String WaveformViewSelect;
+    /** Externalized strings */
+    public static String  AddAxis,
+                         AddFormula,
+                         AddFormulaMsg,
+                         AddFormula_NameTT,
+                         AddItemErrorFmt,
+                         AddPV,
+                         AddPV_Axis,
+                         AddPV_AxisTT,
+                         AddPVMsg,
+                         AddPV_NameTT,
+                         AddPV_NewOrEmptyAxis,
+                         AddPV_OnChange,
+                         AddPV_OnChangeTT,
+                         AddPV_Period,
+                         AddPV_PeriodTT,
+                         AppendSearchResults,
+                         AppendSearchResultsTT,
+                         ArchiveFetchDetailFmt,
+                         ArchiveFetchJobFmt,
+                         ArchiveFetchProgressFmt,
+                         ArchiveFetchStart,
+                         ArchiveListGUI_NoArchives,
+                         ArchiveName,
+                         ArchiveRescale_Label,
+                         ArchiveRescale_NONE,
+                         ArchiveRescale_STAGGER,
+                         ArchiveServerErrorFmt,
+                         ArchiveServerInfo,
+                         ArchiveServerInfoHdr,
+                         AutoScale,
+                         Axis,
+                         AxisMax,
+                         AxisMin,
+                         AxisOnRight,
+                         AxisTT,
+                         AxisVisibility,
+                         BackgroundColorLbl,
+                         ChangeLiveCapacityCommandErrorFmt,
+                         ChangeNameErrorFmt,
+                         Color,
+                         ColorTT,
+                         CursorValue,
+                         CursorValueTT,
+                         DataBrowser,
+                         DataBrowserMenuPath,
+                         DeleteAxis,
+                         DeleteAxisWarningFmt,
+                         DeleteItem,
+                         DuplicateItemFmt,
+                         EditItems,
+                         EmptyNameError,
+                         EndTimeLbl,
+                         EndTimeTT,
+                         Error,
+                         Export,
+                         ExportBrowse,
+                         ExportBrowseTT,
+                         ExportDefaultDigits,
+                         ExportDefaultFilename,
+                         ExportDefaultLinearInterpolation,
+                         ExportDefaultLinearInterpolationTT,
+                         ExportDefaultOptimization,
+                         Export_Delimiter,
+                         ExportDigits,
+                         ExportDigitsError,
+                         ExportDigitsTT,
+                         ExportEnterFilenameError,
+                         ExportFileExists,
+                         ExportFileExistsFmt,
+                         ExportFilename,
+                         ExportFilenameTT,
+                         ExportFormat_DecimalTT,
+                         ExportFormat_DefaultTT,
+                         ExportFormat_ExponentialTT,
+                         ExportGroupFormat,
+                         ExportGroupOutput,
+                         ExportGroupSource,
+                         ExportLinearIntervalError,
+                         ExportMatlabFilenameError,
+                         ExportMinMaxCol,
+                         ExportMinMaxColTT,
+                         Export_NoValueMarker,
+                         ExportOptimizationTT,
+                         ExportOptimizeCountError,
+                         ExportPlotStartEnd,
+                         ExportPlotStartEndTT,
+                         ExportSource_Linear,
+                         ExportSource_LinearTT,
+                         ExportSource_OptimizedArchive,
+                         ExportSource_OptimizedArchiveTT,
+                         ExportSource_Plot,
+                         ExportSource_PlotTT,
+                         ExportSource_RawArchive,
+                         ExportSource_RawArchiveTT,
+                         ExportStartExport,
+                         ExportTabular,
+                         ExportTabularTT,
+                         ExportTypeMatlab,
+                         ExportTypeMatlabTT,
+                         ExportTypeSpreadsheet,
+                         ExportTypeSpreadsheetTT,
+                         ExportValueInfo,
+                         ExportValueInfoTT,
+                         FileFilterDesc,
+                         FileLoadErr,
+                         FileLoadJobName,
+                         FileOpenErr,
+                         FileTypeAll,
+                         FileTypePlot,
+                         FontBtnBold,
+                         FontBtnExample,
+                         FontBtnItalics,
+                         FontBtnJobName,
+                         FontBtnName,
+                         FontBtnSize,
+                         FontBtnStyle,
+                         FontTT,
+                         ForegroundColorLbl,
+                         Format_Decimal,
+                         Format_Default,
+                         Format_Exponential,
+                         Formula,
+                         FormulaCalcPane,
+                         FormulaCalcs0TT,
+                         FormulaCalcs1TT,
+                         FormulaCalcs2TT,
+                         FormulaCalcs3TT,
+                         FormulaCalcs4TT,
+                         FormulaCalcs5TT,
+                         FormulaCalcs6TT,
+                         FormulaCalcs7TT,
+                         FormulaCalcs8TT,
+                         FormulaCalcs9TT,
+                         FormulaCalcsAddTT,
+                         FormulaCalcsBsTT,
+                         FormulaCalcsCbTT,
+                         FormulaCalcsCfTT,
+                         FormulaCalcsDivTT,
+                         FormulaCalcsDotTT,
+                         FormulaCalcsMulTT,
+                         FormulaCalcsObTT,
+                         FormulaCalcsSubTT,
+                         FormulaEmpty,
+                         FormulaFuncPane,
+                         FormulaFunctAbsTT,
+                         FormulaFunctAcosTT,
+                         FormulaFunctAsinTT,
+                         FormulaFunctAtan2TT,
+                         FormulaFunctAtanTT,
+                         FormulaFunctCeilTT,
+                         FormulaFunctCosTT,
+                         FormulaFunctETT,
+                         FormulaFunctExpTT,
+                         FormulaFunctFloorTT,
+                         FormulaFunctIfTT,
+                         FormulaFunctLog10TT,
+                         FormulaFunctLogTT,
+                         FormulaFunctMaxTT,
+                         FormulaFunctMinTT,
+                         FormulaFunctPiTT,
+                         FormulaFunctPowTT,
+                         FormulaFunctSinTT,
+                         FormulaFunctSqrtTT,
+                         FormulaFunctTanTT,
+                         FormulaLabel,
+                         FormulaLabelEditTT,
+                         FormulaParsed,
+                         FormulaTabInput,
+                         FormulaTabVariable,
+                         FormulaTabTT,
+                         Grid,
+                         GridLbl,
+                         HideTraceWarning,
+                         HideTraceWarningDetail,
+                         ImportActionLabelFmt,
+                         ImportTitle,
+                         Information,
+                         InspectSamples,
+                         InvalidScanPeriodError,
+                         ItemName,
+                         ItemNameTT,
+                         LabelFontLbl,
+                         LegendLbl,
+                         LegendFontLbl,
+                         LiveBufferSizeInfoFmt,
+                         LiveData,
+                         LiveSampleBufferSize,
+                         LogScale,
+                         Miscellaneous,
+                         Model_Disconnected,
+                         MoveItemDown,
+                         MoveItemUp,
+                         Name,
+                         NegErrColumn,
+                         NewPlot,
+                         NewPlotFailed,
+                         NewPlotSelectionEmpty,
+                         NewPlotTargetFolderWriteProtected,
+                         NewPlotFileCreateFailed,
+                         NewPlotOverwriteExisting,
+                         NewPlotOverwriteExistingTitle,
+                         NotApplicable,
+                         OpenExportView,
+                         OpenPropertiesView,
+                         OpenSearchView,
+                         OpenWaveformView,
+                         Plot_TimeAxisName,
+                         Plot_ValueAxisName,
+                         Plot_ValueAxisNameFMT,
+                         PointSize,
+                         PointSizeTT,
+                         PointType,
+                         PointTypeTT,
+                         PosErrColumn,
+                         PropertiesTabName,
+                         PVName,
+                         PVUsedInFormulaFmt,
+                         Refresh,
+                         RemoveEmptyAxes,
+                         ReplaceSearchResults,
+                         ReplaceSearchResultsTT,
+                         Request_optimized,
+                         Request_raw,
+                         RequestType,
+                         RequestTypeTT,
+                         RequestTypeWarning,
+                         RequestTypeWarningDetail,
+                         SampleView_Count,
+                         SampleView_Item,
+                         SampleView_Refresh,
+                         SampleView_RefreshTT,
+                         SampleView_SelectItem,
+                         SampleView_Source,
+                         Save,
+                         SaveChangesLbl,
+                         SaveChangesTT,
+                         ScaleFontLbl,
+                         ScanPeriod,
+                         ScanPeriodChangeErrorFmt,
+                         ScanPeriodTT,
+                         ScrollStepLbl,
+                         Search,
+                         SearchChannelFmt,
+                         SearchPattern,
+                         SearchPatternTT,
+                         SearchTT,
+                         SelectTrace,
+                         SeverityColumn,
+                         SeverityStatusFmt,
+                         StartEndDialogBtn,
+                         StartEndDialogTT,
+                         StartTimeLbl,
+                         StartTimeTT,
+                         StatisticsTab,
+                         StatisticsMean,
+                         StatisticsMedian,
+                         StatisticsStdDev,
+                         StatisticsMin,
+                         StatisticsMax,
+                         StatisticsSum,
+                         StatisticsSampleCount,
+                         StatusColumn,
+                         TimeAxis,
+                         TimeColumn,
+                         TitleFontLbl,
+                         TitleLbl,
+                         TitleTT,
+                         TraceDisplayName,
+                         TraceDisplayNameTT,
+                         TraceLineStyle,
+                         TraceLineStyleTT,
+                         TraceLineWidth,
+                         TraceLineWidthTT,
+                         TracesTab,
+                         TraceTableEmpty,
+                         TraceType,
+                         TraceTypeTT,
+                         TraceVisibility,
+                         TraceVisibilityTT,
+                         UpdatePeriodLbl,
+                         URL,
+                         UseAxisName,
+                         UseLines,
+                         UsePoints,
+                         UseTraceNames,
+                         UseUnixTimeStamp,
+                         ValueAxes,
+                         ValueAxisName,
+                         ValueColumn,
+                         WaveformIndex,
+                         WaveformIndexCol,
+                         WaveformIndexColTT,
+                         WaveformStatus,
+                         WaveformTimeSelector,
+                         WaveformTimestamp,
+                         WaveformView,
+                         WaveformViewSelect;
     // ---
     // --- Keep alphabetically sorted and 'in sync' with messages.properties!
     // ---

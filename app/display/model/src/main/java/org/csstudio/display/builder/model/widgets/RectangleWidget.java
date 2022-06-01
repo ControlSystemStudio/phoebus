@@ -7,6 +7,12 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.widgets;
 
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineColor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineStyle;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineWidth;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propTransparent;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -24,8 +30,6 @@ import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.LineStyle;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.w3c.dom.Element;
-
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.*;
 
 /** Widget that displays a static rectangle
  *  @author Kay Kasemir
@@ -49,8 +53,10 @@ public class RectangleWidget extends MacroWidget
         }
     };
 
+    /** 'corner_width' */
     public static final WidgetPropertyDescriptor<Integer> propCornerWidth =
         CommonWidgetProperties.newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "corner_width", Messages.WidgetProperties_CornerWidth);
+    /** 'corner_height' */
     public static final WidgetPropertyDescriptor<Integer> propCornerHeight =
         CommonWidgetProperties.newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "corner_height", Messages.WidgetProperties_CornerHeight);
 
@@ -63,6 +69,7 @@ public class RectangleWidget extends MacroWidget
     private volatile WidgetProperty<Integer> corner_width;
     private volatile WidgetProperty<Integer> corner_height;
 
+    /** Constructor */
     public RectangleWidget()
     {
         super(WIDGET_DESCRIPTOR.getType());

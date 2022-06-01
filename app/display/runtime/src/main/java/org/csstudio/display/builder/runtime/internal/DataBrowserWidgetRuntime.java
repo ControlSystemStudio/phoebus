@@ -49,6 +49,20 @@ public class DataBrowserWidgetRuntime  extends WidgetRuntime<DataBrowserWidget>
         }
     }
 
+    private class RefreshPlotAction extends RuntimeAction
+    {
+        RefreshPlotAction()
+        {
+            super(Messages.Refresh, "/icons/refresh_remote.png");
+        }
+
+        @Override
+        public void run()
+        {
+            widget.runtimePropRefreshPlot().trigger();
+        }
+    }
+
     private final List<RuntimeAction> runtime_actions = new ArrayList<>(3);
     private volatile PV selection_pv = null;
     private volatile WidgetPropertyListener<VType> listener = null;
@@ -62,6 +76,7 @@ public class DataBrowserWidgetRuntime  extends WidgetRuntime<DataBrowserWidget>
         runtime_actions.add(new OpenDataBrowserAction());
         runtime_actions.add(new PrintWidgetAction(widget, Messages.PrintPlot));
         runtime_actions.add(new SaveWidgetSnapshotAction(widget, Messages.SavePlotSnapshot));
+        runtime_actions.add(new RefreshPlotAction());
     }
 
     @Override

@@ -30,6 +30,9 @@ public class MorphWidgetSupport
     final private Widget old_widget;
     final private Widget new_widget;
 
+    /** @param old_widget Original widget
+     *  @param new_widget Morphed widget
+     */
     public MorphWidgetSupport(final Widget old_widget, final Widget new_widget)
     {
         this.old_widget = old_widget;
@@ -67,6 +70,9 @@ public class MorphWidgetSupport
         return check;
     }
 
+    /** @param prop Original property
+     *  @return Morphed property
+     */
     public Optional<WidgetProperty<Object>> morphProperty(final WidgetProperty<?> prop)
     {
         Optional<WidgetProperty<Object>> morphedProperty = checkProperty(prop);

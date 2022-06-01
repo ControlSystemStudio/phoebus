@@ -191,7 +191,7 @@ public class AddPVDialog extends Dialog<Boolean>
     /** Helper for getting or creating an axis
      *  @param model {@link Model}
      *  @param undo {@link UndoableActionManager}
-     *  @param axis_index Axis index from {@link AddPVDialog#getAxisIndex()}
+     *  @param axis_index Axis index from {@link AddPVDialog#getAxisIndex(int)}
      *  @return Corresponding model axis, which might have been created as necessary
      */
     public static AxisConfig getOrCreateAxis(final Model model, final UndoableActionManager undo, final int axis_index)

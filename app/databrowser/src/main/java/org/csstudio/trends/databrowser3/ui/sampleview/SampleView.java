@@ -71,6 +71,7 @@ public class SampleView extends VBox
         }
     }
 
+    /** @param model Model */
     public SampleView(final Model model)
     {
         this.model = model;

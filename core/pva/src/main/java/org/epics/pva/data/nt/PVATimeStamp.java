@@ -22,21 +22,27 @@ public class PVATimeStamp extends PVAStructure
     private final PVALong secs;
     private final PVAInt nano;
 
+    /** 'now' */
     public PVATimeStamp()
     {
         this(Instant.now());
     }
 
+    /** @param time Instant */
     public PVATimeStamp(final Instant time)
     {
         this("timeStamp", time);
     }
 
+    /** @param name Name for 'now' */
     public PVATimeStamp(final String name)
     {
         this(name, Instant.now());
     }
 
+    /** @param name Name
+     *  @param time Time
+     */
     public PVATimeStamp(final String name, final Instant time)
     {
         super(name, "time_t",

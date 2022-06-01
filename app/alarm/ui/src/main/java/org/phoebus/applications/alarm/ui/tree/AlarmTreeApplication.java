@@ -24,7 +24,10 @@ import org.phoebus.framework.spi.AppResourceDescriptor;
 @SuppressWarnings("nls")
 public class AlarmTreeApplication implements AppResourceDescriptor
 {
+    /** Internal app name */
     public static final String NAME = "alarm_tree";
+
+    /** Visible app name */
     public static final String DISPLAY_NAME = "Alarm Tree";
 
     @Override

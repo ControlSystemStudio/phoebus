@@ -56,6 +56,7 @@ public class ArrayWidget extends PVWidget
     /** {@link ChildrenProperty} wrapper that adjusts writing to XML*/
     public static class ArrayWidgetChildrenProperty extends ChildrenProperty
     {
+        /** @param widget Widget */
         public ArrayWidgetChildrenProperty(Widget widget)
         {
             super(widget);
@@ -75,6 +76,7 @@ public class ArrayWidget extends PVWidget
     private volatile WidgetProperty<WidgetColor> background;
     private volatile WidgetProperty<int[]> insets;
 
+    /** Constructor */
     public ArrayWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 100, 300);

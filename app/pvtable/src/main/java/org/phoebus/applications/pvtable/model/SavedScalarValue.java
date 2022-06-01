@@ -29,7 +29,7 @@ public class SavedScalarValue extends SavedValue
     /**
      * Initialize from text
      *
-     * @param value_text
+     * @param value_text Value to save
      */
     public SavedScalarValue(final String value_text)
     {

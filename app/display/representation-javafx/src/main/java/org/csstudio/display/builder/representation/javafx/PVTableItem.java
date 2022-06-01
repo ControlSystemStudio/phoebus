@@ -8,12 +8,6 @@
  */
 package org.csstudio.display.builder.representation.javafx;
 
-import javafx.event.Event;
-import javafx.scene.control.*;
-import javafx.scene.control.TableColumn.CellEditEvent;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-
 import org.csstudio.display.builder.model.properties.ScriptPV;
 import org.phoebus.ui.autocomplete.AutocompleteMenu;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
@@ -23,8 +17,17 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.event.Event;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumn.CellEditEvent;
+import javafx.scene.control.TablePosition;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 
 /**
  * Info class for property-based item table.
@@ -33,12 +36,15 @@ import javafx.scene.Node;
  * @version 1.0.0 7 Feb 2018
  */
 public class PVTableItem {
-
+    /** @param info Script PV
+     *  @return Table item for PV
+     */
     public static PVTableItem forPV ( final ScriptPV info ) {
         return new PVTableItem(info.getName(), info.isTrigger());
     }
-
+    /** Name of PV */
     private final StringProperty  name    = new SimpleStringProperty();
+    /** Does it trigger the script? */
     private final BooleanProperty trigger = new SimpleBooleanProperty(true);
 
     /**
@@ -50,14 +56,17 @@ public class PVTableItem {
         this.trigger.set(trigger);
     }
 
+    /** @return Property for name */
     public StringProperty nameProperty ( ) {
         return name;
     }
 
+    /** @return ScriptPV */
     public ScriptPV toScriptPV ( ) {
         return new ScriptPV(name.get(), trigger.get());
     }
 
+    /** @return Trigger property */
     public BooleanProperty triggerProperty ( ) {
         return trigger;
     }
@@ -72,12 +81,13 @@ public class PVTableItem {
         private final Node             focusedOnCommit;
         private TextField              textField;
 
+        /** @param focusedOnCommit Node on which to focus when done */
         public AutoCompletedTableCell (final Node focusedOnCommit ) {
 
             this.focusedOnCommit = focusedOnCommit;
 
             setAlignment(Pos.CENTER_LEFT);
-            
+
             this.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
                 if (event.getCode() == KeyCode.ESCAPE) {
                     textField.setText(getItem());

@@ -94,11 +94,9 @@ abstract public class ModelItem
         this.uniqueId = UUID.randomUUID().toString();
     }
 
-    public ModelItem(){
-        this.uniqueId = UUID.randomUUID().toString();
-    }
-
-    public String getUniqueId(){
+    /** @return UUID */
+    public String getUniqueId()
+    {
         return uniqueId;
     }
 

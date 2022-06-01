@@ -34,28 +34,34 @@ import org.csstudio.display.builder.model.properties.ScriptsWidgetProperty;
 @SuppressWarnings("nls")
 public class RuleInfo
 {
-
+    /** Expression within a rule */
     public static abstract class ExpressionInfo<T>
     {
         private final String bool_exp;
         private final T prop_val;
 
+        /** @param bool_exp Boolean expression
+         *  @param prop_val Value to use when expression is met
+         */
         public ExpressionInfo(final String bool_exp, final T prop_val)
         {
             this.bool_exp = bool_exp;
             this.prop_val = prop_val;
         }
 
+        /** @return Boolean expression */
         public String getBoolExp()
         {
             return bool_exp;
         }
 
+        /** @return Value to use when expression is met */
         public T getPropVal()
         {
             return prop_val;
         }
 
+        /** @return Is value a widget property, or text? */
         abstract boolean isWidgetProperty();
 
         @Override
@@ -65,8 +71,13 @@ public class RuleInfo
         }
     };
 
+    /** Expression with text as value */
     public static class ExprInfoString extends ExpressionInfo<String> {
 
+        /** Create string-valued rule expression
+         *  @param bool_exp Boolean expression for value to apply
+         *  @param prop_val Value as string
+         */
         public ExprInfoString(String bool_exp, String prop_val)
         {
             super(bool_exp, prop_val);
@@ -79,6 +90,7 @@ public class RuleInfo
         }
     };
 
+    /** Expression with property as value */
     public static class ExprInfoValue<T> extends ExpressionInfo< WidgetProperty<T> > {
 
         /** Instantiate Expression with bool_exp string and widget property value
@@ -102,11 +114,15 @@ public class RuleInfo
         }
     };
 
+    /** Information about a property */
     public static class PropInfo
     {
         private final WidgetProperty<?> prop;
         private final String prop_id;
 
+        /** @param attached_widget Widget
+         *  @param prop_id_str Property ID
+         */
         public PropInfo(final Widget attached_widget, final String prop_id_str)
         {
             prop_id = prop_id_str;
@@ -122,10 +138,12 @@ public class RuleInfo
             prop = check;
         }
 
+        /** @return WidgetProperty */
         public WidgetProperty<?> getProp() {
             return prop;
         }
 
+        /** @return ID of widget property */
         public String getPropID() {
             return prop_id;
         }
@@ -166,7 +184,7 @@ public class RuleInfo
     /** Some properties cannot be the target of rules.
      *  This function takes a widget and returns a list of
      *  valid targets for expressions
-     *  @param attached_widget
+     *  @param attached_widget Widget
      *  @return List of all properties of a widget that a rule can target
      */
     static public List<PropInfo> getTargettableProperties (final Widget attached_widget)
@@ -210,21 +228,27 @@ public class RuleInfo
         return pvs;
     }
 
+    /** @return Name of rule */
     public String getName()
     {
         return name;
     }
 
+    /** @return Property that is updated by this rule */
     public String getPropID()
     {
         return prop_id;
     }
 
+    /** @return Get value or expression? */
     public boolean getPropAsExprFlag()
     {
         return prop_as_expr_flag;
     }
 
+    /** @param attached_widget Widget
+     *  @return Script text (python)
+     */
     public String getTextPy(final Widget attached_widget)
     {
         return RuleToScript.generatePy(attached_widget, this);

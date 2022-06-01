@@ -81,8 +81,21 @@ public class ChannelInfo implements ContextMenuEntry {
 
         // Query channelfinder for selected pvs on a separate thread.
         pvs.forEach(pv -> {
+            // X.DESC, X.VAL$, loc://X(3.14) or pva://X are all valid PV names,
+            // but the channel finder tends to only know about a record "X",
+            // so locate that part of the name
+            String name = pv.getName();
+            int sep = name.lastIndexOf('(');
+            if (sep > 0)
+                name = name.substring(0, sep);
+            sep = name.lastIndexOf('.');
+            if (sep > 0)
+                name = name.substring(0, sep);
+            sep = name.indexOf("://");
+            if (sep >= 0)
+                name = name.substring(sep + 3);
             ChannelSearchJob.submit(this.client,
-                    pv.getName(),
+                    name,
                     result -> Platform.runLater(() -> {
                         controller.addChannels(result);
                     }),

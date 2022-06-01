@@ -38,6 +38,10 @@ class AlarmTreeInstance implements AppInstance
     private AlarmClient client = null;
     private final DockItemWithInput tab;
 
+    /** @param app Application info
+     *  @param input Input to instance
+     *  @throws Exception on error
+     */
     public AlarmTreeInstance(final AlarmTreeApplication app, final URI input) throws Exception
     {
         this.app = app;

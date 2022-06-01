@@ -17,7 +17,7 @@ import java.util.logging.Level;
 import org.phoebus.util.text.CompareNatural;
 
 /** Base class for all nodes in the alarm tree
- *  @param STATE Type used for the alarm state
+ *  @param <STATE> Type used for the alarm state
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -71,7 +71,7 @@ abstract public class AlarmTreeItem<STATE extends BasicState>
         // while we're still inside the constructor and not fully initialized.
         // Construction thus became a 2-step process with need to explicitly
         // call addToParent().
-        
+
         this.name = name;
         this.children = children;
         path_name = AlarmTreePath.makePath(parent_path, name);
@@ -126,13 +126,14 @@ abstract public class AlarmTreeItem<STATE extends BasicState>
                 throw new Error("Corrupt alarm tree, " + p.getPathName() + " is not aware of " + getPathName());
     }
 
+    /** @return Child items */
     public List<AlarmTreeItem<?>> getChildren()
     {
         return children;
     }
 
     /** Locate child element by name.
-     *  @param child_name Name of child to locate.
+     *  @param name Name of child to locate.
      *  @return Child with given name or <code>null</code> if not found.
      */
     public AlarmTreeItem<?> getChild(final String name)
@@ -155,6 +156,7 @@ abstract public class AlarmTreeItem<STATE extends BasicState>
         return null;
     }
 
+    /** @return State */
     abstract public STATE getState();
 
     /** @param guidance Guidance entries
@@ -168,11 +170,15 @@ abstract public class AlarmTreeItem<STATE extends BasicState>
         return true;
     }
 
+    /** @return Guidance */
     public List<TitleDetail> getGuidance()
     {
         return guidance;
     }
 
+    /** @param displays Displays entries
+     *  @return <code>true</code> if displays were changed, <code>false</code> if no change
+     */
     public boolean setDisplays(final List<TitleDetail> displays)
     {
         if (this.displays.equals(displays))
@@ -181,11 +187,15 @@ abstract public class AlarmTreeItem<STATE extends BasicState>
         return true;
     }
 
+    /** @return Displays */
     public List<TitleDetail> getDisplays()
     {
         return displays;
     }
 
+    /** @param commands Command entries
+     *  @return <code>true</code> if commands were changed, <code>false</code> if no change
+     */
     public boolean setCommands(final List<TitleDetail> commands)
     {
         if (this.commands.equals(commands))
@@ -194,11 +204,15 @@ abstract public class AlarmTreeItem<STATE extends BasicState>
         return true;
     }
 
+    /** @return Commands */
     public List<TitleDetail> getCommands()
     {
         return commands;
     }
 
+    /** @param actions Actions entries
+     *  @return <code>true</code> if actions were changed, <code>false</code> if no change
+     */
     public boolean setActions(final List<TitleDetailDelay> actions)
     {
         if (this.actions.equals(actions))
@@ -207,6 +221,7 @@ abstract public class AlarmTreeItem<STATE extends BasicState>
         return true;
     }
 
+    /** @return Actions */
     public List<TitleDetailDelay> getActions()
     {
         return actions;

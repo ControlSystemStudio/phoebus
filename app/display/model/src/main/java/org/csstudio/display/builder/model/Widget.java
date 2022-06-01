@@ -240,7 +240,9 @@ public class Widget
         return "WD" + Integer.toHexString(id);
     }
 
-    /** @return Widget version number */
+    /** Get widget version
+     *  @return Widget version number
+     */
     public Version getVersion()
     {
         return BASE_WIDGET_VERSION;
@@ -335,6 +337,9 @@ public class Widget
        }
     }
 
+    /** Set result of widget configurator
+     *  @param configurator WidgetConfigurator
+     */
     public final void setConfiguratorResult(final WidgetConfigurator configurator)
     {
         if (this.clean != null)

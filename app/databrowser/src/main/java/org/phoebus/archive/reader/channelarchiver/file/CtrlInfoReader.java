@@ -26,6 +26,7 @@ public class CtrlInfoReader
     private Display display; //display, for number/display types
     private List<String> labels; //labels, for enum types
 
+    /** @param offset File offset */
     public CtrlInfoReader(long offset)
     {
         this.offset = offset;
@@ -33,6 +34,9 @@ public class CtrlInfoReader
         labels = null;
     }
 
+    /** @param buffer File buffer
+     *  @throws IOException on error
+     */
     public void read(ArchiveFileBuffer buffer) throws IOException
     {
         long oldOffset = buffer.offset();
@@ -74,6 +78,10 @@ public class CtrlInfoReader
         buffer.offset(oldOffset);
     }
 
+    /** @param buffer File buffer
+     *  @return Display info
+     *  @throws IOException on error
+     */
     public Display getDisplay(ArchiveFileBuffer buffer) throws IOException
     {
         if (display == null)
@@ -81,6 +89,10 @@ public class CtrlInfoReader
         return display;
     }
 
+    /** @param buffer File buffer
+     *  @return Labels
+     *  @throws IOException on error
+     */
     public List<String> getLabels(ArchiveFileBuffer buffer) throws IOException
     {
         if (labels == null)
@@ -88,6 +100,9 @@ public class CtrlInfoReader
         return labels;
     }
 
+    /** @param offset File offset
+     *  @return Is this ctrl info at that offset?
+     */
     public boolean isOffset(long offset)
     {
         return offset == this.offset;

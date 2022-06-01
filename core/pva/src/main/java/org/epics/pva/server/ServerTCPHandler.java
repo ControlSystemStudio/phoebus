@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -64,9 +64,15 @@ class ServerTCPHandler extends TCPHandler
         submit((version, buffer) ->
         {
             logger.log(Level.FINE, () -> "Set byte order " + buffer.order());
+            // Payload size is used as byte order hint
+            // 0xFFFFFFFF: Client needs to check each message for byte order
+            // 0x00000000: Server sends each message in the same byte order,
+            //             but there's still a valid byte order flag,
+            //             so client is free to keep checking each message
+            final int size_used_as_hint = 0x00000000;
             PVAHeader.encodeMessageHeader(buffer,
                     (byte) (PVAHeader.FLAG_CONTROL | PVAHeader.FLAG_SERVER),
-                    PVAHeader.CTRL_SET_BYTE_ORDER, 0);
+                    PVAHeader.CTRL_SET_BYTE_ORDER, size_used_as_hint);
         });
         // .. and requesting connection validation
         submit((version, buffer) ->
@@ -135,13 +141,12 @@ class ServerTCPHandler extends TCPHandler
             super.handleApplicationMessage(command, buffer);
     }
 
-    void submitSearchReply(final Guid guid, final int seq, final int cid)
+    void submitSearchReply(final Guid guid, final int seq, final int cid, final InetSocketAddress server_address)
     {
         final RequestEncoder encoder = (version, buffer) ->
         {
             logger.log(Level.FINER, "Sending TCP search reply");
-            final InetSocketAddress any = new InetSocketAddress(0);
-            SearchResponse.encode(guid, seq, cid, any.getAddress(), any.getPort(), buffer);
+            SearchResponse.encode(guid, seq, cid, server_address.getAddress(), server_address.getPort(), buffer);
         };
         submit(encoder);
     }

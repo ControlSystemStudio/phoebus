@@ -15,12 +15,17 @@ import java.util.Objects;
  *  @author Jacqueline Garrahan
  */
 @SuppressWarnings("nls")
-public class EnabledState 
+public class EnabledState
 {
+    /** Time to (re-)enable */
     public final LocalDateTime enabled_date;
+
+    /** Plain enablement */
     public final boolean enabled;
+
     private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
+    /** @param enabled_date Time to (re-)enable */
     public EnabledState(final LocalDateTime enabled_date)
     {
         if (enabled_date != null) {
@@ -33,12 +38,13 @@ public class EnabledState
         }
     }
 
+    /** @param enabled Plain enablement */
     public EnabledState(final boolean enabled) {
         this.enabled_date = null;
         this.enabled = enabled;
     }
 
-
+    /** @return Time to (re-)enable */
     public String getDateString() {
         return enabled_date.format(formatter);
     }

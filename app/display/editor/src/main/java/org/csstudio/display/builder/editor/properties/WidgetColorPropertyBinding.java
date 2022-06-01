@@ -64,6 +64,11 @@ public class WidgetColorPropertyBinding
         popover.show(jfx_node.getButton());
     };
 
+    /** @param undo Undo manager
+     *  @param field Color property field
+     *  @param widget_property Color property
+     *  @param other Other selected widgets
+     */
     public WidgetColorPropertyBinding(final UndoableActionManager undo,
                                       final WidgetColorPropertyField field,
                                       final ColorWidgetProperty widget_property,

@@ -33,6 +33,10 @@ public class FileBasedAuthorization implements Authorization
     private final Authorizations user_authorizations;
     private final List<String> rules = new ArrayList<>();
 
+    /** @param config_stream File to read
+     *  @param user_name User name
+     *  @throws Exception on error
+     */
     public FileBasedAuthorization(final InputStream config_stream, final String user_name) throws Exception
     {
         this.user_name = user_name;
@@ -58,10 +62,8 @@ public class FileBasedAuthorization implements Authorization
         return new Authorizations(authorizations);
     }
 
-    /**
-     * <p> Returns true if the user's user name matches in the list of users for this action.
-     * @param patterns
-     * @return
+    /** @param patterns User name pattern
+     *  @return Does the user's user name matche any entry in the list of users for this action?
      */
     private boolean userMatchesPattern(List<Pattern> patterns)
     {
@@ -73,10 +75,6 @@ public class FileBasedAuthorization implements Authorization
         return false;
     }
 
-    /**
-     * @return
-     * @throws Exception
-     */
     private Map<String, List<Pattern>> readConfigurationFile(final InputStream config_stream) throws Exception
     {
         final Properties settings = new Properties();

@@ -55,12 +55,17 @@ public class RulesWidgetProperty extends WidgetProperty<List<RuleInfo>>
     };
 
 
+    /** @param widget Widget
+     *  @param prop_id Property ID
+     *  @param dbg_tag "" or text that helps to debug missing property
+     *  @return Widget property
+     */
     public static WidgetProperty<?> propIDToNewProp(final Widget widget,
             final String prop_id, final String dbg_tag)
     {
         try
         {
-	    // Check for plain property (including re-mapped legacy properties)
+            // Check for plain property (including re-mapped legacy properties)
             return widget.getProperty(prop_id).clone();
         }
         catch (Throwable ex)

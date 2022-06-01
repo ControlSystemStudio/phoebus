@@ -159,6 +159,10 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
     }
 
+    /** @param widget Widget
+     *  @param imageFileName File name to resolve
+     *  @return Resolved file name
+     */
     public static String resolveImageFile ( SymbolWidget widget, String imageFileName ) {
 
         try {
@@ -194,6 +198,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
     }
 
+    /** Constructor */
     public SymbolRepresentation ( ) {
         super();
     }

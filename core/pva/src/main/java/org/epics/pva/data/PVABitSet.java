@@ -15,6 +15,9 @@ import java.util.BitSet;
  */
 public class PVABitSet
 {
+    /** @param bits BitSet
+     *  @param buffer Target buffer
+     */
     public static void encodeBitSet(final BitSet bits, final ByteBuffer buffer)
     {
         final byte[] bytes = bits.toByteArray();
@@ -22,6 +25,9 @@ public class PVABitSet
         buffer.put(bits.toByteArray());
     }
 
+    /** @param buffer Source buffer
+     *  @return Decoded bits
+     */
     public static BitSet decodeBitSet(final ByteBuffer buffer)
     {
         final int size = PVASize.decodeSize(buffer);

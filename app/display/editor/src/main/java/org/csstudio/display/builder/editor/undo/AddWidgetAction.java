@@ -25,11 +25,20 @@ public class AddWidgetAction extends UndoableAction
     private final Widget widget;
     private final int index;
 
+    /** @param selection Selection to update
+     *  @param children List of widgets in parent
+     *  @param widget Widget to add
+     */
     public AddWidgetAction(final WidgetSelectionHandler selection, final ChildrenProperty children, final Widget widget)
     {
         this(selection, children, widget, -1);
     }
 
+    /** @param selection Selection to update
+     *  @param children List of widgets in parent
+     *  @param widget Widget to add
+     *  @param index Index where to add in parent's list
+     */
     public AddWidgetAction(final WidgetSelectionHandler selection, final ChildrenProperty children, final Widget widget, final int index)
     {
         super(Messages.AddWidget);

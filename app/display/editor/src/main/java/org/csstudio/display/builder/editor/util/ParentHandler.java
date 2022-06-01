@@ -36,7 +36,7 @@ import javafx.scene.shape.Rectangle;
 @SuppressWarnings("nls")
 public class ParentHandler
 {
-    public static final int PARALLEL_THRESHOLD = 10;
+    private static final int PARALLEL_THRESHOLD = 10;
 
     private volatile DisplayModel model = null;
 
@@ -209,10 +209,10 @@ public class ParentHandler
      *  <p>The widgets in the current selection themselves are ignored
      *  in the search to prevent having a group that's moved locate itself.
      *
-     *  @param x
-     *  @param y
-     *  @param width
-     *  @param height
+     *  @param x X
+     *  @param y Y
+     *  @param width Width
+     *  @param height Height
      *  @see #getActiveParentChildren()
      */
     public void locateParent(final double x, final double y, final double width, final double height)

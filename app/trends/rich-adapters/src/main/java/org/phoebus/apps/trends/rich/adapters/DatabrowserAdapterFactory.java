@@ -1,5 +1,7 @@
 package org.phoebus.apps.trends.rich.adapters;
 
+import static org.phoebus.logbook.LogEntryImpl.LogEntryBuilder.log;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -16,11 +18,9 @@ import org.phoebus.applications.email.EmailEntry;
 import org.phoebus.framework.adapter.AdapterFactory;
 import org.phoebus.logbook.AttachmentImpl;
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
 import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.ui.javafx.Screenshot;
-import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
-
-import static org.phoebus.logbook.LogEntryImpl.LogEntryBuilder.log;
 
 /**
  * A factory which adapts {@link DatabrowserSelection}s to {@link EmailEntry}s
@@ -114,7 +114,7 @@ public class DatabrowserAdapterFactory implements AdapterFactory {
             file.deleteOnExit();
             try (FileOutputStream fileOutputStream = new FileOutputStream(file);)
             {
-                databrowserSelection.getPlotFile(fileOutputStream);
+                databrowserSelection.writePlotFile(fileOutputStream);
             }
         } catch (IOException e)
         {

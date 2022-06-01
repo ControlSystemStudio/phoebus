@@ -72,6 +72,7 @@ public class TextEntryWidget extends WritablePVWidget
         }
     };
 
+    /** 'multi_line' */
     public static final WidgetPropertyDescriptor<Boolean> propMultiLine =
         newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "multi_line", Messages.WidgetProperties_MultiLine);
 
@@ -213,6 +214,7 @@ public class TextEntryWidget extends WritablePVWidget
     private volatile WidgetProperty<HorizontalAlignment> horizontal_alignment;
     private volatile WidgetProperty<VerticalAlignment> vertical_alignment;
 
+    /** Constructor */
     public TextEntryWidget()
     {
         super(WIDGET_DESCRIPTOR.getType());

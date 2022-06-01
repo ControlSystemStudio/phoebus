@@ -7,6 +7,18 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.widgets;
 
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propEnabled;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFormat;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propIncrement;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLimitsFromPV;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMaximum;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMinimum;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPrecision;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propShowUnits;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -27,8 +39,6 @@ import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.phoebus.ui.vtype.FormatOption;
-
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.*;
 
 /** Widget that represents a spinner
  *  @author Amanda Carpenter
@@ -51,6 +61,7 @@ public class SpinnerWidget extends WritablePVWidget
             }
         };
 
+    /** 'buttons_on_left' */
     public static final WidgetPropertyDescriptor<Boolean> propButtonsOnLeft =
             CommonWidgetProperties.newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "buttons_on_left", Messages.Spinner_ButtonsOnLeft);
 
@@ -69,6 +80,7 @@ public class SpinnerWidget extends WritablePVWidget
     private volatile WidgetProperty<Boolean> enabled;
     private volatile WidgetProperty<WidgetFont> font;
 
+    /** Constructor */
     public SpinnerWidget()
     {
         super(WIDGET_DESCRIPTOR.getType());
@@ -164,6 +176,7 @@ public class SpinnerWidget extends WritablePVWidget
         return enabled;
     }
 
+    /** @return 'font' property */
     public WidgetProperty<WidgetFont> propFont()
     {
         return font;

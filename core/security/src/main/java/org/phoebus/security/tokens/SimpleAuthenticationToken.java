@@ -2,7 +2,7 @@ package org.phoebus.security.tokens;
 
 /**
  * A simple authentication token with a username and password
- * 
+ *
  * @author Kunal Shroff
  *
  */
@@ -13,8 +13,8 @@ public class SimpleAuthenticationToken {
 
     /**
      * Construct a simple authentication token with the given username and password
-     * @param username
-     * @param password
+     * @param username User name
+     * @param password Password
      */
     public SimpleAuthenticationToken(String username, String password) {
         super();

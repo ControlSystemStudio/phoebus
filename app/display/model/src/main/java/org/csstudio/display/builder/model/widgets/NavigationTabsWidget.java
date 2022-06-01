@@ -67,6 +67,9 @@ public class NavigationTabsWidget extends VisibleWidget
     /** Structure for one tab item and its embedded display */
     public static class TabProperty extends StructuredWidgetProperty
     {
+        /** @param widget Widget
+         *  @param index Tab index 0, 1, ...
+         */
         public TabProperty(final Widget widget, final int index)
         {
             super(propTab, widget,
@@ -76,9 +79,13 @@ public class NavigationTabsWidget extends VisibleWidget
                                 propGroupName.createProperty(widget, "")
                                ));
         }
+        /** @return Tab name */
         public WidgetProperty<String>       name()    { return getElement(0); }
+        /** @return File to embed in tab */
         public WidgetProperty<String>       file()    { return getElement(1); }
+        /** @return Macros for file */
         public WidgetProperty<Macros>       macros()  { return getElement(2); }
+        /** @return Optional sub-group of file */
         public WidgetProperty<String>       group()   { return getElement(3); }
     }
 
@@ -108,6 +115,7 @@ public class NavigationTabsWidget extends VisibleWidget
     private volatile WidgetProperty<Integer> active;
     private volatile WidgetProperty<DisplayModel> embedded_model;
 
+    /** Constructor */
     public NavigationTabsWidget()
     {
         // Default size similar to embedded display, plus space for tabs

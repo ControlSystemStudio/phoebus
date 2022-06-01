@@ -26,6 +26,11 @@ public class FlipFlopPV extends SimulatedPV
     private static final EnumDisplay display = EnumDisplay.of(labels);
     private int value = 0;
 
+    /** @param name Name
+     *  @param parameters Parameters
+     *  @return PV
+     *  @throws Exception on error
+     */
     public static PV forParameters(final String name, final List<Double> parameters) throws Exception
     {
         if (parameters.size() <= 0)
@@ -35,6 +40,9 @@ public class FlipFlopPV extends SimulatedPV
         throw new Exception("sim://flipflop needs no parameters or (update_seconds)");
     }
 
+    /** @param name Name
+     *  @param update_seconds Seconds between updates
+     */
     public FlipFlopPV(final String name, final double update_seconds)
     {
         super(name);

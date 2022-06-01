@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,8 +23,8 @@ import static org.csstudio.display.builder.model.widgets.plots.PlotWidgetPropert
 import static org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.traceYAxis;
 
 import java.util.Arrays;
-import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -64,7 +64,7 @@ public class StripchartWidget extends VisibleWidget
 {
     /** Matcher for detecting legacy property names */
     private static final Pattern LEGACY_TRACE_PATTERN = Pattern.compile("trace_([0-9]+)_([a-z_]+)");
-    
+
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("stripchart", WidgetCategory.PLOT,
@@ -80,9 +80,11 @@ public class StripchartWidget extends VisibleWidget
         }
     };
 
+    /** 'time_range' */
     public static final WidgetPropertyDescriptor<String> propTimeRange =
         CommonWidgetProperties.newStringPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "time_range", Messages.Stripchart_TimeRange);
 
+    /** 'label_font' */
     public static final WidgetPropertyDescriptor<WidgetFont> propLabelFont =
         new WidgetPropertyDescriptor<>(WidgetPropertyCategory.DISPLAY, "label_font", Messages.Stripchart_LabelFont)
     {
@@ -94,9 +96,14 @@ public class StripchartWidget extends VisibleWidget
         }
     };
 
-    // 'axis' structure
+    /** 'axis' structure */
     public static class AxisWidgetProperty extends StructuredWidgetProperty
     {
+        /** @param descriptor Typically 'propYAxis'
+         *  @param widget Widget
+         *  @param title_text Intitial axis title
+         *  @return Axis property
+         */
         public static AxisWidgetProperty create(final StructuredWidgetProperty.Descriptor descriptor, final Widget widget, final String title_text)
         {
             return new AxisWidgetProperty(descriptor, widget,
@@ -115,16 +122,23 @@ public class StripchartWidget extends VisibleWidget
             super(axis_descriptor, widget, elements);
         }
 
+        /** @return Title  */
         public WidgetProperty<String> title()           { return getElement(0); }
+        /** @return Is auto-scaling? */
         public WidgetProperty<Boolean> autoscale()      { return getElement(1); }
+        /** @return Is log scale? */
         public WidgetProperty<Boolean> logscale()       { return getElement(2); }
+        /** @return Minimum axis value */
         public WidgetProperty<Double> minimum()         { return getElement(3); }
+        /** @return Maximum axis value */
         public WidgetProperty<Double> maximum()         { return getElement(4); }
+        /** @return Show grid? */
         public WidgetProperty<Boolean> grid()           { return getElement(5); }
+        /** @return Show axis? */
         public WidgetProperty<Boolean> visible()        { return getElement(6); }
     };
 
-    // 'y_axes' array
+    /** 'y_axes' array */
     public static final ArrayWidgetProperty.Descriptor<AxisWidgetProperty> propYAxes =
         new ArrayWidgetProperty.Descriptor<>(WidgetPropertyCategory.BEHAVIOR, "y_axes", Messages.PlotWidget_YAxes,
                                              (widget, index) ->
@@ -137,6 +151,9 @@ public class StripchartWidget extends VisibleWidget
     /** 'trace' structure */
     public static class TraceWidgetProperty extends StructuredWidgetProperty
     {
+        /** @param widget Widget
+         *  @param index Trace index 0, 1, ...
+         */
         public TraceWidgetProperty(final Widget widget, final int index)
         {
             super(propTrace, widget,
@@ -150,14 +167,23 @@ public class StripchartWidget extends VisibleWidget
                               tracePointSize.createProperty(widget, 10),
                               CommonWidgetProperties.propVisible.createProperty(widget, true)));
         }
+        /** @return Name of trace  */
         public WidgetProperty<String> traceName()                   { return getElement(0); }
+        /** @return PV with data for trace */
         public WidgetProperty<String> traceYPV()                    { return getElement(1); }
+        /** @return Y axis to use for this trace */
         public WidgetProperty<Integer> traceYAxis()                 { return getElement(2); }
+        /** @return Trace type */
         public WidgetProperty<PlotWidgetTraceType> traceType()      { return getElement(3); }
+        /** @return Trace color */
         public WidgetProperty<WidgetColor> traceColor()             { return getElement(4); }
+        /** @return Trace line width */
         public WidgetProperty<Integer> traceWidth()                 { return getElement(5); }
+        /** @return Trace point type */
         public WidgetProperty<PlotWidgetPointType> tracePointType() { return getElement(6); }
+        /** @return Trace point size */
         public WidgetProperty<Integer> tracePointSize()             { return getElement(7); }
+        /** @return Is trace visible? */
         public WidgetProperty<Boolean> traceVisible()               { return getElement(8); }
     };
 
@@ -247,7 +273,7 @@ public class StripchartWidget extends VisibleWidget
 
     /** Legacy properties that have already triggered a warning */
     private final CopyOnWriteArraySet<String> warnings_once = new CopyOnWriteArraySet<>();
-    
+
     /** Configurator that handles legacy properties */
     private static class Configurator extends WidgetConfigurator
     {
@@ -410,8 +436,9 @@ public class StripchartWidget extends VisibleWidget
     private volatile ArrayWidgetProperty<TraceWidgetProperty> traces;
     private volatile RuntimeEventProperty configure;
     private volatile RuntimeEventProperty open_full;
+    private volatile RuntimeEventProperty refresh_plot;
 
-
+    /** Constructor */
     public StripchartWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 400, 300);
@@ -441,6 +468,7 @@ public class StripchartWidget extends VisibleWidget
         properties.add(traces = propTraces.createProperty(this, Arrays.asList(new TraceWidgetProperty(this, 0))));
         properties.add(configure = (RuntimeEventProperty) runtimePropConfigure.createProperty(this, null));
         properties.add(open_full = (RuntimeEventProperty) DataBrowserWidget.runtimePropOpenFull.createProperty(this, null));
+        properties.add(refresh_plot = (RuntimeEventProperty) DataBrowserWidget.runtimePropRefreshPlot.createProperty(this, null));
     }
 
     @Override
@@ -465,10 +493,10 @@ public class StripchartWidget extends VisibleWidget
                 logger.log(Level.WARNING, "Deprecated access to " + this + " property '" + name + "'. Use '" + new_name + "'");
             return getProperty(new_name);
         }
-	
+
         return super.getProperty(name);
     }
-    
+
     /** @return 'background_color' property */
     public WidgetProperty<WidgetColor> propBackground()
     {
@@ -551,5 +579,11 @@ public class StripchartWidget extends VisibleWidget
     public RuntimeEventProperty runtimePropOpenDataBrowser()
     {
         return open_full;
+    }
+
+    /** @return 'refresh_plot' property */
+    public RuntimeEventProperty runtimePropRefreshPlot()
+    {
+        return refresh_plot;
     }
 }

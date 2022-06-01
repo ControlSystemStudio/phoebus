@@ -21,17 +21,32 @@ import org.phoebus.util.time.TimestampFormats;
 @SuppressWarnings("nls")
 public class AlarmState extends BasicState
 {
+    /** Alarm status message */
     public final String message;
+    /** Alarm value */
     public final String value;
+    /** Alarm time */
     public final Instant time;
+    /** Did alarm just latch? */
     public final boolean latch;
 
+    /** @param severity Alarm severity
+     *  @param message Alarm status message
+     *  @param value Alarm value
+     *  @param time Alarm time
+     */
     public AlarmState(final SeverityLevel severity, final String message,
                       final String value, final Instant time)
     {
         this(severity, message,value, time, false);
     }
 
+    /** @param severity Alarm severity
+     *  @param message Alarm status message
+     *  @param value Alarm value
+     *  @param time Alarm time
+     *  @param latch Did alarm just latch?
+     */
     public AlarmState(final SeverityLevel severity, final String message,
                       final String value, final Instant time,
                       final boolean latch)
@@ -101,6 +116,7 @@ public class AlarmState extends BasicState
     }
 
     /** Create alarm state that's all OK with the current time stamp
+     *  @param value Value that cleared the alarm
      *  @return AlarmState
      */
     public static AlarmState createClearState(final String value)
@@ -110,7 +126,7 @@ public class AlarmState extends BasicState
 
     /** Create an alarm state similar to current one but with updated severity
      *  @param new_severity Severity to use for created alarm state
-     *  @return AlarmState
+     *  @return Updated AlarmState
      */
     public AlarmState createUpdatedState(final SeverityLevel new_severity)
     {
@@ -120,7 +136,8 @@ public class AlarmState extends BasicState
     /** Change 'active' alarm severity into 'acknowledged' type, relaxing
      *  to the severity of the current state in case that's already lower
      *  than the original alarm state.
-     *  @param current_state
+     *  @param current_state Most recent live state
+     *  @return Acknowledged state
      */
     public AlarmState createAcknowledged(final AlarmState current_state)
     {
@@ -159,7 +176,9 @@ public class AlarmState extends BasicState
         }
     }
 
-    /** Change acknowledged alarm severity into active type */
+    /** Change acknowledged alarm severity into active type
+     *  @return Un-acknowledged variant of this alarm state
+     */
     public AlarmState createUnacknowledged()
     {
         switch (severity)

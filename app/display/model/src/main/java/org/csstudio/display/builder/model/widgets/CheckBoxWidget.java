@@ -35,10 +35,10 @@ import org.csstudio.display.builder.model.properties.ConfirmDialog;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 
-@SuppressWarnings("nls")
 /** Widget that can read/write a bit in a PV
  *  @author Amanda Carpenter
  */
+@SuppressWarnings("nls")
 public class CheckBoxWidget extends WritablePVWidget
 {
     /** Widget descriptor */
@@ -89,6 +89,7 @@ public class CheckBoxWidget extends WritablePVWidget
         properties.add(password = propPassword.createProperty(this, ""));
     }
 
+    /** Constructor */
     public CheckBoxWidget()
     {
         super(WIDGET_DESCRIPTOR.getType());

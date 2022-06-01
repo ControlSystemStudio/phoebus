@@ -17,6 +17,7 @@ import org.phoebus.framework.preferences.Preference;
 @SuppressWarnings("nls")
 public class Preferences
 {
+    /** Preference setting */
     @Preference public static int performance_log_period_secs, performance_log_threshold_ms,
                       update_accumulation_time, update_delay, plot_update_delay, image_update_delay,
                       tooltip_length, embedded_timeout;

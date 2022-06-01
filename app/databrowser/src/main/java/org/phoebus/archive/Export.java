@@ -71,6 +71,9 @@ public class Export
         System.out.println("All other file name endings create tab-separated data files.");
     }
 
+    /** @param original_args Command line parameters
+     *  @throws Exception on error
+     */
     public static void main(final String[] original_args) throws Exception
     {
         final String archives = Preferences.archives

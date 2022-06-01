@@ -20,6 +20,9 @@ public class AddArrayElementAction<WPE extends WidgetProperty<?>> extends Undoab
     private final ArrayWidgetProperty<WPE> property;
     private final WPE element;
 
+    /** @param property Array property
+     *  @param element Element to add
+     */
     public AddArrayElementAction(final ArrayWidgetProperty<WPE> property, final WPE element)
     {
         super(Messages.AddElement);

@@ -32,6 +32,10 @@ public class PVA_PV extends PV
     private final PVAChannel channel;
     final PVNameHelper name_helper;
 
+    /** @param name Full PV name with prefix and initializer
+     *  @param base_name Base name
+     *  @throws Exception on error
+     */
     public PVA_PV(final String name, final String base_name) throws Exception
     {
         super(name);

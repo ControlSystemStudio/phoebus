@@ -43,6 +43,7 @@ public class PolylineRepresentation extends PolyBaseRepresentation<Group, Polyli
         return new Group(polyline, new Arrow(), new Arrow());
     }
 
+    /** Polygon for arrow */
     public static class Arrow extends Polygon
     {
         /** Adjust points of arrow

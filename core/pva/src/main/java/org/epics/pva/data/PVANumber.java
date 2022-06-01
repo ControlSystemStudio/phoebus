@@ -13,6 +13,7 @@ package org.epics.pva.data;
 @SuppressWarnings("nls")
 abstract public class PVANumber extends PVAData
 {
+    /** @param name Name for data item */
     protected PVANumber(final String name)
     {
         super(name);

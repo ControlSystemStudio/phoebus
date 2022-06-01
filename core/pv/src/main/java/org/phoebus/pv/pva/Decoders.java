@@ -315,11 +315,19 @@ public class Decoders
         return Display.of(display, alarm, warn, control, units, format);
     }
 
+    /** @param struct Structure
+     *  @param field Field
+     *  @return Text for that field's value
+     */
     public static VType decodeString(PVAStructure struct, PVAString field)
     {
         return VString.of(field.get(), decodeAlarm(struct), decodeTime(struct));
     }
 
+    /** @param struct Structure for enum
+     *  @return VEnum
+     *  @throws Exception on error
+     */
     public static VEnum decodeEnum(final PVAStructure struct) throws Exception
     {
         final Alarm alarm = decodeAlarm(struct);
@@ -332,16 +340,28 @@ public class Decoders
         return VEnum.of(value, EnumDisplay.of(choices.get()), alarm, time);
     }
 
+    /** @param struct Structure
+     *  @param field Field for double
+     *  @return VDouble
+     */
     public static VType decodeDouble(final PVAStructure struct, final PVADouble field)
     {
         return VDouble.of(field.get(), decodeAlarm(struct), decodeTime(struct), decodeDisplay(struct));
     }
 
+    /** @param struct Structure
+     *  @param field Field for float
+     *  @return VFloat
+     */
     public static VType decodeFloat(final PVAStructure struct, final PVAFloat field)
     {
         return VFloat.of(field.get(), decodeAlarm(struct), decodeTime(struct), decodeDisplay(struct));
     }
 
+    /** @param struct Structure
+     *  @param field Field for long
+     *  @return VLong
+     */
     public static VType decodeLong(final PVAStructure struct, final PVALong field)
     {
         if (field.isUnsigned())
@@ -349,6 +369,10 @@ public class Decoders
         return VLong.of(field.get(), decodeAlarm(struct), decodeTime(struct), decodeDisplay(struct));
     }
 
+    /** @param struct Structure
+     *  @param field Field for int
+     *  @return VInt
+     */
     public static VType decodeInt(final PVAStructure struct, final PVAInt field)
     {
         if (field.isUnsigned())
@@ -356,6 +380,10 @@ public class Decoders
         return VInt.of(field.get(), decodeAlarm(struct), decodeTime(struct), decodeDisplay(struct));
     }
 
+    /** @param struct Structure
+     *  @param field Field for short
+     *  @return VShort
+     */
     public static VType decodeShort(final PVAStructure struct, final PVAShort field)
     {
         if (field.isUnsigned())
@@ -363,6 +391,10 @@ public class Decoders
         return VShort.of(field.get(), decodeAlarm(struct), decodeTime(struct), decodeDisplay(struct));
     }
 
+    /** @param struct Structure
+     *  @param field Field for byte
+     *  @return VByte
+     */
     public static VType decodeByte(final PVAStructure struct, final PVAByte field)
     {
         if (field.isUnsigned())
@@ -370,18 +402,30 @@ public class Decoders
         return VByte.of(field.get(), decodeAlarm(struct), decodeTime(struct), decodeDisplay(struct));
     }
 
+    /** @param struct Structure
+     *  @param field Field for double array
+     *  @return VDoubleArray
+     */
     public static VType decodeDoubleArray(final PVAStructure struct, final PVADoubleArray field)
     {
         return VDoubleArray.of(ArrayDouble.of(field.get()),
                                decodeAlarm(struct), decodeTime(struct), decodeDisplay(struct));
     }
 
+    /** @param struct Structure
+     *  @param field Field for float array
+     *  @return VFloatArray
+     */
     public static VType decodeFloatArray(final PVAStructure struct, final PVAFloatArray field)
     {
         return VFloatArray.of(ArrayFloat.of(field.get()),
                               decodeAlarm(struct), decodeTime(struct), decodeDisplay(struct));
     }
 
+    /** @param struct Structure
+     *  @param field Field for long array
+     *  @return VLongArray
+     */
     public static VType decodeLongArray(final PVAStructure struct, final PVALongArray field)
     {
         if (field.isUnsigned())
@@ -392,6 +436,10 @@ public class Decoders
                                  decodeAlarm(struct), decodeTime(struct), decodeDisplay(struct));
     }
 
+    /** @param struct Structure
+     *  @param field Field for int array
+     *  @return VIntArray
+     */
     public static VType decodeIntArray(final PVAStructure struct, final PVAIntArray field)
     {
         if (field.isUnsigned())
@@ -402,6 +450,10 @@ public class Decoders
                                 decodeAlarm(struct), decodeTime(struct), decodeDisplay(struct));
     }
 
+    /** @param struct Structure
+     *  @param field Field for short array
+     *  @return VShortArray
+     */
     public static VType decodeShortArray(final PVAStructure struct, final PVAShortArray field)
     {
         if (field.isUnsigned())
@@ -412,6 +464,10 @@ public class Decoders
                                   decodeAlarm(struct), decodeTime(struct), decodeDisplay(struct));
     }
 
+    /** @param struct Structure
+     *  @param field Field for byte array
+     *  @return VByteArray
+     */
     public static VType decodeByteArray(final PVAStructure struct, final PVAByteArray field)
     {
         if (field.isUnsigned())
@@ -422,11 +478,20 @@ public class Decoders
                                  decodeAlarm(struct), decodeTime(struct), decodeDisplay(struct));
     }
 
+    /** @param struct Structure
+     *  @param field Field for string array
+     *  @return VStringArray
+     */
     public static VType decodeStringArray(final PVAStructure struct, final PVAStringArray field)
     {
         return VStringArray.of(Arrays.asList(field.get()), decodeAlarm(struct), decodeTime(struct));
     }
 
+    /** @param struct Structure
+     *  @param field Field for number
+     *  @return VType for number
+     *  @throws Exception on error
+     */
     public static VType decodeNumber(final PVAStructure struct, final PVANumber field) throws Exception
     {
         if (field instanceof PVADouble)
@@ -444,6 +509,11 @@ public class Decoders
         throw new Exception("Cannot handle " + field.getClass().getName());
     }
 
+    /** @param struct Structure
+     *  @param field Field for numeric array
+     *  @return VType for number array
+     *  @throws Exception on error
+     */
     public static VType decodeArray(final PVAStructure struct, final PVAArray field) throws Exception
     {
         if (field instanceof PVADoubleArray)

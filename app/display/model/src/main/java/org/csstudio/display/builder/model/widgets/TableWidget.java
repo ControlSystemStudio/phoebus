@@ -101,8 +101,12 @@ public class TableWidget extends VisibleWidget
     private static final StructuredWidgetProperty.Descriptor propColumn =
         new Descriptor(WidgetPropertyCategory.DISPLAY, "column", "Column");
 
+    /** Configuration of one table column */
     public static class ColumnProperty extends StructuredWidgetProperty
     {
+        /** @param widget Widget
+         *  @param name Column name
+         */
         public ColumnProperty(final Widget widget, final String name)
         {
             super(propColumn, widget,
@@ -112,9 +116,13 @@ public class TableWidget extends VisibleWidget
                                 propOptions.createProperty(widget, Collections.emptyList())));
         }
 
+        /** @return Column name (header) */
         public WidgetProperty<String> name()                          { return getElement(0); }
+        /** @return Column width */
         public WidgetProperty<Integer> width()                        { return getElement(1); }
+        /** @return Is column editable? */
         public WidgetProperty<Boolean> editable()                     { return getElement(2); }
+        /** @return Options for enum-based column with fixed set of values */
         public ArrayWidgetProperty<WidgetProperty<String>> options()  { final WidgetProperty<List<WidgetProperty<String>>> prop = getElement(3);
                                                                         return (ArrayWidgetProperty<WidgetProperty<String>>)prop;
                                                                       }
@@ -299,6 +307,7 @@ public class TableWidget extends VisibleWidget
     private volatile WidgetProperty<VType> selection;
     private volatile WidgetProperty<List<Integer>> set_selection;
 
+    /** Constructor */
     public TableWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 500, 300);

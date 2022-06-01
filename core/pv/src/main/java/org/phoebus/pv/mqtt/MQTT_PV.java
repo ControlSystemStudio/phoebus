@@ -140,7 +140,7 @@ public class MQTT_PV extends PV
 
     /**
      * This is QoS 0 with retention (fire and forget)
-     * @see org.csstudio.vtype.pv.PV#write(java.lang.Object)
+     * @param new_value Value to write
      */
     @Override
     public void write(final Object new_value) throws Exception
@@ -184,6 +184,9 @@ public class MQTT_PV extends PV
 
     /**
      * Called when a message arrives from a subscribed topic
+     * @param topic Topic
+     * @param msg Message
+     * @throws Exception on error
      */
     public void messageArrived(String topic, MqttMessage msg) throws Exception
     {

@@ -35,6 +35,7 @@ public class DisplayWidgetStats
     private int scripts = 0;
     private int total = 0;
 
+    /** @param model Display for which to create statistics */
     public DisplayWidgetStats(final DisplayModel model)
     {
         countWidgets(model);

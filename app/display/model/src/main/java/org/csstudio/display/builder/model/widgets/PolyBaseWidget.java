@@ -17,11 +17,11 @@ import org.csstudio.display.builder.model.properties.Points;
 /** Base for widgets that display points
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public abstract class PolyBaseWidget extends MacroWidget
 {
     private volatile WidgetProperty<Points> points;
 
+    /** @param type Polygon or polyline */
     public PolyBaseWidget(final String type)
     {
         super(type);

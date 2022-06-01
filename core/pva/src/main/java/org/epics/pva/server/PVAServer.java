@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,7 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentHashMap.KeySetView;
 import java.util.concurrent.ForkJoinPool;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 import org.epics.pva.data.PVAStructure;
@@ -34,6 +35,7 @@ import org.epics.pva.data.PVAStructure;
 @SuppressWarnings("nls")
 public class PVAServer implements AutoCloseable
 {
+    /** Common thread pool */
     public static ForkJoinPool POOL = ForkJoinPool.commonPool();
 
     private final Guid guid = new Guid();
@@ -82,6 +84,12 @@ public class PVAServer implements AutoCloseable
         custom_search_handler = search_handler;
         udp = new ServerUDPHandler(this);
         tcp = new ServerTCPListener(this);
+    }
+
+    /** @return TCP address and port where server is accepting clients */
+    public InetSocketAddress getTCPAddress()
+    {
+        return tcp.getResponseAddress();
     }
 
     /** Create a read-only PV which serves data to clients
@@ -148,30 +156,43 @@ public class PVAServer implements AutoCloseable
         return pv_by_sid.get(sid);
     }
 
+    /** Special address used in TCP search reply to indicate "Use this TCP connection" */
+    private static final InetSocketAddress USE_THIS_TCP_CONNECTION = new InetSocketAddress(0);
+
     /** Handle a search request, i.e. send reply
      *
      *  @param seq Client's search request sequence number
      *  @param cid Client's channel ID
      *  @param name PV Name
-     *  @param addr Client's UDP reply address
+     *  @param client Client's UDP reply address
      *  @param tcp_connection Optional TCP connection for search received via TCP, else <code>null</code>
      *  @return
      */
     boolean handleSearchRequest(final int seq, final int cid, final String name,
-                                final InetSocketAddress addr,
+                                final InetSocketAddress client,
                                 final ServerTCPHandler tcp_connection)
     {
+        final Consumer<InetSocketAddress> send_search_reply = server_address ->
+        {
+            // If received via TCP, reply via same connection.
+            if (tcp_connection != null)
+                tcp_connection.submitSearchReply(guid, seq, cid, server_address);
+            else
+                // Otherwise reply via UDP to the given address.
+                POOL.execute(() -> udp.sendSearchReply(guid, seq, cid, server_address, client));
+        };
+
         // Does custom handler consume the search request?
         if (custom_search_handler != null  &&
-            custom_search_handler.handleSearchRequest(seq, cid, name, addr))
+            custom_search_handler.handleSearchRequest(seq, cid, name, client, send_search_reply))
             return true;
 
         if (cid < 0)
         {   // 'List servers' search, no specific name
             if (tcp_connection != null)
-                tcp_connection.submitSearchReply(guid, seq, -1);
+                tcp_connection.submitSearchReply(guid, seq, -1, USE_THIS_TCP_CONNECTION);
             else
-                POOL.execute(() -> udp.sendSearchReply(guid, 0, -1, tcp, addr));
+                POOL.execute(() -> udp.sendSearchReply(guid, 0, -1, getTCPAddress(), client));
             return true;
         }
         else
@@ -183,12 +204,12 @@ public class PVAServer implements AutoCloseable
                 // Reply with TCP connection info
                 logger.log(Level.FINE, () -> "Received Search for known PV " + pv);
 
-                // If received via TCP, reply via same connection.
+                // If received via TCP, ask client to continue on same connection.
+                // Otherwise provide the TCP address for the UDP request.
                 if (tcp_connection != null)
-                    tcp_connection.submitSearchReply(guid, seq, cid);
+                    send_search_reply.accept(USE_THIS_TCP_CONNECTION);
                 else
-                    // Otherwise reply via UDP to the given address.
-                    POOL.execute(() -> udp.sendSearchReply(guid, seq, cid, tcp, addr));
+                    send_search_reply.accept(getTCPAddress());
                 return true;
             }
             else

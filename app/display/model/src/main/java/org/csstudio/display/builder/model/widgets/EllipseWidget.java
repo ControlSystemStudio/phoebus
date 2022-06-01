@@ -52,6 +52,7 @@ public class EllipseWidget extends MacroWidget
     private volatile WidgetProperty<Integer> line_width;
     private volatile WidgetProperty<LineStyle> line_style;
 
+    /** Constructor */
     public EllipseWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 100, 50);

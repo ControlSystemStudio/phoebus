@@ -20,6 +20,11 @@ public class SinePV extends SimulatedDoublePV
     private final double min, range, step;
     private double x = 0;
 
+    /** @param name Name
+     *  @param parameters Parameters
+     *  @return PV
+     *  @throws Exception on error
+     */
     public static PV forParameters(final String name, List<Double> parameters) throws Exception
     {
         if (parameters.isEmpty())
@@ -31,6 +36,12 @@ public class SinePV extends SimulatedDoublePV
         throw new Exception("sim://sine needs no parameters or (min, max, update_seconds) or (min, max, steps, update_seconds)");
     }
 
+    /** @param name Name
+     *  @param min Minimum value
+     *  @param max Maximum value
+     *  @param steps Number of steps between min and max
+     *  @param update_seconds Seconds between updates
+     */
     public SinePV(final String name, final double min, final double max, final double steps, final double update_seconds)
     {
         super(name);

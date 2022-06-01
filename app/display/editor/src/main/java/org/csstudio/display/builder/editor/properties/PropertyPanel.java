@@ -42,8 +42,7 @@ public class PropertyPanel extends BorderPane
     private final PropertyPanelSection section;
     private final TextField            searchField = new ClearingTextField();
 
-    /** @param selection Selection handler
-     *  @param undo 'Undo' manager
+    /** @param editor {@link DisplayEditor}
      */
     public PropertyPanel (final DisplayEditor editor)
     {

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -84,14 +84,21 @@ public class DataBrowserWidget extends MacroWidget
         }
     }
 
+    /** 'selection_value_pv' */
     public static final WidgetPropertyDescriptor<String> propSelectionValuePV =
         CommonWidgetProperties.newStringPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "selection_value_pv", Messages.PlotWidget_SelectionValuePV);
 
+    /** 'selection_value' */
     public static final WidgetPropertyDescriptor<VType> propSelectionValue =
         CommonWidgetProperties.newRuntimeValue("selection_value", "Selection Value");
 
+    /** 'open_full' */
     public static final WidgetPropertyDescriptor<Instant> runtimePropOpenFull =
             CommonWidgetProperties.newRuntimeEvent("open_full", "Open Full Data Browser");
+
+    /** 'refresh_plot' */
+    public static final WidgetPropertyDescriptor<Instant> runtimePropRefreshPlot =
+            CommonWidgetProperties.newRuntimeEvent("refresh_plot", "Refresh Plot");
 
     private volatile WidgetProperty<Boolean> show_toolbar;
     private volatile WidgetProperty<String> file;
@@ -99,7 +106,9 @@ public class DataBrowserWidget extends MacroWidget
     private volatile WidgetProperty<String> selection_value_pv;
     private volatile WidgetProperty<VType> selection_value;
     private volatile RuntimeEventProperty open_full;
+    private volatile RuntimeEventProperty refresh_plot;
 
+    /** Constructor */
     public DataBrowserWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 400, 300);
@@ -115,6 +124,7 @@ public class DataBrowserWidget extends MacroWidget
         properties.add(selection_value_pv = propSelectionValuePV.createProperty(this, ""));
         properties.add(selection_value = propSelectionValue.createProperty(this, null));
         properties.add(open_full = (RuntimeEventProperty) runtimePropOpenFull.createProperty(this, null));
+        properties.add(refresh_plot = (RuntimeEventProperty) runtimePropRefreshPlot.createProperty(this, null));
     }
 
     @Override
@@ -184,5 +194,11 @@ public class DataBrowserWidget extends MacroWidget
     public RuntimeEventProperty runtimePropOpenFull()
     {
         return open_full;
+    }
+
+    /** @return 'refresh_plot' property */
+    public RuntimeEventProperty runtimePropRefreshPlot()
+    {
+        return refresh_plot;
     }
 }

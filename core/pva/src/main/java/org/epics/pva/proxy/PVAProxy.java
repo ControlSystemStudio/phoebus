@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -75,6 +76,7 @@ import org.epics.pva.server.ServerPV;
 @SuppressWarnings("nls")
 public class PVAProxy
 {
+    /** Logger */
     public static Logger logger = Logger.getLogger(PVAProxy.class.getPackage().getName());
 
     // Developed to test if the PVA server and client API
@@ -241,6 +243,7 @@ public class PVAProxy
     /** Map of PV name to proxy */
     private final ConcurrentHashMap<String, ProxyChannel> proxies = new ConcurrentHashMap<>();
 
+    /** Create proxy */
     public PVAProxy()
     {
         prefix = PVASettings.get("PREFIX", prefix);
@@ -249,12 +252,15 @@ public class PVAProxy
     /** @param seq Client's search sequence
      *  @param cid Client channel ID or -1
      *  @param name Channel name or <code>null</code>
-     *  @param addr Client's address and TCP port
+     *  @param client Client's address and TCP port
+     *  @param reply_sender Callback for TCP address of server
      *  @return <code>true</code> if the search request was handled
      */
-    private boolean handleSearchRequest(final int seq, final int cid, final String name, final InetSocketAddress addr)
+    private boolean handleSearchRequest(final int seq, final int cid, final String name,
+                                        final InetSocketAddress client,
+                                        final Consumer<InetSocketAddress> reply_sender)
     {
-        logger.log(Level.INFO, () -> addr + " searches for " + name + " (CID " + cid + ", seq " + seq + ")");
+        logger.log(Level.INFO, () -> client + " searches for " + name + " (CID " + cid + ", seq " + seq + ")");
         if (name.equals(prefix+"QUIT"))
         {
             quit.countDown();
@@ -283,7 +289,7 @@ public class PVAProxy
         }
     }
 
-    public void run() throws Exception
+    private void run() throws Exception
     {
         System.out.println("PVA Proxy");
         System.out.println("");
@@ -318,6 +324,9 @@ public class PVAProxy
         }
     }
 
+    /** @param args Command line args
+     *  @throws Exception on error
+     */
     public static void main(String[] args) throws Exception
     {
         LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/pva_logging.properties"));

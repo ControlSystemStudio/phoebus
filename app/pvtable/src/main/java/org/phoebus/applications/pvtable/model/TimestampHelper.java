@@ -32,8 +32,8 @@ public class TimestampHelper
 
     /** Take a String and return a time stamp
      *
-     *  @param sTimestamp
-     *  @return
+     *  @param sTimestamp Text with timestamp
+     *  @return Timestamp
      *  @throws Exception on error
      *  @author A.PHILIPPE, L.PHILIPPE GANIL/FRANCE
      */

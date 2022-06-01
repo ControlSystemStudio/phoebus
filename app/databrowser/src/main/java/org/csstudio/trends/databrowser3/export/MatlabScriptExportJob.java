@@ -28,6 +28,15 @@ import org.phoebus.framework.jobs.JobMonitor;
 @SuppressWarnings("nls")
 public class MatlabScriptExportJob extends ExportJob
 {
+    /** @param model Model
+     *  @param start Start time
+     *  @param end End time
+     *  @param source Data source
+     *  @param optimize_parameter Bin count
+     *  @param filename Export file name
+     *  @param error_handler Error handler
+     *  @param unixTimeStamp Use UNIX time stamp epoch?
+     */
     public MatlabScriptExportJob(final Model model, final Instant start,
             final Instant end, final Source source,
             final int optimize_parameter, final String filename,

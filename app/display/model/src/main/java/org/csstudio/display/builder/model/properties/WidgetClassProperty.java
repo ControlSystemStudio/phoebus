@@ -24,7 +24,9 @@ import org.w3c.dom.Element;
  */
 public class WidgetClassProperty extends WidgetProperty<String>
 {
-
+    /** @param descriptor Descriptor of parent widget
+     *  @param widget Widget
+     */
     public WidgetClassProperty(final WidgetPropertyDescriptor<String> descriptor,
                                final Widget widget)
     {

@@ -16,11 +16,17 @@ import org.phoebus.framework.preferences.Preference;
 @SuppressWarnings("nls")
 public class Settings
 {
+    /** Preference setting */
     @Preference public static boolean treat_byte_array_as_string;
+    /** Preference setting */
     @Preference public static boolean show_units;
+    /** Preference setting */
     @Preference public static boolean show_description;
+    /** Preference setting */
     @Preference public static double tolerance;
+    /** Preference setting */
     public static int update_item_threshold = 50;
+    /** Preference setting */
     @Preference(name="max_update_period") public static long max_update_period_ms;
 
     static

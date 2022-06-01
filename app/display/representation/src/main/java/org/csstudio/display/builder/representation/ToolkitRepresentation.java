@@ -19,8 +19,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.Phaser;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -169,6 +169,8 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
      *  @param model {@link DisplayModel}
      *  @return ToolkitRepresentation
      *  @throws NullPointerException if toolkit not set
+     *  @param <TWP> Toolkit widget parent class
+     *  @param <TW> Toolkit widget base class
      */
     public static <TWP, TW> ToolkitRepresentation<TWP, TW> getToolkit(final DisplayModel model) throws NullPointerException
     {
@@ -177,26 +179,26 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
     }
 
     /** Open display panel
-    *
-    *  <p>For RCP-based representation, this is a new workbench 'view'.
-    *
-    *  <p>Is invoked with the _initial_ model,
-    *  calling <code>representModel</code> to create the
-    *  individual widget representations.
-    *
-    *  <p>To later replace the model, call <code>disposeRepresentation</code>
-    *  with the current model, and then <code>representModel</code> with the new model.
-    *
-    *  @param model {@link DisplayModel} that provides name and initial size
-    *  @param name Optional name of the region where the new panel should be created.
-    *              May be empty, may also be ignored.
-    *  @param close_handler Will be invoked when user closes the window
-    *                       with the then active model, i.e. the model
-    *                       provided in last call to <code>representModel</code>.
-    *                       Should stop runtime, dispose representation.
-    *  @return The new ToolkitRepresentation of the new window
-    *  @throws Exception on error
-    */
+     *
+     *  <p>For RCP-based representation, this is a new workbench 'view'.
+     *
+     *  <p>Is invoked with the _initial_ model,
+     *  calling <code>representModel</code> to create the
+     *  individual widget representations.
+     *
+     *  <p>To later replace the model, call <code>disposeRepresentation</code>
+     *  with the current model, and then <code>representModel</code> with the new model.
+     *
+     *  @param model {@link DisplayModel} that provides name and initial size
+     *  @param name Optional name of the region where the new panel should be created.
+     *              May be empty, may also be ignored.
+     *  @param close_handler Will be invoked when user closes the window
+     *                       with the then active model, i.e. the model
+     *                       provided in last call to <code>representModel</code>.
+     *                       Should stop runtime, dispose representation.
+     *  @return The new ToolkitRepresentation of the new window
+     *  @throws Exception on error
+     */
     public ToolkitRepresentation<TWP, TW> openPanel(final DisplayModel model, final String name, final Consumer<DisplayModel> close_handler) throws Exception
     {   // Default: Same as openNewWindow
         return openNewWindow(model, close_handler);
@@ -256,7 +258,7 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
      *  @param parent Toolkit parent (Pane, Container, ..)
      *  @param model Display model
      *  @throws Exception on error
-     *  @see #disposeRepresentation()
+     *  @see #disposeRepresentation(DisplayModel)
      */
     public void representModel(final TWP parent, final DisplayModel model) throws Exception
     {
@@ -299,8 +301,7 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
      *
      *  @param parent Toolkit parent (Group, Container, ..)
      *  @param widget Model widget to represent
-     *  @return Toolkit item that represents the widget
-     *  @see #disposeWidget(Object, Widget)
+     *  @see #disposeWidget(Widget)
      */
     @SuppressWarnings("unchecked")
     public void representWidget(final TWP parent, final Widget widget)
@@ -373,6 +374,10 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
     /** Wait for the complete representation of a model
      *
      *  <p> This includes the representation of embedded displays and navigation tabs
+     *  @param timeout Timeout value
+     *  @param unit Timeout units
+     *  @throws InterruptedException when interrupted
+     *  @throws TimeoutException on timeout
      */
     public void awaitRepresentation(long timeout, TimeUnit unit) throws TimeoutException, InterruptedException
     {
@@ -478,8 +483,7 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
      *  by pressing "OK".
      *
      *  @param widget Widget, used to create and position the dialog
-     *  @param is_warning Whether to style dialog as warning or information
-     *  @param message Message to display on dialog
+     *  @param message Message to display in dialog
      */
     abstract public void showMessageDialog(Widget widget, String message);
 
@@ -489,8 +493,7 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
      *  by pressing "OK".
      *
      *  @param widget Widget, used to create and position the dialog
-     *  @param is_warning Whether to style dialog as warning or information
-     *  @param message Message to display on dialog
+     *  @param error Error to show in dialog
      */
     abstract public void showErrorDialog(Widget widget, String error);
 
@@ -501,7 +504,7 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
      *  ("Confirm", "Cancel", depending on implementation).
      *
      *  @param widget Widget, used to create and position the dialog
-     *  @param mesquestionsage Message to display on dialog
+     *  @param question Prompt to display on dialog
      *  @return <code>true</code> if user selected "Yes" ("Confirm")
      */
     abstract public boolean showConfirmationDialog(Widget widget, String question);
@@ -571,7 +574,7 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
      *  <p>RCP-based representation can override with
      *  RCP-based web browser
      *
-     *  @param path URL
+     *  @param url URL
      *  @throws Exception on error
      */
     abstract public void openWebBrowser(final String url) throws Exception;

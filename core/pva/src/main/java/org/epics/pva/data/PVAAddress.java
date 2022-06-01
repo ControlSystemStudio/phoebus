@@ -21,6 +21,9 @@ import java.nio.ByteBuffer;
 @SuppressWarnings("nls")
 public class PVAAddress
 {
+    /** @param address Address to encode
+     *  @param buffer Target buffer
+     */
     public static void encode(final InetAddress address, final ByteBuffer buffer)
     {
         final int start = buffer.position();
@@ -44,6 +47,10 @@ public class PVAAddress
             throw new RuntimeException("Network address serialized as " + len + " bytes: " + address);
     }
 
+    /** @param buffer Source buffer
+     *  @return Decoded address
+     *  @throws Exception on error
+     */
     public static InetAddress decode(final ByteBuffer buffer) throws Exception
     {
         // 128-bit IPv6 address

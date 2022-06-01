@@ -9,8 +9,6 @@ import java.util.Optional;
 
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetConfigurator;
-import org.csstudio.display.builder.model.persist.NamedWidgetColors;
-import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.properties.LineStyle;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
@@ -24,9 +22,9 @@ public class OutlineSupport {
      * Helper for custom {@link WidgetConfigurator} to map legacy border to an outline.
      * This is primarily for use by passive shape widgets
      *
-     * @param widget
-     * @param xml
-     * @throws Exception
+     * @param widget Widget
+     * @param xml XML source
+     * @throws Exception on error
      */
     public static void handleLegacyBorder(final Widget widget, final Element xml) throws Exception
     {

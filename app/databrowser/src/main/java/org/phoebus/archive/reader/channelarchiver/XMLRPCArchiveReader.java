@@ -64,6 +64,9 @@ public class XMLRPCArchiveReader implements ArchiveReader
     private int method_raw = 0;
     int method_optimized = 0;
 
+    /** @param url XML server URL
+     *  @throws Exception on error
+     */
     public XMLRPCArchiveReader(String url) throws Exception
     {
         // Parse key from URL

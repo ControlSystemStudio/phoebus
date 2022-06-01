@@ -17,6 +17,7 @@ public class DoubleVTypeFormat extends VTypeFormat
 {
     final private static VTypeFormat instance = new DoubleVTypeFormat();
 
+    /** @return singleton instance */
     final public static VTypeFormat get()
     {
         return instance;

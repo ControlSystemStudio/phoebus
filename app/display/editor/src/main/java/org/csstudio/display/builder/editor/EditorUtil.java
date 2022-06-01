@@ -29,12 +29,16 @@ public class EditorUtil
         return executor;
     }
 
+    /** @param scene Scene to configure for editor */
     public static void setSceneStyle(final Scene scene)
     {
         JFXRepresentation.setSceneStyle(scene);
         scene.getStylesheets().add(EditorUtil.class.getResource("opieditor.css").toExternalForm());
     }
 
+    /** @param display Display
+     *  @return Is display read-only?
+     */
     public static boolean isDisplayReadOnly(final DisplayModel display)
     {
         return Boolean.parseBoolean(display.getUserData(DisplayModel.USER_DATA_READONLY));

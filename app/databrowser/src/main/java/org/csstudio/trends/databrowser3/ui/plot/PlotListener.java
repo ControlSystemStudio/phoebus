@@ -42,12 +42,12 @@ public interface PlotListener
      */
     public void valueAxisChanged(int index, double lower, double upper);
 
-    /** Received names, presumably for PVs, via drag & drop
+    /** Received names, presumably for PVs, via drag and drop
      *  @param name PV(?) names
      */
     public void droppedNames(List<String> name);
 
-    /** Received PV names and/or archive data sources via drag & drop
+    /** Received PV names and/or archive data sources via drag and drop
      *
      *  <p>If names with archive are received, the name and archive
      *  arrays will have the same size.
@@ -57,29 +57,36 @@ public interface PlotListener
      */
     public void droppedPVNames(List<ProcessVariable> name, List<ArchiveDataSource> archive);
 
-    /** Received a file name */
+    /** @param file_name Received file name */
     public void droppedFilename(File file_name);
 
-    /** Received updated annotations */
+    /**@param annotations  Received updated annotations */
     public void changedAnnotations(List<AnnotationInfo> annotations);
 
     /** ModelItems have new selected sample */
     public void selectedSamplesChanged();
 
-    /** Plot tool bar displayed or hidden */
+    /** @param visible Plot tool bar displayed or hidden */
     public void changedToolbar(boolean visible);
 
-    /** Plot legend displayed or hidden */
+    /** @param visible Plot legend displayed or hidden */
     public void changedLegend(boolean visible);
 
-    /** Auto scale modified by user interaction with plot */
+    /** Auto scale modified by user interaction with plot
+     *  @param index Axis index
+     *  @param autoScale Auto scale?
+     */
     public void autoScaleChanged(int index, boolean autoScale);
 
     /** Grid modified by user interaction with plot
      *  @param index Index of Y axis, -1 for X axis
+     *  @param show_grid Show grid?
      */
     public void gridChanged(int index, boolean show_grid);
 
-    /** Log mode modified by user interaction with plot */
+    /** Log mode modified by user interaction with plot
+     *  @param index Index of Y axis, -1 for X axis
+     *  @param use_log Use log scale?
+     */
     public void logarithmicChanged(int index, boolean use_log);
 }

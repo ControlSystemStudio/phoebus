@@ -29,6 +29,16 @@ import org.phoebus.util.time.TimestampFormats;
 @SuppressWarnings("nls")
 public class SpreadsheetExportJob extends PlainExportJob
 {
+    /** @param model Model
+     *  @param start Start time
+     *  @param end End time
+     *  @param source Data source
+     *  @param optimize_parameter Bin count
+     *  @param formatter  Value formatter
+     *  @param filename Export file name
+     *  @param error_handler Error handler
+     *  @param unixTimeStamp Use UNIX time stamp epoch?
+     */
     public SpreadsheetExportJob(final  Model model,
             final Instant start, final Instant end, final Source source,
             final int optimize_parameter, final ValueFormatter formatter,

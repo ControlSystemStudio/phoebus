@@ -77,6 +77,7 @@ import javafx.scene.layout.VBox;
 @SuppressWarnings("nls")
 public class EditorGUI
 {
+    /** Side panel IDs */
     public static final String SHOW_TREE = "tree",
                                SHOW_PROPS = "props";
     private static final Preferences prefs = PhoebusPreferenceService.userNodeForClass(DisplayEditorInstance.class);
@@ -177,8 +178,7 @@ public class EditorGUI
 
     private volatile Consumer<DisplayModel> model_listener = null;
 
-
-
+    /** Constructor */
     public EditorGUI()
     {
         toolkit = new JFXRepresentation(true);
@@ -586,6 +586,7 @@ public class EditorGUI
         }
     }
 
+    /** Dispose resources */
     public void dispose()
     {
         editor.dispose();

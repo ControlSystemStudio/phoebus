@@ -48,25 +48,35 @@ import javafx.util.converter.DefaultStringConverter;
 @SuppressWarnings("nls")
 public class MacrosTable
 {
-    private static final String EDITING = "editing";
     private final AtomicBoolean editing = new AtomicBoolean(false);
+
     /** Java FX type observable property for a macro (name, value) pair */
     public static class MacroItem
     {
+        /** Name of macro and value */
         private StringProperty name, value;
 
+        /** @param name Name
+         *  @param value Value
+         */
         public MacroItem(final String name, final String value)
         {
             this.name = new SimpleStringProperty(name);
             this.value = new SimpleStringProperty(value);
         }
 
+        /** @return Name property */
         public StringProperty nameProperty()     { return name;                  }
+        /** @param name Name to set */
         public void setName(final String name)   { nameProperty().set(name);     }
+        /** @return Name */
         public String getName()                  { return nameProperty().get();  }
 
+        /** @return Value property */
         public StringProperty valueProperty()    { return value;                 }
+        /** @param value Value to set */
         public void setValue(final String value) { valueProperty().set(value);   }
+        /** @return Value */
         public String getValue()                 { return valueProperty().get(); }
     };
 
@@ -79,7 +89,7 @@ public class MacrosTable
     private List<InvalidationListener> listeners = new CopyOnWriteArrayList<>();
 
     private boolean enterHit = false;
-    
+
     /** Create dialog
      *  @param initial_macros Initial {@link Macros}
      */

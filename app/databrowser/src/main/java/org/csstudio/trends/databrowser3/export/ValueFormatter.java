@@ -57,7 +57,9 @@ public class ValueFormatter
             return Messages.ValueColumn;
     }
 
-    /** @return Value formatted into columns */
+    /** @param value Value
+     *  @return Value formatted into columns
+     */
     public String format(final VType value)
     {
         final VTypeFormat format_for_this_value;

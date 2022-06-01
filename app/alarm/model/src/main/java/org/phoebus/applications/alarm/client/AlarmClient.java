@@ -173,7 +173,7 @@ public class AlarmClient
         }
     }
 
-    /** @param notify Select notify disable  ? */
+    /** @param disable_notify Select notify disable  ? */
     public void setNotify(final boolean disable_notify)
     {
         final String cmd = disable_notify ? JsonTags.DISABLE_NOTIFY : JsonTags.ENABLE_NOTIFY;
@@ -466,8 +466,8 @@ public class AlarmClient
     }
 
     /** Add a component to the alarm tree
-     *  @param path to parent Root or parent component under which to add the component
-     *  @param name Name of the new component
+     *  @param path_name to parent Root or parent component under which to add the component
+     *  @param new_name Name of the new component
      */
     public void addComponent(final String path_name, final String new_name)
     {
@@ -482,8 +482,8 @@ public class AlarmClient
     }
 
     /** Add a component to the alarm tree
-     *  @param path to parent Root or parent component under which to add the component
-     *  @param name Name of the new component
+     *  @param path_name to parent Root or parent component under which to add the component
+     *  @param new_name Name of the new component
      */
     public void addPV(final String path_name, final String new_name)
     {
@@ -509,7 +509,7 @@ public class AlarmClient
      *
      *  <p>All clients, including this one, will update when they receive the message
      *
-     *  @aram path Path to the item
+     *  @param path Path to the item
      *  @param config A prototype item (path is ignored) that holds the new configuration
      *  @throws Exception on error
      */

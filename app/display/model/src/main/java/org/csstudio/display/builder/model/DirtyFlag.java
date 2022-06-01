@@ -17,21 +17,25 @@ public class DirtyFlag
 {
     final private AtomicBoolean is_dirty;
 
+    /** Construct initially dirty flag */
     public DirtyFlag()
     {
         this(true);
     }
 
+    /** @param initially_set Initial state */
     public DirtyFlag(final boolean initially_set)
     {
         is_dirty = new AtomicBoolean(initially_set);
     }
 
+    /** Mark as dirty */
     public void mark()
     {
         is_dirty.set(true);
     }
 
+    /** @return Was dirty? */
     public boolean checkAndClear()
     {
         return is_dirty.getAndSet(false);

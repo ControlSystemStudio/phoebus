@@ -21,7 +21,6 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import org.csstudio.display.builder.model.MacroizedWidgetProperty;
 import org.csstudio.display.builder.model.Version;
@@ -61,6 +60,7 @@ import org.w3c.dom.Text;
 @SuppressWarnings("nls")
 public class ActionButtonWidget extends PVWidget
 {
+    /** Default size */
     public static final int DEFAULT_WIDTH = 100,
                             DEFAULT_HEIGHT = 30;
 
@@ -232,6 +232,7 @@ public class ActionButtonWidget extends PVWidget
     private volatile WidgetProperty<String> confirm_message;
     private volatile WidgetProperty<String> password;
 
+    /** Constructor */
     public ActionButtonWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), DEFAULT_WIDTH, DEFAULT_HEIGHT);

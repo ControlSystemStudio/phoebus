@@ -73,9 +73,13 @@ public class GroupWidget extends MacroWidget
     /** Group widget style */
     public enum Style
     {
+        /** Fill group border */
         GROUP(Messages.Style_Group),
+        /** Title bar */
         TITLE(Messages.Style_Title),
+        /** Single-line border */
         LINE(Messages.Style_Line),
+        /** Nothing */
         NONE(Messages.Style_None);
 
         private final String name;
@@ -184,6 +188,7 @@ public class GroupWidget extends MacroWidget
     private volatile WidgetProperty<WidgetFont> font;
     private volatile WidgetProperty<int[]> insets;
 
+    /** Constructor */
     public GroupWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 300, 200);

@@ -45,6 +45,7 @@ import org.w3c.dom.Node;
 @SuppressWarnings("nls")
 public class EmbeddedDisplayWidget extends MacroWidget
 {
+    /** Default size */
     public static final int DEFAULT_WIDTH = 400,
                             DEFAULT_HEIGHT = 300;
 
@@ -113,6 +114,7 @@ public class EmbeddedDisplayWidget extends MacroWidget
         CommonWidgetProperties.newStringPropertyDescriptor(
             WidgetPropertyCategory.DISPLAY, "group_name", Messages.EmbeddedDisplayWidget_GroupName);
 
+    /** 'embedded_model' */
     public static final WidgetPropertyDescriptor<DisplayModel> runtimeModel =
         new WidgetPropertyDescriptor<>(WidgetPropertyCategory.RUNTIME, "embedded_model", "Embedded Model")
         {
@@ -273,6 +275,7 @@ public class EmbeddedDisplayWidget extends MacroWidget
     private volatile WidgetProperty<DisplayModel> embedded_model;
     private volatile WidgetProperty<Boolean> transparent;
 
+    /** Constructor */
     public EmbeddedDisplayWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), DEFAULT_WIDTH, DEFAULT_HEIGHT);

@@ -29,6 +29,16 @@ public class PlainExportJob extends ExportJob
 {
     final protected ValueFormatter formatter;
 
+    /** @param model Model
+     *  @param start Start time
+     *  @param end End time
+     *  @param source Data source
+     *  @param optimize_parameter Bin count
+     *  @param formatter  Value formatter
+     *  @param filename Export file name
+     *  @param error_handler Error handler
+     *  @param unixTimeStamp Use UNIX time stamp epoch?
+     */
     public PlainExportJob(final Model model,
             final Instant start, final Instant end, final Source source,
             final double optimize_parameter, final ValueFormatter formatter,

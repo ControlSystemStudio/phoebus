@@ -65,7 +65,7 @@ public class AWTFontCalibration implements Runnable, FontCalibration
 
         final Frame frame = new Frame("Java AWT: Calibration factor " + factor);
         frame.setSize(text_width, text_height);
-        
+
         // Would like to use TextField or Label, but:
         // "Peered AWT components, such as Label and TextField,
         //  can only use logical fonts." (Javadoc for 'Font')
@@ -83,11 +83,11 @@ public class AWTFontCalibration implements Runnable, FontCalibration
 				super.paint(gc);
 				gc.setFont(font);
 				final FontMetrics metrics = gc.getFontMetrics();
-				
+
 				// drawString x/y is 'baseline' of text
 				final int y = metrics.getLeading() + metrics.getAscent();
 				gc.drawString(FontCalibration.TEXT, 0, y);
-				
+
 				// Show baseline and 'leading'
 				gc.setColor(Color.RED);
 				gc.drawLine(0, y, text_width, y);
@@ -96,9 +96,9 @@ public class AWTFontCalibration implements Runnable, FontCalibration
 			}
 		};
         text.setSize(text_width, text_height);
-        
+
         frame.add(text);
-        
+
         frame.addWindowListener(new WindowAdapter()
         {
             @Override
@@ -115,6 +115,7 @@ public class AWTFontCalibration implements Runnable, FontCalibration
             System.err.println("Calibration is not 1.0 but " + factor);
     }
 
+    /** @param args Command line parameters */
     public static void main(final String[] args)
     {
         new AWTFontCalibration().run();

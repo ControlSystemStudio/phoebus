@@ -14,8 +14,10 @@ import java.util.Objects;
  */
 public class BasicState
 {
+    /** Alarm severity */
     public final SeverityLevel severity;
 
+    /** @param severity Alarm severity */
     public BasicState(final SeverityLevel severity)
     {
         this.severity = Objects.requireNonNull(severity);

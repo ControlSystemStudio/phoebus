@@ -15,8 +15,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
@@ -107,7 +107,7 @@ public class DisplayRuntimeInstance implements AppInstance
     {
         this(app, null);
     }
-    
+
     DisplayRuntimeInstance(final AppDescriptor app, String prefTarget)
     {
         this.app = app;
@@ -265,7 +265,7 @@ public class DisplayRuntimeInstance implements AppInstance
     }
 
     /** Load display file, represent it, start runtime
-     *  @param info Display file to load & represent
+     *  @param info Display file to load and represent
      */
     public void loadDisplayFile(final DisplayInfo info)
     {
@@ -330,13 +330,13 @@ public class DisplayRuntimeInstance implements AppInstance
                         "Cannot load model from\n" + info.getPath() + exception_message, ex);
 
                 display_info = Optional.empty();
-                
+
                 if (dock_item.prepareToClose())
 	                Platform.runLater(() ->
 	                {
 	                    final Parent parent = representation.getModelParent();
 	                    JFXRepresentation.getChildren(parent).clear();
-	                    
+
 	                    close();
 	                });
                 return;

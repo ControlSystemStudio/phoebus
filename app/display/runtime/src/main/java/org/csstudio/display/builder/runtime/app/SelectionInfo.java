@@ -1,10 +1,11 @@
 package org.csstudio.display.builder.runtime.app;
 
-import javafx.scene.Parent;
-import javafx.scene.image.Image;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.ui.javafx.Screenshot;
+
+import javafx.scene.Parent;
+import javafx.scene.image.Image;
 
 /**
  * Selection information about a display
@@ -26,6 +27,7 @@ public class SelectionInfo extends DisplayInfo {
     }
 
     /** @param model SelectionInfo with macros and USER_DATA_INPUT_FILE
+     *  @param model_parent Parent node of the Display from which to extract a screenshot
      *  @return SelectionInfo
      */
     public static SelectionInfo forModel(final DisplayModel model, final Parent model_parent)

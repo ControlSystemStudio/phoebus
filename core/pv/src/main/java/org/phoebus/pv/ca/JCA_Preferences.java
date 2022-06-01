@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -67,10 +67,19 @@ public class JCA_Preferences
     }
 
     /** Update the JCA/CAJ related properties from preferences
+     *
+     *  <p>... unless jca.use_env is set to use EPICS_CA_ADDR_LIST etc.
+     *
      *  @throws Exception on error
      */
     public void installPreferences() throws Exception
     {
+        if (Boolean.getBoolean("jca.use_env"))
+        {
+            logger.log(Level.INFO, "Found `jca.use_env=true`, ignoring preferences");
+            logger.log(Level.INFO, "EPICS_CA_ADDR_LIST=" + System.getenv("EPICS_CA_ADDR_LIST"));
+            return;
+        }
         final PreferencesReader prefs = new PreferencesReader(JCA_PVFactory.class, "/pv_ca_preferences.properties");
 
         String code = prefs.get(MONITOR_MASK);
@@ -187,6 +196,7 @@ public class JCA_Preferences
         return var_array_supported;
     }
 
+    /** @return Array size that's considered "large" to subscribe at lower priority */
     public int largeArrayThreshold()
     {
         return large_array_threshold;
