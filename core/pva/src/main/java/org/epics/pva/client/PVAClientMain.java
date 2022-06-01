@@ -273,10 +273,10 @@ public class PVAClientMain
                     setLogLevel(Level.WARNING);
                     break;
                 case 1:
-                    setLogLevel(Level.CONFIG);
+                    setLogLevel(Level.INFO);
                     break;
                 case 2:
-                    setLogLevel(Level.INFO);
+                    setLogLevel(Level.CONFIG);
                     break;
                 case 3:
                     setLogLevel(Level.FINE);
