@@ -1,4 +1,4 @@
-package src.test.java.org.phoebus.applications.alarm;
+package org.phoebus.applications.alarm;
 
 import org.junit.Test;
 import java.io.IOException;

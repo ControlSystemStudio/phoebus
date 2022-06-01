@@ -86,7 +86,7 @@ public class AlarmConfigLogger implements Runnable {
         root = new File(location, this.topic);
         root.mkdirs();
 
-        model = new AlarmClient(props.getProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG), this.topic);
+        model = new AlarmClient(props.getProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG), this.topic, props.getProperty("kafka_properties"));
         model.start();
 
         initialize();

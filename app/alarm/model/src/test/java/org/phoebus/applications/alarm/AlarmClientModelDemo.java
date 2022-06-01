@@ -24,7 +24,7 @@ public class AlarmClientModelDemo
     @Test
     public void testClientModel() throws Exception
     {
-        final AlarmClient client = new AlarmClient(AlarmDemoSettings.SERVERS, AlarmDemoSettings.ROOT);
+        final AlarmClient client = new AlarmClient(AlarmDemoSettings.SERVERS, AlarmDemoSettings.ROOT, AlarmDemoSettings.KAFKA_PROPERTIES_FILE);
         client.start();
         TimeUnit.SECONDS.sleep(4);
 

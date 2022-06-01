@@ -44,6 +44,7 @@ public class AlarmConfigLoggingService {
         System.out.println("-help                                      - This text");
         System.out.println("-topics   Accelerator                      - Alarm topics who's associated configuration is to be logged, they can be defined as a comma or colon separated list");
         System.out.println("-bootstrap.servers localhost:9092          - Kafka server address");
+        System.out.println("-kafka_properties /opt/client.properties   - Properties file to load kafka client settings from");
         System.out.println("-repo.location /tmp/alarm_repo             - Location of the alarm configuration repository");
         System.out.println("-remote.location https://remote.git/repo   - Location of the remote git alarm configuration repository");
         System.out.println("-username username                         - username for remote git repo");
@@ -104,6 +105,12 @@ public class AlarmConfigLoggingService {
                         throw new Exception("Missing -bootstrap.servers kafaka server addresss");
                     iter.remove();
                     properties.put("bootstrap.servers", iter.next());
+                    iter.remove();
+                } else if (cmd.equals("-kafka_properties")) {
+                    if (!iter.hasNext())
+                        throw new Exception("Missing -kafka_properties file name");
+                    iter.remove();
+                    properties.put("kafka_properties",iter.next());
                     iter.remove();
                 } else if (cmd.equals("-repo.location")) {
                     if (!iter.hasNext())

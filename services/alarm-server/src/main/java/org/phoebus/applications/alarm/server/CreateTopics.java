@@ -22,6 +22,7 @@ import org.apache.kafka.clients.admin.CreateTopicsResult;
 import org.apache.kafka.clients.admin.ListTopicsResult;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.KafkaFuture;
+import org.phoebus.applications.alarm.client.KafkaHelper;
 
 /** Create alarm topics
  *  @author Evan Smith
@@ -46,10 +47,11 @@ public class CreateTopics
      *  @param compact If the topics to be created should be compacted.
      *  @param topics Topics to discover and create if missing.
      */
-    public static void discoverAndCreateTopics (final String kafka_servers, final boolean compact, final List<String> topics)
+    public static void discoverAndCreateTopics (final String kafka_servers, final boolean compact, 
+                                                final List<String> topics, final String kafka_properties_file)
     {
         // Connect to Kafka server.
-        final Properties props = new Properties();
+        final Properties props = KafkaHelper.loadPropsFromFile(kafka_properties_file);
         props.put("bootstrap.servers", kafka_servers);
         final AdminClient client = AdminClient.create(props);
 
