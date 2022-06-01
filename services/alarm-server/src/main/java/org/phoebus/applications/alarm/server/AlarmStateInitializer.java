@@ -51,10 +51,11 @@ public class AlarmStateInitializer
 
     /** @param server Kafka Server host:port
      *  @param config_name Name of alarm tree root
+     *  @param kafka_props Additional properties to pass to the kafka client
      */
-    public AlarmStateInitializer(final String server, final String config_name)
+    public AlarmStateInitializer(final String server, final String config_name, final String kafka_props_file)
     {
-        consumer = KafkaHelper.connectConsumer(server, List.of(config_name), List.of(config_name));
+        consumer = KafkaHelper.connectConsumer(server, List.of(config_name), List.of(config_name), kafka_props_file);
 
         thread = new Thread(this::run, "AlarmStateInitializer");
         thread.setDaemon(true);

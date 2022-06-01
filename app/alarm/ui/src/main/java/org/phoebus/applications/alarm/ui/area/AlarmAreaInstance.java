@@ -71,7 +71,7 @@ public class AlarmAreaInstance implements AppInstance
 
         try
         {
-            client = new AlarmClient(server, config_name);
+            client = new AlarmClient(server, config_name, AlarmSystem.kafka_properties);
             final AlarmAreaView area_view = new AlarmAreaView(client);
             client.start();
 

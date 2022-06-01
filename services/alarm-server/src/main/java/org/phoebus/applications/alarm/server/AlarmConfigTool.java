@@ -32,7 +32,7 @@ public class AlarmConfigTool
     private static final long STABILIZATION_SECS = 4;
 
     	// Export an alarm system model to an xml file.
-    public void exportModel(String filename, String server, String config) throws Exception
+    public void exportModel(String filename, String server, String config, String kafka_properties_file) throws Exception
 	{
         final XmlModelWriter xmlWriter;
 
@@ -51,7 +51,7 @@ public class AlarmConfigTool
             xmlWriter = new XmlModelWriter(fos);
         }
 
-        final AlarmClient client = new AlarmClient(server, config);
+        final AlarmClient client = new AlarmClient(server, config, kafka_properties_file);
         client.start();
 
         System.out.printf("Writing file after model is stable for %d seconds:\n", STABILIZATION_SECS);
@@ -78,7 +78,7 @@ public class AlarmConfigTool
 	}
 
 	// Import an alarm system model from an xml file.
-	public void importModel(final String filename, final String server, final String config) throws InterruptedException, Exception
+	public void importModel(final String filename, final String server, final String config, String kafka_properties_file) throws InterruptedException, Exception
 	{
 	    System.out.println("Reading new configuration from " + filename);
 	    final long start = System.currentTimeMillis();
@@ -98,7 +98,7 @@ public class AlarmConfigTool
         final long got_xml = System.currentTimeMillis();
 
 		// Connect to the server.
-		final AlarmClient client = new AlarmClient(server, config);
+		final AlarmClient client = new AlarmClient(server, config, kafka_properties_file);
         client.start();
         try
         {

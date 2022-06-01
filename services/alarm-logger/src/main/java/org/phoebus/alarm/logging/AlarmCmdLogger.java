@@ -21,6 +21,7 @@ import org.apache.kafka.streams.kstream.Transformer;
 import org.apache.kafka.streams.kstream.TransformerSupplier;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.TimestampExtractor;
+import org.phoebus.applications.alarm.client.KafkaHelper;
 import org.phoebus.applications.alarm.messages.AlarmCommandMessage;
 import org.phoebus.applications.alarm.messages.MessageParser;
 import org.phoebus.util.indexname.IndexNameHelper;
@@ -63,7 +64,7 @@ public class AlarmCmdLogger implements Runnable {
         Properties props = new Properties();
         props.putAll(PropertiesHelper.getProperties());
 
-        Properties kafkaProps = new Properties();
+        Properties kafkaProps = KafkaHelper.loadPropsFromFile(props.getProperty("kafka_properties",""));
         kafkaProps.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-" + topic + "-alarm-cmd");
 
         if (props.containsKey(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG)){

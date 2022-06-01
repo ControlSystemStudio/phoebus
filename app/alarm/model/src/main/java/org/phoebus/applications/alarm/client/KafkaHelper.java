@@ -9,10 +9,13 @@ package org.phoebus.applications.alarm.client;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.logging.Level;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
@@ -51,24 +54,28 @@ public class KafkaHelper
      *  @param kafka_servers Servers to read
      *  @param topics Topics to which to subscribe
      *  @param from_beginning Topics to read from the beginning
+     *  @param properties_file File name to load additional settings for the kafka consumer
      *  @return {@link Consumer}
      */
-    public static Consumer<String, String> connectConsumer(final String kafka_servers, final List<String> topics, final List<String> from_beginning)
+    public static Consumer<String, String> connectConsumer(final String kafka_servers, final List<String> topics, final List<String> from_beginning, final String properties_file)
     {
-        final Properties props = new Properties();
-        props.put("bootstrap.servers", kafka_servers);
-        // API requires for Consumer to be in a group.
-        // Each alarm client must receive all updates,
-        // cannot balance updates across a group
-        // --> Use unique group for each client
-        final String group_id = "Alarm-" + UUID.randomUUID();
-        props.put("group.id", group_id);
+        Properties kafka_props = loadPropsFromFile(properties_file);
+        kafka_props.put("bootstrap.servers", kafka_servers);
 
-        logger.fine(group_id + " subscribes to " + kafka_servers + " for " + topics);
+        if (!kafka_props.containsKey("group.id")){
+            // API requires for Consumer to be in a group.
+            // Each alarm client must receive all updates,
+            // cannot balance updates across a group
+            // --> Use unique group for each client
+            final String group_id = "Alarm-" + UUID.randomUUID();
+            kafka_props.put("group.id", group_id);
+        }
+
+        logger.fine(kafka_props.getProperty("group.id") + " subscribes to " + kafka_servers + " for " + topics);
 
         // Read key, value as string
         final Deserializer<String> deserializer = new StringDeserializer();
-        final Consumer<String, String> consumer = new KafkaConsumer<>(props, deserializer, deserializer);
+        final Consumer<String, String> consumer = new KafkaConsumer<>(kafka_props, deserializer, deserializer);
 
         // Rewind whenever assigned to partition
         final ConsumerRebalanceListener crl = new ConsumerRebalanceListener()
@@ -101,19 +108,20 @@ public class KafkaHelper
 
     /** Create producer for alarm information
      *  @param kafka_servers Kafka servers
+     *  @param properties_file File name to load additional settings for the kafka producer
      *  @return {@link Producer}
      */
-    public static Producer<String, String> connectProducer(final String kafka_servers)
+    public static Producer<String, String> connectProducer(final String kafka_servers, final String properties_file)
     {
-        final Properties props = new Properties();
-        props.put("bootstrap.servers", kafka_servers);
+        Properties kafka_props = loadPropsFromFile(properties_file);
+        kafka_props.put("bootstrap.servers", kafka_servers);
         // Collect messages for 20ms until sending them out as a batch
-        props.put("linger.ms", 20);
+        kafka_props.put("linger.ms", 20);
 
         // Write String key, value
         final Serializer<String> serializer = new StringSerializer();
 
-        final Producer<String, String> producer = new KafkaProducer<>(props, serializer, serializer);
+        final Producer<String, String> producer = new KafkaProducer<>(kafka_props, serializer, serializer);
 
         return producer;
     }
@@ -123,22 +131,43 @@ public class KafkaHelper
      * @param kafka_servers - Sever to connect to.
      * @param topics List of topics to aggregate.
      * @param aggregate_topic - Name of topic to aggregate to.
+     * @param kafka_props File name to load additional settings for the kafka stream
      * @return aggregate_stream - KafkaStreams
      * @author Evan Smith
      */
-    public static KafkaStreams aggregateTopics(String kafka_servers, List<String> topics, String aggregate_topic)
+    public static KafkaStreams aggregateTopics(String kafka_servers, List<String> topics, String aggregate_topic, final String properties_file)
     {
-        final Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "Stream-To-Long-Term");
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafka_servers);
-        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        Properties kafka_props = loadPropsFromFile(properties_file);
+        kafka_props.put(StreamsConfig.APPLICATION_ID_CONFIG, "Stream-To-Long-Term");
+        kafka_props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafka_servers);
+        kafka_props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        kafka_props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
 
         final StreamsBuilder builder = new StreamsBuilder();
 
         // Aggregate the topics by mapping the topic key value pairs one to one into the aggregate topic.
         builder.<String, String>stream(topics).mapValues(pair -> pair).to(aggregate_topic);
 
-        return new KafkaStreams(builder.build(), props);
+        return new KafkaStreams(builder.build(), kafka_props);
+    }
+
+
+    /**
+     * Load properties from the given file path. Path may be blank or null
+     * resulting in a properties object without entries.
+     * @param filePath Full path to properties file
+     * @return properties - the properties loaded from file
+     */
+    static public Properties loadPropsFromFile(String filePath) {
+        logger.fine("loading file from path: " + filePath);
+        Properties properties = new Properties();
+        if(filePath != null && !filePath.isBlank()){
+            try(FileInputStream file = new FileInputStream(filePath);){
+                properties.load(file);
+            } catch(IOException e) {
+                logger.log(Level.SEVERE, "failed to load kafka properties", e);
+            }
+        }
+        return properties;
     }
 }

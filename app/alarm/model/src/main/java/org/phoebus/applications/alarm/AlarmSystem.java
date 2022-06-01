@@ -63,6 +63,9 @@ public class AlarmSystem
     /** Kafka Server host:port */
     @Preference public static String server;
 
+    /** Kafka settings file */
+    @Preference public static String kafka_properties;
+
     /** Name of alarm tree root
      *
      *  <p>Default name from preferences.

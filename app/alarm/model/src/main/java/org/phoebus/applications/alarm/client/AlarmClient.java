@@ -94,8 +94,9 @@ public class AlarmClient
 
     /** @param server Kafka Server host:port
      *  @param config_name Name of alarm tree root
+     *  @param kafka_properties_file File to load additional kafka properties from
      */
-    public AlarmClient(final String server, final String config_name)
+    public AlarmClient(final String server, final String config_name, final String kafka_properties_file)
     {
         Objects.requireNonNull(server);
         Objects.requireNonNull(config_name);
@@ -105,8 +106,8 @@ public class AlarmClient
 
         root = new AlarmClientNode(null, config_name);
         final List<String> topics = List.of(config_topic);
-        consumer = KafkaHelper.connectConsumer(server, topics, topics);
-        producer = KafkaHelper.connectProducer(server);
+        consumer = KafkaHelper.connectConsumer(server, topics, topics, kafka_properties_file);
+        producer = KafkaHelper.connectProducer(server, kafka_properties_file);
 
         thread = new Thread(this::run, "AlarmClientModel " + config_name);
         thread.setDaemon(true);
