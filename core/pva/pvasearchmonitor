@@ -4,7 +4,7 @@ JAR=`echo target/core-pva*.jar`
 if [ -r "$JAR" ]
 then
     # Echo use jar file
-    java -jar $JAR "$@"
+    java -cp $JAR org.epics.pva.server.PVASearchMonitorMain "$@"
 else
     # Use build output
     java -cp target/classes org.epics.pva.server.PVASearchMonitorMain "$@"
