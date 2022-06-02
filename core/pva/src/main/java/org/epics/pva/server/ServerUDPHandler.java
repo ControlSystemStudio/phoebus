@@ -136,6 +136,9 @@ class ServerUDPHandler extends UDPHandler
             return handleOriginTag(from, version, payload, buffer);
         case PVAHeader.CMD_SEARCH:
             return handleSearch(from, version, payload, buffer);
+        case PVAHeader.CMD_BEACON:
+            // Clients may send or forward beacons, server ignores them
+            break;
         default:
             logger.log(Level.WARNING, "PVA Client " + from + " sent UDP packet with unknown command 0x" + Integer.toHexString(command));
         }

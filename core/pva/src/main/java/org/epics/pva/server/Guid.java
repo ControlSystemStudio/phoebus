@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -73,11 +73,10 @@ public class Guid
         return Arrays.equals(guid, other.guid);
     }
 
-    @Override
-    public String toString()
+    /** @return GUID as "FE1A.." type text */
+    public String asText()
     {
         final StringBuilder buf = new StringBuilder(35);
-        buf.append("GUID 0x");
         for (byte b : guid)
         {
             final int i = Byte.toUnsignedInt(b);
@@ -86,5 +85,12 @@ public class Guid
             buf.append(Integer.toHexString(i).toUpperCase());
         }
         return buf.toString();
+    }
+
+    /** @return String representation "GUID 0xFE1A.." */
+    @Override
+    public String toString()
+    {
+        return "GUID 0x" + asText();
     }
 }

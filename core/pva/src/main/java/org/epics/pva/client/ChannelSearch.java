@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -32,9 +32,18 @@ import org.epics.pva.data.Hexdump;
  *
  *  <p>Maintains thread that periodically issues search requests
  *  for registered channels.
- *
- *  <p>Details of search timing are based on
- *  https://github.com/epics-base/epicsCoreJava/blob/master/pvAccessJava/src/org/epics/pvaccess/client/impl/remote/search/SimpleChannelSearchManagerImpl.java
+ *  Search periods match the design of https://github.com/mdavidsaver/pvxs,
+ *  repeating searches for missing channels after 1, 2, 3, ..., 30 seconds
+ *  and then continuing every 30 seconds.
+ *  The exact period is not a multiple of 1000ms but 1000+-25ms to randomly
+ *  distribute searches from different clients.
+ *  Once the search plateaus at 30 seconds, which takes about 7.6 to 7.9 minutes,
+ *  the search can be "boosted" back to 1, 2, 3, ... seconds.
+ *  Since long running servers issue beacons every ~3 minutes,
+ *  every existing PVA server on the network will appear "new" when a client
+ *  receives its first beacon within ~3 minutes after startup.
+ *  Such beacons are ignored for the ~7 minutes where the search period settles
+ *  to avoid unnecessary network traffic.
  *
  *  <p>Can send search requests to unicast (IPv4 and IPv6), multicast (4 & 6), broadcast (IPv4 only).
  *  Since only StandardProtocolFamily.INET sockets support IPv4 multicast,
@@ -55,19 +64,39 @@ import org.epics.pva.data.Hexdump;
 @SuppressWarnings("nls")
 class ChannelSearch
 {
+    /** Basic search period is one second */
+    private static final int SEARCH_PERIOD_MS = 1000;
+
+    /** Search period jitter to avoid multiple clients all searching at the same period */
+    private static final int SEARCH_JITTER_MS = 25;
+
+    /** Minimum search for a channel is ASAP, then incrementing by 1 */
+    private static final int MIN_SEARCH_PERIOD = 0;
+
+    /** Maximum and eternal search period is every 30 sec */
+    private static final int MAX_SEARCH_PERIOD = 30;
+
     /** Channel that's being searched */
     private class SearchedChannel
     {
-        final AtomicInteger search_counter;
+        /** Search period in seconds.
+         *  Steps up from 0 to MAX_SEARCH_PERIOD and then stays at MAX_SEARCH_PERIOD
+         */
+        final AtomicInteger search_period = new AtomicInteger(1);
+
+        /** Seconds spent in the current state.
+         *  Incremented for every run of the search thread.
+         *  If it reaches the current search_period,
+         *  a search is performed and search_period updated
+         *  to the next one.
+         */
+        final AtomicInteger seconds_in_state = new AtomicInteger(0);
+
         final AtomicInteger tcp_search_counter = new AtomicInteger(0);
         final PVAChannel channel;
 
         SearchedChannel(final PVAChannel channel)
         {
-            // Counter of 0 means the next regular search will increment
-            // to 1 (no search), then 2 (power of two -> search).
-            // So it'll "soon" perform a regular search.
-            this.search_counter = new AtomicInteger(0);
             this.channel = channel;
             // Not starting an _immediate_ search in here because
             // this needs to be added to searched_channels first.
@@ -82,38 +111,6 @@ class ChannelSearch
     private final ClientUDPHandler udp;
 
     private final Function<InetSocketAddress, ClientTCPHandler> tcp_provider;
-
-    /** Basic search period */
-    private static final int SEARCH_PERIOD_MS = 225;
-
-    /** Search period jitter to avoid multiple clients all searching at the same period */
-    private static final int SEARCH_JITTER_MS = 25;
-
-    /** Exponential search intervals
-     *
-     *  <p>Search counter for a channel is incremented each SEARCH_PERIOD_MS.
-     *  When counter is a power of 2, search request is sent.
-     *  Counter starts at 1, and first search period increments to 2:
-     *     0 ms increments to 2 -> Search!
-     *   225 ms increments to 3 -> No search
-     *   450 ms increments to 4 -> Search (~0.5 sec after last)
-     *   675 ms increments to 5 -> No search
-     *   900 ms increments to 6 -> No search
-     *  1125 ms increments to 7 -> No search
-     *  1350 ms increments to 8 -> Search (~ 1 sec after last)
-     *  ...
-     *
-     *  <p>So the time between searches is roughly 0.5 seconds,
-     *  1 second, 2, 4, 8, 15, 30 seconds.
-     *
-     *  <p>Once the search count reaches 256, it's reset to 129.
-     *  This means it then takes 128 periods to again reach 256
-     *  for the next search, so searches end up being issued
-     *  roughly every 128*0.225 = 30 seconds.
-     */
-    private static final int BOOST_SEARCH_COUNT = 1,
-                             MAX_SEARCH_COUNT = 256,
-                             MAX_SEARCH_RESET = 129;
 
     /** Map of searched channels by channel ID */
     private ConcurrentHashMap<Integer, SearchedChannel> searched_channels = new ConcurrentHashMap<>();
@@ -222,8 +219,15 @@ class ChannelSearch
     {
         for (SearchedChannel searched : searched_channels.values())
         {
-            logger.log(Level.FINE, () -> "Restart search for " + searched.channel.getName());
-            searched.search_counter.set(BOOST_SEARCH_COUNT);
+            // If search for channel has settled to the long period, restart
+            final int period = searched.search_period.updateAndGet(val -> val >= MAX_SEARCH_PERIOD
+                                                                        ? MIN_SEARCH_PERIOD
+                                                                        : val);
+            if (period == MIN_SEARCH_PERIOD)
+            {
+                searched.seconds_in_state.set(0);
+                logger.log(Level.FINE, () -> "Restart search for '" + searched.channel.getName() + "'");
+            }
             // Not sending search right now:
             //   search(channel);
             // Instead, scheduling it to be searched again real soon for a few times.
@@ -233,21 +237,25 @@ class ChannelSearch
         }
     }
 
-    private static boolean isPowerOfTwo(final int x)
-    {
-        return x > 0  &&  (x & (x - 1)) == 0;
-    }
-
     /** Invoked by timer: Check searched channels for the next one to handle */
     private void runSearches()
     {
+        // TODO Collect searched channels, then issue one search message for all of them
+        // (several for UDP as we reach max packet size)
         for (SearchedChannel searched : searched_channels.values())
         {
-            final int counter = searched.search_counter.updateAndGet(val -> val >= MAX_SEARCH_COUNT ? MAX_SEARCH_RESET : val+1);
-            if (isPowerOfTwo(counter))
+            // Stayed long enough in current search period?
+            final int secs = searched.seconds_in_state.incrementAndGet();
+            if (secs >= searched.search_period.get())
             {
-                logger.log(Level.FINER, () -> "Searching... " + searched.channel);
+                logger.log(Level.FINE, () -> "Searching... " + searched.channel);
                 search(searched.channel);
+
+                // Move to next search period, plateau at MAX_SEARCH_PERIOD
+                searched.seconds_in_state.set(0);
+                searched.search_period.updateAndGet(p -> p < MAX_SEARCH_PERIOD
+                                                           ? p + 1
+                                                           : MAX_SEARCH_PERIOD);
             }
         }
     }
@@ -315,7 +323,7 @@ class ChannelSearch
         synchronized (send_buffer)
         {
             final int seq = search_sequence.incrementAndGet();
-            logger.log(Level.FINE, "Search Request #" + seq + " for " + channel);
+            logger.log(Level.FINE, "UDP Search Request #" + seq + " for " + channel);
             sendSearch(seq, channel.getCID(), channel.getName());
         }
     }

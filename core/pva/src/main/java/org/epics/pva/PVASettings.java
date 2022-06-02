@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -171,6 +171,33 @@ public class PVASettings
     /** Maximum number of array elements shown when printing data */
     public static int EPICS_PVA_MAX_ARRAY_FORMATTING = 256;
 
+    /** Range of beacon periods in seconds recognized as "fast, new" beacons
+     *  that re-start searches for disconnected channels.
+     *
+     *  <p>The first beacon received from a server has a nominal period of 0.
+     *  Newly started servers send beacons every ~15 seconds.
+     *  After about 5 minutes they relax the beacon period to ~180 seconds.
+     *
+     *  <p>The criteria for restarting searches is min &lt;= period &lt; max.
+     *  A min..max range of 0..30 recognizes the initial and ~15 second beacons
+     *  as new.
+     *  A range of 1..30 would ignore the initial beacon but re-start searches
+     *  on 15 sec beacons.
+     *  A min..max range of 0..0 would disable the re-start of searches.
+     */
+    public static int EPICS_PVA_FAST_BEACON_MIN = 0,
+                      EPICS_PVA_FAST_BEACON_MAX = 30;
+
+    /** Maximum age of beacons in seconds
+     *
+     *  <p>Beacon information older than this,
+     *  i.e. beacons that have not been received again
+     *  for this time are removed from the cache to preserve
+     *  memory. If they re-appear, they will be considered
+     *  new beacons
+     */
+    public static int EPICS_PVA_MAX_BEACON_AGE = 300;
+
     static
     {
         EPICS_PVA_ADDR_LIST = get("EPICS_PVA_ADDR_LIST", EPICS_PVA_ADDR_LIST);
@@ -183,6 +210,9 @@ public class PVASettings
         EPICS_PVA_CONN_TMO = get("EPICS_PVA_CONN_TMO", EPICS_PVA_CONN_TMO);
         EPICS_PVA_MAX_ARRAY_FORMATTING = get("EPICS_PVA_MAX_ARRAY_FORMATTING", EPICS_PVA_MAX_ARRAY_FORMATTING);
         EPICS_PVA_SEND_BUFFER_SIZE = get("EPICS_PVA_SEND_BUFFER_SIZE", EPICS_PVA_SEND_BUFFER_SIZE);
+        EPICS_PVA_FAST_BEACON_MIN = get("EPICS_PVA_FAST_BEACON_MIN", EPICS_PVA_FAST_BEACON_MIN);
+        EPICS_PVA_FAST_BEACON_MAX = get("EPICS_PVA_FAST_BEACON_MAX", EPICS_PVA_FAST_BEACON_MAX);
+        EPICS_PVA_MAX_BEACON_AGE = get("EPICS_PVA_MAX_BEACON_AGE", EPICS_PVA_MAX_BEACON_AGE);
     }
 
     /** Get setting from property, environment or default
