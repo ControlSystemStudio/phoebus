@@ -48,9 +48,9 @@ Similarly, change the directory setting in `server.properties`
 Kafka depends on Zookeeper. By default, Kafka will quit if it cannot connect to Zookeeper within 6 seconds.
 When the Linux host boots up, this may not be long enough to allow Zookeeper to start.
 
-	# Timeout in ms for connecting to zookeeper defaults to 6000ms.
-	# Suggest a much longer time (5 minutes)
-	zookeeper.connection.timeout.ms=300000
+    # Timeout in ms for connecting to zookeeper defaults to 6000ms.
+    # Suggest a much longer time (5 minutes)
+    zookeeper.connection.timeout.ms=300000
 
 By default, Kafka will automatically create topics.
 This means you could accidentally start an alarm server for a non-existing configuration.
@@ -60,11 +60,13 @@ Best disable auto-topic-creation, create topics on purpose with the correct sett
 and have alarm tools that try to access a non-existing configuration fail.
 
     # Suggest to add this to prevent automatic topic creation,
-	auto.create.topics.enable=false
+    auto.create.topics.enable=false
 
 If the following "First steps" generate errors of the type
 
     WARN Error while fetching metadata with correlation id 39 : .. LEADER_NOT_AVAILABLE
+or
+    ERROR ..TimeoutException: Timed out waiting for a node assignment
     
 then define the host name in  `config/server.properties`.
 For tests, you can use localhost:
@@ -111,13 +113,13 @@ It is not required for the alarm system setup
 but simply meant to learn about Kafka or to test connectivity.
 
     # Create new topic
-    kafka/bin/kafka-topics.sh  --zookeeper localhost:2181 --create --replication-factor 1 --partitions 1 --topic test
+    kafka/bin/kafka-topics.sh  --bootstrap-server localhost:9092 --create --replication-factor 1 --partitions 1 --topic test
     
     # Topic info
-    kafka/bin/kafka-topics.sh  --zookeeper localhost:2181 --list
-    kafka/bin/kafka-topics.sh  --zookeeper localhost:2181 --describe
-    kafka/bin/kafka-topics.sh  --zookeeper localhost:2181 --describe --topic test
-    kafka/bin/kafka-configs.sh --zookeeper localhost:2181 --entity-type topics --describe
+    kafka/bin/kafka-topics.sh  --bootstrap-server localhost:9092 --list
+    kafka/bin/kafka-topics.sh  --bootstrap-server localhost:9092 --describe
+    kafka/bin/kafka-topics.sh  --bootstrap-server localhost:9092 --describe --topic test
+    kafka/bin/kafka-configs.sh --bootstrap-server localhost:9092 --entity-type topics --describe
     
     # Produce messages for topic (no key) 
     kafka/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test
@@ -133,7 +135,7 @@ but simply meant to learn about Kafka or to test connectivity.
     kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --property print.key=true --property key.separator=": " --topic test --from-beginning
 
     # Delete topic
-    kafka/bin/kafka-topics.sh  --zookeeper localhost:2181 --delete --topic test
+    kafka/bin/kafka-topics.sh  --bootstrap-server localhost:9092 --delete --topic test
 
 
 Stop local instance:
