@@ -11,8 +11,8 @@ import static org.epics.pva.PVASettings.logger;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -217,7 +217,7 @@ class ChannelSearch
      */
     public void register(final PVAChannel channel, final boolean now)
     {
-        logger.log(Level.FINE, () -> "Register search for " + channel.getName() + " " + channel.getCID());
+        logger.log(Level.FINE, () -> "Register search for " + channel);
 
         final ClientChannelState old = channel.setState(ClientChannelState.SEARCHING);
         if (old == ClientChannelState.SEARCHING)
@@ -288,6 +288,7 @@ class ChannelSearch
     private final ArrayList<PVAChannel> to_search = new ArrayList<>();
 
     /** Invoked by timer: Check searched channels for the next one to handle */
+    @SuppressWarnings("unchecked")
     private void runSearches()
     {
         to_search.clear();
@@ -369,9 +370,10 @@ class ChannelSearch
                 break;
 
             final List<PVAChannel> batch = to_search.subList(start, start + count);
-            System.out.println(Instant.now() + " Search bucket " + current_search_bucket.get() + " " + batch);
-            for (PVAChannel channel : batch)
-                search(channel);
+            logger.log(Level.FINE, "Search bucket " + current_search_bucket.get() + " " + batch);
+
+            // PVAChannel extends SearchRequest.Channel, so use List<PVAChannel> as Collection<SR.Channel>
+            search((Collection<SearchRequest.Channel>) (List<? extends SearchRequest.Channel>)batch);
             start += count;
         }
     }
@@ -385,22 +387,18 @@ class ChannelSearch
         synchronized (send_buffer)
         {
             logger.log(Level.FINE, "List Request");
-            sendSearch(0, -1, null);
+            sendSearch(0, null);
         }
     }
 
-    /** Issue search for channel
-     *  @param channel Channel to search
+    /** Issue search for channels
+     *  @param channels Channels to search, <code>null</code> for 'list'
      */
-    private void search(final PVAChannel channel)
+    private void search(final Collection<SearchRequest.Channel> channels)
     {
         // Search via TCP
         for (AddressInfo name_server : name_server_addresses)
         {
-            final SearchedChannel searched = searched_channels.get(channel.getCID());
-            if (searched == null)
-                continue;
-
             final ClientTCPHandler tcp = tcp_provider.apply(name_server.getAddress());
 
             // In case of connection errors (TCP connection blocked by firewall),
@@ -409,7 +407,7 @@ class ChannelSearch
             {
                 final RequestEncoder search_request = (version, buffer) ->
                 {
-                    logger.log(Level.FINE, () -> "Searching for " + channel + " via TCP " + tcp.getRemoteAddress());
+                    logger.log(Level.FINE, () -> "Searching for " + channels + " via TCP " + tcp.getRemoteAddress());
 
                     // Search sequence identifies the potentially repeated UDP.
                     // TCP search is once only, so PVXS always sends 0x66696E64 = "find".
@@ -419,7 +417,7 @@ class ChannelSearch
                     // Use 'any' reply address since reply will be via this TCP socket
                     final InetSocketAddress response_address = new InetSocketAddress(0);
 
-                    SearchRequest.encode(true, seq, channel.getCID(), channel.getName(), response_address , buffer);
+                    SearchRequest.encode(true, seq, channels, response_address , buffer);
                 };
                 tcp.submit(search_request);
             }
@@ -437,20 +435,20 @@ class ChannelSearch
             // For UDP, use bucket index to get a changing number that helps
             // match up duplicate packets and allows debugging bucket usage
             final int seq = current_search_bucket.get();
-            logger.log(Level.FINE, "UDP Search Request #" + seq + " for " + channel);
-            sendSearch(seq, channel.getCID(), channel.getName());
+            logger.log(Level.FINE, () -> "UDP Search Request #" + seq + " for " + channels);
+            sendSearch(seq, channels);
         }
     }
 
     /** Send a 'list' or channel search out via UDP */
-    private void sendSearch(final int seq, final int cid, final String name)
+    private void sendSearch(final int seq, final Collection<SearchRequest.Channel> channels)
     {
         // Buffer starts out with UNICAST bit set in the search message
         for (AddressInfo addr : unicast_search_addresses)
         {
             send_buffer.clear();
             final InetSocketAddress response = udp.getResponseAddress(addr);
-            SearchRequest.encode(true, seq, cid, name, response, send_buffer);
+            SearchRequest.encode(true, seq, channels, response, send_buffer);
             send_buffer.flip();
             try
             {
@@ -468,7 +466,7 @@ class ChannelSearch
         {
             send_buffer.clear();
             final InetSocketAddress response = udp.getResponseAddress(addr);
-            SearchRequest.encode(false, seq, cid, name, response, send_buffer);
+            SearchRequest.encode(false, seq, channels, response, send_buffer);
             send_buffer.flip();
             try
             {

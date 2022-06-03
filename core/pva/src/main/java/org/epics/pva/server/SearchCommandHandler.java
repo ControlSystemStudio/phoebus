@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2021-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -32,9 +32,9 @@ class SearchCommandHandler implements CommandHandler<ServerTCPHandler>
 
         final SearchRequest search = SearchRequest.decode(tcp.getRemoteAddress(), version, payload_size, buffer);
 
-        if (search.name != null)
-            for (int i=0; i<search.name.length; ++i)
-                tcp.getServer().handleSearchRequest(search.seq, search.cid[i], search.name[i],
+        if (search.channels != null)
+            for (SearchRequest.Channel channel : search.channels)
+                tcp.getServer().handleSearchRequest(search.seq, channel.getCID(), channel.getName(),
                                                     search.client, tcp);
     }
 }
