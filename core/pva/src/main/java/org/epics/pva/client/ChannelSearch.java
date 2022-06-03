@@ -370,8 +370,6 @@ class ChannelSearch
                 break;
 
             final List<PVAChannel> batch = to_search.subList(start, start + count);
-            logger.log(Level.FINE, "Search bucket " + current_search_bucket.get() + " " + batch);
-
             // PVAChannel extends SearchRequest.Channel, so use List<PVAChannel> as Collection<SR.Channel>
             search((Collection<SearchRequest.Channel>) (List<? extends SearchRequest.Channel>)batch);
             start += count;
@@ -411,7 +409,7 @@ class ChannelSearch
 
                     // Search sequence identifies the potentially repeated UDP.
                     // TCP search is once only, so PVXS always sends 0x66696E64 = "find".
-                    // We send "look".
+                    // We send "look" ("kool" for little endian).
                     final int seq = 0x6C6F6F6B;
 
                     // Use 'any' reply address since reply will be via this TCP socket
