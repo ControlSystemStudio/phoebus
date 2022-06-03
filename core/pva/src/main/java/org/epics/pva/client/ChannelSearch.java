@@ -146,6 +146,9 @@ class ChannelSearch
     /** Buffer for assembling search messages */
     private final ByteBuffer send_buffer = ByteBuffer.allocate(PVASettings.MAX_UDP_UNFRAGMENTED_SEND);
 
+    /** After header of about 50 bytes, allow this for the search packet payload (CIDs, names) */
+    private final int MAX_SEARCH_PAYLOAD = PVASettings.MAX_UDP_UNFRAGMENTED_SEND - 50;
+
     /** Address list to which search requests are sent */
     private final List<AddressInfo> unicast_search_addresses = new ArrayList<>(),
                                     b_or_mcast_search_addresses = new ArrayList<>(),
@@ -345,19 +348,22 @@ class ChannelSearch
             {
                 final PVAChannel channel = to_search.get(start + count);
                 int size = 4 + PVAString.getEncodedSize(channel.getName());
-                if (payload + size < 50) // TODO 1400
+                if (payload + size < MAX_SEARCH_PAYLOAD)
                 {
                     ++count;
                     payload += size;
                 }
                 else if (count == 0)
-                {
+                {   // Can't fit this single name?
                     logger.log(Level.WARNING, "PV name exceeds search buffer size: " + channel);
                     searched_channels.remove(channel.getCID());
                     to_search.remove(start + count);
                 }
                 else
+                {
+                    logger.log(Level.FINER, () -> "Reached " + MAX_SEARCH_PAYLOAD + " bytes, splitting");
                     break;
+                }
             }
             if (count == 0)
                 break;
