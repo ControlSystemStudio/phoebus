@@ -9,10 +9,12 @@ import co.elastic.clients.elasticsearch._types.Result;
 import co.elastic.clients.elasticsearch.core.BulkRequest;
 import co.elastic.clients.elasticsearch.core.BulkResponse;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
+import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import co.elastic.clients.elasticsearch.indices.*;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.http.HttpHost;
 import co.elastic.clients.elasticsearch.core.IndexRequest;
 import org.elasticsearch.client.RestClient;
@@ -45,7 +47,7 @@ public class ElasticClientHelper {
 
     private static RestClient restClient;
 
-    private static RestClientTransport transport;
+    private static ElasticsearchTransport transport;
 
     private static ElasticsearchClient client;
     private static ElasticClientHelper instance;
@@ -59,6 +61,8 @@ public class ElasticClientHelper {
     BlockingQueue<SimpleImmutableEntry<String,AlarmStateMessage>> stateMessagedQueue = new LinkedBlockingDeque<>();
     // State messages to be indexed
     BlockingQueue<SimpleImmutableEntry<String,AlarmConfigMessage>> configMessagedQueue = new LinkedBlockingDeque<>();
+
+    private final ObjectMapper mapper = new ObjectMapper();
 
     private ElasticClientHelper() {
         try {
@@ -75,9 +79,16 @@ public class ElasticClientHelper {
                     }
                 }
             }));
+
+            // Create the low-level client
             restClient = RestClient.builder(
-                    new HttpHost(new HttpHost(props.getProperty("es_host"),Integer.parseInt(props.getProperty("es_port"))))).build();
-            transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
+                            new HttpHost(props.getProperty("es_host"),Integer.parseInt(props.getProperty("es_port")))).build();
+
+            mapper.registerModule(new JavaTimeModule());
+            transport = new RestClientTransport(
+                    restClient,
+                    new JacksonJsonpMapper(mapper)
+            );
             client = new ElasticsearchClient(transport);
             if (props.getProperty("es_sniff").equals("true")) {
                 sniffer = Sniffer.builder(restClient).build();
@@ -114,38 +125,6 @@ public class ElasticClientHelper {
         return client;
     }
 
-    /**
-     * Check if an index exists with the given name 
-     * Note: this is an synchronous call
-     *
-     * @param indexName elastic index name / pattern
-     * @return true if index exists
-     */
-    public boolean indexExists(String indexName) {
-        ExistsRequest xRequest = new ExistsRequest.Builder()
-                .index(indexName.toLowerCase())
-                .build();
-        try {
-            return client.indices().exists(xRequest).value();
-        } catch (IOException e) {
-            logger.log(Level.WARNING, "Failed to query elastic", e);
-            return false;
-        }
-    }
-
-    public void indexAlarmStateDocument(String indexName, AlarmStateMessage alarmStateMessage) {
-        IndexRequest<AlarmStateMessage> indexRequest = new IndexRequest.Builder<AlarmStateMessage>()
-                .index(indexName.toLowerCase())
-                .document(alarmStateMessage)
-                .build();
-        try {
-            IndexResponse idxResponse = client.index(indexRequest);
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "failed to log message " + alarmStateMessage + " to index " + indexName, e);
-        }
-    }
-
-
     public void indexAlarmStateDocuments(String indexName, AlarmStateMessage alarmStateMessage) {
         try {
             stateMessagedQueue.put(new SimpleImmutableEntry<>(indexName,alarmStateMessage));
@@ -164,20 +143,6 @@ public class ElasticClientHelper {
             return indexResponse.result().equals(Result.Created);
         } catch (IOException e) {
             logger.log(Level.SEVERE, "failed to log message " + alarmCommandMessage + " to index " + indexName, e);
-            return false;
-        }
-    }
-
-    public boolean indexAlarmConfigDocument(String indexName, AlarmConfigMessage alarmConfigMessage) {
-        IndexRequest<AlarmConfigMessage> indexRequest = new IndexRequest.Builder<AlarmConfigMessage>()
-                .index(indexName.toLowerCase())
-                .document(alarmConfigMessage)
-                .build();
-        try {
-            IndexResponse indexResponse = client.index(indexRequest);
-            return indexResponse.result().equals(Result.Created);
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "failed to log message " + alarmConfigMessage + " to index " + indexName, e);
             return false;
         }
     }
@@ -257,7 +222,6 @@ public class ElasticClientHelper {
             boolean exists = client.indices().existsTemplate(request).value();
 
             if(!exists) {
-                ObjectMapper mapper = new ObjectMapper();
                 InputStream is = ElasticClientHelper.class.getResourceAsStream("/alarms_state_template.json");
                 PutIndexTemplateRequest templateRequest = new PutIndexTemplateRequest.Builder()
                         .name(ALARM_STATE_TEMPLATE)
@@ -277,7 +241,6 @@ public class ElasticClientHelper {
             exists = client.indices().existsTemplate(request).value();
 
             if(!exists) {
-                ObjectMapper mapper = new ObjectMapper();
                 InputStream is = ElasticClientHelper.class.getResourceAsStream("/alarms_cmd_template.json");
                 PutIndexTemplateRequest templateRequest = new PutIndexTemplateRequest.Builder()
                         .name(ALARM_CMD_TEMPLATE)
@@ -297,7 +260,6 @@ public class ElasticClientHelper {
             exists = client.indices().existsTemplate(request).value();
 
             if(!exists) {
-                ObjectMapper mapper = new ObjectMapper();
                 InputStream is = ElasticClientHelper.class.getResourceAsStream("/alarms_cmd_template.json");
                 PutIndexTemplateRequest templateRequest = new PutIndexTemplateRequest.Builder()
                         .name(ALARM_CONFIG_TEMPLATE)
