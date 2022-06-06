@@ -162,7 +162,7 @@ public class BeaconTracker
         {
             final BeaconInfo info = infos.next().getValue();
             final long age = Duration.between(info.last, now).getSeconds();
-            if (age > 180) // TODO beacon_cleanup_period
+            if (age > PVASettings.EPICS_PVA_MAX_BEACON_AGE)
             {
                 logger.log(Level.FINER,
                            () -> "Removing beacon info " + info.guid + " (" + info.address + "), last seen " + age + " seconds ago");
