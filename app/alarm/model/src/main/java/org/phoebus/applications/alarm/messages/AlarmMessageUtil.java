@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.phoebus.applications.alarm.model.EnabledState;
 
 import java.io.Serializable;
@@ -32,6 +33,7 @@ public class AlarmMessageUtil implements Serializable{
    @JsonIgnore
     static final ObjectMapper objectStateMapper = new ObjectMapper();
     static {
+        objectStateMapper.registerModule(new JavaTimeModule());
         objectStateMapper.addMixIn(AlarmMessageUtil.class, AlarmStateJsonMessage.class);
     }
 
@@ -41,6 +43,8 @@ public class AlarmMessageUtil implements Serializable{
     static {
         SimpleModule simple_module = new SimpleModule();
         simple_module.addSerializer(new EnabledSerializer());
+
+        objectConfigMapper.registerModule(new JavaTimeModule());
         objectConfigMapper.registerModule(simple_module);
         objectConfigMapper.addMixIn(AlarmMessageUtil.class, AlarmConfigJsonMessage.class);
     }
