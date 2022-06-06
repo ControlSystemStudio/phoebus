@@ -130,7 +130,15 @@ the tools provided by EPICS base:
     pvget demo
     pvmonitor demo
 
+Protocol Test Tools
+-------------------
 
+`pvasearchmonitor` or invoking the phoebus command line with `-main org.epics.pva.server.PVASearchMonitorMain`
+starts a tool that periodically lists received search requests.
+
+`pvaclient beacons` or invoking the phoebus command line with `-main org.epics.pva.client.PVAClientMain beacons`
+starts a tool that lists received beacons.
+ 
     
 API Documentation
 -----------------
@@ -146,10 +154,15 @@ PVA Client:
 
  * PVA Server list
  * Maintains pool of PVs
- * Registers new PVs with ChannelSearch
- * ChannelSearch: Exponential backup to ~30 seconds
+ * Registers new PVs with ChannelSearch, which supports UDP and TCP searches,
+   i.e. search via broadcast/multicast/unicase or via a name server
+ * ChannelSearch: Linear backup of 1, 2, 3, .. seconds between repeated 
+   searches, setting to searching once every 30 seconds after about 7 minutes
+ * Clients monitor beacons. If the search has settled to once every 30 seconds,
+   any new beacon restarts the linear backup to facilitate faster reconnect.
+   Beacons are not required for a reconnect, but they may accelerate it
  * Forward unicast searches to local multicast group
- * Creates TCPHandler when channel found.
+ * Creates TCPHandler when channel found
  * Support "anonymous" or "ca"
    (with user from "user.name" property and host from InetAddress.getLocalHost().getHostName())
  * Echo test when no new data for a while,
@@ -184,4 +197,5 @@ PVA Server:
 TODO:
 
  * Testing
+ * Implement beacons in server
  * Handle fixed size or bounded arrays?
