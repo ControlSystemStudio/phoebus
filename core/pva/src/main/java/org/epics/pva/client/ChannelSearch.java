@@ -98,8 +98,20 @@ class ChannelSearch
         }
     }
 
+    // SearchedChannels are tracked in two data structures
+    //
+    // - searched_channels (concurrent)
+    //   Fast lookup of channel by ID,
+    //   efficient `computeIfAbsent(cid, ..` mechanism for creating
+    //   at most one SearchedChannel per CID.
+    //   Allows checking if a channel is indeed searched,
+    //   and locating the channel for a search reply.
+    //
+    //  - search_buckets (need to SYNC)
+    //   Efficiently schedule the search messages for all channels
+    //   up to MAX_SEARCH_PERIOD.
+
     /**  Map of searched channels by channel ID */
-    // TODO Remove, just use search_buckets?
     private ConcurrentHashMap<Integer, SearchedChannel> searched_channels = new ConcurrentHashMap<>();
 
     /** Search buckets
@@ -241,12 +253,10 @@ class ChannelSearch
         if (searched != null)
         {
             logger.log(Level.FINE, () -> "Unregister search for " + searched.channel.getName() + " " + channel_id);
-
-            synchronized (search_buckets)
-            {
-                for (LinkedList<SearchedChannel> bucket : search_buckets)
-                    bucket.remove(searched);
-            }
+            // NOT removing `searched` from all `search_buckets`.
+            // Removal would be a slow, linear operation.
+            // `runSearches()` will drop the channel from `search_buckets`
+            // because it's no longer listed in `searched_channels`
 
             return searched.channel;
         }
