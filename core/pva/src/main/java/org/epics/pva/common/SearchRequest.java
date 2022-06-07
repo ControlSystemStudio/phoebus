@@ -85,7 +85,16 @@ public class SearchRequest
     public static SearchRequest decode(final InetSocketAddress from, final byte version,
                                        final int payload, final ByteBuffer buffer)
     {
-        if (payload < 4+1+3+16+2+1+4+2)
+        // pvinfo sends 0x1D=29 bytes:
+        // Header and flags
+        // 0000 - CA 02 00 03 1D 00 00 00 00 00 00 00 81 00 00 00 - ................
+        // Return address
+        // 0010 - 00 00 00 00 00 00 00 00 00 00 FF FF 00 00 00 00 - ................
+        // Return port uint16 0xB7C8, byte 0 protocols, uint16 0 channels
+        // 0020 - C8 B7 00 00 00
+        // Searches add 4 bytes for protocol (length 3) "tcp",
+        // plus the list of names.
+        if (payload < 4+1+3+16+2+1+2)
         {
             logger.log(Level.WARNING, "PVA client " + from + " sent only " + payload + " bytes for search request");
             return null;
