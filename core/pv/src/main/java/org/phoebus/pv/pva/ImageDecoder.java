@@ -1,11 +1,15 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
 package org.phoebus.pv.pva;
+
+import static org.phoebus.pv.PV.logger;
+
+import java.util.logging.Level;
 
 import org.epics.pva.data.PVAByteArray;
 import org.epics.pva.data.PVAData;
@@ -76,6 +80,7 @@ public class ImageDecoder
             }
         }
 
+        // Fetch pixel data
         final PVAUnion value_field = struct.get("value");
         final PVAData value = value_field.get();
 
@@ -145,13 +150,28 @@ public class ImageDecoder
                 height = dimensions[1];
         }
 
+        // Is the image data compressed?
+        Codec codec = new UncompressedCodec();
+        final PVAStructure codec_info = struct.get("codec");
+        if (codec_info != null)
+        {
+            final PVAString name = codec_info.get("name");
+            if (name != null)
+            {
+                if (name.get().equalsIgnoreCase("lz4"))
+                    codec = new LZ4Codec();
+                else
+                    logger.log(Level.WARNING, "NDArray codec '" + name.get() + "' is not implemented");
+            }
+        }
+
         // Get data and data type
         final ListNumber data;
         final VImageDataType data_type;
         if (value instanceof PVAByteArray)
         {
             final PVAByteArray values = (PVAByteArray) value;
-            data = ArrayByte.of(values.get());
+            data = codec.decode(values.get(), width*height);
             if (values.isUnsigned())
                 data_type = VImageDataType.pvUByte;
             else
