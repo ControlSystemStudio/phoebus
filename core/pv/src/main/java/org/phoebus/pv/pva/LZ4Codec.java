@@ -10,7 +10,6 @@ package org.phoebus.pv.pva;
 import static org.phoebus.pv.PV.logger;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.util.logging.Level;
 
 import org.apache.commons.compress.compressors.lz4.BlockLZ4CompressorInputStream;
@@ -26,29 +25,26 @@ public class LZ4Codec implements Codec
     @Override
     public ListNumber decode(final byte[] data, final int decompressed_size) throws Exception
     {
-        final BlockLZ4CompressorInputStream in =
-            new BlockLZ4CompressorInputStream(
-                new ByteArrayInputStream(data));
-        final ByteArrayOutputStream out = new ByteArrayOutputStream(decompressed_size);
-        final byte[] buffer = new byte[1024];
+        final byte[] result = new byte[decompressed_size];
+        int expanded = 0;
 
-        int got = 0;
-        int n;
-        while ((n = in.read(buffer)) != -1)
+        try
+        ( final BlockLZ4CompressorInputStream in =
+            new BlockLZ4CompressorInputStream(new ByteArrayInputStream(data))
+        )
         {
-            got += n;
-            out.write(buffer, 0, n);
+            while (expanded < decompressed_size)
+            {
+                final int batch = in.read(result, expanded, decompressed_size - expanded);
+                if (batch == -1)
+                    break;
+                expanded += batch;
+            }
         }
-        out.close();
-        in.close();
-
-        if (got != decompressed_size)
-            throw new Exception("LZ4 decompression resulted in " + got +
-                                " instead of exepected " + decompressed_size + " bytes");
 
         if (logger.isLoggable(Level.FINE))
-            logger.log(Level.FINE, "LZ4 expands " + got + " into " + decompressed_size + " bytes");
+            logger.log(Level.FINE, "LZ4 expands " + expanded + " into " + decompressed_size + " bytes");
 
-        return ArrayByte.of(out.toByteArray());
+        return ArrayByte.of(result);
     }
 }
