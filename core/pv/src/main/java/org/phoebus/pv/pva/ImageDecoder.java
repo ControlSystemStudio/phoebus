@@ -80,10 +80,6 @@ public class ImageDecoder
             }
         }
 
-        // Fetch pixel data
-        final PVAUnion value_field = struct.get("value");
-        final PVAData value = value_field.get();
-
         // Try to get value of color mode attribute
         // TODO: bayer color mode requires a bayerPattern attribute as well...
         final PVAStructureArray attribute_field = struct.get("attribute");
@@ -150,18 +146,38 @@ public class ImageDecoder
                 height = dimensions[1];
         }
 
-        // Is the image data compressed?
-        Codec codec = new UncompressedCodec();
+        // Fetch pixel data
+        final PVAUnion value_field = struct.get("value");
+        PVAData value = value_field.get();
+
+        // Value might be compressed, which means that a PVAByteArray
+        // needs to be de-compressed and then converted into the
+        // actual data type
         final PVAStructure codec_info = struct.get("codec");
         if (codec_info != null)
         {
             final PVAString name = codec_info.get("name");
-            if (name != null)
+            if (name != null  &&  !name.get().isBlank())
             {
+                // For compressed data, values is ubyte[] and
+                // codec.parameters holds original data type code
+                final PVAny parms = codec_info.get("parameters");
+                final PVAInt orig_type = parms.get();
+
+                Codec codec = null;
                 if (name.get().equalsIgnoreCase("lz4"))
                     codec = new LZ4Codec();
                 else
                     logger.log(Level.WARNING, "NDArray codec '" + name.get() + "' is not implemented");
+
+                if (codec != null)
+                {
+                    if (value instanceof PVAByteArray)
+                        value = codec.decode((PVAByteArray)value, orig_type.get(), width, height);
+                    else
+                        logger.log(Level.WARNING, "Expected PVAByteArray for data compressed with codec '" + name.get() +
+                                   "' but got " + value.getClass().getName());
+                }
             }
         }
 
@@ -171,7 +187,7 @@ public class ImageDecoder
         if (value instanceof PVAByteArray)
         {
             final PVAByteArray values = (PVAByteArray) value;
-            data = codec.decode(values.get(), width*height);
+            data = ArrayByte.of(values.get());
             if (values.isUnsigned())
                 data_type = VImageDataType.pvUByte;
             else

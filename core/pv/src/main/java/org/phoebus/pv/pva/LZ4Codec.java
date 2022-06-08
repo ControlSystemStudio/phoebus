@@ -13,17 +13,15 @@ import java.io.ByteArrayInputStream;
 import java.util.logging.Level;
 
 import org.apache.commons.compress.compressors.lz4.BlockLZ4CompressorInputStream;
-import org.epics.util.array.ArrayByte;
-import org.epics.util.array.ListNumber;
 
 /** PVA NDArray codec for LZ4-compressed data
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class LZ4Codec implements Codec
+public class LZ4Codec extends Codec
 {
     @Override
-    public ListNumber decode(final byte[] data, final int decompressed_size) throws Exception
+    public byte[] decode(final byte[] data, final int decompressed_size) throws Exception
     {
         final byte[] result = new byte[decompressed_size];
         int expanded = 0;
@@ -45,6 +43,6 @@ public class LZ4Codec implements Codec
         if (logger.isLoggable(Level.FINE))
             logger.log(Level.FINE, "LZ4 expands " + expanded + " into " + decompressed_size + " bytes");
 
-        return ArrayByte.of(result);
+        return result;
     }
 }
