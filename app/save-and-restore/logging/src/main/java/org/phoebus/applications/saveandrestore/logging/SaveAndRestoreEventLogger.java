@@ -52,15 +52,6 @@ import java.util.logging.Logger;
 public class SaveAndRestoreEventLogger implements SaveAndRestoreEventReceiver {
 
     private static final Logger logger = Logger.getLogger(SaveAndRestoreEventLogger.class.getName());
-    private SecureStore secureStore;
-
-    public SaveAndRestoreEventLogger() {
-        try {
-            secureStore = new SecureStore();
-        } catch (Exception e) {
-            logger.log(Level.WARNING, "Unable to instantiate SecureStore. Logging of save-and-restore events is disabled.");
-        }
-    }
 
     /**
      * Called when a snapshot has been created and persisted by the save-and-restore service.
@@ -70,15 +61,12 @@ public class SaveAndRestoreEventLogger implements SaveAndRestoreEventReceiver {
      */
     @Override
     public void snapshotSaved(Node node, Consumer<String> errorHandler) {
-        if (secureStore == null) {
-            // Do not call error handler as user cannot fix the problem of missing SecureStore.
-            return;
-        }
         LogFactory logFactory = LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory);
         if (logFactory == null) {
             return;
         }
         try {
+            SecureStore secureStore = new SecureStore();
             ScopedAuthenticationToken scopedAuthenticationToken = secureStore.getScopedAuthenticationToken("logbook");
             if (scopedAuthenticationToken == null) {
                 errorHandler.accept(Messages.LogbookCredentialsMissing);
@@ -102,15 +90,12 @@ public class SaveAndRestoreEventLogger implements SaveAndRestoreEventReceiver {
      */
     @Override
     public void snapshotRestored(Node node, List<String> failedPVs, Consumer<String> errorHandler) {
-        if (secureStore == null) {
-            // Do not call error handler as user cannot fix the problem of missing SecureStore.
-            return;
-        }
         LogFactory logFactory = LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory);
         if (logFactory == null) {
             return;
         }
         try {
+            SecureStore secureStore = new SecureStore();
             ScopedAuthenticationToken scopedAuthenticationToken = secureStore.getScopedAuthenticationToken("logbook");
             if (scopedAuthenticationToken == null) {
                 errorHandler.accept(Messages.LogbookCredentialsMissing);

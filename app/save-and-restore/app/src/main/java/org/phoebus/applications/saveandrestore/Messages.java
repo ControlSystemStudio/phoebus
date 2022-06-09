@@ -55,6 +55,9 @@ public class Messages {
     public static String jmasarServiceUnavailable;
     public static String labelMultiplier;
     public static String labelThreshold;
+    public static String loggingFailedTitle;
+    public static String loggingFailed;
+    public static String loggingFailedCauseUnknown;
     public static String menuItemDeleteSelectedPVs;
     public static String openResourceFailedTitle;
     public static String openResourceFailedHeader;

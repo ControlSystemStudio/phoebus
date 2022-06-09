@@ -81,6 +81,7 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.pv.PVFactory;
 import org.phoebus.pv.PVPool;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockPane;
 
 import java.util.ArrayList;
@@ -627,11 +628,13 @@ public class SnapshotController implements NodeChangedListener {
                 LOGGER.log(Level.WARNING,
                         "Not all PVs could be restored for {0}: {1}. The following errors occured:\n{2}",
                         new Object[] { s.getSnapshot().get().getName(), s.getSnapshot().get(), sb.toString() });
+
                 Platform.runLater(() -> {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.setTitle(Messages.restoreErrorTitle);
                     alert.setContentText(sb.toString());
                     alert.setHeaderText(Messages.restoreErrorContent);
+                    DialogHelper.positionDialog(alert, snapshotTab.getTabPane(), -150, -150);
                     alert.showAndWait();
                 });
             }
@@ -718,6 +721,7 @@ public class SnapshotController implements NodeChangedListener {
                 alert.setTitle(Messages.errorActionFailed);
                 alert.setContentText(e.getMessage());
                 alert.setHeaderText(Messages.saveSnapshotErrorContent);
+                DialogHelper.positionDialog(alert, snapshotTab.getTabPane(), -150, -150);
                 alert.showAndWait();
             }
         }
@@ -735,6 +739,7 @@ public class SnapshotController implements NodeChangedListener {
                 alert.setTitle(Messages.errorActionFailed);
                 alert.setContentText(e.getMessage());
                 alert.setHeaderText(Messages.saveSnapshotErrorContent);
+                DialogHelper.positionDialog(alert, snapshotTab.getTabPane(), -150, -150);
                 alert.showAndWait();
             }
         }
@@ -1068,6 +1073,7 @@ public class SnapshotController implements NodeChangedListener {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle(Messages.promptCloseSnapshotTabTitle);
             alert.setContentText(Messages.promptCloseSnapshotTabContent);
+            DialogHelper.positionDialog(alert, snapshotTab.getTabPane(), -150, -150);
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get().equals(ButtonType.CANCEL)) {
                 return false;
@@ -1105,12 +1111,7 @@ public class SnapshotController implements NodeChangedListener {
     @Override
     public void nodeChanged(Node node) {
         if (node.getUniqueId().equals(snapshotUniqueIdProperty.get())) {
-            snapshotNameProperty.set(node.getName());
-            snapshotSaveableProperty.setValue(false);
-            snapshotTab.updateTabTitile(node.getName(), Boolean.parseBoolean(node.getProperty("golden")));
-
-            persistentSnapshotName = node.getName();
-            persistentGoldenState = Boolean.parseBoolean(node.getProperty("golden"));
+            loadSnapshot(node);
         }
     }
 
@@ -1120,11 +1121,22 @@ public class SnapshotController implements NodeChangedListener {
 
     private void logNewSnapshotSaved(Node node){
         JobManager.schedule("Log new snapshot saved", monitor -> eventReceivers
-                .forEach(r -> r.snapshotSaved(node, errorMessage -> System.out.println(errorMessage))));
+                .forEach(r -> r.snapshotSaved(node, errorMessage -> showLoggingError(errorMessage))));
     }
 
     private void logSnapshotRestored(Node node,  List<String> failedPVs){
         JobManager.schedule("Log snapshot restored", monitor -> eventReceivers
-                .forEach(r -> r.snapshotRestored(node, failedPVs, errorMessage -> System.out.println(errorMessage))));
+                .forEach(r -> r.snapshotRestored(node, failedPVs, errorMessage -> showLoggingError(errorMessage))));
+    }
+
+    private void showLoggingError( String cause){
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle(Messages.loggingFailedTitle);
+            alert.setHeaderText(Messages.loggingFailed);
+            alert.setContentText(cause != null ? cause : Messages.loggingFailedCauseUnknown);
+            DialogHelper.positionDialog(alert, snapshotTab.getTabPane(), -150, -150);
+            alert.showAndWait();
+        });
     }
 }
