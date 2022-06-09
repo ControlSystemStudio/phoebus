@@ -65,6 +65,21 @@ Once a selection of nodes have been copied or moved successfully, the target fol
 **NOTE**: Copying a large number of nodes and/or nodes with deep sub-trees is discouraged as this is an expensive operation.
 Moving nodes on the other hand is lightweight as only references in the tree structure are updated.
 
+Logging
+-------
+
+The optional logging module can be configured to call any registered electronic logbook implementations to automatically create a log
+entry when a new snapshot has been saved, or when a snapshot has been restored (even if the restore operation fails to
+write values to PVs in the save set).
+
+As neither the save-and-restore application
+nor the logging module will prompt for logbook credentials, users should use the Credentials Management app to make
+sure valid credentials are available. Such credentials are also available if user has successfully submitted a log entry,
+and if the electronic logbook module has been configured to save these credentials.
+
+Note save-and-restore operation is independent of the log request. This means that if credentials are missing or invalid,
+only logging will fail.
+
 Script Support
 --------------
 
