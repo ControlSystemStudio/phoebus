@@ -109,7 +109,7 @@ public class SaveAndRestoreEventLogger implements SaveAndRestoreEventReceiver {
         }
     }
 
-    private String getSnapshotInfoTable(Node node) {
+    protected String getSnapshotInfoTable(Node node) {
         StringBuilder stringBuilder = new StringBuilder();
         // This is needed!
         stringBuilder.append("| | |\n");
@@ -117,14 +117,14 @@ public class SaveAndRestoreEventLogger implements SaveAndRestoreEventReceiver {
         stringBuilder.append("|-|-|\n");
         stringBuilder.append("| Snapshot name | ").append(node.getName()).append(" |\n");
         stringBuilder.append("| Created | ").append(node.getCreated()).append(" |\n");
-        String isGolden = node.getProperties().get("golden");
-        stringBuilder.append("| Golden | ").append(isGolden != null && "true".equals(isGolden) ? "yes" : "no").append(" |\n");
+        String isGolden = node.getProperty("golden");
+        stringBuilder.append("| Golden | ").append("true".equals(isGolden) ? "yes" : "no").append(" |\n");
         stringBuilder.append("| User id | ").append(node.getUserName()).append(" |\n");
 
         return stringBuilder.toString();
     }
 
-    private String getFailedPVsTable(List<String> pvs) {
+    protected String getFailedPVsTable(List<String> pvs) {
         StringBuilder stringBuilder = new StringBuilder();
         // This is needed!
         stringBuilder.append("| |\n");
