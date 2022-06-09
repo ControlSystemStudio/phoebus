@@ -8,6 +8,7 @@
 package org.phoebus.pv.pva;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import org.epics.pva.data.PVAByteArray;
 import org.epics.pva.data.PVAData;
@@ -49,20 +50,20 @@ abstract public class Codec
         {
             final byte[] expanded = decode(compressed, 2*width*height);
             final ByteBuffer cvt = ByteBuffer.wrap(expanded);
+            cvt.order(ByteOrder.LITTLE_ENDIAN);
             final short[] shorts = new short[width*height];
             for (int i=0; i<shorts.length; ++i)
                 shorts[i] = cvt.getShort();
-            System.out.println("-> INT16, " + cvt.remaining() + " left");
             return new PVAShortArray(value.getName(), false, shorts);
         }
         case 6: // ushort
         {
             final byte[] expanded = decode(compressed, 2*width*height);
             final ByteBuffer cvt = ByteBuffer.wrap(expanded);
+            cvt.order(ByteOrder.LITTLE_ENDIAN);
             final short[] shorts = new short[width*height];
             for (int i=0; i<shorts.length; ++i)
                 shorts[i] = cvt.getShort();
-            System.out.println("-> UINT16, " + cvt.remaining() + " left");
             return new PVAShortArray(value.getName(), true, shorts);
         }
         case 3: // int
