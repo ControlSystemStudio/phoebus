@@ -22,6 +22,9 @@ import org.epics.pva.data.PVALongArray;
 import org.epics.pva.data.PVAShortArray;
 
 /** PVA NDArray compression codec
+ *
+ *  <p>Base for all compression codecs.
+ *
  *  @author Kay Kasemir
  */
 abstract public class Codec

@@ -15,6 +15,14 @@ import java.util.logging.Level;
 import org.apache.commons.compress.compressors.lz4.BlockLZ4CompressorInputStream;
 
 /** PVA NDArray codec for LZ4-compressed data
+ *
+ *  <p>Standard Java library only supports ZIP.
+ *  Area detector provides binaries/JNI interface
+ *  for LZ4 and BLOSC, but that would add a hard to maintain
+ *  dependency on binaries.
+ *  LZ4 is available via apache-commons-compress, making
+ *  it easy to support.
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
