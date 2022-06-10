@@ -21,7 +21,7 @@ import org.apache.commons.compress.compressors.lz4.BlockLZ4CompressorInputStream
 public class LZ4Codec extends Codec
 {
     @Override
-    public byte[] decode(final byte[] data, final int decompressed_size) throws Exception
+    public byte[] decompress(final byte[] data, final int decompressed_size) throws Exception
     {
         final byte[] result = new byte[decompressed_size];
         int expanded = 0;

@@ -173,7 +173,7 @@ public class ImageDecoder
                 if (codec != null)
                 {
                     if (value instanceof PVAByteArray)
-                        value = codec.decode((PVAByteArray)value, orig_type.get(), width * height);
+                        value = codec.decompress((PVAByteArray)value, orig_type.get(), width * height);
                     else
                         logger.log(Level.WARNING, "Expected PVAByteArray for data compressed with codec '" + name.get() +
                                    "' but got " + value.getClass().getName());

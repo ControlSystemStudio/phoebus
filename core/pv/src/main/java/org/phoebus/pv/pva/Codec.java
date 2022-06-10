@@ -42,7 +42,7 @@ abstract public class Codec
         Double.BYTES    // double
 	};
 
-    /** Decode value
+    /** De-compress value
      *
      *  @param value Value with compressed value
      *  @param orig_data_type Original data type ID
@@ -50,12 +50,12 @@ abstract public class Codec
      *  @return Array data of decoded image
      *  @throws Exception on error
      */
-    public PVAData decode(final PVAByteArray value, final int orig_data_type,
-                          final int value_count) throws Exception
+    public PVAData decompress(final PVAByteArray value, final int orig_data_type,
+                              final int value_count) throws Exception
     {
     	final boolean unsigned = orig_data_type >= 5  &&  orig_data_type <= 8;
         final byte[] compressed = ((PVAByteArray)value).get();
-        final byte[] expanded = decode(compressed, BYTES_PER_SAMPLE[orig_data_type] * value_count);
+        final byte[] expanded = decompress(compressed, BYTES_PER_SAMPLE[orig_data_type] * value_count);
         logger.log(Level.FINE, () -> "Decompressed " + compressed.length + " into " + expanded.length + " bytes");
 
         // byte, ubyte: Done!
@@ -134,5 +134,5 @@ abstract public class Codec
      *  @return De-compressed data
      *  @throws Exception on error
      */
-    abstract public byte[] decode(byte[] data, final int decompressed_size) throws Exception;
+    abstract public byte[] decompress(byte[] data, final int decompressed_size) throws Exception;
 }
