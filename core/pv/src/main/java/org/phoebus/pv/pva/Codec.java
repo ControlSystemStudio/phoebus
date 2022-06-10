@@ -58,18 +58,29 @@ abstract public class Codec
         final byte[] expanded = decode(compressed, BYTES_PER_SAMPLE[orig_data_type] * value_count);
         logger.log(Level.FINE, () -> "Decompressed " + compressed.length + " into " + expanded.length + " bytes");
 
-        // byte, ubyte
+        // byte, ubyte: Done!
         if (orig_data_type == 1  ||  orig_data_type == 5)
         	return new PVAByteArray(unsigned ? "ubyteValue" : "byteValue", unsigned, expanded);
 
-        // Need to 'cast' the expanded data from bytes[] to orig_data_type[].
-        // 'cvt' buffer uses the original byte[], but is there a way to
-        // view the data as e.g. int[] without copying?
-        // cvt.asIntBuffer().array() throws UnsupportedOperationException
+        // Need to 'cast' the expanded data from byte[] to orig_data_type[].
+        // In C/C++, that's easy without copying the data:
+        //   return new PVAIntArray("intValue", unsigned, (int *) expanded);
+        // For Java, these similar looking constructs compile, but result in runtime errors:
         final ByteBuffer cvt = ByteBuffer.wrap(expanded);
+        //   int[] ints = (short []) (Object) expanded;
+        //   int[] ints = cvt.asIntBuffer().array();
+        //
+        // cvt.getInt() as used below eventually calls Unsafe.getInt(..).
+        // There are per-element access routines for each data type in Unsafe,
+        // but couldn't find a general array cast operation.
+        // There are Unsafe.copyMemoryXX routines that might save a little time over
+        // a per-element copy, but they still result in a full copy of the data,
+        // not saving any memory.
+        // Besides, the array elements might need to be swapped to the correct endian,
+        // so going with the ByteBuffer.getXXX() calls which handle byte order.
 
         // Unclear what byte order the data will be.
-        // This "worked" in tests with X86_64 on Linux,
+        // This worked in tests with X86_64 on Linux,
         // but byte order depends on server which populates the data
         // and NTNDArray doesn't include any hint
         cvt.order(ByteOrder.LITTLE_ENDIAN);
@@ -82,12 +93,14 @@ abstract public class Codec
             for (int i=0; i<shorts.length; ++i)
                 shorts[i] = cvt.getShort();
             return new PVAShortArray(unsigned ? "ushortValue" : "shortValue", unsigned, shorts);
+
         case 3: // int
         case 7: // uint
             final int[] ints = new int[value_count];
             for (int i=0; i<ints.length; ++i)
             	ints[i] = cvt.getInt();
             return new PVAIntArray(unsigned ? "uintValue" : "intValue", unsigned, ints);
+
         case 4: // long
         case 8: // ulong
             final long[] longs = new long[value_count];
