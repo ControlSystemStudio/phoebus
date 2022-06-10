@@ -26,21 +26,21 @@ import org.epics.pva.data.PVAShortArray;
  */
 abstract public class Codec
 {
-	/** Bytes per sample for the various `orig_data_type` */
-	private static final int[] BYTES_PER_SAMPLE =
-	{
-		0,
-		Byte.BYTES,     // byte
-		Short.BYTES,    // int16
-		Integer.BYTES,  // int32
-		Long.BYTES,     // int64
-		Byte.BYTES,     // ubyte
-		Short.BYTES,    // uint16
-		Integer.BYTES,  // uint32
-		Long.BYTES,     // uint64
+    /** Bytes per sample for the various `orig_data_type` */
+    private static final int[] BYTES_PER_SAMPLE =
+    {
+        0,
+        Byte.BYTES,     // byte
+        Short.BYTES,    // int16
+        Integer.BYTES,  // int32
+        Long.BYTES,     // int64
+        Byte.BYTES,     // ubyte
+        Short.BYTES,    // uint16
+        Integer.BYTES,  // uint32
+        Long.BYTES,     // uint64
         Float.BYTES,    // float
         Double.BYTES    // double
-	};
+    };
 
     /** De-compress value
      *
@@ -53,14 +53,14 @@ abstract public class Codec
     public PVAData decompress(final PVAByteArray value, final int orig_data_type,
                               final int value_count) throws Exception
     {
-    	final boolean unsigned = orig_data_type >= 5  &&  orig_data_type <= 8;
+        final boolean unsigned = orig_data_type >= 5  &&  orig_data_type <= 8;
         final byte[] compressed = ((PVAByteArray)value).get();
         final byte[] expanded = decompress(compressed, BYTES_PER_SAMPLE[orig_data_type] * value_count);
         logger.log(Level.FINE, () -> "Decompressed " + compressed.length + " into " + expanded.length + " bytes");
 
         // byte, ubyte: Done!
         if (orig_data_type == 1  ||  orig_data_type == 5)
-        	return new PVAByteArray(unsigned ? "ubyteValue" : "byteValue", unsigned, expanded);
+            return new PVAByteArray(unsigned ? "ubyteValue" : "byteValue", unsigned, expanded);
 
         // Need to 'cast' the expanded data from byte[] to orig_data_type[].
         // In C/C++, that's easy without copying the data:
@@ -98,26 +98,26 @@ abstract public class Codec
         case 7: // uint
             final int[] ints = new int[value_count];
             for (int i=0; i<ints.length; ++i)
-            	ints[i] = cvt.getInt();
+                ints[i] = cvt.getInt();
             return new PVAIntArray(unsigned ? "uintValue" : "intValue", unsigned, ints);
 
         case 4: // long
         case 8: // ulong
             final long[] longs = new long[value_count];
             for (int i=0; i<longs.length; ++i)
-            	longs[i] = cvt.getLong();
+                longs[i] = cvt.getLong();
             return new PVALongArray(unsigned ? "ulongValue" : "longValue", unsigned, longs);
 
         case 9: // float
             final float[] floats = new float[value_count];
             for (int i=0; i<floats.length; ++i)
-            	floats[i] = cvt.getFloat();
+                floats[i] = cvt.getFloat();
             return new PVAFloatArray("floatValue", floats);
 
         case 10: // double
             final double[] doubles = new double[value_count];
             for (int i=0; i<doubles.length; ++i)
-            	doubles[i] = cvt.getDouble();
+                doubles[i] = cvt.getDouble();
             return new PVADoubleArray("doubleValue", doubles);
 
         default:
