@@ -74,6 +74,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <skipITTests>true</skipITTests>
     <guava.version>31.0.1-jre</guava.version>
+    <log4j-to-slf4j.version>2.17.1</log4j-to-slf4j.version>
   </properties>
   <build>
     <plugins>
