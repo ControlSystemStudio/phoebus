@@ -32,6 +32,7 @@ import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.security.tokens.SimpleAuthenticationToken;
 
+import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -116,6 +117,7 @@ public class SaveAndRestoreEventLogger implements SaveAndRestoreEventReceiver {
         // This is needed!
         stringBuilder.append("|-|-|\n");
         stringBuilder.append("| Snapshot name | ").append(node.getName()).append(" |\n");
+        stringBuilder.append("| Comment | ").append(node.getProperty("comment")).append(" |\n");
         stringBuilder.append("| Created | ").append(node.getCreated()).append(" |\n");
         String isGolden = node.getProperty("golden");
         stringBuilder.append("| Golden | ").append("true".equals(isGolden) ? "yes" : "no").append(" |\n");
@@ -155,7 +157,7 @@ public class SaveAndRestoreEventLogger implements SaveAndRestoreEventReceiver {
 
         @Override
         public String getTitle() {
-            return "New snapshot created";
+            return MessageFormat.format(Messages.SnapshotCreated, node.getName());
         }
 
         @Override
@@ -267,7 +269,7 @@ public class SaveAndRestoreEventLogger implements SaveAndRestoreEventReceiver {
 
         @Override
         public String getTitle() {
-            return "Snapshot restored";
+            return MessageFormat.format(Messages.SnapshotRestored, node.getName());
         }
 
         @Override

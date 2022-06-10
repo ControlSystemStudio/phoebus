@@ -23,6 +23,8 @@ import org.phoebus.framework.nls.NLS;
 public class Messages {
 
     public static String LogbookCredentialsMissing;
+    public static String SnapshotCreated;
+    public static String SnapshotRestored;
 
     static
     {
