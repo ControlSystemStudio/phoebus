@@ -443,7 +443,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
             @Override
             public void succeeded() {
-                parent.getChildren().removeAll(items);
                 List<Tab> tabsToRemove = new ArrayList<>();
                 List<Tab> visibleTabs = tabPane.getTabs();
                 for (Tab tab : visibleTabs) {
@@ -454,8 +453,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                         }
                     }
                 }
-                changesInProgress.set(false);
                 tabPane.getTabs().removeAll(tabsToRemove);
+                parent.getChildren().removeAll(items);
+                changesInProgress.set(false);
             }
 
             @Override
