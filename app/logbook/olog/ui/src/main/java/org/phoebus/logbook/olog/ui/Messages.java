@@ -29,6 +29,7 @@ public class Messages
                          Logbooks,
                          LogbookServiceUnavailableTitle,
                          LogbookServiceHasNoLogbooks,
+                         LogbooksSearchErrorTitle,
                          LogbooksTitle,
                          LogbooksTooltip,
                          NoClipboardContent,

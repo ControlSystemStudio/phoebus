@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * A client to the Olog-es webservice
@@ -68,7 +67,7 @@ public class OlogClient implements LogClient {
      */
     public static class OlogClientBuilder {
         // required
-        private URI ologURI = null;
+        private final URI ologURI;
 
         // optional
         private boolean withHTTPAuthentication = true;
@@ -76,12 +75,12 @@ public class OlogClient implements LogClient {
         private ClientConfig clientConfig = null;
         @SuppressWarnings("unused")
         private SSLContext sslContext = null;
-        private String protocol = null;
+        private final String protocol;
         private String username = null;
         private String password = null;
         private String connectTimeoutAsString = null;
 
-        private OlogProperties properties = new OlogProperties();
+        private final OlogProperties properties = new OlogProperties();
 
         private OlogClientBuilder() {
             this.ologURI = URI.create(this.properties.getPreferenceValue("olog_url"));
@@ -92,7 +91,7 @@ public class OlogClient implements LogClient {
          * Creates a {@link OlogClientBuilder} for a CF client to Default URL in the
          * channelfinder.properties.
          *
-         * @return
+         * @return The builder
          */
         public static OlogClientBuilder serviceURL() {
             return new OlogClientBuilder();
@@ -101,7 +100,7 @@ public class OlogClient implements LogClient {
         /**
          * Enable of Disable the HTTP authentication on the client connection.
          *
-         * @param withHTTPAuthentication
+         * @param withHTTPAuthentication Indicates whether to use authentication
          * @return {@link OlogClientBuilder}
          */
         public OlogClientBuilder withHTTPAuthentication(boolean withHTTPAuthentication) {
@@ -112,7 +111,7 @@ public class OlogClient implements LogClient {
         /**
          * Set the username to be used for HTTP Authentication.
          *
-         * @param username
+         * @param username User's identity
          * @return {@link OlogClientBuilder}
          */
         public OlogClientBuilder username(String username) {
@@ -123,7 +122,7 @@ public class OlogClient implements LogClient {
         /**
          * Set the password to be used for the HTTP Authentication.
          *
-         * @param password
+         * @param password User's password
          * @return {@link OlogClientBuilder}
          */
         public OlogClientBuilder password(String password) {
@@ -149,7 +148,7 @@ public class OlogClient implements LogClient {
             this.username = ifNullReturnPreferenceValue(this.username, "username");
             this.password = ifNullReturnPreferenceValue(this.password, "password");
             this.connectTimeoutAsString = ifNullReturnPreferenceValue(this.connectTimeoutAsString, "connectTimeout");
-            Integer connectTimeout = 0;
+            int connectTimeout = 0;
             try {
                 connectTimeout = Integer.parseInt(connectTimeoutAsString);
             } catch (NumberFormatException e) {
@@ -216,7 +215,7 @@ public class OlogClient implements LogClient {
 
             if (clientResponse.getStatus() < 300) {
                 OlogLog createdLog = OlogObjectMappers.logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), OlogLog.class);
-                log.getAttachments().stream().forEach(attachment -> {
+                log.getAttachments().forEach(attachment -> {
                     FormDataMultiPart form = new FormDataMultiPart();
                     // Add id only if it is set, otherwise Jersey will complain and cause the submission to fail.
                     if (attachment.getId() != null && !attachment.getId().isEmpty()) {
@@ -277,12 +276,11 @@ public class OlogClient implements LogClient {
     @Override
     public LogEntry findLogById(Long logId) {
         try {
-            OlogLog ologLog = OlogObjectMappers.logEntryDeserializer.readValue(
+            return OlogObjectMappers.logEntryDeserializer.readValue(
                     service
                             .path("logs")
                             .path(logId.toString())
                             .accept(MediaType.APPLICATION_JSON).get(String.class), OlogLog.class);
-            return ologLog;
         } catch (JsonProcessingException e) {
             return null;
         }
@@ -295,12 +293,12 @@ public class OlogClient implements LogClient {
 
     /**
      * Retrieves {@link LogEntry}s matching the search criteria. Note that even if the matching {@link LogEntry}s
-     * may have a non-empty list of {@link Attachment}s, the {@link Attachment}s will NOT contains the actual
+     * may have a non-empty list of {@link Attachment}s, the {@link Attachment}s will NOT contain the actual
      * data/content. This is essentially a lazy loading strategy to avoid fetching attachment data at this point.
      *
      * @param searchParams Map of search parameters/expressions
      * @return A list of matching {@link LogEntry}s
-     * @throws RuntimeException
+     * @throws RuntimeException If search fails for some reason, e.g. invalid search parameters or connection failure.
      */
     private SearchResult findLogs(MultivaluedMap<String, String> searchParams) throws RuntimeException {
         try {
@@ -311,9 +309,17 @@ public class OlogClient implements LogClient {
                             .accept(MediaType.APPLICATION_JSON)
                             .get(String.class),
                     OlogSearchResult.class);
-            return SearchResult.of(ologSearchResult.getLogs().stream().collect(Collectors.toList()),
-                                   ologSearchResult.getHitCount());
-        } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
+            return SearchResult.of(new ArrayList<>(ologSearchResult.getLogs()),
+                    ologSearchResult.getHitCount());
+        } catch (UniformInterfaceException e) {
+            logger.log(Level.WARNING, "failed to retrieve log entries", e);
+            // Intercept BAD_REQUEST as this indicates invalid search parameters
+            if (e.getResponse().getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+                throw new RuntimeException(Messages.BadSearchRequest);
+            } else {
+                throw new RuntimeException(e);
+            }
+        } catch (ClientHandlerException | IOException e) {
             logger.log(Level.WARNING, "failed to retrieve log entries", e);
             throw new RuntimeException(e);
         }
@@ -373,8 +379,7 @@ public class OlogClient implements LogClient {
 
     @Override
     public List<LogEntry> listLogs() {
-        List<LogEntry> logEntries = new ArrayList<>();
-        return logEntries;
+        return new ArrayList<>();
     }
 
     /**
@@ -400,11 +405,10 @@ public class OlogClient implements LogClient {
     @Override
     public Collection<Logbook> listLogbooks() {
         try {
-            List<Logbook> logbooks = OlogObjectMappers.logEntryDeserializer.readValue(
+            return OlogObjectMappers.logEntryDeserializer.readValue(
                     service.path("logbooks").accept(MediaType.APPLICATION_JSON).get(String.class),
                     new TypeReference<List<Logbook>>() {
                     });
-            return logbooks;
         } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
             logger.log(Level.WARNING, "Unable to get logbooks from service", e);
             return Collections.emptySet();
@@ -414,11 +418,10 @@ public class OlogClient implements LogClient {
     @Override
     public Collection<Property> listProperties() {
         try {
-            List<Property> properties = OlogObjectMappers.logEntryDeserializer.readValue(
+            return OlogObjectMappers.logEntryDeserializer.readValue(
                     service.path("properties").accept(MediaType.APPLICATION_JSON).get(String.class),
-                    new TypeReference<List<Property>>() {
+                    new TypeReference<>() {
                     });
-            return properties;
         } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
             logger.log(Level.WARNING, "failed to list olog properties", e);
             return Collections.emptySet();
@@ -428,11 +431,10 @@ public class OlogClient implements LogClient {
     @Override
     public Collection<Tag> listTags() {
         try {
-            List<Tag> tags = OlogObjectMappers.logEntryDeserializer.readValue(
+            return OlogObjectMappers.logEntryDeserializer.readValue(
                     service.path("tags").accept(MediaType.APPLICATION_JSON).get(String.class),
                     new TypeReference<List<Tag>>() {
                     });
-            return tags;
         } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
             logger.log(Level.WARNING, "failed to retrieve olog tags", e);
             return Collections.emptySet();
@@ -449,7 +451,7 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public LogEntry updateLogEntry(LogEntry logEntry) throws LogbookException {
+    public LogEntry updateLogEntry(LogEntry logEntry) {
         ClientResponse clientResponse;
 
         try {
@@ -469,14 +471,12 @@ public class OlogClient implements LogClient {
     @Override
     public SearchResult search(Map<String, String> map) {
         MultivaluedMap<String, String> mMap = new MultivaluedMapImpl();
-        map.forEach((k, v) -> {
-            mMap.putSingle(k, v);
-        });
+        map.forEach(mMap::putSingle);
         return findLogs(mMap);
     }
 
     @Override
-    public void groupLogEntries(List<Long> logEntryIds) throws LogbookException{
+    public void groupLogEntries(List<Long> logEntryIds) throws LogbookException {
         try {
             ClientResponse clientResponse = service.path("logs/group")
                     .type(MediaType.APPLICATION_JSON)
