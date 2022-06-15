@@ -18,6 +18,8 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
+import java.util.ArrayList;
+
 /**
  * Demonstrate the ListSelectionDialog
  * @author Evan Smith
@@ -54,7 +56,7 @@ public class ListSelectionPopOverDemo extends ApplicationWrapper
                     popOver.hide();
                 }
         );
-        listSelectionPopOver.setAvailable(available);
+        listSelectionPopOver.setAvailable(available, new ArrayList<>());
 
         HBox container = new HBox();
         TextField textField = new TextField();
@@ -64,6 +66,7 @@ public class ListSelectionPopOverDemo extends ApplicationWrapper
         ));
         Button button = new Button("show popover");
         button.setOnAction(action -> {
+            listSelectionPopOver.setAvailable(available, selected);
             listSelectionPopOver.show(button);
         });
         container.getChildren().addAll(textField, button);

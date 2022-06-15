@@ -247,7 +247,10 @@ public class AdvancedSearchViewController {
                 tagSearchPopover.setAvailable(logClient.listTags().stream()
                         .map(Tag::getName)
                         .sorted()
-                        .collect(Collectors.toList())
+                        .collect(Collectors.toList()),
+                        Arrays.stream(searchParameters.tagsProperty().getValue().split(","))
+                                .map(String::trim)
+                                .collect(Collectors.toList())
                 );
                 tagSearchPopover.show(searchTags);
             }

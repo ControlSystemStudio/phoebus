@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class ListSelectionPopOver {
 
@@ -41,8 +42,11 @@ public class ListSelectionPopOver {
         }
     }
 
-    public void setAvailable(List<String> available) {
-        controller.setAvailable(available);
+    public void setAvailable(List<String> available, List<String> alreadySelected) {
+        controller.setAvailable(available.stream()
+                .filter(availableItem -> !alreadySelected.contains(availableItem))
+                .collect(Collectors.toList())
+        );
     }
 
     public void setSelected(List<String> selected) {

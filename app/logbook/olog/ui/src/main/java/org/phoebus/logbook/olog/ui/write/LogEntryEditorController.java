@@ -352,7 +352,7 @@ public class LogEntryEditorController {
         // Note: logbooks and tags are retrieved asynchronously from service
         tagsPopOver = ListSelectionPopOver.create(
                 (tags, popOver) -> {
-                    tags.forEach(this::addSelectedTag);
+                    setSelectedTags(tags, selectedTags);
                     if(popOver.isShowing()) {
                         popOver.hide();
                     }
@@ -506,6 +506,8 @@ public class LogEntryEditorController {
 
     @FXML
     public void addTags(){
+        tagsPopOver.setSelected(selectedTags);
+        tagsPopOver.setAvailable(availableTagsAsStringList, selectedTags);
         tagsPopOver.show(addTags);
     }
 
@@ -527,6 +529,17 @@ public class LogEntryEditorController {
         selectedTags.remove(tagName);
         updateDropDown(tagDropDown, tagName, false);
         return true;
+    }
+
+    private void setSelectedTags(List<String> proposedTags, List<String> existingTags) {
+        List<String> addedTags = proposedTags.stream()
+                .filter(tag -> !existingTags.contains(tag))
+                .collect(Collectors.toList());
+        List<String> removedTags = existingTags.stream()
+                .filter(tag -> !proposedTags.contains(tag))
+                .collect(Collectors.toList());
+        addedTags.forEach(this::addSelectedTag);
+        removedTags.forEach(this::removeSelectedTag);
     }
 
     @FXML
@@ -621,7 +634,7 @@ public class LogEntryEditorController {
                 tagDropDown.getItems().add(newTag);
             });
 
-            tagsPopOver.setAvailable(availableTagsAsStringList);
+            tagsPopOver.setAvailable(availableTagsAsStringList, new ArrayList<>());
 
         });
     }
