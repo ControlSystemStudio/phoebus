@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
+import org.epics.pva.common.SearchRequest;
 import org.epics.pva.data.PVADouble;
 import org.epics.pva.data.PVAString;
 import org.epics.pva.data.PVAStructure;
@@ -41,7 +42,7 @@ import org.epics.pva.data.PVAStructure;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVAChannel implements AutoCloseable
+public class PVAChannel extends SearchRequest.Channel implements AutoCloseable
 {
     /** Provider for the 'next' client channel ID
      *
@@ -53,9 +54,7 @@ public class PVAChannel implements AutoCloseable
     private static final AtomicInteger CID_Provider = new AtomicInteger(1);
 
     private final PVAClient client;
-    private final String name;
     private final ClientChannelListener listener;
-    private final int cid = CID_Provider.incrementAndGet();
     private volatile int sid = -1;
 
     /** State
@@ -74,8 +73,8 @@ public class PVAChannel implements AutoCloseable
 
     PVAChannel(final PVAClient client, final String name, final ClientChannelListener listener)
     {
+        super(CID_Provider.incrementAndGet(), name);
         this.client = client;
-        this.name = name;
         this.listener = listener;
     }
 
@@ -92,23 +91,10 @@ public class PVAChannel implements AutoCloseable
         return copy;
     }
 
-    /** @return Client channel ID */
-    int getCID()
-    {
-        return cid;
-    }
-
     /** @return Server channel ID */
     int getSID()
     {
         return sid;
-    }
-
-
-    /** @return Channel name */
-    public String getName()
-    {
-        return name;
     }
 
     /** @return {@link ClientChannelState} */

@@ -81,7 +81,7 @@ import javafx.scene.layout.VBox;
 public class RulesDialog extends Dialog<List<RuleInfo>>
 {
     /** Expression info as property-based item for table */
-    private abstract static class ExprItem<T>
+    protected abstract static class ExprItem<T>
     {
         final protected StringProperty boolExp = new SimpleStringProperty();
         final protected SimpleObjectProperty<Node> field = new SimpleObjectProperty<>();
@@ -223,7 +223,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
     }
 
     /** Modifiable RuleInfo */
-    private static class RuleItem
+    protected static class RuleItem
     {
         public List<ExprItem<?>> expressions;
         public List<PVTableItem> pvs;

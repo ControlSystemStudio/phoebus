@@ -15,6 +15,9 @@ import java.net.InetSocketAddress;
 import java.net.StandardProtocolFamily;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.logging.Level;
 
 import org.epics.pva.PVASettings;
@@ -136,6 +139,9 @@ class ServerUDPHandler extends UDPHandler
             return handleOriginTag(from, version, payload, buffer);
         case PVAHeader.CMD_SEARCH:
             return handleSearch(from, version, payload, buffer);
+        case PVAHeader.CMD_BEACON:
+            // Clients may send or forward beacons, server ignores them
+            break;
         default:
             logger.log(Level.WARNING, "PVA Client " + from + " sent UDP packet with unknown command 0x" + Integer.toHexString(command));
         }
@@ -173,24 +179,33 @@ class ServerUDPHandler extends UDPHandler
         if (search == null)
             return false;
 
-        if (search.name == null)
+        if (search.channels == null)
         {
             if (search.reply_required)
             {   // pvlist request
                 final boolean handled = server.handleSearchRequest(0, -1, null, search.client, null);
                 if (! handled  &&  search.unicast)
-                    PVAServer.POOL.submit(() -> forwardSearchRequest(0, -1, null, search.client));
+                    PVAServer.POOL.submit(() -> forwardSearchRequest(0, null, search.client));
             }
         }
         else
         {   // Channel search request
-            for (int i=0; i<search.name.length; ++i)
+            List<SearchRequest.Channel> forward = null;
+            for (SearchRequest.Channel channel : search.channels)
             {
-                final int cid = search.cid[i];
-                final String name = search.name[i];
-                final boolean handled = server.handleSearchRequest(search.seq, cid, name, search.client, null);
+                final boolean handled = server.handleSearchRequest(search.seq, channel.getCID(), channel.getName(), search.client, null);
                 if (! handled && search.unicast)
-                    PVAServer.POOL.submit(() -> forwardSearchRequest(search.seq, cid, name, search.client));
+                {
+                    if (forward == null)
+                        forward = new ArrayList<>();
+                    forward.add(channel);
+                }
+            }
+
+            if (forward != null)
+            {
+                final List<SearchRequest.Channel> to_forward = forward;
+                PVAServer.POOL.submit(() -> forwardSearchRequest(search.seq, to_forward, search.client));
             }
         }
 
@@ -206,11 +221,10 @@ class ServerUDPHandler extends UDPHandler
      *  allowing all servers on this host to reply.
      *
      *  @param seq Search sequence or 0
-     *  @param cid Channel ID or -1
-     *  @param name Name or <code>null</code>
+     *  @param channels Channel CIDs and names or <code>null</code> for 'list'
      *  @param address Client's address and port
      */
-    private void forwardSearchRequest(final int seq, final int cid, final String name, final InetSocketAddress address)
+    private void forwardSearchRequest(final int seq, final Collection<SearchRequest.Channel> channels, final InetSocketAddress address)
     {
         // TODO Remove the local IPv4 multicast re-send from the protocol, just use multicast from the start as with IPv6
         if (local_multicast == null)
@@ -218,7 +232,7 @@ class ServerUDPHandler extends UDPHandler
         synchronized (send_buffer)
         {
             send_buffer.clear();
-            SearchRequest.encode(false, seq, cid, name, address, send_buffer);
+            SearchRequest.encode(false, seq, channels, address, send_buffer);
             send_buffer.flip();
             logger.log(Level.FINER, () -> "Forward search to " + local_multicast + "\n" + Hexdump.toHexdump(send_buffer));
             try

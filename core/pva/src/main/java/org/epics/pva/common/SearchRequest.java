@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,9 @@ import static org.epics.pva.PVASettings.logger;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.logging.Level;
 
 import org.epics.pva.data.PVAAddress;
@@ -23,6 +26,43 @@ import org.epics.pva.data.PVAString;
 @SuppressWarnings("nls")
 public class SearchRequest
 {
+    /** Channel with CID to be searched */
+    public static class Channel
+    {
+        /** Client ID */
+        protected final int cid;
+
+        /** Channel name */
+        protected final String name;
+
+        /** @param cid Client ID
+         *  @param name Channel name
+         */
+        public Channel(final int cid, final String name)
+        {
+            this.cid = cid;
+            this.name = name;
+        }
+
+        /** @return Client channel ID */
+        public int getCID()
+        {
+            return cid;
+        }
+
+        /** @return Channel name */
+        public String getName()
+        {
+            return name;
+        }
+
+        @Override
+        public String toString()
+        {
+            return "'" + name + "' [CID " + cid + "]";
+        }
+    };
+
     /** Sequence number */
     public int seq;
     /** Is it a unicast? */
@@ -31,10 +71,8 @@ public class SearchRequest
     public boolean reply_required;
     /** Address of client */
     public InetSocketAddress client;
-    /** Names requested in search */
-    public String[] name;
-    /** Client IDs for names */
-    public int[] cid;
+    /** Names requested in search, <code>null</code> for 'list' */
+    public List<Channel> channels;
 
     /** Check search request
      *
@@ -47,7 +85,16 @@ public class SearchRequest
     public static SearchRequest decode(final InetSocketAddress from, final byte version,
                                        final int payload, final ByteBuffer buffer)
     {
-        if (payload < 4+1+3+16+2+1+4+2)
+        // pvinfo sends 0x1D=29 bytes:
+        // Header and flags
+        // 0000 - CA 02 00 03 1D 00 00 00 00 00 00 00 81 00 00 00 - ................
+        // Return address
+        // 0010 - 00 00 00 00 00 00 00 00 00 00 FF FF 00 00 00 00 - ................
+        // Return port uint16 0xB7C8, byte 0 protocols, uint16 0 channels
+        // 0020 - C8 B7 00 00 00
+        // Searches add 4 bytes for protocol (length 3) "tcp",
+        // plus the list of names.
+        if (payload < 4+1+3+16+2+1+2)
         {
             logger.log(Level.WARNING, "PVA client " + from + " sent only " + payload + " bytes for search request");
             return null;
@@ -105,7 +152,7 @@ public class SearchRequest
 
         if (count == 0)
         {   // pvlist request
-            search.name = null;
+            search.channels = null;
             logger.log(Level.FINER, () -> "PVA Client " + from + " sent search #" + search.seq + " to list servers");
         }
         else
@@ -115,15 +162,13 @@ public class SearchRequest
                 logger.log(Level.WARNING, "PVA Client " + from + " sent search #" + search.seq + " for protocol '" + protocol + "', need 'tcp'");
                 return null;
             }
-            search.name = new String[count];
-            search.cid  = new int[count];
+            search.channels = new ArrayList<>(count);
             for (int i=0; i<count; ++i)
             {
                 final int cid = buffer.getInt();
                 final String name = PVAString.decodeString(buffer);
                 logger.log(Level.FINER, () -> "PVA Client " + from + " sent search #" + search.seq + " for " + name + " [cid " + cid + "]");
-                search.name[i] = name;
-                search.cid[i] = cid;
+                search.channels.add(new Channel(cid, name));
             }
         }
 
@@ -132,12 +177,11 @@ public class SearchRequest
 
     /** @param unicast Unicast?
      *  @param seq Sequence number
-     *  @param cid Client ID
-     *  @param name PV name
+     *  @param channels Channels to search, <code>null</code> for 'list'
      *  @param address client's address
      *  @param buffer Buffer into which to encode
      */
-    public static void encode(final boolean unicast, final int seq, final int cid, final String name, final InetSocketAddress address, final ByteBuffer buffer)
+    public static void encode(final boolean unicast, final int seq, final Collection<Channel> channels, final InetSocketAddress address, final ByteBuffer buffer)
     {
         // Create with zero payload size, to be patched later
         PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_SEARCH, 0);
@@ -152,7 +196,7 @@ public class SearchRequest
         // Mark search message as unicast so that receiver will forward
         // it via local broadcast to other local listeners.
         // 0-bit for replyRequired, 7-th bit for "sent as unicast" (1)/"sent as broadcast/multicast" (0)
-        buffer.put((byte) ((unicast ? 0x80 : 0x00) | (cid < 0 ? 0x01 : 0x00)));
+        buffer.put((byte) ((unicast ? 0x80 : 0x00) | (channels == null ? 0x01 : 0x00)));
 
         // reserved
         buffer.put((byte) 0);
@@ -166,8 +210,9 @@ public class SearchRequest
         buffer.putShort((short)address.getPort());
 
         // string[] protocols with count as byte since < 254
-        // struct { int searchInstanceID, string channelName } channels[] with count as short?!
-        if (cid < 0)
+        // struct { int searchInstanceID, string channelName } channels[] with count as short
+        // No protocol and empty channels[] for 'list' aka 'discover' request
+        if (channels == null)
         {
             buffer.put((byte)0);
             buffer.putShort((short)0);
@@ -177,9 +222,12 @@ public class SearchRequest
             buffer.put((byte)1);
             PVAString.encodeString("tcp", buffer);
 
-            buffer.putShort((short)1);
-            buffer.putInt(cid);
-            PVAString.encodeString(name, buffer);
+            buffer.putShort((short)channels.size());
+            for (Channel channel : channels)
+            {
+                buffer.putInt(channel.cid);
+                PVAString.encodeString(channel.name, buffer);
+            }
         }
 
         // Update payload size
