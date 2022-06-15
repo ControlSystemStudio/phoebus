@@ -16,6 +16,7 @@ import org.phoebus.pv.PVFactory;
 @SuppressWarnings("nls")
 public class JCA_PVFactory implements PVFactory
 {
+    /** PV type implemented by this factory */
     final public static String TYPE = "ca";
 
     @Override

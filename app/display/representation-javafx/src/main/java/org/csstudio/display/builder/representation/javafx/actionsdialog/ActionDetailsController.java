@@ -20,6 +20,7 @@ package org.csstudio.display.builder.representation.javafx.actionsdialog;
 
 import org.csstudio.display.builder.model.properties.ActionInfo;
 
+/** FXML Controller for ActionInfo */
 public interface ActionDetailsController {
 
     /**

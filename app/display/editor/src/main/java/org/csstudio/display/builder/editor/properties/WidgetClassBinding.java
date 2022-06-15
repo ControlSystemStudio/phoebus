@@ -62,7 +62,11 @@ public class WidgetClassBinding extends WidgetPropertyBinding<ComboBox<String>, 
             updating = true;
     };
 
-
+    /** @param undo Undo manager
+     *  @param node Gui element in editor
+     *  @param widget_property Class property
+     *  @param other Other selected widgets
+     */
     public WidgetClassBinding(final UndoableActionManager undo, final ComboBox<String> node,
                               final WidgetClassProperty widget_property, final List<Widget> other)
     {

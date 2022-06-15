@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,19 +7,17 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui;
 
-import javafx.application.Platform;
-import javafx.collections.ObservableList;
-import javafx.geometry.Orientation;
-import javafx.scene.Node;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.SplitPane;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.image.ImageView;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
+import static org.csstudio.trends.databrowser3.Activator.logger;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
+
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.imports.SampleImportAction;
@@ -47,16 +45,19 @@ import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.spi.ContextMenuEntry;
 import org.phoebus.ui.undo.UndoableActionManager;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.prefs.BackingStoreException;
-import java.util.prefs.Preferences;
-import java.util.stream.Collectors;
-
-import static org.csstudio.trends.databrowser3.Activator.logger;
+import javafx.application.Platform;
+import javafx.collections.ObservableList;
+import javafx.geometry.Orientation;
+import javafx.scene.Node;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 
 /** Combined layout of all data browser components
  *  @author Kay Kasemir
@@ -89,6 +90,7 @@ public class Perspective extends SplitPane
     private Tab search_tab, properties_tab, export_tab, inspect_tab, waveform_tab = null;
 
 
+    /** @param minimal Only show the essentials? */
     public Perspective(final boolean minimal)
     {
         property_panel = new PropertyPanel(model, plot.getPlot().getUndoableActionManager());
@@ -183,7 +185,7 @@ public class Perspective extends SplitPane
             showBottomTab(waveform_tab);
         });
         final MenuItem refresh = new MenuItem(Messages.Refresh, Activator.getIcon("refresh_remote"));
-        refresh.setOnAction(event -> controller.scheduleArchiveRetrieval());
+        refresh.setOnAction(event -> controller.refresh());
 
         final ContextMenu menu = new ContextMenu();
         final ObservableList<MenuItem> items = menu.getItems();
@@ -480,6 +482,7 @@ public class Perspective extends SplitPane
             memento.setBoolean(SHOW_WAVEFORM, true);
     }
 
+    /** Reclaim resources */
     public void dispose()
     {
         try
@@ -498,5 +501,5 @@ public class Perspective extends SplitPane
         // Their model listeners have been removed when controller stopped
         // and 'disposed' model.
     }
-    
+
 }

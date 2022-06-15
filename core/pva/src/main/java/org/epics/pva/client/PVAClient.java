@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,6 +19,7 @@ import java.util.function.Function;
 import java.util.logging.Level;
 
 import org.epics.pva.PVASettings;
+import org.epics.pva.client.ClientUDPHandler.BeaconHandler;
 import org.epics.pva.common.AddressInfo;
 import org.epics.pva.common.Network;
 import org.epics.pva.server.Guid;
@@ -46,6 +47,8 @@ public class PVAClient implements AutoCloseable
     private static final ClientChannelListener DEFAULT_CHANNEL_LISTENER = (ch, state) ->  logger.log(Level.INFO, ch.toString());
 
     private final ClientUDPHandler udp;
+
+    private final BeaconTracker beacons = new BeaconTracker();
 
     final ChannelSearch search;
 
@@ -200,24 +203,17 @@ public class PVAClient implements AutoCloseable
         tcp.removeChannel(channel);
     }
 
+    /** {@link BeaconHandler}
+     *
+     *  @param server Server that sent a beacon
+     *  @param guid  Globally unique ID of the server
+     *  @param changes Change count, increments & rolls over as server has different channels
+     */
     private void handleBeacon(final InetSocketAddress server, final Guid guid, final int changes)
     {
-        final ClientTCPHandler tcp = tcp_handlers.get(server);
-        if (tcp == null)
-            logger.log(Level.FINER, () -> "Beacon from new server " + server);
-        else
-        {
-            if (tcp.checkBeaconChanges(changes))
-                logger.log(Level.FINER, () -> "Beacon from " + server + " indicates changes");
-            else if (! tcp.getGuid().equals(guid))
-                logger.log(Level.FINER, () -> "Beacon from " + server +
-                                              " has new GUID " + guid +
-                                              " (was " + tcp.getGuid() + ")");
-            else
-                return;
-        }
-        // Beacon indicates changes or new GUID, so re-search missing channels
-        search.boost();
+        // Does beacon suggest re-search of missing channels?
+        if (beacons.check(guid, server, changes))
+            search.boost();
     }
 
     void handleSearchResponse(final int channel_id, final InetSocketAddress server, final int version, final Guid guid)

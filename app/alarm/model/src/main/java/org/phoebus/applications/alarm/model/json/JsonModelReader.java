@@ -10,14 +10,14 @@ package org.phoebus.applications.alarm.model.json;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
@@ -46,7 +46,7 @@ public class JsonModelReader
     /** Parse JSON text
      *  @param json_text JSON text
      *  @return JSON object
-     *  @throws Exception
+     *  @throws Exception on error
      */
     public static Object parseJsonText(final String json_text) throws Exception
     {
@@ -84,7 +84,7 @@ public class JsonModelReader
 
     /** Update configuration of alarm tree item
      *  @param node {@link AlarmTreeItem}
-     *  @param json JSON returned by {@link #parseAlarmItemConfig(String)}
+     *  @param json JSON with settings for the item
      *  @return <code>true</code> if configuration changed, <code>false</code> if there was nothing to update
      */
     public static boolean updateAlarmItemConfig(final AlarmTreeItem<?> node, final Object json)
@@ -210,7 +210,7 @@ public class JsonModelReader
         if (jn != null) {
             Pattern pattern = Pattern.compile("true|false", Pattern.CASE_INSENSITIVE);
             Matcher matcher = pattern.matcher(jn.asText());
-    
+
             if(matcher.matches()) {
                 changed |= node.setEnabled(jn.asBoolean());
 
@@ -225,7 +225,7 @@ public class JsonModelReader
                  }
                  catch (Exception ex) {
                     logger.log(Level.WARNING, "Bypass date incorrectly formatted." + jn.asText() + "'");
-    
+
                 }
             }
         }
@@ -254,7 +254,7 @@ public class JsonModelReader
 
     /** Check for 'maintenance' mode indicator,
      *  included in alarm state updates
-     *  @param json
+     *  @param json JSON
      *  @return <code>true</code> if in maintenance mode
      */
     public static boolean isMaintenanceMode(final Object json)
@@ -268,7 +268,7 @@ public class JsonModelReader
 
     /** Check for 'notify' mode indicator,
      *  included in alarm state updates
-     *  @param json
+     *  @param json JSON
      *  @return <code>true</code> if in disable_notify mode
      */
     public static boolean isDisableNotify(final Object json)
@@ -279,7 +279,7 @@ public class JsonModelReader
     }
 
     /** Check for config 'delete' info message
-     *  @param json
+     *  @param json JSON
      *  @return <code>true</code> if in disable_notify mode
      */
     public static boolean isConfigDeletion(final Object json)
@@ -289,10 +289,11 @@ public class JsonModelReader
         return jn != null;
     }
 
-    
+
     /** Update alarm state from received JSON
      *  @param node Node to update
      *  @param json JSON with state information
+     *  @return Was that a change?
      */
     public static boolean updateAlarmState(final AlarmTreeItem<?> node, final Object json)
     {

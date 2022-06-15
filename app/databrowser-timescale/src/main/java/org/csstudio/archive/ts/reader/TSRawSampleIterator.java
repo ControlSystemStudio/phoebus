@@ -54,6 +54,12 @@ public class TSRawSampleIterator implements ValueIterator
     private VType value = null;
     private DisplayInfo display;
 
+    /** @param reader Reader
+     *  @param channel_id Channel ID
+     *  @param start Start time
+     *  @param end End time
+     *  @throws Exception on error
+     */
     public TSRawSampleIterator(final TSArchiveReader reader, final int channel_id,
                                final Instant start, final Instant end) throws Exception
     {

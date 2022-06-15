@@ -42,7 +42,8 @@ public class VTypeHelper
         }
     }
 
-    /** @return Copy of given value with timestamp set to 'now',
+    /** @param value Original value
+     *  @return Copy of given value with timestamp set to 'now',
      *          or <code>null</code> if value is not handled
      */
     public static VType transformTimestampToNow(final VType value)
@@ -50,7 +51,9 @@ public class VTypeHelper
         return transformTimestamp(value, Instant.now());
     }
 
-    /** @return Copy of given value with updated timestamp,
+    /** @param value Original value
+     *  @param time Desired time stamp
+     *  @return Copy of given value with updated timestamp,
      *          or <code>null</code> if value is not handled
      */
     public static VType transformTimestamp(final VType value,

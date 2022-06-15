@@ -16,8 +16,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.phoebus.applications.alarm.model.AlarmTreeItemWithState;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
-import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.EnabledState;
+import org.phoebus.applications.alarm.model.SeverityLevel;
 
 /** Alarm tree leaf
  *
@@ -38,6 +38,9 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
     private volatile String filter = "";
     private volatile EnabledState enabled = new EnabledState(true);
 
+    /** @param parent_path Path to parent
+     *  @param name Name of this leaf
+     */
     public AlarmClientLeaf(final String parent_path, final String name)
     {
         super(parent_path, name, Collections.emptyList());
@@ -106,7 +109,7 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
         return true;
     }
 
-    /** @param enable Enable the PV?
+    /** @param enabled_state Enable the PV?
      *  @return <code>true</code> if this is a change
      */
     @Override
@@ -119,7 +122,7 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
         return true;
     }
 
-    /** @param enable Enable the PV?
+    /** @param enabled_date (Re-)Enable the PV at some future date?
      *  @return <code>true</code> if this is a change
      */
     @Override

@@ -33,13 +33,12 @@ public interface AlarmTreeLeaf
      */
     public boolean setEnabled(final EnabledState enabled_state);
 
-    /** @param enabled_state Enable the PV?
+    /** @param enable Enable the PV?
      *  @return <code>true</code> if this is a change
-     */    
+     */
     public boolean setEnabled(final boolean enable);
 
-
-    /** @param enable Set expiration for enabling?
+    /** @param enabled_date Set expiration for enabling?
      *  @return <code>true</code> if this is a change
      */
     public boolean setEnabledDate(final LocalDateTime enabled_date);
@@ -61,7 +60,7 @@ public interface AlarmTreeLeaf
     /** @return <code>true</code> if alarms from PV are annunciated */
     public boolean isAnnunciating();
 
-    /** @param latch Annunciate alarms from the PV?
+    /** @param annunciate Annunciate alarms from the PV?
      *  @return <code>true</code> if this is a change
      */
     public boolean setAnnunciating(final boolean annunciate);

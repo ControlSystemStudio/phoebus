@@ -26,15 +26,14 @@ public interface ServiceAuthenticationProvider {
 
     /**
      * Authenticates with the announced service.
-     * @param username
-     * @param password
+     * @param username User name
+     * @param password Password
      */
     void authenticate(String username, String password);
 
     /**
      * Signs out user from the service.
      * @param token User name or other type of token (e.g. session cookie).
-     * @return
      */
     void logout(String token);
 
@@ -48,7 +47,7 @@ public interface ServiceAuthenticationProvider {
      * is a behavior defined by the encryption scheme implementation.
      * Consequently an identity like "UPPER" will be persisted as "upper", i.e. case insensitivity
      * must be considered when defining an identity.
-     * @return
+     * @return Service name
      */
     String getServiceName();
 }

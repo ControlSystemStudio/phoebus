@@ -12,7 +12,7 @@ import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VStatistics;
 
-/** Accumulator that tracks the {@link Statistics} of received values
+/** Accumulator that tracks the {@link VStatistics} of received values
  *  @author Kay Kasemir
  */
 public class StatisticsAccumulator extends VStatistics

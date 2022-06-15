@@ -56,6 +56,10 @@ public class DisplayInfo
         });
     }
 
+    /** @param channel_id Channel ID
+     *  @param reader Reader to use
+     *  @throws Exception in errir
+     */
     public DisplayInfo(final int channel_id, final TSArchiveReader reader) throws Exception
     {
         this.channel_id = channel_id;

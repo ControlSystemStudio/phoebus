@@ -18,6 +18,17 @@
 
 package org.csstudio.display.builder.representation.javafx.actionsdialog;
 
+import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
+
+import java.util.logging.Level;
+import java.util.stream.Collectors;
+
+import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.properties.ActionInfo;
+import org.csstudio.display.builder.model.properties.ActionInfo.ActionType;
+import org.csstudio.display.builder.model.properties.ActionInfos;
+import org.csstudio.display.builder.representation.javafx.JFXUtil;
+
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
@@ -35,17 +46,8 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
-import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.properties.ActionInfo;
-import org.csstudio.display.builder.model.properties.ActionInfo.ActionType;
-import org.csstudio.display.builder.model.properties.ActionInfos;
-import org.csstudio.display.builder.representation.javafx.JFXUtil;
 
-import java.util.logging.Level;
-import java.util.stream.Collectors;
-
-import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
-
+/** FXML Controller */
 public class ActionsDialogController {
 
     @FXML
@@ -72,6 +74,7 @@ public class ActionsDialogController {
     /** Actions edited by the dialog */
     private final ObservableList<ActionsDialogActionItem> actionList = FXCollections.observableArrayList();
 
+    /** @param widget Widget */
     public ActionsDialogController(Widget widget){
         this.widget = widget;
     }
@@ -103,6 +106,7 @@ public class ActionsDialogController {
         }
     };
 
+    /** Initialize */
     @FXML
     public void initialize() {
 
@@ -110,7 +114,7 @@ public class ActionsDialogController {
         removeButton.setGraphic(JFXUtil.getIcon("delete.png"));
         upButton.setGraphic(JFXUtil.getIcon("up.png"));
         downButton.setGraphic(JFXUtil.getIcon("down.png"));
-        
+
         for (ActionType type : ActionType.values())
         {
             final ImageView icon = new ImageView(new Image(type.getIconURL().toExternalForm()));
@@ -159,8 +163,8 @@ public class ActionsDialogController {
 
     /**
      * Creates {@link ActionInfo} objects and one editor per item. The editors are added to the
-     * {@link StackPane} anf the top most item in the action list is selected.
-     * @param actionInfos
+     * {@link StackPane} and the top most item in the action list is selected.
+     * @param actionInfos ActionInfos
      */
     public void setActionInfos(ActionInfos actionInfos){
         if(actionInfos == null || actionInfos.getActions() == null || actionInfos.getActions().isEmpty()){
@@ -178,11 +182,13 @@ public class ActionsDialogController {
         executeAll.setValue(actionInfos.isExecutedAsOne());
     }
 
+    /** @return ActionInfos */
     public ActionInfos getActionInfos(){
         return new ActionInfos(actionList.stream().map(a -> a.getActionInfo()).collect(Collectors.toList()),
                 executeAll.get());
     }
 
+    /** Remove action */
     @FXML
     public void removeAction(){
         int index = selectionIndex.get();
@@ -190,6 +196,7 @@ public class ActionsDialogController {
         actionsListView.getItems().remove(index);
     }
 
+    /** Move action */
     @FXML
     public void moveUp(){
         final ActionsDialogActionItem item = actionList.remove(selectionIndex.get());
@@ -197,6 +204,7 @@ public class ActionsDialogController {
         actionsListView.getSelectionModel().select(item);
     }
 
+    /** Move action */
     @FXML
     public void moveDown(){
         int tragetIndex = selectionIndex.get() + 1;

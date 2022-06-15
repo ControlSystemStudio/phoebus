@@ -56,80 +56,83 @@ import javafx.scene.text.FontWeight;
 @SuppressWarnings("nls")
 public class XMLPersistence
 {
+    /** Default font settings */
     public static final String DEFAULT_FONT_FAMILY = "Liberation Sans";
+    /** Default font settings */
     public static final double DEFAULT_FONT_SIZE = 10;
 
-    // XML file tags
-    final public static String TAG_DATABROWSER = "databrowser";
+    /** XML file tags */
+    final public static String TAG_DATABROWSER = "databrowser",
 
-    final public static String TAG_TITLE = "title";
-    final public static String TAG_SAVE_CHANGES = "save_changes";
-    final public static String TAG_GRID = "grid";
-    final public static String TAG_SCROLL = "scroll";
-    final public static String TAG_UPDATE_PERIOD = "update_period";
-    final public static String TAG_SCROLL_STEP = "scroll_step";
-    final public static String TAG_START = "start";
-    final public static String TAG_END = "end";
-    final public static String TAG_ARCHIVE_RESCALE = "archive_rescale";
-    final public static String TAG_FOREGROUND = "foreground";
-    final public static String TAG_BACKGROUND = "background";
-    final public static String TAG_TITLE_FONT = "title_font";
-    final public static String TAG_LABEL_FONT = "label_font";
-    final public static String TAG_SCALE_FONT = "scale_font";
-    final public static String TAG_LEGEND_FONT = "legend_font";
-    final public static String TAG_AXES = "axes";
-    final public static String TAG_ANNOTATIONS = "annotations";
-    final public static String TAG_PVLIST = "pvlist";
+                               TAG_TITLE = "title",
+                               TAG_SAVE_CHANGES = "save_changes",
+                               TAG_GRID = "grid",
+                               TAG_SCROLL = "scroll",
+                               TAG_UPDATE_PERIOD = "update_period",
+                               TAG_SCROLL_STEP = "scroll_step",
+                               TAG_START = "start",
+                               TAG_END = "end",
+                               TAG_ARCHIVE_RESCALE = "archive_rescale",
+                               TAG_FOREGROUND = "foreground",
+                               TAG_BACKGROUND = "background",
+                               TAG_TITLE_FONT = "title_font",
+                               TAG_LABEL_FONT = "label_font",
+                               TAG_SCALE_FONT = "scale_font",
+                               TAG_LEGEND_FONT = "legend_font",
+                               TAG_AXES = "axes",
+                               TAG_ANNOTATIONS = "annotations",
+                               TAG_PVLIST = "pvlist",
 
-    final public static String TAG_SHOW_TOOLBAR = "show_toolbar";
-    final public static String TAG_SHOW_LEGEND = "show_legend";
+                               TAG_SHOW_TOOLBAR = "show_toolbar",
+                               TAG_SHOW_LEGEND = "show_legend",
 
-    final public static String TAG_COLOR = "color";
-    final public static String TAG_RED = "red";
-    final public static String TAG_GREEN = "green";
-    final public static String TAG_BLUE = "blue";
+                               TAG_COLOR = "color",
+                               TAG_RED = "red",
+                               TAG_GREEN = "green",
+                               TAG_BLUE = "blue",
 
-    final public static String TAG_AXIS = "axis";
-    final public static String TAG_VISIBLE = "visible";
-    final public static String TAG_NAME = "name";
-    final public static String TAG_USE_AXIS_NAME = "use_axis_name";
-    final public static String TAG_USE_TRACE_NAMES = "use_trace_names";
-    final public static String TAG_RIGHT = "right";
-    final public static String TAG_MAX = "max";
-    final public static String TAG_MIN = "min";
-    final public static String TAG_AUTO_SCALE = "autoscale";
-    final public static String TAG_LOG_SCALE = "log_scale";
+                               TAG_AXIS = "axis",
+                               TAG_VISIBLE = "visible",
+                               TAG_NAME = "name",
+                               TAG_USE_AXIS_NAME = "use_axis_name",
+                               TAG_USE_TRACE_NAMES = "use_trace_names",
+                               TAG_RIGHT = "right",
+                               TAG_MAX = "max",
+                               TAG_MIN = "min",
+                               TAG_AUTO_SCALE = "autoscale",
+                               TAG_LOG_SCALE = "log_scale",
 
-    final public static String TAG_ANNOTATION = "annotation";
-    final public static String TAG_PV = "pv";
-    final public static String TAG_TIME = "time";
-    final public static String TAG_VALUE = "value";
-    final public static String TAG_OFFSET = "offset";
-    final public static String TAG_TEXT = "text";
+                               TAG_ANNOTATION = "annotation",
+                               TAG_PV = "pv",
+                               TAG_TIME = "time",
+                               TAG_VALUE = "value",
+                               TAG_OFFSET = "offset",
+                               TAG_TEXT = "text",
 
-    final public static String TAG_X = "x";
-    final public static String TAG_Y = "y";
+                               TAG_X = "x",
+                               TAG_Y = "y",
 
-    final public static String TAG_DISPLAYNAME = "display_name";
-    final public static String TAG_TRACE_TYPE = "trace_type";
-    final public static String TAG_LINE_STYLE = "line_style";
-    final public static String TAG_LINEWIDTH = "linewidth";
-    final public static String TAG_POINT_TYPE = "point_type";
-    final public static String TAG_POINT_SIZE = "point_size";
-    final public static String TAG_WAVEFORM_INDEX = "waveform_index";
-    final public static String TAG_SCAN_PERIOD = "period";
-    final public static String TAG_LIVE_SAMPLE_BUFFER_SIZE = "ring_size";
-    final public static String TAG_REQUEST = "request";
-    final public static String TAG_ARCHIVE = "archive";
+                               TAG_DISPLAYNAME = "display_name",
+                               TAG_TRACE_TYPE = "trace_type",
+                               TAG_LINE_STYLE = "line_style",
+                               TAG_LINEWIDTH = "linewidth",
+                               TAG_POINT_TYPE = "point_type",
+                               TAG_POINT_SIZE = "point_size",
+                               TAG_WAVEFORM_INDEX = "waveform_index",
+                               TAG_SCAN_PERIOD = "period",
+                               TAG_LIVE_SAMPLE_BUFFER_SIZE = "ring_size",
+                               TAG_REQUEST = "request",
+                               TAG_ARCHIVE = "archive",
 
-    final public static String TAG_URL = "url";
+                               TAG_URL = "url",
 
-    final public static String TAG_FORMULA = "formula";
-    final public static String TAG_INPUT = "input";
+                               TAG_FORMULA = "formula",
+                               TAG_INPUT = "input",
+
+                               TAG_KEY = "key";
 
     final private static String TAG_OLD_XYGRAPH_SETTINGS = "xyGraphSettings";
 
-    final public static String TAG_KEY = "key";
 
     /** @param model Model to load
      *  @param stream XML stream
@@ -565,10 +568,10 @@ public class XMLPersistence
     }
 
     /** Write RGB color to XML document
-     *  @param writer
-     *  @param tag_name
-     *  @param color
-     *  @throws Exception
+     *  @param writer Writer
+     *  @param tag_name Name of tag
+     *  @param color Color
+     *  @throws Exception on error
      */
     public static void writeColor(final XMLStreamWriter writer,
                                   final String tag_name, final Color color) throws Exception

@@ -10,13 +10,13 @@ package org.phoebus.applications.alarm.model.xml;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.io.InputStream;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.time.LocalDateTime;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -38,44 +38,48 @@ import org.w3c.dom.Node;
 @SuppressWarnings("nls")
 public class XmlModelReader
 {
-    // Node Types
-    public static final String TAG_CONFIG = "config";
-    public static final String TAG_COMPONENT = "component";
-    public static final String TAG_PV = "pv";
+    /** Node Types */
+    public static final String TAG_CONFIG = "config",
+                               TAG_COMPONENT = "component",
+                               TAG_PV = "pv";
 
-    // Misc.
+    /** Misc. */
     public static final String TAG_NAME = "name";
 
-    // PV Specific
-    public static final String TAG_DESCRIPTION = "description";
-    public static final String TAG_ENABLED = "enabled";
-    public static final String TAG_LATCHING = "latching";
-    public static final String TAG_ANNUNCIATING = "annunciating";
-    public static final String TAG_DELAY = "delay";
-    public static final String TAG_COUNT = "count";
-    public static final String TAG_FILTER = "filter";
+    /** PV Specific */
+    public static final String TAG_DESCRIPTION = "description",
+                               TAG_ENABLED = "enabled",
+                               TAG_LATCHING = "latching",
+                               TAG_ANNUNCIATING = "annunciating",
+                               TAG_DELAY = "delay",
+                               TAG_COUNT = "count",
+                               TAG_FILTER = "filter";
 
-    // PV and Component
-    public static final String TAG_GUIDANCE = "guidance";
-    public static final String TAG_DISPLAY = "display";
-    public static final String TAG_COMMAND = "command";
-    public static final String TAG_ACTIONS = "automated_action";
+    /** PV and Component */
+    public static final String TAG_GUIDANCE = "guidance",
+                               TAG_DISPLAY = "display",
+                               TAG_COMMAND = "command",
+                               TAG_ACTIONS = "automated_action";
 
-    // TitleDetail specific tags.
-    public static final String TAG_TITLE = "title";
-    public static final String TAG_DETAILS = "details";
+    /** TitleDetail specific tags. */
+    public static final String TAG_TITLE = "title",
+                               TAG_DETAILS = "details";
 
     /** All known PV names and their path, used to check for duplicates */
     private Map<String, String> pv_names = new HashMap<>();
 
     private AlarmClientNode root = null;
 
+    /** @return Root of alarm tree */
     public AlarmClientNode getRoot()
     {
         return root;
     }
 
-    // Parse the xml stream and load the stream into a document.
+    /** Parse the xml stream and load the stream into a document.
+     *  @param stream XML
+     *  @throws Exception on error
+     */
     public void load(final InputStream stream) throws Exception
     {
         final DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -84,9 +88,9 @@ public class XmlModelReader
         docBuilderFactory.setNamespaceAware(true);
 
         try {
-            docBuilderFactory.setFeature("http://apache.org/xml/features/xinclude", 
+            docBuilderFactory.setFeature("http://apache.org/xml/features/xinclude",
                             true);
-        } 
+        }
         catch (ParserConfigurationException e) {
             System.err.println("could not set parser feature");
         }
@@ -260,7 +264,7 @@ public class XmlModelReader
 
             if (matcher.matches()) {
                 pv.setEnabled(Boolean.parseBoolean(enabled_val));
-            } else 
+            } else
             {
                 try {
                     final LocalDateTime expiration_date = LocalDateTime.parse(enabled_val);

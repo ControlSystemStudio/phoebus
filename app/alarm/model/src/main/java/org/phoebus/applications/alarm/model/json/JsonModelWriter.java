@@ -37,10 +37,12 @@ public class JsonModelWriter
     // Otherwise use streaming JsonGenerator resp. JsonParser,
     // which is faster anyway and allows JSON code to be
     // limited to this package
+    /** Common mapper */
     public static final ObjectMapper mapper = new ObjectMapper();
 
     /** @param state {@link BasicState} or {@link ClientState}
      *  @param maintenance_mode true if in maintenance mode
+     *  @param disable_notify Disabled?
      *  @return Byte array for JSON text
      *  @throws Exception on error
      */
@@ -87,11 +89,19 @@ public class JsonModelWriter
         return buf.toByteArray();
     }
 
+    /** @param item Alarm item
+     *  @return JSON
+     *  @throws Exception on error
+     */
     public static String toJsonString(final AlarmTreeItem<?> item) throws Exception
     {
         return toJson(item).toString();
     }
 
+    /** @param item Alarm item
+     *  @return JSON
+     *  @throws Exception on error
+     */
     public static byte[] toJsonBytes(final AlarmTreeItem<?> item) throws Exception
     {
         return toJson(item).toByteArray();
@@ -127,7 +137,7 @@ public class JsonModelWriter
     {
         jg.writeStringField(JsonTags.DESCRIPTION, item.getDescription());
 
-        // if not enabled and not an enabled date, set false 
+        // if not enabled and not an enabled date, set false
         if ((! item.isEnabled()) && ( item.getEnabledDate() == null)) {
             jg.writeBooleanField(JsonTags.ENABLED, false);
         }
@@ -186,7 +196,7 @@ public class JsonModelWriter
      * Create a JSON byte array of a command.
      * @param cmd - Command
      * @return byte[]
-     * @throws Exception
+     * @throws Exception on error
      * @author Evan Smith
      */
     public static byte[] commandToBytes(final String cmd) throws Exception
@@ -210,10 +220,10 @@ public class JsonModelWriter
      * Create a JSON byte array of a *Talk topic message.
      * <p> This method handles the parsing of '*' and '!' in regards to the message format, and whether the message can be silenced.
      * @see <a href="http://cs-studio.sourceforge.net/docbook/ch14.html#fig_annunciator_view">CSS Annunciator View Docs</a>
-     * @param severity
-     * @param description
-     * @return
-     * @throws Exception
+     * @param severity Severity
+     * @param description Info
+     * @return text
+     * @throws Exception on error
      */
     public static String talkToString(final SeverityLevel severity, final String description) throws Exception
     {
@@ -261,7 +271,7 @@ public class JsonModelWriter
 
    /** Create a deletion message for identifying who is creating a kafka tombstone
     *  @return byte[]
-    *  @throws Exception
+    *  @throws Exception on error
     */
     public static byte[] deleteMessageToBytes() throws Exception
     {

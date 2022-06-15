@@ -85,9 +85,8 @@ public class RefCountMap<K, E>
      *  Otherwise create new item with initial reference count of 1.
      *
      *  @param key Item key
-     *  @param entry The item to add
-     *  @param creator Function that will be called atomically for new items
-     *  @return reference count
+     *  @param creator Function that will be called atomically to create new items
+     *  @return reference counted entry
      */
     public ReferencedEntry<E> createOrGet(final K key, final Supplier<E> creator)
     {

@@ -19,9 +19,14 @@ import javafx.beans.property.StringProperty;
  */
 public class InputItem
 {
+    /** Name of PV */
     public final StringProperty input_name;
+    /** Variable used in formula */
     public final StringProperty variable_name;
 
+    /** @param input Name of PV
+     *  @param name Variable used in formula
+     */
     public InputItem(final String input, final String name)
     {
         input_name = new SimpleStringProperty(input);

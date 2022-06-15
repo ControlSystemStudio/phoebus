@@ -21,7 +21,7 @@ import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.UnknownChannelException;
 import org.phoebus.archive.reader.ValueIterator;
 
-/** ArchiveReader for Channel Archiver index & data files.
+/** ArchiveReader for Channel Archiver index and data files.
  *  @author Kay Kasemir
  *  @author Amanda Carpenter
  */
@@ -32,7 +32,7 @@ public class ArchiveFileReader implements ArchiveReader
 
     /** Construct an ArchiveFileReader.
      *  @param index Path to  Channel Archiver index file
-     *  @throws IOException
+     *  @throws IOException on error
      */
     public ArchiveFileReader(final File index) throws IOException
     {

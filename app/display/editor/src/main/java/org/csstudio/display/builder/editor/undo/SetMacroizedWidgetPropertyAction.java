@@ -22,6 +22,9 @@ public class SetMacroizedWidgetPropertyAction extends UndoableAction
     private final String orig_text;
     private final String text;
 
+    /** @param widget_property Property that may use macros
+     *  @param text Value with optional macros
+     */
     public SetMacroizedWidgetPropertyAction(final MacroizedWidgetProperty<?> widget_property,
                                             final String text)
     {

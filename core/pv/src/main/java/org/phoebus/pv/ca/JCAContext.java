@@ -71,6 +71,9 @@ public class JCAContext implements ContextMessageListener, ContextExceptionListe
         is_var_array_supported = supported;
     }
 
+    /** @return Singleton instance
+     *  @throws Exception on error
+     */
     public static synchronized JCAContext getInstance() throws Exception
     {
         if (instance == null)
@@ -78,15 +81,14 @@ public class JCAContext implements ContextMessageListener, ContextExceptionListe
         return instance;
     }
 
-    // TODO Thread for periodic flushIO, to run certain JNI calls on same thread?
-
+    /** @return Underlying JCA context */
     public Context getContext()
     {
         return context;
     }
 
     /** Determine how many array elements to request
-     *  @param channel
+     *  @param channel Channel
      *  @return Array request count
      */
     public int getRequestCount(final Channel channel)

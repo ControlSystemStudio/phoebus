@@ -24,6 +24,9 @@ public class PVA_Context
         client = new PVAClient();
     }
 
+    /** @return Singleton instance
+     *  @throws Exception on error
+     */
     public static synchronized PVA_Context getInstance() throws Exception
     {
         if (instance == null)

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,7 +20,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
 import org.epics.pva.PVASettings;
@@ -62,8 +61,6 @@ class ClientTCPHandler extends TCPHandler
 
     /** Server's GUID */
     private volatile Guid guid;
-
-    private final AtomicInteger server_changes = new AtomicInteger(-1);
 
     /** Description of data types used with this PVA server */
     private final PVATypeRegistry types = new PVATypeRegistry();
@@ -179,15 +176,7 @@ class ClientTCPHandler extends TCPHandler
         return false;
     }
 
-    /** Check if the server's beacon indicates changes
-     *  @param changes Change counter from beacon
-     *  @return <code>true</code> if this suggests new channels on the server
-     */
-    public boolean checkBeaconChanges(final int changes)
-    {
-        return server_changes.getAndSet(changes) != changes;
-    }
-
+    /** @return {@link PVATypeRegistry} for this TCP connection */
     public PVATypeRegistry getTypeRegistry()
     {
         return types;
@@ -296,6 +285,12 @@ class ClientTCPHandler extends TCPHandler
     @Override
     protected void handleControlMessage(final byte command, final ByteBuffer buffer) throws Exception
     {
+        // 0 byte magic
+        // 1 byte version
+        // 2 byte flags
+        // 3 byte command
+        // 4 int32 payload size
+        // 8 .. payload
         if (command == PVAHeader.CTRL_SET_BYTE_ORDER)
         {
             // First message received from server, remember its version
@@ -308,12 +303,23 @@ class ClientTCPHandler extends TCPHandler
             // configure it
             send_buffer.order(buffer.order());
 
-            logger.log(Level.FINE, () -> "Server Version " + server_version + " sets byte order to " + send_buffer.order());
-            // Payload indicates if the server will send messages in that same order,
+            if (connection_validated.get())
+                logger.log(Level.WARNING, () -> "Server Version " + server_version + " sets byte order to " + send_buffer.order() +
+                           " after connection has already been validated");
+            else
+                logger.log(Level.FINE, () -> "Server Version " + server_version + " sets byte order to " + send_buffer.order());
+            // Payload 'size' indicates if the server will send messages in that same order,
             // or might change order for each message.
             // We always adapt based on the flags of each received message,
             // so ignore.
             // send_buffer byte order is locked at this time, though.
+            final int hint = buffer.getInt(4);
+            if (hint == 0x00000000)
+                logger.log(Level.FINE, () -> "Server hints that it will send all messages in byte order " + send_buffer.order());
+            else if (hint == 0xFFFFFFFF)
+                logger.log(Level.FINE, () -> "Server hints that client needs to check each received messages for changing byte order");
+            else
+                logger.log(Level.WARNING, () -> String.format("Server sent SET_BYTE_ORDER hint 0x%08X, expecting 0x00000000 or 0xFFFFFFFF", hint));
         }
         else
             super.handleControlMessage(command, buffer);

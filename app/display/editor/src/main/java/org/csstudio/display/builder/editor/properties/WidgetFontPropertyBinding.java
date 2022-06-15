@@ -72,6 +72,11 @@ public class WidgetFontPropertyBinding
         popover.show(jfx_node);
     };
 
+    /** @param undo Undo manager
+     *  @param field Button that opens dialog
+     *  @param widget_property Font property
+     *  @param other Other selected widgets
+     */
     public WidgetFontPropertyBinding(final UndoableActionManager undo,
                                      final Button field,
                                      final FontWidgetProperty widget_property,

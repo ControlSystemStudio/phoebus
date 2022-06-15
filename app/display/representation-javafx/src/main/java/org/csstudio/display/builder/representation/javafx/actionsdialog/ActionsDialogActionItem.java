@@ -18,17 +18,18 @@
 
 package org.csstudio.display.builder.representation.javafx.actionsdialog;
 
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
+import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.model.properties.ActionInfo.ActionType;
 import org.csstudio.display.builder.representation.javafx.Messages;
 import org.phoebus.framework.nls.NLS;
 
-import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 
 /**
  * Wrapper class for the {@link ActionsDialog} action list view items. It contains
@@ -46,8 +47,8 @@ public class ActionsDialogActionItem {
      *
      * Note that the {@link ActionInfo} object is not maintained as a field in the class as its fields are
      * read-only.
-     * @param widget
-     * @param actionInfo
+     * @param widget Widget
+     * @param actionInfo ActionInfo
      */
     public ActionsDialogActionItem(Widget widget, ActionInfo actionInfo){
         this.description = actionInfo.getDescription();
@@ -133,14 +134,17 @@ public class ActionsDialogActionItem {
         }
     }
 
+    /** @return Node for action info */
     public Node getActionInfoEditor(){
         return actionInfoEditor;
     }
 
+    /** @return Description */
     public String getDescription(){
         return description;
     }
 
+    /** @return ActionType */
     public ActionType getActionType(){
         return actionType;
     }

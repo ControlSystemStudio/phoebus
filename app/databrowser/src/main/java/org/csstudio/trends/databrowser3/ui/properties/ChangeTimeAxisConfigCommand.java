@@ -21,9 +21,9 @@ public class ChangeTimeAxisConfigCommand extends UndoableAction
     final private boolean show_grid;
 
     /** Register the command and perform
-     *  @param model
-     *  @param operations_manager
-     *  @param show_grid
+     *  @param model Model
+     *  @param operations_manager Undo manager
+     *  @param show_grid Show grid?
      */
     public ChangeTimeAxisConfigCommand(final Model model,
             final UndoableActionManager operations_manager,

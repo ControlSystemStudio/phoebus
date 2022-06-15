@@ -41,6 +41,10 @@ class AlarmTableInstance implements AppInstance
     private AlarmTableMediator mediator;
     private final DockItemWithInput tab;
 
+    /** @param app Application info
+     *  @param input Input to instance
+     *  @throws Exception on error
+     */
     public AlarmTableInstance(final AlarmTableApplication app, final URI input) throws Exception
     {
         this.app = app;
@@ -74,7 +78,7 @@ class AlarmTableInstance implements AppInstance
 
         try
         {
-            client = new AlarmClient(server, config_name);
+            client = new AlarmClient(server, config_name, AlarmSystem.kafka_properties);
             table = new AlarmTableUI(client);
             mediator = new AlarmTableMediator(client, table);
             client.addListener(mediator);

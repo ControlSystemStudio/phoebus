@@ -56,12 +56,29 @@ Tool Bar Buttons
 Limitations
 -----------
 
-This tool uses the EPICS network protocol, Channel Access, to read PVs.
-There is no way to query EPICS V3 IOCs for their database information
+This tool uses the EPICS Channel Access or PV Access network protocols to read PVs.
+Note that there is a difference between EPICS records in an IOC and
+channels on the network.
+There is no way to query EPICS IOCs for their database information
 to determine the available "input" links.
 
-The knowledge of which links to follow for each record type is therefore
-configured into the EPICS PV Tree application. It is at this time not
-configurable by end users, but people with access to the
-source code can determine the syntax from the Settings.java file
-and override the site-specific settings.
+Given a PV name ``x``, the PV tree attempts to read the channel ``x.RTYP``.
+If the channel is indeed based on a record, it will report the record type.
+The knowledge of which links to follow for each record type is
+configured into the EPICS PV Tree application via the ``org.phoebus.applications.pvtree/fields``
+preference setting.
+This allows maintainers of site-specific settings to add support
+for locally developed record types, or add certain output links to the
+list of links that the PV tree should trace and display.
+
+The Channel Access protocol adds another limitation to the PV tree operation,
+because Channel Access strings are restricted to a length of 40 characters.
+The PV tree can therefore not read the complete value of links when they exceed
+40 characters. This results in long record names being truncated and then failing to
+resolve. As a workaround, the PV tree can read a link ``x.INP`` as ``x.INP$`` with a trailing dollar sign,
+which causes the IOC to return the value as a byte waveform without length limitations.
+This mode, however, is not supported by older IOCs and older CA gateways.
+If your site only runs IOCs and gateways that support the ``x.INP$`` channel name syntax,
+you can enable the ``org.phoebus.applications.pvtree/read_long_fields=true`` option in the PV tree preferences.
+If your site still runs older IOCs, you won't be able to use the PV tree with them unless you
+set ``org.phoebus.applications.pvtree/read_long_fields=false``.

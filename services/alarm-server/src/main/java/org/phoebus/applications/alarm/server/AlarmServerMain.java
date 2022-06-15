@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,15 +11,17 @@ import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.prefs.Preferences;
-
 
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.ClientState;
@@ -66,13 +68,15 @@ public class AlarmServerMain implements ServerModelListener
                         "\tmode             - Show mode.\n" +
                         "\tmode normal      - Select normal mode.\n" +
                         "\tmode maintenance - Select maintenance mode.\n" +
+                        "\tresend           - Re-send all PV states to clients (for tests after network issues).\n" +
                         "\trestart          - Re-load alarm configuration and restart.\n" +
                         "\tshutdown         - Shut alarm server down and exit.\n";
 
-    private AlarmServerMain(final String server, final String config, final boolean use_shell)
+    private AlarmServerMain(final String server, final String config, final boolean use_shell, final String kafka_props_file)
     {
         logger.info("Server: " + server);
         logger.info("Config: " + config);
+        logger.info("Extra Kafka Properties: " + kafka_props_file);
 
         try
         {
@@ -82,13 +86,13 @@ public class AlarmServerMain implements ServerModelListener
             while (run)
             {
                 logger.info("Fetching past alarm states...");
-                final AlarmStateInitializer init = new AlarmStateInitializer(server, config);
+                final AlarmStateInitializer init = new AlarmStateInitializer(server, config, kafka_props_file);
                 if (! init.awaitCompleteStates())
                     logger.log(Level.WARNING, "Keep receiving state updates, may have incomplete initial set of alarm states");
                 final ConcurrentHashMap<String, ClientState> initial_states = init.shutdown();
 
                 logger.info("Start handling alarms");
-                model = new ServerModel(server, config, initial_states, this);
+                model = new ServerModel(server, config, initial_states, this, kafka_props_file);
                 model.start();
 
                 if (use_shell)
@@ -141,6 +145,8 @@ public class AlarmServerMain implements ServerModelListener
                 restart.offer(false);
             else if (args[0].equals("restart"))
                 restart.offer(true);
+            else if (args[0].equals("resend"))
+                model.resend(model.getRoot());
             else if (args[0].equals("mode"))
                 System.out.println(AlarmLogic.getMaintenanceMode() ? "Maintenance mode" : "Normal mode");
             else if (args[0].startsWith("h"))
@@ -526,16 +532,17 @@ public class AlarmServerMain implements ServerModelListener
         System.out.println();
         System.out.println("Command-line arguments:");
         System.out.println();
-        System.out.println("-help                          - This text");
-        System.out.println("-server    localhost:9092      - Kafka server with port number");
-        System.out.println("-config    Accelerator         - Alarm configuration");
+        System.out.println("-help                                   - This text");
+        System.out.println("-server             localhost:9092      - Kafka server with port number");
+        System.out.println("-config             Accelerator         - Alarm configuration");
         // Don't mention this option, prefer examples/create_topics.sh
         // System.out.println("-create_topics              - Create Kafka topics for alarm configuration?");
-        System.out.println("-settings  settings.{xml,ini}  - Import preferences (PV connectivity) from property format file");
-        System.out.println("-noshell                       - Disable the command shell for running without a terminal");
-        System.out.println("-export    config.xml          - Export alarm configuration to file");
-        System.out.println("-import    config.xml          - Import alarm configruation from file");
-        System.out.println("-logging   logging.properties  - Load log settings");
+        System.out.println("-settings           settings.{xml,ini}  - Import preferences (PV connectivity) from property format file");
+        System.out.println("-noshell                                - Disable the command shell for running without a terminal");
+        System.out.println("-export             config.xml          - Export alarm configuration to file");
+        System.out.println("-import             config.xml          - Import alarm configruation from file");
+        System.out.println("-logging            logging.properties  - Load log settings");
+        System.out.println("-kafka_properties   client.properties   - Load kafka client settings from file");
         System.out.println();
     }
 
@@ -546,125 +553,122 @@ public class AlarmServerMain implements ServerModelListener
 
         String server = "localhost:9092";
         String config = "Accelerator";
+        String kafka_properties = "";
         boolean use_shell = true;
-        String  args_server = "";
-        String  args_config = "";
-        boolean use_args_server = false;
-        boolean use_args_config = false;
-        boolean use_settings = false;
 
         // Handle arguments
         final List<String> args = new ArrayList<>(List.of(original_args));
         final Iterator<String> iter = args.iterator();
+        HashMap<String, String> parsed_args = new HashMap<String, String>();
         try
         {
+            // define command line arguments
+            String help_arg             = "-help";
+            String help_alt_arg         = "-h";
+            String server_arg           = "-server";
+            String config_arg           = "-config";
+            String create_topics_arg    = "-create_topics";
+            String settings_arg         = "-settings";
+            String noshell_arg          = "-noshell";
+            String export_arg           = "-export";
+            String import_arg           = "-import";
+            String logging_arg          = "-logging";
+            String kafka_props_arg      = "-kafka_properties";
+
+            Set<String> options = Set.of(
+                server_arg,
+                config_arg,
+                settings_arg,
+                export_arg,
+                import_arg,
+                logging_arg,
+                kafka_props_arg);
+
+            Set<String> flags = Set.of(
+                help_arg,
+                help_alt_arg,
+                noshell_arg,
+                create_topics_arg
+            );
+
+            // to handle arguments that may be provided via a settings file
+            // as well as directly on the commandline, map their relationship
+            Map<String, String> args_to_prefs = Map.ofEntries(
+                Map.entry(config_arg, "config_names"),
+                Map.entry(server_arg, "server"),
+                Map.entry(kafka_props_arg, "kafka_properties")
+            );
+
             while (iter.hasNext())
             {
                 final String cmd = iter.next();
-                if ( cmd.equals("-h") || cmd.equals("-help"))
-                {
-                    help();
-                    return;
-                }
-                else if (cmd.equals("-server"))
-                {
+                if (options.contains(cmd)) {
                     if (! iter.hasNext())
-                        throw new Exception("Missing -server name");
-                    iter.remove();
-                    args_server = iter.next();
-                    use_args_server = true;
-                    iter.remove();
+                        throw new Exception("Missing argument for " +  cmd);
+                    final String arg = iter.next();
+                    parsed_args.put(cmd, arg);
                 }
-                else if (cmd.equals("-config"))
-                {
-                    if (! iter.hasNext())
-                        throw new Exception("Missing -config name");
-                    iter.remove();
-                    args_config = iter.next();
-                    use_args_config = true;
-                    iter.remove();
+                else if (flags.contains(cmd)) {
+                    parsed_args.put(cmd, "");
                 }
-                else if (cmd.equals("-logging"))
-                {
-                    if (! iter.hasNext())
-                        throw new Exception("Missing -logging file name");
-                    iter.remove();
-                    final String filename = iter.next();
-                    iter.remove();
-                    LogManager.getLogManager().readConfiguration(new FileInputStream(filename));
-                }
-                else if (cmd.equals("-settings"))
-                {
-                    if (! iter.hasNext())
-                        throw new Exception("Missing -settings file name");
-                    iter.remove();
-                    final String filename = iter.next();
-                    iter.remove();
-                    logger.info("Loading settings from " + filename);
-                    PropertyPreferenceLoader.load(new FileInputStream(filename));
-
-                    Preferences userPrefs  = Preferences.userRoot().node("org/phoebus/applications/alarm");
-                    String pref_server     = userPrefs.get("server", server);
-                    String pref_conf_names = userPrefs.get("config_names", config);
-                    server = pref_server;
-                    config = pref_conf_names;
-                    use_settings = true;
-                }
-                else if (cmd.equals("-noshell"))
-                {
-                    use_shell = false;
-                }
-                else if (cmd.equals("-create_topics"))
-                {
-                    iter.remove();
-                    logger.info("Discovering and creating any missing topics at " + server);
-                    CreateTopics.discoverAndCreateTopics(server, true, List.of(config,
-                                                                               config + AlarmSystem.COMMAND_TOPIC_SUFFIX,
-                                                                               config + AlarmSystem.TALK_TOPIC_SUFFIX));
-                }
-                else if (cmd.equals("-import"))
-                {
-                    if (! iter.hasNext())
-                        throw new Exception("Missing -import file name");
-                    iter.remove();
-                    final String filename = iter.next();
-                    iter.remove();
-                    logger.info("Import model from " + filename);
-                    new AlarmConfigTool().importModel(filename, server, use_args_config ? args_config : config);
-                    return;
-                }
-                else if (cmd.equals("-export"))
-                {
-                    if (! iter.hasNext())
-                        throw new Exception("Missing -export file name");
-                    iter.remove();
-                    final String filename = iter.next();
-                    iter.remove();
-                    logger.info("Exporting model to " + filename);
-                    new AlarmConfigTool().exportModel(filename, server, use_args_config ? args_config : config);
-                    return;
-                }
-                else
+                else {
                     throw new Exception("Unknown option " + cmd);
+                }
             }
 
-            if ( use_args_server ) {
-                if ( use_settings ) {
-                    logger.log(Level.WARNING,"Found the conflicted configurations : -settings/server:" + server + " and -server:" + args_server);
-                    logger.log(Level.WARNING,"Force to use the argument -server instead of -settings");
-                    logger.log(Level.WARNING,"Server : " + args_server);
-                }
-                server = args_server;
+            if (parsed_args.containsKey(help_arg) || parsed_args.containsKey(help_alt_arg)){
+                help();
+                return;
             }
-            if ( use_args_config ) {
-                if ( use_settings ) {
-                    logger.log(Level.WARNING,"Found the conflicted configurations : -settings/config:" + config + " and -config:" + args_config);
-                    logger.log(Level.WARNING,"Force to use the argument -config instead of -settings");
-                    logger.log(Level.WARNING,"Config : " + args_config);
+            if (parsed_args.containsKey(logging_arg)) {
+                LogManager.getLogManager().readConfiguration(new FileInputStream(parsed_args.get(logging_arg)));
+            }
+            if (parsed_args.containsKey(settings_arg)){
+                final String filename = parsed_args.get(settings_arg);
+                logger.info("Loading settings from " + filename);
+                PropertyPreferenceLoader.load(new FileInputStream(filename));
+                Preferences userPrefs  = Preferences.userRoot().node("org/phoebus/applications/alarm");
+
+                for (Map.Entry<String, String> entry: args_to_prefs.entrySet()) {
+                    final String prefKey = entry.getValue();
+                    final String arg = entry.getKey();
+    
+                    if (parsed_args.containsKey(arg)){
+                        logger.log(Level.WARNING,"Potentially conflicting setting: -settings/"+prefKey+": " + userPrefs.get(prefKey, "") + " and " + arg + ":" + parsed_args.get(arg));
+                        logger.log(Level.WARNING,"Using argument " + arg + " instead of -settings");
+                        logger.log(Level.WARNING,prefKey + ": " + parsed_args.get(arg));
+                    }
+                    else if (Set.of(userPrefs.keys()).contains(prefKey)){
+                        parsed_args.put(arg, userPrefs.get(prefKey, ""));
+                    }
                 }
-                config = args_config;
             }
 
+            config = parsed_args.getOrDefault(config_arg, config);
+            server = parsed_args.getOrDefault(server_arg, server);
+            kafka_properties = parsed_args.getOrDefault(kafka_props_arg, kafka_properties);
+            use_shell = !parsed_args.containsKey(noshell_arg);
+
+            if (parsed_args.containsKey(create_topics_arg)){
+                logger.info("Discovering and creating any missing topics at " + server);
+                CreateTopics.discoverAndCreateTopics(server, true, List.of(config,
+                                                     config + AlarmSystem.COMMAND_TOPIC_SUFFIX,
+                                                     config + AlarmSystem.TALK_TOPIC_SUFFIX),
+                                                     kafka_properties);
+            }
+            if (parsed_args.containsKey(export_arg)){
+                final String filename = parsed_args.get(export_arg);
+                logger.info("Exporting model to " + filename);
+                new AlarmConfigTool().exportModel(filename, server, config, kafka_properties);
+            }
+            if (parsed_args.containsKey(import_arg)){
+                final String filename = parsed_args.get(import_arg);
+                logger.info("Import model from " + filename);
+                new AlarmConfigTool().importModel(filename, server, config, kafka_properties);
+            }
+            if (parsed_args.containsKey(export_arg) || parsed_args.containsKey(import_arg)){
+                return;
+            }
         }
         catch (final Exception ex)
         {
@@ -676,6 +680,6 @@ public class AlarmServerMain implements ServerModelListener
 
         logger.info("Alarm Server (PID " + ProcessHandle.current().pid() + ")");
 
-        new AlarmServerMain(server, config, use_shell);
+        new AlarmServerMain(server, config, use_shell, kafka_properties);
     }
 }

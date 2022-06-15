@@ -17,7 +17,6 @@ import java.util.concurrent.RecursiveTask;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import javafx.application.Platform;
 import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.editor.WidgetSelectionHandler;
 import org.csstudio.display.builder.editor.undo.SetMacroizedWidgetPropertyAction;
@@ -43,6 +42,7 @@ import org.phoebus.ui.undo.CompoundUndoableAction;
 import org.phoebus.ui.undo.UndoableAction;
 import org.phoebus.ui.undo.UndoableActionManager;
 
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
@@ -169,11 +169,13 @@ public class SelectedWidgetUITracker extends Tracker
         getChildren().add(0, widget_highlights);
     }
 
+    /** @param model Model where to track selection */
     public void setModel(final DisplayModel model)
     {
         grid_constraint.configure(model);
     }
 
+    /** @return Model where to track selection */
     public DisplayModel getModel()
     {
         return grid_constraint.getModel();
@@ -254,9 +256,7 @@ public class SelectedWidgetUITracker extends Tracker
             super.mouseReleased(event);
     }
 
-    /** Is the inline editor active?
-     *
-     *  <p>The 'global' key handlers for copy/paste/delete
+    /** The 'global' key handlers for copy/paste/delete
      *  must be suppressed when the inline editor is active,
      *  because otherwise trying to paste a PV name will
      *  paste a new widget, or deleting a part of a PV name
@@ -265,6 +265,8 @@ public class SelectedWidgetUITracker extends Tracker
      *  <p>Since both RCP and JavaFX listen to the keys,
      *  the most practical solution was to have global actions
      *  check this flag
+     *
+     *  @return Is the inline editor active?
      */
     public boolean isInlineEditorActive()
     {

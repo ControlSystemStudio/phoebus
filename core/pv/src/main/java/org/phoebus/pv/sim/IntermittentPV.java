@@ -19,6 +19,11 @@ public class IntermittentPV extends SimulatedDoublePV
 {
     private boolean connected = true;
 
+    /** @param name Name
+     *  @param parameters Parameters
+     *  @return PV
+     *  @throws Exception on error
+     */
     public static PV forParameters(final String name, final List<Double> parameters) throws Exception
     {
         if (parameters.size() <= 0)
@@ -34,6 +39,11 @@ public class IntermittentPV extends SimulatedDoublePV
 
     private final double min, range;
 
+    /** @param name Name
+     *  @param min Minimum value
+     *  @param max Maximum value
+     *  @param update_seconds Seconds between updates
+     */
     public IntermittentPV(final String name, final double min, final double max, final double update_seconds)
     {
         super(name);

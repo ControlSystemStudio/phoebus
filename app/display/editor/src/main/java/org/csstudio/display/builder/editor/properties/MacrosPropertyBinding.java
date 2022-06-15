@@ -54,6 +54,11 @@ public class MacrosPropertyBinding
         }
     };
 
+    /** @param undo Undo manager
+     *  @param field Gui element in editor
+     *  @param widget_property Macros property
+     *  @param other Other selected widgets
+     */
     public MacrosPropertyBinding(final UndoableActionManager undo,
                                  final Button field,
                                  final MacrosWidgetProperty widget_property,

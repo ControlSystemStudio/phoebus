@@ -34,7 +34,8 @@ public class RulesDialogDemo extends ApplicationWrapper
     }
 
     /** JavaFX main
-     *  @throws Exception
+     *  @param args Command line parameters
+     *  @throws Exception on error
      */
     public static void main(final String[] args) throws Exception
     {

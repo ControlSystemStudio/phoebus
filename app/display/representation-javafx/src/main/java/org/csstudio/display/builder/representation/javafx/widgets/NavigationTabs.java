@@ -219,6 +219,7 @@ public class NavigationTabs extends BorderPane
         updateTabs();
     }
 
+    /** @param font Tab font */
     public void setFont(final Font font)
     {
         if (Objects.equals(this.font, font))

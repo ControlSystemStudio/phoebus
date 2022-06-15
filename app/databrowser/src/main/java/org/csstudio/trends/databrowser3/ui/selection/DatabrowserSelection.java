@@ -4,8 +4,10 @@ import java.io.BufferedOutputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.csstudio.trends.databrowser3.persistence.XMLPersistence;
@@ -18,10 +20,14 @@ import javafx.scene.image.Image;
  * This represents the databrowser plot selection
  */
 public class DatabrowserSelection {
-    
+
     private final Model model;
     private final ModelBasedPlot plot;
-    
+
+    /** @param model Model
+     *  @param plot Plot
+     *  @return Selection handler
+     */
     public static DatabrowserSelection of(Model model, ModelBasedPlot plot)
     {
         return new DatabrowserSelection(model, plot);
@@ -65,26 +71,23 @@ public class DatabrowserSelection {
         return model.getItems().stream().map(ModelItem::getResolvedName).collect(Collectors.toList());
     }
 
-    /**
-     * The .plt file of the selected plot
-     * @param outputStream
+    /** @param outputStream Stream where .plt content of selected plot is written
      */
-    public void getPlotFile(OutputStream outputStream)
+    public void writePlotFile(OutputStream outputStream)
     {
-        try (BufferedOutputStream out = new BufferedOutputStream(outputStream)) {
+        try (BufferedOutputStream out = new BufferedOutputStream(outputStream))
+        {
             XMLPersistence.write(model, out);
-        } catch (Exception e) {
-            // TODO: handle exception
+        }
+        catch (Exception ex)
+        {
+            Activator.logger.log(Level.WARNING, "Cannot write *.plt content", ex);
         }
     }
 
-    /**
-     * The selected databrowser plot Image
-     * @return Image
-     */
+    /** @return Selected databrowser plot's image */
     public Image getPlot()
     {
         return plot.getPlot().getImage();
     }
-
 }

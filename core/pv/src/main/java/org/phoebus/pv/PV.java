@@ -18,7 +18,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.epics.vtype.Alarm;
-import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
@@ -173,10 +172,11 @@ public class PV
      *  <p>The {@link Flowable} will receive {@link VType} updates
      *  whenever the PV sends a new value.
      *  When the PV disconnects,
-     *  the {@link Flowable} will be of {@link AlarmSeverity#UNDEFINED}
-     *  with the alarm message set to {@link PV#DISCONNECTED}.
+     *  the {@link Flowable} will send an update that can be checked
+     *  for the disconnected state via {@link #isDisconnected(VType)}
      *
      *  @return {@link Flowable} that receives {@link VType} for each updated value of the PV
+     *  @see #isDisconnected(VType)
      */
     public Flowable<VType> onValueEvent()
     {
@@ -260,8 +260,8 @@ public class PV
 
     /** Write value, no confirmation
      *  @param new_value Value to write to the PV
-     *  @see PV#write(Object, PVWriteListener)
      *  @exception Exception on error
+     *  @see #asyncWrite(Object)
      */
     public void write(final Object new_value) throws Exception
     {
@@ -278,6 +278,7 @@ public class PV
      *  @param new_value Value to write to the PV
      *  @return {@link Future} for awaiting completion or exception
      *  @exception Exception on error
+     *  @see #write(Object)
      */
     public Future<?> asyncWrite(final Object new_value) throws Exception
     {   // Default: Normal write, declare 'done' right away

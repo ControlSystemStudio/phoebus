@@ -18,19 +18,21 @@
 
 package org.csstudio.display.builder.representation.javafx.actionsdialog;
 
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import javafx.fxml.FXML;
-import javafx.scene.control.TextField;
+import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
+
+import java.util.logging.Level;
+
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.model.properties.OpenFileActionInfo;
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 
-import java.util.logging.Level;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.fxml.FXML;
+import javafx.scene.control.TextField;
 
-import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
-
+/** FXML Controller */
 public class OpenFileDetailsController implements ActionDetailsController{
 
     private OpenFileActionInfo openFileActionInfo;
@@ -44,11 +46,15 @@ public class OpenFileDetailsController implements ActionDetailsController{
     private StringProperty descriptionProperty = new SimpleStringProperty();
     private StringProperty filePathProperty = new SimpleStringProperty();
 
+    /** @param widget Widget
+     *  @param actionInfo ActionInfo
+     */
     public OpenFileDetailsController(Widget widget, ActionInfo actionInfo){
         this.widget = widget;
         this.openFileActionInfo = (OpenFileActionInfo)actionInfo;
     }
 
+    /** Init */
     @FXML
     public void initialize(){
         descriptionProperty.setValue(openFileActionInfo.getDescription());
@@ -58,6 +64,7 @@ public class OpenFileDetailsController implements ActionDetailsController{
         filePath.textProperty().bindBidirectional(filePathProperty);
     }
 
+    /** Prompt for file */
     @FXML
     public void selectFile(){
         try
@@ -73,6 +80,7 @@ public class OpenFileDetailsController implements ActionDetailsController{
         }
     }
 
+    /** @return ActionInfo */
     @Override
     public ActionInfo getActionInfo(){
         return new OpenFileActionInfo(descriptionProperty.get(), filePathProperty.get());

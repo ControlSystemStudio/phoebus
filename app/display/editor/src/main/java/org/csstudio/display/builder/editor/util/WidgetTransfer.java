@@ -64,7 +64,7 @@ import javafx.scene.input.TransferMode;
 
 /** Helper for widget drag/drop
  *
- *  <h3>Handling New File/URL Extensions</h3>
+ *  <p>Handling New File/URL Extensions:
  *  To add the support for a new set of file/URL extensions do the following:
  *  <ul>
  *   <li>Create a new static list of extensions (see {@link #IMAGE_FILE_EXTENSIONS});</li>
@@ -97,9 +97,9 @@ public class WidgetTransfer {
      * Add support for 'dragging' a widget out of a node
      *
      * @param source Source {@link Node}
-     * @param editor
+     * @param editor Editor
      * @param palette Description of widget type to drag
-     * @param descriptor
+     * @param descriptor Widget descriptor
      * @param image Image to represent the widget, or <code>null</code>
      */
     public static void addDragSupport (

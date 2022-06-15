@@ -18,19 +18,21 @@
 
 package org.csstudio.display.builder.representation.javafx.actionsdialog;
 
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import javafx.fxml.FXML;
-import javafx.scene.control.TextField;
+import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
+
+import java.util.logging.Level;
+
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.model.properties.ExecuteCommandActionInfo;
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 
-import java.util.logging.Level;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.fxml.FXML;
+import javafx.scene.control.TextField;
 
-import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
-
+/** FXML Controller */
 public class ExecuteCommandDetailsController implements ActionDetailsController{
 
     private ExecuteCommandActionInfo executeCommandActionInfo;
@@ -45,11 +47,15 @@ public class ExecuteCommandDetailsController implements ActionDetailsController{
     private StringProperty descriptionProperty = new SimpleStringProperty();
     private StringProperty commandProperty = new SimpleStringProperty();
 
+    /** @param widget Widget
+     *  @param actionInfo ActionInfo
+     */
     public ExecuteCommandDetailsController(Widget widget, ActionInfo actionInfo){
         this.widget = widget;
         this.executeCommandActionInfo = (ExecuteCommandActionInfo)actionInfo;
     }
 
+    /** Init */
     @FXML
     public void initialize(){
         descriptionProperty.setValue(executeCommandActionInfo.getDescription());
@@ -59,6 +65,7 @@ public class ExecuteCommandDetailsController implements ActionDetailsController{
         command.textProperty().bindBidirectional(commandProperty);
     }
 
+    /** Prompt for command to execute */
     @FXML
     public void selectCommand(){
         try
@@ -74,6 +81,7 @@ public class ExecuteCommandDetailsController implements ActionDetailsController{
         }
     }
 
+    /** @return ActionInfo */
     @Override
     public ActionInfo getActionInfo(){
         return new ExecuteCommandActionInfo(descriptionProperty.get(), commandProperty.get());

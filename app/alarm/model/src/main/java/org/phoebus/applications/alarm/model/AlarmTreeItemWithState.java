@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Objects;
 
 /** Base class for all nodes in the alarm tree that hold a 'state'
- *  @param STATE Type used for the alarm state
+ *  @param <STATE> Type used for the alarm state
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")

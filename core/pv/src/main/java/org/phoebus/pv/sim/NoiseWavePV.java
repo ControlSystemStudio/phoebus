@@ -20,6 +20,11 @@ public class NoiseWavePV extends SimulatedDoubleArrayPV
     private final double min, range;
     private final int size;
 
+    /** @param name Name
+     *  @param parameters Parameters
+     *  @return PV
+     *  @throws Exception on error
+     */
     public static PV forParameters(final String name, List<Double> parameters) throws Exception
     {
         if (parameters.isEmpty())
@@ -33,6 +38,12 @@ public class NoiseWavePV extends SimulatedDoubleArrayPV
                             "(min, max, size, update_seconds)");
     }
 
+    /** @param name Name
+     *  @param min Minimum value
+     *  @param max Maximum value
+     *  @param size Array size
+     *  @param update_seconds Seconds between updates
+     */
     public NoiseWavePV(final String name, final double min, final double max,
                        int size, final double update_seconds)
     {

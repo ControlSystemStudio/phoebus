@@ -50,6 +50,9 @@ public class FontButton extends Button
     private Font font;
     private final Consumer<Font> on_font_selected;
 
+    /** @param initial_font Intiial font
+     *  @param on_font_selected Callback for selected font
+     */
     public FontButton(final Font initial_font, final Consumer<Font> on_font_selected)
     {
         this.font = initial_font;
@@ -137,6 +140,7 @@ public class FontButton extends Button
         example.setFont(font);
     }
 
+    /** @param font Font to select */
     public void selectFont(final Font font)
     {
         Objects.requireNonNull(font);

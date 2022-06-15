@@ -25,6 +25,9 @@ import javafx.scene.control.MenuItem;
 @SuppressWarnings("nls")
 public class ToggleLinesMenuItem extends MenuItem
 {
+    /** @param plot Plot
+     *  @param traces Traces on which to toggle lines vs. points
+     */
     public ToggleLinesMenuItem(final RTValuePlot plot, final List<Trace<Double>> traces)
     {
         if (traces.get(0).getPointType() == PointType.NONE)

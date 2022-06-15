@@ -27,6 +27,10 @@ import javafx.scene.control.MenuItem;
 @SuppressWarnings("nls")
 public class DeleteItemsMenuItem extends MenuItem
 {
+    /** @param model Model
+     *  @param undo Undo manager
+     *  @param selected Selected items to delete
+     */
     public DeleteItemsMenuItem(final Model model, final UndoableActionManager undo,
                                final List<ModelItem> selected)
     {

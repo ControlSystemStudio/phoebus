@@ -23,6 +23,11 @@ public class GaussianWavePV extends SimulatedDoubleArrayPV
     private final double[] shape;
     private final Instant start = Instant.now();
 
+    /** @param name Name
+     *  @param parameters Parameters
+     *  @return PV
+     *  @throws Exception on error
+     */
     public static PV forParameters(final String name, List<Double> parameters) throws Exception
     {
         if (parameters.isEmpty())
@@ -33,6 +38,12 @@ public class GaussianWavePV extends SimulatedDoubleArrayPV
                             "(period_seconds, std_dev, size, update_seconds)");
     }
 
+    /** @param name Name
+     *  @param period_seconds Period in which the running wave moves
+     *  @param std_dev Std deviation
+     *  @param size Array size
+     *  @param update_seconds Seconds between updates
+     */
     public GaussianWavePV(final String name, final double period_seconds, final double std_dev,
                           int size, final double update_seconds)
     {

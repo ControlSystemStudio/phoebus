@@ -31,6 +31,9 @@ public class RemoveGroupAction extends MenuItem
     private final DisplayEditor editor;
     private final GroupWidget group;
 
+    /** @param editor Editor
+     *  @param group Group
+     */
     public RemoveGroupAction(final DisplayEditor editor, final GroupWidget group)
     {
         super(Messages.RemoveGroup + " [" + PlatformInfo.SHORTCUT + "-U]",
@@ -40,6 +43,7 @@ public class RemoveGroupAction extends MenuItem
         setOnAction(event -> run());
     }
 
+    /** Execute */
     public void run()
     {
         editor.getWidgetSelectionHandler().clear();

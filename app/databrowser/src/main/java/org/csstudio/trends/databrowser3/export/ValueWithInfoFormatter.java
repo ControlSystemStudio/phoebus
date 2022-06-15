@@ -20,7 +20,7 @@ import org.phoebus.archive.vtype.VTypeHelper;
 public class ValueWithInfoFormatter extends ValueFormatter
 {
     /** Initialize
-     *  @param format Number format to use
+     *  @param style Number format to use
      *  @param precision Precision
      */
     public ValueWithInfoFormatter(final Style style, final int precision)

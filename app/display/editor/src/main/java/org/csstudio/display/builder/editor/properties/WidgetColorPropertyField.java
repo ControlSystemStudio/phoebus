@@ -33,6 +33,7 @@ public class WidgetColorPropertyField extends HBox
     private final Canvas blob = new Canvas(16, 16);
     private final Button button = new Button();
 
+    /** Constructor */
     public WidgetColorPropertyField()
     {
         // Button with label "Button_Background" for color name

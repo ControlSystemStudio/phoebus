@@ -65,6 +65,11 @@ public class ArchiveFileSampleReader implements ValueIterator
     private long samples_left;
 
 
+    /** @param iteratorStart Start time
+     *  @param iteratorStop End time
+     *  @param entries Data files to read
+     *  @throws Exception on error
+     */
     public ArchiveFileSampleReader(final Instant iteratorStart, final Instant iteratorStop,
                                    final List<DataFileEntry> entries) throws Exception
     {

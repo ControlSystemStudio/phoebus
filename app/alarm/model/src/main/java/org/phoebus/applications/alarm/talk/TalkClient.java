@@ -52,7 +52,7 @@ public class TalkClient
         Objects.requireNonNull(config_name);
 
         final List<String> topics = List.of(config_name + AlarmSystem.TALK_TOPIC_SUFFIX);
-        consumer = KafkaHelper.connectConsumer(server, topics, Collections.emptyList());
+        consumer = KafkaHelper.connectConsumer(server, topics, Collections.emptyList(), AlarmSystem.kafka_properties);
 
         thread = new Thread(this::run, "TalkClient");
         thread.setDaemon(true);

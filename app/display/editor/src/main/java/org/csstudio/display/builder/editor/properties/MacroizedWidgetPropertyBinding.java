@@ -53,7 +53,7 @@ public class MacroizedWidgetPropertyBinding
         (final ObservableValue<? extends Boolean> observable,
          final Boolean old_focus, final Boolean focus) ->
     {
-        // Gain focus -> active. Loose focus -> submit 
+        // Gain focus -> active. Loose focus -> submit
         updating = true;
         // This will submit new value if looses focus.
         if (! focus)
@@ -98,6 +98,11 @@ public class MacroizedWidgetPropertyBinding
         updating = false;
     };
 
+    /** @param undo Undo manager
+     *  @param field Gui element in editor
+     *  @param widget_property Property that supports macros
+     *  @param other Other selected widgets
+     */
     public MacroizedWidgetPropertyBinding(final UndoableActionManager undo,
                                           final TextInputControl field,
                                           final MacroizedWidgetProperty<?> widget_property,

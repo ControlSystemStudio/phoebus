@@ -19,12 +19,6 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.prefs.Preferences;
 
-import javafx.geometry.Pos;
-import javafx.scene.control.Label;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.shape.Line;
-import javafx.scene.text.TextAlignment;
 import org.csstudio.display.builder.editor.actions.ActionDescription;
 import org.csstudio.display.builder.editor.app.DisplayEditorInstance;
 import org.csstudio.display.builder.editor.palette.Palette;
@@ -59,6 +53,7 @@ import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
+import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -66,6 +61,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
@@ -76,9 +72,13 @@ import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.shape.Line;
+import javafx.scene.text.TextAlignment;
 
 /** Display editor UI
  *
@@ -160,6 +160,7 @@ public class DisplayEditor
     private ToggleButton coords;
     private ToggleButton crosshair;
 
+    /** Snap and info options */
     public static final String
             SNAP_GRID = "snap_grid",
             SNAP_WIDGETS = "snap_widgets",
@@ -314,7 +315,7 @@ public class DisplayEditor
             zoom_levels);
     }
 
-    public class zoomListener implements Consumer<String>
+    private class zoomListener implements Consumer<String>
     {
         ComboBox<String> zoom_levels;
 
@@ -389,6 +390,7 @@ public class DisplayEditor
         return selection;
     }
 
+    /** @return AutoScrollHandler */
     public AutoScrollHandler getAutoScrollHandler()
     {
         return autoScrollHandler;
@@ -913,20 +915,24 @@ public class DisplayEditor
     private double lastMouseY = 0;
 
     /** Toggle crosshair cursor and refresh button look, from key handler  */
-    public void toggleCrosshair() {
+    public void toggleCrosshair()
+    {
         crosshair.setSelected(!crosshair.isSelected());
     }
 
-    /** Set crosshair cursor (button or toggle function)*/
-    public void setCrosshair(boolean crosshair) {
-        if (crosshair) {
+    /** @param crosshair Enable crosshair cursor? */
+    public void setCrosshair(boolean crosshair)
+    {
+        if (crosshair)
+        {
             widget_parent.getChildren().add(vLine);
             widget_parent.getChildren().add(hline);
             widget_parent.getChildren().add(xLabel);
             widget_parent.getChildren().add(yLabel);
             setCrosshairCoordinates();
         }
-        else {
+        else
+        {
             widget_parent.getChildren().remove(vLine);
             widget_parent.getChildren().remove(hline);
             widget_parent.getChildren().remove(xLabel);
@@ -980,6 +986,7 @@ public class DisplayEditor
         return lbl;
     }
 
+    /** Release resources */
     public void dispose()
     {
         autoScrollHandler.enable(false);

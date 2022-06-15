@@ -31,11 +31,11 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget;
-import org.csstudio.display.builder.model.widgets.VisibleWidget;
-import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget.TabItemProperty;
+import org.csstudio.display.builder.model.widgets.VisibleWidget;
 import org.phoebus.ui.javafx.TreeHelper;
 import org.phoebus.ui.undo.CompoundReversedUndoableAction;
 
@@ -143,7 +143,7 @@ public class WidgetTree
     public WidgetTree(final DisplayEditor editor)
     {
         this.editor = editor;
-        cell_factory = cell -> 
+        cell_factory = cell ->
         {
             WidgetTreeCell tc = new WidgetTreeCell(editor.getUndoableActionManager());
             tc.setOnDragDetected((MouseEvent event) -> dragDetected(event, tc));
@@ -659,8 +659,8 @@ public class WidgetTree
     private TreeItem<WidgetOrTab> draggedItem;
     private TreeCell<WidgetOrTab> dropZone;
 
-    /**Code executed when a drag from a WidgetTreeCell is detected 
-     * 
+    /**Code executed when a drag from a WidgetTreeCell is detected
+     *
      * @param event - source event
      * @param treeCell - dragged cell
      */
@@ -678,8 +678,8 @@ public class WidgetTree
         event.consume();
     }
 
-    /**Code executed when a drag over a WidgetTreeCell is detected 
-     * 
+    /**Code executed when a drag over a WidgetTreeCell is detected
+     *
      * @param event - source event
      * @param treeCell - possibly destination cell
      */
@@ -691,7 +691,7 @@ public class WidgetTree
 
         // can't drop on itself
         if (draggedItem == null || thisItem == null || thisItem == draggedItem) return;
-        // ignore if not common Parent and not Parent itself 
+        // ignore if not common Parent and not Parent itself
         if (!Objects.equals(draggedItem.getParent(), thisItem.getParent()) && !Objects.equals(draggedItem.getParent(), thisItem)) {
             clearDropLocation();
             return;
@@ -713,7 +713,7 @@ public class WidgetTree
     }
 
     /**Paint a decoration under drop target cell
-     * 
+     *
      */
     private void decorateDropZone()
     {
@@ -722,7 +722,7 @@ public class WidgetTree
     }
 
     /**Clear a decoration under drop target cell
-     * 
+     *
      */
     private void clearDropLocation() {
         if (dropZone != null) dropZone.setStyle("");
@@ -750,12 +750,12 @@ public class WidgetTree
 
         // dropping on parent node makes it the first child
         if (Objects.equals(droppedItemParent, thisItem)) {
-            reorder(editor, 0, droppedItemParent.getChildren().size());
+            reorder(editor, 0);
         }
         else {
             int frIndex = draggedItem.getParent().getChildren().indexOf(draggedItem);
             int toIndex = thisItem.getParent().getChildren().indexOf(thisItem);
-            reorder(editor, toIndex + (frIndex > toIndex ? 1 : 0), droppedItemParent.getChildren().size());
+            reorder(editor, toIndex + (frIndex > toIndex ? 1 : 0));
         }
         // All actual tree changes will be done as a reaction to the reorder action
         event.setDropCompleted(success);
@@ -763,11 +763,11 @@ public class WidgetTree
     }
 
     /**Reordering widgets in model, as UndoableAction
-     * 
-     * @param editor - needed to get the getUndoableActionManager
-     * @param toIndex - target index for widgets
+     *
+     * @param editor Needed to get the getUndoableActionManager
+     * @param toIndex Target index for widgets
      */
-    public void reorder(final DisplayEditor editor, int toIndex, int listSize)
+    public void reorder(final DisplayEditor editor, int toIndex)
     {
         List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
         if (widgets.isEmpty())
@@ -786,17 +786,17 @@ public class WidgetTree
     /**Configuring external control for drop
      * To resolve an issue when it is not possible to drop to treeWiew root when it is not shown,
      * enable drop to the pane header.
-     * The header control (actually a Label) must be configured for that, see EditorGUI
+     * @param header Control (actually a Label) must be configured for that, see EditorGUI
      */
     public void configureHeaderDnD(Control header)
     {
         header.setOnDragDropped((DragEvent event) -> drop(event, null, tree_view.getRoot()));
-        header.setOnDragOver((DragEvent event) -> 
+        header.setOnDragOver((DragEvent event) ->
         {
             if (!event.getDragboard().hasContent(TREE_FORMAT)) return;
             if (!event.getDragboard().getContent(TREE_FORMAT).equals(TREE_ID)) return;
 
-            // ignore if Parent is not Root 
+            // ignore if Parent is not Root
             if (draggedItem == null || !Objects.equals(draggedItem.getParent(), tree_view.getRoot())) return;
 
             event.acceptTransferModes(TransferMode.MOVE);

@@ -32,8 +32,8 @@ import org.w3c.dom.Element;
 public class XmlRpc
 {
     /** Create XML-RPC request
-     *  @param method
-     *  @param params
+     *  @param method Method
+     *  @param params Parameters
      *  @return XML for the request
      *  @throws Exception on error
      */
@@ -115,7 +115,7 @@ public class XmlRpc
             out.write(bytes);
             out.flush();
         }
-        
+
         // Parse the response, expecting <methodResponse><params><param><value>
         Element el = XMLUtil.openXMLDocument(connection.getInputStream(), "methodResponse");
         // Check for fault
@@ -201,6 +201,7 @@ public class XmlRpc
      *  @param value A "value" node that contains "string", "i4"
      *  @return {@link String}, {@link Integer}
      *  @throws Exception on error
+     *  @param <TYPE> Data type to return
      */
     @SuppressWarnings("unchecked")
     public static <TYPE> TYPE getValue(final Element value) throws Exception

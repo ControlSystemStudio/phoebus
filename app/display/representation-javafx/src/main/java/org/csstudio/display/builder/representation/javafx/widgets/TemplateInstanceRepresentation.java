@@ -18,10 +18,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
-import javafx.scene.paint.Color;
-import javafx.scene.paint.CycleMethod;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Stop;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
@@ -45,6 +41,10 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Stop;
 
 /** Creates JavaFX item for model widget
  *
@@ -60,6 +60,7 @@ import javafx.scene.layout.Pane;
 @SuppressWarnings("nls")
 public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pane, TemplateInstanceWidget>
 {
+    /** Transparent background */
     public static final Background EDIT_TRANSPARENT_BACKGROUND = new Background(new BackgroundFill(
             new LinearGradient(
                     0, 0, 10, 10, false, CycleMethod.REPEAT,

@@ -26,18 +26,22 @@ public class ArchiveFileBuffer implements AutoCloseable
     private FileChannel fileChannel;
     private File file = null;
 
+    /** Constructor */
     public ArchiveFileBuffer()
     {
     }
 
+    /** @param file File to read
+     *  @throws IOException on error
+     */
     public ArchiveFileBuffer(final File file) throws IOException
     {
         setFile(file);
     }
 
     /** Set file
-     *  @param file
-     *  @throws IOException
+     *  @param file File to read
+     *  @throws IOException on error
      */
     public void setFile(final File file) throws IOException
     {
@@ -50,11 +54,15 @@ public class ArchiveFileBuffer implements AutoCloseable
         buffer.position(0).limit(0);
     }
 
+    /** @return File */
     public File getFile()
     {
         return file;
     }
 
+    /** @param numBytes Bytes to fetch
+     *  @throws IOException on error
+     */
     public void prepareGet(int numBytes) throws IOException
     {
         if (buffer.remaining() < numBytes)
@@ -66,36 +74,54 @@ public class ArchiveFileBuffer implements AutoCloseable
         }
     }
 
+    /** @param dst Array into which to read bytes
+     *  @throws IOException on error
+     */
     public void get(byte dst []) throws IOException
     {
         prepareGet(dst.length);
         buffer.get(dst);
     }
 
+    /** @return Number
+     *  @throws IOException on error
+     */
     public long getUnsignedInt() throws IOException
     {
         prepareGet(4);
         return Integer.toUnsignedLong(buffer.getInt());
     }
 
+    /** @return Number
+     *  @throws IOException on error
+     */
     public short getShort() throws IOException
     {
         prepareGet(2);
         return buffer.getShort();
     }
 
+    /** @return Number
+     *  @throws IOException on error
+     */
     public float getFloat() throws IOException
     {
         prepareGet(4);
         return buffer.getFloat();
     }
 
+    /** @return Number
+     *  @throws IOException on error
+     */
     public double getDouble() throws IOException
     {
         prepareGet(8);
         return buffer.getDouble();
     }
 
+    /** @return Byte
+     *  @throws IOException on error
+     */
     public byte get() throws IOException
     {
         if (!buffer.hasRemaining())
@@ -106,13 +132,21 @@ public class ArchiveFileBuffer implements AutoCloseable
         return buffer.get();
     }
 
-    //get epicsTime saved in file as java Instant; automatically
-    //converts from Channel Archiver epoch (1990) to java epoch (1970)
+    /** Get epicsTime saved in file as Instant;
+     *
+     *  Automatically converts from Channel Archiver epoch (1990) to java epoch (1970)
+     *
+     *  @return Instant
+     *  @throws IOException on error
+     */
     public Instant getEpicsTime() throws IOException
     {
         return Instant.ofEpochSecond(getUnsignedInt() + ArchiveFileTime.EPICS_OFFSET, getInt());
     }
 
+    /** @param numBytes Bytes to skip
+     *  @throws IOException on error
+     */
     public void skip(int numBytes) throws IOException
     {
         int numAlready = buffer.remaining();
@@ -127,6 +161,9 @@ public class ArchiveFileBuffer implements AutoCloseable
         buffer.position(buffer.position() + numBytes);
     }
 
+    /** @param offset Desired byte offset within file
+     *  @throws IOException on error
+     */
     public void offset(long offset) throws IOException
     {
          if (offset < 0 || offset > fileChannel.size())
@@ -151,17 +188,24 @@ public class ArchiveFileBuffer implements AutoCloseable
         }
     }
 
+    /** @return Number
+     *  @throws IOException on error
+     */
     public int getInt() throws IOException
     {
         prepareGet(4);
         return buffer.getInt();
     }
 
+    /** @return Current byte offset within file
+     *  @throws IOException on error
+     */
     long offset() throws IOException
     {
         return fileChannel.position() - buffer.limit() + buffer.position();
     }
 
+    /** @return Remaining bytes in file */
     public int remaining()
     {
         return buffer.remaining();

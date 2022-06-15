@@ -67,7 +67,7 @@ import javafx.scene.input.ContextMenuEvent;
 @SuppressWarnings("nls")
 public class DisplayEditorInstance implements AppInstance
 {
-    /** Memento & property tags */
+    /** Memento and property tags */
     public static final String TREE_DIVIDER = "tree_divider",
                                PROP_DIVIDER = "prop_divider";
 

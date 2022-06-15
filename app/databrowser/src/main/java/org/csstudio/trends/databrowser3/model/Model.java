@@ -148,7 +148,7 @@ public class Model
      *  it has been loaded into this model.
      *
      *  @param other Other model to load
-     *  @throws Exception
+     *  @throws Exception on error
      */
     public void load(final Model other) throws Exception
     {
@@ -426,7 +426,7 @@ public class Model
      *  Now that this model may have different items with the same name,
      *  this method is not recommended to locate an item. This method
      *  just returns an item which just happens to have the given name.
-     *  @param name
+     *  @param name Name of item
      *  @return ModelItem by that name or <code>null</code>
      */
     public ModelItem getItem(final String name)
@@ -487,7 +487,7 @@ public class Model
      *  If the model is already 'running', the item will be 'start'ed.
      *
      *  @param item {@link ModelItem} to add
-     *  @throws RuntimeException if item is already in model
+     *  @throws Exception if item is already in model or has other error
      */
     public void addItem(final ModelItem item) throws Exception
     {
@@ -537,7 +537,7 @@ public class Model
      *  <p>
      *  If the model and thus item are 'running',
      *  the item will be 'stopped'.
-     *  @param item
+     *  @param item Item to remove
      *  @throws RuntimeException if item not in model
      */
     public void removeItem(final ModelItem item)
@@ -565,7 +565,7 @@ public class Model
 
     /** Move item in model.
      *  <p>
-     *  @param item
+     *  @param item Item to move
      *  @param up Up? Otherwise down
      *  @throws RuntimeException if item null or not in model
      */
@@ -949,6 +949,7 @@ public class Model
             listener.itemRefreshRequested(item);
     }
 
+    /** Fire event that indicates change in selected samples */
     public void fireSelectedSamplesChanged()
     {
         for (ModelListener listener : listeners)

@@ -77,6 +77,11 @@ public class ActionsPropertyBinding
         }
     };
 
+    /** @param undo Undo manager
+     *  @param field Gui element in editor
+     *  @param widget_property Actions property
+     *  @param other Other selected widgets
+     */
     public ActionsPropertyBinding(final UndoableActionManager undo,
                                   final Button field,
                                   final ActionsWidgetProperty widget_property,

@@ -35,6 +35,12 @@ public class UseWidgetClassBinding extends WidgetPropertyBinding<CheckBox, Widge
             updateFromModel();
     };
 
+    /** @param undo Undo manager
+     *  @param node Checkbox in editor
+     *  @param property_field Combo in editor
+     *  @param widget_property Class property
+     *  @param other Other selected widgets
+     */
     public UseWidgetClassBinding(final UndoableActionManager undo, final CheckBox node,
                                  final Node property_field,
                                  final WidgetProperty<?> widget_property, final List<Widget> other)

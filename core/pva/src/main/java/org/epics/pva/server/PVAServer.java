@@ -35,6 +35,8 @@ import org.epics.pva.data.PVAStructure;
 @SuppressWarnings("nls")
 public class PVAServer implements AutoCloseable
 {
+    // TODO Implement beacons?
+
     /** Common thread pool */
     public static ForkJoinPool POOL = ForkJoinPool.commonPool();
 

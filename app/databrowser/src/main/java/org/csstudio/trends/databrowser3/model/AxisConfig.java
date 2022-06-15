@@ -59,7 +59,7 @@ public class AxisConfig
     private boolean log_scale;
 
     /** Initialize with defaults
-     *  @param name
+     *  @param name Axis name
      */
     public AxisConfig(final String name)
     {
@@ -68,16 +68,17 @@ public class AxisConfig
     }
 
     /** Initialize
-     *  @param visible
-     *  @param name
-     *  @param use_axis_name
-     *  @param use_trace_names
-     *  @param is_right
-     *  @param rgb
-     *  @param min
-     *  @param max
-     *  @param auto_scale
-     *  @param log_scale
+     *  @param visible Show axis?
+     *  @param name Name
+     *  @param use_axis_name Show name?
+     *  @param use_trace_names Show trace names?
+     *  @param is_right Place on right side of plot?
+     *  @param col Axis color
+     *  @param min Axis range
+     *  @param max Axis range
+     *  @param show_grid Show grid?
+     *  @param auto_scale Auto-scale?
+     *  @param log_scale Log. scale?
      */
     public AxisConfig(final boolean visible, final String name,
             final boolean use_axis_name,
@@ -170,7 +171,7 @@ public class AxisConfig
         fireAxisChangeEvent();
     }
 
-    /** Is axis on right side of plot? */
+    /** @return Is axis on right side of plot? */
     public boolean isOnRight()
     {
         return is_right;
@@ -235,7 +236,7 @@ public class AxisConfig
         return show_grid;
     }
 
-    /** @param visible Should grid be visible? */
+    /** @param grid Should grid be visible? */
     public void setGridVisible(final boolean grid)
     {
         show_grid = grid;
@@ -329,7 +330,7 @@ public class AxisConfig
     }
 
     /** Create Axis info from XML document
-     *  @param node
+     *  @param node XML node
      *  @return AxisConfig
      *  @throws Exception on error
      */

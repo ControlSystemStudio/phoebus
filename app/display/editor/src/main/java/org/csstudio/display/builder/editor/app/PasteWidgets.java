@@ -19,6 +19,7 @@ import javafx.scene.input.Clipboard;
 @SuppressWarnings("nls")
 public class PasteWidgets extends MenuItem
 {
+    /** @param gui EditorGUI */
     public PasteWidgets(final EditorGUI gui)
     {
         super(Messages.Paste + " [" + PlatformInfo.SHORTCUT + "-V]", ImageCache.getImageView(ImageCache.class, "/icons/paste.png"));

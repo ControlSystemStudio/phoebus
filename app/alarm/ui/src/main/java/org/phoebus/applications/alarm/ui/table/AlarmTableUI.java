@@ -235,6 +235,7 @@ public class AlarmTableUI extends BorderPane
         }
     }
 
+    /** @param client Client */
     public AlarmTableUI(final AlarmClient client)
     {
         this.client = client;

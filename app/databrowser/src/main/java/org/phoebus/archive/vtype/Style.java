@@ -9,7 +9,7 @@ package org.phoebus.archive.vtype;
 
 import org.epics.vtype.VType;
 
-/** User-selected style for formatting {@link VType}
+/** User-selected style for formatting of {@link VType}
  *  @author Kay Kasemir
  */
 public enum Style
@@ -26,6 +26,10 @@ public enum Style
     /** If possible, convert to String */
     String;
 
+    /** @param style Desired style
+     *  @param precision Precision to use for numeric styles
+     *  @return Format
+     */
     public static VTypeFormat getFormat(final Style style, final int precision)
     {
         switch (style)

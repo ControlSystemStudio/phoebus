@@ -17,6 +17,7 @@ import org.phoebus.util.time.TimestampFormats;
  */
 public class TimePV extends SimulatedStringPV
 {
+    /** @param name PV Name */
     public TimePV(final String name)
     {
         super(name);

@@ -57,6 +57,7 @@ public class SliderMarkers extends Pane
 
     private double lolo = Double.NaN, low = Double.NaN, high = Double.NaN, hihi = Double.NaN;
 
+    /** @param slider Slider */
     public SliderMarkers(final Slider slider)
     {
         this.slider = slider;

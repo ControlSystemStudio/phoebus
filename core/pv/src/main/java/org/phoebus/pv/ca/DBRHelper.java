@@ -69,7 +69,10 @@ import gov.aps.jca.dbr.TimeStamp;
 @SuppressWarnings("nls")
 public class DBRHelper
 {
-    /** @return CTRL_... type for this channel. */
+    /** @param plain Get plain type of CTRL_... type?
+     *  @param type Example data
+     *  @return CTRL_... type for this channel.
+     */
     public static DBRType getCtrlType(final boolean plain, final DBRType type)
     {
         if (type.isDOUBLE())
@@ -88,7 +91,10 @@ public class DBRHelper
         return plain ? DBRType.STRING : DBRType.CTRL_STRING;
     }
 
-    /** @return TIME_... type for this channel. */
+    /** @param plain Get plain type of TIME_... type?
+     *  @param type Example data
+     *  @return TIME_... type for this channel.
+     */
     public static DBRType getTimeType(final boolean plain, final DBRType type)
     {
         if (type.isDOUBLE())
@@ -192,6 +198,14 @@ public class DBRHelper
                 format);
     }
 
+    /** Decode DBR into VType
+     *
+     *  @param is_array Do we assume data is an array?
+     *  @param metadata Last known metadata
+     *  @param dbr Received DBR_...
+     *  @return {@link VType}
+     *  @throws Exception on error
+     */
     public static VType decodeValue(final boolean is_array, final Object metadata, final DBR dbr) throws Exception
     {
         // Rough guess, but somewhat in order of most frequently used type

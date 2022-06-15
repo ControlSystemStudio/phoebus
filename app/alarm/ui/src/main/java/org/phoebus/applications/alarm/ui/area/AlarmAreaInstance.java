@@ -39,6 +39,10 @@ public class AlarmAreaInstance implements AppInstance
     private AlarmClient client = null;
     private final DockItemWithInput tab;
 
+    /** @param app Application info
+     *  @param input Input to instance
+     *  @throws Exception on error
+     */
     public AlarmAreaInstance(final AlarmAreaApplication app, final URI input) throws Exception
     {
         this.app = app;
@@ -67,7 +71,7 @@ public class AlarmAreaInstance implements AppInstance
 
         try
         {
-            client = new AlarmClient(server, config_name);
+            client = new AlarmClient(server, config_name, AlarmSystem.kafka_properties);
             final AlarmAreaView area_view = new AlarmAreaView(client);
             client.start();
 

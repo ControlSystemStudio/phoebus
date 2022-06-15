@@ -236,6 +236,11 @@ public class EditMultipleItemsAction extends MenuItem
         }
     }
 
+    /** @param parent Parent node in GUI
+     *  @param model Model
+     *  @param undo Undo manager
+     *  @param selected Selected model items
+     */
     public EditMultipleItemsAction(final Node parent,
                                    final Model model, final UndoableActionManager undo,
                                    final List<ModelItem> selected)

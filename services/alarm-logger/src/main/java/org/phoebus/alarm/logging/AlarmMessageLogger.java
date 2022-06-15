@@ -23,6 +23,7 @@ import org.apache.kafka.streams.kstream.Transformer;
 import org.apache.kafka.streams.kstream.TransformerSupplier;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.TimestampExtractor;
+import org.phoebus.applications.alarm.client.KafkaHelper;
 import org.phoebus.applications.alarm.messages.AlarmConfigMessage;
 import org.phoebus.applications.alarm.messages.AlarmMessage;
 import org.phoebus.applications.alarm.messages.AlarmStateMessage;
@@ -65,7 +66,7 @@ public class AlarmMessageLogger implements Runnable {
         Properties props = new Properties();
         props.putAll(PropertiesHelper.getProperties());
 
-        Properties kafkaProps = new Properties();
+        Properties kafkaProps = KafkaHelper.loadPropsFromFile(props.getProperty("kafka_properties",""));
         kafkaProps.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-"+topic+"-alarm-messages");
 
         if (props.containsKey(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG)){

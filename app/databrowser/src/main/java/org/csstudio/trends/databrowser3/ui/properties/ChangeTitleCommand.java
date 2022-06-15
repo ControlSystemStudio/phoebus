@@ -21,9 +21,9 @@ public class ChangeTitleCommand extends UndoableAction
     final private String old_title, new_title;
 
     /** Register and perform the command
-     *  @param item Model item to configure
+     *  @param model Model to configure
      *  @param operations_manager OperationsManager where command will be reg'ed
-     *  @param period New value
+     *  @param title New title
      */
     public ChangeTitleCommand(final Model model,
             final UndoableActionManager operations_manager,

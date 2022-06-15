@@ -4,15 +4,17 @@ package org.phoebus.security.managers;
  *
  */
 
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
 import java.io.File;
 import java.io.FileInputStream;
 import java.security.KeyStore;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+
+/** Trust manager that allows access */
 public class MyX509TrustManager implements X509TrustManager {
 
      /*
@@ -56,10 +58,11 @@ public class MyX509TrustManager implements X509TrustManager {
          throw new Exception("Couldn't initialize");
      }
 
-     /*
+     /**
       * Delegate to the default trust manager.
       */
-     public void checkClientTrusted(X509Certificate[] chain, String authType)
+     @Override
+    public void checkClientTrusted(X509Certificate[] chain, String authType)
                  throws CertificateException {
          try {
              pkixTrustManager.checkClientTrusted(chain, authType);
@@ -68,10 +71,11 @@ public class MyX509TrustManager implements X509TrustManager {
          }
      }
 
-     /*
+     /**
       * Delegate to the default trust manager.
       */
-     public void checkServerTrusted(X509Certificate[] chain, String authType)
+     @Override
+    public void checkServerTrusted(X509Certificate[] chain, String authType)
                  throws CertificateException {
          try {
              pkixTrustManager.checkServerTrusted(chain, authType);
@@ -83,10 +87,11 @@ public class MyX509TrustManager implements X509TrustManager {
          }
      }
 
-     /*
+     /**
       * Merely pass this through.
       */
-     public X509Certificate[] getAcceptedIssuers() {
+     @Override
+    public X509Certificate[] getAcceptedIssuers() {
          return pkixTrustManager.getAcceptedIssuers();
      }
 }
