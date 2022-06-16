@@ -28,49 +28,31 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Side;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.CustomMenuItem;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
-import javafx.scene.control.ToggleButton;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.logbook.LogClient;
-import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.LogFactory;
-import org.phoebus.logbook.LogService;
-import org.phoebus.logbook.Logbook;
-import org.phoebus.logbook.LogbookException;
-import org.phoebus.logbook.LogbookPreferences;
-import org.phoebus.logbook.Tag;
+import org.phoebus.logbook.*;
+import org.phoebus.logbook.olog.ui.HelpViewer;
 import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
-import org.phoebus.logbook.olog.ui.Messages;
+import org.phoebus.logbook.olog.ui.PreviewViewer;
 import org.phoebus.olog.es.api.OlogProperties;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.security.tokens.SimpleAuthenticationToken;
-import org.phoebus.logbook.olog.ui.PreviewViewer;
-import org.phoebus.ui.dialog.ListSelectionDialog;
 import org.phoebus.ui.dialog.ListSelectionPopOver;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.time.Instant;
-import java.util.*;
-
-import org.phoebus.logbook.olog.ui.HelpViewer;
-
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -150,6 +132,7 @@ public class LogEntryEditorController {
     private Collection<Tag> availableTags;
 
     private ListSelectionPopOver tagsPopOver;
+    private ListSelectionPopOver logbooksPopOver;
 
     private final ObservableList<String> availableLevels = FXCollections.observableArrayList();
     private final SimpleStringProperty titleProperty = new SimpleStringProperty();
@@ -349,7 +332,6 @@ public class LogEntryEditorController {
                 !selectedLogbooks.isEmpty(),
                 titleProperty, usernameProperty, passwordProperty, selectedLogbooks));
 
-        // Note: logbooks and tags are retrieved asynchronously from service
         tagsPopOver = ListSelectionPopOver.create(
                 (tags, popOver) -> {
                     setSelectedTags(tags, selectedTags);
@@ -361,6 +343,19 @@ public class LogEntryEditorController {
                     popOver.hide();
                 }
         );
+        logbooksPopOver = ListSelectionPopOver.create(
+                (logbooks, popOver) -> {
+                    setSelectedLogbooks(logbooks, selectedLogbooks);
+                    if(popOver.isShowing()) {
+                        popOver.hide();
+                    }
+                },
+                (logbooks, popOver) -> {
+                    popOver.hide();
+                }
+        );
+
+        // Note: logbooks and tags are retrieved asynchronously from service
         setupLogbooksAndTags();
     }
 
@@ -464,14 +459,7 @@ public class LogEntryEditorController {
 
     @FXML
     public void addLogbooks(){
-        ListSelectionDialog select =
-                new ListSelectionDialog(root.getScene().getRoot(),
-                        Messages.LogbooksTitle,
-                        this::getAvailableLogbooksAsStringList,
-                        this::getSelectedLogbooksAsStringList,
-                        this::addSelectedLogbook,
-                        this::removeSelectedLogbook);
-        select.showAndWait();
+        logbooksPopOver.show(addLogbooks);
     }
 
     private ObservableList<String> getAvailableLogbooksAsStringList(){
@@ -494,6 +482,21 @@ public class LogEntryEditorController {
         return true;
     }
 
+    private void setSelectedLogbooks(List<String> proposedLogbooks, List<String> existingLogbooks) {
+        setSelected(proposedLogbooks, existingLogbooks, this::addSelectedLogbook, this::removeSelectedLogbook);
+    }
+
+    private void setSelected(List<String> proposed, List<String> existing, Consumer<String> addFunction, Consumer<String> removeFunction) {
+        List<String> addedTags = proposed.stream()
+                .filter(tag -> !existing.contains(tag))
+                .collect(Collectors.toList());
+        List<String> removedTags = existing.stream()
+                .filter(tag -> !proposed.contains(tag))
+                .collect(Collectors.toList());
+        addedTags.forEach(addFunction);
+        removedTags.forEach(removeFunction);
+    }
+
     @FXML
     public void selectLogbooks(){
         if (logbooksDropdownButton.isSelected()){
@@ -506,8 +509,6 @@ public class LogEntryEditorController {
 
     @FXML
     public void addTags(){
-        tagsPopOver.setSelected(selectedTags);
-        tagsPopOver.setAvailable(availableTagsAsStringList, selectedTags);
         tagsPopOver.show(addTags);
     }
 
@@ -532,14 +533,7 @@ public class LogEntryEditorController {
     }
 
     private void setSelectedTags(List<String> proposedTags, List<String> existingTags) {
-        List<String> addedTags = proposedTags.stream()
-                .filter(tag -> !existingTags.contains(tag))
-                .collect(Collectors.toList());
-        List<String> removedTags = existingTags.stream()
-                .filter(tag -> !proposedTags.contains(tag))
-                .collect(Collectors.toList());
-        addedTags.forEach(this::addSelectedTag);
-        removedTags.forEach(this::removeSelectedTag);
+        setSelected(proposedTags, existingTags, this::addSelectedTag, this::removeSelectedTag);
     }
 
     @FXML
@@ -597,7 +591,7 @@ public class LogEntryEditorController {
                     checkBox.setSelected(preSelectedLogbooks.contains(logbook));
                     selectedLogbooks.add(logbook);
                 }
-                else if(defaultLogbooks.contains(logbook)){
+                else if(defaultLogbooks.contains(logbook) && selectedLogbooks.isEmpty()){
                     checkBox.setSelected(defaultLogbooks.contains(logbook));
                     selectedLogbooks.add(logbook);
                 }
@@ -634,7 +628,10 @@ public class LogEntryEditorController {
                 tagDropDown.getItems().add(newTag);
             });
 
-            tagsPopOver.setAvailable(availableTagsAsStringList, preSelectedTags);
+            tagsPopOver.setAvailable(availableTagsAsStringList, selectedTags);
+            tagsPopOver.setSelected(selectedTags);
+            logbooksPopOver.setAvailable(availableLogbooksAsStringList, selectedLogbooks);
+            logbooksPopOver.setSelected(selectedLogbooks);
 
         });
     }
