@@ -248,7 +248,7 @@ public class AdvancedSearchViewController {
                         .map(Tag::getName)
                         .sorted()
                         .collect(Collectors.toList()),
-                        Arrays.stream(searchParameters.tagsProperty().getValue().split(","))
+                        Arrays.stream( searchParameters.tagsProperty().getValueSafe().split(","))
                                 .map(String::trim)
                                 .collect(Collectors.toList())
                 );

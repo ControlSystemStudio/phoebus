@@ -634,7 +634,7 @@ public class LogEntryEditorController {
                 tagDropDown.getItems().add(newTag);
             });
 
-            tagsPopOver.setAvailable(availableTagsAsStringList, new ArrayList<>());
+            tagsPopOver.setAvailable(availableTagsAsStringList, preSelectedTags);
 
         });
     }
