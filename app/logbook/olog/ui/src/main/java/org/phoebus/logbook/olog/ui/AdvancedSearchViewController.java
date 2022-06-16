@@ -227,6 +227,7 @@ public class AdvancedSearchViewController {
             } else {
                 List<String> selectedTags = Arrays.stream( searchParameters.tagsProperty().getValueSafe().split(","))
                         .map(String::trim)
+                        .filter(it -> !it.isEmpty())
                         .collect(Collectors.toList());
                 List<String> availableTags = logClient.listTags().stream()
                         .map(Tag::getName)
@@ -244,6 +245,7 @@ public class AdvancedSearchViewController {
             } else {
                 List<String> selectedLogbooks = Arrays.stream( searchParameters.logbooksProperty().getValueSafe().split(","))
                         .map(String::trim)
+                        .filter(it -> !it.isEmpty())
                         .collect(Collectors.toList());
                 List<String> availableLogbooks = logClient.listLogbooks().stream()
                         .map(Logbook::getName)

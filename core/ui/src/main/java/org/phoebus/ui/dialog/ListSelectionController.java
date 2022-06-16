@@ -59,8 +59,6 @@ public class ListSelectionController {
     private List<Function<List<String>, Boolean>> onCancel = new ArrayList<>();
 
     public synchronized void setAvailable(List<String> available) {
-        // Remove already selected items.
-        available.removeAll(selected);
         this.available.setAll(available);
         refresh();
     }

@@ -25,6 +25,7 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Side;
@@ -48,10 +49,7 @@ import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -354,6 +352,24 @@ public class LogEntryEditorController {
                     popOver.hide();
                 }
         );
+
+        selectedTags.addListener(new ListChangeListener<String>() {
+            @Override
+            public void onChanged(Change<? extends String> change) {
+                List<String> newSelection = new ArrayList<>(change.getList());
+                tagsPopOver.setAvailable(availableTagsAsStringList, newSelection);
+                tagsPopOver.setSelected(newSelection);
+            }
+        });
+
+        selectedLogbooks.addListener(new ListChangeListener<String>() {
+            @Override
+            public void onChanged(Change<? extends String> change) {
+                List<String> newSelection = new ArrayList<>(change.getList());
+                logbooksPopOver.setAvailable(availableLogbooksAsStringList, newSelection);
+                logbooksPopOver.setSelected(newSelection);
+            }
+        });
 
         // Note: logbooks and tags are retrieved asynchronously from service
         setupLogbooksAndTags();
