@@ -1,11 +1,15 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
 package org.phoebus.pv.pva;
+
+import static org.phoebus.pv.PV.logger;
+
+import java.util.logging.Level;
 
 import org.epics.pva.data.PVAByteArray;
 import org.epics.pva.data.PVAData;
@@ -76,9 +80,6 @@ public class ImageDecoder
             }
         }
 
-        final PVAUnion value_field = struct.get("value");
-        final PVAData value = value_field.get();
-
         // Try to get value of color mode attribute
         // TODO: bayer color mode requires a bayerPattern attribute as well...
         final PVAStructureArray attribute_field = struct.get("attribute");
@@ -143,6 +144,41 @@ public class ImageDecoder
             default:
                 width = dimensions[0];
                 height = dimensions[1];
+        }
+
+        // Fetch pixel data
+        final PVAUnion value_field = struct.get("value");
+        PVAData value = value_field.get();
+
+        // Value might be compressed, which means that a PVAByteArray
+        // needs to be de-compressed and then converted into the
+        // actual data type
+        final PVAStructure codec_info = struct.get("codec");
+        if (codec_info != null)
+        {
+            final PVAString name = codec_info.get("name");
+            if (name != null  &&  !name.get().isBlank())
+            {
+                // For compressed data, values is ubyte[] and
+                // codec.parameters holds original data type code
+                final PVAny parms = codec_info.get("parameters");
+                final PVAInt orig_type = parms.get();
+
+                Codec codec = null;
+                if (name.get().equalsIgnoreCase("lz4"))
+                    codec = new LZ4Codec();
+                else
+                    logger.log(Level.WARNING, "NDArray codec '" + name.get() + "' is not implemented");
+
+                if (codec != null)
+                {
+                    if (value instanceof PVAByteArray)
+                        value = codec.decompress((PVAByteArray)value, orig_type.get(), width * height);
+                    else
+                        logger.log(Level.WARNING, "Expected PVAByteArray for data compressed with codec '" + name.get() +
+                                   "' but got " + value.getClass().getName());
+                }
+            }
         }
 
         // Get data and data type
