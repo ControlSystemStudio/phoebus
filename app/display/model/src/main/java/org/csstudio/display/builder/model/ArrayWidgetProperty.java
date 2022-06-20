@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -239,8 +239,7 @@ public class ArrayWidgetProperty<WPE extends WidgetProperty<?>> extends WidgetPr
                     element.setValueFromObject(el_value);
             }
 
-            // Notify listeners of the whole array
-            firePropertyChange(this, null, this.value);
+            // Listeners already received remove/add/set events
         }
         catch (Throwable ex)
         {
