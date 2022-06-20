@@ -66,16 +66,6 @@ public class StructuredWidgetProperty extends WidgetProperty<List<WidgetProperty
         super(descriptor, widget, elements);
     }
 
-    /** @return <code>true</code> if any element is using class support */
-    @Override
-    public boolean isUsingWidgetClass()
-    {
-        for (WidgetProperty<?> element : value)
-            if (element.isUsingWidgetClass())
-                return true;
-        return false;
-    }
-
     /** @return <code>true</code> if all elements have default value */
     @Override
     public boolean isDefaultValue()

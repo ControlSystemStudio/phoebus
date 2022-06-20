@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -386,9 +386,10 @@ public class DisplayEditorInstance implements AppInstance
         ModelThreadPool.getExecutor().execute(() ->
         {
             // get widget classes and apply to model
+            // (which triggers editor UI updates, so perform in UI thread)
             final DisplayModel model = editor_gui.getDisplayEditor().getModel();
             if (model != null)
-                WidgetClassesService.getWidgetClasses().apply(model);
+                Platform.runLater( () ->  WidgetClassesService.getWidgetClasses().apply(model) );
         });
     }
 
