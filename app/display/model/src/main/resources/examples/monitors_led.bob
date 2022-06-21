@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <display version="2.0.0">
   <name>LED</name>
-  <width>650</width>
-  <height>650</height>
+  <width>980</width>
+  <height>682</height>
   <widget type="label" version="2.0.0">
     <name>Label</name>
     <class>TITLE</class>
@@ -532,7 +532,7 @@ except that the border follows the outline of the LED.</text>
     <width>26</width>
     <height>26</height>
     <off_color use_class="true">
-      <color red="105" green="74" blue="44">
+      <color name="Off" red="60" green="100" blue="60">
       </color>
     </off_color>
     <on_color use_class="true">
@@ -549,14 +549,14 @@ except that the border follows the outline of the LED.</text>
   </widget>
   <widget type="led" version="2.0.0">
     <name>BoolLED_12</name>
-    <class>FAILURE</class>
+    <class>ERROR</class>
     <pv_name>sim://flipflop(2)</pv_name>
     <x>893</x>
     <y>70</y>
     <width>26</width>
     <height>26</height>
     <off_color use_class="true">
-      <color red="105" green="74" blue="44">
+      <color name="Off" red="60" green="100" blue="60">
       </color>
     </off_color>
     <on_color use_class="true">
@@ -567,17 +567,19 @@ except that the border follows the outline of the LED.</text>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_26</name>
-    <text>FAILURE</text>
+    <text>ERROR</text>
     <x>880</x>
     <y>50</y>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_27</name>
-    <text>Predefined LED classes can be used to get consistent indications for "Good/Bad", "On/Off" type of indicators.</text>
+    <text>Predefined LED classes can be used to get consistent indications for "Good/Bad", "On/Off" type of indicators.
+
+For Multi-State LEDs, the states can be predefined via a class.</text>
     <x>610</x>
     <y>144</y>
     <width>360</width>
-    <height>60</height>
+    <height>96</height>
     <font>
       <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
       </font>
@@ -595,5 +597,48 @@ except that the border follows the outline of the LED.</text>
     <pv_name>sim://flipflop(2)</pv_name>
     <x>680</x>
     <y>110</y>
+  </widget>
+  <widget type="multi_state_led" version="2.0.0">
+    <name>LED (Multi State)</name>
+    <class>GOOD_BAD_ERROR</class>
+    <pv_name>sim://ramp(0, 2, 1)</pv_name>
+    <x>660</x>
+    <y>280</y>
+    <width use_class="true">50</width>
+    <height use_class="true">30</height>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <states>
+      <state>
+        <value>0</value>
+        <label>Good</label>
+        <color>
+          <color name="OK" red="0" green="255" blue="0">
+          </color>
+        </color>
+      </state>
+      <state>
+        <value>1</value>
+        <label>Bad</label>
+        <color>
+          <color name="MINOR" red="255" green="128" blue="0">
+          </color>
+        </color>
+      </state>
+      <state>
+        <value>2</value>
+        <label>Error</label>
+        <color>
+          <color name="MAJOR" red="255" green="0" blue="0">
+          </color>
+        </color>
+      </state>
+    </states>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_29</name>
+    <text>GOOD_BAD_ERROR</text>
+    <x>610</x>
+    <y>250</y>
+    <width>150</width>
   </widget>
 </display>
