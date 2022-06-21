@@ -612,7 +612,7 @@ public class PropertyPanelSection extends GridPane
             add(label, indentationLevel, row, 4 - indentationLevel, 1);
 
             if (class_mode)
-            {
+            {   // Checkbox to select if array is included in class definition
                 final CheckBox check = new CheckBox();
                 check.setPadding(new Insets(0, 5, 0, 0));
                 check.setTooltip(use_class_tooltip);
@@ -620,6 +620,16 @@ public class PropertyPanelSection extends GridPane
                 bindings.add(binding);
                 binding.bind();
                 add(check, 3, row);
+            }
+            else
+            {   // Show if property is set by the class, not editable.
+                final Label indicator = new Label();
+                indicator.setPadding(new Insets(0, 5, 0, 0));
+                indicator.setTooltip(using_class_tooltip);
+                final WidgetPropertyBinding<?,?> binding = new ShowWidgetClassBinding(spinner, property, indicator);
+                bindings.add(binding);
+                binding.bind();
+                add(indicator, 3, row);
             }
 
             add(spinner, 4, row, 2 - indentationLevel, 1);

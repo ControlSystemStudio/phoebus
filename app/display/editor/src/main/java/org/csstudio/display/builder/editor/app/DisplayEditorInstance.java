@@ -22,6 +22,7 @@ import org.csstudio.display.builder.editor.DisplayEditor;
 import org.csstudio.display.builder.editor.EditorGUI;
 import org.csstudio.display.builder.editor.EditorUtil;
 import org.csstudio.display.builder.editor.Messages;
+import org.csstudio.display.builder.editor.WidgetSelectionHandler;
 import org.csstudio.display.builder.editor.actions.ActionDescription;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.ModelPlugin;
@@ -389,7 +390,17 @@ public class DisplayEditorInstance implements AppInstance
             // (which triggers editor UI updates, so perform in UI thread)
             final DisplayModel model = editor_gui.getDisplayEditor().getModel();
             if (model != null)
-                Platform.runLater( () ->  WidgetClassesService.getWidgetClasses().apply(model) );
+                Platform.runLater( () ->
+                {
+                    // Save/restore selection to force update of property panel
+                    final WidgetSelectionHandler selection = editor_gui.getDisplayEditor().getWidgetSelectionHandler();
+                    final List<Widget> save = selection.getSelection();
+                    selection.clear();
+                    // Apply class settings
+                    WidgetClassesService.getWidgetClasses().apply(model);
+                    // Restore selection
+                    selection.setSelection(save);
+                });
         });
     }
 
