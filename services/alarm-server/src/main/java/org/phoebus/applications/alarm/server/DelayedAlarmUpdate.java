@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2022 Oak Ridge National Laboratory.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -122,8 +122,12 @@ public class DelayedAlarmUpdate
     public void cancel()
     {
         state.set(null);
-        final ScheduledFuture<?> task = scheduled_task;
-        scheduled_task = null;
+        final ScheduledFuture<?> task;
+        synchronized (this)
+        {
+            task = scheduled_task;
+            scheduled_task = null;
+        }
         if (task != null)
         {
             task.cancel(false);

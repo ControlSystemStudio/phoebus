@@ -528,6 +528,45 @@ public class AlarmLogicUnitTest
     }
 
     @Test
+    public void testUnlatchedDelayedButShortThenAnother() throws Exception
+    {
+        System.out.println("* Unlatched, annunciated, delayed: Major, clear, no alarm, then alarm which persists, clear");
+        final int delay = 2;
+        final AlarmLogicDemo logic = new AlarmLogicDemo(false, true, delay);
+        logic.check(false, false, SeverityLevel.OK, OK, SeverityLevel.OK, OK);
+        assertEquals("", logic.getAlarmState().getValue());
+
+        // MAJOR alarm has no immediate effect
+        logic.computeNewState("a", SeverityLevel.MAJOR, "very high");
+        logic.check(true, false, SeverityLevel.MAJOR, "very high", SeverityLevel.OK, OK);
+        assertEquals("", logic.getAlarmState().getValue());
+
+        // .. if it clears in time (1/2 the delay time)
+        Thread.sleep(delay * 500);
+        logic.computeNewState("b", SeverityLevel.OK, OK);
+        logic.check(true, false, SeverityLevel.OK, OK, SeverityLevel.OK, OK);
+        assertEquals("b", logic.getAlarmState().getValue());
+
+        // Assert that it stays that way
+        System.out.println("wait...");
+        Thread.sleep(delay * 1500);
+        logic.check(false, false, SeverityLevel.OK, OK, SeverityLevel.OK, OK);
+        assertEquals("b", logic.getAlarmState().getValue());
+
+        // Enter alarm
+        logic.computeNewState("c", SeverityLevel.MAJOR, "VERY high");
+        logic.check(true, false, SeverityLevel.MAJOR, "VERY high", SeverityLevel.OK, OK);
+        System.out.println("wait...");
+        Thread.sleep(delay * 1500);
+        logic.check(true, true, SeverityLevel.MAJOR, "VERY high", SeverityLevel.MAJOR, "VERY high");
+        assertEquals("c", logic.getAlarmState().getValue());
+
+        // Clear
+        logic.computeNewState("d", SeverityLevel.OK, OK);
+        logic.check(true, false, SeverityLevel.OK, OK, SeverityLevel.OK, OK);
+    }
+
+    @Test
     public void testLatchedAnnunciatedDelayed() throws Exception
     {
         System.out.println("* Latched, annunciated, delayed: Major, persists, clear, ack; MINOR, MAJOR, MINOR, persist");
