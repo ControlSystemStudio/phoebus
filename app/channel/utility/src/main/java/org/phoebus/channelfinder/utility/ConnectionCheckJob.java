@@ -38,7 +38,7 @@ public class ConnectionCheckJob extends JobRunnableWithCancel {
     public Runnable getRunnable() {
         return () -> {
             try {
-                client.getAllTags();
+                client.getAllTagNames();
             } catch (Exception e) {
                 errorHandler.accept("Failed to connect to channelfinder ", e);
             }
