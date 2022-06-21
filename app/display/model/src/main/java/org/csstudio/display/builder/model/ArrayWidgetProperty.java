@@ -195,6 +195,8 @@ public class ArrayWidgetProperty<WPE extends WidgetProperty<?>> extends WidgetPr
     /** @param element Element to add to end of list */
     public void addElement(final WPE element)
     {
+        // New elements get same class behavior as the array
+        element.useWidgetClass(use_class);
         value.add(element);
         firePropertyChange(null, Arrays.asList(element));
     }
