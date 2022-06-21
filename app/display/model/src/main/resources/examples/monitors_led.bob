@@ -607,7 +607,7 @@ For Multi-State LEDs, the states can be predefined via a class.</text>
     <width use_class="true">50</width>
     <height use_class="true">30</height>
     <border_alarm_sensitive>false</border_alarm_sensitive>
-    <states use_class="true">
+    <states>
       <state>
         <value>0</value>
         <label>Good</label>
