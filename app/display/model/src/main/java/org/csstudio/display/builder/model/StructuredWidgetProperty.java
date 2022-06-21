@@ -76,6 +76,15 @@ public class StructuredWidgetProperty extends WidgetProperty<List<WidgetProperty
         return true;
     }
 
+    @Override
+    public void useWidgetClass(boolean use_class)
+    {
+        // Update overall structure as well as each element
+        super.useWidgetClass(use_class);
+        for (WidgetProperty<?> element : value)
+            element.useWidgetClass(use_class);
+    }
+
     /** @return <code>true</code> if all elements are read-only */
     @Override
     public boolean isReadonly()

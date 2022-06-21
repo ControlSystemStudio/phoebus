@@ -122,6 +122,15 @@ public class ArrayWidgetProperty<WPE extends WidgetProperty<?>> extends WidgetPr
     }
 
     @Override
+    public void useWidgetClass(boolean use_class)
+    {
+        // Update overall array as well as each element
+        super.useWidgetClass(use_class);
+        for (WPE element : value)
+            element.useWidgetClass(use_class);
+    }
+
+    @Override
     protected List<WPE> restrictValue(final List<WPE> requested_value)
     {
         if (requested_value instanceof CopyOnWriteArrayList)
