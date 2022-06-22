@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.Messages;
 import org.phoebus.applications.alarm.model.AlarmState;
@@ -439,7 +440,29 @@ public class AlarmLogic // implements GlobalAlarmListener
     public void delayedStateUpdate(final AlarmState delayed_state)
     {
         if (isEnabled())
+        {
+            // It's been observed that an "OK" update arrived which cancels
+            // a delayed state update, but the delay expired just before
+            // the cancellation took effect.
+            // This effectively caused a reversal: current state was OK,
+            // but delayed update then raised it to an alarm.
+            // Detect this case by checking the time stamp for a current OK.
+            // Note that a delayed MAJOR would still take precedence over
+            // a more recently received MINOR.
+            // Only a recently received OK is checked for its time stamp.
+            synchronized (this)
+            {
+                if (current_state.severity == SeverityLevel.OK  &&
+                    current_state.time.isAfter(delayed_state.time))
+                {
+                    logger.log(Level.FINE, () ->
+                               "Ignoring outdated delayed state " + delayed_state +
+                               " for " + current_state);
+                    return;
+                }
+            }
             updateState(delayed_state, false);
+        }
     }
 
     /** Check if the new state adds up to 'count' alarms within 'delay'
