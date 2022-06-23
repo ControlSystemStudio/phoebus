@@ -20,7 +20,7 @@ import org.epics.pva.data.PVAByteArray;
 import org.epics.pva.data.PVAData;
 
 /** PVA NDArray codec for JPEG-compressed data
- * *
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -89,8 +89,8 @@ public class JPEGCodec extends Codec
             result = buf.getData();
             if (result.length != decompressed_size)
                 logger.log(Level.WARNING,
-                        "Expected " + decompressed_size + " expanded JPEG bytes but got " +
-                        result.length);
+                           "Expected " + decompressed_size + " expanded JPEG bytes but got " +
+                           result.length);
         }
         else
             throw new Exception("Expected TYPE_BYTE_GRAY but got type code " + type);
