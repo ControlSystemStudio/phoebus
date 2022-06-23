@@ -159,6 +159,21 @@ public class FileUtil {
             return null;
         return selected.getPath();
     }
+    
+    /**Open a file select and open the dialog box at the dialogPath repository.
+     * 
+     * @param dialogPath Path where the dialog will be opened
+     * @return the full file path. Or null if it is cancelled.
+     */
+    public static String openSaveFileDialog(String dialogPath)
+    {
+    	final Window window = null;
+    	final File dialogBox = new File(dialogPath);
+        File selected = new OpenFileDialog().promptForFile(window, "Open File", dialogBox, null);
+        if (selected == null)
+            return null;
+        return selected.getPath();
+    }
 
     /**Open a file save dialog.
      * @param inWorkspace true if it is a workspace file dialog; Otherwise, it is a local
