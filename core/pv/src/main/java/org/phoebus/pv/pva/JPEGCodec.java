@@ -20,12 +20,7 @@ import org.epics.pva.data.PVAByteArray;
 import org.epics.pva.data.PVAData;
 
 /** PVA NDArray codec for JPEG-compressed data
- *
- *  <p>Standard Java library only supports ZIP.
- *  Area detector provides binaries/JNI interface
- *  for JPEG, but that would add a hard to maintain
- *  dependency on binaries.
- *
+ * *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -78,7 +73,7 @@ public class JPEGCodec extends Codec
 //            }
 
         // Expand using AWT API
-        // + Is strictly speaking UI, but no dependency beyond standard JRE
+        // + Is strictly speaking UI and also old API, but no dependency beyond standard JRE
         // + With 1024 x 1024 pixel sim detector image, this took about 2.5 .. 3.0 ms
         final BufferedImage image = ImageIO.read(in);
         final int width = image.getWidth();
