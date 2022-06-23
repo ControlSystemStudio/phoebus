@@ -49,9 +49,17 @@ public class ImageDecoder
     // Could just use VImageType.values()[i+1] instead of color_mode_types[i], but
     // (a) there are more VImageType values than defined color modes, and
     // (b) the NTNDArray specification for color mode might eventually change
-    private static final VImageType color_mode_types[] = { VImageType.TYPE_MONO, VImageType.TYPE_BAYER,
-            VImageType.TYPE_RGB1, VImageType.TYPE_RGB2, VImageType.TYPE_RGB3, VImageType.TYPE_YUV444,
-            VImageType.TYPE_YUV422, VImageType.TYPE_YUV411 };
+    private static final VImageType color_mode_types[] =
+    {
+        VImageType.TYPE_MONO,
+        VImageType.TYPE_BAYER,
+        VImageType.TYPE_RGB1,
+        VImageType.TYPE_RGB2,
+        VImageType.TYPE_RGB3,
+        VImageType.TYPE_YUV444,
+        VImageType.TYPE_YUV422,
+        VImageType.TYPE_YUV411
+    };
 
     /** @param struct Structure with image
      *  @return VType for image
@@ -167,6 +175,8 @@ public class ImageDecoder
                 Codec codec = null;
                 if (name.get().equalsIgnoreCase("lz4"))
                     codec = new LZ4Codec();
+                else if (name.get().equalsIgnoreCase("jpeg"))
+                    codec = new JPEGCodec();
                 else
                     logger.log(Level.WARNING, "NDArray codec '" + name.get() + "' is not implemented");
 

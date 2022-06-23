@@ -33,16 +33,16 @@ abstract public class Codec
     private static final int[] BYTES_PER_SAMPLE =
     {
         0,
-        Byte.BYTES,     // byte
-        Short.BYTES,    // int16
-        Integer.BYTES,  // int32
-        Long.BYTES,     // int64
-        Byte.BYTES,     // ubyte
-        Short.BYTES,    // uint16
-        Integer.BYTES,  // uint32
-        Long.BYTES,     // uint64
-        Float.BYTES,    // float
-        Double.BYTES    // double
+        Byte.BYTES,     //  1 byte
+        Short.BYTES,    //  2 int16
+        Integer.BYTES,  //  3 int32
+        Long.BYTES,     //  4 int64
+        Byte.BYTES,     //  5 ubyte
+        Short.BYTES,    //  6 uint16
+        Integer.BYTES,  //  7 uint32
+        Long.BYTES,     //  8 uint64
+        Float.BYTES,    //  9 float
+        Double.BYTES    // 10 double
     };
 
     /** De-compress value
@@ -124,10 +124,8 @@ abstract public class Codec
             return new PVADoubleArray("doubleValue", doubles);
 
         default:
-            System.out.println("Cannot decode compressed data for orig data type  " + orig_data_type);
+            throw new Exception("Cannot decode compressed data for orig data type  " + orig_data_type);
         }
-
-        return value;
     }
 
     /** De-compress byte array
