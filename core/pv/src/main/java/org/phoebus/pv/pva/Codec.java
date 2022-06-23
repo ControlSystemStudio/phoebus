@@ -124,10 +124,8 @@ abstract public class Codec
             return new PVADoubleArray("doubleValue", doubles);
 
         default:
-            System.out.println("Cannot decode compressed data for orig data type  " + orig_data_type);
+            throw new Exception("Cannot decode compressed data for orig data type  " + orig_data_type);
         }
-
-        return value;
     }
 
     /** De-compress byte array

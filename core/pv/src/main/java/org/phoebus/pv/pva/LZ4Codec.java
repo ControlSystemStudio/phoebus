@@ -7,10 +7,7 @@
  ******************************************************************************/
 package org.phoebus.pv.pva;
 
-import static org.phoebus.pv.PV.logger;
-
 import java.io.ByteArrayInputStream;
-import java.util.logging.Level;
 
 import org.apache.commons.compress.compressors.lz4.BlockLZ4CompressorInputStream;
 
@@ -25,7 +22,6 @@ import org.apache.commons.compress.compressors.lz4.BlockLZ4CompressorInputStream
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class LZ4Codec extends Codec
 {
     @Override
@@ -47,9 +43,6 @@ public class LZ4Codec extends Codec
                 expanded += batch;
             }
         }
-
-        if (logger.isLoggable(Level.FINE))
-            logger.log(Level.FINE, "LZ4 expands " + data.length + " into " + expanded + " bytes");
 
         return result;
     }
