@@ -30,7 +30,7 @@ public class SaveAsDialog
      *  @param title Title
      *  @param file Suggested file, may be <code>null</code>
      *  @param filters Filters, may be <code>null</code>
-     *  @return
+     *  @return 
      */
     public File promptForFile(final Window window, final String title, final File file, final ExtensionFilter[] filters)
     {
@@ -62,21 +62,35 @@ public class SaveAsDialog
         File initial_directory;
         final FileChooser dialog = new FileChooser();
         dialog.setTitle(title);
-
-        if (file != null)
-        {
-            // Dialog will fail if the directory does not exist
-            if (null != file.getParentFile() && file.getParentFile().exists())
-                dialog.setInitialDirectory(file.getParentFile());
-            dialog.setInitialFileName(file.getName());
-        }
-        if (filters != null)
-            dialog.getExtensionFilters().addAll(filters);
-
+        
         if (!Preferences.default_save_path.isEmpty()){
             initial_directory = new File(Preferences.default_save_path);
             dialog.setInitialDirectory(initial_directory);
         }
+        
+        if (file != null)
+        {
+            // Dialog will fail if the directory does not exist
+        	if(file.exists()) 
+        	{
+        		
+        		if(file.isDirectory()) 
+        		{
+        			dialog.setInitialDirectory(file);
+        		}
+        		else if (null != file.getParentFile() && file.getParentFile().exists()) 
+        		{
+                    dialog.setInitialDirectory(file.getParentFile());
+                    dialog.setInitialFileName(file.getName());
+        			
+        		}
+        	}
+            
+        }
+        
+        if (filters != null)
+            dialog.getExtensionFilters().addAll(filters);
+        
         return doExecuteDialog(window, dialog);
     }
 
