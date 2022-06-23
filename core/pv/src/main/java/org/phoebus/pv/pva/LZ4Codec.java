@@ -49,7 +49,7 @@ public class LZ4Codec extends Codec
         }
 
         if (logger.isLoggable(Level.FINE))
-            logger.log(Level.FINE, "LZ4 expands " + expanded + " into " + decompressed_size + " bytes");
+            logger.log(Level.FINE, "LZ4 expands " + data.length + " into " + expanded + " bytes");
 
         return result;
     }
