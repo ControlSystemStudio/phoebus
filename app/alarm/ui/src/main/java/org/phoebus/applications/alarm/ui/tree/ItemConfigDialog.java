@@ -124,6 +124,8 @@ class ItemConfigDialog extends Dialog<Boolean>
             enabled_date_picker = new DateTimePicker();
             enabled_date_picker.setTooltip(new Tooltip("Select a date until which the alarm should be disabled"));
             enabled_date_picker.setDateTimeValue(leaf.getEnabledDate());
+            enabled_date_picker.setPrefSize(280, 25);
+
             relative_date = new ComboBox<String>();
             relative_date.setTooltip(new Tooltip("Select a predefined duration for disabling the alarm"));
             relative_date.getItems().addAll(AlarmSystem.shelving_options);
