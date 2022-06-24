@@ -61,7 +61,7 @@ public class AlarmLogic // implements GlobalAlarmListener
     /** 'Current' state that was received while disabled.
      *  Is cached in case we get re-enabled, whereupon it is used
      */
-    private volatile AlarmState disabled_state = null;
+    private final AtomicReference<AlarmState> disabled_state = new AtomicReference<>();
 
     /** Latch the highest received alarm severity/status?
      *  When <code>false</code>, the latched alarm state actually
@@ -189,7 +189,7 @@ public class AlarmLogic // implements GlobalAlarmListener
         if (!enable)
         {   // Disabled
             // Remember current PV state in case we're re-enabled
-            disabled_state = current_state;
+            disabled_state.set(current_state);
             // Otherwise pretend all is OK, using special message
 
             final AlarmState current = AlarmState.createClearState(current_state.value);
@@ -205,11 +205,9 @@ public class AlarmLogic // implements GlobalAlarmListener
                 alarm_state = new AlarmState(SeverityLevel.OK,
                                              SeverityLevel.OK.name(), "", Instant.now());
             // (Re-)enabled
-            if (disabled_state != null)
-            {
-                computeNewState(disabled_state);
-                disabled_state = null;
-            }
+            final AlarmState saved_state = disabled_state.getAndSet(null);
+            if (saved_state != null)
+                computeNewState(saved_state);
         }
         return true;
     }
@@ -321,7 +319,7 @@ public class AlarmLogic // implements GlobalAlarmListener
             // When disabled, ignore...
             if (!enabled.get())
             {
-                disabled_state = received_state;
+                disabled_state.set(received_state);
                 return;
             }
             // Remember what used to be the 'current' severity
@@ -590,6 +588,10 @@ public class AlarmLogic // implements GlobalAlarmListener
      */
     public void dispose()
     {
+        // Indicate that PV has been disposed, but call it OK.
+        // This way a re-started PV which then receives its first update will take
+        // any non-OK state as a change and react accordingly
+        current_state = alarm_state = new AlarmState(SeverityLevel.OK, "Disposed", "Disposed", Instant.now());
         delayed_check.cancel();
     }
 
