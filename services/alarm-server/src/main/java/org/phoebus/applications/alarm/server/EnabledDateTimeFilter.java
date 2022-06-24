@@ -7,18 +7,14 @@
  ******************************************************************************/
 package org.phoebus.applications.alarm.server;
 
-import static org.phoebus.applications.alarm.AlarmSystem.logger;
-
-import org.phoebus.applications.alarm.client.AlarmClient;
-
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.time.LocalDateTime;
-import java.time.Duration;
-import java.time.format.DateTimeFormatter;
 
 import org.phoebus.framework.jobs.NamedThreadFactory;
 

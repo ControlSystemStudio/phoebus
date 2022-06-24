@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,7 +22,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import javafx.scene.image.ImageView;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
@@ -62,6 +61,7 @@ import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
@@ -493,7 +493,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
             final AlarmTreeItem<?> item = tree_view.getSelectionModel().getSelectedItems().get(0).getValue();
             final ItemConfigDialog dialog = new ItemConfigDialog(model, item);
-            DialogHelper.positionDialog(dialog, tree_view, -250, -400);
+            DialogHelper.positionDialog(dialog, tree_view, -150, -300);
             // Show dialog, not waiting for it to close with OK or Cancel
             dialog.show();
         });

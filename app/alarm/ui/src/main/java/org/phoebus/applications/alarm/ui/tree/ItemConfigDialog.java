@@ -24,6 +24,7 @@ import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
@@ -34,6 +35,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -69,6 +71,13 @@ class ItemConfigDialog extends Dialog<Boolean>
         layout.setHgap(5);
         layout.setVgap(5);
 
+        // First fixed-size column for labels
+        // Second column grows
+        final ColumnConstraints col1 = new ColumnConstraints(190);
+        final ColumnConstraints col2 = new ColumnConstraints();
+        col2.setHgrow(Priority.ALWAYS);
+        layout.getColumnConstraints().setAll(col1, col2);
+
         int row = 0;
 
         // Show item path, allow copying it out.
@@ -90,9 +99,10 @@ class ItemConfigDialog extends Dialog<Boolean>
 
             layout.add(new Label("Behavior:"), 0, row);
             enabled = new CheckBox("Enabled");
-            enabled.setTooltip(new Tooltip("Enable alarms? See also filter expression"));
+            enabled.setTooltip(new Tooltip("Enable alarms? See also 'Enabling Filter'"));
             enabled.setSelected(leaf.isEnabled());
-            enabled.setOnAction((event) -> {
+            enabled.setOnAction((event) ->
+            {
                 relative_date.getSelectionModel().clearSelection();
                 relative_date.setValue(null);
                 enabled_date_picker.getEditor().clear();
@@ -112,34 +122,41 @@ class ItemConfigDialog extends Dialog<Boolean>
 
             layout.add(new Label("Disable until:"), 0, row);
             enabled_date_picker = new DateTimePicker();
+            enabled_date_picker.setTooltip(new Tooltip("Select a date until which the alarm should be disabled"));
             enabled_date_picker.setDateTimeValue(leaf.getEnabledDate());
-            relative_date = new ComboBox<String>();
-            relative_date.getItems().addAll(AlarmSystem.shelving_options);
+            enabled_date_picker.setPrefSize(280, 25);
 
-            final EventHandler<ActionEvent> relative_event_handler = new EventHandler<>() {
-                @Override public void handle(ActionEvent e) {
-                    enabled.setSelected(false);
-                    enabled_date_picker.getEditor().clear();
-                }
+            relative_date = new ComboBox<String>();
+            relative_date.setTooltip(new Tooltip("Select a predefined duration for disabling the alarm"));
+            relative_date.getItems().addAll(AlarmSystem.shelving_options);
+            relative_date.setPrefSize(200, 25);
+
+            final EventHandler<ActionEvent> relative_event_handler = (ActionEvent e) ->
+            {
+                enabled.setSelected(false);
+                enabled_date_picker.getEditor().clear();
             };
 
             relative_date.setOnAction(relative_event_handler);
 
             // setOnAction for relative date must be set to null as to not trigger event when setting value
-            enabled_date_picker.setOnAction(new EventHandler<ActionEvent>() {
-                    @Override public void handle(ActionEvent e) {
-                        if (enabled_date_picker.getDateTimeValue() != null) {
-                            relative_date.setOnAction(null);
-                            enabled.setSelected(false);
-                            enabled_date_picker.getEditor().commitValue();
-                            relative_date.getSelectionModel().clearSelection();
-                            relative_date.setValue(null);
-                            relative_date.setOnAction(relative_event_handler);
-                        };
-                    }
+            enabled_date_picker.setOnAction((ActionEvent e) ->
+            {
+                if (enabled_date_picker.getDateTimeValue() != null)
+                {
+                    relative_date.setOnAction(null);
+                    enabled.setSelected(false);
+                    enabled_date_picker.getEditor().commitValue();
+                    relative_date.getSelectionModel().clearSelection();
+                    relative_date.setValue(null);
+                    relative_date.setOnAction(relative_event_handler);
+                };
             });
 
-            layout.add(new HBox(10, enabled_date_picker, relative_date), 1, row++);
+            final HBox until_box = new HBox(10, enabled_date_picker, relative_date);
+            until_box.setAlignment(Pos.CENTER);
+            HBox.setHgrow(relative_date, Priority.ALWAYS);
+            layout.add(until_box, 1, row++);
 
             layout.add(new Label("Alarm Delay [seconds]:"), 0, row);
             delay = new Spinner<>(0, Integer.MAX_VALUE, leaf.getDelay());
@@ -170,7 +187,7 @@ class ItemConfigDialog extends Dialog<Boolean>
             count.setPrefWidth(80);
             layout.add(count, 1, row++);
 
-            layout.add(new Label("Enabling Filter"), 0, row);
+            layout.add(new Label("Enabling Filter:"), 0, row);
             filter = new TextField(leaf.getFilter());
             filter.setTooltip(new Tooltip("Optional expression for enabling the alarm"));
             layout.add(filter, 1, row++);
@@ -201,28 +218,25 @@ class ItemConfigDialog extends Dialog<Boolean>
         // 'dummy' is used for that.
 
         // Guidance:
-        layout.add(new Label("Guidance:"), 0, row);
-        final Label dummy = new Label("");
-        GridPane.setHgrow(dummy, Priority.ALWAYS);
-        layout.add(dummy, 1, row++);
+        layout.add(new Label("Guidance:"), 0, row++, 2, 1);
         guidance = new TitleDetailTable(item.getGuidance());
         guidance.setPrefHeight(100);
         layout.add(guidance, 0, row++, 2, 1);
 
         // Displays:
-        layout.add(new Label("Displays:"), 0, row++);
+        layout.add(new Label("Displays:"), 0, row++, 2, 1);
         displays = new TitleDetailTable(item.getDisplays());
         displays.setPrefHeight(100);
         layout.add(displays, 0, row++, 2, 1);
 
         // Commands:
-        layout.add(new Label("Commands:"), 0, row++);
+        layout.add(new Label("Commands:"), 0, row++, 2, 1);
         commands = new TitleDetailTable(item.getCommands());
         commands.setPrefHeight(100);
         layout.add(commands, 0, row++, 2, 1);
 
         // Automated Actions:
-        layout.add(new Label("Automated Actions:"), 0, row++);
+        layout.add(new Label("Automated Actions:"), 0, row++, 2, 1);
         actions = new TitleDetailDelayTable(item.getActions());
         actions.setPrefHeight(100);
         layout.add(actions, 0, row++, 2, 1);
@@ -231,9 +245,9 @@ class ItemConfigDialog extends Dialog<Boolean>
         final ScrollPane scroll = new ScrollPane(layout);
 
         // Scroll pane stops the content from resizing,
-        // so tell content to use the widths of the scroll pane,
-        // minus some border, and suggest minimum width
-        scroll.widthProperty().addListener((p, old, width) -> layout.setPrefWidth(Math.max(width.doubleValue()-25, 450)));
+        // so tell content to use the widths of the scroll pane
+        // minus 40 to provide space for the scroll bar, and suggest minimum width
+        scroll.widthProperty().addListener((p, old, width) -> layout.setPrefWidth(Math.max(width.doubleValue()-40, 450)));
 
         getDialogPane().setContent(scroll);
         setResizable(true);

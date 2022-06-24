@@ -24,10 +24,10 @@ kafka in `/opt/kafka`.
     # that can be used with a kafka server in the same directory
     cd examples
 
-    # Use wget, 'curl -O', or web browser
-    wget http://ftp.wayne.edu/apache/kafka/2.3.0/kafka_2.12-2.3.0.tgz
-    tar -vzxf kafka_2.12-2.3.0.tgz
-    ln -s kafka_2.12-2.3.0 kafka
+    # Use wget, 'curl -O', or web browser to fetch a recent version of kafka
+    wget https://dlcdn.apache.org/kafka/3.2.0/kafka_2.13-3.2.0.tgz
+    tar -vzxf kafka_2.13-3.2.0.tgz
+    ln -s kafka_2.13-3.2.0 kafka
 
 Check `config/zookeeper.properties` and `config/server.properties`.
 By default these contain settings for keeping data in `/tmp/`, which works for initial tests,
@@ -45,11 +45,11 @@ Similarly, change the directory setting in `server.properties`
     log.dirs=/tmp/kafka-logs
 
 
-Kafka depends on Zookeeper. By default, Kafka will quit if it cannot connect to Zookeeper within 6 seconds.
-When the Linux host boots up, this may not be long enough to allow Zookeeper to start.
+Kafka depends on Zookeeper. Kafka will quit if it cannot connect to Zookeeper within some timeout.
+When the Linux host boots up, the default timeout may not be long enough to allow Zookeeper to start.
 
-    # Timeout in ms for connecting to zookeeper defaults to 6000ms.
-    # Suggest a much longer time (5 minutes)
+    # Timeout in ms for connecting to zookeeper
+    # Suggest about 5 minutes
     zookeeper.connection.timeout.ms=300000
 
 By default, Kafka will automatically create topics.
@@ -66,6 +66,7 @@ If the following "First steps" generate errors of the type
 
     WARN Error while fetching metadata with correlation id 39 : .. LEADER_NOT_AVAILABLE
 or
+
     ERROR ..TimeoutException: Timed out waiting for a node assignment
     
 then define the host name in  `config/server.properties`.
