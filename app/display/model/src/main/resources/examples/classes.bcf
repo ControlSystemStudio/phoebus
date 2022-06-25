@@ -153,4 +153,47 @@ Properties are marked to be included in the class definition.</text>
       </font>
     </font>
   </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>GOOD_BAD_ERROR</text>
+    <y>340</y>
+    <width>120</width>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="multi_state_led" version="2.0.0">
+    <name>GOOD_BAD_ERROR</name>
+    <x>130</x>
+    <y>340</y>
+    <width use_class="true">50</width>
+    <height use_class="true">30</height>
+    <states use_class="true">
+      <state use_class="true">
+        <value use_class="true">0</value>
+        <label use_class="true">Good</label>
+        <color use_class="true">
+          <color name="OK" red="0" green="255" blue="0">
+          </color>
+        </color>
+      </state>
+      <state use_class="true">
+        <value use_class="true">1</value>
+        <label use_class="true">Bad</label>
+        <color use_class="true">
+          <color name="MINOR" red="255" green="128" blue="0">
+          </color>
+        </color>
+      </state>
+      <state use_class="true">
+        <value use_class="true">2</value>
+        <label use_class="true">Error</label>
+        <color use_class="true">
+          <color name="MAJOR" red="255" green="0" blue="0">
+          </color>
+        </color>
+      </state>
+    </states>
+  </widget>
 </display>

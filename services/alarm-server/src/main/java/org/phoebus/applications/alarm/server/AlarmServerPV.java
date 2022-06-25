@@ -25,9 +25,9 @@ import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.Messages;
 import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.model.AlarmState;
-import org.phoebus.applications.alarm.model.EnabledState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
+import org.phoebus.applications.alarm.model.EnabledState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.applications.alarm.server.actions.AutomatedActions;
@@ -59,6 +59,8 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         return thread;
     });
 
+    private final ServerModel model;
+
     private volatile String description = "";
 
     private final AlarmLogic logic;
@@ -84,6 +86,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     public AlarmServerPV(final ServerModel model, final String parent_path, final String name, final ClientState initial)
     {
         super(parent_path, name, Collections.emptyList());
+        this.model = model;
         description = name;
 
         final AlarmState current_state;
@@ -123,12 +126,6 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
             {
                 model.sendAnnunciatorMessage(getPathName(), severity, description);
             }
-            @Override
-            public void alarmEnablementChanged(boolean enable) {
-                model.sendConfigUpdate(getPathName(), AlarmServerPV.this);
-            }
-
-
         };
         logic = new AlarmLogic(listener, true, true, 0, 0, current_state, alarm_state, 0);
     }
@@ -416,8 +413,12 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     private void enabledDateTimeFilterChanged(final boolean enabled)
     {
         setEnabled(enabled);
-    }
 
+        // Alarm server should _listen_ to config changes, not send them, with one exception:
+        // If a 'shelved' alarm gets re-enabled by the alarm server, it sends that out
+        if (enabled)
+            model.sendConfigUpdate(getPathName(), this);
+    }
 
     public void stop()
     {

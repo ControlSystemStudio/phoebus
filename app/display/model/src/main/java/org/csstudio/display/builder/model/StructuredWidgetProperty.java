@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -66,16 +66,6 @@ public class StructuredWidgetProperty extends WidgetProperty<List<WidgetProperty
         super(descriptor, widget, elements);
     }
 
-    /** @return <code>true</code> if any element is using class support */
-    @Override
-    public boolean isUsingWidgetClass()
-    {
-        for (WidgetProperty<?> element : value)
-            if (element.isUsingWidgetClass())
-                return true;
-        return false;
-    }
-
     /** @return <code>true</code> if all elements have default value */
     @Override
     public boolean isDefaultValue()
@@ -84,6 +74,15 @@ public class StructuredWidgetProperty extends WidgetProperty<List<WidgetProperty
             if (! element.isDefaultValue())
                 return false;
         return true;
+    }
+
+    @Override
+    public void useWidgetClass(boolean use_class)
+    {
+        // Update overall structure as well as each element
+        super.useWidgetClass(use_class);
+        for (WidgetProperty<?> element : value)
+            element.useWidgetClass(use_class);
     }
 
     /** @return <code>true</code> if all elements are read-only */
@@ -142,35 +141,42 @@ public class StructuredWidgetProperty extends WidgetProperty<List<WidgetProperty
     @Override
     public void setValueFromObject(final Object new_value) throws Exception
     {
-        if (new_value instanceof List)
-        {   // Allow assignment of another structure's value, i.e. list with same elements
-            final List<?> new_elements = (List<?>)new_value;
-            if (new_elements.size() != value.size())
-                throw new Exception("Elements of structure " + getName() + " must provide " + value.size() + " elements, got " + new_elements.size());
-            for (int i=0; i<value.size(); ++i)
-            {
-                final WidgetProperty<?> element = value.get(i);
-                final Object new_object = new_elements.get(i);
-                if (element.getClass() != new_object.getClass())
-                    throw new Exception("Cannot set structure " + getName() + "." + element.getName() + " to " + new_object);
+        final List<?> new_elements;
 
-                final WidgetProperty<?> new_element = (WidgetProperty<?>)new_object;
-                if (element.getName() != new_element.getName())
-                    throw new Exception("Cannot set structure " + getName() + "." + element.getName() + " to " + new_element.getName());
-                try
-                {
-                    element.setValueFromObject(new_element.getValue());
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception("Cannot set structure " + getName() + "." + element.getName() + " to " + new_element, ex);
-                }
-            }
-            // Notify listeners of the whole array
-            firePropertyChange(this, null, this.value);
+        // May use other struct or list with elements
+        if (new_value instanceof StructuredWidgetProperty)
+        {
+            final StructuredWidgetProperty other = (StructuredWidgetProperty) new_value;
+            new_elements = other.value;
         }
+        else if (new_value instanceof List)
+            new_elements = (List<?>)new_value;
         else
             throw new Exception("Elements of structure " + getName() + " cannot be assigned from " + new_value);
+
+        // Either way, element count and names of elements must match this struct
+        if (new_elements.size() != value.size())
+            throw new Exception("Elements of structure " + getName() + " must provide " + value.size() + " elements, got " + new_elements.size());
+        for (int i=0; i<value.size(); ++i)
+        {
+            final WidgetProperty<?> element = value.get(i);
+            final Object new_object = new_elements.get(i);
+            if (element.getClass() != new_object.getClass())
+                throw new Exception("Cannot set structure " + getName() + "." + element.getName() + " to " + new_object);
+
+            final WidgetProperty<?> new_element = (WidgetProperty<?>)new_object;
+            if (element.getName() != new_element.getName())
+                throw new Exception("Cannot set structure " + getName() + "." + element.getName() + " to " + new_element.getName());
+            try
+            {
+                element.setValueFromObject(new_element.getValue());
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Cannot set structure " + getName() + "." + element.getName() + " to " + new_element, ex);
+            }
+        }
+        // Listeners have been notified about each element in setValueFromObject
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -55,13 +55,14 @@ public class UseWidgetClassBinding extends WidgetPropertyBinding<CheckBox, Widge
         updateFromModel();
         jfx_node.setOnAction(event ->
         {
+            final boolean use_class = jfx_node.isSelected();
             updating = true;
-            property_field.setDisable(! jfx_node.isSelected());
-            undo.execute(new UseClassAction(widget_property, jfx_node.isSelected()));
+            property_field.setDisable(! use_class);
+            undo.execute(new UseClassAction(widget_property, use_class));
             for (Widget w : other)
             {
                 final WidgetProperty<?> other_prop = w.getProperty(widget_property.getName());
-                undo.execute(new UseClassAction(other_prop, jfx_node.isSelected()));
+                undo.execute(new UseClassAction(other_prop, use_class));
             }
             updating = false;
         });

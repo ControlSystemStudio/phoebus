@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,6 +22,7 @@ import org.csstudio.display.builder.editor.DisplayEditor;
 import org.csstudio.display.builder.editor.EditorGUI;
 import org.csstudio.display.builder.editor.EditorUtil;
 import org.csstudio.display.builder.editor.Messages;
+import org.csstudio.display.builder.editor.WidgetSelectionHandler;
 import org.csstudio.display.builder.editor.actions.ActionDescription;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.ModelPlugin;
@@ -386,9 +387,20 @@ public class DisplayEditorInstance implements AppInstance
         ModelThreadPool.getExecutor().execute(() ->
         {
             // get widget classes and apply to model
+            // (which triggers editor UI updates, so perform in UI thread)
             final DisplayModel model = editor_gui.getDisplayEditor().getModel();
             if (model != null)
-                WidgetClassesService.getWidgetClasses().apply(model);
+                Platform.runLater( () ->
+                {
+                    // Save/restore selection to force update of property panel
+                    final WidgetSelectionHandler selection = editor_gui.getDisplayEditor().getWidgetSelectionHandler();
+                    final List<Widget> save = selection.getSelection();
+                    selection.clear();
+                    // Apply class settings
+                    WidgetClassesService.getWidgetClasses().apply(model);
+                    // Restore selection
+                    selection.setSelection(save);
+                });
         });
     }
 

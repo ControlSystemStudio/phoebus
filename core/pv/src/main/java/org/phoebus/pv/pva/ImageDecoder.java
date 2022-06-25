@@ -1,11 +1,15 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
 package org.phoebus.pv.pva;
+
+import static org.phoebus.pv.PV.logger;
+
+import java.util.logging.Level;
 
 import org.epics.pva.data.PVAByteArray;
 import org.epics.pva.data.PVAData;
@@ -45,9 +49,17 @@ public class ImageDecoder
     // Could just use VImageType.values()[i+1] instead of color_mode_types[i], but
     // (a) there are more VImageType values than defined color modes, and
     // (b) the NTNDArray specification for color mode might eventually change
-    private static final VImageType color_mode_types[] = { VImageType.TYPE_MONO, VImageType.TYPE_BAYER,
-            VImageType.TYPE_RGB1, VImageType.TYPE_RGB2, VImageType.TYPE_RGB3, VImageType.TYPE_YUV444,
-            VImageType.TYPE_YUV422, VImageType.TYPE_YUV411 };
+    private static final VImageType color_mode_types[] =
+    {
+        VImageType.TYPE_MONO,
+        VImageType.TYPE_BAYER,
+        VImageType.TYPE_RGB1,
+        VImageType.TYPE_RGB2,
+        VImageType.TYPE_RGB3,
+        VImageType.TYPE_YUV444,
+        VImageType.TYPE_YUV422,
+        VImageType.TYPE_YUV411
+    };
 
     /** @param struct Structure with image
      *  @return VType for image
@@ -75,9 +87,6 @@ public class ImageDecoder
                 dimensions[i] = size.get();
             }
         }
-
-        final PVAUnion value_field = struct.get("value");
-        final PVAData value = value_field.get();
 
         // Try to get value of color mode attribute
         // TODO: bayer color mode requires a bayerPattern attribute as well...
@@ -143,6 +152,43 @@ public class ImageDecoder
             default:
                 width = dimensions[0];
                 height = dimensions[1];
+        }
+
+        // Fetch pixel data
+        final PVAUnion value_field = struct.get("value");
+        PVAData value = value_field.get();
+
+        // Value might be compressed, which means that a PVAByteArray
+        // needs to be de-compressed and then converted into the
+        // actual data type
+        final PVAStructure codec_info = struct.get("codec");
+        if (codec_info != null)
+        {
+            final PVAString name = codec_info.get("name");
+            if (name != null  &&  !name.get().isBlank())
+            {
+                // For compressed data, values is ubyte[] and
+                // codec.parameters holds original data type code
+                final PVAny parms = codec_info.get("parameters");
+                final PVAInt orig_type = parms.get();
+
+                Codec codec = null;
+                if (name.get().equalsIgnoreCase("lz4"))
+                    codec = new LZ4Codec();
+                else if (name.get().equalsIgnoreCase("jpeg"))
+                    codec = new JPEGCodec();
+                else
+                    logger.log(Level.WARNING, "NDArray codec '" + name.get() + "' is not implemented");
+
+                if (codec != null)
+                {
+                    if (value instanceof PVAByteArray)
+                        value = codec.decompress((PVAByteArray)value, orig_type.get(), width * height);
+                    else
+                        logger.log(Level.WARNING, "Expected PVAByteArray for data compressed with codec '" + name.get() +
+                                   "' but got " + value.getClass().getName());
+                }
+            }
         }
 
         // Get data and data type

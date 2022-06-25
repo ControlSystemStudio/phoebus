@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -499,18 +499,21 @@ public class PropertyPanelSection extends GridPane
      *  @param property Property (on primary widget)
      *  @param other Zero or more additional widgets that have same type of property
      *  @param structureIndex Index of the array structure (element) being added. It is meaningful
-     *                        only for properties instance of {@link StructuredWidgetProperty}.
+     *                        only for properties instance of {@link StructuredWidgetProperty}
+     *  @param indentationLevel Indentation level
      */
     private void createPropertyUI(
         final UndoableActionManager undo,
         final WidgetProperty<?> property,
         final List<Widget> other,
         final int structureIndex,
-        final int indentationLevel
-    ) {
+        final int indentationLevel)
+    {
         // Skip runtime properties
         if (property.getCategory() == WidgetPropertyCategory.RUNTIME)
             return;
+
+        // System.out.println("Index " + structureIndex + ", level " + indentationLevel + ": " + property.getPath());
 
         final Label label = new Label(property.getDescription());
         label.setMaxWidth(Double.MAX_VALUE);
@@ -567,9 +570,7 @@ public class PropertyPanelSection extends GridPane
             field = rules_field;
         }
         else if (property instanceof StructuredWidgetProperty)
-        {   // Don't allow editing structures and their elements in class mode
-            if (class_mode)
-                return;
+        {
             final StructuredWidgetProperty struct = (StructuredWidgetProperty) property;
             final Label header = new Label(struct.getDescription() + ( structureIndex > 0 ? " " + String.valueOf(1 + structureIndex) : ""));
             header.getStyleClass().add("structure_property_name");
@@ -589,9 +590,7 @@ public class PropertyPanelSection extends GridPane
             return;
         }
         else if (property instanceof ArrayWidgetProperty)
-        {   // Don't allow editing arrays and their elements in class mode
-            if (class_mode)
-                return;
+        {
             @SuppressWarnings("unchecked")
             final ArrayWidgetProperty<WidgetProperty<?>> array = (ArrayWidgetProperty<WidgetProperty<?>>) property;
 
@@ -611,6 +610,28 @@ public class PropertyPanelSection extends GridPane
 
             fillHeaderIndent(indentationLevel, row);
             add(label, indentationLevel, row, 4 - indentationLevel, 1);
+
+            if (class_mode)
+            {   // Checkbox to select if array is included in class definition
+                final CheckBox check = new CheckBox();
+                check.setPadding(new Insets(0, 5, 0, 0));
+                check.setTooltip(use_class_tooltip);
+                final WidgetPropertyBinding<?,?> binding = new UseWidgetClassBinding(undo, check, spinner, property, other);
+                bindings.add(binding);
+                binding.bind();
+                add(check, 3, row);
+            }
+            else
+            {   // Show if property is set by the class, not editable.
+                final Label indicator = new Label();
+                indicator.setPadding(new Insets(0, 5, 0, 0));
+                indicator.setTooltip(using_class_tooltip);
+                final WidgetPropertyBinding<?,?> binding = new ShowWidgetClassBinding(spinner, property, indicator);
+                bindings.add(binding);
+                binding.bind();
+                add(indicator, 3, row);
+            }
+
             add(spinner, 4, row, 2 - indentationLevel, 1);
 
             Separator separator = new Separator();
@@ -683,14 +704,20 @@ public class PropertyPanelSection extends GridPane
         {
             if (class_mode)
             {   // Class definition mode:
-                // Check box for 'use_class'
-                final CheckBox check = new CheckBox();
-                check.setPadding(new Insets(0, 5, 0, 0));
-                check.setTooltip(use_class_tooltip);
-                final WidgetPropertyBinding<?,?> binding = new UseWidgetClassBinding(undo, check, field, property, other);
-                bindings.add(binding);
-                binding.bind();
-                add(check, 3, row);
+                // Check box for 'use_class', but only on the top level
+                // For nested properties inside an array or struct,
+                // the class behavior is controlled at the top-level
+                // for the complete array or struct
+                if (indentationLevel == 0)
+                {
+                    final CheckBox check = new CheckBox();
+                    check.setPadding(new Insets(0, 5, 0, 0));
+                    check.setTooltip(use_class_tooltip);
+                    final WidgetPropertyBinding<?,?> binding = new UseWidgetClassBinding(undo, check, field, property, other);
+                    bindings.add(binding);
+                    binding.bind();
+                    add(check, 3, row);
+                }
             }
             else
             {   // Display file mode:

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.Messages;
 import org.phoebus.applications.alarm.model.AlarmState;
@@ -60,7 +61,7 @@ public class AlarmLogic // implements GlobalAlarmListener
     /** 'Current' state that was received while disabled.
      *  Is cached in case we get re-enabled, whereupon it is used
      */
-    private volatile AlarmState disabled_state = null;
+    private final AtomicReference<AlarmState> disabled_state = new AtomicReference<>();
 
     /** Latch the highest received alarm severity/status?
      *  When <code>false</code>, the latched alarm state actually
@@ -188,7 +189,7 @@ public class AlarmLogic // implements GlobalAlarmListener
         if (!enable)
         {   // Disabled
             // Remember current PV state in case we're re-enabled
-            disabled_state = current_state;
+            disabled_state.set(current_state);
             // Otherwise pretend all is OK, using special message
 
             final AlarmState current = AlarmState.createClearState(current_state.value);
@@ -204,11 +205,9 @@ public class AlarmLogic // implements GlobalAlarmListener
                 alarm_state = new AlarmState(SeverityLevel.OK,
                                              SeverityLevel.OK.name(), "", Instant.now());
             // (Re-)enabled
-            if (disabled_state != null)
-            {
-                computeNewState(disabled_state);
-                disabled_state = null;
-            }
+            final AlarmState saved_state = disabled_state.getAndSet(null);
+            if (saved_state != null)
+                computeNewState(saved_state);
         }
         return true;
     }
@@ -320,7 +319,7 @@ public class AlarmLogic // implements GlobalAlarmListener
             // When disabled, ignore...
             if (!enabled.get())
             {
-                disabled_state = received_state;
+                disabled_state.set(received_state);
                 return;
             }
             // Remember what used to be the 'current' severity
@@ -439,7 +438,29 @@ public class AlarmLogic // implements GlobalAlarmListener
     public void delayedStateUpdate(final AlarmState delayed_state)
     {
         if (isEnabled())
+        {
+            // It's been observed that an "OK" update arrived which cancels
+            // a delayed state update, but the delay expired just before
+            // the cancellation took effect.
+            // This effectively caused a reversal: current state was OK,
+            // but delayed update then raised it to an alarm.
+            // Detect this case by checking the time stamp for a current OK.
+            // Note that a delayed MAJOR would still take precedence over
+            // a more recently received MINOR.
+            // Only a recently received OK is checked for its time stamp.
+            synchronized (this)
+            {
+                if (current_state.severity == SeverityLevel.OK  &&
+                    current_state.time.isAfter(delayed_state.time))
+                {
+                    logger.log(Level.FINE, () ->
+                               "Ignoring outdated delayed state " + delayed_state +
+                               " for " + current_state);
+                    return;
+                }
+            }
             updateState(delayed_state, false);
+        }
     }
 
     /** Check if the new state adds up to 'count' alarms within 'delay'
@@ -567,6 +588,10 @@ public class AlarmLogic // implements GlobalAlarmListener
      */
     public void dispose()
     {
+        // Indicate that PV has been disposed, but call it OK.
+        // This way a re-started PV which then receives its first update will take
+        // any non-OK state as a change and react accordingly
+        current_state = alarm_state = new AlarmState(SeverityLevel.OK, "Disposed", "Disposed", Instant.now());
         delayed_check.cancel();
     }
 

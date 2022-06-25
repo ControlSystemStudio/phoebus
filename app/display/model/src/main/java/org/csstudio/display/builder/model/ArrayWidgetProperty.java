@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -112,15 +112,6 @@ public class ArrayWidgetProperty<WPE extends WidgetProperty<?>> extends WidgetPr
     }
 
     @Override
-    public boolean isUsingWidgetClass()
-    {   // Array uses class if any elements use it
-        for (WidgetProperty<?> element : value)
-            if (element.isUsingWidgetClass())
-                return true;
-        return false;
-    }
-
-    @Override
     public boolean isDefaultValue()
     {
         // Array has 'default' value if it contains
@@ -128,6 +119,15 @@ public class ArrayWidgetProperty<WPE extends WidgetProperty<?>> extends WidgetPr
         // Otherwise, all elements need to be written
         return value.size() == 1  &&
                value.get(0).isDefaultValue();
+    }
+
+    @Override
+    public void useWidgetClass(boolean use_class)
+    {
+        // Update overall array as well as each element
+        super.useWidgetClass(use_class);
+        for (WPE element : value)
+            element.useWidgetClass(use_class);
     }
 
     @Override
@@ -195,6 +195,8 @@ public class ArrayWidgetProperty<WPE extends WidgetProperty<?>> extends WidgetPr
     /** @param element Element to add to end of list */
     public void addElement(final WPE element)
     {
+        // New elements get same class behavior as the array
+        element.useWidgetClass(use_class);
         value.add(element);
         firePropertyChange(null, Arrays.asList(element));
     }
@@ -239,8 +241,7 @@ public class ArrayWidgetProperty<WPE extends WidgetProperty<?>> extends WidgetPr
                     element.setValueFromObject(el_value);
             }
 
-            // Notify listeners of the whole array
-            firePropertyChange(this, null, this.value);
+            // Listeners already received remove/add/set events
         }
         catch (Throwable ex)
         {
