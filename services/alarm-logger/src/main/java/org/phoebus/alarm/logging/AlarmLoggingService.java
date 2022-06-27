@@ -77,13 +77,12 @@ public class AlarmLoggingService {
     }
 
     public static void main(final String[] original_args) throws Exception {
-        context = SpringApplication.run(AlarmLoggingService.class, original_args);
         LogManager.getLogManager().readConfiguration(AlarmLoggingService.class.getResourceAsStream("/alarm_logger_logging.properties"));
 
         // load the default properties
         final Properties properties = PropertiesHelper.getProperties();
 
-        // Use interactive shell by default 
+        // Use interactive shell by default
         boolean use_shell = true;
 
         // Handle arguments
@@ -96,8 +95,7 @@ public class AlarmLoggingService {
 		if ( cmd.equals("-h") || cmd.equals("-help")) {
 		    use_shell = false;
                     help();
-		    // Do we need the exit code for help?
-		    System.exit(SpringApplication.exit(context));
+		    System.exit(0);
                     return;
                 } else if (cmd.equals("-noshell")) {
                     use_shell = false;
@@ -196,11 +194,12 @@ public class AlarmLoggingService {
 	    ex.printStackTrace();
 	    System.out.println("\n>>>> Please check available arguments of alarm-logger as follows:");
 	    help();
-	    System.exit(SpringApplication.exit(context));
+	    System.exit(-1);
 	    return;
         }
 
         logger.info("Alarm Logging Service (PID " + ProcessHandle.current().pid() + ")");
+        context = SpringApplication.run(AlarmLoggingService.class, original_args);
 
         // Create scheduler with configured or default thread pool size
         Integer threadPoolSize;
