@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -424,13 +424,19 @@ public class ImageRepresentation extends RegionBaseRepresentation<Pane, ImageWid
     {
         final VType value = model_widget.runtimePropValue().getValue();
         if (value instanceof VNumberArray)
-            image_plot.setValue(model_widget.propDataWidth().getValue(),
-                                model_widget.propDataHeight().getValue(),
+        {
+            // Can't get size from PV, use data_width, .._height
+            final int width = model_widget.propDataWidth().getValue();
+            final int height = model_widget.propDataHeight().getValue();
+            if (model_widget.propLimitsFromPV().getValue())
+                image_plot.setAxisRange(0.0, width, height, 0.0);
+            image_plot.setValue(width, height,
                                 ((VNumberArray) value).getData(),
                                 model_widget.propDataUnsigned().getValue(),
                                 model_widget.propDataColorMode().getValue());
+        }
         else if (value instanceof VImage)
-        {
+        {   // Use VImage metadata
             final VImage image = (VImage) value;
             boolean isUnsigned;
             switch (image.getDataType())
@@ -444,7 +450,12 @@ public class ImageRepresentation extends RegionBaseRepresentation<Pane, ImageWid
             	default:
             		isUnsigned = false;
             }
-            image_plot.setValue(image.getWidth(), image.getHeight(), image.getData(),
+
+            final int width = image.getWidth();
+            final int height = image.getHeight();
+            if (model_widget.propLimitsFromPV().getValue())
+                image_plot.setAxisRange(0.0, width, height, 0.0);
+            image_plot.setValue(width, height, image.getData(),
                                 isUnsigned, image.getVImageType());
         }
         else if (value != null)
