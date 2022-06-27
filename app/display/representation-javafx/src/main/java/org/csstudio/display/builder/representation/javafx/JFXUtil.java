@@ -94,41 +94,32 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
 
     /** Convert model color into CSS style string for shading tabs, buttons, etc
      *  @param color {@link WidgetColor}
-     *  @return style string of the form "-fx-color: ... -fx-outer-border: ... -fx-inner-border: ... -fx-background: ..."
+     *  @return style string of the form "-fx-base: ..;"
      */
     public static String shadedStyle(final WidgetColor color)
     {
         return shadedStyleCache.computeIfAbsent(color, col ->
         {
             // How to best set colors?
-            // Content Pane can be set in API, but Tab has no usable 'set color' API.
+            // Content Pane can be set in API, but Button and Tab have no usable 'set color' API.
             // TabPane has setBackground(), but in "floating" style that would be
             // the background behind the tabs, which is usually transparent.
-            // modena.css of JDK8 reveals a structure of sub-items which are shaded with gradients based
-            // on  -fx-color for the inactive tabs,
-            //     -fx-outer-border and -fx-inner-border for the, well, border,
-            // and -fx-background for the selected tab,
-            // so re-define those.
+            //
+            // Adjusting the style can break when the underlying style sheet changes,
+            // but since at least JDK8 that has been modena.css with little changes until JFX 18,
+            // which can be found in javafx-controls-18-linux.jar as
+            // com/sun/javafx/scene/control/skin/modena/modena.css
+            //
+            // Buttons use nested -fx-background-color entries
+            // -fx-shadow-highlight-color, -fx-outer-border, -fx-inner-border, -fx-body-color
+            // with associated ..-insets and ..-radius which are all based on -fx-base,
+            // so redefine that to adjust the overall color.
+            // The .button.armed state uses
+            //   -fx-pressed-base: derive(-fx-base,-6%);
+            // which we change into a more obvious variant.
             final String bg = webRGB(col);
-            return "-fx-color: derive(" + bg + ", 50%);" +
-                   "-fx-outer-border: derive(" + bg + ", -23%);" +
-                   "-fx-inner-border: linear-gradient(to bottom," +
-                   "ladder(" + bg + "," +
-                   "       derive(" + bg + ",30%) 0%," +
-                   "       derive(" + bg + ",20%) 40%," +
-                   "       derive(" + bg + ",25%) 60%," +
-                   "       derive(" + bg + ",55%) 80%," +
-                   "       derive(" + bg + ",55%) 90%," +
-                   "       derive(" + bg + ",75%) 100%" +
-                   ")," +
-                   "ladder(" + bg + "," +
-                   "       derive(" + bg + ",20%) 0%," +
-                   "       derive(" + bg + ",10%) 20%," +
-                   "       derive(" + bg + ",5%) 40%," +
-                   "       derive(" + bg + ",-2%) 60%," +
-                   "       derive(" + bg + ",-5%) 100%" +
-                   "));" +
-                   "-fx-background: " + bg + ";";
+            return "-fx-base: " + bg + "; " +
+                   "-fx-pressed-base: derive(-fx-base,-25%);";
         });
     }
 
@@ -217,7 +208,7 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
     }
 
     /**returns double[] array for given line style scaled by line_width
-     * 
+     *
      * @param style - actual line style
      * @param line_width - actual line width
      * @return double[] with segment lengths

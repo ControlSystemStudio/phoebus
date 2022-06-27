@@ -23,7 +23,6 @@ import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
 import org.csstudio.display.builder.model.properties.RotationStep;
 import org.csstudio.display.builder.model.properties.StringWidgetProperty;
-import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WritePVActionInfo;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.builder.representation.javafx.Cursors;
@@ -37,7 +36,6 @@ import org.phoebus.ui.vtype.FormatOption;
 import org.phoebus.ui.vtype.FormatOptionHandler;
 
 import javafx.application.Platform;
-import javafx.event.EventHandler;
 import javafx.geometry.Dimension2D;
 import javafx.scene.Cursor;
 import javafx.scene.control.Button;
@@ -78,7 +76,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     private final DirtyFlag dirty_actionls = new DirtyFlag();
 
     private volatile ButtonBase base;
-    private volatile String background, pressed_background;
+    private volatile String background;
     private volatile Color foreground;
     private volatile String button_text;
     private volatile boolean enabled = true;
@@ -136,9 +134,6 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
             base.disarm();
             return;
         }
-
-        // Indicate that button is pressed
-        base.setStyle(pressed_background);
 
         // 'control' ('command' on Mac OS X)
         if (event.isShortcutDown())
@@ -216,13 +211,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         // Monitor keys that modify the OpenDisplayActionInfo.Target.
         // Use filter to capture event that's otherwise already handled.
         if (! toolkit.isEditMode())
-        {
-            // Pressed button will use pressed_background, check modifiers, then invoke actions
             result.addEventFilter(MouseEvent.MOUSE_PRESSED, this::checkModifiers);
-            // Restore normal background when released
-            final EventHandler<MouseEvent> restore = event ->  result.setStyle(background);
-            result.addEventFilter(MouseEvent.MOUSE_RELEASED, restore);
-        }
 
         // Need to attach TT to the specific button, not the common jfx_node Pane
         TooltipSupport.attach(result, model_widget.propTooltip());
@@ -439,22 +428,10 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     {
         foreground = JFXUtil.convert(model_widget.propForegroundColor().getValue());
         if (model_widget.propTransparent().getValue())
-        {
             // Set most colors to transparent, including the 'arrow' used by MenuButton
             background = "-fx-background: transparent; -fx-color: transparent; -fx-focus-color: rgba(3,158,211,0.1); -fx-mark-color: transparent; -fx-background-color: transparent;";
-            pressed_background = background;
-        }
         else
-        {
-            final WidgetColor norm = model_widget.propBackgroundColor().getValue();
-            // Darker color when pressed
-            final WidgetColor press = new WidgetColor(norm.getRed()/2,
-                                                      norm.getGreen()/2,
-                                                      norm.getBlue()/2,
-                                                      norm.getAlpha());
-            background = JFXUtil.shadedStyle(norm);
-            pressed_background = JFXUtil.shadedStyle(press);
-        }
+            background = JFXUtil.shadedStyle(model_widget.propBackgroundColor().getValue());
     }
 
     @Override
