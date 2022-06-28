@@ -75,16 +75,21 @@ public class ImageDecoder
         // The 'dimension' field must be present, but may be empty,
         // for example in never-processed area detector image
         final int dimensions[];
+        final int offsets[];
         if (dim.get().length < 2)
-            dimensions = new int[] { 0, 0 };
+            dimensions = offsets = new int[] { 0, 0 };
         else
         {   // Fetching by field name in case structure changes
             final int n_dims = dim.get().length;
             dimensions = new int[n_dims];
+            offsets = new int[n_dims];
             for (int i = 0; i < n_dims; ++i)
             {
-                final PVAInt size = dim.get()[i].get("size");
-                dimensions[i] = size.get();
+                final PVAStructure d = dim.get()[i];
+                PVAInt el = d.get("size");
+                dimensions[i] = el.get();
+                el = d.get("offset");
+                offsets[i] = el.get();
             }
         }
 
@@ -134,24 +139,27 @@ public class ImageDecoder
             image_type = color_mode_types[colorMode];
 
         // Init. width, height
-        final int width, height;
+        final int width, height, xoffset, yoffset;
         switch (image_type)
         {
             case TYPE_RGB1:
                 width = dimensions[1];
                 height = dimensions[2];
+                xoffset = offsets[1];
+                yoffset = offsets[2];
                 break;
             case TYPE_RGB2:
                 width = dimensions[0];
                 height = dimensions[2];
+                xoffset = offsets[0];
+                yoffset = offsets[2];
                 break;
             case TYPE_RGB3:
-                width = dimensions[0];
-                height = dimensions[1];
-                break;
             default:
                 width = dimensions[0];
                 height = dimensions[1];
+                xoffset = offsets[0];
+                yoffset = offsets[1];
         }
 
         // Fetch pixel data
@@ -252,6 +260,6 @@ public class ImageDecoder
 
         final Alarm alarm = Decoders.decodeAlarm(struct);
         final Time time = Decoders.decodeTime(struct);
-        return VImage.of(height, width, data, data_type, image_type, alarm, time);
+        return VImage.of(height, width, xoffset, yoffset, data, data_type, image_type, alarm, time);
     }
 }

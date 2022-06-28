@@ -59,7 +59,7 @@
 
   <properties>
     <epics.version>7.0.7</epics.version>
-    <vtype.version>1.0.4</vtype.version>
+    <vtype.version>1.0.5-SNAPSHOT</vtype.version>
     <openjfx.version>18</openjfx.version>
     <jackson.version>2.10.1</jackson.version>
     <batik.version>1.14</batik.version>
