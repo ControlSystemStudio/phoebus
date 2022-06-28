@@ -1,23 +1,27 @@
 {
-  "properties": {
-    "APPLICATION-ID": {
-      "type": "text"
-    },
-    "config": {
-      "type": "keyword"
-    },
-    "user": {
-      "type": "keyword"
-    },
-    "host": {
-      "type": "keyword"
-    },
-    "command": {
-      "type": "keyword"
-    },
-    "message_time": {
-      "type": "date",
-      "format": "yyyy-MM-dd HH:mm:ss.SSS"
+  "template": {
+    "mappings": {
+      "properties": {
+        "APPLICATION-ID": {
+          "type": "text"
+        },
+        "config": {
+          "type": "keyword"
+        },
+        "user": {
+          "type": "keyword"
+        },
+        "host": {
+          "type": "keyword"
+        },
+        "command": {
+          "type": "keyword"
+        },
+        "message_time": {
+          "type": "date",
+          "format": "yyyy-MM-dd HH:mm:ss.SSS"
+        }
+      }
     }
   }
 }

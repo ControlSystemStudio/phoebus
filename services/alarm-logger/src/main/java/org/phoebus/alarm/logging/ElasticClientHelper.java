@@ -22,6 +22,11 @@ import org.elasticsearch.client.sniff.Sniffer;
 import org.phoebus.applications.alarm.messages.AlarmCommandMessage;
 import org.phoebus.applications.alarm.messages.AlarmConfigMessage;
 import org.phoebus.applications.alarm.messages.AlarmStateMessage;
+import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -111,7 +116,6 @@ public class ElasticClientHelper {
                 logger.log(Level.WARNING, "Failed to close the elastic client", ex);
             }
         }
-
     }
 
     public static ElasticClientHelper getInstance() {
@@ -125,6 +129,11 @@ public class ElasticClientHelper {
         return client;
     }
 
+    /**
+     * Index an alarm state message
+     * @param indexName
+     * @param alarmStateMessage
+     */
     public void indexAlarmStateDocuments(String indexName, AlarmStateMessage alarmStateMessage) {
         try {
             stateMessagedQueue.put(new SimpleImmutableEntry<>(indexName,alarmStateMessage));
@@ -133,6 +142,12 @@ public class ElasticClientHelper {
         }
     }
 
+    /**
+     * Index an alarm command message
+     * @param indexName
+     * @param alarmCommandMessage
+     * @return
+     */
     public boolean indexAlarmCmdDocument(String indexName, AlarmCommandMessage alarmCommandMessage) {
         IndexRequest<AlarmCommandMessage> indexRequest = new IndexRequest.Builder<AlarmCommandMessage>()
                 .index(indexName.toLowerCase())
@@ -147,6 +162,11 @@ public class ElasticClientHelper {
         }
     }
 
+    /**
+     * Index an alarm config message
+     * @param indexName
+     * @param alarmConfigMessage
+     */
     public void indexAlarmConfigDocuments(String indexName, AlarmConfigMessage alarmConfigMessage) {
         try {
             configMessagedQueue.put(new SimpleImmutableEntry<>(indexName,alarmConfigMessage));
@@ -155,6 +175,9 @@ public class ElasticClientHelper {
         }
     }
 
+    /**
+     * A helper class which implements 2 queues for allowing bulk logging of state and config messages
+     */
     private static class flush2Elastic implements Runnable {
 
         private final BlockingQueue<SimpleImmutableEntry<String,AlarmStateMessage>> stateMessagedQueue;
@@ -184,12 +207,12 @@ public class ElasticClientHelper {
                 configMessagedQueue.drainTo(configPairs);
                 statePairs.forEach( pair -> bulkRequest.operations(op -> op
                         .index(idx -> idx
-                                .index(pair.getKey())
-                                .document(pair.getValue()))));
+                                .index(pair.getKey().toLowerCase())
+                                .document(pair.getValue().sourceMap()))));
                 configPairs.forEach( pair -> bulkRequest.operations(op->op
                         .index(idx->idx
-                                .index(pair.getKey())
-                                .document(pair.getValue()))));
+                                .index(pair.getKey().toLowerCase())
+                                .document(pair.getValue().sourceMap()))));
                 try {
                     BulkResponse bulkResponse = client.bulk(bulkRequest.build());
                         bulkResponse.items().forEach(item -> {
@@ -204,72 +227,78 @@ public class ElasticClientHelper {
                 }
             }
         }
+        private static Properties props = new Properties();
+        {
+            props.putAll(PropertiesHelper.getProperties());
+        }
+        private String ALARM_STATE_TEMPLATE = props.getProperty("elasticsearch.alarm.state.template","alarms_state_template");
+        private String ALARM_STATE_TEMPLATE_PATTERN = props.getProperty("elasticsearch.alarm.state.template.pattern","*_alarms_state*");
 
-        private static final String ALARM_STATE_TEMPLATE =  "alarms_state_template";
-        private static final String ALARM_STATE_TEMPLATE_PATTERN =  "*_alarms_state*";
+        private String ALARM_CMD_TEMPLATE = props.getProperty("elasticsearch.alarm.cmd.template","alarms_cmd_template");
+        private String ALARM_CMD_TEMPLATE_PATTERN = props.getProperty("elasticsearch.alarm.cmd.template.pattern","*_alarms_cmd*");
 
-        private static final String ALARM_CMD_TEMPLATE =  "alarms_cmd_template";
-        private static final String ALARM_CMD_TEMPLATE_PATTERN =  "*_alarms_cmd*";
-
-        private static final String ALARM_CONFIG_TEMPLATE =  "alarms_config_template";
-        private static final String ALARM_CONFIG_TEMPLATE_PATTERN =  "*_alarms_config*";
+        private String ALARM_CONFIG_TEMPLATE = props.getProperty("elasticsearch.alarm.config.template","alarms_config_template");
+        private String ALARM_CONFIG_TEMPLATE_PATTERN = props.getProperty("elasticsearch.alarm.config.template.pattern","*_alarms_config*");
 
         public void initializeIndices() throws IOException {
             // Create the alarm state messages index template
-            ExistsTemplateRequest request = new ExistsTemplateRequest.Builder()
-                    .name(ALARM_STATE_TEMPLATE)
-                    .build();
-            boolean exists = client.indices().existsTemplate(request).value();
+            boolean exists = client.indices().existsIndexTemplate(ExistsIndexTemplateRequest.of(i -> i.name(ALARM_STATE_TEMPLATE))).value();
 
-            if(!exists) {
-                InputStream is = ElasticClientHelper.class.getResourceAsStream("/alarms_state_template.json");
-                PutIndexTemplateRequest templateRequest = new PutIndexTemplateRequest.Builder()
-                        .name(ALARM_STATE_TEMPLATE)
-                        .indexPatterns(Arrays.asList(ALARM_STATE_TEMPLATE_PATTERN))
-                        .withJson(is)
-                        .create(true)
-                        .build();
-                PutIndexTemplateResponse putTemplateResponse = client.indices().putIndexTemplate(templateRequest);
-                putTemplateResponse.acknowledged();
-                logger.log( Level.INFO, "Created " + ALARM_STATE_TEMPLATE + " template.");
+            if (!exists) {
+                try (InputStream is = ElasticClientHelper.class.getResourceAsStream("/alarms_state_template.json")) {
+                    PutIndexTemplateRequest templateRequest = new PutIndexTemplateRequest.Builder()
+                            .name(ALARM_STATE_TEMPLATE)
+                            .indexPatterns(Arrays.asList(ALARM_STATE_TEMPLATE_PATTERN))
+                            .withJson(is)
+                            .priority(1)
+                            .create(true)
+                            .build();
+                    PutIndexTemplateResponse putTemplateResponse = client.indices().putIndexTemplate(templateRequest);
+                    putTemplateResponse.acknowledged();
+                    logger.log(Level.INFO, "Created " + ALARM_STATE_TEMPLATE + " template.");
+                } catch (Exception e) {
+                    logger.log(Level.INFO, "Failed to create template " + ALARM_STATE_TEMPLATE + " template.", e);
+                }
             }
 
             // Create the alarm command messages index template
-            request = new ExistsTemplateRequest.Builder()
-                    .name(ALARM_CMD_TEMPLATE)
-                    .build();
-            exists = client.indices().existsTemplate(request).value();
+            exists = client.indices().existsIndexTemplate(ExistsIndexTemplateRequest.of(i -> i.name(ALARM_CMD_TEMPLATE))).value();
 
-            if(!exists) {
-                InputStream is = ElasticClientHelper.class.getResourceAsStream("/alarms_cmd_template.json");
-                PutIndexTemplateRequest templateRequest = new PutIndexTemplateRequest.Builder()
-                        .name(ALARM_CMD_TEMPLATE)
-                        .indexPatterns(Arrays.asList(ALARM_CMD_TEMPLATE_PATTERN))
-                        .withJson(is)
-                        .create(true)
-                        .build();
-                PutIndexTemplateResponse putTemplateResponse = client.indices().putIndexTemplate(templateRequest);
-                putTemplateResponse.acknowledged();
-                logger.log( Level.INFO, "Created " + ALARM_STATE_TEMPLATE + " template.");
+            if (!exists) {
+                try (InputStream is = ElasticClientHelper.class.getResourceAsStream("/alarms_cmd_template.json")) {
+                    PutIndexTemplateRequest templateRequest = new PutIndexTemplateRequest.Builder()
+                            .name(ALARM_CMD_TEMPLATE)
+                            .indexPatterns(Arrays.asList(ALARM_CMD_TEMPLATE_PATTERN))
+                            .withJson(is)
+                            .priority(2)
+                            .create(true)
+                            .build();
+                    PutIndexTemplateResponse putTemplateResponse = client.indices().putIndexTemplate(templateRequest);
+                    putTemplateResponse.acknowledged();
+                    logger.log(Level.INFO, "Created " + ALARM_CMD_TEMPLATE + " template.");
+                } catch (Exception e) {
+                    logger.log(Level.INFO, "Failed to create template " + ALARM_CMD_TEMPLATE + " template.", e);
+                }
             }
 
             // Create the alarm config messages index template
-            request = new ExistsTemplateRequest.Builder()
-                    .name(ALARM_CONFIG_TEMPLATE)
-                    .build();
-            exists = client.indices().existsTemplate(request).value();
+            exists = client.indices().existsIndexTemplate(ExistsIndexTemplateRequest.of(i -> i.name(ALARM_CONFIG_TEMPLATE))).value();
 
-            if(!exists) {
-                InputStream is = ElasticClientHelper.class.getResourceAsStream("/alarms_cmd_template.json");
-                PutIndexTemplateRequest templateRequest = new PutIndexTemplateRequest.Builder()
-                        .name(ALARM_CONFIG_TEMPLATE)
-                        .indexPatterns(Arrays.asList(ALARM_CONFIG_TEMPLATE_PATTERN))
-                        .withJson(is)
-                        .create(true)
-                        .build();
-                PutIndexTemplateResponse putTemplateResponse = client.indices().putIndexTemplate(templateRequest);
-                putTemplateResponse.acknowledged();
-                logger.log( Level.INFO, "Created " + ALARM_CONFIG_TEMPLATE + " template.");
+            if (!exists) {
+                try (InputStream is = ElasticClientHelper.class.getResourceAsStream("/alarms_cmd_template.json")) {
+                    PutIndexTemplateRequest templateRequest = new PutIndexTemplateRequest.Builder()
+                            .name(ALARM_CONFIG_TEMPLATE)
+                            .indexPatterns(Arrays.asList(ALARM_CONFIG_TEMPLATE_PATTERN))
+                            .withJson(is)
+                            .priority(3)
+                            .create(true)
+                            .build();
+                    PutIndexTemplateResponse putTemplateResponse = client.indices().putIndexTemplate(templateRequest);
+                    putTemplateResponse.acknowledged();
+                    logger.log(Level.INFO, "Created " + ALARM_CONFIG_TEMPLATE + " template.");
+                } catch (Exception e) {
+                    logger.log(Level.INFO, "Failed to create template " + ALARM_CONFIG_TEMPLATE + " template.", e);
+                }
             }
 
         }
