@@ -454,8 +454,30 @@ public class ImageRepresentation extends RegionBaseRepresentation<Pane, ImageWid
             final int width = image.getWidth();
             final int height = image.getHeight();
             if (model_widget.propLimitsFromPV().getValue())
-                image_plot.setAxisRange(image.getXOffset(), image.getXOffset() + width,
-                                        image.getYOffset() + height, image.getYOffset());
+            {
+                final int x0, x1, y0, y1;
+                if (image.isXReversed())
+                {
+                    x1 = image.getXOffset();
+                    x0 = image.getXOffset() + width;
+                }
+                else
+                {
+                    x0 = image.getXOffset();
+                    x1 = image.getXOffset() + width;
+                }
+                if (image.isYReversed())
+                {
+                    y1 = image.getYOffset() + height;
+                    y0 = image.getYOffset();
+                }
+                else
+                {
+                    y0 = image.getYOffset() + height;
+                    y1 = image.getYOffset();
+                }
+                image_plot.setAxisRange(x0, x1, y0, y1);
+            }
             image_plot.setValue(width, height, image.getData(),
                                 isUnsigned, image.getVImageType());
         }
