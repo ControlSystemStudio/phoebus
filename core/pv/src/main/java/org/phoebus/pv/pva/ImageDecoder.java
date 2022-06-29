@@ -11,6 +11,7 @@ import static org.phoebus.pv.PV.logger;
 
 import java.util.logging.Level;
 
+import org.epics.pva.data.PVABool;
 import org.epics.pva.data.PVAByteArray;
 import org.epics.pva.data.PVAData;
 import org.epics.pva.data.PVADoubleArray;
@@ -76,13 +77,18 @@ public class ImageDecoder
         // for example in never-processed area detector image
         final int dimensions[];
         final int offsets[];
+        final boolean reversed[];
         if (dim.get().length < 2)
+        {
             dimensions = offsets = new int[] { 0, 0 };
+            reversed = new boolean[] { false, false };
+        }
         else
         {   // Fetching by field name in case structure changes
             final int n_dims = dim.get().length;
             dimensions = new int[n_dims];
             offsets = new int[n_dims];
+            reversed = new boolean[n_dims];
             for (int i = 0; i < n_dims; ++i)
             {
                 final PVAStructure d = dim.get()[i];
@@ -90,6 +96,8 @@ public class ImageDecoder
                 dimensions[i] = el.get();
                 el = d.get("offset");
                 offsets[i] = el.get();
+                final PVABool b = d.get("reverse");
+                reversed[i] = b.get();
             }
         }
 
@@ -140,6 +148,7 @@ public class ImageDecoder
 
         // Init. width, height
         final int width, height, xoffset, yoffset;
+        final boolean xreversed, yreversed;
         switch (image_type)
         {
             case TYPE_RGB1:
@@ -147,12 +156,16 @@ public class ImageDecoder
                 height = dimensions[2];
                 xoffset = offsets[1];
                 yoffset = offsets[2];
+                xreversed = reversed[1];
+                yreversed = reversed[2];
                 break;
             case TYPE_RGB2:
                 width = dimensions[0];
                 height = dimensions[2];
                 xoffset = offsets[0];
                 yoffset = offsets[2];
+                xreversed = reversed[0];
+                yreversed = reversed[2];
                 break;
             case TYPE_RGB3:
             default:
@@ -160,6 +173,8 @@ public class ImageDecoder
                 height = dimensions[1];
                 xoffset = offsets[0];
                 yoffset = offsets[1];
+                xreversed = reversed[0];
+                yreversed = reversed[1];
         }
 
         // Fetch pixel data
@@ -260,6 +275,6 @@ public class ImageDecoder
 
         final Alarm alarm = Decoders.decodeAlarm(struct);
         final Time time = Decoders.decodeTime(struct);
-        return VImage.of(height, width, xoffset, yoffset, data, data_type, image_type, alarm, time);
+        return VImage.of(height, width, xoffset, yoffset, xreversed, yreversed, data, data_type, image_type, alarm, time);
     }
 }
