@@ -31,6 +31,8 @@ org.csstudio.apputil.formula.areadetector.ImageWidthFunction
 org.csstudio.apputil.formula.areadetector.ImageHeightFunction
 org.csstudio.apputil.formula.areadetector.ImageXOffsetFunction
 org.csstudio.apputil.formula.areadetector.ImageYOffsetFunction
+org.csstudio.apputil.formula.areadetector.ImageXReversedFunction
+org.csstudio.apputil.formula.areadetector.ImageYReversedFunction
 
 # String
 org.csstudio.apputil.formula.string.StringFunction
