@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFile;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propInteractive;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLimitsFromPV;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMaximum;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMinimum;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.runtimePropConfigure;
@@ -409,6 +410,7 @@ public class ImageWidget extends PVWidget
     private volatile WidgetProperty<ColorMap> data_colormap;
     private volatile ColorBarProperty color_bar;
     private volatile AxisWidgetProperty x_axis, y_axis;
+    private volatile WidgetProperty<Boolean> limits_from_pv;
     private volatile WidgetProperty<Integer> data_width, data_height;
     private volatile WidgetProperty<InterpolationType> data_interpolation;
     private volatile WidgetProperty<VImageType> data_color_mode;
@@ -440,6 +442,7 @@ public class ImageWidget extends PVWidget
         properties.add(color_bar = new ColorBarProperty(this));
         properties.add(x_axis = new XAxisWidgetProperty(this));
         properties.add(y_axis = new YAxisWidgetProperty(this));
+        properties.add(limits_from_pv = propLimitsFromPV.createProperty(this, false)); // 'true' would be preferred but breaks existing displays
         properties.add(data_width = propDataWidth.createProperty(this, 100));
         properties.add(data_height = propDataHeight.createProperty(this, 100));
         properties.add(data_interpolation = propInterpolationType.createProperty(this, InterpolationType.AUTOMATIC));
@@ -529,6 +532,12 @@ public class ImageWidget extends PVWidget
     public AxisWidgetProperty propYAxis()
     {
         return y_axis;
+    }
+
+    /** @return 'limits_from_pv' property */
+    public WidgetProperty<Boolean> propLimitsFromPV()
+    {
+        return limits_from_pv;
     }
 
     /** @return 'data_width' property */

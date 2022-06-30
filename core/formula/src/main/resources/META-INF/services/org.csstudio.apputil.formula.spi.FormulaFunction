@@ -27,6 +27,8 @@ org.csstudio.apputil.formula.math.Pow
 # Other functions
 org.csstudio.apputil.formula.demo.Factorial
 org.csstudio.apputil.formula.areadetector.ADDataTypeMappingFunction
+org.csstudio.apputil.formula.areadetector.ImageWidthFunction
+org.csstudio.apputil.formula.areadetector.ImageHeightFunction
 
 # String
 org.csstudio.apputil.formula.string.StringFunction

@@ -27,6 +27,7 @@ public class Messages
                          GroupSelectedEntries,
                          Level,
                          Logbooks,
+                         LogbooksSearchFailTitle,
                          LogbookServiceUnavailableTitle,
                          LogbookServiceHasNoLogbooks,
                          LogbooksTitle,

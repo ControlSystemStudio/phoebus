@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -323,7 +323,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     /** @param action Action that the user invoked */
     private void handleAction(ActionInfo action)
     {
-        // Keyboard presses are not supressed so check if the widget is enabled
+        // Keyboard presses are not suppressed so check if the widget is enabled
         if (! enabled)
             return;
 
