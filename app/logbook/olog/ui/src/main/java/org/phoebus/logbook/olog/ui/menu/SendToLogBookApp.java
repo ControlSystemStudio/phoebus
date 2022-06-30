@@ -8,9 +8,12 @@
 package org.phoebus.logbook.olog.ui.menu;
 
 import javafx.scene.image.Image;
+import org.phoebus.framework.adapter.AdapterService;
+import org.phoebus.framework.selection.Selection;
+import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
-import org.phoebus.logbook.olog.ui.LogbookAvailabilityChecker;
+import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.ui.javafx.ImageCache;
@@ -37,10 +40,15 @@ public class SendToLogBookApp implements AppDescriptor {
 
     @Override
     public AppInstance create() {
-        if (!LogbookAvailabilityChecker.isLogbookAvailable()) {
-            return null;
+        Selection selection = SelectionService.getInstance().getSelection();
+        LogEntry ologLog;
+        if(selection.getSelections().isEmpty()){
+            ologLog = new OlogLog();
         }
-        new LogEntryEditorStage(new OlogLog()).show();
+        else{
+            ologLog = AdapterService.adapt(selection.getSelections().get(0), LogEntry.class).get();
+        }
+        new LogEntryEditorStage(ologLog).show();
         return null;
     }
 

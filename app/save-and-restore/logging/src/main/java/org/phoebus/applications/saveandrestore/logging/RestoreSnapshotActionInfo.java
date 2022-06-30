@@ -14,25 +14,34 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
  */
 
 package org.phoebus.applications.saveandrestore.logging;
 
-import org.phoebus.framework.nls.NLS;
+import java.util.List;
 
-public class Messages {
+/**
+ * Object wrapping information about a restore action.
+ */
+public class RestoreSnapshotActionInfo extends SaveSnapshotActionInfo{
 
-    public static String SnapshotCreated;
-    public static String SnapshotRestored;
-    public static String SaveSnapshotTemplateMessage;
-    public static String GoldenSnapshotRestored;
+    private boolean isGolden;
+    private List<String> failedPVs;
 
-    public static String RestoreSnapshotTemplateMessage;
+    public boolean isGolden() {
+        return isGolden;
+    }
 
-    public static String FailedPVs;
+    public void setGolden(boolean golden) {
+        isGolden = golden;
+    }
 
-    static
-    {
-        NLS.initializeMessages(Messages.class);
+    public List<String> getFailedPVs() {
+        return failedPVs;
+    }
+
+    public void setFailedPVs(List<String> failedPVs) {
+        this.failedPVs = failedPVs;
     }
 }

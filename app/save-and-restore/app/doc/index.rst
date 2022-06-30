@@ -68,17 +68,10 @@ Moving nodes on the other hand is lightweight as only references in the tree str
 Logging
 -------
 
-The optional logging module can be configured to call any registered electronic logbook implementations to automatically create a log
-entry when a new snapshot has been saved, or when a snapshot has been restored (even if the restore operation fails to
-write values to PVs in the save set).
-
-As neither the save-and-restore application
-nor the logging module will prompt for logbook credentials, users should use the Credentials Management app to make
-sure valid credentials are available. Such credentials are also available if user has successfully submitted a log entry,
-and if the electronic logbook module has been configured to save these credentials.
-
-Note save-and-restore operation is independent of the log request. This means that if credentials are missing or invalid,
-only logging will fail.
+If a logbook implementation is available in the application, the optional logging module can be used to launch a log entry
+editor for the purpose of logging when a new snapshot has been saved, or when a snapshot has been restored.
+Properties of the snapshot (name, date etc) are automatically set on the log entry rendered by the editor. If
+a restore action has failed to write one or multiple PVs, a list of these PVs is also added to the log entry.
 
 Script Support
 --------------

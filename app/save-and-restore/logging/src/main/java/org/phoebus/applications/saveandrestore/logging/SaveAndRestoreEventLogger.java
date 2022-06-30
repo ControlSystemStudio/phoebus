@@ -18,36 +18,24 @@
 
 package org.phoebus.applications.saveandrestore.logging;
 
+import javafx.application.Platform;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
-import org.phoebus.logbook.Attachment;
+import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.LogFactory;
-import org.phoebus.logbook.LogService;
-import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookPreferences;
-import org.phoebus.logbook.Property;
-import org.phoebus.logbook.Tag;
-import org.phoebus.security.store.SecureStore;
-import org.phoebus.security.tokens.ScopedAuthenticationToken;
-import org.phoebus.security.tokens.SimpleAuthenticationToken;
 
-import java.text.MessageFormat;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * Implementation of the {@link SaveAndRestoreEventReceiver} with the purpose of logging the events
- * (new snapshot or restore of a snapshot) to the electronic logbook. For this to work a log client must
- * be available, and at least one destination logbook must be configured in the preferences.
+ * (new snapshot or restore of a snapshot) to the electronic logbook, if one is configured. When notified it will launch
+ * an available logbook app with a {@link LogEntry} holding information about the user invoked
+ * operation. The logbook app is expected to render the log entry editor UI for the user so that additional
+ * information can be entered by the user before the log entry is submitted.
  */
 @SuppressWarnings("unused")
 public class SaveAndRestoreEventLogger implements SaveAndRestoreEventReceiver {
@@ -62,23 +50,18 @@ public class SaveAndRestoreEventLogger implements SaveAndRestoreEventReceiver {
      */
     @Override
     public void snapshotSaved(Node node, Consumer<String> errorHandler) {
-        LogFactory logFactory = LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory);
-        if (logFactory == null) {
+        if (!LogbookPreferences.is_supported) {
             return;
         }
-        try {
-            SecureStore secureStore = new SecureStore();
-            ScopedAuthenticationToken scopedAuthenticationToken = secureStore.getScopedAuthenticationToken("logbook");
-            if (scopedAuthenticationToken == null) {
-                errorHandler.accept(Messages.LogbookCredentialsMissing);
-                return;
-            }
-            logFactory.getLogClient(new SimpleAuthenticationToken(scopedAuthenticationToken.getUsername(), scopedAuthenticationToken.getPassword()))
-                    .set(new LogEntrySnapshotImpl(node));
-        } catch (Exception e) {
-            logger.log(Level.WARNING, "Failed to log save-and-restore event", e);
-            errorHandler.accept(e.getMessage());
-        }
+
+        SaveSnapshotActionInfo saveSnapshotActionInfo = new SaveSnapshotActionInfo();
+        saveSnapshotActionInfo.setSnapshotUniqueId(node.getUniqueId());
+        saveSnapshotActionInfo.setSnapshotCreatedDate(node.getCreated());
+        saveSnapshotActionInfo.setActionPerformedBy(System.getProperty("user.name"));
+        saveSnapshotActionInfo.setComment(node.getProperty("comment"));
+        saveSnapshotActionInfo.setSnapshotName(node.getName());
+        SelectionService.getInstance().setSelection("SaveAndRestoreLogging", List.of(saveSnapshotActionInfo));
+        Platform.runLater(() -> ApplicationService.createInstance("logbook"));
     }
 
     /**
@@ -91,23 +74,21 @@ public class SaveAndRestoreEventLogger implements SaveAndRestoreEventReceiver {
      */
     @Override
     public void snapshotRestored(Node node, List<String> failedPVs, Consumer<String> errorHandler) {
-        LogFactory logFactory = LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory);
-        if (logFactory == null) {
+
+        if (!LogbookPreferences.is_supported) {
             return;
         }
-        try {
-            SecureStore secureStore = new SecureStore();
-            ScopedAuthenticationToken scopedAuthenticationToken = secureStore.getScopedAuthenticationToken("logbook");
-            if (scopedAuthenticationToken == null) {
-                errorHandler.accept(Messages.LogbookCredentialsMissing);
-                return;
-            }
-            logFactory.getLogClient(new SimpleAuthenticationToken(scopedAuthenticationToken.getUsername(), scopedAuthenticationToken.getPassword()))
-                    .set(new LogEntryRestoreImpl(node, failedPVs));
-        } catch (Exception e) {
-            logger.log(Level.WARNING, "Failed to log save-and-restore event", e);
-            errorHandler.accept(e.getMessage());
-        }
+
+        RestoreSnapshotActionInfo restoreSnapshotActionInfo = new RestoreSnapshotActionInfo();
+        restoreSnapshotActionInfo.setSnapshotUniqueId(node.getUniqueId());
+        restoreSnapshotActionInfo.setSnapshotCreatedDate(node.getCreated());
+        restoreSnapshotActionInfo.setActionPerformedBy(System.getProperty("user.name"));
+        restoreSnapshotActionInfo.setComment(node.getProperty("comment"));
+        restoreSnapshotActionInfo.setGolden("true".equals(node.getProperty("golden")));
+        restoreSnapshotActionInfo.setSnapshotName(node.getName());
+        restoreSnapshotActionInfo.setFailedPVs(failedPVs);
+        SelectionService.getInstance().setSelection("SaveAndRestoreLogging", List.of(restoreSnapshotActionInfo));
+        Platform.runLater(() -> ApplicationService.createInstance("logbook"));
     }
 
     protected String getSnapshotInfoTable(Node node) {
@@ -121,7 +102,7 @@ public class SaveAndRestoreEventLogger implements SaveAndRestoreEventReceiver {
         stringBuilder.append("| Created | ").append(node.getCreated()).append(" |\n");
         String isGolden = node.getProperty("golden");
         stringBuilder.append("| Golden | ").append("true".equals(isGolden) ? "yes" : "no").append(" |\n");
-        stringBuilder.append("| User id | ").append(node.getUserName()).append(" |\n");
+        stringBuilder.append("| User id | ").append(node.getUserName()).append(" |\n\n");
 
         return stringBuilder.toString();
     }
@@ -135,152 +116,5 @@ public class SaveAndRestoreEventLogger implements SaveAndRestoreEventReceiver {
         pvs.forEach(p -> stringBuilder.append("| ").append(p).append(" |\n"));
 
         return stringBuilder.toString();
-    }
-
-    private class LogEntrySnapshotImpl implements LogEntry {
-
-        protected Node node;
-
-        public LogEntrySnapshotImpl(Node node) {
-            this.node = node;
-        }
-
-        @Override
-        public Long getId() {
-            return null;
-        }
-
-        @Override
-        public String getOwner() {
-            return node.getUserName();
-        }
-
-        @Override
-        public String getTitle() {
-            return MessageFormat.format(Messages.SnapshotCreated, node.getName());
-        }
-
-        @Override
-        public String getDescription() {
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append(getSnapshotInfoTable(node));
-            return stringBuilder.toString();
-        }
-
-        @Override
-        public String getLevel() {
-            return SaveAndRestoreLoggingPreferences.level;
-        }
-
-        @Override
-        public Instant getCreatedDate() {
-            return Instant.ofEpochMilli(node.getCreated().getTime());
-        }
-
-        @Override
-        public Instant getModifiedDate() {
-            return null;
-        }
-
-        @Override
-        public int getVersion() {
-            return 0;
-        }
-
-        @Override
-        public Collection<Tag> getTags() {
-            List<String> tags = SaveAndRestoreLoggingPreferences.tags;
-            List<Tag> tagsList = new ArrayList<>();
-            tags.forEach(t -> tagsList.add(new Tag() {
-                @Override
-                public String getName() {
-                    return t;
-                }
-
-                @Override
-                public String getState() {
-                    return "Active";
-                }
-            }));
-            return tagsList;
-        }
-
-        @Override
-        public Tag getTag(String s) {
-            return null;
-        }
-
-        @Override
-        public Collection<Logbook> getLogbooks() {
-            List<String> logbooks = SaveAndRestoreLoggingPreferences.logbooks;
-            List<Logbook> logbookList = new ArrayList<>();
-            logbooks.forEach(l -> logbookList.add(new Logbook() {
-                @Override
-                public String getName() {
-                    return l;
-                }
-
-                @Override
-                public String getOwner() {
-                    return null;
-                }
-            }));
-            return logbookList;
-        }
-
-        @Override
-        public Collection<Attachment> getAttachments() {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public Collection<Property> getProperties() {
-            Property property = new Property() {
-                @Override
-                public String getName() {
-                    return "resource";
-                }
-
-                @Override
-                public Map<String, String> getAttributes() {
-                    Map<String, String> map = new HashMap<>();
-                    map.put("file", "file:/" + node.getUniqueId() + "?app=saveandrestore");
-                    map.put("name", node.getName());
-                    return map;
-                }
-            };
-            return List.of(property);
-        }
-
-        @Override
-        public Property getProperty(String s) {
-            return null;
-        }
-    }
-
-    private class LogEntryRestoreImpl extends LogEntrySnapshotImpl {
-
-        private final List<String> failedPVs;
-
-        public LogEntryRestoreImpl(Node node, List<String> failedPVs) {
-            super(node);
-            this.failedPVs = failedPVs;
-        }
-
-        @Override
-        public String getTitle() {
-            return MessageFormat.format(Messages.SnapshotRestored, node.getName());
-        }
-
-        @Override
-        public String getDescription() {
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append(super.getDescription());
-            if (failedPVs != null && !failedPVs.isEmpty()) {
-                stringBuilder.append("\n\n").append("**Failed to restore the following PVs:**\n\n");
-                stringBuilder.append(getFailedPVsTable(failedPVs));
-            }
-            return stringBuilder.toString();
-        }
     }
 }
