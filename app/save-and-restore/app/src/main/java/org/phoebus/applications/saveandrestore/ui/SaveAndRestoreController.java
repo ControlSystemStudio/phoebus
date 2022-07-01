@@ -215,8 +215,10 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 toggleGoldenMenuItemText.set(Boolean.parseBoolean(item.getValue().getProperty("golden")) ? Messages.contextMenuRemoveGoldenTag : Messages.contextMenuTagAsGolden);
                 toggleGoldenImageViewProperty.set(Boolean.parseBoolean(item.getValue().getProperty("golden")) ? snapshotImageView : snapshotGoldenImageView);
             }
-            if (me.getClickCount() == 2) {
-                nodeDoubleClicked(browserSelectionModel.getSelectedItems().get(0).getValue());
+            // Check if a tab has already been opened for this node.
+            boolean highlighted = highlightTab(item.getValue().getUniqueId());
+            if (!highlighted && me.getClickCount() == 2) {
+                nodeDoubleClicked(item.getValue());
             }
         });
 
@@ -550,13 +552,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      */
     private void nodeDoubleClicked(Node node) {
 
-        // Disallow opening a tab multiple times for the same save set.
-        for (Tab tab : tabPane.getTabs()) {
-            if (tab.getId() != null && tab.getId().equals(node.getUniqueId())) {
-                return;
-            }
-        }
-
         Tab tab;
 
         switch (node.getNodeType()) {
@@ -574,6 +569,16 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);
+    }
+
+    private boolean highlightTab(String id){
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab.getId() != null && tab.getId().equals(id)) {
+                tabPane.getSelectionModel().select(tab);
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
