@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /** PV Factory for system PVs
- *  @author Kay Kasemir
+ *  @author Kay Kasemir, Kunal Shroff
  */
 @SuppressWarnings("nls")
 public class SysPVFactory implements PVFactory
@@ -31,7 +31,7 @@ public class SysPVFactory implements PVFactory
     @Override
     public PV createPV(final String name, final String base_name) throws Exception
     {
-        // Determine simulation function name and (optional) parameters
+        // Determine system pv function name and (optional) parameters
         final String func, parameters;
         int sep = base_name.indexOf('(');
         if (sep < 0)

@@ -1,5 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2022 Brookhaven National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,14 +13,12 @@ import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.time.Instant;
-import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAmount;
 import java.util.List;
-import java.util.Locale;
 
 /** System "time" PV
- *  @author Kay Kasemir, based on similar code in diirt
+ *  @author Kunal Shroff, Kay Kasemir, based on similar code in diirt
  */
 public class TimeOffsetPV extends SimulatedStringPV
 {
