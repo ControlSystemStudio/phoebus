@@ -380,12 +380,10 @@ public class AdvancedSearchViewController {
     }
 
     private final ChangeListener<? super String> searchOnTextChange = (options, oldValue, newValue) -> {
-        System.out.println("triggered search");
         searchCallback.run();
     };
 
     private final ChangeListener<? super Boolean> searchOnSortChange = (options, oldValue, newValue) -> {
-        System.out.println("triggered search");
         searchCallback.run();
     };
 
