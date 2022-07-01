@@ -132,6 +132,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     @FXML
     public void initialize() {
+
+        advancedSearchViewController.setSearchCallback(this::search);
+
         configureComboBox();
         ologQueries.setAll(ologQueryManager.getQueries());
 

@@ -21,7 +21,9 @@ package org.phoebus.logbook.olog.ui;
 import com.google.common.base.Strings;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -30,6 +32,8 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -118,26 +122,45 @@ public class AdvancedSearchViewController {
     private final SimpleBooleanProperty sortAscending = new SimpleBooleanProperty(false);
     private final SimpleBooleanProperty requireAttachments = new SimpleBooleanProperty(false);
 
+    private Runnable searchCallback = () -> {
+        throw new IllegalStateException("Search callback is not set on AdvancedSearchViewConroller!");
+    };
+
     public AdvancedSearchViewController(LogClient logClient, SearchParameters searchParameters) {
         this.logClient = logClient;
         this.searchParameters = searchParameters;
+    }
+
+    public void setSearchCallback(Runnable searchCallback) {
+        this.searchCallback = searchCallback;
     }
 
     @FXML
     public void initialize() {
 
         searchTitle.textProperty().bindBidirectional(this.searchParameters.titleProperty());
+        searchTitle.setOnKeyReleased(this::searchOnEnter);
         searchText.textProperty().bindBidirectional(this.searchParameters.textProperty());
+        searchText.setOnKeyReleased(this::searchOnEnter);
         searchAuthor.textProperty().bindBidirectional(this.searchParameters.authorProperty());
+        searchAuthor.setOnKeyReleased(this::searchOnEnter);
         levelSelector.valueProperty().bindBidirectional(this.searchParameters.levelProperty());
+        levelSelector.setOnAction(e -> searchCallback.run());
         searchTags.textProperty().bindBidirectional(this.searchParameters.tagsProperty());
+        searchParameters.tagsProperty().addListener(searchOnTextChange);
         searchLogbooks.textProperty().bindBidirectional(this.searchParameters.logbooksProperty());
+        searchParameters.logbooksProperty().addListener(searchOnTextChange);
         startTime.textProperty().bindBidirectional(this.searchParameters.startTimeProperty());
+        startTime.setOnKeyReleased(this::searchOnEnter);
         endTime.textProperty().bindBidirectional(this.searchParameters.endTimeProperty());
+        endTime.setOnKeyReleased(this::searchOnEnter);
         searchParameters.addListener((observable, oldValue, newValue) -> {
             updateControls(newValue);
         });
+        sortAscending.addListener(searchOnSortChange);
+
         attachmentTypes.textProperty().bindBidirectional(this.searchParameters.attachmentsProperty());
+        attachmentTypes.setOnKeyReleased(this::searchOnEnter);
 
         levelLabel.setText(LogbookUIPreferences.level_field_name);
 
@@ -173,6 +196,7 @@ public class AdvancedSearchViewController {
                 }
                 if (timeSearchPopover.isShowing())
                     timeSearchPopover.hide();
+                searchCallback.run();
             });
         });
         Button cancel = new Button();
@@ -368,4 +392,21 @@ public class AdvancedSearchViewController {
     public SimpleBooleanProperty getSortAscending(){
         return sortAscending;
     }
+
+    private void searchOnEnter(KeyEvent e) {
+        if (e.getCode() == KeyCode.ENTER) {
+            searchCallback.run();
+        }
+    }
+
+    private final ChangeListener<? super String> searchOnTextChange = (options, oldValue, newValue) -> {
+        System.out.println("triggered search");
+        searchCallback.run();
+    };
+
+    private final ChangeListener<? super Boolean> searchOnSortChange = (options, oldValue, newValue) -> {
+        System.out.println("triggered search");
+        searchCallback.run();
+    };
+
 }
