@@ -2,6 +2,7 @@ package org.phoebus.logbook.olog.ui;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
+import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
@@ -13,6 +14,7 @@ import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
 import java.io.IOException;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,7 +35,9 @@ public class LogEntryCalender implements AppInstance {
             SearchParameters searchParameters = new SearchParameters();
             searchParameters.setQuery(ologQueryManager.getQueries().get(0).getQuery());
             FXMLLoader loader = new FXMLLoader();
+            ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
             loader.setLocation(this.getClass().getResource("LogEntryCalenderView.fxml"));
+            loader.setResources(resourceBundle);
             loader.setControllerFactory(clazz -> {
                 try {
                     if(app.getClient() != null)
