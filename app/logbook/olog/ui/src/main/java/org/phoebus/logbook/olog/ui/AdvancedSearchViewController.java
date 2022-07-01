@@ -23,9 +23,7 @@ import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -41,19 +39,17 @@ import javafx.scene.layout.VBox;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Tag;
-import org.phoebus.ui.dialog.ListSelectionController;
+import org.phoebus.ui.dialog.ListSelectionPopOver;
 import org.phoebus.ui.dialog.PopOver;
 import org.phoebus.ui.time.TimeRelativeIntervalPane;
 import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimeRelativeInterval;
 import org.phoebus.util.time.TimestampFormats;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -88,22 +84,16 @@ public class AdvancedSearchViewController {
 
     @FXML
     TextField searchLogbooks;
-    PopOver logbookSearchPopover;
+    ListSelectionPopOver logbookSearchPopover;
 
     @FXML
     ComboBox<String> levelSelector;
 
     @FXML
     TextField searchTags;
-    PopOver tagSearchPopover;
+    ListSelectionPopOver tagSearchPopover;
 
     private final LogClient logClient;
-
-    private ListSelectionController tagController;
-    private ListSelectionController logbookController;
-
-    List<String> logbookNames;
-    List<String> tagNames;
 
     @FXML
     private AnchorPane advancedSearchPane;
@@ -228,68 +218,50 @@ public class AdvancedSearchViewController {
                     }
                 });
 
-        FXMLLoader logbookSelectionLoader = new FXMLLoader();
-        logbookSelectionLoader.setLocation(this.getClass().getResource("/org/phoebus/ui/dialog/ListSelection.fxml"));
-        try {
-            logbookSelectionLoader.load();
-            logbookController = logbookSelectionLoader.getController();
-            logbookController.setOnApply((List<String> t) -> {
-                Platform.runLater(() -> {
-                    if (t.isEmpty()) {
-                        searchParameters.logbooksProperty().setValue(null);
-                    } else {
-                        searchParameters.logbooksProperty().setValue(t.stream().collect(Collectors.joining(",")));
+        logbookSearchPopover = ListSelectionPopOver.create(
+                (logbooks, popover) -> {
+                    String logbooksValue = String.join(",", logbooks);
+                    searchParameters.logbooksProperty().setValue(logbooksValue);
+                    if (popover.isShowing()) {
+                        popover.hide();
                     }
-                    if (logbookSearchPopover.isShowing())
-                        logbookSearchPopover.hide();
-                });
-                return true;
-            });
-            logbookController.setOnCancel((List<String> t) -> {
-                if (logbookSearchPopover.isShowing())
-                    logbookSearchPopover.hide();
-                return true;
-            });
-            logbookSearchPopover = new PopOver(logbookSelectionLoader.getRoot());
-        } catch (IOException e) {
-            logger.log(Level.WARNING, "failed to open logbook search dialog", e);
-        }
+                },
+                (logbooks, popover) -> {
+                    if (popover.isShowing()) {
+                        popover.hide();
+                    }
+                }
+        );
 
-        FXMLLoader tagSelectionLoader = new FXMLLoader();
-        tagSelectionLoader.setLocation(this.getClass().getResource("/org/phoebus/ui/dialog/ListSelection.fxml"));
-        try {
-            tagSelectionLoader.load();
-            tagController = tagSelectionLoader.getController();
-            tagController.setOnApply((List<String> t) -> {
-                Platform.runLater(() -> {
-
-                    String tagsValue =
-                            t.stream().collect(Collectors.joining(","));
-                    //searchParameters.put(Keys.TAGS, tagsValue);
+        tagSearchPopover = ListSelectionPopOver.create(
+                (tags, popover) -> {
+                    String tagsValue = String.join(",", tags);
                     searchParameters.tagsProperty().setValue(tagsValue);
-
-                    if (tagSearchPopover.isShowing()) {
-                        tagSearchPopover.hide();
+                    if (popover.isShowing()) {
+                        popover.hide();
                     }
-                });
-                return true;
-            });
-            tagController.setOnCancel((List<String> t) -> {
-                if (tagSearchPopover.isShowing())
-                    tagSearchPopover.hide();
-                return true;
-            });
-            tagSearchPopover = new PopOver(tagSelectionLoader.getRoot());
-        } catch (IOException e) {
-            logger.log(Level.WARNING, "failed to open tag search dialog", e);
-        }
+                },
+                (tags, popover) -> {
+                    if (popover.isShowing()) {
+                        popover.hide();
+                    }
+                }
+        );
 
         searchTags.setOnMouseClicked(mouseEvent -> {
             if (tagSearchPopover.isShowing()) {
                 tagSearchPopover.hide();
             } else {
-                tagNames = logClient.listTags().stream().map(Tag::getName).sorted().collect(Collectors.toList());
-                tagController.setAvailable(tagNames);
+                List<String> selectedTags = Arrays.stream( searchParameters.tagsProperty().getValueSafe().split(","))
+                        .map(String::trim)
+                        .filter(it -> !it.isEmpty())
+                        .collect(Collectors.toList());
+                List<String> availableTags = logClient.listTags().stream()
+                        .map(Tag::getName)
+                        .sorted()
+                        .collect(Collectors.toList());
+                tagSearchPopover.setAvailable(availableTags, selectedTags);
+                tagSearchPopover.setSelected(selectedTags);
                 tagSearchPopover.show(searchTags);
             }
         });
@@ -298,8 +270,16 @@ public class AdvancedSearchViewController {
             if (logbookSearchPopover.isShowing()) {
                 logbookSearchPopover.hide();
             } else {
-                logbookNames = logClient.listLogbooks().stream().map(Logbook::getName).sorted().collect(Collectors.toList());
-                logbookController.setAvailable(logbookNames);
+                List<String> selectedLogbooks = Arrays.stream( searchParameters.logbooksProperty().getValueSafe().split(","))
+                        .map(String::trim)
+                        .filter(it -> !it.isEmpty())
+                        .collect(Collectors.toList());
+                List<String> availableLogbooks = logClient.listLogbooks().stream()
+                        .map(Logbook::getName)
+                        .sorted()
+                        .collect(Collectors.toList());
+                logbookSearchPopover.setAvailable(availableLogbooks, selectedLogbooks);
+                logbookSearchPopover.setSelected(selectedLogbooks);
                 logbookSearchPopover.show(searchLogbooks);
             }
         });
@@ -348,7 +328,7 @@ public class AdvancedSearchViewController {
                                 validatedLogbookNames.stream().collect(Collectors.joining(","));
                         searchParameters.logbooksProperty().setValue(selectedLogbooks);
                     }
-                    logbookController.setSelected(validatedLogbookNames);
+                    logbookSearchPopover.setSelected(validatedLogbookNames);
                 } else if (keys.equals(Keys.TAGS)) {
                     List<String> validatedTagsNames = getValidatedTagsSelection(entry.getValue());
                     if (validatedTagsNames.isEmpty()) {
@@ -357,7 +337,7 @@ public class AdvancedSearchViewController {
                         String selectedTags = validatedTagsNames.stream().collect(Collectors.joining(","));
                         searchParameters.tagsProperty().setValue(selectedTags);
                     }
-                    tagController.setSelected(validatedTagsNames);
+                    tagSearchPopover.setSelected(validatedTagsNames);
                 }
             }
         });
