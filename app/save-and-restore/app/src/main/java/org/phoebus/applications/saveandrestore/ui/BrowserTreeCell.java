@@ -58,10 +58,10 @@ public class BrowserTreeCell extends TreeCell<Node> {
     private javafx.scene.Node saveSetBox;
     private javafx.scene.Node snapshotBox;
 
-    private ContextMenu folderContextMenu;
-    private ContextMenu saveSetContextMenu;
-    private ContextMenu snapshotContextMenu;
-    private ContextMenu rootFolderContextMenu;
+    private final ContextMenu folderContextMenu;
+    private final ContextMenu saveSetContextMenu;
+    private final ContextMenu snapshotContextMenu;
+    private final ContextMenu rootFolderContextMenu;
 
     private static final Border BORDER = new Border(new BorderStroke(Color.GREEN, BorderStrokeStyle.SOLID,
             new CornerRadii(5.0), BorderStroke.THIN));
@@ -155,12 +155,11 @@ public class BrowserTreeCell extends TreeCell<Node> {
             setContextMenu(null);
             return;
         }
-
+        setGraphic(folderBox);
         switch (node.getNodeType()) {
             case SNAPSHOT:
                 ((Label) snapshotBox.lookup("#primaryLabel"))
                         .setText(node.getName());
-                ((Label) snapshotBox.lookup("#secondaryLabel")).setText(node.getCreated() + " (" + node.getUserName() + ")");
                 snapshotBox.lookup("#tagIcon").setVisible(node.getTags() != null && !node.getTags().isEmpty());
                 setGraphic(snapshotBox);
                 if (node.getProperty("golden") != null && Boolean.valueOf(node.getProperty("golden"))) {

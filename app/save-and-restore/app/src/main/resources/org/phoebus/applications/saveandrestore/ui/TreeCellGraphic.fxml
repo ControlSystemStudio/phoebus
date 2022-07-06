@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.control.TextField?>
 
 <FlowPane xmlns="http://javafx.com/javafx/8.0.999-ea" xmlns:fx="http://javafx.com/fxml/1">
 
@@ -28,49 +25,33 @@
 				<image>
 					<Image url="/icons/save-and-restore/saveset.png" />
 				</image>
-            <HBox.margin>
-               <Insets top="-1.0" />
-            </HBox.margin>
+
 			</ImageView>
 			<Label fx:id="savesetLabel" text="Label">
-            <HBox.margin>
-               <Insets />
-            </HBox.margin></Label>
+            </Label>
 		</children>
 	</HBox>
 
-	<VBox fx:id="snapshot">
-		<children>
-			<HBox>
-				<ImageView fx:id="snapshotIcon" pickOnBounds="true" preserveRatio="true">
-					<image>
-						<Image url="/icons/save-and-restore/snapshot.png" />
-					</image>
-               <HBox.margin>
-                  <Insets top="3.0" />
-               </HBox.margin>
-				</ImageView>
-				<VBox fx:id="snapshotNodeName">
-					<HBox alignment="CENTER_LEFT" spacing="3">
-						<Label fx:id="primaryLabel" text="Label" />
-                        <ImageView fx:id="tagIcon" visible="false" fitHeight="13" pickOnBounds="true" preserveRatio="true">
-							<image>
-								<Image url="/icons/save-and-restore/snapshot-tags.png" />
-							</image>
-						</ImageView>
-					</HBox>
-					<Label fx:id="secondaryLabel" style="-fx-font-size: 8pt;" text="Label"/>
-					<VBox.margin>
-						<Insets left="2.0" />
-					</VBox.margin>
-               <HBox.margin>
-                  <Insets left="2.0" />
-               </HBox.margin>
 
-				</VBox>
+	<HBox fx:id="snapshot">
+		<children>
+		<ImageView fx:id="snapshotIcon" pickOnBounds="true" preserveRatio="true">
+			<image>
+				<Image url="/icons/save-and-restore/snapshot.png" />
+			</image>
+
+		</ImageView>
+
+			<HBox alignment="CENTER_LEFT" spacing="3">
+				<children>
+				<Label fx:id="primaryLabel" text="Label" />
+				<ImageView fx:id="tagIcon" visible="false" fitHeight="13" pickOnBounds="true" preserveRatio="true">
+					<image>
+						<Image url="/icons/save-and-restore/snapshot-tags.png" />
+					</image>
+				</ImageView></children>
 			</HBox>
 		</children>
-	</VBox>
-
+	</HBox>
 
 </FlowPane>
