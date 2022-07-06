@@ -169,9 +169,12 @@ public class BrowserTreeCell extends TreeCell<Node> {
                 }
                 setContextMenu(snapshotContextMenu);
                 String comment = node.getProperty("comment");
+                StringBuffer stringBuffer = new StringBuffer();
                 if (comment != null && !comment.isEmpty()) {
-                    setTooltip(new Tooltip(comment));
+                    stringBuffer.append(comment).append(System.lineSeparator());
                 }
+                stringBuffer.append(node.getCreated()).append(" (").append(node.getUserName()).append(")");
+                setTooltip(new Tooltip(stringBuffer.toString()));
                 setEditable(false);
                 break;
             case CONFIGURATION:
