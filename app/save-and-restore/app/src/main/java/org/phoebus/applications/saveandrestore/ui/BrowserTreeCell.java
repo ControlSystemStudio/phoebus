@@ -58,10 +58,10 @@ public class BrowserTreeCell extends TreeCell<Node> {
     private javafx.scene.Node saveSetBox;
     private javafx.scene.Node snapshotBox;
 
-    private ContextMenu folderContextMenu;
-    private ContextMenu saveSetContextMenu;
-    private ContextMenu snapshotContextMenu;
-    private ContextMenu rootFolderContextMenu;
+    private final ContextMenu folderContextMenu;
+    private final ContextMenu saveSetContextMenu;
+    private final ContextMenu snapshotContextMenu;
+    private final ContextMenu rootFolderContextMenu;
 
     private static final Border BORDER = new Border(new BorderStroke(Color.GREEN, BorderStrokeStyle.SOLID,
             new CornerRadii(5.0), BorderStroke.THIN));
@@ -155,12 +155,11 @@ public class BrowserTreeCell extends TreeCell<Node> {
             setContextMenu(null);
             return;
         }
-
+        setGraphic(folderBox);
         switch (node.getNodeType()) {
             case SNAPSHOT:
                 ((Label) snapshotBox.lookup("#primaryLabel"))
                         .setText(node.getName());
-                ((Label) snapshotBox.lookup("#secondaryLabel")).setText(node.getCreated() + " (" + node.getUserName() + ")");
                 snapshotBox.lookup("#tagIcon").setVisible(node.getTags() != null && !node.getTags().isEmpty());
                 setGraphic(snapshotBox);
                 if (node.getProperty("golden") != null && Boolean.valueOf(node.getProperty("golden"))) {
@@ -170,9 +169,12 @@ public class BrowserTreeCell extends TreeCell<Node> {
                 }
                 setContextMenu(snapshotContextMenu);
                 String comment = node.getProperty("comment");
+                StringBuffer stringBuffer = new StringBuffer();
                 if (comment != null && !comment.isEmpty()) {
-                    setTooltip(new Tooltip(comment));
+                    stringBuffer.append(comment).append(System.lineSeparator());
                 }
+                stringBuffer.append(node.getCreated()).append(" (").append(node.getUserName()).append(")");
+                setTooltip(new Tooltip(stringBuffer.toString()));
                 setEditable(false);
                 break;
             case CONFIGURATION:
