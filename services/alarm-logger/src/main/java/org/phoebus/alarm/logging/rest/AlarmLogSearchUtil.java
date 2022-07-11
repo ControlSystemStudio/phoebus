@@ -34,6 +34,7 @@ import static org.phoebus.alarm.logging.rest.SearchController.logger;
 
 /**
  * A Job to search for alarm messages logged by the alarm logging service
+ *
  * @author Kunal Shroff
  */
 public class AlarmLogSearchUtil {
@@ -43,6 +44,7 @@ public class AlarmLogSearchUtil {
     private static final PreferencesReader prefs = new PreferencesReader(AlarmLoggingService.class, "/application.properties");
 
     private static ObjectMapper mapper;
+
     static {
         mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
@@ -60,137 +62,165 @@ public class AlarmLogSearchUtil {
     private static final String ENDTIME = "end";
 
     public static List<AlarmLogMessage> search(ElasticsearchClient client,
-                                               String pattern,
                                                Map<String, String> searchParameters) {
-        logger.info("searching for alarm log entires : " + pattern);
+        logger.info("searching for alarm log entires : " +
+                searchParameters.entrySet().stream().map(e -> e.getKey() + ": " + e.getValue()).collect(Collectors.joining()));
 
         String from = formatter.format(Instant.now().minus(7, ChronoUnit.DAYS));
         String to = formatter.format(Instant.now());
-        String searchPattern = "*".concat(pattern).concat("*");
-        int size = prefs.getInt("es_max_size");
-        Boolean configSet = false;
+
+        // The maximum search result size
+        int maxSize = prefs.getInt("es_max_size");
+        boolean configSet = false;
+        boolean temporalSearch = false;
 
         BoolQuery.Builder boolQuery = new BoolQuery.Builder();
 
-        for (Map.Entry<String, String> entry : searchParameters.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            if (key.equals("start")) {
-                Object time = TimeParser.parseInstantOrTemporalAmount(value);
-                if (time instanceof Instant) {
-                    from = formatter.format((Instant)time);
-                } else if (time instanceof TemporalAmount) {
-                    from = formatter.format(Instant.now().minus((TemporalAmount)time));
-                }
-                continue;
-            }
-            if (key.equals("end")) {
-                Object time = TimeParser.parseInstantOrTemporalAmount(value);
-                if (time instanceof Instant) {
-                    to = formatter.format((Instant)time);
-                } else if (time instanceof TemporalAmount) {
-                    to = formatter.format(Instant.now().minus((TemporalAmount)time));
-                }
-                continue;
-            }
-            if (key.equals("size")) {
-                size = Math.min(size, Integer.parseInt(value));
-                continue;
-            }
-            if (!value.equals("*")) {
-                if (key.equals("command")) {
-                    if (value.equalsIgnoreCase("Enabled")) {
-                        key = "enabled";
-                        value = "true";
-                    } else if (value.equalsIgnoreCase("Disabled")) {
-                        key = "enabled";
-                        value = "false";
+        for (Map.Entry<String, String> parameter : searchParameters.entrySet()) {
+            switch (parameter.getKey().strip().toLowerCase()) {
+                case STARTTIME:
+                    Object startTime = TimeParser.parseInstantOrTemporalAmount(parameter.getValue().strip());
+                    if (startTime instanceof Instant) {
+                        from = formatter.format((Instant) startTime);
+                    } else if (startTime instanceof TemporalAmount) {
+                        from = formatter.format(Instant.now().minus((TemporalAmount) startTime));
                     }
-                }
-                if (key.equals("pv")) {
-                    value = "*".concat(value).concat("*");
-                    String finalValue = value; //Effectively final
+                    temporalSearch = true;
+                    break;
+                case ENDTIME:
+                    Object endTime = TimeParser.parseInstantOrTemporalAmount(parameter.getValue().strip());
+                    if (endTime instanceof Instant) {
+                        to = formatter.format((Instant) endTime);
+                    } else if (endTime instanceof TemporalAmount) {
+                        to = formatter.format(Instant.now().minus((TemporalAmount) endTime));
+                    }
+                    temporalSearch = true;
+                    break;
+                case "size":
+                    maxSize = Math.min(maxSize, Integer.parseInt(parameter.getValue().strip()));
+                    break;
+                case COMMAND:
+                    if (parameter.getValue().strip().equalsIgnoreCase("Enabled")) {
+                        boolQuery.must(WildcardQuery.of(w -> w.field("enabled").value("true"))._toQuery());
+                    } else if (parameter.getValue().strip().equalsIgnoreCase("Disabled")) {
+                        boolQuery.must(WildcardQuery.of(w -> w.field("enabled").value("false"))._toQuery());
+                    }
+                    break;
+                case PV:
                     boolQuery.must(Query.of(q -> q
                                     .wildcard(WildcardQuery.of(w -> w
                                                     .field("config")
-                                                    .value(finalValue)
+                                                    .value("*" + parameter.getValue().strip() + "*")
                                             )
                                     )
                             )
                     );
                     configSet = true;
-                    continue;
-                }
-                //Effectively final
-                String finalVal2 = value;
-                String finalKey2 = key;
-                //
-                boolQuery.must(Query.of(q->q
-                        .wildcard(WildcardQuery.of(w->w
-                                .field(finalKey2)
-                                .value(finalVal2)
-                            )
+                    break;
+                case SEVERITY:
+                    boolQuery.must(WildcardQuery.of(w -> w
+                            .field(SEVERITY)
+                            .value(parameter.getValue().strip().toUpperCase()))._toQuery()
+                    );
+                    break;
+                case CURRENTSEVERITY:
+                    boolQuery.must(WildcardQuery.of(w -> w
+                            .field(CURRENTSEVERITY)
+                            .value(parameter.getValue().strip().toUpperCase()))._toQuery()
+                    );
+                    break;
+                case MESSAGE:
+                    boolQuery.must(WildcardQuery.of(w -> w
+                            .field(MESSAGE)
+                            .value(parameter.getValue().strip().toUpperCase()))._toQuery()
+                    );
+                    break;
+                case CURRENTMESSAGE:
+                    boolQuery.must(WildcardQuery.of(w -> w
+                            .field(CURRENTMESSAGE)
+                            .value(parameter.getValue().strip().toUpperCase()))._toQuery()
+                    );
+                    break;
+                case USER:
+                    boolQuery.must(WildcardQuery.of(w -> w
+                            .field(USER)
+                            .value(parameter.getValue().strip()))._toQuery()
+                    );
+                    break;
+                case HOST:
+                    boolQuery.must(WildcardQuery.of(w -> w
+                            .field(HOST)
+                            .value(parameter.getValue().strip()))._toQuery()
+                    );
+                    break;
+                default:
+                    // Unsupported search parameters are ignored
+                    break;
+            }
+
+            if (!configSet) {
+                boolQuery.must(Query.of(q -> q
+                                .wildcard(WildcardQuery.of(w -> w
+                                                .field("config")
+                                                .value("*")
+                                        )
+                                )
                         )
-                    )
                 );
             }
-        }
-        if (!configSet) {
-            boolQuery.must(Query.of(q->q
-                    .wildcard(WildcardQuery.of(w->w
-                            .field("config")
-                            .value(searchPattern)
-                            )
+
+            // Add the temporal queries
+            if (temporalSearch) {
+                // TODO check that the start is before the end
+                //Effectively final
+                String finalFrom = from;
+                String finalTo = to;
+                boolQuery.must(
+                        Query.of(q -> q
+                                .range(RangeQuery.of(r -> r
+                                                .field("message_time")
+                                                .from(finalFrom)
+                                                .to(finalTo)
+                                        )
+                                )
                         )
+                );
+            }
+
+            int finalSize = maxSize; //Effectively final
+            SearchRequest searchRequest = SearchRequest.of(r -> r
+                    .query(Query.of(q -> q
+                                    .bool(boolQuery.build())
+                            )
+                    )
+                    .size(finalSize)
+                    .sort(SortOptions.of(o -> o
+                                    .field(FieldSort.of(f -> f
+                                                    .field("message_time")
+                                                    .order(SortOrder.Desc)
+                                            )
+                                    )
+                            )
                     )
             );
+            final List<AlarmLogMessage> result = new ArrayList<>();
+            try {
+                SearchResponse<JsonNode> strResponse = client.search(searchRequest, JsonNode.class);
+                return strResponse.hits().hits().stream().map(hit -> {
+                    JsonNode jsonNode = hit.source();
+                    try {
+                        return mapper.treeToValue(jsonNode, AlarmLogMessage.class);
+                    } catch (JsonProcessingException e) {
+                        logger.log(Level.SEVERE, "Failed to parse the searched alarm log messages. " + hit, e);
+                    }
+                    return null;
+                }).collect(Collectors.toList());
+            } catch (IOException e) {
+                logger.log(Level.SEVERE, "Failed to search for alarm logs ", e);
+            }
+            return result;
         }
-        //Effectively final
-        String finalFrom = from;
-        String finalTo = to;
-        //
-        boolQuery.must(
-                Query.of(q->q
-                        .range(RangeQuery.of(r->r
-                                .field("message_time")
-                                .from(finalFrom)
-                                .to(finalTo)
-                        )
-                        )
-                )
-        );
-        int finalSize = size; //Effectively final
-        SearchRequest searchRequest = SearchRequest.of(r->r
-                .query(Query.of(q->q
-                                .bool(boolQuery.build())
-                    )
-                )
-                .size(finalSize)
-                .sort(SortOptions.of(o->o
-                        .field(FieldSort.of(f->f
-                                .field("message_time")
-                                .order(SortOrder.Desc)
-                            )
-                        )
-                    )
-                )
-        );
-        final List<AlarmLogMessage> result = new ArrayList<>();
-        try {
-            SearchResponse<JsonNode> strResponse = client.search(searchRequest, JsonNode.class);
-            return strResponse.hits().hits().stream().map(hit -> {
-                JsonNode jsonNode = hit.source();
-                try {
-                    return mapper.treeToValue(jsonNode, AlarmLogMessage.class);
-                } catch (JsonProcessingException e) {
-                    logger.log(Level.SEVERE, "Failed to parse the searched alarm log messages. " + hit, e);
-                }
-                return null;
-            }).collect(Collectors.toList());
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "Failed to search for alarm logs ", e);
-        }
-        return result;
+        return null;
     }
 
 }

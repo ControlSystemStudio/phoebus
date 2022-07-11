@@ -82,7 +82,7 @@ public class SearchController {
 
     @RequestMapping(value = "/search/alarm", method = RequestMethod.GET)
     public List<AlarmLogMessage> search(@RequestParam Map<String, String> allRequestParams) {
-        List<AlarmLogMessage> result = AlarmLogSearchUtil.search(ElasticClientHelper.getInstance().getClient(), "*", Collections.emptyMap());
+        List<AlarmLogMessage> result = AlarmLogSearchUtil.search(ElasticClientHelper.getInstance().getClient(), allRequestParams);
         return result;
     }
 
@@ -90,7 +90,7 @@ public class SearchController {
     public List<AlarmLogMessage> searchPv(@PathVariable String pv) {
         Map<String, String> searchParameters = new HashMap<>();
         searchParameters.put("pv", pv);
-        List<AlarmLogMessage> result = AlarmLogSearchUtil.search(ElasticClientHelper.getInstance().getClient(), "*", searchParameters);
+        List<AlarmLogMessage> result = AlarmLogSearchUtil.search(ElasticClientHelper.getInstance().getClient(), searchParameters);
         return result;
     }
 
@@ -98,7 +98,7 @@ public class SearchController {
     public List<AlarmLogMessage> searchConfig(@PathVariable String config) {
         Map<String, String> searchParameters = new HashMap<>();
         searchParameters.put("config", config);
-        List<AlarmLogMessage> result = AlarmLogSearchUtil.search(ElasticClientHelper.getInstance().getClient(), "*", searchParameters);
+        List<AlarmLogMessage> result = AlarmLogSearchUtil.search(ElasticClientHelper.getInstance().getClient(), searchParameters);
         return result;
     }
 
