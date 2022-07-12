@@ -78,14 +78,28 @@ public class ImageDecoder
         final int dimensions[];
         final int offsets[];
         final boolean reversed[];
-        if (dim.get().length < 2)
+        final int n_dims = dim.get().length;
+        // Fetching by field name in case structure changes
+        if (n_dims <= 1)
         {
-            dimensions = offsets = new int[] { 0, 0 };
+            dimensions = new int[] { 0, 0 };
+            offsets = new int[] { 0, 0 };
             reversed = new boolean[] { false, false };
+            if (n_dims == 1)
+            {   // Treat 1-dim array as "image" with height 1
+                final PVAStructure d = dim.get()[0];
+                PVAInt el = d.get("size");
+                dimensions[0] = el.get();
+                el = d.get("offset");
+                offsets[0] = el.get();
+                final PVABool b = d.get("reverse");
+                reversed[0] = b.get();
+
+                dimensions[1] = 1;
+            }
         }
         else
-        {   // Fetching by field name in case structure changes
-            final int n_dims = dim.get().length;
+        {
             dimensions = new int[n_dims];
             offsets = new int[n_dims];
             reversed = new boolean[n_dims];
