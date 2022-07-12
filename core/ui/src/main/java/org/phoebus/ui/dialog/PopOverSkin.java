@@ -49,8 +49,11 @@ public class PopOverSkin implements Skin<PopOver>
 
    private final InvalidationListener update_background = prop ->
    {
-       final Bounds owner_bounds = popover.getActiveOwner().localToScreen(popover.getActiveOwner().getBoundsInLocal());
-       final Bounds content_bounds = popover.getContentNode().localToScreen(popover.getContentNode().getBoundsInLocal());
+       final Node activeOwner = popover.getActiveOwner();
+       final Node contentNode = popover.getContentNode();
+       Bounds activeOwnerBoundsInLocal = activeOwner.getBoundsInLocal();
+       final Bounds owner_bounds = activeOwner.localToScreen(activeOwnerBoundsInLocal);
+       final Bounds content_bounds = contentNode.localToScreen(contentNode.getBoundsInLocal());
        final double w = content_bounds.getWidth(),  h = content_bounds.getHeight();
 
        switch (popover.getSideProperty().get())

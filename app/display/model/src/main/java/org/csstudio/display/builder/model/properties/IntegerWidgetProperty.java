@@ -63,8 +63,16 @@ public class IntegerWidgetProperty extends MacroizedWidgetProperty<Integer>
     @Override
     protected Integer parseExpandedSpecification(final String text) throws Exception
     {
+
+        if(text.isBlank())
+        {   // If the value read from the .bob is empty then it should return the default
+            // note we should hard-fail here; there shouldn't be a null value by this point,
+            // and Integer.valueOf(null) throws an NPE instead of NumberFormatException.
+            return default_value;
+        }
+
         try
-        {   // Should be integer..
+        {   // Otherwise try to parse to an integer
             return Integer.valueOf(text);
         }
         catch (final NumberFormatException ex)
