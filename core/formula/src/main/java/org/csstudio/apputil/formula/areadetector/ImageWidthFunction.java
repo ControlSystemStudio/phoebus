@@ -7,10 +7,6 @@
  ******************************************************************************/
 package org.csstudio.apputil.formula.areadetector;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.csstudio.apputil.formula.spi.FormulaFunction;
 import org.epics.vtype.Display;
 import org.epics.vtype.VImage;
 import org.epics.vtype.VInt;
@@ -19,14 +15,8 @@ import org.epics.vtype.VType;
 /** A formula function for fetching width of VImage
  *  @author Kay Kasemir
  */
-public class ImageWidthFunction implements FormulaFunction
+public class ImageWidthFunction extends ImageValueFunction
 {
-    @Override
-    public String getCategory()
-    {
-        return "areaDetector";
-    }
-
     @Override
     public String getName()
     {
@@ -37,12 +27,6 @@ public class ImageWidthFunction implements FormulaFunction
     public String getDescription()
     {
         return "Fetch width of image";
-    }
-
-    @Override
-    public List<String> getArguments()
-    {
-        return List.of("image");
     }
 
     /** Fetch info (width, height, ...) from image
@@ -58,13 +42,8 @@ public class ImageWidthFunction implements FormulaFunction
     }
 
     @Override
-    public VType compute(final VType... args) throws Exception
+    protected VType getImageData(final VImage image)
     {
-        if (args.length != 1 || ! (args[0] instanceof VImage))
-            throw new Exception("Function " + getName() +
-                    " takes VImage but received " + Arrays.toString(args));
-
-        final VImage image = (VImage) args[0];
         return VInt.of(getImageInfo(image), image.getAlarm(), image.getTime(), Display.none());
     }
 }
