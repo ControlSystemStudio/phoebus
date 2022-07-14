@@ -185,6 +185,13 @@ public class RTTank extends Canvas
         }
     }
 
+    /** @param logscale Use log scale for y-axis? */
+    public void setLogScale(final boolean logscale)
+    {
+        scale.setLogarithmic(logscale);
+        requestUpdate();
+    }
+
     /** Set value range
      *  @param low
      *  @param high
