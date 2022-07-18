@@ -1,6 +1,6 @@
 package org.phoebus.applications.alarm.logging.ui;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import com.sun.jersey.api.client.WebResource;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -10,7 +10,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -111,13 +110,13 @@ public class AlarmLogTableController {
     private List<AlarmLogTableType> alarmMessages;
 
     private Job alarmLogSearchJob;
-    private ElasticsearchClient searchClient;
+    private WebResource searchClient;
     
     @FXML
     private ProgressIndicator progressIndicator;
     private SimpleBooleanProperty searchInProgress = new SimpleBooleanProperty(false);
 
-    public AlarmLogTableController(ElasticsearchClient client) {
+    public AlarmLogTableController(WebResource client) {
         setClient(client);
     }
 
@@ -406,7 +405,7 @@ public class AlarmLogTableController {
         }
     }
 
-    public void setClient(ElasticsearchClient client) {
+    public void setClient(WebResource client) {
         this.searchClient = client;
     }
 
