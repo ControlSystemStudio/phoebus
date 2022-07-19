@@ -132,13 +132,13 @@ public class AlarmLogSearchUtil {
                 case MESSAGE:
                     boolQuery.must(WildcardQuery.of(w -> w
                             .field(MESSAGE)
-                            .value(parameter.getValue().strip().toUpperCase()))._toQuery()
+                            .value(parameter.getValue().strip()))._toQuery()
                     );
                     break;
                 case CURRENTMESSAGE:
                     boolQuery.must(WildcardQuery.of(w -> w
                             .field(CURRENTMESSAGE)
-                            .value(parameter.getValue().strip().toUpperCase()))._toQuery()
+                            .value(parameter.getValue().strip()))._toQuery()
                     );
                     break;
                 case USER:
@@ -157,70 +157,69 @@ public class AlarmLogSearchUtil {
                     // Unsupported search parameters are ignored
                     break;
             }
+        }
 
-            if (!configSet) {
-                boolQuery.must(Query.of(q -> q
-                                .wildcard(WildcardQuery.of(w -> w
-                                                .field("config")
-                                                .value("*")
-                                        )
-                                )
-                        )
-                );
-            }
-
-            // Add the temporal queries
-            if (temporalSearch) {
-                // TODO check that the start is before the end
-                //Effectively final
-                String finalFrom = from;
-                String finalTo = to;
-                boolQuery.must(
-                        Query.of(q -> q
-                                .range(RangeQuery.of(r -> r
-                                                .field("message_time")
-                                                .from(finalFrom)
-                                                .to(finalTo)
-                                        )
-                                )
-                        )
-                );
-            }
-
-            int finalSize = maxSize; //Effectively final
-            SearchRequest searchRequest = SearchRequest.of(r -> r
-                    .query(Query.of(q -> q
-                                    .bool(boolQuery.build())
-                            )
-                    )
-                    .size(finalSize)
-                    .sort(SortOptions.of(o -> o
-                                    .field(FieldSort.of(f -> f
-                                                    .field("message_time")
-                                                    .order(SortOrder.Desc)
-                                            )
+        if (!configSet) {
+            boolQuery.must(Query.of(q -> q
+                            .wildcard(WildcardQuery.of(w -> w
+                                            .field("config")
+                                            .value("*")
                                     )
                             )
                     )
             );
-            final List<AlarmLogMessage> result = new ArrayList<>();
-            try {
-                SearchResponse<JsonNode> strResponse = client.search(searchRequest, JsonNode.class);
-                return strResponse.hits().hits().stream().map(hit -> {
-                    JsonNode jsonNode = hit.source();
-                    try {
-                        return mapper.treeToValue(jsonNode, AlarmLogMessage.class);
-                    } catch (JsonProcessingException e) {
-                        logger.log(Level.SEVERE, "Failed to parse the searched alarm log messages. " + hit, e);
-                    }
-                    return null;
-                }).collect(Collectors.toList());
-            } catch (IOException e) {
-                logger.log(Level.SEVERE, "Failed to search for alarm logs ", e);
-            }
-            return result;
         }
-        return null;
+
+        // Add the temporal queries
+        if (temporalSearch) {
+            // TODO check that the start is before the end
+            //Effectively final
+            String finalFrom = from;
+            String finalTo = to;
+            boolQuery.must(
+                    Query.of(q -> q
+                            .range(RangeQuery.of(r -> r
+                                            .field("message_time")
+                                            .from(finalFrom)
+                                            .to(finalTo)
+                                    )
+                            )
+                    )
+            );
+        }
+
+        int finalSize = maxSize; //Effectively final
+        SearchRequest searchRequest = SearchRequest.of(r -> r
+                .query(Query.of(q -> q
+                                .bool(boolQuery.build())
+                        )
+                )
+                .size(finalSize)
+                .sort(SortOptions.of(o -> o
+                                .field(FieldSort.of(f -> f
+                                                .field("message_time")
+                                                .order(SortOrder.Desc)
+                                        )
+                                )
+                        )
+                )
+        );
+        final List<AlarmLogMessage> result = new ArrayList<>();
+        try {
+            SearchResponse<JsonNode> strResponse = client.search(searchRequest, JsonNode.class);
+            return strResponse.hits().hits().stream().map(hit -> {
+                JsonNode jsonNode = hit.source();
+                try {
+                    return mapper.treeToValue(jsonNode, AlarmLogMessage.class);
+                } catch (JsonProcessingException e) {
+                    logger.log(Level.SEVERE, "Failed to parse the searched alarm log messages. " + hit, e);
+                }
+                return null;
+            }).collect(Collectors.toList());
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Failed to search for alarm logs ", e);
+        }
+        return result;
     }
 
 }
