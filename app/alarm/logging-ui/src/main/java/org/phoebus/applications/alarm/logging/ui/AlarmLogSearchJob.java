@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 public class AlarmLogSearchJob implements JobRunnable {
     private final Boolean isNodeTable;
     private final ObservableMap<Keys, String> searchParameters;
-    private final Consumer<List<AlarmLogTableType>> alarmMessageHandler;
+    private final Consumer<List<AlarmLogTableItem>> alarmMessageHandler;
     private final BiConsumer<String, Exception> errorHandler;
 
     private final ObjectMapper objectMapper;
@@ -46,14 +46,14 @@ public class AlarmLogSearchJob implements JobRunnable {
                              final String pattern,
                              Boolean isNodeTable,
                              ObservableMap<Keys, String> searchParameters,
-                             final Consumer<List<AlarmLogTableType>> alarmMessageHandler,
+                             final Consumer<List<AlarmLogTableItem>> alarmMessageHandler,
                              final BiConsumer<String, Exception> errorHandler) {
         return JobManager.schedule("searching alarm log messages for : " + pattern,
                 new AlarmLogSearchJob(client, isNodeTable, searchParameters, alarmMessageHandler, errorHandler));
     }
 
     private AlarmLogSearchJob(WebResource client, Boolean isNodeTable, ObservableMap<Keys, String> searchParameters,
-                              Consumer<List<AlarmLogTableType>> alarmMessageHandler, BiConsumer<String, Exception> errorHandler) {
+                              Consumer<List<AlarmLogTableItem>> alarmMessageHandler, BiConsumer<String, Exception> errorHandler) {
         super();
         this.client = client;
         this.isNodeTable = isNodeTable;
@@ -78,13 +78,13 @@ public class AlarmLogSearchJob implements JobRunnable {
         map.putIfAbsent("size", Arrays.asList(String.valueOf(size)));
 
         try {
-            List<AlarmLogTableType> result = objectMapper.readValue(client.path("/search/alarm")
+            List<AlarmLogTableItem> result = objectMapper.readValue(client.path("/search/alarm")
                     .queryParams(map)
-                    .accept(MediaType.APPLICATION_JSON).get(String.class), new TypeReference<List<AlarmLogTableType>>() {
+                    .accept(MediaType.APPLICATION_JSON).get(String.class), new TypeReference<List<AlarmLogTableItem>>() {
             });
             alarmMessageHandler.accept(result);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            errorHandler.accept("Failed to search for alarm logs ", e);
         }
     }
 }

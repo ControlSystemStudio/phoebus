@@ -13,7 +13,7 @@ import java.util.Optional;
  * 
  * @author Kunal Shroff
  */
-public class AlarmLogTableTypeAdapterFactory implements AdapterFactory {
+public class AlarmLogTableItemAdapterFactory implements AdapterFactory {
 
     private static final List<? extends Class> adaptableTypes =
             Arrays.asList(ProcessVariable.class, TimeStampedProcessVariable.class);

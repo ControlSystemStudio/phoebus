@@ -60,37 +60,37 @@ import static org.phoebus.applications.alarm.logging.ui.AlarmLogTableApp.logger;
 public class AlarmLogTableController {
 
     @FXML
-    TableView<AlarmLogTableType> tableView;
+    TableView<AlarmLogTableItem> tableView;
     @FXML
     private AdvancedSearchViewController advancedSearchViewController;
     @FXML
-    TableColumn<AlarmLogTableType, String> configCol;
+    TableColumn<AlarmLogTableItem, String> configCol;
     @FXML
-    TableColumn<AlarmLogTableType, String> pvCol;
+    TableColumn<AlarmLogTableItem, String> pvCol;
     @FXML
-    TableColumn<AlarmLogTableType, String> severityCol;
+    TableColumn<AlarmLogTableItem, String> severityCol;
     @FXML
-    TableColumn<AlarmLogTableType, String> messageCol;
+    TableColumn<AlarmLogTableItem, String> messageCol;
     @FXML
-    TableColumn<AlarmLogTableType, String> valueCol;
+    TableColumn<AlarmLogTableItem, String> valueCol;
     @FXML
-    TableColumn<AlarmLogTableType, String> timeCol;
+    TableColumn<AlarmLogTableItem, String> timeCol;
     @FXML
-    TableColumn<AlarmLogTableType, String> msgTimeCol;
+    TableColumn<AlarmLogTableItem, String> msgTimeCol;
     @FXML
-    TableColumn<AlarmLogTableType, String> deltaTimeCol;
+    TableColumn<AlarmLogTableItem, String> deltaTimeCol;
     @FXML
-    TableColumn<AlarmLogTableType, String> currentSeverityCol;
+    TableColumn<AlarmLogTableItem, String> currentSeverityCol;
     @FXML
-    TableColumn<AlarmLogTableType, String> currentMessageCol;
+    TableColumn<AlarmLogTableItem, String> currentMessageCol;
     @FXML
-    TableColumn<AlarmLogTableType, String> mode;
+    TableColumn<AlarmLogTableItem, String> mode;
     @FXML
-    TableColumn<AlarmLogTableType, String> commandCol;
+    TableColumn<AlarmLogTableItem, String> commandCol;
     @FXML
-    TableColumn<AlarmLogTableType, String> userCol;
+    TableColumn<AlarmLogTableItem, String> userCol;
     @FXML
-    TableColumn<AlarmLogTableType, String> hostCol;
+    TableColumn<AlarmLogTableItem, String> hostCol;
     @FXML
     Button resize;
     @FXML
@@ -105,7 +105,7 @@ public class AlarmLogTableController {
     TextField startTime;
     @FXML
     TextField endTime;
-    TableColumn<AlarmLogTableType, String> sortTableCol = null;
+    TableColumn<AlarmLogTableItem, String> sortTableCol = null;
     SortType sortColType = null;
     // Search parameters
     ObservableMap<Keys, String> searchParameters = FXCollections.<Keys, String>observableHashMap();
@@ -114,7 +114,7 @@ public class AlarmLogTableController {
     private String searchString = "*";
     private Boolean isNodeTable = true;
     // Result
-    private List<AlarmLogTableType> alarmMessages;
+    private List<AlarmLogTableItem> alarmMessages;
 
     private Job alarmLogSearchJob;
     private WebResource searchClient;
@@ -133,18 +133,18 @@ public class AlarmLogTableController {
         tableView.getColumns().clear();
         configCol = new TableColumn<>("Config");
         configCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
+                new Callback<CellDataFeatures<AlarmLogTableItem, String>, ObservableValue<String>>() {
                     @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableType, String> alarmMessage) {
+                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableItem, String> alarmMessage) {
                         return new SimpleStringProperty(alarmMessage.getValue().getConfig());
                     }
                 });
         tableView.getColumns().add(configCol);
 
         pvCol = new TableColumn<>("PV");
-        pvCol.setCellValueFactory(new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
+        pvCol.setCellValueFactory(new Callback<CellDataFeatures<AlarmLogTableItem, String>, ObservableValue<String>>() {
             @Override
-            public ObservableValue<String> call(CellDataFeatures<AlarmLogTableType, String> alarmMessage) {
+            public ObservableValue<String> call(CellDataFeatures<AlarmLogTableItem, String> alarmMessage) {
                 return new SimpleStringProperty(alarmMessage.getValue().getPv());
             }
         });
@@ -152,13 +152,13 @@ public class AlarmLogTableController {
 
         severityCol = new TableColumn<>("Severity");
         severityCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
+                new Callback<CellDataFeatures<AlarmLogTableItem, String>, ObservableValue<String>>() {
                     @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableType, String> alarmMessage) {
+                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableItem, String> alarmMessage) {
                         return new SimpleStringProperty(alarmMessage.getValue().getSeverity());
                     }
                 });
-        severityCol.setCellFactory(alarmLogTableTypeStringTableColumn -> new TableCell<AlarmLogTableType, String>() {
+        severityCol.setCellFactory(alarmLogTableTypeStringTableColumn -> new TableCell<AlarmLogTableItem, String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
@@ -179,9 +179,9 @@ public class AlarmLogTableController {
 
         messageCol = new TableColumn<>("Message");
         messageCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
+                new Callback<CellDataFeatures<AlarmLogTableItem, String>, ObservableValue<String>>() {
                     @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableType, String> alarmMessage) {
+                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableItem, String> alarmMessage) {
                         return new SimpleStringProperty(alarmMessage.getValue().getMessage());
                     }
                 });
@@ -189,11 +189,11 @@ public class AlarmLogTableController {
 
         timeCol = new TableColumn<>("Time");
         timeCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
+                new Callback<CellDataFeatures<AlarmLogTableItem, String>, ObservableValue<String>>() {
                     @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableType, String> alarmMessage) {
+                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableItem, String> alarmMessage) {
                         if (alarmMessage.getValue().getTime() != null) {
-                            String time = TimestampFormats.MILLI_FORMAT.format(alarmMessage.getValue().getInstant());
+                            String time = TimestampFormats.MILLI_FORMAT.format(alarmMessage.getValue().getTime());
                             return new SimpleStringProperty(time);
                         }
                         return null;
@@ -203,9 +203,9 @@ public class AlarmLogTableController {
 
         msgTimeCol = new TableColumn<>("Message Time");
         msgTimeCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
+                new Callback<CellDataFeatures<AlarmLogTableItem, String>, ObservableValue<String>>() {
                     @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableType, String> alarmMessage) {
+                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableItem, String> alarmMessage) {
                         String time = TimestampFormats.MILLI_FORMAT.format(alarmMessage.getValue().getMessage_time());
                         return new SimpleStringProperty(time);
                     }
@@ -224,13 +224,13 @@ public class AlarmLogTableController {
 
         currentSeverityCol = new TableColumn<>("Current Severity");
         currentSeverityCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
+                new Callback<CellDataFeatures<AlarmLogTableItem, String>, ObservableValue<String>>() {
                     @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableType, String> alarmMessage) {
+                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableItem, String> alarmMessage) {
                         return new SimpleStringProperty(alarmMessage.getValue().getCurrent_severity());
                     }
                 });
-        currentSeverityCol.setCellFactory(alarmLogTableTypeStringTableColumn -> new TableCell<AlarmLogTableType, String>() {
+        currentSeverityCol.setCellFactory(alarmLogTableTypeStringTableColumn -> new TableCell<AlarmLogTableItem, String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
@@ -251,9 +251,9 @@ public class AlarmLogTableController {
 
         currentMessageCol = new TableColumn<>("Current Message");
         currentMessageCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
+                new Callback<CellDataFeatures<AlarmLogTableItem, String>, ObservableValue<String>>() {
                     @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableType, String> alarmMessage) {
+                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableItem, String> alarmMessage) {
                         return new SimpleStringProperty(alarmMessage.getValue().getCurrent_message());
                     }
                 });
@@ -261,9 +261,9 @@ public class AlarmLogTableController {
 
         commandCol = new TableColumn<>("Command");
         commandCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
+                new Callback<CellDataFeatures<AlarmLogTableItem, String>, ObservableValue<String>>() {
                     @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableType, String> alarmMessage) {
+                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableItem, String> alarmMessage) {
                         String action = alarmMessage.getValue().getCommand();
                         if (action != null) {
                             return new SimpleStringProperty(action);
@@ -283,9 +283,9 @@ public class AlarmLogTableController {
 
         userCol = new TableColumn<>("User");
         userCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
+                new Callback<CellDataFeatures<AlarmLogTableItem, String>, ObservableValue<String>>() {
                     @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableType, String> alarmMessage) {
+                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableItem, String> alarmMessage) {
                         return new SimpleStringProperty(alarmMessage.getValue().getUser());
                     }
                 });
@@ -293,9 +293,9 @@ public class AlarmLogTableController {
 
         hostCol = new TableColumn<>("Host");
         hostCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmLogTableType, String>, ObservableValue<String>>() {
+                new Callback<CellDataFeatures<AlarmLogTableItem, String>, ObservableValue<String>>() {
                     @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableType, String> alarmMessage) {
+                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableItem, String> alarmMessage) {
                         return new SimpleStringProperty(alarmMessage.getValue().getHost());
                     }
                 });
@@ -395,11 +395,11 @@ public class AlarmLogTableController {
         }).collect(Collectors.joining("&")));
     }
 
-    public List<AlarmLogTableType> getAlarmMessages() {
+    public List<AlarmLogTableItem> getAlarmMessages() {
         return alarmMessages;
     }
 
-    public void setAlarmMessages(List<AlarmLogTableType> alarmMessages) {
+    public void setAlarmMessages(List<AlarmLogTableItem> alarmMessages) {
         this.alarmMessages = alarmMessages;
         tableView.setItems(FXCollections.observableArrayList(this.alarmMessages));
         if (sortTableCol != null) {
@@ -519,7 +519,7 @@ public class AlarmLogTableController {
                         alarmInfo.setHeaderText(null);
                         alarmInfo.setResizable(true);
                         // Corner case: search query may return zero results (or null), so dialog message should show that.
-                        alarmInfo.setContentText((result == null || result.isEmpty()) ? Messages.ConfigurationInfoNotFound : result.get(0).toString());
+                        alarmInfo.setContentText(result == null ? Messages.ConfigurationInfoNotFound : result.toString());
                         alarmInfo.show();
                     }),
                     (url, ex) -> ExceptionDetailsErrorDialog.openError("Alarm Log Info Error", ex.getMessage(), ex)
