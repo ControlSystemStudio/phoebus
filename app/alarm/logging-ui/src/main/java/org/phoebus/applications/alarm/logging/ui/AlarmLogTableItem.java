@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @JsonInclude(Include.NON_NULL)
-public class AlarmLogTableType {
+public class AlarmLogTableItem {
 	private String severity;
     private String message;
     private String value;

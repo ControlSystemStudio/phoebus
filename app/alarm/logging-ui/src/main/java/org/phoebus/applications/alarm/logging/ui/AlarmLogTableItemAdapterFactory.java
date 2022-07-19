@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * A factory which adapts {@link AlarmLogTableType}s to {@link TimeStampedProcessVariable} and {@link ProcessVariable}s
+ * A factory which adapts {@link AlarmLogTableItem}s to {@link TimeStampedProcessVariable} and {@link ProcessVariable}s
  * 
  * @author Kunal Shroff
  */
@@ -21,7 +21,7 @@ public class AlarmLogTableTypeAdapterFactory implements AdapterFactory {
     @Override
     public Class getAdaptableObject()
     {
-        return AlarmLogTableType.class;
+        return AlarmLogTableItem.class;
     }
 
     @Override
@@ -33,17 +33,17 @@ public class AlarmLogTableTypeAdapterFactory implements AdapterFactory {
     @Override
     public <T> Optional<T> adapt(Object adaptableObject, Class<T> adapterType)
     {
-        AlarmLogTableType alarmLogTableType = ((AlarmLogTableType) adaptableObject);
+        AlarmLogTableItem alarmLogTableItem = ((AlarmLogTableItem) adaptableObject);
         if (adapterType.isAssignableFrom(TimeStampedProcessVariable.class))
         {
             return Optional.of(adapterType.cast(
-                    new TimeStampedProcessVariable(alarmLogTableType.getPv(), alarmLogTableType.getMessage_time())));
+                    new TimeStampedProcessVariable(alarmLogTableItem.getPv(), alarmLogTableItem.getMessage_time())));
         } else if (adapterType.isAssignableFrom(ProcessVariable.class))
         {
-            return Optional.of(adapterType.cast(new ProcessVariable(alarmLogTableType.getPv())));
+            return Optional.of(adapterType.cast(new ProcessVariable(alarmLogTableItem.getPv())));
         } else if (adapterType.isAssignableFrom(String.class))
         {
-            return Optional.ofNullable(adapterType.cast("PV name : " + alarmLogTableType.getPv()));
+            return Optional.ofNullable(adapterType.cast("PV name : " + alarmLogTableItem.getPv()));
         }
         return Optional.ofNullable(null);
     }
