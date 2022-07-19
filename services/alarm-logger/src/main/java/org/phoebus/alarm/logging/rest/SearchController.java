@@ -86,7 +86,7 @@ public class SearchController {
         return result;
     }
 
-    @RequestMapping(value = "/search/alarm/{pv}", method = RequestMethod.GET)
+    @RequestMapping(value = "/search/alarm/pv/{pv}", method = RequestMethod.GET)
     public List<AlarmLogMessage> searchPv(@PathVariable String pv) {
         Map<String, String> searchParameters = new HashMap<>();
         searchParameters.put("pv", pv);
@@ -94,11 +94,9 @@ public class SearchController {
         return result;
     }
 
-    @RequestMapping(value = "/search/alarm/{config}", method = RequestMethod.GET)
+    @RequestMapping(value = "/search/alarm/config/{config}", method = RequestMethod.GET)
     public List<AlarmLogMessage> searchConfig(@PathVariable String config) {
-        Map<String, String> searchParameters = new HashMap<>();
-        searchParameters.put("config", config);
-        List<AlarmLogMessage> result = AlarmLogSearchUtil.search(ElasticClientHelper.getInstance().getClient(), searchParameters);
+        List<AlarmLogMessage> result = AlarmLogSearchUtil.searchConfig(ElasticClientHelper.getInstance().getClient(), config);
         return result;
     }
 

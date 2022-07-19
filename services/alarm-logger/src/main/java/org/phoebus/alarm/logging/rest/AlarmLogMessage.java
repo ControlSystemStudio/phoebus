@@ -1,7 +1,5 @@
 package org.phoebus.alarm.logging.rest;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -15,8 +13,6 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAccessor;
-import java.util.TimeZone;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)
@@ -39,7 +35,7 @@ public class AlarmLogMessage {
     private String host;
     private String command;
     private boolean enabled;
-    
+
     public String getConfig() {
         return config;
     }
@@ -63,7 +59,7 @@ public class AlarmLogMessage {
     public void setSeverity(String severity) {
         this.severity = severity;
     }
-    
+
     public String getMessage() {
         return message;
     }
@@ -151,7 +147,7 @@ public class AlarmLogMessage {
     public void setCommand(String command) {
         this.command = command;
     }
-    
+
     public boolean isEnabled() {
         return enabled;
     }

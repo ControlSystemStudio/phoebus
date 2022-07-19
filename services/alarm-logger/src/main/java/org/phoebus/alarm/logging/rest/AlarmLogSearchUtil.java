@@ -25,6 +25,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -61,6 +62,13 @@ public class AlarmLogSearchUtil {
     private static final String STARTTIME = "start";
     private static final String ENDTIME = "end";
 
+    /**
+     * Find all the log (state and config) messages which match the search criteria
+     *
+     * @param client           elastic client
+     * @param searchParameters search parameters
+     * @return list of alarm state and config messages
+     */
     public static List<AlarmLogMessage> search(ElasticsearchClient client,
                                                Map<String, String> searchParameters) {
         logger.info("searching for alarm log entires : " +
@@ -118,40 +126,46 @@ public class AlarmLogSearchUtil {
                     configSet = true;
                     break;
                 case SEVERITY:
-                    boolQuery.must(WildcardQuery.of(w -> w
-                            .field(SEVERITY)
-                            .value(parameter.getValue().strip().toUpperCase()))._toQuery()
-                    );
+                    if (!parameter.getValue().equalsIgnoreCase("*"))
+                        boolQuery.must(WildcardQuery.of(w -> w
+                                .field(SEVERITY)
+                                .value(parameter.getValue().strip().toUpperCase()))._toQuery()
+                        );
                     break;
                 case CURRENTSEVERITY:
-                    boolQuery.must(WildcardQuery.of(w -> w
-                            .field(CURRENTSEVERITY)
-                            .value(parameter.getValue().strip().toUpperCase()))._toQuery()
-                    );
+                    if (!parameter.getValue().equalsIgnoreCase("*"))
+                        boolQuery.must(WildcardQuery.of(w -> w
+                                .field(CURRENTSEVERITY)
+                                .value(parameter.getValue().strip().toUpperCase()))._toQuery()
+                        );
                     break;
                 case MESSAGE:
-                    boolQuery.must(WildcardQuery.of(w -> w
-                            .field(MESSAGE)
-                            .value(parameter.getValue().strip()))._toQuery()
-                    );
+                    if (!parameter.getValue().equalsIgnoreCase("*"))
+                        boolQuery.must(WildcardQuery.of(w -> w
+                                .field(MESSAGE)
+                                .value(parameter.getValue().strip()))._toQuery()
+                        );
                     break;
                 case CURRENTMESSAGE:
-                    boolQuery.must(WildcardQuery.of(w -> w
-                            .field(CURRENTMESSAGE)
-                            .value(parameter.getValue().strip()))._toQuery()
-                    );
+                    if (!parameter.getValue().equalsIgnoreCase("*"))
+                        boolQuery.must(WildcardQuery.of(w -> w
+                                .field(CURRENTMESSAGE)
+                                .value(parameter.getValue().strip()))._toQuery()
+                        );
                     break;
                 case USER:
-                    boolQuery.must(WildcardQuery.of(w -> w
-                            .field(USER)
-                            .value(parameter.getValue().strip()))._toQuery()
-                    );
+                    if (!parameter.getValue().equalsIgnoreCase("*"))
+                        boolQuery.must(WildcardQuery.of(w -> w
+                                .field(USER)
+                                .value(parameter.getValue().strip()))._toQuery()
+                        );
                     break;
                 case HOST:
-                    boolQuery.must(WildcardQuery.of(w -> w
-                            .field(HOST)
-                            .value(parameter.getValue().strip()))._toQuery()
-                    );
+                    if (!parameter.getValue().equalsIgnoreCase("*"))
+                        boolQuery.must(WildcardQuery.of(w -> w
+                                .field(HOST)
+                                .value(parameter.getValue().strip()))._toQuery()
+                        );
                     break;
                 default:
                     // Unsupported search parameters are ignored
@@ -204,7 +218,6 @@ public class AlarmLogSearchUtil {
                         )
                 )
         );
-        final List<AlarmLogMessage> result = new ArrayList<>();
         try {
             SearchResponse<JsonNode> strResponse = client.search(searchRequest, JsonNode.class);
             return strResponse.hits().hits().stream().map(hit -> {
@@ -219,7 +232,49 @@ public class AlarmLogSearchUtil {
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to search for alarm logs ", e);
         }
-        return result;
+        return Collections.emptyList();
     }
 
+    /**
+     * Return the latest alarm config message associated with 'config'
+     *
+     * @param client        elastic client
+     * @param configPattern the wildcard pattern which matches the 'config'
+     * @return last alarm config message for the given 'config'
+     */
+    public static List<AlarmLogMessage> searchConfig(ElasticsearchClient client, String configPattern) {
+        String searchPattern = "*".concat(configPattern).concat("*");
+        int size = 1;
+
+        SearchRequest searchRequest = SearchRequest.of(r -> r
+                .query(Query.of(q -> q.wildcard(WildcardQuery.of(w -> w.field("config").value(searchPattern)))
+                        )
+                )
+                .size(size)
+                .sort(SortOptions.of(o -> o
+                                .field(FieldSort.of(f -> f
+                                                .field("message_time")
+                                                .order(SortOrder.Desc)
+                                        )
+                                )
+                        )
+                )
+        );
+
+        try {
+            SearchResponse<JsonNode> strResponse = client.search(searchRequest, JsonNode.class);
+            return strResponse.hits().hits().stream().map(hit -> {
+                JsonNode jsonNode = hit.source();
+                try {
+                    return mapper.treeToValue(jsonNode, AlarmLogMessage.class);
+                } catch (JsonProcessingException e) {
+                    logger.log(Level.SEVERE, "Failed to parse the searched alarm config messages. " + hit, e);
+                }
+                return null;
+            }).collect(Collectors.toList());
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Failed to search for alarm config logs ", e);
+        }
+        return Collections.emptyList();
+    }
 }
