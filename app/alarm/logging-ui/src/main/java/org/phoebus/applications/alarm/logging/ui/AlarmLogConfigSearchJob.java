@@ -10,8 +10,11 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobRunnableWithCancel;
 
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -63,11 +66,13 @@ public class AlarmLogConfigSearchJob extends JobRunnableWithCancel {
                     "config: " + pattern);
 
             try {
+                MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
+                map.put("config", Arrays.asList(pattern));
+                map.put("size", Arrays.asList(String.valueOf(1)));
                 List<AlarmLogTableItem> result = objectMapper
-                        .readValue(client.path("/search/alarm/config/"+pattern)
-                        .accept(MediaType.APPLICATION_JSON).get(String.class),
+                        .readValue(client.path("/search/alarm/").queryParams(map).accept(MediaType.APPLICATION_JSON).get(String.class),
                                 new TypeReference<List<AlarmLogTableItem>>() {
-                });
+                                });
                 if (result.size() >= 1) {
                     alarmMessageHandler.accept(result.get(0));
                 }

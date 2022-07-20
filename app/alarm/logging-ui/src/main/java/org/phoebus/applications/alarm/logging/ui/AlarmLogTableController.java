@@ -1,5 +1,8 @@
 package org.phoebus.applications.alarm.logging.ui;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.sun.jersey.api.client.WebResource;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -43,6 +46,7 @@ import org.phoebus.util.time.TimestampFormats;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -494,6 +498,11 @@ public class AlarmLogTableController {
         updateQuery();
     }
 
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+    static {
+        objectMapper.registerModule(new JavaTimeModule());
+    }
+
     @FXML
     public void createContextMenu() {
         final ContextMenu contextMenu = new ContextMenu();
@@ -519,7 +528,24 @@ public class AlarmLogTableController {
                         alarmInfo.setHeaderText(null);
                         alarmInfo.setResizable(true);
                         // Corner case: search query may return zero results (or null), so dialog message should show that.
-                        alarmInfo.setContentText(result == null ? Messages.ConfigurationInfoNotFound : result.toString());
+                        if (result == null) {
+                            alarmInfo.setContentText(Messages.ConfigurationInfoNotFound);
+                        } else {
+                            try {
+                                String newLine = System.lineSeparator();
+                                StringBuilder sb = new StringBuilder();
+                                sb.append("message_time: " + TimestampFormats.MILLI_FORMAT.format(result.getMessage_time()) + newLine);
+                                sb.append("config: " + result.getConfig() + newLine);
+                                sb.append("user: " + result.getUser() + newLine);
+                                sb.append("host: " + result.getHost() + newLine);
+                                sb.append("enabled: " + result.isEnabled() + newLine);
+                                Object jsonObject = objectMapper.readValue(result.getConfig_msg(), Object.class);
+                                sb.append("config_msg: " + objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObject) + newLine);
+                                alarmInfo.setContentText(sb.toString());
+                            } catch (JsonProcessingException e) {
+                                alarmInfo.setContentText(Messages.ConfigurationInfoNotFound);
+                            }
+                        }
                         alarmInfo.show();
                     }),
                     (url, ex) -> ExceptionDetailsErrorDialog.openError("Alarm Log Info Error", ex.getMessage(), ex)
