@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 European Spallation Source ERIC.
+ * Copyright (C) 2020 European Spallation Source ERIC.
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -14,28 +14,25 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
  */
 
-package org.phoebus.logbook;
+package org.phoebus.applications.saveandrestore.logging;
 
 import org.phoebus.framework.nls.NLS;
 
 public class Messages {
 
+    public static String SnapshotCreated;
+    public static String SnapshotRestored;
+    public static String SaveSnapshotTemplateMessage;
+    public static String GoldenSnapshotRestored;
+
+    public static String RestoreSnapshotTemplateMessage;
+
+    public static String FailedPVs;
+
     static
     {
-        // initialize resource bundle
-        NLS.initializeMessages(org.phoebus.logbook.Messages.class);
+        NLS.initializeMessages(Messages.class);
     }
-
-    private Messages()
-    {
-    }
-
-    public static String BadRequestFailure;
-    public static String SubmissionFailed;
-    public static String SubmissionFailedInvalidCredentials;
-    public static String SubmissionFailedWithHttpStatus;
-    public static String AppVersion;
 }

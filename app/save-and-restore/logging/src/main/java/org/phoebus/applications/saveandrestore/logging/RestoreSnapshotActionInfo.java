@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 European Spallation Source ERIC.
+ * Copyright (C) 2020 European Spallation Source ERIC.
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -17,25 +17,31 @@
  *
  */
 
-package org.phoebus.logbook;
+package org.phoebus.applications.saveandrestore.logging;
 
-import org.phoebus.framework.nls.NLS;
+import java.util.List;
 
-public class Messages {
+/**
+ * Object wrapping information about a restore action.
+ */
+public class RestoreSnapshotActionInfo extends SaveSnapshotActionInfo{
 
-    static
-    {
-        // initialize resource bundle
-        NLS.initializeMessages(org.phoebus.logbook.Messages.class);
+    private boolean isGolden;
+    private List<String> failedPVs;
+
+    public boolean isGolden() {
+        return isGolden;
     }
 
-    private Messages()
-    {
+    public void setGolden(boolean golden) {
+        isGolden = golden;
     }
 
-    public static String BadRequestFailure;
-    public static String SubmissionFailed;
-    public static String SubmissionFailedInvalidCredentials;
-    public static String SubmissionFailedWithHttpStatus;
-    public static String AppVersion;
+    public List<String> getFailedPVs() {
+        return failedPVs;
+    }
+
+    public void setFailedPVs(List<String> failedPVs) {
+        this.failedPVs = failedPVs;
+    }
 }
