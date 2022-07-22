@@ -29,6 +29,8 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
@@ -36,9 +38,8 @@ import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.util.converter.DefaultStringConverter;
-import javafx.util.converter.IntegerStringConverter;
+
 
 /** Table for editing list of {@link TitleDetailDelay}
  *
@@ -88,11 +89,15 @@ public class TitleDetailDelayTable extends BorderPane
     /** Table cell for 'delay'
      *  Disables for actions that don't use the delay
      */
-    class DelayTableCell extends TextFieldTableCell<TitleDetailDelay, Integer>
+    class DelayTableCell extends TableCell<TitleDetailDelay, Integer>
     {
+        private final Spinner<Integer> spinner;
+        
         public DelayTableCell()
         {
-            super(new IntegerStringConverter());
+            this.spinner = new Spinner<>(0, 10000, 1);
+            spinner.setEditable(true);
+            this.spinner.valueProperty().addListener((observable, oldValue, newValue) -> commitEdit(newValue));
         }
 
         @Override
@@ -102,18 +107,26 @@ public class TitleDetailDelayTable extends BorderPane
 
             if (empty ||
                 getTableRow() == null ||
-                getTableRow().getItem() == null)
+                getTableRow().getItem() == null ||
+                spinner == null) {
+                setGraphic(null);
                 return;
+            }
             if (getTableRow().getItem().hasDelay())
             {
-                setDisable(false);
-                setTextFill(Color.BLACK);
+                spinner.setDisable(false);
+                spinner.getEditor().setStyle("-fx-text-inner-color: black;");
+                //spinner.getEditor().setTextFill(Color.BLACK);
             }
             else
             {
-                setDisable(true);
-                setTextFill(Color.LIGHTGRAY);
+                spinner.setDisable(true);
+                spinner.getEditor().setStyle("-fx-text-inner-color: lightgray;");
+                //spinner.getEditor().setTextFill(Color.LIGHTGRAY);
             }
+            
+            this.spinner.getValueFactory().setValue(item);
+            setGraphic(spinner);
         }
     }
 
