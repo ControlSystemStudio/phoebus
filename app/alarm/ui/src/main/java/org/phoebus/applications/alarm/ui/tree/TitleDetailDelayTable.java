@@ -49,7 +49,7 @@ import javafx.util.converter.IntegerStringConverter;
 public class TitleDetailDelayTable extends BorderPane
 {
     private enum Option_d {
-        mailto, cmd
+        mailto, cmd, sevrpv
     };
 
     private final ObservableList<TitleDetailDelay> items = FXCollections.observableArrayList();
