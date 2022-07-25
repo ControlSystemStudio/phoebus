@@ -22,7 +22,7 @@ public class IndexNameHelper
     private String baseIndexName;
     private String currentDateSpan;
     private String dateSpanUnit;
-    private Integer dateSpanValue;
+    private Integer dateSpanValue = 1;
 
     private Instant spanStart;
     private Instant spanEnd;
@@ -38,16 +38,21 @@ public class IndexNameHelper
     /**
      *
      * @param baseIndexName : Index base name that the date will be appended to.
+     * @param useDatedIndexNames : A flag to indicate if the helper should generate date based index names
      * @param dateSpanUnit : The unit of the date span. Years (Y/y), Months (M/m), Weeks (W/w), and Days (D/d) are supported.
-     * @param dateSpanValue : The integer number of date range units that each index will span.
      * @throws Exception : If any parameters are invalid or null.
      */
-    public IndexNameHelper(final String baseIndexName, final String dateSpanUnit, final Integer dateSpanValue) throws Exception
+    public IndexNameHelper(final String baseIndexName, final boolean useDatedIndexNames, final String dateSpanUnit) throws Exception
     {
         if (null != baseIndexName)
             this.baseIndexName = baseIndexName;
         else
             throw new Exception("Base Index Name is null.");
+
+        if (!useDatedIndexNames)
+            this.dateSpanValue = -1;
+        else
+            this.dateSpanValue = 1;
 
         if (null != dateSpanUnit)
         {
@@ -58,10 +63,6 @@ public class IndexNameHelper
         else
             throw new Exception("Date Span Unit is null.");
 
-        if (null != dateSpanValue)
-            this.dateSpanValue = dateSpanValue;
-        else
-            throw new Exception("Date Span Value is null.");
     }
 
     /**

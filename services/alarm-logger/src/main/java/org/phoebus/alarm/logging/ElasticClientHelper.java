@@ -44,6 +44,8 @@ import java.util.logging.Level;
 import static org.phoebus.alarm.logging.AlarmLoggingService.logger;
 
 /**
+ * A Utility service to allow for batched indexing of alarm state, config, and command messages to an elastic backend
+ *
  * @author Kunal Shroff {@literal <kunalshroff9@gmail.gov>}
  *
  */
@@ -240,6 +242,10 @@ public class ElasticClientHelper {
         private String ALARM_CONFIG_TEMPLATE = props.getProperty("elasticsearch.alarm.config.template","alarms_config_template");
         private String ALARM_CONFIG_TEMPLATE_PATTERN = props.getProperty("elasticsearch.alarm.config.template.pattern","*_alarms_config*");
 
+        /**
+         * Check if the required templated for the phoebus alarm logs exists, if not create them.
+         * @throws IOException
+         */
         public void initializeIndices() throws IOException {
             // Create the alarm state messages index template
             boolean exists = client.indices().existsIndexTemplate(ExistsIndexTemplateRequest.of(i -> i.name(ALARM_STATE_TEMPLATE))).value();

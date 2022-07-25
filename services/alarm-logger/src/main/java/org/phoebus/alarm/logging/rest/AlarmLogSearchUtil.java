@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.phoebus.alarm.logging.AlarmLoggingService;
 import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.util.indexname.IndexNameHelper;
 import org.phoebus.util.time.TimeParser;
 
 import java.io.IOException;
@@ -62,6 +63,12 @@ public class AlarmLogSearchUtil {
     private static final String STARTTIME = "start";
     private static final String ENDTIME = "end";
 
+    private static final String CONFIG_INDEX_FORMAT = "_alarms_config";
+    private static final String STATE_INDEX_FORMAT = "_alarms_state";
+
+    private IndexNameHelper stateIndexNameHelper;
+    private IndexNameHelper configIndexNameHelper;
+
     /**
      * Find all the log (state and config) messages which match the search criteria
      *
@@ -74,33 +81,37 @@ public class AlarmLogSearchUtil {
         logger.info("searching for alarm log entires : " +
                 searchParameters.entrySet().stream().map(e -> e.getKey() + ": " + e.getValue()).collect(Collectors.joining()));
 
-        String from = formatter.format(Instant.now().minus(7, ChronoUnit.DAYS));
-        String to = formatter.format(Instant.now());
+        Instant fromInstant = Instant.now().minus(7, ChronoUnit.DAYS);
+        Instant toInstant = Instant.now();
 
         // The maximum search result size
         int maxSize = prefs.getInt("es_max_size");
+        final String indexDateSpanUnits = prefs.get("date_span_units");
+        final boolean useDatedIndexNames = prefs.getBoolean("use_dated_index_names");
+
         boolean configSet = false;
         boolean temporalSearch = false;
 
         BoolQuery.Builder boolQuery = new BoolQuery.Builder();
+        List<String> indexList = new ArrayList<>();
 
         for (Map.Entry<String, String> parameter : searchParameters.entrySet()) {
             switch (parameter.getKey().strip().toLowerCase()) {
                 case STARTTIME:
                     Object startTime = TimeParser.parseInstantOrTemporalAmount(parameter.getValue().strip());
                     if (startTime instanceof Instant) {
-                        from = formatter.format((Instant) startTime);
+                        fromInstant = (Instant) startTime;
                     } else if (startTime instanceof TemporalAmount) {
-                        from = formatter.format(Instant.now().minus((TemporalAmount) startTime));
+                        fromInstant = Instant.now().minus((TemporalAmount) startTime);
                     }
                     temporalSearch = true;
                     break;
                 case ENDTIME:
                     Object endTime = TimeParser.parseInstantOrTemporalAmount(parameter.getValue().strip());
                     if (endTime instanceof Instant) {
-                        to = formatter.format((Instant) endTime);
+                        toInstant = (Instant) endTime;
                     } else if (endTime instanceof TemporalAmount) {
-                        to = formatter.format(Instant.now().minus((TemporalAmount) endTime));
+                        toInstant = Instant.now().minus((TemporalAmount) endTime);
                     }
                     temporalSearch = true;
                     break;
@@ -187,19 +198,38 @@ public class AlarmLogSearchUtil {
         // Add the temporal queries
         if (temporalSearch) {
             // TODO check that the start is before the end
+            if(fromInstant.isBefore(toInstant)) {
+            } else {
+                //
+                logger.log(Level.SEVERE,
+                        "Failed to search for alarm logs: invalid time range from: " + formatter.format(fromInstant) + " to: " + formatter.format(toInstant));
+            }
             //Effectively final
-            String finalFrom = from;
-            String finalTo = to;
+            Instant finalFromInstant = fromInstant;
+            Instant finalToInstant = toInstant;
             boolQuery.must(
                     Query.of(q -> q
                             .range(RangeQuery.of(r -> r
                                             .field("message_time")
-                                            .from(finalFrom)
-                                            .to(finalTo)
+                                            .from(formatter.format(finalFromInstant))
+                                            .to(formatter.format(finalToInstant))
                                     )
                             )
                     )
             );
+
+            try {
+                IndexNameHelper indexNameHelper = new IndexNameHelper("*", useDatedIndexNames, indexDateSpanUnits);
+                String fromIndex = indexNameHelper.getIndexName(fromInstant);
+                String toIndex = indexNameHelper.getIndexName(toInstant);
+                if(fromIndex.equalsIgnoreCase(toIndex)) {
+                    indexList.add(fromIndex);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+
         }
 
         int finalSize = maxSize; //Effectively final
