@@ -115,15 +115,17 @@ public class PVSamples extends PlotSamples
         if (lock.getReadHoldCount() <= 0  && ! lock.isWriteLockedByCurrentThread())
             logger.log(Level.WARNING, "Missing lock", new Exception("Stack Trace"));
 
+        // If the data point is 'real'/raw then return it
         final int raw_count = getRawSize();
         if (index < raw_count)
             return getRawSample(index);
-        // Last sample is valid, so it should still apply 'now'
+        // Else, create a 'virtual' point by transforming its
+        // timestamp to 'now' to display the currently implied value
         final PlotSample sample = getRawSample(raw_count-1);
         if (Instant.now().compareTo(sample.getPosition()) < 0)
             return sample;
         else
-            return new PlotSample(sample.getSource(), VTypeHelper.transformTimestampToNow(sample.getVType()));
+            return new PlotSample(sample.getSource(), VTypeHelper.transformTimestampToNow(sample.getVType()), true);
     }
 
     /** Get 'raw' sample, no continuation until 'now'
