@@ -45,4 +45,7 @@ public interface PlotDataItem<XTYPE extends Comparable<XTYPE>>
     {
         return Double.toString(getValue());
     };
+
+    /** @return if this data point is real or just a mechanical point, e.g. the 'now' point. */
+    public default boolean isVirtual() { return false; }
 }
