@@ -219,35 +219,31 @@ public class AlarmLogSearchUtil {
             );
 
             try {
-                IndexNameHelper indexNameHelper = new IndexNameHelper("*", useDatedIndexNames, indexDateSpanUnits);
-                String fromIndex = indexNameHelper.getIndexName(fromInstant);
-                String toIndex = indexNameHelper.getIndexName(toInstant);
-                if(fromIndex.equalsIgnoreCase(toIndex)) {
-                    indexList.add(fromIndex);
-                }
+                indexList = findIndexNames("*", fromInstant, toInstant, indexDateSpanUnits);
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.log(Level.SEVERE,
+                        "Failed to search for alarm logs:" + e.getMessage(), e);
             }
-
-
         }
 
         int finalSize = maxSize; //Effectively final
-        SearchRequest searchRequest = SearchRequest.of(r -> r
-                .query(Query.of(q -> q
-                                .bool(boolQuery.build())
-                        )
-                )
-                .size(finalSize)
-                .sort(SortOptions.of(o -> o
-                                .field(FieldSort.of(f -> f
-                                                .field("message_time")
-                                                .order(SortOrder.Desc)
-                                        )
+        SearchRequest.Builder searchRequestBuilder = new SearchRequest.Builder();
+        searchRequestBuilder.query(Query.of(q -> q
+                .bool(boolQuery.build())
+        ));
+        searchRequestBuilder.size(finalSize);
+        searchRequestBuilder.sort(SortOptions.of(o -> o
+                        .field(FieldSort.of(f -> f
+                                        .field("message_time")
+                                        .order(SortOrder.Desc)
                                 )
                         )
                 )
         );
+        if (!indexList.isEmpty()) {
+            searchRequestBuilder.index(indexList);
+        }
+        SearchRequest searchRequest = searchRequestBuilder.build();
         try {
             SearchResponse<JsonNode> strResponse = client.search(searchRequest, JsonNode.class);
             return strResponse.hits().hits().stream().map(hit -> {
@@ -306,5 +302,52 @@ public class AlarmLogSearchUtil {
             logger.log(Level.SEVERE, "Failed to search for alarm config logs ", e);
         }
         return Collections.emptyList();
+    }
+
+    /**
+     * return a list of index names between the from and to instant
+     * @param fromInstant
+     * @param toInstant
+     * @param indexDateSpanUnits
+     * @throws Exception
+     * @return List of index names
+     */
+    public static List<String> findIndexNames(String baseIndexName, Instant fromInstant, Instant toInstant, String indexDateSpanUnits) throws Exception {
+
+        IndexNameHelper fromIndexNameHelper = new IndexNameHelper(baseIndexName, true, indexDateSpanUnits);
+        IndexNameHelper toIndexNameHelper = new IndexNameHelper(baseIndexName, true, indexDateSpanUnits);
+
+        String fromIndex = fromIndexNameHelper.getIndexName(fromInstant);
+        String toIndex = toIndexNameHelper.getIndexName(toInstant);
+
+        List<String> indexList = new ArrayList<>();
+        if (fromInstant.isBefore(toInstant)) {
+            if (fromIndex.equalsIgnoreCase(toIndex)) {
+                indexList.add(fromIndex);
+            } else {
+                int indexDateSpanDayValue = -1;
+                switch (indexDateSpanUnits){
+                    case "Y":
+                        indexDateSpanDayValue = 365;
+                        break;
+                    case "M":
+                        indexDateSpanDayValue = 30;
+                        break;
+                    case "W":
+                        indexDateSpanDayValue = 7;
+                        break;
+                    case "D":
+                        indexDateSpanDayValue = 1;
+                        break;
+                }
+                indexList.add(fromIndex);
+                while (!fromIndex.equalsIgnoreCase(toIndex)) {
+                    fromInstant = fromInstant.plus(indexDateSpanDayValue, ChronoUnit.DAYS);
+                    fromIndex = fromIndexNameHelper.getIndexName(fromInstant);
+                    indexList.add(fromIndex);
+                }
+            }
+        }
+        return indexList;
     }
 }
