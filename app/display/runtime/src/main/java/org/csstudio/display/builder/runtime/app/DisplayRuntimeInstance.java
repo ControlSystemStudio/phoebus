@@ -115,11 +115,14 @@ public class DisplayRuntimeInstance implements AppInstance
         DockPane dock_pane = null;
         if (prefTarget != null)
         {
-            if (prefTarget.equals("window"))
+            if (prefTarget.startsWith("window"))
             {
                 // Open new Stage in which this app will be opened, its DockPane is a new active one
                 final Stage new_stage = new Stage();
-                DockStage.configureStage(new_stage);
+                if (prefTarget.length() > 6)
+                    DockStage.configureStage(new_stage, prefTarget.substring(7));
+                else
+                    DockStage.configureStage(new_stage, null);
                 new_stage.show();
             }
             else

@@ -64,6 +64,18 @@ import javafx.stage.Window;
 @SuppressWarnings("nls")
 public class DockStage
 {
+    static class Geometry
+    {
+        protected Integer x, y, width, height;
+        public Geometry(Integer x, Integer y, Integer width, Integer height)
+        {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+        }
+    }
+
     /** Property key for the stage ID */
     public static final String KEY_ID = "ID";
 
@@ -105,6 +117,39 @@ public class DockStage
         return what + "_" + UUID.randomUUID().toString().replace('-', '_');
     }
 
+    private static Geometry setSizeAndPosition(String geometryString)
+    {
+        Integer x = Integer.valueOf(50),
+                y = Integer.valueOf(50),
+                width = Integer.valueOf(1200),
+                height = Integer.valueOf(600);
+        boolean size, position;
+        Geometry geometry;
+
+        if (geometryString != null)
+        {
+            size = geometryString.matches("^(\\d+)x(\\d+)(?:%(\\d+))?(?:x(\\d+))?$");
+            position = geometryString.matches("^(\\d+)x(\\d+)%(\\d+)x(\\d+)$");
+            if (size && position)
+            {
+                String[] tokens = geometryString.split("[x%]");
+                width = Integer.parseInt(tokens[0]);
+                height = Integer.parseInt(tokens[1]);
+                x = Integer.parseInt(tokens[2]);
+                y = Integer.parseInt(tokens[3]);
+            }
+            else if (size)
+            {
+                String[] tokens = geometryString.split("[x]");
+                width = Integer.parseInt(tokens[0]);
+                height = Integer.parseInt(tokens[1]);
+            }
+        }
+        geometry = new Geometry(x, y, width, height);
+
+        return geometry;
+    }
+
     /** Helper to configure a Stage for docking
      *
      *  <p>Adds a Scene with a BorderPane layout and a DockPane in the center
@@ -115,8 +160,9 @@ public class DockStage
      *
      *  @return {@link DockPane} that was added to the {@link Stage}
      */
-    public static DockPane configureStage(final Stage stage, final DockItem... tabs)
+    public static DockPane configureStage(final Stage stage, final String geometryString, final DockItem... tabs)
     {
+        Geometry geometry;
         stage.getProperties().put(KEY_ID, createID("DockStage"));
 
         final DockPane pane = new DockPane(tabs);
@@ -124,6 +170,7 @@ public class DockStage
         final BorderPane layout = new BorderPane(pane);
         pane.setDockParent(layout);
 
+        geometry = setSizeAndPosition(geometryString);
         pane.addDockPaneEmptyListener(() -> {
             if(!stage.getProperties().get(KEY_ID).equals(DockStage.ID_MAIN)){
                 if(layout.getChildren().get(0) instanceof DockPane){
@@ -141,9 +188,15 @@ public class DockStage
             }
         });
 
-        final Scene scene = new Scene(layout, 1600, 900);
+        final Scene scene = new Scene(layout, geometry.width, geometry.height);
         stage.setScene(scene);
         stage.setTitle(Messages.FixedTitle);
+        stage.setX(geometry.x);
+        stage.setY(geometry.y);
+        stage.show();
+        stage.toFront();
+        stage.setAlwaysOnTop(true);
+        stage.setAlwaysOnTop(false);
         Styles.setSceneStyle(scene);
         try
         {
@@ -186,6 +239,11 @@ public class DockStage
         });
 
         return pane;
+    }
+
+    public static DockPane configureStage(final Stage stage, final DockItem... tabs)
+    {
+        return DockStage.configureStage(stage, null, tabs);
     }
 
     /** @return Unique ID of this stage */
