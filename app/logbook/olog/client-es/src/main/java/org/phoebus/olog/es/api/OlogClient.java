@@ -58,7 +58,7 @@ public class OlogClient implements LogClient {
 
     private static final String OLOG_CLIENT_INFO_HEADER = "X-Olog-Client-Info";
     private static final String CLIENT_INFO =
-            "CS Studio " + org.phoebus.ui.application.Messages.AppVersion + " on " + System.getProperty("os.name");
+            "CS Studio " + Messages.AppVersion + " on " + System.getProperty("os.name");
 
     /**
      * Builder Class to help create a olog client.

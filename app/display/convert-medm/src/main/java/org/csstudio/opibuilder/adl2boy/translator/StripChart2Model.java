@@ -41,7 +41,7 @@ public class StripChart2Model extends AbstractADL2Model<StripchartWidget> {
             setColor(plotcom.getBackgroundColor(), CommonWidgetProperties.propBackgroundColor);
         }
 
-        widgetModel.propTimeRange().setValue(Math.round(plotWidget.getPeriod()) + " " + plotWidget.getUnits());
+        widgetModel.propStart().setValue(Math.round(plotWidget.getPeriod()) + " " + plotWidget.getUnits());
 
         final List<ADLPen> pens = plotWidget.getPens();
         if (pens.size() > 0)

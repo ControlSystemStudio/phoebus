@@ -57,6 +57,7 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         model_widget.propLimitsFromPV().addUntypedPropertyListener(valueListener);
         model_widget.propMinimum().addUntypedPropertyListener(valueListener);
         model_widget.propMaximum().addUntypedPropertyListener(valueListener);
+	model_widget.propLogScale().addUntypedPropertyListener(valueListener);
         model_widget.runtimePropValue().addUntypedPropertyListener(valueListener);
         valueChanged(null, null, null);
     }
@@ -76,6 +77,7 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         model_widget.propLimitsFromPV().removePropertyListener(valueListener);
         model_widget.propMinimum().removePropertyListener(valueListener);
         model_widget.propMaximum().removePropertyListener(valueListener);
+	model_widget.propLogScale().removePropertyListener(valueListener);
         model_widget.runtimePropValue().removePropertyListener(valueListener);
         super.unregisterListeners();
     }
@@ -111,6 +113,8 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         else
             value = VTypeUtil.getValueNumber(vtype).doubleValue();
         tank.setValue(value);
+
+        tank.setLogScale(model_widget.propLogScale().getValue());
     }
 
     @Override

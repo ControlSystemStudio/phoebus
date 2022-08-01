@@ -49,7 +49,7 @@ public class JCA_Preferences
 
     private boolean dbe_property_supported = false;
 
-    private Boolean var_array_supported = Boolean.FALSE;
+    private Boolean var_array_supported = null;
 
     private int large_array_threshold = 100000;
 

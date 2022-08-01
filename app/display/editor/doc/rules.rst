@@ -48,9 +48,9 @@ of the rule are accessible in the expression.
 
     - 0 - OK
 
-    - 1 - Major
+    - 1 - Minor
 
-    - 2 - Minor
+    - 2 - Major
 
 Value as Expression
 -------------------

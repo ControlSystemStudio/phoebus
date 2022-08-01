@@ -198,8 +198,9 @@ public class Perspective extends SplitPane
             items.addAll(add_data);
 
             items.add(new SeparatorMenuItem());
-            items.add(new PrintAction(plot.getPlot()));
-            items.add(new SaveSnapshotAction(plot.getPlot()));
+            // Get screenshot of actual plot without optional toolbar
+            items.add(new PrintAction(plot.getPlot().getCenter()));
+            items.add(new SaveSnapshotAction(plot.getPlot().getCenter()));
 
             SelectionService.getInstance().setSelection(this, Arrays.asList(DatabrowserSelection.of(model, plot)));
             List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();

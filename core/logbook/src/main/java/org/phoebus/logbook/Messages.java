@@ -37,4 +37,5 @@ public class Messages {
     public static String SubmissionFailed;
     public static String SubmissionFailedInvalidCredentials;
     public static String SubmissionFailedWithHttpStatus;
+    public static String AppVersion;
 }

@@ -12,6 +12,7 @@ import static org.csstudio.display.builder.representation.ToolkitRepresentation.
 import java.util.logging.Level;
 
 import javafx.application.Platform;
+import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
@@ -60,6 +61,7 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
     protected volatile VType value = null;
     private volatile double value_max  = 100.0;
     private volatile double value_min  = 0.0;
+    private volatile Pos pos;
 
     private static WidgetColor active_color = WidgetColorService.getColor(NamedWidgetColors.ACTIVE_TEXT);
 
@@ -377,6 +379,8 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
     protected void registerListeners()
     {
         super.registerListeners();
+        pos = JFXUtil.computePos(model_widget.propHorizontalAlignment().getValue(),
+                model_widget.propVerticalAlignment().getValue());
         model_widget.propWidth().addUntypedPropertyListener(styleListener);
         model_widget.propHeight().addUntypedPropertyListener(styleListener);
         model_widget.propButtonsOnLeft().addUntypedPropertyListener(styleListener);
@@ -384,6 +388,8 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         model_widget.propForegroundColor().addUntypedPropertyListener(styleListener);
         model_widget.propBackgroundColor().addUntypedPropertyListener(styleListener);
         model_widget.propFont().addUntypedPropertyListener(styleListener);
+        model_widget.propHorizontalAlignment().addUntypedPropertyListener(styleListener);
+        model_widget.propVerticalAlignment().addUntypedPropertyListener(styleListener);
         model_widget.propEnabled().addUntypedPropertyListener(styleListener);
         model_widget.runtimePropPVWritable().addUntypedPropertyListener(styleListener);
 
@@ -434,6 +440,8 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
 
     private void styleChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
+        pos = JFXUtil.computePos(model_widget.propHorizontalAlignment().getValue(),
+                model_widget.propVerticalAlignment().getValue());
         dirty_style.mark();
         toolkit.scheduleUpdate(this);
     }
@@ -491,6 +499,7 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
             JFXUtil.appendWebRGB(style, back_color).append(";");
 
             jfx_node.editorProperty().getValue().setStyle(style.toString());
+            jfx_node.editorProperty().getValue().setAlignment(pos);
             jfx_node.resize(model_widget.propWidth().getValue(), model_widget.propHeight().getValue());
 
             // Enable if enabled by user and there's write access
