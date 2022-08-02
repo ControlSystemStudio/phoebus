@@ -7,43 +7,28 @@
  ******************************************************************************/
 package org.csstudio.apputil.formula.areadetector;
 
-import org.epics.vtype.Display;
 import org.epics.vtype.VImage;
-import org.epics.vtype.VInt;
-import org.epics.vtype.VType;
 
-/** A formula function for fetching width of VImage
+/** A formula function for fetching offset of VImage
  *  @author Kay Kasemir
  */
-public class ImageWidthFunction extends ImageValueFunction
+public class ImageYOffsetFunction extends ImageWidthFunction
 {
     @Override
     public String getName()
     {
-        return "imageWidth";
+        return "imageYOffset";
     }
 
     @Override
     public String getDescription()
     {
-        return "Fetch width of image";
-    }
-
-    /** Fetch info (width, height, ...) from image
-     *
-     *  Subclass can override
-     *
-     *  @param image Image
-     *  @return info
-     */
-    protected int getImageInfo(final VImage image)
-    {
-        return image.getWidth();
+        return "Fetch vertical offset of image";
     }
 
     @Override
-    protected VType getImageData(final VImage image)
+    protected int getImageInfo(final VImage image)
     {
-        return VInt.of(getImageInfo(image), image.getAlarm(), image.getTime(), Display.none());
+        return image.getYOffset();
     }
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -44,6 +44,8 @@ import org.csstudio.javafx.rtplot.YAxis;
 import org.csstudio.javafx.rtplot.internal.NumericAxis;
 import org.epics.util.array.ArrayDouble;
 import org.epics.util.array.ListNumber;
+import org.epics.vtype.Display;
+import org.epics.vtype.VImage;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
@@ -286,11 +288,22 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
                 return;
 
             final ListNumber x_data, y_data, error;
-            final VType y_value = model_trace.traceYValue().getValue();
+            VType y_value = model_trace.traceYValue().getValue();
+
+            if (y_value instanceof VImage)
+            {   // Extract VNumberArray from image, then continue with that
+                final VImage image = (VImage) y_value;
+                y_value = VNumberArray.of(image.getData(), image.getAlarm(), image.getTime(), Display.none());
+            }
 
             if (y_value instanceof VNumberArray)
             {
-                final VType x_value = model_trace.traceXValue().getValue();
+                VType x_value = model_trace.traceXValue().getValue();
+                if (x_value instanceof VImage)
+                {   // Extract VNumberArray from image, then continue with that
+                    final VImage image = (VImage) x_value;
+                    x_value = VNumberArray.of(image.getData(), image.getAlarm(), image.getTime(), Display.none());
+                }
                 x_data = (x_value instanceof VNumberArray) ? ((VNumberArray)x_value).getData() : null;
 
                 final VNumberArray y_array = (VNumberArray)y_value;
@@ -323,7 +336,12 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
             else
             {   // No Y Data.
                 // Do we have X data?
-                final VType x_value = model_trace.traceXValue().getValue();
+                VType x_value = model_trace.traceXValue().getValue();
+                if (x_value instanceof VImage)
+                {   // Extract VNumberArray from image, then continue with that
+                    final VImage image = (VImage) x_value;
+                    x_value = VNumberArray.of(image.getData(), image.getAlarm(), image.getTime(), Display.none());
+                }
                 if (x_value instanceof VNumberArray)
                 {
                     x_data = ((VNumberArray)x_value).getData();
