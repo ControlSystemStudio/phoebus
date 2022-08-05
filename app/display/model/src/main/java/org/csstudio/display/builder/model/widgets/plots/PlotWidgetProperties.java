@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -146,14 +146,56 @@ public class PlotWidgetProperties
         public WidgetProperty<Boolean> visible()        { return getElement(8); }
     };
 
+    /** 'on_right' property: Should axis be on the right? */
+    public static final WidgetPropertyDescriptor<Boolean> propOnRight =
+        CommonWidgetProperties.newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "on_right", Messages.WidgetProperties_OnRight);
+
+    /** Structure for Y axis */
+    public static class YAxisWidgetProperty extends AxisWidgetProperty
+    {
+        /** @param descriptor propYAxis
+         *  @param widget Widget
+         *  @param title_text Title
+         *  @return {@link YAxisWidgetProperty}
+         */
+        public static YAxisWidgetProperty create(final StructuredWidgetProperty.Descriptor descriptor, final Widget widget, final String title_text)
+        {
+            return new YAxisWidgetProperty(descriptor, widget,
+                  Arrays.asList(propTitle.createProperty(widget, title_text),
+                                propAutoscale.createProperty(widget, false),
+                                propLogscale.createProperty(widget, false),
+                                CommonWidgetProperties.propMinimum.createProperty(widget, 0.0),
+                                CommonWidgetProperties.propMaximum.createProperty(widget, 100.0),
+                                propGrid.createProperty(widget, false),
+                                propTitleFont.createProperty(widget, WidgetFontService.get(NamedWidgetFonts.DEFAULT_BOLD)),
+                                propScaleFont.createProperty(widget, WidgetFontService.get(NamedWidgetFonts.DEFAULT)),
+                                propOnRight.createProperty(widget, false),
+                                CommonWidgetProperties.propVisible.createProperty(widget, true)));
+        }
+
+        protected YAxisWidgetProperty(final StructuredWidgetProperty.Descriptor axis_descriptor,
+                                      final Widget widget, final List<WidgetProperty<?>> elements)
+        {
+            super(axis_descriptor, widget, elements);
+        }
+
+        /** @return On right side? */
+        public WidgetProperty<Boolean> onRight()        { return getElement(8); }
+
+        // Element shifted from 8 in basic axis to 9 in Y axis
+        @Override
+        public WidgetProperty<Boolean> visible()        { return getElement(9); }
+    };
+
+
     /** 'y_axes' array */
-    public static final ArrayWidgetProperty.Descriptor<AxisWidgetProperty> propYAxes =
+    public static final ArrayWidgetProperty.Descriptor<YAxisWidgetProperty> propYAxes =
         new ArrayWidgetProperty.Descriptor<>(WidgetPropertyCategory.BEHAVIOR, "y_axes", Messages.PlotWidget_YAxes,
                                              (widget, index) ->
-                                             AxisWidgetProperty.create(propYAxis, widget,
-                                                                       index > 0
-                                                                       ? Messages.PlotWidget_Y + " " + index
-                                                                       : Messages.PlotWidget_Y));
+                                             YAxisWidgetProperty.create(propYAxis, widget,
+                                                                        index > 0
+                                                                        ? Messages.PlotWidget_Y + " " + index
+                                                                        : Messages.PlotWidget_Y));
 
     // Elements of the 'trace' structure
 
