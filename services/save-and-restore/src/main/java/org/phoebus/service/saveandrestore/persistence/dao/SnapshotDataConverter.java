@@ -28,8 +28,9 @@ import org.epics.util.number.ULong;
 import org.epics.util.number.UShort;
 import org.epics.vtype.*;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.model.SnapshotPv;
+import org.phoebus.applications.saveandrestore.model.SnapshotPvDataType;
 import org.phoebus.service.saveandrestore.epics.exception.PVConversionException;
-import org.phoebus.service.saveandrestore.model.internal.SnapshotPv;
 
 import java.time.Instant;
 import java.util.ArrayList;

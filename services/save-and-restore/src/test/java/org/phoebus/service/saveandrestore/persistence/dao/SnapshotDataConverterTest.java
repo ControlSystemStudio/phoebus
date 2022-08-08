@@ -25,30 +25,33 @@ import org.epics.util.number.ULong;
 import org.epics.util.number.UShort;
 import org.epics.vtype.*;
 import org.epics.vtype.json.VTypeToJson;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.model.SnapshotPv;
+import org.phoebus.applications.saveandrestore.model.SnapshotPvDataType;
+import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.epics.exception.PVConversionException;
-import org.phoebus.service.saveandrestore.model.internal.SnapshotPv;
 
 import javax.json.Json;
 import java.io.ByteArrayInputStream;
 import java.time.Instant;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author georgweiss Created 28 Nov 2018
  */
 public class SnapshotDataConverterTest {
 
-	private Alarm alarm;
-	private Time time;
-	private Display display;
+	private static Alarm alarm;
+	private static Time time;
+	private static Display display;
 
-	@Before
-	public void init() {
+	@BeforeAll
+	public static void init() {
 		time = Time.of(Instant.ofEpochSecond(1000, 7000));
 		alarm = Alarm.of(AlarmSeverity.NONE, AlarmStatus.NONE, "name");
 		display = Display.none();
@@ -392,11 +395,14 @@ public class SnapshotDataConverterTest {
 		assertEquals(SnapshotPvDataType.DOUBLE, SnapshotDataConverter.getDataType(vDoubleArray));
 	}
 
-	@Test(expected = RuntimeException.class)
+	@Test
 	public void testUnsupportedType() {
 
 		VEnumArray vEnumArray = VEnumArray.of(ArrayInteger.of(1, 2, 3), EnumDisplay.of("a", "b", "c"), Alarm.none(), Time.now());
-		SnapshotDataConverter.fromVType(vEnumArray);
+
+		assertThrows(NodeNotFoundException.class,
+				() -> SnapshotDataConverter.fromVType(vEnumArray));
+
 	}
 
 	@Test
@@ -470,9 +476,10 @@ public class SnapshotDataConverterTest {
 		assertEquals(1, sizes.getInt(0));
 	}
 
-	@Test(expected = PVConversionException.class)
+	@Test
 	public void testDeserializeBadSizes() {
-		SnapshotDataConverter.toSizes(SnapshotPv.builder().sizes("[1,2").build());
+		assertThrows(NodeNotFoundException.class,
+				() -> SnapshotDataConverter.toSizes(SnapshotPv.builder().sizes("[1,2").build()));
 	}
 
 	@Test
@@ -524,7 +531,7 @@ public class SnapshotDataConverterTest {
 
 		assertTrue(SnapshotDataConverter.toVType(snapshotPv) instanceof VInt);
 
-		snapshotPv.setDataType(SnapshotPvDataType.UINTEGER);
+		snapshotPv.setDataType(org.phoebus.applications.saveandrestore.model.SnapshotPvDataType.UINTEGER);
 		assertTrue(SnapshotDataConverter.toVType(snapshotPv) instanceof VUInt);
 
 		snapshotPv.setDataType(SnapshotPvDataType.SHORT);

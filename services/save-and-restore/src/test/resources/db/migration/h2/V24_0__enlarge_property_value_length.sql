@@ -1,1 +1,1 @@
-ALTER TABLE property MODIFY value VARCHAR(2000);
+ALTER TABLE property ALTER value VARCHAR(2000);

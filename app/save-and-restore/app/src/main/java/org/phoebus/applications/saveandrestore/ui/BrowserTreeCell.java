@@ -55,7 +55,7 @@ import java.util.logging.Logger;
 public class BrowserTreeCell extends TreeCell<Node> {
 
     private javafx.scene.Node folderBox;
-    private javafx.scene.Node saveSetBox;
+    private javafx.scene.Node configurationBox;
     private javafx.scene.Node snapshotBox;
 
     private final ContextMenu folderContextMenu;
@@ -76,7 +76,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
             loader.setLocation(BrowserTreeCell.class.getResource("TreeCellGraphic.fxml"));
             javafx.scene.Node rootNode = loader.load();
             folderBox = rootNode.lookup("#folder");
-            saveSetBox = rootNode.lookup("#saveset");
+            configurationBox = rootNode.lookup("#configuration");
             snapshotBox = rootNode.lookup("#snapshot");
 
         } catch (IOException e) {
@@ -98,7 +98,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
             final ClipboardContent content = new ClipboardContent();
             Node node = getItem();
             // Drag-n-drop not supported for root node and snapshot nodes
-            if (node != null && !node.getNodeType().equals(NodeType.SNAPSHOT) && !node.getName().equals("Root folder")) {
+            if (node != null && !node.getNodeType().equals(NodeType.SNAPSHOT) && !node.getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)) {
                 final List<Node> nodes = new ArrayList<>();
 
                 for (TreeItem<Node> sel : getTreeView().getSelectionModel().getSelectedItems()) {
@@ -178,8 +178,8 @@ public class BrowserTreeCell extends TreeCell<Node> {
                 setEditable(false);
                 break;
             case CONFIGURATION:
-                ((Label) saveSetBox.lookup("#savesetLabel")).setText(node.getName());
-                setGraphic(saveSetBox);
+                ((Label) configurationBox.lookup("#configurationLabel")).setText(node.getName());
+                setGraphic(configurationBox);
                 String description = node.getProperty("description");
                 if (description != null && !description.isEmpty()) {
                     setTooltip(new Tooltip(description));
@@ -188,7 +188,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
                 break;
             case FOLDER:
                 String labelText = node.getName();
-                if (node.getProperty("root") != null && Boolean.valueOf(node.getProperty("root"))) {
+                if (node.getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)) {
                     setContextMenu(rootFolderContextMenu);
                 } else {
                     setContextMenu(folderContextMenu);

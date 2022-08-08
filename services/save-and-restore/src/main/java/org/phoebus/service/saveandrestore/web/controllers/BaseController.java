@@ -27,8 +27,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 
-import org.phoebus.service.saveandrestore.services.exception.NodeNotFoundException;
-import org.phoebus.service.saveandrestore.services.exception.SnapshotNotFoundException;
+import org.phoebus.service.saveandrestore.NodeNotFoundException;
+import org.phoebus.service.saveandrestore.SnapshotNotFoundException;
 
 /**
  * Base controller that should be extended to make sure exceptions are handled
@@ -40,7 +40,7 @@ import org.phoebus.service.saveandrestore.services.exception.SnapshotNotFoundExc
 @SuppressWarnings("unused")
 public abstract class BaseController {
 	
-	protected static final String JSON = "application/json;charset = UTF-8";
+	public static final String JSON = "application/json;charset=UTF-8";
 	
 	private final Logger logger = LoggerFactory.getLogger(BaseController.class);
 

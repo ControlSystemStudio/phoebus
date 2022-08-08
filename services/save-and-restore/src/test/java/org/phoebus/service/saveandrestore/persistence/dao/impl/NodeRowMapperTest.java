@@ -18,13 +18,13 @@
 
 package org.phoebus.service.saveandrestore.persistence.dao.impl;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.phoebus.applications.saveandrestore.model.Node;

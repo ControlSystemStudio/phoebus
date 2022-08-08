@@ -53,6 +53,7 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.util.converter.DoubleStringConverter;
+import org.eclipse.jgit.transport.CredentialItem.YesNoType;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
@@ -68,6 +69,11 @@ import org.phoebus.applications.saveandrestore.common.Threshold;
 import org.phoebus.applications.saveandrestore.common.Utilities;
 import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.common.VNoData;
+import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.Snapshot;
+import org.phoebus.applications.saveandrestore.model.SnapshotPv;
+import org.phoebus.applications.saveandrestore.model.SnapshotWrapper;
+import org.phoebus.applications.saveandrestore.model.ThinWrapper;
 import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -524,11 +530,17 @@ public class SnapshotController implements NodeChangedListener {
         }
     }
 
+    /**
+     * Loads data from a {@link org.phoebus.applications.saveandrestore.model.Configuration} in order to populate the
+     * view with PV items.
+     * @param node A {@link Node} of type {@link NodeType#CONFIGURATION}
+     */
     public void loadSaveSet(Node node){
 
         SnapshotController.this.config = saveAndRestoreService.getNode(node.getUniqueId());
         try {
-            List<ConfigPv> configPvs = saveAndRestoreService.getConfigPvs(config.getUniqueId());
+            Configuration configuration = saveAndRestoreService.getConfiguration(node.getUniqueId());
+            List<ConfigPv> configPvs = configuration.getPvList();
             Node snapshot = Node.builder().name(Messages.unnamedSnapshot).nodeType(NodeType.SNAPSHOT).build();
             VSnapshot vSnapshot =
                     new VSnapshot(snapshot, saveSetToSnapshotEntries(configPvs));
@@ -705,16 +717,25 @@ public class SnapshotController implements NodeChangedListener {
     }
 
     @FXML
-    public void saveSnapshot(ActionEvent event) {
+    public void saveSnapshot() {
         if(snapshotSaveableProperty.get()){ // There is a new snapshot to save
-            VSnapshot snapshot = snapshots.get(0);
-            List<SnapshotEntry> snapshotEntries = snapshot.getEntries();
+            VSnapshot vSnapshot = snapshots.get(0);
+            List<SnapshotEntry> snapshotEntries = vSnapshot.getEntries();
             List<SnapshotItem> snapshotItems = snapshotEntries
                     .stream()
                     .map(snapshotEntry -> SnapshotItem.builder().value(snapshotEntry.getValue()).configPv(snapshotEntry.getConfigPv()).readbackValue(snapshotEntry.getReadbackValue()).build())
                     .collect(Collectors.toList());
             try {
                 Node savedSnapshot = saveAndRestoreService.saveSnapshot(config, snapshotItems, snapshotNameProperty.get(), snapshotCommentProperty.get());
+
+                Node snapshotNode = Node.builder().nodeType(NodeType.SNAPSHOT).name(snapshotNameProperty.get()).build();
+
+                Snapshot snapshot = new Snapshot();
+                snapshot.setComment(snapshotCommentProperty.get());
+                //snapshot.setPvList();
+                SnapshotWrapper snapshotWrapper = new SnapshotWrapper();
+
+
                 loadSnapshot(savedSnapshot);
             } catch (Exception e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -1020,6 +1041,9 @@ public class SnapshotController implements NodeChangedListener {
                 pv.onValueEvent().throttleLatest(TABLE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS).subscribe(value -> {
                     pvValue = org.phoebus.pv.PV.isDisconnected(value) ? VDisconnectedData.INSTANCE : value;
                     this.snapshotTableEntry.setLiveValue(pvValue);
+                    ThinWrapper tw = new ThinWrapper();
+                    tw.setValue(pvValue);
+                    saveAndRestoreService.sendVType(tw);
                 });
 
 

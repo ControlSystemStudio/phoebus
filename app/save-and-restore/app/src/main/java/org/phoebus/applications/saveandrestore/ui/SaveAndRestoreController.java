@@ -68,7 +68,7 @@ import org.phoebus.applications.saveandrestore.filehandler.csv.CSVImporter;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetTab;
+import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotNewTagDialog;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
@@ -556,7 +556,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         switch (node.getNodeType()) {
             case CONFIGURATION:
-                tab = new SaveSetTab(node, saveAndRestoreService);
+                tab = new ConfigurationTab(node, saveAndRestoreService);
                 break;
             case SNAPSHOT:
                 tab = new SnapshotTab(node, saveAndRestoreService);

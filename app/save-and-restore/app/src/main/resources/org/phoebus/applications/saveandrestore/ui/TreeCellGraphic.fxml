@@ -19,15 +19,15 @@
 		</children>
 	</HBox>
 
-	<HBox fx:id="saveset">
+	<HBox fx:id="configuration">
 		<children>
 			<ImageView pickOnBounds="true" preserveRatio="true">
 				<image>
-					<Image url="/icons/save-and-restore/saveset.png" />
+					<Image url="/icons/save-and-restore/configuration.png" />
 				</image>
 
 			</ImageView>
-			<Label fx:id="savesetLabel" text="Label">
+			<Label fx:id="configurationLabel" text="Label">
             </Label>
 		</children>
 	</HBox>

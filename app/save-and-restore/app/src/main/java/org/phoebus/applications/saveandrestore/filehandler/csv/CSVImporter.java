@@ -77,7 +77,7 @@ import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
-import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetFromSelectionController;
+import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationFromSelectionController;
 
 import java.io.File;
 import java.io.IOException;
@@ -145,7 +145,7 @@ public class CSVImporter extends CSVCommon {
         }
 
         FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/SaveSetFromSelection.fxml"));
+        loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/ConfigurationFromSelection.fxml"));
         Stage dialog = new Stage();
         dialog.setTitle("Import Save Set");
         dialog.initModality(Modality.WINDOW_MODAL);
@@ -156,7 +156,7 @@ public class CSVImporter extends CSVCommon {
             return;
         }
 
-        final SaveSetFromSelectionController controller = loader.getController();
+        final ConfigurationFromSelectionController controller = loader.getController();
         controller.disableSaveSetSelectionInBrowsing();
         controller.setData(parentOfImport, csvParser.getSavesetName(), csvParser.getDescription(), csvParser.getEntries());
         dialog.show();
@@ -221,13 +221,13 @@ public class CSVImporter extends CSVCommon {
 
             if (response.isPresent() && response.get().equals(ButtonType.OK)) {
                 FXMLLoader loader = new FXMLLoader();
-                loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/SaveSetFromSelection.fxml"));
+                loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/ConfigurationFromSelection.fxml"));
                 Stage dialog = new Stage();
                 dialog.setTitle("Import Snapshot");
                 dialog.initModality(Modality.APPLICATION_MODAL);
                 dialog.setScene(new Scene(loader.load()));
 
-                final SaveSetFromSelectionController controller = loader.getController();
+                final ConfigurationFromSelectionController controller = loader.getController();
                 controller.disableSaveSetSelectionInBrowsing();
                 controller.setData(null, "", "", csvParser.getEntries());
                 SimpleObjectProperty<Node> createdSaveset = new SimpleObjectProperty<>(null);

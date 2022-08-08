@@ -54,6 +54,8 @@ public class Node implements Comparable<Node>, Serializable {
 	 */
 	public static final int ROOT_NODE_ID = 0;
 
+	public static final String ROOT_FOLDER_UNIQUE_ID = "44bef5de-e8e6-4014-af37-b8f6c8a939a2";
+
 	public int getId() {
 		return id;
 	}
@@ -204,6 +206,12 @@ public class Node implements Comparable<Node>, Serializable {
 		}
 	}
 
+	/**
+	 * Clones a {@link Node} object. The created date and last modified date is set to the current time stamp.
+	 * The unique id is not copied, as it should not be.
+	 * @param nodeToClone source {@link Node}
+	 * @return The cloned {@link Node}
+	 */
 	public static Node clone(Node nodeToClone){
 		Node clonedNode = new Node();
 		clonedNode.setNodeType(nodeToClone.getNodeType());

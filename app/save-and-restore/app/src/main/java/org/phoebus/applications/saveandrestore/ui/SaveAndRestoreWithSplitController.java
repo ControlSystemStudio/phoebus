@@ -36,7 +36,7 @@ import javafx.scene.input.KeyEvent;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetTab;
+import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
@@ -178,7 +178,7 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
 
         switch (node.getNodeType()) {
             case CONFIGURATION:
-                tab = new SaveSetTab(node, saveAndRestoreService);
+                tab = new ConfigurationTab(node, saveAndRestoreService);
                 break;
             case SNAPSHOT:
                 tab = new SnapshotTab(node, saveAndRestoreService);

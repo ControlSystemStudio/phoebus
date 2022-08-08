@@ -24,14 +24,19 @@ import com.sun.jersey.api.client.GenericType;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
+import org.epics.vtype.VType;
 import org.epics.vtype.gson.GsonMessageBodyHandler;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.SnapshotWrapper;
+import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.ThinWrapper;
 import org.phoebus.applications.saveandrestore.model.UpdateConfigHolder;
 import org.phoebus.applications.saveandrestore.service.Messages;
 import org.phoebus.framework.preferences.PreferencesReader;
@@ -83,7 +88,6 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
         defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, httpClientConnectTimeout);
         defaultClientConfig.getClasses().add(GsonMessageBodyHandler.class);
         client = Client.create(defaultClientConfig);
-        this.jmasarServiceUrl = jmasarServiceUrl;
     }
 
     public void setServiceUrl(String serviceUrl) {
@@ -97,7 +101,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
     @Override
     public Node getRoot() {
-        return getCall("/root", Node.class);
+        return getCall("/node/" + Node.ROOT_FOLDER_UNIQUE_ID, Node.class);
     }
 
     @Override
@@ -163,7 +167,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     @Override
     public Node createNewNode(String parentsUniqueId, Node node) {
         node.setUserName(getCurrentUsersName());
-        WebResource webResource = client.resource(jmasarServiceUrl + "/node/" + parentsUniqueId);
+        WebResource webResource = client.resource(jmasarServiceUrl + "/node").queryParam("parentId", parentsUniqueId);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(node, CONTENT_TYPE_JSON)
                 .put(ClientResponse.class);
@@ -191,7 +195,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
         if (nodeToUpdate.getUserName() == null || nodeToUpdate.getUserName().isEmpty()) {
             nodeToUpdate.setUserName(getCurrentUsersName());
         }
-        WebResource webResource = client.resource(jmasarServiceUrl + "/node/" + nodeToUpdate.getUniqueId() + "/update")
+        WebResource webResource = client.resource(jmasarServiceUrl + "/node")
                 .queryParam("customTimeForMigration", customTimeForMigration ? "true" : "false");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
@@ -235,7 +239,6 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     @Override
-    @Deprecated
     public void deleteNode(String uniqueNodeId) {
         WebResource webResource = client.resource(jmasarServiceUrl + "/node/" + uniqueNodeId);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).delete(ClientResponse.class);
@@ -247,14 +250,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
     @Override
     public void deleteNodes(List<String> nodeIds) {
-        WebResource webResource = client.resource(jmasarServiceUrl + "/node");
-        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
-                .entity(nodeIds, CONTENT_TYPE_JSON)
-                .delete(ClientResponse.class);
-        if (response.getStatus() != 200) {
-            String message = response.getEntity(String.class);
-            throw new SaveAndRestoreClientException("Failed : HTTP error code : " + response.getStatus() + ", error message: " + message);
-        }
+        nodeIds.forEach(id -> deleteNode(id));
     }
 
     private String getCurrentUsersName() {
@@ -364,5 +360,71 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     @Override
     public List<Node> getFromPath(String path) {
         return null;
+    }
+
+    @Override
+    public Configuration getConfiguration(String nodeId){
+        ClientResponse clientResponse = getCall("/config/" + nodeId);
+        return clientResponse.getEntity(Configuration.class);
+    }
+
+    @Override
+    public Configuration saveConfiguration(Configuration configuration){
+        WebResource webResource =
+                client.resource(jmasarServiceUrl + "/config");
+
+        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
+                .entity(configuration, CONTENT_TYPE_JSON)
+                .put(ClientResponse.class);
+        if (response.getStatus() != 200) {
+            return null;
+        }
+        return response.getEntity(Configuration.class);
+    }
+
+    @Override
+    public Configuration updateConfiguration(Configuration configuration){
+        WebResource webResource =
+                client.resource(jmasarServiceUrl + "/config");
+
+        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
+                .entity(configuration, CONTENT_TYPE_JSON)
+                .post(ClientResponse.class);
+        if (response.getStatus() != 200) {
+            return null;
+        }
+        return response.getEntity(Configuration.class);
+    }
+
+    @Override
+    public Snapshot getSnapshot(String nodeId){
+        ClientResponse clientResponse = getCall("/snapshot/" + nodeId);
+        return clientResponse.getEntity(Snapshot.class);
+    }
+
+    @Override
+    public SnapshotWrapper saveSnapshot(SnapshotWrapper snapshotWrapper){
+        WebResource webResource =
+                client.resource(jmasarServiceUrl + "/snapshot");
+
+        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
+                .entity(snapshotWrapper, CONTENT_TYPE_JSON)
+                .put(ClientResponse.class);
+        if (response.getStatus() != 200) {
+            return null;
+        }
+        return response.getEntity(SnapshotWrapper.class);
+    }
+
+    public void sendVType(ThinWrapper vType){
+        WebResource webResource =
+                client.resource(jmasarServiceUrl + "/vtype");
+        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
+                .entity(vType, CONTENT_TYPE_JSON)
+                .put(ClientResponse.class);
+        if (response.getStatus() != 200) {
+            System.out.println("BAD");
+        }
+
     }
 }

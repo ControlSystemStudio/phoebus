@@ -1,2 +1,2 @@
-ALTER TABLE snapshot_node_pv MODIFY value LONGTEXT;
-ALTER TABLE snapshot_node_pv MODIFY readback_value LONGTEXT;
+ALTER TABLE snapshot_node_pv ALTER value LONGTEXT;
+ALTER TABLE snapshot_node_pv ALTER readback_value LONGTEXT;

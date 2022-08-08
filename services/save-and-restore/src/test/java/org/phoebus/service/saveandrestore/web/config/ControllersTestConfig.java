@@ -19,7 +19,7 @@
 package org.phoebus.service.saveandrestore.web.config;
 
 import org.mockito.Mockito;
-import org.phoebus.service.saveandrestore.services.IServices;
+import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -29,7 +29,7 @@ import org.springframework.context.annotation.ComponentScan;
 public class ControllersTestConfig {
 
 	@Bean
-	public IServices services() {
-		return Mockito.mock(IServices.class);
+	public NodeDAO nodeDAO() {
+		return Mockito.mock(NodeDAO.class);
 	}
 }

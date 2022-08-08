@@ -21,9 +21,9 @@ import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.service.saveandrestore.model.internal.SnapshotPv;
+import org.phoebus.applications.saveandrestore.model.SnapshotPv;
+import org.phoebus.applications.saveandrestore.model.SnapshotPvDataType;
 import org.phoebus.service.saveandrestore.persistence.dao.SnapshotDataConverter;
-import org.phoebus.service.saveandrestore.persistence.dao.SnapshotPvDataType;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;

@@ -18,15 +18,20 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
+import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.common.VNoData;
 import org.phoebus.applications.saveandrestore.impl.SaveAndRestoreJerseyClient;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.Snapshot;
+import org.phoebus.applications.saveandrestore.model.SnapshotWrapper;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.ThinWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,7 +118,6 @@ public class SaveAndRestoreService {
         return future.get();
     }
 
-    @Deprecated
     public void deleteNode(String uniqueNodeId) throws Exception {
         executor.submit(() -> saveAndRestoreClient.deleteNode(uniqueNodeId)).get();
     }
@@ -183,6 +187,20 @@ public class SaveAndRestoreService {
         return updatedNode;
     }
 
+    public Configuration saveConfiguration(Configuration configuration) throws Exception{
+        Future<Configuration> future = executor.submit(() -> saveAndRestoreClient.saveConfiguration(configuration));
+        Configuration updatedConfiguration = future.get();
+        //notifyNodeChangeListeners(updatedNode);
+        return updatedConfiguration;
+    }
+
+    public Configuration updateConfiguration(Configuration configuration) throws Exception{
+        Future<Configuration> future = executor.submit(() -> saveAndRestoreClient.saveConfiguration(configuration));
+        Configuration updatedConfiguration = future.get();
+        //notifyNodeChangeListeners(updatedNode);
+        return updatedConfiguration;
+    }
+
     public Node saveSnapshot(Node saveSetNode, List<SnapshotItem> snapshotItems, String snapshotName, String comment) throws Exception {
         // Some beautifying is needed to ensure successful serialization.
         List<SnapshotItem> beautifiedItems = snapshotItems.stream().map(snapshotItem -> {
@@ -249,8 +267,6 @@ public class SaveAndRestoreService {
      * @throws Exception
      */
     public Node moveNodes(List<Node> sourceNodes, Node targetNode) throws Exception {
-        // Create a reference to the source node's parent before the move
-        Node parentNode = getParentNode(sourceNodes.get(0).getUniqueId());
         // Map list of nodes to list of unique ids
         List<String> sourceNodeIds = sourceNodes.stream().map(Node::getUniqueId).collect(Collectors.toList());
         Future<Node> future = executor.submit(() -> saveAndRestoreClient.moveNodes(sourceNodeIds, targetNode.getUniqueId()));
@@ -259,12 +275,41 @@ public class SaveAndRestoreService {
     }
 
     public Node copyNode(List<Node> sourceNodes, Node targetNode) throws Exception {
-        // Create a reference to the source node's parent before the move
-        Node parentNode = getParentNode(sourceNodes.get(0).getUniqueId());
         // Map list of nodes to list of unique ids
         List<String> sourceNodeIds = sourceNodes.stream().map(Node::getUniqueId).collect(Collectors.toList());
         Future<Node> future = executor.submit(() -> saveAndRestoreClient.copyNodes(sourceNodeIds, targetNode.getUniqueId()));
         Node updatedNode = future.get();
         return updatedNode;
+    }
+
+    public Configuration getConfiguration(String nodeId) throws Exception{
+        Future<Configuration> future = executor.submit(() -> saveAndRestoreClient.getConfiguration(nodeId));
+        try {
+            return future.get();
+        } catch (Exception e) {
+            // Configuration might not exist yet
+            return null;
+        }
+    }
+
+    public Snapshot getSnapshot(String nodeId) throws Exception{
+        Future<Snapshot> future = executor.submit(() -> saveAndRestoreClient.getSnapshot(nodeId));
+        try {
+            return future.get();
+        } catch (Exception e) {
+            // Snapshot might not exist yet
+            return null;
+        }
+    }
+
+    public SnapshotWrapper saveSnapshot(SnapshotWrapper snapshotWrapper) throws Exception{
+        Future<SnapshotWrapper> future = executor.submit(() -> saveAndRestoreClient.saveSnapshot(snapshotWrapper));
+        SnapshotWrapper updatedSnapshotWrapper = future.get();
+        //notifyNodeChangeListeners(updatedNode);
+        return updatedSnapshotWrapper;
+    }
+
+    public void sendVType(ThinWrapper vType){
+        saveAndRestoreClient.sendVType(vType);
     }
 }

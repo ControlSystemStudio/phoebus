@@ -19,7 +19,9 @@
 package org.phoebus.service.saveandrestore.persistence.dao;
 
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 
@@ -55,10 +57,7 @@ public interface NodeDAO {
 	 *            The unique id of the node to delete.
 	 *
 	 */
-	@Deprecated
 	void deleteNode(String nodeId);
-
-	void deleteNodes(List<String> nodeIds);
 
 	/**
 	 * Creates a new node in the tree.
@@ -137,9 +136,11 @@ public interface NodeDAO {
 	 *         <code>committedOnly=true</code> and for a snapshot with matching id
 	 *         that has not been committed.
 	 */
-	Node getSnapshot(String uniqueNodeId);
+	Node getSnapshotNode(String uniqueNodeId);
 
 	Node saveSnapshot(String parentsUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment, String userName);
+
+	Snapshot saveSnapshot(Snapshot snapshot);
 
 	List<ConfigPv> getConfigPvs(String configUniqueId);
 
@@ -181,4 +182,20 @@ public interface NodeDAO {
 	 * @return Full path of the {@link Node} if found, otherwise <code>null</code>.
 	 */
 	String getFullPath(String uniqueNodeId);
+
+	Configuration saveConfiguration(Configuration configuration);
+
+	Configuration getConfiguration(String nodeId);
+
+	/**
+	 * Updates an existing {@link Configuration}. In practice an overwrite operation as for instance
+	 * the {@link Configuration#getPvList()} may contain both added and removed elements compared to
+	 * the persisted object.
+	 * @param configuration The object to be updated
+	 * @return The updated {@link Configuration}
+	 */
+	Configuration updateConfiguration(Configuration configuration);
+
+	Snapshot getSnapshot(String nodeId);
+
 }

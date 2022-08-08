@@ -22,11 +22,11 @@ import java.sql.SQLException;
 
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
+import org.phoebus.applications.saveandrestore.model.SnapshotPv;
+import org.phoebus.applications.saveandrestore.model.SnapshotPvDataType;
 import org.springframework.jdbc.core.RowMapper;
 
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
-import org.phoebus.service.saveandrestore.model.internal.SnapshotPv;
-import org.phoebus.service.saveandrestore.persistence.dao.SnapshotPvDataType;
 
 public class SnapshotPvRowMapper implements RowMapper<SnapshotPv> {
 	

@@ -19,6 +19,11 @@ package org.phoebus.service.saveandrestore.web.controllers;
 
 import java.util.List;
 
+import org.epics.vtype.VType;
+import org.phoebus.applications.saveandrestore.model.SnapshotWrapper;
+import org.phoebus.applications.saveandrestore.model.Snapshot;
+import org.phoebus.applications.saveandrestore.model.ThinWrapper;
+import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,13 +35,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.service.saveandrestore.services.IServices;
 
 @RestController
 public class SnapshotController extends BaseController {
 
 	@Autowired
-	private IServices services;
+	private NodeDAO nodeDAO;
 
 	/**
 	 * Retrieves a snapshot {@link Node}.
@@ -48,34 +52,58 @@ public class SnapshotController extends BaseController {
 	 * @return A {@link Node} object.
 	 */
 
-	@GetMapping("/snapshot/{uniqueNodeId}")
+	@GetMapping(value = "/snapshot/{uniqueNodeId}", produces = JSON)
 	public Node getSnapshot(@PathVariable String uniqueNodeId) {
 
-		return services.getSnapshot(uniqueNodeId);
+		return nodeDAO.getSnapshotNode(uniqueNodeId);
 	}
 
-	@GetMapping("/snapshot/{uniqueNodeId}/items")
+	@GetMapping(value = "/snapshot/{uniqueNodeId}/items", produces = JSON)
 	public List<SnapshotItem> getSnapshotItems(@PathVariable String uniqueNodeId) {
 
-		return services.getSnapshotItems(uniqueNodeId);
+		return nodeDAO.getSnapshotItems(uniqueNodeId);
 	}
 
-	@GetMapping("/snapshots")
+	@GetMapping(value = "/snapshots", produces = JSON)
 	public List<Node> getAllSnapshots() {
-		return services.getAllSnapshots();
+		return nodeDAO.getAllSnapshots();
 	}
 
-	@PutMapping("/snapshot/{configUniqueId}")
+	@PutMapping(value = "/snapshot/{configUniqueId}", produces = JSON)
 	public Node saveSnapshot(@PathVariable String configUniqueId, 
-			@RequestParam(required = true) String snapshotName,
-			@RequestParam(required = true) String userName,
-			@RequestParam(required = true) String comment,
-			@RequestBody(required = true) List<SnapshotItem> snapshotItems) {
+			@RequestParam String snapshotName,
+			@RequestParam String userName,
+			@RequestParam String comment,
+			@RequestBody List<SnapshotItem> snapshotItems) {
 		
 		if(snapshotName.length() == 0 || userName.length() == 0 || comment.length() == 0) {
 			throw new IllegalArgumentException("Snapshot name, user name and comment must be of non-zero length");
 		}
 
-		return services.saveSnapshot(configUniqueId, snapshotItems, snapshotName, userName, comment);
+		return nodeDAO.saveSnapshot(configUniqueId, snapshotItems, snapshotName, userName, comment);
+	}
+
+	@PutMapping(value = "/snapshot", produces = JSON)
+	public SnapshotWrapper saveSnapshot(@RequestParam(name = "parentId") String parentsUniqueId, @RequestBody SnapshotWrapper snapshotWrapper) {
+		if(snapshotWrapper.getSnapshotNode() == null || snapshotWrapper.getSnapshotNode().getName().length() == 0 ||
+				snapshotWrapper.getSnapshotData().getComment() == null || snapshotWrapper.getSnapshotData().getComment() .length() == 0) {
+			throw new IllegalArgumentException("Snapshot name and comment must be of non-zero length");
+		}
+
+		Node savedSnapshotNode = nodeDAO.createNode(parentsUniqueId, snapshotWrapper.getSnapshotNode());
+		Snapshot snapshot = snapshotWrapper.getSnapshotData();
+		snapshot.setUniqueId(savedSnapshotNode.getUniqueId());
+		Snapshot savedSnapshot = nodeDAO.saveSnapshot(snapshot);
+
+		SnapshotWrapper newSnapshotWrapper = new SnapshotWrapper();
+		newSnapshotWrapper.setSnapshotNode(savedSnapshotNode);
+		newSnapshotWrapper.setSnapshotData(savedSnapshot);
+
+		return newSnapshotWrapper;
+	}
+
+	@PutMapping(value = "/vtype")
+	public void receiveVType(@RequestBody ThinWrapper vType){
+		System.out.println(vType.getValue().toString());
 	}
 }

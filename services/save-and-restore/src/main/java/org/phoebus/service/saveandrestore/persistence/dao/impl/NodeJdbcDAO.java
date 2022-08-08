@@ -20,15 +20,17 @@ package org.phoebus.service.saveandrestore.persistence.dao.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.model.SnapshotPv;
 import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.service.saveandrestore.model.internal.SnapshotPv;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.persistence.dao.SnapshotDataConverter;
-import org.phoebus.service.saveandrestore.services.exception.NodeNotFoundException;
-import org.phoebus.service.saveandrestore.services.exception.SnapshotNotFoundException;
+import org.phoebus.service.saveandrestore.NodeNotFoundException;
+import org.phoebus.service.saveandrestore.SnapshotNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -46,7 +48,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -204,25 +205,12 @@ public class NodeJdbcDAO implements NodeDAO {
     }
 
     @Override
-    @Deprecated
     public void deleteNode(String nodeId) {
         Node nodeToDelete = getNode(nodeId);
         if (nodeToDelete == null || nodeToDelete.getId() == Node.ROOT_NODE_ID){
             throw new IllegalArgumentException("Cannot delete non-existing node");
         }
         deleteNode(nodeToDelete);
-    }
-
-    @Override
-    public void deleteNodes(List<String> nodeIds){
-        synchronized (deleteNodeSyncObject) {
-            // Get all nodes
-            List<Node> nodes = nodeIds.stream().map(nodeId -> getNode(nodeId)).collect(Collectors.toList());
-            if(nodes.stream().anyMatch(Objects::isNull)){
-                throw new IllegalArgumentException("At least one element in list of nodes to delete is invalid");
-            }
-            nodes.forEach(node -> deleteNode(node));
-        }
     }
 
     private void deleteNode(Node nodeToDelete){
@@ -643,7 +631,7 @@ public class NodeJdbcDAO implements NodeDAO {
         jdbcTemplate.update("update node set name=?, username=?, last_modified=? where unique_id=?", snapshotName, userName, lastModified, snapshotNode.getUniqueId());
         insertOrUpdateProperty(snapshotNode.getId(), new AbstractMap.SimpleEntry<String, String>("comment", comment));
 
-        return getSnapshot(snapshotNode.getUniqueId());
+        return getSnapshotNode(snapshotNode.getUniqueId());
     }
 
     /**
@@ -683,7 +671,7 @@ public class NodeJdbcDAO implements NodeDAO {
     }
 
     @Override
-    public Node getSnapshot(String uniqueNodeId) {
+    public Node getSnapshotNode(String uniqueNodeId) {
 
         Node snapshotNode = getNode(uniqueNodeId);
         if (snapshotNode == null || !snapshotNode.getNodeType().equals(NodeType.SNAPSHOT)) {
@@ -1026,4 +1014,30 @@ public class NodeJdbcDAO implements NodeDAO {
             childNodes.forEach(childNode -> copyNode(childNode, newSourceNode, userName));
         }
     }
+
+    @Override
+    public Configuration saveConfiguration(Configuration configuration){
+        return null;
+    }
+
+    @Override
+    public Configuration getConfiguration(String nodeId){
+        return null;
+    }
+
+    @Override
+    public Configuration updateConfiguration(Configuration configuration){
+        return null;
+    }
+
+    @Override
+    public Snapshot saveSnapshot(Snapshot snapshot){
+        return null;
+    }
+
+    @Override
+    public Snapshot getSnapshot(String nodeId){
+        return null;
+    }
+
 }

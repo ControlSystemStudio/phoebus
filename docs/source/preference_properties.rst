@@ -1223,7 +1223,7 @@ File ../../app/save-and-restore/app/src/main/resources/save_and_restore_preferen
    # Sort snapshots in reverse order of created time. Last item comes first.
    sortSnapshotsTimeReversed=false
    
-   # In "Create/Add to a saveset" dialog, split savesets from folder and show them in ListView
+   # In "Create/Add to a configuration" dialog, split savesets from folder and show them in ListView
    splitSaveset=false
    
    # Specify hierarchy parser class to enable TreeTableView in snapshot
@@ -1234,7 +1234,7 @@ File ../../app/save-and-restore/app/src/main/resources/save_and_restore_preferen
    treeTableView.hierarchyParser=RegexHierarchyParser
    regexHierarchyParser.regexList=(\\w+)_(\\w+):(\\w+)_(\\w+):(.*),(\\w+)_(\\w+):(\\w+)_(.*),(\\w+)_(\\w+):(.*),(\\w+):(.*)
    
-   # Importing/exporting saveset/snapshot to/from CSV (Git SNP/BMS compatible)
+   # Importing/exporting configuration/snapshot to/from CSV (Git SNP/BMS compatible)
    enableCSVIO=false
 
 
