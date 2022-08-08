@@ -71,7 +71,7 @@ public class ChannelTableController extends ChannelFinderController {
     Label count;
 
     private Collection<Property> properties;
-    private Collection<String> tags;
+    private Collection<Tag> tags;
     private boolean isCBSelected = true;
     @Preference(name="show_active_cb") public static boolean showActiveCb;
 

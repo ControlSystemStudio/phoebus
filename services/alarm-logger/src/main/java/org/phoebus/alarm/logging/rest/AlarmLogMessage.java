@@ -1,30 +1,41 @@
-package org.phoebus.applications.alarm.logging.ui;
+package org.phoebus.alarm.logging.rest;
 
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import java.io.IOException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)
-public class AlarmLogTableType {
-	private String severity;
+public class AlarmLogMessage {
+
+    private String severity;
     private String message;
     private String value;
-    private Map<String, String> time;
+    @JsonDeserialize(using = AlarmInstantDeserializer.class)
+    private Instant time;
     private String current_severity;
     private String current_message;
     private String mode;
+    @JsonDeserialize(using = AlarmInstantDeserializer.class)
     private Instant message_time;
     private String config;
+    private String config_msg;
     private String pv;
     private String user;
     private String host;
     private String command;
     private boolean enabled;
-    
+
     public String getConfig() {
         return config;
     }
@@ -48,7 +59,7 @@ public class AlarmLogTableType {
     public void setSeverity(String severity) {
         this.severity = severity;
     }
-    
+
     public String getMessage() {
         return message;
     }
@@ -65,11 +76,11 @@ public class AlarmLogTableType {
         this.value = value;
     }
 
-    public Map<String, String> getTime() {
+    public Instant getTime() {
         return time;
     }
 
-    public void setTime(Map<String, String> time) {
+    public void setTime(Instant time) {
         this.time = time;
     }
 
@@ -105,18 +116,14 @@ public class AlarmLogTableType {
         this.message_time = message_time;
     }
 
-    @JsonIgnore
-    public Instant getInstant() {
-        return Instant.ofEpochSecond(Long.parseLong(time.get("seconds")), Long.parseLong(time.get("nano")));
+    public String getConfig_msg() {
+        return config_msg;
     }
 
-    @JsonIgnore
-    public void setInstant(Instant instant) {
-        this.time = new HashMap<>();
-        this.time.put("seconds", String.valueOf(instant.getEpochSecond()));
-        this.time.put("nano", String.valueOf(instant.getNano()));
+    public void setConfig_msg(String config_msg) {
+        this.config_msg = config_msg;
     }
-    
+
     public String getUser() {
         return user;
     }
@@ -140,12 +147,25 @@ public class AlarmLogTableType {
     public void setCommand(String command) {
         this.command = command;
     }
-    
+
     public boolean isEnabled() {
         return enabled;
     }
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public static class AlarmInstantDeserializer extends JsonDeserializer<Instant> {
+
+        private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
+
+        public AlarmInstantDeserializer() {
+        }
+
+        @Override
+        public Instant deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+            return Instant.from(formatter.parse(p.getText()));
+        }
     }
 }

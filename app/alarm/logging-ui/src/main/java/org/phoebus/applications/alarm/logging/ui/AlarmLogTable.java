@@ -8,12 +8,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import com.sun.jersey.api.client.WebResource;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
-import org.elasticsearch.client.RestHighLevelClient;
 
 import javafx.fxml.FXMLLoader;
 
@@ -33,11 +33,11 @@ public class AlarmLogTable implements AppInstance {
             loader.setControllerFactory(clazz -> {
                 try {
                     if(clazz.isAssignableFrom(AlarmLogTableController.class)){
-                        return clazz.getConstructor(RestHighLevelClient.class)
+                        return clazz.getConstructor(WebResource.class)
                                 .newInstance(app.getClient());
                     }
                     else if(clazz.isAssignableFrom(AdvancedSearchViewController.class)){
-                        return clazz.getConstructor(RestHighLevelClient.class)
+                        return clazz.getConstructor(WebResource.class)
                                 .newInstance(app.getClient());
                     }
                 } catch (Exception e) {

@@ -3,19 +3,13 @@ package org.phoebus.applications.alarm.messages;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.phoebus.applications.alarm.model.EnabledState;
 
 import java.io.Serializable;
-import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-
-import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 /**
  * A utility class with object mapper for the various alarm messages
@@ -32,6 +26,7 @@ public class AlarmMessageUtil implements Serializable{
    @JsonIgnore
     static final ObjectMapper objectStateMapper = new ObjectMapper();
     static {
+        objectStateMapper.registerModule(new JavaTimeModule());
         objectStateMapper.addMixIn(AlarmMessageUtil.class, AlarmStateJsonMessage.class);
     }
 
@@ -41,6 +36,8 @@ public class AlarmMessageUtil implements Serializable{
     static {
         SimpleModule simple_module = new SimpleModule();
         simple_module.addSerializer(new EnabledSerializer());
+
+        objectConfigMapper.registerModule(new JavaTimeModule());
         objectConfigMapper.registerModule(simple_module);
         objectConfigMapper.addMixIn(AlarmMessageUtil.class, AlarmConfigJsonMessage.class);
     }
