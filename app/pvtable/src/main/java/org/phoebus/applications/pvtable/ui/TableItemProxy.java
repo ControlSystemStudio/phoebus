@@ -82,6 +82,10 @@ class TableItemProxy
 
     public PVTableItem getItem()
     {
+        if(item == null)
+        {
+            return null;
+        }
         return item.get();
     }
 
