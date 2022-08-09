@@ -507,12 +507,18 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
         {
             final PlotDataItem<XTYPE> item = data.get(i);
             final double value = item.getValue();
+            final XTYPE loc = item.getPosition();
             if (!Double.isNaN(value))
             {
                 final int x = clipX(Math.round(x_transform.transform(item.getPosition())));
                 final int y = clipY(y_axis.getScreenCoord(value));
                 if (x == last_x  &&  y == last_y)
                     continue;
+                // If the point is virtual, draw it without a size; drawing a virtual point visually
+                // implies the point is real data, and this often is not the case.
+                if(item.isVirtual()) {
+                    return;
+                }
                 switch (point_type)
                 {
                 case SQUARES:

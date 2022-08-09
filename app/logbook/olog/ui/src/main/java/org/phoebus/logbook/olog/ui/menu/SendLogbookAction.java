@@ -8,7 +8,6 @@
 package org.phoebus.logbook.olog.ui.menu;
 
 import javafx.application.Platform;
-import javafx.scene.Node;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import org.phoebus.framework.jobs.JobManager;
@@ -43,19 +42,6 @@ public class SendLogbookAction extends MenuItem {
     /**
      * Constructor.
      *
-     * @param parent    JavaFX parent that context menu is called from.
-     * @param title     Initial title or <code>null</code>
-     * @param body      Initial body text or <code>null</code>
-     * @param get_image Supplier for image to attach, or <code>null</code>
-     */
-    public SendLogbookAction(final String title, final String body, final Supplier<Image> get_image) {
-        this(title, body == null ? null : () -> body, get_image);
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param parent    JavaFX parent that context menu is called from.
      * @param title     Initial title or <code>null</code>
      * @param get_body  Supplier for initial body text or <code>null</code>
      * @param get_image Supplier for image to attach, or <code>null</code>

@@ -47,6 +47,11 @@ public class PlotSample implements PlotDataItem<Instant>
     /** Waveform index */
     private AtomicInteger waveform_index;
 
+    /** Designates if this is a real data point, or just a 'virtual' one
+     * created only for mechanical purposes (i.e. to connect the last data point to 'now')
+     */
+    private boolean isVirtualSample = false;
+
     /** Initialize with valid control system value
      *  @param waveform_index Waveform index
      *  @param source Info about the source of this sample
@@ -98,6 +103,12 @@ public class PlotSample implements PlotDataItem<Instant>
     public PlotSample(final String source, final VType value)
     {
         this(default_waveform_index, source, value);
+    }
+
+    public PlotSample(final String source, final VType value, boolean isVirtualSample)
+    {
+        this(default_waveform_index, source, value);
+        this.isVirtualSample = isVirtualSample;
     }
 
     /** Initialize with (error) info, creating a non-plottable sample 'now'
@@ -208,6 +219,11 @@ public class PlotSample implements PlotDataItem<Instant>
     public String getInfo()
     {
         return info;
+    }
+
+    @Override
+    public boolean isVirtual() {
+        return this.isVirtualSample;
     }
 
     @Override

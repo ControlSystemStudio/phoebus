@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -54,6 +54,7 @@ import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.csstudio.display.builder.model.widgets.VisibleWidget;
 import org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.AxisWidgetProperty;
 import org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.TraceWidgetProperty;
+import org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.YAxisWidgetProperty;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 
@@ -223,10 +224,10 @@ public class XYPlotWidget extends VisibleWidget
                 // Count actual Y axes, because legacy_axis includes skipped X axes
                 ++y_count;
 
-                final AxisWidgetProperty y_axis;
+                final YAxisWidgetProperty y_axis;
                 if (plot.y_axes.size() < y_count)
                 {
-                    y_axis = AxisWidgetProperty.create(propYAxis, widget, "");
+                    y_axis = YAxisWidgetProperty.create(propYAxis, widget, "");
                     plot.y_axes.addElement(y_axis);
                 }
                 else
@@ -308,7 +309,7 @@ public class XYPlotWidget extends VisibleWidget
     private volatile WidgetProperty<Boolean> show_toolbar;
     private volatile WidgetProperty<Boolean> show_legend;
     private volatile AxisWidgetProperty x_axis;
-    private volatile ArrayWidgetProperty<AxisWidgetProperty> y_axes;
+    private volatile ArrayWidgetProperty<YAxisWidgetProperty> y_axes;
     private volatile ArrayWidgetProperty<TraceWidgetProperty> traces;
     private volatile ArrayWidgetProperty<MarkerProperty> markers;
     private volatile RuntimeEventProperty configure;
@@ -337,7 +338,7 @@ public class XYPlotWidget extends VisibleWidget
         properties.add(show_toolbar = propToolbar.createProperty(this,false));
         properties.add(show_legend = PlotWidgetProperties.propLegend.createProperty(this, true));
         properties.add(x_axis = AxisWidgetProperty.create(propXAxis, this, Messages.PlotWidget_X));
-        properties.add(y_axes = PlotWidgetProperties.propYAxes.createProperty(this, Arrays.asList(AxisWidgetProperty.create(propYAxis, this, Messages.PlotWidget_Y))));
+        properties.add(y_axes = PlotWidgetProperties.propYAxes.createProperty(this, Arrays.asList(YAxisWidgetProperty.create(propYAxis, this, Messages.PlotWidget_Y))));
         properties.add(traces = PlotWidgetProperties.propTraces.createProperty(this, Arrays.asList(new TraceWidgetProperty(this, 0))));
         properties.add(markers = propMarkers.createProperty(this, Collections.emptyList()));
         properties.add(configure = (RuntimeEventProperty) runtimePropConfigure.createProperty(this, null));
@@ -435,7 +436,7 @@ public class XYPlotWidget extends VisibleWidget
     }
 
     /** @return 'y_axes' property */
-    public ArrayWidgetProperty<AxisWidgetProperty> propYAxes()
+    public ArrayWidgetProperty<YAxisWidgetProperty> propYAxes()
     {
         return y_axes;
     }

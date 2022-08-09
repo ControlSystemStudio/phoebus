@@ -1,27 +1,6 @@
 package org.phoebus.core.vtypes;
 
-import org.epics.util.array.ArrayBoolean;
-import org.epics.util.array.ArrayByte;
-import org.epics.util.array.ArrayDouble;
-import org.epics.util.array.ArrayFloat;
-import org.epics.util.array.ArrayInteger;
-import org.epics.util.array.ArrayLong;
-import org.epics.util.array.ArrayShort;
-import org.epics.util.array.ArrayUByte;
-import org.epics.util.array.ArrayUInteger;
-import org.epics.util.array.ArrayULong;
-import org.epics.util.array.ArrayUShort;
-import org.epics.util.array.ListBoolean;
-import org.epics.util.array.ListByte;
-import org.epics.util.array.ListDouble;
-import org.epics.util.array.ListFloat;
-import org.epics.util.array.ListInteger;
-import org.epics.util.array.ListLong;
-import org.epics.util.array.ListShort;
-import org.epics.util.array.ListUByte;
-import org.epics.util.array.ListUInteger;
-import org.epics.util.array.ListULong;
-import org.epics.util.array.ListUShort;
+import org.epics.util.array.*;
 import org.epics.vtype.*;
 import org.junit.Test;
 

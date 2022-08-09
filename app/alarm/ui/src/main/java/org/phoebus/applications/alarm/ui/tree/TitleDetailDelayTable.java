@@ -21,6 +21,7 @@ import org.phoebus.ui.javafx.UpdateThrottle;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -28,15 +29,17 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.util.converter.DefaultStringConverter;
-import javafx.util.converter.IntegerStringConverter;
+
 
 /** Table for editing list of {@link TitleDetailDelay}
  *
@@ -46,6 +49,10 @@ import javafx.util.converter.IntegerStringConverter;
 @SuppressWarnings("nls")
 public class TitleDetailDelayTable extends BorderPane
 {
+    private enum Option_d {
+        mailto, cmd, sevrpv
+    };
+
     private final ObservableList<TitleDetailDelay> items = FXCollections.observableArrayList();
 
     private final TableView<TitleDetailDelay> table = new TableView<>(items);
@@ -82,11 +89,15 @@ public class TitleDetailDelayTable extends BorderPane
     /** Table cell for 'delay'
      *  Disables for actions that don't use the delay
      */
-    class DelayTableCell extends TextFieldTableCell<TitleDetailDelay, Integer>
+    class DelayTableCell extends TableCell<TitleDetailDelay, Integer>
     {
+        private final Spinner<Integer> spinner;
+        
         public DelayTableCell()
         {
-            super(new IntegerStringConverter());
+            this.spinner = new Spinner<>(0, 10000, 1);
+            spinner.setEditable(true);
+            this.spinner.valueProperty().addListener((observable, oldValue, newValue) -> commitEdit(newValue));
         }
 
         @Override
@@ -96,18 +107,26 @@ public class TitleDetailDelayTable extends BorderPane
 
             if (empty ||
                 getTableRow() == null ||
-                getTableRow().getItem() == null)
+                getTableRow().getItem() == null ||
+                spinner == null) {
+                setGraphic(null);
                 return;
+            }
             if (getTableRow().getItem().hasDelay())
             {
-                setDisable(false);
-                setTextFill(Color.BLACK);
+                spinner.setDisable(false);
+                spinner.getEditor().setStyle("-fx-text-inner-color: black;");
+                //spinner.getEditor().setTextFill(Color.BLACK);
             }
             else
             {
-                setDisable(true);
-                setTextFill(Color.LIGHTGRAY);
+                spinner.setDisable(true);
+                spinner.getEditor().setStyle("-fx-text-inner-color: lightgray;");
+                //spinner.getEditor().setTextFill(Color.LIGHTGRAY);
             }
+            
+            this.spinner.getValueFactory().setValue(item);
+            setGraphic(spinner);
         }
     }
 
@@ -139,26 +158,49 @@ public class TitleDetailDelayTable extends BorderPane
         table.getColumns().add(col);
 
         col = new TableColumn<>("Detail");
-        col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().detail.replace("\n", "\\n")));
-        col.setCellFactory(column -> new TextFieldTableCell<>(new DefaultStringConverter()));
-        col.setOnEditCommit(event ->
-        {
-            final int row = event.getTablePosition().getRow();
-            final TitleDetailDelay item = new TitleDetailDelay(items.get(row).title, event.getNewValue().replace("\\n", "\n"), items.get(row).delay);
-            items.set(row, item);
-
-            // Trigger editing the delay.
-            if (item.hasDelay())
-                UpdateThrottle.TIMER.schedule(() ->
-                    Platform.runLater(() ->
-                    {
-                        table.getSelectionModel().clearAndSelect(row);
-                        table.edit(row, table.getColumns().get(2));
-                    }),
-                    200, TimeUnit.MILLISECONDS);
-        });
         col.setSortable(false);
         table.getColumns().add(col);
+
+        // Use a combo box to specified the action
+        TableColumn<TitleDetailDelay, Option_d> tmpOptionCol = new TableColumn<>("Option");
+        tmpOptionCol.setCellFactory(ComboBoxTableCell.forTableColumn(Option_d.values()));
+        tmpOptionCol
+                .setCellValueFactory(cell -> new SimpleObjectProperty<Option_d>(getOptionFromDetail(cell.getValue())));
+        tmpOptionCol.setOnEditCommit(edit -> {
+            final int row = edit.getTablePosition().getRow();
+            TitleDetailDelay tmpT = items.get(row);
+            Option_d option = edit.getNewValue();
+            TitleDetailDelay newTitleDetailDelay = setOptionToDetail(tmpT, option);
+            items.set(row, newTitleDetailDelay);
+            // Trigger editing the delay.
+            if (newTitleDetailDelay.hasDelay())
+                UpdateThrottle.TIMER.schedule(() -> Platform.runLater(() -> {
+                    table.getSelectionModel().clearAndSelect(row);
+                    table.edit(row, table.getColumns().get(2));
+                }), 200, TimeUnit.MILLISECONDS);
+        });
+        tmpOptionCol.setEditable(true);
+        col.getColumns().add(tmpOptionCol);
+
+        // Use a textfield to set info for detail
+        TableColumn<TitleDetailDelay, String> infoCol = new TableColumn<>("Info");
+        infoCol.setCellValueFactory(cell -> new SimpleStringProperty(getInfoFromDetail(cell.getValue())));
+        infoCol.setCellFactory(column -> new TextFieldTableCell<>(new DefaultStringConverter()));
+        infoCol.setOnEditCommit(event -> {
+            final int row = event.getTablePosition().getRow();
+            TitleDetailDelay tmpT = items.get(row);
+            String newInfo = event.getNewValue();
+            TitleDetailDelay newTitleDetailDelay = setInfoToDetail(tmpT, newInfo);
+            items.set(row, newTitleDetailDelay);
+            // Trigger editing the delay.
+            if (newTitleDetailDelay.hasDelay())
+                UpdateThrottle.TIMER.schedule(() -> Platform.runLater(() -> {
+                    table.getSelectionModel().clearAndSelect(row);
+                    table.edit(row, table.getColumns().get(2));
+                }), 200, TimeUnit.MILLISECONDS);
+        });
+        infoCol.setSortable(false);
+        col.getColumns().add(infoCol);
 
         TableColumn<TitleDetailDelay, Integer> delayCol = new TableColumn<>("Delay");
         delayCol.setCellValueFactory(cell -> new SimpleIntegerProperty(cell.getValue().delay).asObject());
@@ -170,6 +212,72 @@ public class TitleDetailDelayTable extends BorderPane
         });
         delayCol.setSortable(false);
         table.getColumns().add(delayCol);
+    }
+
+    /**
+     * This function extract the command option from detail "option:info"
+     * 
+     * @param titleDetailDelay
+     * @return enum Option_d either mailto or cmd
+     */
+    private Option_d getOptionFromDetail(TitleDetailDelay titleDetailDelay) {
+        Option_d option = null;
+        String detail = titleDetailDelay != null ? titleDetailDelay.detail : null;
+        String[] split = detail != null ? detail.split(":") : null;
+        String optionString = split != null && split.length > 0 ? split[0] : null;
+        try {
+            option = optionString != null ? Option_d.valueOf(optionString) : Option_d.mailto;
+        } catch (Exception e) {
+            option = Option_d.mailto;
+        }
+        return option;
+    }
+
+    /**
+     * This function extract the info from detail "option:info"
+     * 
+     * @param titleDetailDelay
+     * @return information eg : mail or command
+     */
+    private String getInfoFromDetail(TitleDetailDelay titleDetailDelay) {
+        String info = "";
+        String detail = titleDetailDelay != null ? titleDetailDelay.detail : null;
+        String[] split = detail != null ? detail.split(":") : null;
+        info = split != null && split.length > 1 ? split[1] : "";
+        return info;
+    }
+
+    /**
+     * Create a new TitleDetailDelay from a given option
+     * @param titleDetailDelay
+     * @param option
+     * @return new TitleDetailDelay
+     */
+    private TitleDetailDelay setOptionToDetail(TitleDetailDelay titleDetailDelay, Option_d option) {
+        TitleDetailDelay newTitleDetailDelay = titleDetailDelay;
+        if (titleDetailDelay != null && option != null) {
+            String info = getInfoFromDetail(titleDetailDelay);
+            String detail = option.toString() + ":" + info;
+            newTitleDetailDelay = new TitleDetailDelay(titleDetailDelay.title, detail, titleDetailDelay.delay);
+        }
+        return newTitleDetailDelay;
+    }
+
+    /**
+     * Create a new TitleDetailDelay from a given info
+     * @param titleDetailDelay
+     * @param option
+     * @return new TitleDetailDelay
+     */
+    private TitleDetailDelay setInfoToDetail(TitleDetailDelay titleDetailDelay, String info) {
+        TitleDetailDelay newTitleDetailDelay = titleDetailDelay;
+        if (titleDetailDelay != null && info != null) {
+            Option_d option = getOptionFromDetail(titleDetailDelay);
+            String newInfo =   info.replace("\\n", "\n");
+            String detail = option.toString() + ":" + newInfo;
+            newTitleDetailDelay = new TitleDetailDelay(titleDetailDelay.title, detail, titleDetailDelay.delay);
+        }
+        return newTitleDetailDelay;
     }
 
     private void createButtons()

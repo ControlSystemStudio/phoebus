@@ -2,7 +2,10 @@ package org.phoebus.channel.views.ui;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import org.phoebus.channelfinder.Tag;
 
@@ -20,7 +23,7 @@ import static org.phoebus.channel.views.ui.ChannelFinderController.logger;
  */
 public class AddTagDialog extends Dialog<Tag> {
 
-    public AddTagDialog(final Node parent, final Collection<String> tags) {
+    public AddTagDialog(final Node parent, final Collection<Tag> tags) {
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         setResizable(true);
         FXMLLoader loader = new FXMLLoader();
@@ -28,10 +31,11 @@ public class AddTagDialog extends Dialog<Tag> {
         try {
             getDialogPane().setContent(loader.load());
             SelectEntityController controller = loader.getController();
-            controller.setAvaibleOptions(tags);
+            Map<String, Tag> tagsMap = tags.stream().collect(Collectors.toMap(Tag::getName, Function.identity()));
+            controller.setAvaibleOptions(tagsMap.keySet());
             setResultConverter(button -> {
                 return button == ButtonType.OK
-                        ? Tag.Builder.tag(controller.getSelectedOption()).build()
+                        ? tagsMap.get(controller.getSelectedOption())
                         : null;
             });
             DialogHelper.positionDialog(this, parent, -250, -400);

@@ -58,17 +58,17 @@
   </distributionManagement>
 
   <properties>
-    <epics.version>7.0.7</epics.version>
-    <vtype.version>1.0.4</vtype.version>
+    <epics.version>7.0.8</epics.version>
+    <vtype.version>1.0.5</vtype.version>
     <openjfx.version>18</openjfx.version>
-    <jackson.version>2.10.1</jackson.version>
+    <jackson.version>2.12.3</jackson.version>
     <batik.version>1.14</batik.version>
     <mockito.version>2.23.4</mockito.version>
     <postgresql.driver.version>42.2.9</postgresql.driver.version>
     <jetty.version>9.4.30.v20200611</jetty.version>
     <apache.commons.math.version>3.6.1</apache.commons.math.version>
     <junit.version>4.13.1</junit.version>
-    <es.version>6.8.4</es.version>
+    <es.version>7.17.3</es.version>
     <!--<maven.repo.local>${project.build.directory}/.m2</maven.repo.local> -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -363,6 +363,11 @@
       <id>sonatype-nexus-snapshots</id>
       <name>sonatype-nexus-snapshots</name>
       <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </repository>
+    <repository>
+      <id>es-snapshots</id>
+      <name>elasticsearch snapshot repo</name>
+      <url>https://snapshots.elastic.co/maven/</url>
     </repository>
   </repositories>
 

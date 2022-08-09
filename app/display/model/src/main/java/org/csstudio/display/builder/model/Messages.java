@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -116,7 +116,8 @@ public class Messages
                          Stripchart_Description,
                          Stripchart_LabelFont,
                          Stripchart_Name,
-                         Stripchart_TimeRange,
+                         Stripchart_StartTime,
+                         Stripchart_EndTime,
                          Style,
                          Style_Group,
                          Style_Line,
@@ -263,6 +264,7 @@ public class Messages
                          WidgetProperties_OnImage,
                          WidgetProperties_OnLabel,
                          WidgetProperties_OnlyExtremaVisible,
+                         WidgetProperties_OnRight,
                          WidgetProperties_Opacity,
                          WidgetProperties_Orientation,
                          WidgetProperties_Password,

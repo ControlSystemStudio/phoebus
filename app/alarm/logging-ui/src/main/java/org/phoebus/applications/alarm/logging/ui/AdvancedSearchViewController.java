@@ -1,22 +1,19 @@
 package org.phoebus.applications.alarm.logging.ui;
 
+import com.sun.jersey.api.client.WebResource;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.phoebus.applications.alarm.logging.ui.AlarmLogTableQueryUtil.Keys;
 import org.phoebus.ui.dialog.PopOver;
 import org.phoebus.ui.time.TimeRelativeIntervalPane;
@@ -24,11 +21,7 @@ import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimeRelativeInterval;
 import org.phoebus.util.time.TimestampFormats;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import static org.phoebus.ui.time.TemporalAmountPane.Type.TEMPORAL_AMOUNTS_AND_NOW;
 
@@ -64,7 +57,7 @@ public class AdvancedSearchViewController {
 
     PopOver timeSearchPopover;
 
-    private RestHighLevelClient searchClient;
+    private WebResource searchClient;
 
     // Search parameters
     ObservableMap<Keys, String> searchParameters;
@@ -72,7 +65,7 @@ public class AdvancedSearchViewController {
     @FXML
     private AnchorPane advancedSearchPane;
 
-    public AdvancedSearchViewController(RestHighLevelClient client){
+    public AdvancedSearchViewController(WebResource client){
         this.searchClient = client;
     }
 

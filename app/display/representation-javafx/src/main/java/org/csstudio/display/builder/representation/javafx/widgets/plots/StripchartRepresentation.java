@@ -31,6 +31,7 @@ import org.csstudio.trends.databrowser3.ui.Controller;
 import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
 import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimeRelativeInterval;
+import org.phoebus.util.time.TimestampFormats;
 
 import javafx.scene.layout.Pane;
 
@@ -117,7 +118,8 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
         model_widget.propScaleFont().addUntypedPropertyListener(modelChangedListener);
         model_widget.propToolbar().addUntypedPropertyListener(optsChangedListener);
         model_widget.propLegend().addUntypedPropertyListener(modelChangedListener);
-        model_widget.propTimeRange().addUntypedPropertyListener(modelChangedListener);
+        model_widget.propStart().addUntypedPropertyListener(modelChangedListener);
+        model_widget.propEnd().addUntypedPropertyListener(modelChangedListener);
         model_widget.propYAxes().addPropertyListener(axes_listener);
         model_widget.propTraces().addPropertyListener(traces_listener);
 
@@ -148,7 +150,8 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
         model_widget.propScaleFont().removePropertyListener(modelChangedListener);
         model_widget.propToolbar().removePropertyListener(optsChangedListener);
         model_widget.propLegend().removePropertyListener(modelChangedListener);
-        model_widget.propTimeRange().removePropertyListener(modelChangedListener);
+        model_widget.propStart().removePropertyListener(modelChangedListener);
+        model_widget.propEnd().removePropertyListener(modelChangedListener);
         model_widget.propYAxes().removePropertyListener(axes_listener);
 
         if (! toolkit.isEditMode())
@@ -274,8 +277,40 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
         model.setLabelFont(JFXUtil.convert(model_widget.propLabelFont().getValue()));
         model.setScaleFont(JFXUtil.convert(model_widget.propScaleFont().getValue()));
 
-        final TemporalAmount rel_start = TimeParser.parseTemporalAmount(model_widget.propTimeRange().getValue());
-        model.setTimerange(TimeRelativeInterval.startsAt(rel_start));
+        /* deal with start/end time configuration */
+        //start
+        String text = model_widget.propStart().getValue();
+        final Instant abs_start = TimestampFormats.parse(text);
+        final TemporalAmount rel_start = TimeParser.parseTemporalAmount(text);
+
+        //end
+        text = model_widget.propEnd().getValue();
+        final Instant abs_end = TimestampFormats.parse(text);
+        final TemporalAmount rel_end= TimeParser.parseTemporalAmount(text);
+
+
+        TimeRelativeInterval range;
+
+        if (abs_end != null){
+            if (abs_start != null){ 
+                range = TimeRelativeInterval.of(abs_start, abs_end);
+            }
+            else
+            { // we must use an absolute interval here, when Stripchart has a relative start, the end is set to "now"
+                range = TimeRelativeInterval.of(abs_end.minus(rel_start), abs_end);
+            }
+        }
+        else{ 
+            if (abs_start != null){ 
+                range = TimeRelativeInterval.of(abs_start, abs_start.plus(rel_end));
+            }
+            else
+            { // rel_end ignored
+                range = TimeRelativeInterval.startsAt(rel_start);
+            }
+        }
+        model.setTimerange(range);
+        
 
         final boolean show_legend = model_widget.propLegend().getValue();
         model.setLegendVisible(show_legend);

@@ -39,7 +39,7 @@ public class IndexNameHelperTest
     {
         try
         {
-            new IndexNameHelper(null, null, null);
+            new IndexNameHelper(null, true, null);
         }
         catch (Exception ex)
         {
@@ -52,7 +52,7 @@ public class IndexNameHelperTest
     {
         try
         {
-            new IndexNameHelper("index", null, 10);
+            new IndexNameHelper("index", true,null);
         }
         catch (Exception ex)
         {
@@ -65,7 +65,7 @@ public class IndexNameHelperTest
     {
         try
         {
-            new IndexNameHelper("index", "Q", 5);
+            new IndexNameHelper("index", true, "Q");
         }
         catch (Exception ex)
         {
@@ -74,31 +74,9 @@ public class IndexNameHelperTest
     }
 
     @Test
-    public void dateSpanValueNull()
+    public void useDatedIndexNamesFalse() throws Exception
     {
-        try
-        {
-            new IndexNameHelper("index", "y", null);
-        }
-        catch (Exception ex)
-        {
-            assertEquals("Date Span Value is null.", ex.getMessage());
-        }
-    }
-
-    @Test
-    public void dateSpanValueZero() throws Exception
-    {
-        IndexNameHelper inh = new IndexNameHelper("test_index", "y", 0);
-        String indexName = inh.getIndexName(Instant.now());
-
-        assertEquals("test_index", indexName);
-    }
-
-    @Test
-    public void dateSpanValueLessThanZero() throws Exception
-    {
-        IndexNameHelper inh = new IndexNameHelper("test_index", "y", -5);
+        IndexNameHelper inh = new IndexNameHelper("test_index", false, "y");
         String indexName = inh.getIndexName(Instant.now());
 
         assertEquals("test_index", indexName);
@@ -114,7 +92,7 @@ public class IndexNameHelperTest
 
         expectedSpanStart.atZone(ZoneId.systemDefault()).toInstant();
 
-        IndexNameHelper inh = new IndexNameHelper("test_index", "y", 1);
+        IndexNameHelper inh = new IndexNameHelper("test_index", true, "y");
 
         assertNull(inh.getCurrentDateSpanStart());
         assertNull(inh.getCurrentDateSpanEnd());
@@ -136,7 +114,7 @@ public class IndexNameHelperTest
         LocalDateTime oldSpanTime = LocalDateTime.of(2018, 9, 13, 0, 0, 0);
         LocalDateTime newSpanTime = LocalDateTime.of(2019, 1, 1, 0, 0, 1);
 
-        IndexNameHelper inh = new IndexNameHelper("test_index", "y", 1);
+        IndexNameHelper inh = new IndexNameHelper("test_index", true,"y");
 
         assertNull(inh.getCurrentDateSpanStart());
         assertNull(inh.getCurrentDateSpanEnd());
@@ -163,7 +141,7 @@ public class IndexNameHelperTest
         LocalDateTime oldSpanTime = LocalDateTime.of(2018, 9, 15, 0, 0, 0);
         LocalDateTime newSpanTime = LocalDateTime.of(2018, 9, 17, 0, 0, 0);
 
-        IndexNameHelper inh = new IndexNameHelper("test_index", "m", 1);
+        IndexNameHelper inh = new IndexNameHelper("test_index", true, "m");
 
         assertNull(inh.getCurrentDateSpanStart());
         assertNull(inh.getCurrentDateSpanEnd());
@@ -185,7 +163,7 @@ public class IndexNameHelperTest
         LocalDateTime oldSpanTime = LocalDateTime.of(2018, 9, 13, 0, 0, 0);
         LocalDateTime newSpanTime = LocalDateTime.of(2018, 10, 1, 0, 0, 1);
 
-        IndexNameHelper inh = new IndexNameHelper("test_index", "m", 1);
+        IndexNameHelper inh = new IndexNameHelper("test_index", true,"m");
 
         assertNull(inh.getCurrentDateSpanStart());
         assertNull(inh.getCurrentDateSpanEnd());
@@ -212,7 +190,7 @@ public class IndexNameHelperTest
         LocalDateTime oldSpanTime = LocalDateTime.of(2018, 9, 13, 0, 0, 0);
         LocalDateTime newSpanTime = LocalDateTime.of(2018, 9, 14, 0, 0, 0);
 
-        IndexNameHelper inh = new IndexNameHelper("test_index", "w", 1);
+        IndexNameHelper inh = new IndexNameHelper("test_index", true,"w");
 
         assertNull(inh.getCurrentDateSpanStart());
         assertNull(inh.getCurrentDateSpanEnd());
@@ -234,7 +212,7 @@ public class IndexNameHelperTest
         LocalDateTime oldSpanTime = LocalDateTime.of(2018, 9, 13, 0, 0, 0);
         LocalDateTime newSpanTime = LocalDateTime.of(2018, 9, 16, 0, 0, 1);
 
-        IndexNameHelper inh = new IndexNameHelper("test_index", "w", 1);
+        IndexNameHelper inh = new IndexNameHelper("test_index", true, "w");
 
         assertNull(inh.getCurrentDateSpanStart());
         assertNull(inh.getCurrentDateSpanEnd());
@@ -261,7 +239,7 @@ public class IndexNameHelperTest
         LocalDateTime oldSpanTime = LocalDateTime.of(2018, 9, 9, 0, 1, 0);
         LocalDateTime newSpanTime = LocalDateTime.of(2018, 9, 9, 0, 2, 0);
 
-        IndexNameHelper inh = new IndexNameHelper("test_index", "d", 1);
+        IndexNameHelper inh = new IndexNameHelper("test_index", true, "d");
 
         assertNull(inh.getCurrentDateSpanStart());
         assertNull(inh.getCurrentDateSpanEnd());
@@ -283,7 +261,7 @@ public class IndexNameHelperTest
         LocalDateTime oldSpanTime = LocalDateTime.of(2018, 9, 13, 0, 0, 0);
         LocalDateTime newSpanTime = LocalDateTime.of(2018, 9, 14, 0, 0, 1);
 
-        IndexNameHelper inh = new IndexNameHelper("test_index", "d", 1);
+        IndexNameHelper inh = new IndexNameHelper("test_index", true, "d");
 
         assertNull(inh.getCurrentDateSpanStart());
         assertNull(inh.getCurrentDateSpanEnd());

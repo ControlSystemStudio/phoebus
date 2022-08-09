@@ -65,6 +65,14 @@ Once a selection of nodes have been copied or moved successfully, the target fol
 **NOTE**: Copying a large number of nodes and/or nodes with deep sub-trees is discouraged as this is an expensive operation.
 Moving nodes on the other hand is lightweight as only references in the tree structure are updated.
 
+Logging
+-------
+
+If a logbook implementation is available in the application, the optional logging module can be used to launch a log entry
+editor for the purpose of logging when a new snapshot has been saved, or when a snapshot has been restored.
+Properties of the snapshot (name, date etc) are automatically set on the log entry rendered by the editor. If
+a restore action has failed to write one or multiple PVs, a list of these PVs is also added to the log entry.
+
 Script Support
 --------------
 

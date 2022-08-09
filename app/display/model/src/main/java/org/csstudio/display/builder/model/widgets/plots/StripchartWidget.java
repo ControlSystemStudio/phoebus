@@ -80,9 +80,13 @@ public class StripchartWidget extends VisibleWidget
         }
     };
 
-    /** 'time_range' */
-    public static final WidgetPropertyDescriptor<String> propTimeRange =
-        CommonWidgetProperties.newStringPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "time_range", Messages.Stripchart_TimeRange);
+    /** 'start' */
+    public static final WidgetPropertyDescriptor<String> propStart =
+        CommonWidgetProperties.newStringPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "start", Messages.Stripchart_StartTime);
+
+    /** 'end' */
+    public static final WidgetPropertyDescriptor<String> propEnd =
+        CommonWidgetProperties.newStringPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "end", Messages.Stripchart_EndTime);
 
     /** 'label_font' */
     public static final WidgetPropertyDescriptor<WidgetFont> propLabelFont =
@@ -95,6 +99,12 @@ public class StripchartWidget extends VisibleWidget
             return new FontWidgetProperty(this, widget, font);
         }
     };
+
+    @Override
+    public Version getVersion()
+    {   
+        return new Version(2, 1, 0);
+    }
 
     /** 'axis' structure */
     public static class AxisWidgetProperty extends StructuredWidgetProperty
@@ -318,7 +328,16 @@ public class StripchartWidget extends VisibleWidget
 
                 if (! handleLegacyTraces(model_reader, strip, xml, pv_macro))
                     return false;
+                
             }
+            // Stripchart V2.1.0
+            if ((xml_version.getMinor() < 1 && xml_version.getMajor() == 2) || xml_version.getMajor() < 2)
+            {
+                final StripchartWidget strip = (StripchartWidget) widget;
+                final String timeRange = XMLUtil.getChildString(xml, "time_range").orElse("1 minute");
+                strip.propStart().setValue(timeRange);
+            }
+            
             return true;
         }
 
@@ -431,7 +450,8 @@ public class StripchartWidget extends VisibleWidget
     private volatile WidgetProperty<WidgetFont> scale_font;
     private volatile WidgetProperty<Boolean> show_toolbar;
     private volatile WidgetProperty<Boolean> show_legend;
-    private volatile WidgetProperty<String> time_range;
+    private volatile WidgetProperty<String> start;
+    private volatile WidgetProperty<String> end;
     private volatile ArrayWidgetProperty<AxisWidgetProperty> y_axes;
     private volatile ArrayWidgetProperty<TraceWidgetProperty> traces;
     private volatile RuntimeEventProperty configure;
@@ -463,7 +483,8 @@ public class StripchartWidget extends VisibleWidget
         properties.add(scale_font = PlotWidgetProperties.propScaleFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(show_toolbar = propToolbar.createProperty(this, true));
         properties.add(show_legend = PlotWidgetProperties.propLegend.createProperty(this, false));
-        properties.add(time_range = propTimeRange.createProperty(this, "1 minute"));
+        properties.add(start = propStart.createProperty(this, "1 minute"));
+        properties.add(end = propEnd.createProperty(this, ""));
         properties.add(y_axes = propYAxes.createProperty(this, Arrays.asList(AxisWidgetProperty.create(propYAxis, this, Messages.PlotWidget_Y))));
         properties.add(traces = propTraces.createProperty(this, Arrays.asList(new TraceWidgetProperty(this, 0))));
         properties.add(configure = (RuntimeEventProperty) runtimePropConfigure.createProperty(this, null));
@@ -551,10 +572,16 @@ public class StripchartWidget extends VisibleWidget
         return show_legend;
     }
 
-    /** @return 'time_range' property */
-    public WidgetProperty<String> propTimeRange()
+    /** @return 'start' property */
+    public WidgetProperty<String> propStart()
     {
-        return time_range;
+        return start;
+    }
+
+    /** @return 'end' property */
+    public WidgetProperty<String> propEnd()
+    {
+        return end;
     }
 
     /** @return 'y_axes' property */

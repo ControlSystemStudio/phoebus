@@ -78,11 +78,11 @@ public class AlarmMessageLogger implements Runnable {
         
         
         final String indexDateSpanUnits = props.getProperty("date_span_units");
-        final Integer indexDateSpanValue = Integer.parseInt(props.getProperty("date_span_value"));
+        final boolean useDatedIndexNames = Boolean.parseBoolean(props.getProperty("use_dated_index_names"));
 
         try {
-            stateIndexNameHelper = new IndexNameHelper(topic + STATE_INDEX_FORMAT, indexDateSpanUnits, indexDateSpanValue);
-            configIndexNameHelper = new IndexNameHelper(topic + CONFIG_INDEX_FORMAT , indexDateSpanUnits, indexDateSpanValue);
+            stateIndexNameHelper = new IndexNameHelper(topic + STATE_INDEX_FORMAT, useDatedIndexNames, indexDateSpanUnits);
+            configIndexNameHelper = new IndexNameHelper(topic + CONFIG_INDEX_FORMAT , useDatedIndexNames, indexDateSpanUnits);
         } catch (Exception ex) {
             logger.log(Level.SEVERE, "Time based index creation failed.", ex);
         }
