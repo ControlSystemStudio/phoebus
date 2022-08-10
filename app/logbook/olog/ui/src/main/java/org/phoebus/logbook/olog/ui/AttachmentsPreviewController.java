@@ -43,11 +43,11 @@ import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.olog.ui.write.AttachmentsViewController;
 import org.phoebus.ui.application.ApplicationLauncherService;
+import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -128,14 +128,12 @@ public class AttachmentsPreviewController {
                     String[] parts = fileName.split("\\.");
                     if(parts.length == 1 || !ApplicationService.getExtensionsHandledByExternalApp().contains(parts[parts.length - 1])){
                         // If there is no app configured for the file type, then use the default configured for the OS/User
+                        // Note: Do not use Desktop API, as using Java AWT can hang Phoebus / JavaFX Applications
                         try {
-                            if(Desktop.isDesktopSupported()) {
-                                Desktop.getDesktop().open(attachment.getFile());
-                                return;
-                            } else {
-                                ExceptionDetailsErrorDialog.openError(Messages.PreviewOpenErrorTitle, Messages.PreviewOpenErrorBody, null);
-                            }
-                        } catch (IOException | UnsupportedOperationException e) {
+                            PhoebusApplication.INSTANCE.getHostServices().showDocument(
+                                    attachment.getFile().toURI().getRawPath()
+                            );
+                        } catch (Exception e) {
                             ExceptionDetailsErrorDialog.openError(Messages.PreviewOpenErrorTitle, Messages.PreviewOpenErrorBody, null);
                         }
                     }
