@@ -129,8 +129,15 @@ public class AttachmentsPreviewController {
                     if(parts.length == 1 || !ApplicationService.getExtensionsHandledByExternalApp().contains(parts[parts.length - 1])){
                         // If there is no app configured for the file type, then use the default configured for the OS/User
                         try {
-                            Desktop.getDesktop().open(attachment.getFile());
-                            return;
+                            if(Desktop.isDesktopSupported()) {
+                                Desktop desktop = Desktop.getDesktop();
+                                if(desktop.isSupported(Desktop.Action.APP_OPEN_FILE)) {
+                                    Desktop.getDesktop().open(attachment.getFile());
+                                    return;
+                                }
+                            } else {
+                                ExceptionDetailsErrorDialog.openError(Messages.PreviewOpenErrorTitle, Messages.PreviewOpenErrorBody, null);
+                            }
                         } catch (IOException e) {
                             ExceptionDetailsErrorDialog.openError(Messages.PreviewOpenErrorTitle, Messages.PreviewOpenErrorBody, null);
                         }
