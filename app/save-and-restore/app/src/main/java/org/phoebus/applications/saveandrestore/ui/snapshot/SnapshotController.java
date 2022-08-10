@@ -95,6 +95,7 @@ import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -601,7 +602,7 @@ public class SnapshotController implements NodeChangedListener {
                     final PV pv = pvs.get(getPVKey(e.pvNameProperty().get(), e.readOnlyProperty().get()^e.readonlyOverrideProperty().get()));
                     if (entry.getValue() != null) {
                         try {
-                            pv.pv.write(Utilities.toRawValue(entry.getValue()));
+                            pv.pv.asyncWrite(Utilities.toRawValue(entry.getValue())).get();
                         } catch (Exception writeException) {
                             restoreFailed.add(entry.getPVName());
                         } finally {
