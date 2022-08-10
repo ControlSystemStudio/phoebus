@@ -130,15 +130,12 @@ public class AttachmentsPreviewController {
                         // If there is no app configured for the file type, then use the default configured for the OS/User
                         try {
                             if(Desktop.isDesktopSupported()) {
-                                Desktop desktop = Desktop.getDesktop();
-                                if(desktop.isSupported(Desktop.Action.APP_OPEN_FILE)) {
-                                    Desktop.getDesktop().open(attachment.getFile());
-                                    return;
-                                }
+                                Desktop.getDesktop().open(attachment.getFile());
+                                return;
                             } else {
                                 ExceptionDetailsErrorDialog.openError(Messages.PreviewOpenErrorTitle, Messages.PreviewOpenErrorBody, null);
                             }
-                        } catch (IOException e) {
+                        } catch (IOException | UnsupportedOperationException e) {
                             ExceptionDetailsErrorDialog.openError(Messages.PreviewOpenErrorTitle, Messages.PreviewOpenErrorBody, null);
                         }
                     }
