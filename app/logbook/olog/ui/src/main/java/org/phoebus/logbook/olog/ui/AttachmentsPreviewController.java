@@ -30,6 +30,7 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
 import javafx.scene.control.*;
+import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -46,6 +47,7 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -120,13 +122,18 @@ public class AttachmentsPreviewController {
                         defaultApp.create(attachment.getFile().toURI());
                         return;
                     }
+
                     // If not internal apps are found look for external apps
                     String fileName = attachment.getFile().getName();
                     String[] parts = fileName.split("\\.");
                     if(parts.length == 1 || !ApplicationService.getExtensionsHandledByExternalApp().contains(parts[parts.length - 1])){
-                        // If there is no app configured for the file type, show an error message and return.
-                        ExceptionDetailsErrorDialog.openError(Messages.PreviewOpenErrorTitle, Messages.PreviewOpenErrorBody, null);
-                        return;
+                        // If there is no app configured for the file type, then use the default configured for the OS/User
+                        try {
+                            Desktop.getDesktop().open(attachment.getFile());
+                            return;
+                        } catch (IOException e) {
+                            ExceptionDetailsErrorDialog.openError(Messages.PreviewOpenErrorTitle, Messages.PreviewOpenErrorBody, null);
+                        }
                     }
                 }
                 ApplicationLauncherService.openFile(attachment.getFile(), false, null);
