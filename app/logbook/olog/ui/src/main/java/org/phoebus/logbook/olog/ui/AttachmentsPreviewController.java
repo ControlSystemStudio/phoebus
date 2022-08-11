@@ -130,9 +130,8 @@ public class AttachmentsPreviewController {
                         // If there is no app configured for the file type, then use the default configured for the OS/User
                         // Note: Do not use Desktop API, as using Java AWT can hang Phoebus / JavaFX Applications
                         try {
-                            PhoebusApplication.INSTANCE.getHostServices().showDocument(
-                                    attachment.getFile().toURI().getRawPath()
-                            );
+                            String filePathString = attachment.getFile().toPath().toUri().toString();
+                            PhoebusApplication.INSTANCE.getHostServices().showDocument(filePathString);
                         } catch (Exception e) {
                             ExceptionDetailsErrorDialog.openError(Messages.PreviewOpenErrorTitle, Messages.PreviewOpenErrorBody, null);
                         }
