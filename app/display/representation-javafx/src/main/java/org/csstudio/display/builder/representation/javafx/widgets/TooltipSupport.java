@@ -22,6 +22,7 @@ import org.csstudio.display.builder.representation.Preferences;
 import org.csstudio.display.builder.representation.javafx.JFXPreferences;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.MacroValueProvider;
@@ -108,6 +109,11 @@ public class TooltipSupport
                 if (time != null)
                     buf.append(", ").append(TimestampFormats.FULL_FORMAT.format(time.getTimestamp()));
 
+                String display = Display.displayOf(vtype).getDescription();
+                // Description is non-null only for pva.
+                if(display != null && !display.isEmpty()){
+                    buf.append(System.lineSeparator()).append(display);
+                }
                 spec = spec.replace("$(pv_value)", buf.toString());
             }
             final Widget widget = tooltip_property.getWidget();
