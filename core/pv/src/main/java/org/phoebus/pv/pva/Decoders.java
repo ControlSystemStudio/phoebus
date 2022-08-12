@@ -234,6 +234,7 @@ public class Decoders
         String units;
         NumberFormat format;
         Range display, control, alarm, warn;
+        String description = "";
 
         // Decode display_t display
         PVAStructure section = struct.get("display");
@@ -282,6 +283,11 @@ public class Decoders
                     : createNumberFormat(str.get());
             }
 
+            PVAString pvaStringDescription = section.get("description");
+            if(pvaStringDescription != null){
+                description = pvaStringDescription.get();
+            }
+
             display = Range.of(getDoubleValue(section, "limitLow", Double.NaN),
                                getDoubleValue(section, "limitHigh", Double.NaN));
         }
@@ -312,7 +318,7 @@ public class Decoders
         else
             alarm = warn = Range.undefined();
 
-        return Display.of(display, alarm, warn, control, units, format);
+        return Display.of(display, alarm, warn, control, units, format, description);
     }
 
     /** @param struct Structure
