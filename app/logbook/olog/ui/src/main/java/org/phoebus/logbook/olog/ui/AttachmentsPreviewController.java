@@ -30,6 +30,7 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
 import javafx.scene.control.*;
+import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -42,6 +43,7 @@ import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.olog.ui.write.AttachmentsViewController;
 import org.phoebus.ui.application.ApplicationLauncherService;
+import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -120,13 +122,19 @@ public class AttachmentsPreviewController {
                         defaultApp.create(attachment.getFile().toURI());
                         return;
                     }
+
                     // If not internal apps are found look for external apps
                     String fileName = attachment.getFile().getName();
                     String[] parts = fileName.split("\\.");
                     if(parts.length == 1 || !ApplicationService.getExtensionsHandledByExternalApp().contains(parts[parts.length - 1])){
-                        // If there is no app configured for the file type, show an error message and return.
-                        ExceptionDetailsErrorDialog.openError(Messages.PreviewOpenErrorTitle, Messages.PreviewOpenErrorBody, null);
-                        return;
+                        // If there is no app configured for the file type, then use the default configured for the OS/User
+                        // Note: Do not use Desktop API, as using Java AWT can hang Phoebus / JavaFX Applications
+                        try {
+                            String filePathString = attachment.getFile().toPath().toUri().toString();
+                            PhoebusApplication.INSTANCE.getHostServices().showDocument(filePathString);
+                        } catch (Exception e) {
+                            ExceptionDetailsErrorDialog.openError(Messages.PreviewOpenErrorTitle, Messages.PreviewOpenErrorBody, null);
+                        }
                     }
                 }
                 ApplicationLauncherService.openFile(attachment.getFile(), false, null);
