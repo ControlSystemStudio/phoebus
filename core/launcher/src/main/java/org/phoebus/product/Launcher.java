@@ -235,6 +235,7 @@ public class Launcher
         System.out.println("-resource 'pv://?sim://sine&app=probe'                                       - Opens the 'sim://sine' PV with 'probe'.");
         System.out.println("-resource 'pv://?Fred&sim://sine&app=pv_table'                               - Opens two PVs PV with 'pv_table'.");
         System.out.println("-resource '...&target=window'                                                - Opens resource in separate window.");
+        System.out.println("-resource '...&target=window@800x600+200+150'                                - Opens resource in separate window sized 800 by 600 at x=200, y=150.");
         System.out.println("-resource '...&target=name_of_pane'                                          - Opens resource in named pane.");
     }
 }

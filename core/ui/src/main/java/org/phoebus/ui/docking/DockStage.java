@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,10 +19,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Level;
 
-import javafx.scene.control.SplitPane;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.application.Messages;
@@ -34,6 +30,7 @@ import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.SplitPane;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
@@ -117,6 +114,22 @@ public class DockStage
      */
     public static DockPane configureStage(final Stage stage, final DockItem... tabs)
     {
+        return configureStage(stage, new Geometry(null), tabs);
+    }
+
+    /** Helper to configure a Stage for docking
+     *
+     *  <p>Adds a Scene with a BorderPane layout and a DockPane in the center
+     *
+     *  @param stage Stage, should be empty
+     *  @param geometry_spec A geometry specification "{width}x{height}+{x}+{y}", see {@link Geometry}
+     *  @param tabs Zero or more initial {@link DockItem}s
+     *  @throws Exception on error
+     *
+     *  @return {@link DockPane} that was added to the {@link Stage}
+     */
+    public static DockPane configureStage(final Stage stage, final Geometry geometry, final DockItem... tabs)
+    {
         stage.getProperties().put(KEY_ID, createID("DockStage"));
 
         final DockPane pane = new DockPane(tabs);
@@ -141,9 +154,19 @@ public class DockStage
             }
         });
 
-        final Scene scene = new Scene(layout, 1600, 900);
+        final Scene scene = new Scene(layout, geometry.width, geometry.height);
         stage.setScene(scene);
         stage.setTitle(Messages.FixedTitle);
+        // Set position
+        stage.setX(geometry.x);
+        stage.setY(geometry.y);
+
+        // Force window to be visible
+        stage.show();
+        stage.toFront();
+        stage.setAlwaysOnTop(true);
+        stage.setAlwaysOnTop(false);
+
         Styles.setSceneStyle(scene);
         try
         {
