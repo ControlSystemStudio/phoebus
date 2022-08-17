@@ -45,8 +45,10 @@ public class SendToLogBookApp implements AppDescriptor {
         if(selection.getSelections().isEmpty()){
             ologLog = new OlogLog();
         }
-        else{
-            ologLog = AdapterService.adapt(selection.getSelections().get(0), LogEntry.class).get();
+        else {
+            ologLog = AdapterService
+                        .adapt(selection.getSelections().get(0), LogEntry.class)
+                        .orElse(new OlogLog());
         }
         new LogEntryEditorStage(ologLog).show();
         return null;
