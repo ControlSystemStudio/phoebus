@@ -308,8 +308,4 @@ public class SaveAndRestoreService {
         //notifyNodeChangeListeners(updatedNode);
         return updatedSnapshotWrapper;
     }
-
-    public void sendVType(ThinWrapper vType){
-        saveAndRestoreClient.sendVType(vType);
-    }
 }

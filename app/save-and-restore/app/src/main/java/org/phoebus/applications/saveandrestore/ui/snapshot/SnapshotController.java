@@ -223,6 +223,13 @@ public class SnapshotController implements NodeChangedListener {
 
     private ServiceLoader<SaveAndRestoreEventReceiver> eventReceivers;
 
+    private Node snapshotNode;
+
+
+    public SnapshotController(Node snapshotNode){
+        this.snapshotNode = snapshotNode;
+    }
+
     @FXML
     public void initialize() {
 
@@ -484,27 +491,32 @@ public class SnapshotController implements NodeChangedListener {
 
         // Locate registered SaveAndRestoreEventReceivers
         eventReceivers = ServiceLoader.load(SaveAndRestoreEventReceiver.class);
+
+        //loadSnapshot();
     }
 
     public void setSnapshotTab(SnapshotTab snapshotTab){
         this.snapshotTab = snapshotTab;
     }
 
-    public void loadSnapshot(Node snapshot) {
+    public void loadSnapshot() {
+        if(snapshotNode == null){
+            return;
+        }
         try {
-            this.config = saveAndRestoreService.getParentNode(snapshot.getUniqueId());
-            snapshotNameProperty.set(snapshot.getName());
-            snapshotUniqueIdProperty.set(snapshot.getUniqueId());
+            this.config = saveAndRestoreService.getParentNode(snapshotNode.getUniqueId());
+            snapshotNameProperty.set(snapshotNode.getName());
+            snapshotUniqueIdProperty.set(snapshotNode.getUniqueId());
 
-            snapshotTab.updateTabTitile(snapshot.getName(), Boolean.parseBoolean(snapshot.getProperty("golden")));
-            snapshotTab.setId(snapshot.getUniqueId());
+            snapshotTab.updateTabTitile(snapshotNode.getName(), Boolean.parseBoolean(snapshotNode.getProperty("golden")));
+            snapshotTab.setId(snapshotNode.getUniqueId());
 
-            persistentSnapshotName = snapshot.getName();
-            persistentGoldenState = Boolean.parseBoolean(snapshot.getProperty("golden"));
+            persistentSnapshotName = snapshotNode.getName();
+            persistentGoldenState = Boolean.parseBoolean(snapshotNode.getProperty("golden"));
         } catch (Exception e) {
             LOGGER.log(Level.INFO, "Error loading snapshot", e);
         }
-        loadSnapshotInternal(snapshot);
+        loadSnapshotInternal();
     }
 
     public void addSnapshot(Node treeNode) {
@@ -539,7 +551,6 @@ public class SnapshotController implements NodeChangedListener {
      * @param node A {@link Node} of type {@link NodeType#CONFIGURATION}
      */
     public void loadSaveSet(Node node){
-
         SnapshotController.this.config = saveAndRestoreService.getNode(node.getUniqueId());
         try {
             Configuration configuration = saveAndRestoreService.getConfiguration(node.getUniqueId());
@@ -559,19 +570,19 @@ public class SnapshotController implements NodeChangedListener {
         }
     }
 
-    private void loadSnapshotInternal(Node snapshot) {
+    private void loadSnapshotInternal() {
 
         UI_EXECUTOR.execute(() -> {
             try {
-                List<SnapshotItem> snapshotItems = saveAndRestoreService.getSnapshotItems(snapshot.getUniqueId());
+                List<SnapshotItem> snapshotItems = saveAndRestoreService.getSnapshotItems(snapshotNode.getUniqueId());
 
-                snapshotCommentProperty.set(snapshot.getProperty("comment"));
-                createdDateTextProperty.set(snapshot.getCreated().toString());
-                createdByTextProperty.set(snapshot.getUserName());
-                snapshotNameProperty.set(snapshot.getName());
+                snapshotCommentProperty.set(snapshotNode.getProperty("comment"));
+                createdDateTextProperty.set(snapshotNode.getCreated().toString());
+                createdByTextProperty.set(snapshotNode.getUserName());
+                snapshotNameProperty.set(snapshotNode.getName());
 
                 VSnapshot vSnapshot =
-                        new VSnapshot(snapshot, snapshotItemsToSnapshotEntries(snapshotItems));
+                        new VSnapshot(snapshotNode, snapshotItemsToSnapshotEntries(snapshotItems));
                 List<TableEntry> tableEntries = loadSnapshotInternal(vSnapshot);
 
                 snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
@@ -724,18 +735,10 @@ public class SnapshotController implements NodeChangedListener {
                     .map(snapshotEntry -> SnapshotItem.builder().value(snapshotEntry.getValue()).configPv(snapshotEntry.getConfigPv()).readbackValue(snapshotEntry.getReadbackValue()).build())
                     .collect(Collectors.toList());
             try {
-                Node savedSnapshot = saveAndRestoreService.saveSnapshot(config, snapshotItems, snapshotNameProperty.get(), snapshotCommentProperty.get());
+                snapshotNode = saveAndRestoreService.saveSnapshot(config, snapshotItems, snapshotNameProperty.get(), snapshotCommentProperty.get());
 
-                Node snapshotNode = Node.builder().nodeType(NodeType.SNAPSHOT).name(snapshotNameProperty.get()).build();
-
-                Snapshot snapshot = new Snapshot();
-                snapshot.setComment(snapshotCommentProperty.get());
-                //snapshot.setPvList();
-                SnapshotWrapper snapshotWrapper = new SnapshotWrapper();
-
-
-                loadSnapshot(savedSnapshot);
-                logNewSnapshotSaved(savedSnapshot);
+                loadSnapshot();
+                logNewSnapshotSaved();
             } catch (Exception e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle(Messages.errorActionFailed);
@@ -747,13 +750,13 @@ public class SnapshotController implements NodeChangedListener {
         }
         else{ // Only snapshot name and/or comment have changed
             try {
-                Node snapshotNode = snapshots.get(0).getSnapshot().get();
-                Map<String, String> properties = snapshotNode.getProperties();
+                Node node = snapshots.get(0).getSnapshot().get();
+                Map<String, String> properties = node.getProperties();
                 properties.put("comment", snapshotCommentProperty.get());
-                snapshotNode.setProperties(properties);
-                snapshotNode.setName(snapshotNameProperty.get());
-                snapshotNode = saveAndRestoreService.updateNode(snapshotNode);
-                loadSnapshot(snapshotNode);
+                node.setProperties(properties);
+                node.setName(snapshotNameProperty.get());
+                snapshotNode = saveAndRestoreService.updateNode(node);
+                loadSnapshot();
             } catch (Exception e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle(Messages.errorActionFailed);
@@ -1035,9 +1038,6 @@ public class SnapshotController implements NodeChangedListener {
                 pv.onValueEvent().throttleLatest(TABLE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS).subscribe(value -> {
                     pvValue = org.phoebus.pv.PV.isDisconnected(value) ? VDisconnectedData.INSTANCE : value;
                     this.snapshotTableEntry.setLiveValue(pvValue);
-                    ThinWrapper tw = new ThinWrapper();
-                    tw.setValue(pvValue);
-                    saveAndRestoreService.sendVType(tw);
                 });
 
 
@@ -1133,8 +1133,9 @@ public class SnapshotController implements NodeChangedListener {
 
     @Override
     public void nodeChanged(Node node) {
-        if (node.getUniqueId().equals(snapshotUniqueIdProperty.get())) {
-            loadSnapshot(node);
+        this.snapshotNode = node;
+        if (snapshotNode.getUniqueId().equals(snapshotUniqueIdProperty.get())) {
+            loadSnapshot();
         }
     }
 
@@ -1142,9 +1143,9 @@ public class SnapshotController implements NodeChangedListener {
         return pvName + "_" + isReadonly;
     }
 
-    private void logNewSnapshotSaved(Node node){
+    private void logNewSnapshotSaved(){
         JobManager.schedule("Log new snapshot saved", monitor -> eventReceivers
-                .forEach(r -> r.snapshotSaved(node, errorMessage -> showLoggingError(errorMessage))));
+                .forEach(r -> r.snapshotSaved(snapshotNode, errorMessage -> showLoggingError(errorMessage))));
     }
 
     private void logSnapshotRestored(Node node,  List<String> failedPVs){

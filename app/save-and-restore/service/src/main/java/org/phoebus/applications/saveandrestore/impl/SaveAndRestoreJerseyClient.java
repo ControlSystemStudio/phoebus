@@ -415,16 +415,4 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
         }
         return response.getEntity(SnapshotWrapper.class);
     }
-
-    public void sendVType(ThinWrapper vType){
-        WebResource webResource =
-                client.resource(jmasarServiceUrl + "/vtype");
-        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
-                .entity(vType, CONTENT_TYPE_JSON)
-                .put(ClientResponse.class);
-        if (response.getStatus() != 200) {
-            System.out.println("BAD");
-        }
-
-    }
 }

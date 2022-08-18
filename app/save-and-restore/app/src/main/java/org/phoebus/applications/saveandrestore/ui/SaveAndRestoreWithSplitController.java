@@ -182,7 +182,6 @@ public class SaveAndRestoreWithSplitController extends SaveAndRestoreController 
                 break;
             case SNAPSHOT:
                 tab = new SnapshotTab(node, saveAndRestoreService);
-                ((SnapshotTab) tab).loadSnapshot(node);
                 break;
             case FOLDER:
             default:

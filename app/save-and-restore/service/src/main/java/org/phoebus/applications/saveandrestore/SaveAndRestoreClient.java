@@ -183,6 +183,4 @@ public interface SaveAndRestoreClient {
     Snapshot getSnapshot(String nodeId);
 
     SnapshotWrapper saveSnapshot(SnapshotWrapper snapshotWrapper);
-
-    void sendVType(ThinWrapper vType);
 }

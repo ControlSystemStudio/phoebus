@@ -560,7 +560,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 break;
             case SNAPSHOT:
                 tab = new SnapshotTab(node, saveAndRestoreService);
-                ((SnapshotTab) tab).loadSnapshot(node);
                 break;
             case FOLDER:
             default:

@@ -28,11 +28,15 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.framework.nls.NLS;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 
 import java.io.IOException;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -58,8 +62,23 @@ public class SnapshotTab extends Tab {
             setId(node.getUniqueId());
         }
 
+        ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
         FXMLLoader loader = new FXMLLoader();
+        loader.setResources(resourceBundle);
         loader.setLocation(SnapshotTab.class.getResource("SnapshotEditor.fxml"));
+
+        loader.setControllerFactory(clazz -> {
+                    try {
+                        if (clazz.isAssignableFrom(SnapshotController.class)) {
+                            return clazz.getConstructor(Node.class)
+                                    .newInstance(node);
+                        }
+                    } catch (Exception e) {
+                        ExceptionDetailsErrorDialog.openError("Error",
+                                "Failed to open new snapshot tab", e);
+                    }
+                    return null;
+                });
 
         BorderPane borderPane;
         try {
@@ -100,10 +119,6 @@ public class SnapshotTab extends Tab {
     public void updateTabTitile(String name, boolean golden){
         tabGraphicImageProperty.set(golden ? goldenImage : regularImage);
         tabTitleProperty.set(name);
-    }
-
-    public void loadSnapshot(org.phoebus.applications.saveandrestore.model.Node node){
-        snapshotController.loadSnapshot(node);
     }
 
     public void loadSaveSet(org.phoebus.applications.saveandrestore.model.Node node){
