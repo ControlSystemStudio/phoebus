@@ -202,11 +202,7 @@ public class SaveSetFromSelectionController implements Initializable {
                 dialog.setTitle("Choose a folder, a saveset, or create one");
                 dialog.getIcons().add(ImageCache.getImage(ImageCache.class, "/icons/logo.png"));
                 dialog.initModality(Modality.APPLICATION_MODAL);
-                if (preferencesReader.getBoolean("splitSaveset")) {
-                    loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/SaveSetSelectorWithSplit.fxml"));
-                } else {
-                    loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/SaveSetSelector.fxml"));
-                }
+                loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/SaveSetSelector.fxml"));
                 dialog.setScene(new Scene(loader.load()));
 
                 final BaseSaveSetSelectionController saveSetSelectionController = loader.getController();
