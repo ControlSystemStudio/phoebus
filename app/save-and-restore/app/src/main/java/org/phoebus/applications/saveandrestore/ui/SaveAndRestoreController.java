@@ -106,7 +106,7 @@ import java.util.stream.Collectors;
  * Main controller for the save & restore UI. In particular, it handles the tree view and operations on it, e.g.
  * creating folders, save sets and launching the snapshot view.
  */
-public class SaveAndRestoreController implements Initializable, NodeChangedListener, NodeAddedListener, ISaveAndRestoreController {
+public class SaveAndRestoreController implements Initializable, NodeChangedListener, NodeAddedListener {
 
     @FXML
     protected TreeView<Node> treeView;
@@ -242,7 +242,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * Loads the data for the tree root as provided (persisted) by the current
      * {@link org.phoebus.applications.saveandrestore.SaveAndRestoreClient}.
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
     @FXML
     public void loadTreeData() {
 
@@ -780,7 +779,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      *
      * @param memento The {@link Memento} in which to save the state.
      */
-    @Override
     public void save(final Memento memento) {
         saveTreeState();
         memento.setNumber("POS", splitPane.getDividers().get(0).getPosition());
@@ -791,12 +789,10 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      *
      * @param memento The persisted (or empty) {@link Memento}.
      */
-    @Override
     public void restore(final Memento memento) {
         memento.getNumber("POS").ifPresent(pos -> splitPane.setDividerPositions(pos.doubleValue()));
     }
 
-    @Override
     public void locateNode(Stack<Node> nodeStack) {
         TreeItem<Node> parentTreeItem = treeView.getRoot();
 
@@ -1254,7 +1250,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             return;
         }
         Stack<Node> copiedStack = new Stack<>();
-        DirectoryUtilities.CreateLocationStringAndNodeStack(node, false).getValue().stream().forEach(copiedStack::push);
+        DirectoryUtilities.CreateLocationStringAndNodeStack(node, false).getValue().forEach(copiedStack::push);
         locateNode(copiedStack);
         nodeDoubleClicked(node);
     }

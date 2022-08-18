@@ -25,7 +25,6 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -52,7 +51,6 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.core.types.ProcessVariable;
-import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.net.URL;
@@ -79,15 +77,14 @@ import java.util.logging.Logger;
 public class SaveSetFromSelectionController implements Initializable {
 
     private final SaveAndRestoreService saveAndRestoreService = SaveAndRestoreService.getInstance();
-    private final PreferencesReader preferencesReader =
-            new PreferencesReader(SaveAndRestoreApplication.class, "/save_and_restore_preferences.properties");
+
     private final Logger LOGGER = Logger.getLogger(SaveAndRestoreService.class.getName());
 
     private final String DESCRIPTION_PROPERTY = "description";
 
     private final SimpleIntegerProperty numSelected = new SimpleIntegerProperty();
 
-    private class TableRowEntry {
+    private static class TableRowEntry {
         private boolean selected;
         private ConfigPv pv;
     }
@@ -135,7 +132,7 @@ public class SaveSetFromSelectionController implements Initializable {
     @FXML
     private Button discardButton;
 
-    private SimpleObjectProperty<Node> targetNode = new SimpleObjectProperty<>();
+    private final SimpleObjectProperty<Node> targetNode = new SimpleObjectProperty<>();
 
     private boolean isDisabledSaveSetSelectionInBrowsing;
 
@@ -205,7 +202,7 @@ public class SaveSetFromSelectionController implements Initializable {
                 loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/SaveSetSelector.fxml"));
                 dialog.setScene(new Scene(loader.load()));
 
-                final BaseSaveSetSelectionController saveSetSelectionController = loader.getController();
+                final SaveSetSelectionController saveSetSelectionController = loader.getController();
                 if (isDisabledSaveSetSelectionInBrowsing) {
                     saveSetSelectionController.disableSavesetSelection();
                 }
@@ -326,7 +323,7 @@ public class SaveSetFromSelectionController implements Initializable {
     }
 
     @FXML
-    private void save(ActionEvent ae) {
+    private void save() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setContentText("Duplicate PVs are removed automatically.\nAre you sure to save?");
         Optional<ButtonType> response = alert.showAndWait();
@@ -385,7 +382,7 @@ public class SaveSetFromSelectionController implements Initializable {
                 parentNode = saveAndRestoreService.getParentNode(selectedNode.getUniqueId());
 
                 List<ConfigPv> storedPvs = saveAndRestoreService.getConfigPvs(selectedNode.getUniqueId());
-                Set<ConfigPv> pvSet = new HashSet<ConfigPv>();
+                Set<ConfigPv> pvSet = new HashSet<>();
                 pvSet.addAll(storedPvs);
                 pvSet.addAll(pvs);
 
