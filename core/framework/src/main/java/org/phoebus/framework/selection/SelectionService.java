@@ -85,4 +85,16 @@ public class SelectionService {
         for (SelectionChangeListener listener : listeners)
             listener.selectionChanged(source, oldValue, newValue);
     }
+
+    /**
+     * Clear the selection
+     *
+     * @param source    the source of the new selection
+     */
+    public void clearSelection(Object source) {
+        final Selection newValue = SelectionUtil.emptySelection();
+        final Selection oldValue = SelectionService.selection.getAndSet(newValue);
+        for (SelectionChangeListener listener : listeners)
+            listener.selectionChanged(source, oldValue, newValue);
+    }
 }
