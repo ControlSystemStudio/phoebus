@@ -13,64 +13,16 @@
       "pvList": {
         "type" : "nested",
         "properties": {
-          "name" : {
-            "type": "keyword"
-          },
-          "alarmSeverity": {
-            "type": "keyword"
-          },
-          "alarmStatus": {
-            "type": "keyword"
-          },
-          "alarmName": {
-            "type": "keyword"
-          },
-          "time": {
-            "type": "long"
-          },
-          "timens": {
-            "type": "integer"
-          },
-          "sizes": {
-            "type": "text"
-          },
-          "dataType": {
-            "type": "text"
-          },
-          "value": {
-            "type": "text"
+          "pv": {
+            "type": "nested"
           }
         }
       },
       "readbackPvList": {
         "type" : "nested",
         "properties": {
-          "name" : {
-            "type": "keyword"
-          },
-          "alarmSeverity": {
-            "type": "keyword"
-          },
-          "alarmStatus": {
-            "type": "keyword"
-          },
-          "alarmName": {
-            "type": "keyword"
-          },
-          "time": {
-            "type": "long"
-          },
-          "timens": {
-            "type": "integer"
-          },
-          "sizes": {
-            "type": "text"
-          },
-          "dataType": {
-            "type": "text"
-          },
-          "value": {
-            "type": "text"
+          "pv" : {
+            "type": "nested"
           }
         }
       }

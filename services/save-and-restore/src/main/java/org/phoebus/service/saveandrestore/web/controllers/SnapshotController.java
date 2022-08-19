@@ -83,11 +83,12 @@ public class SnapshotController extends BaseController {
 		return nodeDAO.saveSnapshot(configUniqueId, snapshotItems, snapshotName, userName, comment);
 	}
 
+	@SuppressWarnings("unused")
 	@PutMapping(value = "/snapshot", produces = JSON)
 	public SnapshotWrapper saveSnapshot(@RequestParam(name = "parentId") String parentsUniqueId, @RequestBody SnapshotWrapper snapshotWrapper) {
 		if(snapshotWrapper.getSnapshotNode() == null || snapshotWrapper.getSnapshotNode().getName().length() == 0 ||
 				snapshotWrapper.getSnapshotData().getComment() == null || snapshotWrapper.getSnapshotData().getComment() .length() == 0) {
-			throw new IllegalArgumentException("Snapshot name and comment must be of non-zero length");
+			throw new IllegalArgumentException("Request body does not meet requirements");
 		}
 
 		Node savedSnapshotNode = nodeDAO.createNode(parentsUniqueId, snapshotWrapper.getSnapshotNode());

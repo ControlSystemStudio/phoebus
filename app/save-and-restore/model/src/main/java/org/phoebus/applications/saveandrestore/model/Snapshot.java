@@ -18,6 +18,9 @@
 
 package org.phoebus.applications.saveandrestore.model;
 
+import org.epics.vtype.VType;
+import org.phoebus.applications.saveandrestore.model.json.VTypeSerializer;
+
 import java.util.List;
 
 public class Snapshot {
@@ -25,9 +28,9 @@ public class Snapshot {
     private String uniqueId;
     private String configId;
     private String comment;
-    private List<SnapshotPv> pvList;
+    private List<SaveAndRestorePv> pvList;
 
-    private List<SnapshotPv> readbackPvList;
+    private List<SaveAndRestorePv> readbackPvList;
 
     public String getUniqueId() {
         return uniqueId;
@@ -45,11 +48,11 @@ public class Snapshot {
         this.configId = configId;
     }
 
-    public List<SnapshotPv> getPvList() {
+    public List<SaveAndRestorePv> getPvList() {
         return pvList;
     }
 
-    public void setPvList(List<SnapshotPv> pvList) {
+    public void setPvList(List<SaveAndRestorePv> pvList) {
         this.pvList = pvList;
     }
 
@@ -61,11 +64,11 @@ public class Snapshot {
         this.comment = comment;
     }
 
-    public List<SnapshotPv> getReadbackPvList() {
+    public List<SaveAndRestorePv> getReadbackPvList() {
         return readbackPvList;
     }
 
-    public void setReadbackPvList(List<SnapshotPv> readbackPvList) {
+    public void setReadbackPvList(List<SaveAndRestorePv> readbackPvList) {
         this.readbackPvList = readbackPvList;
     }
 }

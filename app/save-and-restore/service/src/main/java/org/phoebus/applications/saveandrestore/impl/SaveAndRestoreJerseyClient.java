@@ -18,6 +18,7 @@
 
 package org.phoebus.applications.saveandrestore.impl;
 
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.GenericType;
@@ -86,7 +87,8 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
         DefaultClientConfig defaultClientConfig = new DefaultClientConfig();
         defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_READ_TIMEOUT, httpClientReadTimeout);
         defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, httpClientConnectTimeout);
-        defaultClientConfig.getClasses().add(GsonMessageBodyHandler.class);
+        defaultClientConfig.getClasses().add(JacksonJsonProvider.class);
+        //defaultClientConfig.getClasses().add(GsonMessageBodyHandler.class);
         client = Client.create(defaultClientConfig);
     }
 

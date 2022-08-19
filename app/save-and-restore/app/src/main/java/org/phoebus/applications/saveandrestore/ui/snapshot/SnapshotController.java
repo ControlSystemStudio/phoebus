@@ -70,6 +70,8 @@ import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.common.VNoData;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
+import org.phoebus.applications.saveandrestore.model.SnapshotPv;
+import org.phoebus.applications.saveandrestore.model.SnapshotPvES;
 import org.phoebus.applications.saveandrestore.model.SnapshotWrapper;
 import org.phoebus.applications.saveandrestore.model.ThinWrapper;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
@@ -735,6 +737,10 @@ public class SnapshotController implements NodeChangedListener {
                     .map(snapshotEntry -> SnapshotItem.builder().value(snapshotEntry.getValue()).configPv(snapshotEntry.getConfigPv()).readbackValue(snapshotEntry.getReadbackValue()).build())
                     .collect(Collectors.toList());
             try {
+                Node snapshotNode = Node.builder().name(snapshotNameProperty.get()).nodeType(NodeType.SNAPSHOT).build();
+                Snapshot snapshot = new Snapshot();
+                snapshot.setComment(snapshotCommentProperty.get());
+
                 snapshotNode = saveAndRestoreService.saveSnapshot(config, snapshotItems, snapshotNameProperty.get(), snapshotCommentProperty.get());
 
                 loadSnapshot();

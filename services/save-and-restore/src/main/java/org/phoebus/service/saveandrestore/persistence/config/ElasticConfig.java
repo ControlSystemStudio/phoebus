@@ -38,14 +38,6 @@ public class ElasticConfig {
 
     private static final Logger logger = Logger.getLogger(ElasticConfig.class.getName());
 
-    // Read the Elastic index and type from the application.properties
-    @Value("${elasticsearch.node.index:saveandrestore_node}")
-    public String ES_NODE_INDEX;
-
-    // Read the Elastic index and type from the application.properties
-    @Value("${elasticsearch.folder_node.index:saveandrestore_folder_node}")
-    public String ES_FOLDER_NODE_INDEX;
-
     @Value("${elasticsearch.folder_node.index:saveandrestore_tree}")
     public String ES_TREE_INDEX;
 
@@ -64,8 +56,6 @@ public class ElasticConfig {
 
     private ElasticsearchClient client;
     private static final AtomicBoolean esInitialized = new AtomicBoolean();
-    private static final ObjectMapper mapper = new ObjectMapper();
-
 
     @Bean({"client"})
     public ElasticsearchClient getClient() {

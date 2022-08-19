@@ -40,7 +40,7 @@ import org.phoebus.service.saveandrestore.SnapshotNotFoundException;
 @SuppressWarnings("unused")
 public abstract class BaseController {
 	
-	public static final String JSON = "application/json;charset=UTF-8";
+	public static final String JSON = "application/json";
 	
 	private final Logger logger = LoggerFactory.getLogger(BaseController.class);
 

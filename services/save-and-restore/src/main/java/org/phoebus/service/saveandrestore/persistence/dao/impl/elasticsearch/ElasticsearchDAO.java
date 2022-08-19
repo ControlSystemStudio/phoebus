@@ -23,6 +23,7 @@ import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.SaveAndRestorePv;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.SnapshotPv;
@@ -357,11 +358,12 @@ public class ElasticsearchDAO implements NodeDAO {
         elasticsearchSnapshot.setComment(comment);
         elasticsearchSnapshot.setUniqueId(snapshotNode.getUniqueId());
 
-        List<SnapshotPv> snapshotPvs = new ArrayList<>();
+        List<SaveAndRestorePv> snapshotPvs = new ArrayList<>();
         snapshotItems.forEach(si -> {
-            SnapshotPv snapshotPv = SnapshotDataConverter.fromVType(si.getValue());
-            snapshotPv.setPvName(si.getConfigPv().getPvName());
-            snapshotPvs.add(snapshotPv);
+            SaveAndRestorePv saveAndRestorePv = new SaveAndRestorePv();
+            saveAndRestorePv.setPvName(si.getConfigPv().getPvName());
+            saveAndRestorePv.setValue(si.getValue());
+            snapshotPvs.add(saveAndRestorePv);
         });
         elasticsearchSnapshot.setPvList(snapshotPvs);
 
@@ -388,7 +390,7 @@ public class ElasticsearchDAO implements NodeDAO {
         else {
             List<SnapshotItem> items = new ArrayList<>();
             elasticsearchSnapshotOptional.get().getPvList().forEach(pv -> {
-                VType value = SnapshotDataConverter.toVType(pv);
+                VType value = pv.getValue();
                 SnapshotItem snapshotItem = new SnapshotItem();
                 snapshotItem.setValue(value);
                 items.add(snapshotItem);
