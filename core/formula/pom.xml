@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>core</artifactId>
-    <version>4.7.0</version>
+    <version>4.7.1-SNAPSHOT</version>
   </parent>
   <dependencies>
    <!-- epics-util -->
@@ -16,7 +16,7 @@
    <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-vtype</artifactId>
-      <version>4.7.0</version>
+      <version>4.7.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -31,8 +31,4 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <scm>
-    <tag>v4.7.0</tag>
-  </scm>
 </project>
