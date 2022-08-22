@@ -35,6 +35,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.selection.Selection;
+import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.logbook.*;
 import org.phoebus.logbook.olog.ui.HelpViewer;
 import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
@@ -376,10 +378,14 @@ public class LogEntryEditorController {
     }
 
     /**
-     * Handler for Cancel button
+     * Handler for Cancel button. Note that any selections in the {@link SelectionService} are
+     * cleared to prevent next launch of {@link org.phoebus.logbook.olog.ui.menu.SendToLogBookApp}
+     * to pick them up.
      */
     @FXML
     public void cancel() {
+        // Need to clear selections.
+        SelectionService.getInstance().clearSelection("");
         ((LogEntryEditorStage) cancelButton.getScene().getWindow()).handleCloseEditor(isDirty, root);
     }
 
