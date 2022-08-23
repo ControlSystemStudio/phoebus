@@ -33,16 +33,17 @@ import javafx.scene.paint.Color;
 @SuppressWarnings("nls")
 public class AlarmUI
 {
-    private static final double DARKEN = 0.5;
+    /** Factor used to adjust color brightness or saturation */
+    private static final double ADJUST = 0.5;
 
     // Next arrays follow the ordinal of SeverityLevel
     private static final Color[] severity_colors = new Color[]
     {
         createColor(Preferences.ok_severity_text_color),                                         // OK
-        createColor(Preferences.minor_severity_text_color)    .deriveColor(0, 1.0, DARKEN, 1.0), // MINOR_ACK
-        createColor(Preferences.major_severity_text_color)    .deriveColor(0, 1.0, DARKEN, 1.0), // MAJOR_ACK
-        createColor(Preferences.invalid_severity_text_color)  .deriveColor(0, 1.0, DARKEN, 1.0), // INVALID_ACK
-        createColor(Preferences.undefined_severity_text_color).deriveColor(0, 1.0, DARKEN, 1.0), // UNDEFINED_ACK
+        createColor(Preferences.minor_severity_text_color)    .deriveColor(0, 1.0, ADJUST, 1.0), // MINOR_ACK
+        createColor(Preferences.major_severity_text_color)    .deriveColor(0, 1.0, ADJUST, 1.0), // MAJOR_ACK
+        createColor(Preferences.invalid_severity_text_color)  .deriveColor(0, 1.0, ADJUST, 1.0), // INVALID_ACK
+        createColor(Preferences.undefined_severity_text_color).deriveColor(0, 1.0, ADJUST, 1.0), // UNDEFINED_ACK
         createColor(Preferences.minor_severity_text_color),                                      // MINOR
         createColor(Preferences.major_severity_text_color),                                      // MAJOR
         createColor(Preferences.invalid_severity_text_color),                                    // INVALID
@@ -74,14 +75,14 @@ public class AlarmUI
     private static final Background[] severity_backgrounds = new Background[]
     {
         null, // OK
-        new Background(new BackgroundFill(Color.rgb(180, 170,  70), CornerRadii.EMPTY, Insets.EMPTY)), // MINOR_ACK
-        new Background(new BackgroundFill(Color.rgb(255,  90,  90), CornerRadii.EMPTY, Insets.EMPTY)), // MAJOR_ACK
-        new Background(new BackgroundFill(Color.rgb(255, 128, 255), CornerRadii.EMPTY, Insets.EMPTY)), // INVALID_ACK
-        new Background(new BackgroundFill(Color.rgb(255, 128, 255), CornerRadii.EMPTY, Insets.EMPTY)), // UNDEFINED_ACK
-        new Background(new BackgroundFill(Color.rgb(207, 192,   0), CornerRadii.EMPTY, Insets.EMPTY)), // MINOR
-        new Background(new BackgroundFill(Color.rgb(255,   0,   0), CornerRadii.EMPTY, Insets.EMPTY)), // MAJOR
-        new Background(new BackgroundFill(Color.rgb(255,   0, 255), CornerRadii.EMPTY, Insets.EMPTY)), // INVALID
-        new Background(new BackgroundFill(Color.rgb(255,   0, 255), CornerRadii.EMPTY, Insets.EMPTY)), // UNDEFINED
+        new Background(new BackgroundFill(createColor(Preferences.minor_severity_text_color)    .deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // MINOR_ACK
+        new Background(new BackgroundFill(createColor(Preferences.major_severity_text_color)    .deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // MAJOR_ACK
+        new Background(new BackgroundFill(createColor(Preferences.invalid_severity_text_color)  .deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // INVALID_ACK
+        new Background(new BackgroundFill(createColor(Preferences.undefined_severity_text_color).deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // UNDEFINED_ACK
+        new Background(new BackgroundFill(createColor(Preferences.minor_severity_text_color),                                      CornerRadii.EMPTY, Insets.EMPTY)), // MINOR
+        new Background(new BackgroundFill(createColor(Preferences.major_severity_text_color),                                      CornerRadii.EMPTY, Insets.EMPTY)), // MAJOR
+        new Background(new BackgroundFill(createColor(Preferences.invalid_severity_text_color),                                    CornerRadii.EMPTY, Insets.EMPTY)), // INVALID
+        new Background(new BackgroundFill(createColor(Preferences.undefined_severity_text_color),                                  CornerRadii.EMPTY, Insets.EMPTY)), // UNDEFINED
     };
 
     /** Icon for disabled alarms */
