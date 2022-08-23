@@ -1,11 +1,14 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
 package org.phoebus.core.vtypes;
+
+import java.time.Instant;
+import java.util.List;
 
 import org.epics.util.array.ListBoolean;
 import org.epics.util.array.ListInteger;
@@ -37,9 +40,6 @@ import org.epics.vtype.VUByteArray;
 import org.epics.vtype.VUIntArray;
 import org.epics.vtype.VULongArray;
 import org.epics.vtype.VUShortArray;
-
-import java.time.Instant;
-import java.util.List;
 
 public class VTypeHelper {
     /**
@@ -372,7 +372,7 @@ public class VTypeHelper {
 
     public static AlarmSeverity getSeverity(final VType value) {
         final Alarm alarm = Alarm.alarmOf(value);
-        if (alarm == null)
+        if (isDisconnected(value))
             return AlarmSeverity.UNDEFINED;
         return alarm.getSeverity();
     }
