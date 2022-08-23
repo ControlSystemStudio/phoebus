@@ -31,6 +31,11 @@ public class Preferences
     @Preference public static String default_save_path;
     @Preference public static String layout_dir;
     @Preference public static boolean print_landscape;
+    @Preference public static int[] ok_severity_text_color;
+    @Preference public static int[] minor_severity_text_color;
+    @Preference public static int[] major_severity_text_color;
+    @Preference public static int[] invalid_severity_text_color;
+    @Preference public static int[] undefined_severity_text_color;
 
     static
     {
