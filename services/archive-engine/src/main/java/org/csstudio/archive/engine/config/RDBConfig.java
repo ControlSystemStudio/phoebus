@@ -198,11 +198,11 @@ public class RDBConfig implements AutoCloseable
 
     /** @param group_id Group where to add channel
      *  @param duplicates How to handle duplicate channels
-     *  @param name Name of channel
-     *  @param monitor
-     *  @param period
-     *  @param delta
-     *  @param enable
+     *  @param original_name Name of channel
+     *  @param monitor Monitor?
+     *  @param period Scan or estimated monitor period in seconds
+     *  @param delta Delta for engine-side deadband check
+     *  @param enable Does channel enable its group?
      *  @throws Exception on error, including existing channel
      */
     public void addChannel(final int group_id, final DuplicateMode duplicate_mode, final String original_name,
