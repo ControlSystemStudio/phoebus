@@ -130,8 +130,8 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                         try {
                             if (clazz.isAssignableFrom(SingleLogEntryDisplayController.class)) {
                                 return clazz.getConstructor(LogClient.class).newInstance(client);
-                            } else if (clazz.isAssignableFrom(AttachmentsPreviewController.class)) {
-                                return clazz.getConstructor().newInstance();
+                            } else if (clazz.isAssignableFrom(AttachmentsViewController.class)) {
+                                return clazz.getConstructor(LogClient.class).newInstance(getLogClient());
                             } else if (clazz.isAssignableFrom(LogEntryDisplayController.class)) {
                                 return clazz.getConstructor().newInstance();
                             } else if (clazz.isAssignableFrom(LogPropertiesController.class)) {

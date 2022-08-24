@@ -45,7 +45,7 @@ public class HtmlAwareController {
      * To create HtmlAwareController object to generate html code for HTML preview feature in LogEntryEditor.
      * @param serviceUrl Olog service url.
      * @param preview Set true when preview button is clicked.
-     * @param attachments The current attachments list from AttachmentsViewController.
+     * @param attachments The current attachments list from AttachmentsEditorController.
      */
     public HtmlAwareController(String serviceUrl, boolean preview, List<Attachment> attachments){
         List<Extension> extensions =

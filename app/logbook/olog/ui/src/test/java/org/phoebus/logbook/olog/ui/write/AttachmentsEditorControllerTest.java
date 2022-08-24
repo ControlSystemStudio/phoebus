@@ -23,31 +23,31 @@ import org.phoebus.olog.es.api.model.OlogLog;
 
 import static org.junit.Assert.*;
 
-public class AttachmentsViewControllerTest {
+public class AttachmentsEditorControllerTest {
 
     @Test
     public void testRemoveImageMarkup(){
-        AttachmentsViewController attachmentsViewController =
-                new AttachmentsViewController(new OlogLog());
+        AttachmentsEditorController attachmentsEditorController =
+                new AttachmentsEditorController(new OlogLog());
 
         String markup = "![](attachment/123456789){width=100 height=100}";
-        String result = attachmentsViewController.removeImageMarkup(markup, "123456789");
+        String result = attachmentsEditorController.removeImageMarkup(markup, "123456789");
         assertTrue(result.isEmpty());
 
         markup = "ABC ![](attachment/123456789){width=100 height=100} DEF";
-        result = attachmentsViewController.removeImageMarkup(markup, "123456789");
+        result = attachmentsEditorController.removeImageMarkup(markup, "123456789");
         assertEquals("ABC  DEF", result);
 
         markup = "![](attachment/ABCDE){width=100 height=100}\n![](attachment/123456789){width=100 height=100}\n![](attachment/abcde){width=100 height=100}";
-        result = attachmentsViewController.removeImageMarkup(markup, "123456789");
+        result = attachmentsEditorController.removeImageMarkup(markup, "123456789");
         assertEquals("![](attachment/ABCDE){width=100 height=100}\n\n![](attachment/abcde){width=100 height=100}", result);
 
         markup = "![](attachment/123456789){width=100 height=100}";
-        result = attachmentsViewController.removeImageMarkup(markup, "abcde");
+        result = attachmentsEditorController.removeImageMarkup(markup, "abcde");
         assertEquals("![](attachment/123456789){width=100 height=100}", result);
 
         markup = "whatever";
-        result = attachmentsViewController.removeImageMarkup(markup, "123456789");
+        result = attachmentsEditorController.removeImageMarkup(markup, "123456789");
         assertEquals("whatever", result);
     }
 }

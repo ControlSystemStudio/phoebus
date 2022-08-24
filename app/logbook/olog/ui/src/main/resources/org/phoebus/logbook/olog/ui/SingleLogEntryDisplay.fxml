@@ -109,7 +109,7 @@
                     <panes>
                         <TitledPane fx:id="attachmentsPane" animated="false" text="%Attachments">
                             <content>
-                                <fx:include fx:id="attachmentsPreview" source="AttachmentsPreview.fxml" />
+                                <fx:include fx:id="attachmentsView" source="AttachmentsView.fxml" />
                             </content>
                         </TitledPane>
                         <TitledPane fx:id="propertiesPane" animated="false" text="%Properties">

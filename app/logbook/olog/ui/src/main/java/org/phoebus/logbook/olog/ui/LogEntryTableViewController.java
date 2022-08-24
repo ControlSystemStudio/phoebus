@@ -117,8 +117,6 @@ public class LogEntryTableViewController extends LogbookSearchController {
         this.searchParameters = searchParameters;
     }
 
-
-
     private final SimpleIntegerProperty hitCountProperty = new SimpleIntegerProperty(0);
     private final SimpleIntegerProperty pageSizeProperty =
             new SimpleIntegerProperty(LogbookUIPreferences.search_result_page_size);
