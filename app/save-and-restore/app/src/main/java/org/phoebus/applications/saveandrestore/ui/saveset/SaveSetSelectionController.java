@@ -51,9 +51,9 @@ import java.util.stream.Collectors;
  * @author <a href="mailto:changj@frib.msu.edu">Genie Jhang</a>
  */
 
-public class SaveSetSelectionController extends BaseSaveSetSelectionController implements Initializable {
+public class SaveSetSelectionController implements Initializable {
 
-    private SaveAndRestoreService saveAndRestoreService = SaveAndRestoreService.getInstance();
+    private final SaveAndRestoreService saveAndRestoreService = SaveAndRestoreService.getInstance();
 
     @FXML
     private TreeView<Node> treeView;
@@ -66,7 +66,8 @@ public class SaveSetSelectionController extends BaseSaveSetSelectionController i
 
     private Node selectedNode = null;
 
-    @Override
+    protected boolean isDisabledSavesetSelection;
+
     public Node getSelectedNode() {
         return selectedNode;
     }
@@ -201,5 +202,9 @@ public class SaveSetSelectionController extends BaseSaveSetSelectionController i
     @FXML
     private void close() {
         ((Stage) treeView.getScene().getWindow()).close();
+    }
+
+    public void disableSavesetSelection() {
+        isDisabledSavesetSelection = true;
     }
 }
