@@ -91,6 +91,30 @@ in this example replacing the original one::
     archive-engine.sh -engine Demo -import Demo.xml -port 4812 -replace_engine
 
 
+PV Name Details
+---------------
+
+The archive engine uses CS-Studio PV names.
+"ca://xxxx" will force a Channel Access connection,
+"pva://xxxx" will force a PV Access connection,
+and just "xxxx" will use the default PV type
+configurable via
+
+    org.phoebus.pv/default=ca
+
+Since EPICS 7, IOCs can support both protocols.
+"xxxx", "ca://xxxx" and "pva://xxxx" will thus
+refer to the same record on the IOC.
+
+The preference setting
+
+    org.csstudio.archive/equivalent_pv_prefixes=ca, pva
+
+causes the archive engine to treat them equivalent as well.
+For details, refer to the description of the
+`equivalent_pv_prefixes` preference setting.
+
+
 Run the Archive Engine
 ----------------------
 
