@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.prefs.Preferences;
 
 import org.junit.Test;
+import org.phoebus.pv.PVPool.TypedName;
 import org.phoebus.pv.ca.JCA_Preferences;
 
 /** @author Kay Kasemir */
@@ -33,13 +34,15 @@ public class PVPoolTest
     @Test
     public void analyzePVs()
     {
-        String[] type_name = PVPool.analyzeName("pva://ramp");
-        assertThat(type_name[0], equalTo("pva"));
-        assertThat(type_name[1], equalTo("ramp"));
+        TypedName type_name = TypedName.analyze("pva://ramp");
+        assertThat(type_name.type, equalTo("pva"));
+        assertThat(type_name.name, equalTo("ramp"));
+        assertThat(type_name.toString(), equalTo("pva://ramp"));
 
-        type_name = PVPool.analyzeName("ramp");
-        assertThat(type_name[0], equalTo(PVPool.default_type));
-        assertThat(type_name[1], equalTo("ramp"));
+        type_name = TypedName.analyze("ramp");
+        assertThat(type_name.type, equalTo(PVPool.default_type));
+        assertThat(type_name.name, equalTo("ramp"));
+        assertThat(type_name.toString(), equalTo(PVPool.default_type + "://ramp"));
     }
 
     @Test

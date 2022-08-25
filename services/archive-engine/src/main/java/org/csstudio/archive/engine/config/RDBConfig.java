@@ -28,7 +28,7 @@ import org.csstudio.archive.engine.model.EngineModel;
 import org.csstudio.archive.engine.model.SampleMode;
 import org.csstudio.archive.writer.rdb.TimestampHelper;
 import org.phoebus.framework.rdb.RDBInfo;
-import org.phoebus.pv.PVPool;
+import org.phoebus.pv.PVPool.TypedName;
 
 @SuppressWarnings("nls")
 public class RDBConfig implements AutoCloseable
@@ -220,11 +220,11 @@ public class RDBConfig implements AutoCloseable
 
             if (Preferences.equivalent_pv_prefixes.length > 0)
             {   // Also check base name..
-                String[] type_name = PVPool.analyzeName(name);
-                variants.add(type_name[1]);
+                TypedName type_name = TypedName.analyze(name);
+                variants.add(type_name.name);
                 // .. and all equivalent PVs
                 for (String type : Preferences.equivalent_pv_prefixes)
-                    variants.add(type + PVPool.SEPARATOR + type_name[1]);
+                    variants.add(TypedName.format(type, type_name.name));
             }
             for (String variant : variants)
             {

@@ -85,6 +85,66 @@ public class PVPool
         }
     }
 
+    /** Combination of type and name, <code>type://name</name> */
+    public static class TypedName
+    {
+        /** PV Type */
+        public final String type;
+        /** Name */
+        public final String name;
+
+        /** Analyze PV name
+         *  @param type_name PV Name, "name..." or  "type://name..."
+         *  @return {@link TypedName}
+         */
+        public static TypedName analyze(final String type_name)
+        {
+            final String type, name;
+
+            if (type_name.startsWith("="))
+            {   // Special handling of equations, treating "=...." as "eq://...."
+                type = FormulaPVFactory.TYPE;
+                name = type_name.substring(1);
+            }
+            else
+            {
+                final int sep = type_name.indexOf(SEPARATOR);
+                if (sep > 0)
+                {
+                    type = type_name.substring(0, sep);
+                    name = type_name.substring(sep+SEPARATOR.length());
+                }
+                else
+                {
+                    type = default_type;
+                    name = type_name;
+                }
+            }
+            return new TypedName(type, name);
+        }
+
+        /** @param type "type"
+         *  @param name "name"
+         *  @return "type://name"
+         */
+        public static String format(final String type, final String name)
+        {
+            return type + SEPARATOR + name;
+        }
+
+        private TypedName(final String type, final String name)
+        {
+            this.type = type;
+            this.name = name;
+        }
+
+        @Override
+        public String toString()
+        {
+            return format(type, name);
+        }
+    }
+
     /** PV Pool
      *  SYNC on 'pool':
      *  Otherwise, two threads concurrently looking for a new PV would both add it.
@@ -116,13 +176,13 @@ public class PVPool
     {
         if (name.isBlank())
             throw new Exception("Empty PV name");
-        final String[] prefix_base = analyzeName(name);
-        final PVFactory factory = factories.get(prefix_base[0]);
+        final TypedName type_name = TypedName.analyze(name);
+        final PVFactory factory = factories.get(type_name.type);
         if (factory == null)
-            throw new Exception(name + " has unknown PV type '" + prefix_base[0] + "'");
+            throw new Exception(name + " has unknown PV type '" + type_name.type + "'");
 
         final String core_name = factory.getCoreName(name);
-        final ReferencedEntry<PV> ref = pool.createOrGet(core_name, () -> createPV(factory, name, prefix_base[1]));
+        final ReferencedEntry<PV> ref = pool.createOrGet(core_name, () -> createPV(factory, name, type_name.name));
         logger.log(Level.CONFIG, () -> "PV '" + ref.getEntry().getName() + "' references: " + ref.getReferences());
         return ref.getEntry();
     }
@@ -138,36 +198,6 @@ public class PVPool
             logger.log(Level.WARNING, "Cannot create PV '" + name + "'", ex);
         }
         return null;
-    }
-
-    /** Analyze PV name
-     *  @param name PV Name, "base..." or  "prefix://base..."
-     *  @return Array with type (or default) and base name
-     */
-    public static String[] analyzeName(final String name)
-    {
-        final String type, base;
-
-        if (name.startsWith("="))
-        {   // Special handling of equations, treating "=...." as "eq://...."
-            type = FormulaPVFactory.TYPE;
-            base = name.substring(1);
-        }
-        else
-        {
-            final int sep = name.indexOf(SEPARATOR);
-            if (sep > 0)
-            {
-                type = name.substring(0, sep);
-                base = name.substring(sep+SEPARATOR.length());
-            }
-            else
-            {
-                type = default_type;
-                base = name;
-            }
-        }
-        return new String[] { type, base };
     }
 
     /** @param pv PV to be released */
