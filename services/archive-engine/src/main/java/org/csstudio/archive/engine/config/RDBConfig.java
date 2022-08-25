@@ -254,20 +254,21 @@ public class RDBConfig implements AutoCloseable
                     if (result.next())
                     {
                         // Channel is already used by another archive engine
-                        final String gn = result.getString(2);
                         final int gid = result.getInt(1);
+                        final String gn = result.getString(2);
+                        final String engine = result.getString(3);
+                        final String info = "Channel '" + original_name + "' is already in engine '" + engine + "' group '" + gn + "' (" + gid + ") as '" + name + "'";
                         switch (duplicate_mode)
                         {
                         case ABORT:
-                            throw new Exception("Channel '" + original_name + "' is already in group '" + gn + "' (" + gid + ") " + "as '" + name + "'");
+                            throw new Exception(info);
                         case SKIP:
-                            logger.log(Level.WARNING, "Channel '" + original_name + "' is already in group '" + gn + "' (" + gid + ") as '" + name + "' and not moved to this engine.");
+                            logger.log(Level.WARNING, info + " and will remain there.");
                             // Leave channel "as is" with other engine
                             return;
                         case STEAL:
                         default:
-                            logger.log(Level.WARNING, "Channel '" + original_name + "' will be stolen from group '" + gn + "' (" + gid + ") " +
-                                       " where it was as '" + name + "' and moved to this engine.");
+                            logger.log(Level.WARNING, info + " and will be moved to this engine.");
                             // Continue with moving channel to this engine's group
                         }
                     }
