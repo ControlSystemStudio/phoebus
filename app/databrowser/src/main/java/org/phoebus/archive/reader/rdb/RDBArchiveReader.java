@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -335,13 +335,21 @@ public class RDBArchiveReader implements ArchiveReader
             {
                 if (RDBPreferences.timeout_secs > 0)
                     statement.setQueryTimeout(RDBPreferences.timeout_secs);
-                statement.setString(1, name);
-                final ResultSet result = statement.executeQuery();
-                if (!result.next())
-                    throw new UnknownChannelException(name);
-                final int channel_id = result.getInt(1);
-                result.close();
-                return channel_id;
+                // Loop over variants
+                for (String variant : getNameVariants(name))
+                {
+                    statement.setString(1, variant);
+                    try (ResultSet result = statement.executeQuery())
+                    {
+                        if (result.next())
+                        {
+                            System.out.println("Found " + name + " as " + variant);
+                            return result.getInt(1);
+                        }
+                    }
+                }
+                // Nothing found
+                throw new UnknownChannelException(name);
             }
             finally
             {
