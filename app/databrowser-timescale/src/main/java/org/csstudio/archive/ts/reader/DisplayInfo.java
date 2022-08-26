@@ -7,7 +7,7 @@
  ******************************************************************************/
 package org.csstudio.archive.ts.reader;
 
-import static org.csstudio.archive.ts.reader.TSArchiveReaderFactory.logger;
+import static org.phoebus.archive.reader.ArchiveReaders.logger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
