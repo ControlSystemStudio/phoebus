@@ -10,11 +10,6 @@ package org.phoebus.archive.reader;
 import java.io.Closeable;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
-import org.csstudio.trends.databrowser3.preferences.Preferences;
-import org.phoebus.pv.PVPool.TypedName;
 
 /** Interface to archive data retrieval.
  *
@@ -73,29 +68,6 @@ public interface ArchiveReader extends Closeable
      */
     public Collection<String> getNamesByPattern(String glob_pattern)
         throws Exception;
-
-    /** Create all name variants
-     *
-     *  See documentation of <code>equivalent_pv_prefixes</code>
-     *
-     *  @param name PV name as given
-     *  @return All name variants that should be considered for data retrieval
-     */
-    public default Set<String> getNameVariants(final String name)
-    {
-        // First, look for name as given
-        final Set<String> variants = new LinkedHashSet<>();
-        variants.add(name);
-        if (Preferences.equivalent_pv_prefixes.length > 0)
-        {   // Optionally, add equivalent prefixes
-            String base = TypedName.analyze(name).name;
-            for (String type : Preferences.equivalent_pv_prefixes)
-                variants.add(TypedName.format(type, base));
-            // and the base name without type
-            variants.add(base);
-        }
-        return variants;
-    }
 
     /** Read original, raw samples from the archive
      *  @param name Channel name

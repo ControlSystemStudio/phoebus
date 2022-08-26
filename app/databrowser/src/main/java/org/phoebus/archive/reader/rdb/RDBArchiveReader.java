@@ -28,6 +28,7 @@ import org.phoebus.archive.reader.AveragedValueIterator;
 import org.phoebus.archive.reader.UnknownChannelException;
 import org.phoebus.archive.reader.ValueIterator;
 import org.phoebus.framework.rdb.RDBConnectionPool;
+import org.phoebus.pv.PVPool;
 import org.phoebus.util.time.TimeDuration;
 
 /** {@link ArchiveReader} for RDB
@@ -339,7 +340,7 @@ public class RDBArchiveReader implements ArchiveReader
                 if (RDBPreferences.timeout_secs > 0)
                     statement.setQueryTimeout(RDBPreferences.timeout_secs);
                 // Loop over variants
-                for (String variant : getNameVariants(name))
+                for (String variant : PVPool.getNameVariants(name, org.csstudio.trends.databrowser3.preferences.Preferences.equivalent_pv_prefixes))
                 {
                     statement.setString(1, variant);
                     try (final ResultSet result = statement.executeQuery())

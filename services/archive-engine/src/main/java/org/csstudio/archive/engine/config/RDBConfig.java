@@ -16,7 +16,6 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -28,7 +27,7 @@ import org.csstudio.archive.engine.model.EngineModel;
 import org.csstudio.archive.engine.model.SampleMode;
 import org.csstudio.archive.writer.rdb.TimestampHelper;
 import org.phoebus.framework.rdb.RDBInfo;
-import org.phoebus.pv.PVPool.TypedName;
+import org.phoebus.pv.PVPool;
 
 @SuppressWarnings("nls")
 public class RDBConfig implements AutoCloseable
@@ -214,18 +213,7 @@ public class RDBConfig implements AutoCloseable
         try
         (   PreparedStatement statement = connection.prepareStatement(sql.channel_sel_by_name)  )
         {
-            // First, check name as given
-            final Set<String> variants = new LinkedHashSet<>();
-            variants.add(name);
-
-            if (Preferences.equivalent_pv_prefixes.length > 0)
-            {   // Also check base name..
-                TypedName type_name = TypedName.analyze(name);
-                variants.add(type_name.name);
-                // .. and all equivalent PVs
-                for (String type : Preferences.equivalent_pv_prefixes)
-                    variants.add(TypedName.format(type, type_name.name));
-            }
+            final Set<String> variants = PVPool.getNameVariants(name, Preferences.equivalent_pv_prefixes);
             for (String variant : variants)
             {
                 statement.setString(1, variant);

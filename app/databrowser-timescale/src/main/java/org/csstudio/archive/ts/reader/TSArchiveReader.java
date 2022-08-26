@@ -37,6 +37,7 @@ import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.UnknownChannelException;
 import org.phoebus.archive.reader.ValueIterator;
 import org.phoebus.framework.rdb.RDBConnectionPool;
+import org.phoebus.pv.PVPool;
 import org.phoebus.util.time.TimestampFormats;
 
 /** Archive reader for TimestampDB
@@ -384,7 +385,7 @@ public class TSArchiveReader implements ArchiveReader
                 if (Preferences.timeout_secs > 0)
                     statement.setQueryTimeout(Preferences.timeout_secs);
                 // Loop over variants
-                for (String variant : getNameVariants(name))
+                for (String variant : PVPool.getNameVariants(name, org.csstudio.trends.databrowser3.preferences.Preferences.equivalent_pv_prefixes))
                 {
                     statement.setString(1, variant);
                     try (final ResultSet result = statement.executeQuery())

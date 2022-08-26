@@ -11,8 +11,10 @@ import static org.phoebus.pv.PV.logger;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.logging.Level;
 
 import org.phoebus.framework.preferences.AnnotatedPreferences;
@@ -143,6 +145,25 @@ public class PVPool
         {
             return format(type, name);
         }
+    }
+
+    /** @param name PV Name
+     *  @param equivalent_pv_prefixes List of equivalent PV prefixes (types)
+     *  @return Set of equivalent names
+     */
+    public static Set<String> getNameVariants(final String name, final String [] equivalent_pv_prefixes)
+    {
+        // First, look for name as given
+        final Set<String> variants = new LinkedHashSet<>();
+        variants.add(name);
+        if (equivalent_pv_prefixes != null  &&  equivalent_pv_prefixes.length > 0)
+        {   // Optionally, add equivalent prefixes, starting with base name
+            final String base = TypedName.analyze(name).name;
+            variants.add(base);
+            for (String type : equivalent_pv_prefixes)
+                variants.add(TypedName.format(type, base));
+        }
+        return variants;
     }
 
     /** PV Pool
