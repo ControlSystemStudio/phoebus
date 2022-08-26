@@ -147,9 +147,9 @@ public class PVPool
         }
     }
 
-    /** @param name PV Name
-     *  @param equivalent_pv_prefixes List of equivalent PV prefixes (types)
-     *  @return Set of equivalent names
+    /** @param name PV Name, may be "xxx" or "type://xxx"
+     *  @param equivalent_pv_prefixes List of equivalent PV prefixes (types), e.g. "ca", "pva"
+     *  @return Set of equivalent names, e.g. "xxx", "ca://xxx", "pva://xxx"
      */
     public static Set<String> getNameVariants(final String name, final String [] equivalent_pv_prefixes)
     {
@@ -157,11 +157,17 @@ public class PVPool
         final Set<String> variants = new LinkedHashSet<>();
         variants.add(name);
         if (equivalent_pv_prefixes != null  &&  equivalent_pv_prefixes.length > 0)
-        {   // Optionally, add equivalent prefixes, starting with base name
-            final String base = TypedName.analyze(name).name;
-            variants.add(base);
+        {   // Optionally, if the original name is one of the equivalent types ...
+            final TypedName typed = TypedName.analyze(name);
             for (String type : equivalent_pv_prefixes)
-                variants.add(TypedName.format(type, base));
+                if (type.equals(typed.type))
+                {
+                    // .. add equivalent prefixes, starting with base name
+                    variants.add(typed.name);
+                    for (String variant : equivalent_pv_prefixes)
+                        variants.add(TypedName.format(variant, typed.name));
+                    break;
+                }
         }
         return variants;
     }

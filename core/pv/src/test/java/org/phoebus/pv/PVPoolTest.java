@@ -12,6 +12,7 @@ import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.prefs.Preferences;
 
 import org.junit.Test;
@@ -44,6 +45,28 @@ public class PVPoolTest
         assertThat(type_name.name, equalTo("ramp"));
         assertThat(type_name.toString(), equalTo(PVPool.default_type + "://ramp"));
     }
+
+    @Test
+    public void equivalentPVs()
+    {
+        // Given "ramp" or "ca://ramp", all the other variants should be considered
+        final String[] equivalent_pv_prefixes = new String[] { "ca", "pva" };
+        Set<String> pvs = PVPool.getNameVariants("pva://ramp", equivalent_pv_prefixes);
+        assertThat(pvs.size(), equalTo(3));
+        assertThat(pvs, hasItem("ramp"));
+        assertThat(pvs, hasItem("ca://ramp"));
+        assertThat(pvs, hasItem("pva://ramp"));
+
+        // For loc or sim which are not in the equivalent list, pass name through
+        pvs = PVPool.getNameVariants("loc://ramp", equivalent_pv_prefixes);
+        assertThat(pvs.size(), equalTo(1));
+        assertThat(pvs, hasItem("loc://ramp"));
+
+        pvs = PVPool.getNameVariants("sim://ramp", equivalent_pv_prefixes);
+        assertThat(pvs.size(), equalTo(1));
+        assertThat(pvs, hasItem("sim://ramp"));
+    }
+
 
     @Test
     public void dumpPreferences() throws Exception
