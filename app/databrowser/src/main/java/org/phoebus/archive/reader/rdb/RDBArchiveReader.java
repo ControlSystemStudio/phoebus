@@ -310,11 +310,15 @@ public class RDBArchiveReader implements ArchiveReader
         final ValueIterator raw_data = getRawValues(channel_id, start, end);
 
         // If there weren't that many, that's it
+        final int actual = counted;
         if (counted < count)
+        {
+            logger.log(Level.FINER, () -> name + " has only " + actual + " samples, using raw data");
             return raw_data;
-
+        }
         // Else: Perform averaging to reduce sample count
         final double seconds = TimeDuration.toSecondsDouble(Duration.between(start, end)) / count;
+        logger.log(Level.FINER, () -> name + " has " + actual + " samples, averaging into " + count + " bins");
         return new AveragedValueIterator(raw_data, seconds);
     }
 
@@ -327,9 +331,8 @@ public class RDBArchiveReader implements ArchiveReader
     int getChannelID(final String name) throws UnknownChannelException, Exception
     {
         final Connection connection = pool.getConnection();
-        try
+        try (final PreparedStatement statement = connection.prepareStatement(sql.channel_sel_by_name))
         {
-            final PreparedStatement statement = connection.prepareStatement(sql.channel_sel_by_name);
             addForCancellation(statement);
             try
             {
@@ -339,12 +342,13 @@ public class RDBArchiveReader implements ArchiveReader
                 for (String variant : getNameVariants(name))
                 {
                     statement.setString(1, variant);
-                    try (ResultSet result = statement.executeQuery())
+                    try (final ResultSet result = statement.executeQuery())
                     {
                         if (result.next())
                         {
-                            System.out.println("Found " + name + " as " + variant);
-                            return result.getInt(1);
+                            final int channel_id = result.getInt(1);
+                            logger.log(Level.FINE, () -> "Found '" + name + "' as '" + variant + "' (" + channel_id + ")");
+                            return channel_id;
                         }
                     }
                 }
@@ -354,7 +358,6 @@ public class RDBArchiveReader implements ArchiveReader
             finally
             {
                 removeFromCancellation(statement);
-                statement.close();
             }
         }
         finally
