@@ -14,7 +14,7 @@
         "type" : "nested",
         "properties": {
           "pv": {
-            "type": "nested"
+            "type": "text"
           }
         }
       },
@@ -22,7 +22,7 @@
         "type" : "nested",
         "properties": {
           "pv" : {
-            "type": "nested"
+            "type": "text"
           }
         }
       }

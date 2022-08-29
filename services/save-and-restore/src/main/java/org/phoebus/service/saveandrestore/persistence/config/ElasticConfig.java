@@ -1,6 +1,7 @@
 package org.phoebus.service.saveandrestore.persistence.config;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.EmptyObject;
 import co.elastic.clients.elasticsearch._types.Refresh;
 import co.elastic.clients.elasticsearch._types.Result;
 import co.elastic.clients.elasticsearch.core.IndexRequest;
@@ -12,11 +13,21 @@ import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
+import org.epics.vtype.Display;
+import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.json.VTypeDeserializer;
+import org.phoebus.applications.saveandrestore.model.json.VTypeSerializer;
 import org.phoebus.service.saveandrestore.model.ESTreeNode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -25,6 +36,8 @@ import org.springframework.context.annotation.PropertySource;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -63,10 +76,18 @@ public class ElasticConfig {
             // Create the low-level client
             RestClient httpClient = RestClient.builder(new HttpHost(host, port)).build();
 
+            JacksonJsonpMapper jacksonJsonpMapper = new JacksonJsonpMapper();
+            SimpleModule module = new SimpleModule();
+            module.addSerializer(VType.class, new VTypeSerializer());
+            module.addDeserializer(VType.class, new VTypeDeserializer());
+
+            jacksonJsonpMapper.objectMapper().registerModule(module);
+
+
             // Create the Java API Client with the same low level client
             ElasticsearchTransport transport = new RestClientTransport(
                     httpClient,
-                    new JacksonJsonpMapper()
+                    jacksonJsonpMapper
             );
             client = new ElasticsearchClient(transport);
             esInitialized.set(!Boolean.parseBoolean(createIndices));

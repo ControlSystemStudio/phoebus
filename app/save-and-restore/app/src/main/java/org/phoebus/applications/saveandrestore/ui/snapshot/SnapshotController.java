@@ -494,7 +494,7 @@ public class SnapshotController implements NodeChangedListener {
         // Locate registered SaveAndRestoreEventReceivers
         eventReceivers = ServiceLoader.load(SaveAndRestoreEventReceiver.class);
 
-        //loadSnapshot();
+        loadSnapshot();
     }
 
     public void setSnapshotTab(SnapshotTab snapshotTab){
