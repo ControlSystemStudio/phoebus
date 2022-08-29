@@ -90,31 +90,4 @@ public class SaveAndRestoreEventLogger implements SaveAndRestoreEventReceiver {
         SelectionService.getInstance().setSelection("SaveAndRestoreLogging", List.of(restoreSnapshotActionInfo));
         Platform.runLater(() -> ApplicationService.createInstance("logbook"));
     }
-
-    protected String getSnapshotInfoTable(Node node) {
-        StringBuilder stringBuilder = new StringBuilder();
-        // This is needed!
-        stringBuilder.append("| | |\n");
-        // This is needed!
-        stringBuilder.append("|-|-|\n");
-        stringBuilder.append("| Snapshot name | ").append(node.getName()).append(" |\n");
-        stringBuilder.append("| Comment | ").append(node.getProperty("comment")).append(" |\n");
-        stringBuilder.append("| Created | ").append(node.getCreated()).append(" |\n");
-        String isGolden = node.getProperty("golden");
-        stringBuilder.append("| Golden | ").append("true".equals(isGolden) ? "yes" : "no").append(" |\n");
-        stringBuilder.append("| User id | ").append(node.getUserName()).append(" |\n\n");
-
-        return stringBuilder.toString();
-    }
-
-    protected String getFailedPVsTable(List<String> pvs) {
-        StringBuilder stringBuilder = new StringBuilder();
-        // This is needed!
-        stringBuilder.append("| |\n");
-        // This is needed!
-        stringBuilder.append("|-|\n");
-        pvs.forEach(p -> stringBuilder.append("| ").append(p).append(" |\n"));
-
-        return stringBuilder.toString();
-    }
 }

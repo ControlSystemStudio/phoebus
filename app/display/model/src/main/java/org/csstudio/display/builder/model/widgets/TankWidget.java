@@ -17,6 +17,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMaximum;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMinimum;
 import static org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.propLogscale;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontal;
 
 import java.util.Arrays;
 import java.util.List;
@@ -130,6 +131,8 @@ public class TankWidget extends PVWidget
     private volatile WidgetProperty<Double> minimum;
     private volatile WidgetProperty<Double> maximum;
     private volatile WidgetProperty<Boolean> log_scale;
+    private volatile WidgetProperty<Boolean> horizontal;
+
 
     /** Constructor */
     public TankWidget()
@@ -151,6 +154,7 @@ public class TankWidget extends PVWidget
         properties.add(minimum = propMinimum.createProperty(this, 0.0));
         properties.add(maximum = propMaximum.createProperty(this, 100.0));
         properties.add(log_scale = propLogscale.createProperty(this, false));
+        properties.add(horizontal = propHorizontal.createProperty(this, false));
     }
 
     @Override
@@ -220,5 +224,11 @@ public class TankWidget extends PVWidget
     public WidgetProperty<Boolean> propLogScale()
     {
         return log_scale;
+    }
+
+    /** @return 'horizontal' property */
+    public WidgetProperty<Boolean> propHorizontal()
+    {
+        return horizontal;
     }
 }

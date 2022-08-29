@@ -30,11 +30,7 @@ public class Preferences {
     @Preference
     public static int http_client_connectTimeout;
     @Preference
-    public static boolean split_snapshot;
-    @Preference
     public static boolean sort_snapshots_time_reversed;
-    @Preference
-    public static boolean split_saveset;
     @Preference
     public static boolean tree_tableview_enable;
     @Preference

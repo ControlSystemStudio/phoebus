@@ -652,15 +652,6 @@ public class SnapshotController implements NodeChangedListener {
                 LOGGER.log(Level.WARNING,
                         "Not all PVs could be restored for {0}: {1}. The following errors occured:\n{2}",
                         new Object[] { s.getSnapshot().get().getName(), s.getSnapshot().get(), sb.toString() });
-
-                Platform.runLater(() -> {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle(Messages.restoreErrorTitle);
-                    alert.setContentText(sb.toString());
-                    alert.setHeaderText(Messages.restoreErrorContent);
-                    DialogHelper.positionDialog(alert, snapshotTab.getTabPane(), -150, -150);
-                    alert.showAndWait();
-                });
             }
             logSnapshotRestored(s.getSnapshot().get(), restoreFailed);
         }).start();

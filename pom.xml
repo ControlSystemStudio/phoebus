@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.phoebus</groupId>
   <artifactId>parent</artifactId>
-  <version>4.6.10-SNAPSHOT</version>
+  <version>4.7.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>phoebus (parent)</name>
   <description>A framework and set of tools to monitor and operate large scale control systems, such as the ones in the accelerator community.</description>

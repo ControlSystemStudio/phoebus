@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,9 +7,12 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui;
 
+import java.util.Arrays;
+
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.security.authorization.AuthorizationService;
+import org.phoebus.ui.Preferences;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.geometry.Insets;
@@ -30,19 +33,31 @@ import javafx.scene.paint.Color;
 @SuppressWarnings("nls")
 public class AlarmUI
 {
+    /** Factor used to adjust color brightness or saturation */
+    private static final double ADJUST = 0.5;
+
     // Next arrays follow the ordinal of SeverityLevel
     private static final Color[] severity_colors = new Color[]
     {
-        Color.rgb(  0, 100,   0), // OK
-        Color.rgb(120,  90,  10), // MINOR_ACK
-        Color.rgb(100,   0,   0), // MAJOR_ACK
-        Color.rgb(100,  50, 100), // INVALID_ACK
-        Color.rgb(100,  50, 100), // UNDEFINED_ACK
-        Color.rgb(207, 192,   0), // MINOR
-        Color.rgb(255,   0,   0), // MAJOR
-        Color.rgb(255,   0, 255), // INVALID
-        Color.rgb(255,   0, 255), // UNDEFINED
+        createColor(Preferences.ok_severity_text_color),                                         // OK
+        createColor(Preferences.minor_severity_text_color)    .deriveColor(0, 1.0, ADJUST, 1.0), // MINOR_ACK
+        createColor(Preferences.major_severity_text_color)    .deriveColor(0, 1.0, ADJUST, 1.0), // MAJOR_ACK
+        createColor(Preferences.invalid_severity_text_color)  .deriveColor(0, 1.0, ADJUST, 1.0), // INVALID_ACK
+        createColor(Preferences.undefined_severity_text_color).deriveColor(0, 1.0, ADJUST, 1.0), // UNDEFINED_ACK
+        createColor(Preferences.minor_severity_text_color),                                      // MINOR
+        createColor(Preferences.major_severity_text_color),                                      // MAJOR
+        createColor(Preferences.invalid_severity_text_color),                                    // INVALID
+        createColor(Preferences.undefined_severity_text_color)                                   // UNDEFINED
     };
+
+    private static Color createColor(int[] rgb)
+    {
+        if (rgb.length == 3)
+            return Color.rgb(rgb[0], rgb[1], rgb[2]);
+        else if (rgb.length == 4)
+            return Color.rgb(rgb[0], rgb[1], rgb[2], rgb[3]/255.0);
+        throw new IllegalStateException("Expecting R,G,B or R,G,B,A, got " + Arrays.toString(rgb));
+    }
 
     private static final Image[] severity_icons = new Image[]
     {
@@ -60,14 +75,14 @@ public class AlarmUI
     private static final Background[] severity_backgrounds = new Background[]
     {
         null, // OK
-        new Background(new BackgroundFill(Color.rgb(180, 170,  70), CornerRadii.EMPTY, Insets.EMPTY)), // MINOR_ACK
-        new Background(new BackgroundFill(Color.rgb(255,  90,  90), CornerRadii.EMPTY, Insets.EMPTY)), // MAJOR_ACK
-        new Background(new BackgroundFill(Color.rgb(255, 128, 255), CornerRadii.EMPTY, Insets.EMPTY)), // INVALID_ACK
-        new Background(new BackgroundFill(Color.rgb(255, 128, 255), CornerRadii.EMPTY, Insets.EMPTY)), // UNDEFINED_ACK
-        new Background(new BackgroundFill(Color.rgb(207, 192,   0), CornerRadii.EMPTY, Insets.EMPTY)), // MINOR
-        new Background(new BackgroundFill(Color.rgb(255,   0,   0), CornerRadii.EMPTY, Insets.EMPTY)), // MAJOR
-        new Background(new BackgroundFill(Color.rgb(255,   0, 255), CornerRadii.EMPTY, Insets.EMPTY)), // INVALID
-        new Background(new BackgroundFill(Color.rgb(255,   0, 255), CornerRadii.EMPTY, Insets.EMPTY)), // UNDEFINED
+        new Background(new BackgroundFill(createColor(Preferences.minor_severity_text_color)    .deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // MINOR_ACK
+        new Background(new BackgroundFill(createColor(Preferences.major_severity_text_color)    .deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // MAJOR_ACK
+        new Background(new BackgroundFill(createColor(Preferences.invalid_severity_text_color)  .deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // INVALID_ACK
+        new Background(new BackgroundFill(createColor(Preferences.undefined_severity_text_color).deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // UNDEFINED_ACK
+        new Background(new BackgroundFill(createColor(Preferences.minor_severity_text_color),                                      CornerRadii.EMPTY, Insets.EMPTY)), // MINOR
+        new Background(new BackgroundFill(createColor(Preferences.major_severity_text_color),                                      CornerRadii.EMPTY, Insets.EMPTY)), // MAJOR
+        new Background(new BackgroundFill(createColor(Preferences.invalid_severity_text_color),                                    CornerRadii.EMPTY, Insets.EMPTY)), // INVALID
+        new Background(new BackgroundFill(createColor(Preferences.undefined_severity_text_color),                                  CornerRadii.EMPTY, Insets.EMPTY)), // UNDEFINED
     };
 
     /** Icon for disabled alarms */
