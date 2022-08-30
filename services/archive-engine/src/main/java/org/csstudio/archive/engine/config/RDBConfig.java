@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,6 +17,7 @@ import java.sql.Statement;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 
 import org.csstudio.archive.Preferences;
@@ -26,6 +27,7 @@ import org.csstudio.archive.engine.model.EngineModel;
 import org.csstudio.archive.engine.model.SampleMode;
 import org.csstudio.archive.writer.rdb.TimestampHelper;
 import org.phoebus.framework.rdb.RDBInfo;
+import org.phoebus.pv.PVPool;
 
 @SuppressWarnings("nls")
 public class RDBConfig implements AutoCloseable
@@ -195,28 +197,35 @@ public class RDBConfig implements AutoCloseable
 
     /** @param group_id Group where to add channel
      *  @param duplicates How to handle duplicate channels
-     *  @param name Name of channel
-     *  @param monitor
-     *  @param period
-     *  @param delta
-     *  @param enable
+     *  @param original_name Name of channel
+     *  @param monitor Monitor?
+     *  @param period Scan or estimated monitor period in seconds
+     *  @param delta Delta for engine-side deadband check
+     *  @param enable Does channel enable its group?
      *  @throws Exception on error, including existing channel
      */
-    public void addChannel(final int group_id, final DuplicateMode duplicate_mode, final String name,
+    public void addChannel(final int group_id, final DuplicateMode duplicate_mode, final String original_name,
                            final boolean monitor, final double period, final double delta,
                            final boolean enable) throws Exception
-    {
+    {   // Does the channel already exist?
         int channel_id = -1;
+        String name = original_name;
         try
-        (
-            PreparedStatement statement = connection.prepareStatement(sql.channel_sel_by_name);
-        )
+        (   PreparedStatement statement = connection.prepareStatement(sql.channel_sel_by_name)  )
         {
-            statement.setString(1, name);
-            try (ResultSet result = statement.executeQuery())
+            final Set<String> variants = PVPool.getNameVariants(name, Preferences.equivalent_pv_prefixes);
+            for (String variant : variants)
             {
-                if (result.next())
-                    channel_id = result.getInt(1);
+                statement.setString(1, variant);
+                try (ResultSet result = statement.executeQuery())
+                {
+                    if (result.next())
+                    {
+                        channel_id = result.getInt(1);
+                        name = variant;
+                        break;
+                    }
+                }
             }
         }
 
@@ -225,9 +234,7 @@ public class RDBConfig implements AutoCloseable
             // Check if existing channel is simply an old one with data,
             // or currently listed in another engine's group
             try
-            (
-                PreparedStatement statement = connection.prepareStatement(sql.chan_grp_sel_by_channel);
-            )
+            (   PreparedStatement statement = connection.prepareStatement(sql.chan_grp_sel_by_channel)    )
             {
                 statement.setString(1, name);
                 try (ResultSet result = statement.executeQuery())
@@ -235,17 +242,21 @@ public class RDBConfig implements AutoCloseable
                     if (result.next())
                     {
                         // Channel is already used by another archive engine
+                        final int gid = result.getInt(1);
+                        final String gn = result.getString(2);
+                        final String engine = result.getString(3);
+                        final String info = "Channel '" + original_name + "' is already in engine '" + engine + "' group '" + gn + "' (" + gid + ") as '" + name + "'";
                         switch (duplicate_mode)
                         {
                         case ABORT:
-                            throw new Exception("Channel '" + name + "' is already in group '" + result.getString(2) + "' (" + result.getInt(1) + ").");
+                            throw new Exception(info);
                         case SKIP:
-                            logger.log(Level.WARNING, "Channel '" + name + "' is already in group '" + result.getString(2) + "' (" + result.getInt(1) + ") and not moved to this engine.");
+                            logger.log(Level.WARNING, info + " and will remain there.");
                             // Leave channel "as is" with other engine
                             return;
                         case STEAL:
                         default:
-                            logger.log(Level.WARNING, "Channel '" + name + "' will be 'stolen' from group '" + result.getString(2) + "' (" + result.getInt(1) + ") and moved to this engine.");
+                            logger.log(Level.WARNING, info + " and will be moved to this engine.");
                             // Continue with moving channel to this engine's group
                         }
                     }
@@ -253,14 +264,17 @@ public class RDBConfig implements AutoCloseable
             }
 
             // Update channel to be in new group
-            logger.log(Level.INFO, "Updating channel '" + name + "' (" + channel_id + ")");
+            if (name.equals(original_name))
+                logger.log(Level.INFO, "Updating channel '" + name + "' (" + channel_id + ")");
+            else
+                logger.log(Level.INFO, "Updating channel '" + name + "' (" + channel_id + ") to '" + original_name + "'");
             try
             (
                 PreparedStatement statement = connection.prepareStatement(sql.channel_update);
             )
             {
                 statement.setInt(1, group_id);
-                statement.setString(2, name);
+                statement.setString(2, original_name);
                 statement.setInt(3, monitor ? monitor_mode_id : scan_mode_id);
                 statement.setDouble(4, delta);
                 statement.setDouble(5, period);

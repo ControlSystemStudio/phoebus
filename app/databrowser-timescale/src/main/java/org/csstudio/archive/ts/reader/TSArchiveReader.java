@@ -7,7 +7,7 @@
  ******************************************************************************/
 package org.csstudio.archive.ts.reader;
 
-import static org.csstudio.archive.ts.reader.TSArchiveReaderFactory.logger;
+import static org.phoebus.archive.reader.ArchiveReaders.logger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -37,6 +37,7 @@ import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.UnknownChannelException;
 import org.phoebus.archive.reader.ValueIterator;
 import org.phoebus.framework.rdb.RDBConnectionPool;
+import org.phoebus.pv.PVPool;
 import org.phoebus.util.time.TimestampFormats;
 
 /** Archive reader for TimestampDB
@@ -368,7 +369,11 @@ public class TSArchiveReader implements ArchiveReader
         return new ArrayValueIterator(values);
     }
 
-
+    /** @param name Channel name
+     *  @return Numeric channel ID
+     *  @throws UnknownChannelException when channel not known
+     *  @throws Exception on error
+     */
     int getChannelID(final String name) throws UnknownChannelException, Exception
     {
         final Connection connection = pool.getConnection();
@@ -379,14 +384,22 @@ public class TSArchiveReader implements ArchiveReader
             {
                 if (Preferences.timeout_secs > 0)
                     statement.setQueryTimeout(Preferences.timeout_secs);
-                statement.setString(1, name);
-                try (final ResultSet result = statement.executeQuery())
+                // Loop over variants
+                for (String variant : PVPool.getNameVariants(name, org.csstudio.trends.databrowser3.preferences.Preferences.equivalent_pv_prefixes))
                 {
-                    if (!result.next())
-                        throw new UnknownChannelException(name);
-                    final int channel_id = result.getInt(1);
-                    return channel_id;
+                    statement.setString(1, variant);
+                    try (final ResultSet result = statement.executeQuery())
+                    {
+                        if (result.next())
+                        {
+                            final int channel_id = result.getInt(1);
+                            logger.log(Level.FINE, () -> "Found '" + name + "' as '" + variant + "' (" + channel_id + ")");
+                            return channel_id;
+                        }
+                    }
                 }
+                // Nothing found
+                throw new UnknownChannelException(name);
             }
             finally
             {
