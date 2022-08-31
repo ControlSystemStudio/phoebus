@@ -77,7 +77,7 @@ public class SnapshotWrapperDataControllerTest {
 	public static void setUp() {
 
 		config1 = Node.builder()
-				.id(1)
+				.uniqueId("1")
 				.nodeType(NodeType.CONFIGURATION)
 				.uniqueId("a")
 				.build();
@@ -86,7 +86,7 @@ public class SnapshotWrapperDataControllerTest {
 				.nodeType(NodeType.SNAPSHOT)
 				.build();
 		
-		snapshot.setId(7);
+		snapshot.setUniqueId("7");
 
 	}
 	

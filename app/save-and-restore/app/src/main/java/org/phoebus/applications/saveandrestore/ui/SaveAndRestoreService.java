@@ -18,7 +18,6 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
-import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.common.VNoData;
@@ -28,10 +27,9 @@ import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
-import org.phoebus.applications.saveandrestore.model.SnapshotWrapper;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.model.SnapshotWrapper;
 import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.applications.saveandrestore.model.ThinWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,7 +70,7 @@ public class SaveAndRestoreService {
     }
 
     public Node getRootNode() {
-        Future<Node> future = executor.submit(() -> saveAndRestoreClient.getRoot());
+        Future<Node> future = executor.submit(saveAndRestoreClient::getRoot);
         try {
             return future.get();
         } catch (Exception ie) {
@@ -96,7 +94,7 @@ public class SaveAndRestoreService {
         try {
             return future.get();
         } catch (Exception ie) {
-            LOG.error("Unable to retrieve child nodes of node " + node.getId() + ", cause: " + ie.getMessage());
+            LOG.error("Unable to retrieve child nodes of node " + node.getUniqueId() + ", cause: " + ie.getMessage());
         }
         return null;
     }
@@ -114,7 +112,7 @@ public class SaveAndRestoreService {
 
     public Node createNode(String parentsUniqueId, Node newTreeNode) throws Exception {
         Future<Node> future = executor.submit(() -> saveAndRestoreClient.createNewNode(parentsUniqueId, newTreeNode));
-        notifyNodeAddedListeners(getNode(parentsUniqueId), Arrays.asList(newTreeNode));
+        notifyNodeAddedListeners(getNode(parentsUniqueId), Collections.singletonList(newTreeNode));
         return future.get();
     }
 
@@ -155,7 +153,25 @@ public class SaveAndRestoreService {
 
     public Node tagSnapshotAsGolden(final Node node, boolean golden) throws Exception {
         Future<Node> future = executor.submit(() -> {
-            node.getProperties().put("golden", golden ? "true" : "false");
+            String userName = System.getProperty("user.name");
+            List<Tag> tags = node.getTags();
+            Tag goldenTag;
+            if (tags == null) {
+                tags = new ArrayList<>();
+            }
+            if (node.hasTag("golden")) {
+                goldenTag = tags.stream().filter(t -> t.getName().equals("golden")).findFirst().get();
+            } else {
+                goldenTag = Tag.goldenTag(userName);
+            }
+
+            if(golden){
+                tags.add(goldenTag);
+            }
+            else{
+                tags.remove(goldenTag);
+            }
+
             return saveAndRestoreClient.updateNode(node);
         });
 
@@ -187,14 +203,14 @@ public class SaveAndRestoreService {
         return updatedNode;
     }
 
-    public Configuration saveConfiguration(Configuration configuration) throws Exception{
+    public Configuration saveConfiguration(Configuration configuration) throws Exception {
         Future<Configuration> future = executor.submit(() -> saveAndRestoreClient.saveConfiguration(configuration));
         Configuration updatedConfiguration = future.get();
         //notifyNodeChangeListeners(updatedNode);
         return updatedConfiguration;
     }
 
-    public Configuration updateConfiguration(Configuration configuration) throws Exception{
+    public Configuration updateConfiguration(Configuration configuration) throws Exception {
         Future<Configuration> future = executor.submit(() -> saveAndRestoreClient.saveConfiguration(configuration));
         Configuration updatedConfiguration = future.get();
         //notifyNodeChangeListeners(updatedNode);
@@ -282,7 +298,7 @@ public class SaveAndRestoreService {
         return updatedNode;
     }
 
-    public Configuration getConfiguration(String nodeId) throws Exception{
+    public Configuration getConfiguration(String nodeId) throws Exception {
         Future<Configuration> future = executor.submit(() -> saveAndRestoreClient.getConfiguration(nodeId));
         try {
             return future.get();
@@ -292,7 +308,7 @@ public class SaveAndRestoreService {
         }
     }
 
-    public Snapshot getSnapshot(String nodeId) throws Exception{
+    public Snapshot getSnapshot(String nodeId) throws Exception {
         Future<Snapshot> future = executor.submit(() -> saveAndRestoreClient.getSnapshot(nodeId));
         try {
             return future.get();
@@ -302,7 +318,7 @@ public class SaveAndRestoreService {
         }
     }
 
-    public SnapshotWrapper saveSnapshot(SnapshotWrapper snapshotWrapper) throws Exception{
+    public SnapshotWrapper saveSnapshot(SnapshotWrapper snapshotWrapper) throws Exception {
         Future<SnapshotWrapper> future = executor.submit(() -> saveAndRestoreClient.saveSnapshot(snapshotWrapper));
         SnapshotWrapper updatedSnapshotWrapper = future.get();
         //notifyNodeChangeListeners(updatedNode);

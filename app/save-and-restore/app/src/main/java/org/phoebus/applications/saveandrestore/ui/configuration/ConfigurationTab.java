@@ -26,12 +26,15 @@ import javafx.scene.control.Tab;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
+import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.javafx.ImageCache;
 
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,18 +45,15 @@ public class ConfigurationTab extends Tab implements NodeChangedListener {
     private final SimpleStringProperty tabTitleProperty = new SimpleStringProperty();
 
 
-    public ConfigurationTab(Node node, SaveAndRestoreService saveAndRestoreService) {
-
-        setId(node.getUniqueId());
-
+    public ConfigurationTab() {
         try {
             FXMLLoader loader = new FXMLLoader();
+            ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
+            loader.setResources(resourceBundle);
             loader.setLocation(ConfigurationTab.class.getResource("ConfigurationEditor.fxml"));
             setContent(loader.load());
             configurationController = loader.getController();
-            tabTitleProperty.set(node.getName());
             setGraphic(getTabGraphic());
-            configurationController.loadConfiguration(node);
         } catch (Exception e) {
             Logger.getLogger(ConfigurationTab.class.getName())
                     .log(Level.SEVERE, "Failed to load fxml", e);
@@ -64,11 +64,26 @@ public class ConfigurationTab extends Tab implements NodeChangedListener {
             if (!configurationController.handleSaveSetTabClosed()) {
                 event.consume();
             } else {
-                saveAndRestoreService.removeNodeChangeListener(this);
+                SaveAndRestoreService.getInstance().removeNodeChangeListener(this);
             }
         });
 
-        saveAndRestoreService.addNodeChangeListener(this);
+        SaveAndRestoreService.getInstance().addNodeChangeListener(this);
+    }
+
+    /**
+     * Configures UI to edit an existing save set {@link Node}
+     * @param saveSetNode non-null save set {@link Node}
+     */
+    public void editSaveSet(Node saveSetNode){
+        setId(saveSetNode.getUniqueId());
+        tabTitleProperty.set(saveSetNode.getName());
+        configurationController.editConfiguration(saveSetNode);
+    }
+
+    public void configureForNewSaveSet(Node parentNode){
+        configurationController.newConfiguration(parentNode);
+        tabTitleProperty.set(Messages.contextMenuNewSaveSet);
     }
 
     private javafx.scene.Node getTabGraphic() {

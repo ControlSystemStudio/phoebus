@@ -13,16 +13,16 @@ public class NodeTest {
 
 	@Test
 	public void test1() {
-		
-		Node node = Node.builder().id(1).build();
-		Node node2 = Node.builder().id(2).build();
-		
+
+		Node node = Node.builder().uniqueId("id1").build();
+		Node node2 = Node.builder().uniqueId("id2").build();
+
 		assertNotEquals(node, node2);
 		assertEquals(node, node);
-		
+
 		assertEquals(NodeType.FOLDER, node.getNodeType());
 		assertEquals(NodeType.CONFIGURATION, Node.builder().nodeType(NodeType.CONFIGURATION).build().getNodeType());
-		assertEquals(NodeType.SNAPSHOT, Node.builder().nodeType(NodeType.SNAPSHOT).build().getNodeType());		
+		assertEquals(NodeType.SNAPSHOT, Node.builder().nodeType(NodeType.SNAPSHOT).build().getNodeType());
 	}
 	
 	
@@ -36,13 +36,13 @@ public class NodeTest {
 		node.setNodeType(NodeType.CONFIGURATION);
 		node.setCreated(now);
 		node.setLastModified(now);
-		node.setId(1);
+		node.setUniqueId("id1");
 		node.setName("name");
 		node.setUserName("userName");
 		
 		assertEquals(now, node.getCreated());
 		assertEquals(now, node.getLastModified());
-		assertEquals(1, node.getId());
+		assertEquals("id1", node.getUniqueId());
 		assertEquals("name", node.getName());
 		assertEquals(NodeType.CONFIGURATION, node.getNodeType());
 		assertEquals("userName", node.getUserName());
@@ -71,20 +71,17 @@ public class NodeTest {
 	
 	@Test
 	public void testBuilder() {
-		Map<String, String> props = new HashMap<>();
-		props.put("a", "b");
 		Date now = new Date();
 		Node node = Node.builder()
 				.created(now)
-				.id(1)
+				.uniqueId("id1")
 				.lastModified(now)
 				.name("name")
 				.nodeType(NodeType.FOLDER)
-				.properties(props)
 				.uniqueId("uniqueid")
 				.build();
 		
-		assertEquals(1, node.getId());
+		assertEquals("id1", node.getUniqueId());
 		assertEquals(now, node.getCreated());
 		assertEquals(now, node.getLastModified());
 		assertEquals("name", node.getName());
@@ -96,24 +93,6 @@ public class NodeTest {
 	@Test
 	public void testToString() {
 		assertNotNull(Node.builder().build().toString());
-	}
-	
-	@Test
-	public void testProperties() {
-		Node node = Node.builder().build();	
-		assertNull(node.getProperty("key1"));
-		node.removeProperty("key1");
-		assertNull(node.getProperties());
-		
-		node.putProperty("key1", "value1");
-		assertNull(node.getProperty("key2"));
-		assertEquals("value1", node.getProperty("key1"));
-		
-		node.putProperty("key3", "value3");
-		assertEquals(2, node.getProperties().size());
-		
-		node.removeProperty("key3");
-		assertEquals(1, node.getProperties().size());	
 	}
 	
 	@Test

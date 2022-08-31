@@ -153,7 +153,7 @@ public class ConfigurationFromSelectionController implements Initializable {
                 try {
                     if (newNode.getNodeType() == NodeType.CONFIGURATION) {
                         saveSetName.setText(newNode.getName());
-                        description.setText(newNode.getProperty(DESCRIPTION_PROPERTY));
+                        description.setText(newNode.getDescription());
 
                         saveSetName.setEditable(false);
                         description.setEditable(true);
@@ -351,7 +351,7 @@ public class ConfigurationFromSelectionController implements Initializable {
             try {
                 Node newSaveSet = saveAndRestoreService.createNode(parentNode.getUniqueId(), newSaveSetBuild);
 
-                newSaveSet.putProperty(DESCRIPTION_PROPERTY, (description.getText().trim().isEmpty() ? description.getPromptText() : description.getText().trim()));
+                newSaveSet.setDescription(description.getText().trim().isEmpty() ? description.getPromptText() : description.getText().trim());
                 newSaveSet = saveAndRestoreService.updateSaveSet(newSaveSet, pvs);
 
                 if (createdSaveset != null) {
@@ -385,9 +385,6 @@ public class ConfigurationFromSelectionController implements Initializable {
                 Set<ConfigPv> pvSet = new HashSet<ConfigPv>();
                 pvSet.addAll(storedPvs);
                 pvSet.addAll(pvs);
-
-                selectedNode.removeProperty(DESCRIPTION_PROPERTY);
-                selectedNode.putProperty(DESCRIPTION_PROPERTY, (description.getText().trim().isEmpty() ? description.getPromptText() : description.getText().trim()));
 
                 saveAndRestoreService.updateSaveSet(selectedNode, new ArrayList<>(pvSet));
             } catch (Exception e) {

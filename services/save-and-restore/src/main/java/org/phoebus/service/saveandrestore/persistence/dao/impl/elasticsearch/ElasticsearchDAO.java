@@ -241,7 +241,6 @@ public class ElasticsearchDAO implements NodeDAO {
     private void copyNode(Node sourceNode, Node targetNode, String userName){
         Node newSourceNode = createNode(targetNode.getUniqueId(), sourceNode);
         newSourceNode.setUserName(userName);
-        newSourceNode.setProperties(sourceNode.getProperties());
         newSourceNode.setTags(sourceNode.getTags());
         Node Source = updateNode(sourceNode, true);
 
@@ -280,7 +279,7 @@ public class ElasticsearchDAO implements NodeDAO {
         if(elasticsearchSavesetOptional.isEmpty()){
             elasticsearchConfiguration = new Configuration();
             elasticsearchConfiguration.setUniqueId(configToUpdate.getUniqueId());
-            elasticsearchConfiguration.setDescription(configToUpdate.getProperty("description"));
+            elasticsearchConfiguration.setDescription(configToUpdate.getDescription());
         }
         else{
             elasticsearchConfiguration = elasticsearchSavesetOptional.get();
@@ -499,7 +498,8 @@ public class ElasticsearchDAO implements NodeDAO {
      * @param targetNode The wanted target {@link Node}
      * @return <code>true</code> if move criteria are met, otherwise <code>false</code>
      */
-    protected boolean isMoveOrCopyAllowed(List<Node> nodes, Node targetNode) {
+    @Override
+    public boolean isMoveOrCopyAllowed(List<Node> nodes, Node targetNode) {
         Node rootNode = getRootNode();
         // Check for root node and snapshot
         Optional<Node> rootOrSnapshotNode = nodes.stream()
@@ -594,5 +594,10 @@ public class ElasticsearchDAO implements NodeDAO {
             throw new NodeNotFoundException("Snapshot with id " + nodeId + " not found");
         }
         return snapshot.get();
+    }
+
+    @Override
+    public Node findParentFromPathElements(Node node, String[] pathElements, int depth){
+        return null;
     }
 }

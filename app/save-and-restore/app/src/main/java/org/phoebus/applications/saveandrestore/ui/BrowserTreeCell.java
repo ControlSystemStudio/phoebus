@@ -162,13 +162,13 @@ public class BrowserTreeCell extends TreeCell<Node> {
                         .setText(node.getName());
                 snapshotBox.lookup("#tagIcon").setVisible(node.getTags() != null && !node.getTags().isEmpty());
                 setGraphic(snapshotBox);
-                if (node.getProperty("golden") != null && Boolean.valueOf(node.getProperty("golden"))) {
+                if (node.hasTag("golden")) {
                     ((ImageView) snapshotBox.lookup("#snapshotIcon")).setImage(ImageCache.getImage(BrowserTreeCell.class, "/icons/save-and-restore/snapshot-golden.png"));
                 } else {
                     ((ImageView) snapshotBox.lookup("#snapshotIcon")).setImage(ImageCache.getImage(BrowserTreeCell.class, "/icons/save-and-restore/snapshot.png"));
                 }
                 setContextMenu(snapshotContextMenu);
-                String comment = node.getProperty("comment");
+                String comment = node.getDescription();
                 StringBuffer stringBuffer = new StringBuffer();
                 if (comment != null && !comment.isEmpty()) {
                     stringBuffer.append(comment).append(System.lineSeparator());
@@ -180,7 +180,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
             case CONFIGURATION:
                 ((Label) configurationBox.lookup("#configurationLabel")).setText(node.getName());
                 setGraphic(configurationBox);
-                String description = node.getProperty("description");
+                String description = node.getDescription();
                 if (description != null && !description.isEmpty()) {
                     setTooltip(new Tooltip(description));
                 }

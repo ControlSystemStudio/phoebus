@@ -13,6 +13,9 @@
           "userName": {
             "type": "keyword"
           },
+          "description" : {
+            "type": "keyword"
+          },
           "created" : {
             "type": "date",
             "format": "epoch_millis||yyyy-MM-dd HH:mm:ss.SSS"
@@ -23,17 +26,6 @@
           },
           "nodeType": {
             "type": "keyword"
-          },
-          "properties": {
-            "type" : "nested",
-            "properties": {
-              "key" : {
-                "type": "keyword"
-              },
-              "value": {
-                "type" : "keyword"
-              }
-            }
           },
           "tags" : {
             "type" : "nested",
@@ -67,6 +59,9 @@
           "userName": {
             "type": "keyword"
           },
+          "description" : {
+            "type": "keyword"
+          },
           "created": {
             "type": "date",
             "format": "epoch_millis||yyyy-MM-dd HH:mm:ss.SSS"
@@ -77,17 +72,6 @@
           },
           "nodeType": {
             "type": "keyword"
-          },
-          "properties": {
-            "type": "nested",
-            "properties": {
-              "key": {
-                "type": "keyword"
-              },
-              "value": {
-                "type": "keyword"
-              }
-            }
           },
           "tags": {
             "type": "nested",

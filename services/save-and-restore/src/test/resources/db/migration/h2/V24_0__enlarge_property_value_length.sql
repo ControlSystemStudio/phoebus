@@ -1,1 +1,0 @@
-ALTER TABLE property ALTER value VARCHAR(2000);

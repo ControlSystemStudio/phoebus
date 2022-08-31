@@ -119,7 +119,7 @@ public class VSnapshot implements Serializable {
      * @return true if this snapshot is saved or false otherwise
      */
     public boolean isSaved() {
-        return !dirty && (snapshot == null ? false : snapshot.getProperty("comment") != null);
+        return !dirty; // && (snapshot == null ? false : snapshot.getProperty("comment") != null);
     }
 
     /**

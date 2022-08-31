@@ -25,6 +25,7 @@ import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -197,5 +198,9 @@ public interface NodeDAO {
 	Configuration updateConfiguration(Configuration configuration);
 
 	Snapshot getSnapshot(String nodeId);
+
+	boolean isMoveOrCopyAllowed(List<Node> nodesToMove, Node targetNode);
+
+	Node findParentFromPathElements(Node node, String[] pathElements, int depth);
 
 }

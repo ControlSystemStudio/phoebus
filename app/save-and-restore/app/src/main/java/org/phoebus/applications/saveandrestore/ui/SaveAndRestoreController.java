@@ -212,8 +212,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 return;
             }
             if (item.getValue().getNodeType().equals(NodeType.SNAPSHOT)) {
-                toggleGoldenMenuItemText.set(Boolean.parseBoolean(item.getValue().getProperty("golden")) ? Messages.contextMenuRemoveGoldenTag : Messages.contextMenuTagAsGolden);
-                toggleGoldenImageViewProperty.set(Boolean.parseBoolean(item.getValue().getProperty("golden")) ? snapshotImageView : snapshotGoldenImageView);
+                toggleGoldenMenuItemText.set(item.getValue().hasTag("golden") ? Messages.contextMenuRemoveGoldenTag : Messages.contextMenuTagAsGolden);
+                toggleGoldenImageViewProperty.set(item.getValue().hasTag("golden")  ? snapshotImageView : snapshotGoldenImageView);
             }
             // Check if a tab has already been opened for this node.
             boolean highlighted = highlightTab(item.getValue().getUniqueId());
@@ -379,7 +379,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     protected void toggleGoldenProperty(Node node) {
         try {
             Node updatedNode = saveAndRestoreService.tagSnapshotAsGolden(node,
-                    !Boolean.parseBoolean(node.getProperty("golden")));
+                    !node.hasTag("golden"));
             browserSelectionModel.getSelectedItems().get(0).setValue(updatedNode);
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Failed to toggle golden property", e);
@@ -555,7 +555,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         switch (node.getNodeType()) {
             case CONFIGURATION:
-                tab = new ConfigurationTab(node, saveAndRestoreService);
+                tab = new ConfigurationTab();
+                ((ConfigurationTab)tab).editSaveSet(node);
                 break;
             case SNAPSHOT:
                 tab = new SnapshotTab(node, saveAndRestoreService);
@@ -565,6 +566,13 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 return;
         }
 
+        tabPane.getTabs().add(tab);
+        tabPane.getSelectionModel().select(tab);
+    }
+
+    private void launchTabForNewSaveSet(Node parentNode){
+        ConfigurationTab tab = new ConfigurationTab();
+        tab.configureForNewSaveSet(parentNode);
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);
     }
@@ -584,6 +592,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      */
     protected void createNewSaveSet() {
 
+        launchTabForNewSaveSet(browserSelectionModel.getSelectedItems().get(0).getValue());
+
+        /*
         TreeItem<Node> parentTreeItem = browserSelectionModel.getSelectedItems().get(0);
         List<String> existingFolderNames =
                 parentTreeItem.getChildren().stream()
@@ -640,6 +651,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
             new Thread(task).start();
         }
+
+         */
     }
 
     /**
@@ -1053,7 +1066,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         Optional<Pair<String, String>> result = snapshotNewTagDialog.showAndWait();
         result.ifPresent(items -> {
             Tag aNewTag = Tag.builder()
-                    .snapshotId(node.getUniqueId())
                     .name(items.getKey())
                     .comment(items.getValue())
                     .userName(System.getProperty("user.name"))

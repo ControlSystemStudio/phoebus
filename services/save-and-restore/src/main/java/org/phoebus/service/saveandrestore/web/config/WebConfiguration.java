@@ -18,7 +18,6 @@
 package org.phoebus.service.saveandrestore.web.config;
 
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
-import org.phoebus.service.saveandrestore.persistence.dao.impl.NodeJdbcDAO;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchDAO;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -44,11 +44,11 @@ public class SnapshotTab extends Tab {
 
     public SaveAndRestoreService saveAndRestoreService;
 
-    private SimpleStringProperty tabTitleProperty = new SimpleStringProperty();
+    private final SimpleStringProperty tabTitleProperty = new SimpleStringProperty();
 
     private SnapshotController snapshotController;
 
-    private SimpleObjectProperty<Image> tabGraphicImageProperty = new SimpleObjectProperty<Image>();
+    private final SimpleObjectProperty<Image> tabGraphicImageProperty = new SimpleObjectProperty<>();
 
     private Image regularImage;
     private Image goldenImage;
@@ -107,7 +107,9 @@ public class SnapshotTab extends Tab {
         snapshotController.setSnapshotTab(this);
         tabTitleProperty.set(node.getNodeType().equals(NodeType.SNAPSHOT) ? node.getName() : Messages.unnamedSnapshot);
 
-        tabGraphicImageProperty.set(Boolean.parseBoolean(node.getProperty("golden")) ? goldenImage : regularImage);
+        boolean isGolden = node.getTags() != null && node.getTags().stream().anyMatch(t -> t.getName().equals("golden"));
+
+        tabGraphicImageProperty.set(isGolden ? goldenImage : regularImage);
 
         setOnCloseRequest(event -> {
             if(!snapshotController.handleSnapshotTabClosed()){

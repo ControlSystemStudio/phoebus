@@ -141,7 +141,7 @@ public class CSVImporter extends CSVCommon {
             alert.setContentText("Existing saveset with the same name is found. Duplicate PVs will be ignored." + System.lineSeparator() + "Please review the description.");
             alert.showAndWait();
 
-            csvParser.setDescription(parentOfImport.getProperty("description") + System.lineSeparator() + System.lineSeparator() + "Description from importing:" + System.lineSeparator() + csvParser.getDescription());
+            csvParser.setDescription(parentOfImport.getDescription() + System.lineSeparator() + System.lineSeparator() + "Description from importing:" + System.lineSeparator() + csvParser.getDescription());
         }
 
         FXMLLoader loader = new FXMLLoader();
@@ -279,7 +279,7 @@ public class CSVImporter extends CSVCommon {
         snapshot.setCreated(Date.from(csvParser.getTimestamp()));
         snapshot.setUserName(csvParser.getCreator());
         csvParser.getTags().forEach(tag -> {
-            tag.setSnapshotId(snapshot.getUniqueId());
+            //tag.setSnapshotId(snapshot.getUniqueId());
 
             snapshot.addTag(tag);
         });

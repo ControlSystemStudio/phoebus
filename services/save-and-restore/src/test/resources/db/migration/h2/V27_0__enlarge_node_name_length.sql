@@ -1,1 +1,0 @@
-ALTER TABLE node ALTER name VARCHAR(512);

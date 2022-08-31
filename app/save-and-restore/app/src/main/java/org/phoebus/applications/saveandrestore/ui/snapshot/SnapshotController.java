@@ -1,16 +1,16 @@
 /**
  * Copyright (C) 2019 European Spallation Source ERIC.
- *
+ * <p>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -52,7 +52,6 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.util.converter.DoubleStringConverter;
-import org.eclipse.jgit.transport.CredentialItem.YesNoType;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
@@ -68,22 +67,18 @@ import org.phoebus.applications.saveandrestore.common.Threshold;
 import org.phoebus.applications.saveandrestore.common.Utilities;
 import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.common.VNoData;
-import org.phoebus.applications.saveandrestore.model.Configuration;
-import org.phoebus.applications.saveandrestore.model.Snapshot;
-import org.phoebus.applications.saveandrestore.model.SnapshotPv;
-import org.phoebus.applications.saveandrestore.model.SnapshotPvES;
-import org.phoebus.applications.saveandrestore.model.SnapshotWrapper;
-import org.phoebus.applications.saveandrestore.model.ThinWrapper;
-import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
-import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
+import org.phoebus.applications.saveandrestore.common.VTypePair;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
+import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.model.SnapshotEntry;
 import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
-import org.phoebus.applications.saveandrestore.common.VTypePair;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.pv.PVFactory;
@@ -228,7 +223,7 @@ public class SnapshotController implements NodeChangedListener {
     private Node snapshotNode;
 
 
-    public SnapshotController(Node snapshotNode){
+    public SnapshotController(Node snapshotNode) {
         this.snapshotNode = snapshotNode;
     }
 
@@ -285,7 +280,7 @@ public class SnapshotController implements NodeChangedListener {
         }
 
         saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() -> {
-           boolean canSave = snapshotSaveableProperty.get() && (!snapshotNameProperty.isEmpty().get() && !snapshotCommentProperty.isEmpty().get());
+            boolean canSave = snapshotSaveableProperty.get() && (!snapshotNameProperty.isEmpty().get() && !snapshotCommentProperty.isEmpty().get());
             return !canSave;
         }, snapshotSaveableProperty, snapshotNameProperty, snapshotCommentProperty));
 
@@ -497,12 +492,12 @@ public class SnapshotController implements NodeChangedListener {
         loadSnapshot();
     }
 
-    public void setSnapshotTab(SnapshotTab snapshotTab){
+    public void setSnapshotTab(SnapshotTab snapshotTab) {
         this.snapshotTab = snapshotTab;
     }
 
     public void loadSnapshot() {
-        if(snapshotNode == null){
+        if (snapshotNode == null) {
             return;
         }
         try {
@@ -510,11 +505,13 @@ public class SnapshotController implements NodeChangedListener {
             snapshotNameProperty.set(snapshotNode.getName());
             snapshotUniqueIdProperty.set(snapshotNode.getUniqueId());
 
-            snapshotTab.updateTabTitile(snapshotNode.getName(), Boolean.parseBoolean(snapshotNode.getProperty("golden")));
+            boolean isGolden = snapshotNode.getTags() != null && snapshotNode.getTags().stream().anyMatch(t -> t.getName().equals("golden"));
+
+            snapshotTab.updateTabTitile(snapshotNode.getName(), isGolden);
             snapshotTab.setId(snapshotNode.getUniqueId());
 
             persistentSnapshotName = snapshotNode.getName();
-            persistentGoldenState = Boolean.parseBoolean(snapshotNode.getProperty("golden"));
+            persistentGoldenState = isGolden;
         } catch (Exception e) {
             LOGGER.log(Level.INFO, "Error loading snapshot", e);
         }
@@ -552,7 +549,7 @@ public class SnapshotController implements NodeChangedListener {
      * view with PV items.
      * @param node A {@link Node} of type {@link NodeType#CONFIGURATION}
      */
-    public void loadSaveSet(Node node){
+    public void loadSaveSet(Node node) {
         SnapshotController.this.config = saveAndRestoreService.getNode(node.getUniqueId());
         try {
             Configuration configuration = saveAndRestoreService.getConfiguration(node.getUniqueId());
@@ -578,7 +575,7 @@ public class SnapshotController implements NodeChangedListener {
             try {
                 List<SnapshotItem> snapshotItems = saveAndRestoreService.getSnapshotItems(snapshotNode.getUniqueId());
 
-                snapshotCommentProperty.set(snapshotNode.getProperty("comment"));
+                snapshotCommentProperty.set(snapshotNode.getDescription());
                 createdDateTextProperty.set(snapshotNode.getCreated().toString());
                 createdByTextProperty.set(snapshotNode.getUserName());
                 snapshotNameProperty.set(snapshotNode.getName());
@@ -622,7 +619,7 @@ public class SnapshotController implements NodeChangedListener {
                 boolean restorable = e.selectedProperty().get() && !e.readOnlyProperty().get();
 
                 if (restorable) {
-                    final PV pv = pvs.get(getPVKey(e.pvNameProperty().get(), e.readOnlyProperty().get()^e.readonlyOverrideProperty().get()));
+                    final PV pv = pvs.get(getPVKey(e.pvNameProperty().get(), e.readOnlyProperty().get() ^ e.readonlyOverrideProperty().get()));
                     if (entry.getValue() != null) {
                         try {
                             pv.pv.write(Utilities.toRawValue(entry.getValue()));
@@ -651,7 +648,7 @@ public class SnapshotController implements NodeChangedListener {
                 restoreFailed.forEach(e -> sb.append(e).append('\n'));
                 LOGGER.log(Level.WARNING,
                         "Not all PVs could be restored for {0}: {1}. The following errors occured:\n{2}",
-                        new Object[] { s.getSnapshot().get().getName(), s.getSnapshot().get(), sb.toString() });
+                        new Object[]{s.getSnapshot().get().getName(), s.getSnapshot().get(), sb.toString()});
             }
             logSnapshotRestored(s.getSnapshot().get(), restoreFailed);
         }).start();
@@ -680,12 +677,12 @@ public class SnapshotController implements NodeChangedListener {
             VType readbackValue;
             for (TableEntry t : tableEntryItems.values()) {
                 name = t.pvNameProperty().get();
-                pv = pvs.get(getPVKey(t.pvNameProperty().get(), t.readOnlyProperty().get()^t.readonlyOverrideProperty().get()));
+                pv = pvs.get(getPVKey(t.pvNameProperty().get(), t.readOnlyProperty().get() ^ t.readonlyOverrideProperty().get()));
 
                 // there is no issues with non atomic access to snapshotTreeTableEntryPvProxy.value or snapshotTreeTableEntryPvProxy.readbackValue because the PV is
                 // suspended and the value could not change while suspended
                 value = pv == null || pv.pvValue == null ? VDisconnectedData.INSTANCE : pv.pvValue;
-                String key = getPVKey(name, t.readOnlyProperty().get()^t.readonlyOverrideProperty().get());
+                String key = getPVKey(name, t.readOnlyProperty().get() ^ t.readonlyOverrideProperty().get());
                 readbackName = readbacks.get(key);
                 readbackValue = pv == null || pv.readbackValue == null ? VDisconnectedData.INSTANCE : pv.readbackValue;
                 for (VSnapshot s : getAllSnapshots()) {
@@ -696,7 +693,7 @@ public class SnapshotController implements NodeChangedListener {
                 }
 
                 entries.add(new SnapshotEntry(t.getConfigPv(), value, t.selectedProperty().get(), readbackName, readbackValue,
-                        delta, t.readOnlyProperty().get()^t.readonlyOverrideProperty().get()));
+                        delta, t.readOnlyProperty().get() ^ t.readonlyOverrideProperty().get()));
             }
 
             Node snapshot = Node.builder().name(Messages.unnamedSnapshot).nodeType(NodeType.SNAPSHOT).build();
@@ -720,7 +717,7 @@ public class SnapshotController implements NodeChangedListener {
 
     @FXML
     public void saveSnapshot() {
-        if(snapshotSaveableProperty.get()){ // There is a new snapshot to save
+        if (snapshotSaveableProperty.get()) { // There is a new snapshot to save
             VSnapshot vSnapshot = snapshots.get(0);
             List<SnapshotEntry> snapshotEntries = vSnapshot.getEntries();
             List<SnapshotItem> snapshotItems = snapshotEntries
@@ -744,13 +741,10 @@ public class SnapshotController implements NodeChangedListener {
                 DialogHelper.positionDialog(alert, snapshotTab.getTabPane(), -150, -150);
                 alert.showAndWait();
             }
-        }
-        else{ // Only snapshot name and/or comment have changed
+        } else { // Only snapshot name and/or comment have changed
             try {
                 Node node = snapshots.get(0).getSnapshot().get();
-                Map<String, String> properties = node.getProperties();
-                properties.put("comment", snapshotCommentProperty.get());
-                node.setProperties(properties);
+                node.setDescription(snapshotCommentProperty.get());
                 node.setName(snapshotNameProperty.get());
                 snapshotNode = saveAndRestoreService.updateNode(node);
                 loadSnapshot();
@@ -772,13 +766,13 @@ public class SnapshotController implements NodeChangedListener {
         }
     }
 
-    private List<TableEntry> loadSnapshotInternal(VSnapshot snapshotData){
+    private List<TableEntry> loadSnapshotInternal(VSnapshot snapshotData) {
         dispose();
         return setSnapshotInternal(snapshotData);
     }
 
     private List<TableEntry> setSnapshotInternal(VSnapshot snapshotData) {
-         List<SnapshotEntry> entries = snapshotData.getEntries();
+        List<SnapshotEntry> entries = snapshotData.getEntries();
         synchronized (snapshots) {
             snapshots.add(snapshotData);
         }
@@ -802,7 +796,7 @@ public class SnapshotController implements NodeChangedListener {
             e.readbackNameProperty().set(entry.getReadbackName());
             e.readOnlyProperty().set(entry.isReadOnly());
             PV pv = pvs.get(key);
-            if(pv != null){
+            if (pv != null) {
                 pv.setSnapshotTableEntry(e);
             }
         }
@@ -871,7 +865,7 @@ public class SnapshotController implements NodeChangedListener {
         return snapshotEntries;
     }
 
-    private List<SnapshotEntry> saveSetToSnapshotEntries(List<ConfigPv> configPvs){
+    private List<SnapshotEntry> saveSetToSnapshotEntries(List<ConfigPv> configPvs) {
         List<SnapshotEntry> snapshotEntries = new ArrayList<>();
         for (ConfigPv configPv : configPvs) {
             SnapshotEntry snapshotEntry =
@@ -921,7 +915,7 @@ public class SnapshotController implements NodeChangedListener {
             VType vtype = item.getValue();
             VNumber diffVType;
 
-            double ratio = threshold/100;
+            double ratio = threshold / 100;
 
             TableEntry tableEntry = tableEntryItems.get(getPVKey(item.getPVName(), item.isReadOnly()));
             if (tableEntry == null) {
@@ -1039,10 +1033,10 @@ public class SnapshotController implements NodeChangedListener {
 
 
                 if (readbackPvName != null && !readbackPvName.isEmpty()) {
-                   readbackPv = PVPool.getPV(this.readbackPvName);
-                   readbackPv.onValueEvent()
-                           .throttleLatest(TABLE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS)
-                           .subscribe(value -> {
+                    readbackPv = PVPool.getPV(this.readbackPvName);
+                    readbackPv.onValueEvent()
+                            .throttleLatest(TABLE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS)
+                            .subscribe(value -> {
                                 this.readbackValue = org.phoebus.pv.PV.isDisconnected(value) ? VDisconnectedData.INSTANCE : value;
                                 this.snapshotTableEntry.setReadbackValue(this.readbackValue);
                             });
@@ -1052,19 +1046,17 @@ public class SnapshotController implements NodeChangedListener {
             }
         }
 
-        private String patchPvName(String pvName){
-            if(pvName == null || pvName.isEmpty()){
+        private String patchPvName(String pvName) {
+            if (pvName == null || pvName.isEmpty()) {
                 return null;
-            }
-            else if(pvName.startsWith("ca://") || pvName.startsWith("pva://")){
+            } else if (pvName.startsWith("ca://") || pvName.startsWith("pva://")) {
                 return pvName;
-            }
-            else{
+            } else {
                 return defaultEpicsProtocol + "://" + pvName;
             }
         }
 
-        public void setCountDownLatch(CountDownLatch countDownLatch){
+        public void setCountDownLatch(CountDownLatch countDownLatch) {
             LOGGER.info(countDownLatch + " New CountDownLatch set");
             this.countDownLatch = countDownLatch;
         }
@@ -1073,7 +1065,7 @@ public class SnapshotController implements NodeChangedListener {
             this.countDownLatch.countDown();
         }
 
-        public void setSnapshotTableEntry(TableEntry snapshotTableEntry){
+        public void setSnapshotTableEntry(TableEntry snapshotTableEntry) {
             this.snapshotTableEntry = snapshotTableEntry;
         }
 
@@ -1088,8 +1080,8 @@ public class SnapshotController implements NodeChangedListener {
         }
     }
 
-    public boolean handleSnapshotTabClosed(){
-        if(snapshotSaveableProperty.get()){
+    public boolean handleSnapshotTabClosed() {
+        if (snapshotSaveableProperty.get()) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle(Messages.promptCloseSnapshotTabTitle);
             alert.setContentText(Messages.promptCloseSnapshotTabContent);
@@ -1140,17 +1132,17 @@ public class SnapshotController implements NodeChangedListener {
         return pvName + "_" + isReadonly;
     }
 
-    private void logNewSnapshotSaved(){
+    private void logNewSnapshotSaved() {
         JobManager.schedule("Log new snapshot saved", monitor -> eventReceivers
                 .forEach(r -> r.snapshotSaved(snapshotNode, errorMessage -> showLoggingError(errorMessage))));
     }
 
-    private void logSnapshotRestored(Node node,  List<String> failedPVs){
+    private void logSnapshotRestored(Node node, List<String> failedPVs) {
         JobManager.schedule("Log snapshot restored", monitor -> eventReceivers
                 .forEach(r -> r.snapshotRestored(node, failedPVs, errorMessage -> showLoggingError(errorMessage))));
     }
 
-    private void showLoggingError( String cause){
+    private void showLoggingError(String cause) {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle(Messages.loggingFailedTitle);

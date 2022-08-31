@@ -91,15 +91,15 @@ import java.util.Map;
  */
 public class GitMigrator {
 
-    private SaveAndRestoreService saveAndRestoreService;
+    private final SaveAndRestoreService saveAndRestoreService;
 
-    private Boolean useMultipleTag;
+    private final Boolean useMultipleTag;
 
-    private Boolean keepSavesetWithNoSnapshot;
+    private final Boolean keepSavesetWithNoSnapshot;
 
-    private Boolean ignoreDuplicateSnapshots;
+    private final Boolean ignoreDuplicateSnapshots;
 
-    private Boolean addPVsForIncompatibleSaveset;
+    private final Boolean addPVsForIncompatibleSaveset;
 
     private Git git;
     private File gitRoot;
@@ -265,15 +265,13 @@ public class GitMigrator {
             String author = commit.getAuthorIdent().getName();
             String commitMessage = commit.getFullMessage();
             Date commitDate = new Date(commit.getCommitTime() * 1000L);
-            Map<String, String> properties = new HashMap<>();
-            properties.put("description", commitMessage);
             saveSetNode = Node.builder()
                     .name(filePair.bms.substring(filePair.bms.lastIndexOf("/") + 1).replace(".bms", ""))
                     .nodeType(NodeType.CONFIGURATION)
                     .userName(author)
                     .created(commitDate)
                     .lastModified(commitDate)
-                    .properties(properties)
+                    .description(commitMessage)
                     .build();
             saveSetNode = saveAndRestoreService.createNode(parentNode.getUniqueId(), saveSetNode);
             String fullPath = gitRoot.getAbsolutePath() + "/" + filePair.bms;
@@ -352,10 +350,6 @@ public class GitMigrator {
                                     commit.getFullMessage());
 
                             snapshotNode = saveAndRestoreService.getNode(snapshotNode.getUniqueId());
-                            Map<String, String> properties = snapshotNode.getProperties();
-                            if (properties == null) {
-                                properties = new HashMap<>();
-                            }
                             if (tag != null) {
                                 if (useMultipleTag) {
                                     String fullTagName = tag.getTagName();
@@ -367,14 +361,12 @@ public class GitMigrator {
                                             .name(tagName)
                                             .comment(tag.getFullMessage())
                                             .userName(tag.getTaggerIdent().getName())
-                                            .snapshotId(snapshotNode.getUniqueId())
                                             .created(tag.getTaggerIdent().getWhen())
                                             .build();
 
                                     snapshotNode.addTag(snapshotTag);
                                 } else {
-                                    properties.put("golden", "true");
-                                    snapshotNode.setProperties(properties);
+                                    snapshotNode.addTag(Tag.goldenTag(commit.getCommitterIdent().getName()));
                                 }
                             }
                             snapshotNode.setUserName(commit.getCommitterIdent().getName());

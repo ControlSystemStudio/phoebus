@@ -156,7 +156,7 @@ public class SearchController implements Initializable {
                             Stack<Node> copiedStack = new Stack<>();
 
                             if (searchEntry.getSnapshot() == null) {
-                                searchEntry.setSnapshot(saveAndRestoreService.getNode(searchEntry.getTag().getSnapshotId()));
+                                //searchEntry.setSnapshot(saveAndRestoreService.getNode(searchEntry.getTag().getSnapshotId()));
                             }
                             DirectoryUtilities.CreateLocationStringAndNodeStack(searchEntry.getSnapshot(), false).getValue().forEach(copiedStack::push);
                             callerController.locateNode(copiedStack);
@@ -216,7 +216,7 @@ public class SearchController implements Initializable {
     }
     
     private static boolean isSnapshotGolden(Node node){
-        return node.getProperty("golden") != null && Boolean.valueOf(node.getProperty("golden"));
+        return node.hasTag(Tag.GOLDEN);
     }
 
     private enum EntryType {SNAPSHOT, TAG}
@@ -248,7 +248,7 @@ public class SearchController implements Initializable {
                 this.snapshot = snapshot;
 
                 name = snapshot.getName();
-                comment = snapshot.getProperty("comment");
+                comment = snapshot.getDescription();
                 created = snapshot.getCreated();
                 creator = snapshot.getUserName();
             } else {
