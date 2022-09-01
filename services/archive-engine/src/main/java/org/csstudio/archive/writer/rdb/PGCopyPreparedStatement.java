@@ -94,7 +94,25 @@ public class PGCopyPreparedStatement implements PreparedStatement {
     public void addBatch() throws SQLException {
         for (int i = 0; i < rowValues.length; i++) {
             if (rowValues[i] != null) {
-                batchBuilder.append(rowValues[i]);
+                // If the value contains the delimiter char, the QUOTE char,
+                // the NULL string, a carriage return, or line feed char,
+                // then the whole value is prefixed and suffixed by the QUOTE char,
+                // and any occurrence within the value of a QUOTE char or the
+                // ESCAPE char is preceded by the escape char
+                // ESCAPE defaults to QUOTE which defaults to " double quote
+                // delimiter char defaults to , comma
+                final String[] metaCharacters = {",","\"","NULL","\\n","\\r"};
+                String inputRow = rowValues[i];
+                if(rowValues[i].contains("\""))
+                    inputRow = inputRow.replace("\"","\"\"");
+                for (int j = 0 ; j < metaCharacters.length ; j++){
+                    if(rowValues[i].toLowerCase().
+                            contains(metaCharacters[j].toLowerCase())){
+                        inputRow = "\"" + inputRow + "\"";
+                        break;
+                    }
+                }
+                batchBuilder.append(inputRow);
             }
             batchBuilder.append(",");
         }
