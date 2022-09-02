@@ -291,7 +291,7 @@ public class ElasticClientHelper {
             exists = client.indices().existsIndexTemplate(ExistsIndexTemplateRequest.of(i -> i.name(ALARM_CONFIG_TEMPLATE))).value();
 
             if (!exists) {
-                try (InputStream is = ElasticClientHelper.class.getResourceAsStream("/alarms_cmd_template.json")) {
+                try (InputStream is = ElasticClientHelper.class.getResourceAsStream("/alarms_config_template.json")) {
                     PutIndexTemplateRequest templateRequest = new PutIndexTemplateRequest.Builder()
                             .name(ALARM_CONFIG_TEMPLATE)
                             .indexPatterns(Arrays.asList(ALARM_CONFIG_TEMPLATE_PATTERN))

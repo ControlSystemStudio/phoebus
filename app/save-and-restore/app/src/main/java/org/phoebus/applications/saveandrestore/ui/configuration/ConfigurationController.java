@@ -21,6 +21,7 @@ package org.phoebus.applications.saveandrestore.ui.configuration;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -33,6 +34,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
@@ -40,6 +42,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -56,6 +59,7 @@ import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.util.ArrayList;
@@ -105,9 +109,9 @@ public class ConfigurationController {
     private TextField saveSetNameField;
 
     @FXML
-    private TextField saveSetDateField;
+    private Label saveSetDateField;
     @FXML
-    private TextField createdByField;
+    private Label createdByField;
 
     private SaveAndRestoreService saveAndRestoreService;
 
@@ -148,40 +152,17 @@ public class ConfigurationController {
 
         defaultSelectionModel = pvTable.getSelectionModel();
 
-        pvTable.setRowFactory(tv -> {
-            TableRow<ConfigPv> row = new TableRow<>();
-            row.setOnMouseClicked(event -> {
-                if (row.isEmpty()) {
-                    pvTable.setSelectionModel(null);
-                } else {
-                    pvTable.setSelectionModel(defaultSelectionModel);
-                }
-            });
-            return row;
-        });
-
         ContextMenu pvNameContextMenu = new ContextMenu();
 
         MenuItem deleteMenuItem = new MenuItem(Messages.menuItemDeleteSelectedPVs,
                 new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/delete.png")));
         deleteMenuItem.setOnAction(ae -> {
-            ObservableList<ConfigPv> selectedPvs = pvTable.getSelectionModel().getSelectedItems();
-            if (selectedPvs == null || selectedPvs.isEmpty()) {
-                return;
-            }
-            Alert alert = new Alert(AlertType.CONFIRMATION);
-            alert.setTitle(Messages.promptDeletePVTitle);
-            alert.setContentText(Messages.promptDeletePVFromSaveSet);
-            Optional<ButtonType> result = alert.showAndWait();
-            if (result.isPresent() && result.get().equals(ButtonType.OK)) {
-                UI_EXECUTOR.execute(() -> {
-                    saveSetEntries.removeAll(selectedPvs);
-                    pvTable.refresh();
-                });
-            }
+            saveSetEntries.removeAll(pvTable.getSelectionModel().getSelectedItems());
+            pvTable.refresh();
         });
 
-        deleteMenuItem.disableProperty().bind(selectionEmpty);
+        deleteMenuItem.disableProperty().bind(Bindings.createBooleanBinding(() -> pvTable.getSelectionModel().getSelectedItems().isEmpty(),
+                pvTable.getSelectionModel().getSelectedItems()));
 
         pvNameColumn.setEditable(true);
         pvNameColumn.setCellValueFactory(new PropertyValueFactory<>("pvName"));
@@ -211,11 +192,14 @@ public class ConfigurationController {
                     pvNameContextMenu.getItems().clear();
                     pvNameContextMenu.getItems().addAll(deleteMenuItem);
                     pvNameContextMenu.getItems().add(new SeparatorMenuItem());
-                    List<ProcessVariable> selectedPVList = pvTable.getSelectionModel().getSelectedItems().stream()
-                            .map(tableEntry -> new ProcessVariable(tableEntry.getPvName()))
-                            .collect(Collectors.toList());
-                    SelectionService.getInstance().setSelection(SaveAndRestoreApplication.NAME, selectedPVList);
-                    ContextMenuHelper.addSupportedEntries(cell, pvNameContextMenu);
+                    ObservableList<ConfigPv> selectedPVs = pvTable.getSelectionModel().getSelectedItems();
+                    if(!selectedPVs.isEmpty()){
+                        List<ProcessVariable> selectedPVList = selectedPVs.stream()
+                                .map(tableEntry -> new ProcessVariable(tableEntry.getPvName()))
+                                .collect(Collectors.toList());
+                        SelectionService.getInstance().setSelection(SaveAndRestoreApplication.NAME, selectedPVList);
+                        ContextMenuHelper.addSupportedEntries(cell, pvNameContextMenu);
+                    }
                     pvNameContextMenu.show(cell, event.getScreenX(), event.getScreenY());
                 });
                 cell.setContextMenu(pvNameContextMenu);
@@ -254,8 +238,6 @@ public class ConfigurationController {
         addPvButton.disableProperty().bind(pvNameField.textProperty().isEmpty());
 
         readOnlyCheckBox.selectedProperty().bindBidirectional(readOnlyProperty);
-
-
     }
 
     @FXML
@@ -282,10 +264,10 @@ public class ConfigurationController {
 
                 editConfiguration(configurationNode);
             } catch (Exception e1) {
-                Alert errorAlert = new Alert(AlertType.ERROR);
-                errorAlert.setTitle("Action failed");
-                errorAlert.setHeaderText(e1.getMessage());
-                errorAlert.showAndWait();
+                ExceptionDetailsErrorDialog.openError(pvTable,
+                        Messages.errorActionFailed,
+                        Messages.errorCreateSaveSetFailed,
+                        e1);
             }
         });
     }
@@ -300,9 +282,15 @@ public class ConfigurationController {
 
             ArrayList<ConfigPv> configPVs = new ArrayList<>();
             for (int i = 0; i < pvNames.length; i++) {
+                // Disallow duplicate PV names as in a restore operation this would mean that a PV is written
+                // multiple times, possibly with different values.
+                String pvName = pvNames[i].trim();
+                if(saveSetEntries.stream().anyMatch(s -> s.getPvName().equals(pvName))){
+                    continue;
+                }
                 String readbackPV = i >= readbackPvNames.length ? null : readbackPvNames[i] == null || readbackPvNames[i].isEmpty() ? null : readbackPvNames[i].trim();
                 ConfigPv configPV = ConfigPv.builder()
-                        .pvName(pvNames[i].trim())
+                        .pvName(pvName)
                         .readOnly(readOnlyProperty.get())
                         .readbackPvName(readbackPV)
                         .build();
@@ -329,6 +317,9 @@ public class ConfigurationController {
                 configurationNode = Node.builder().nodeType(NodeType.CONFIGURATION).build();
                 configurationNodeParent = parentNode;
                 loadedConfiguration = new Configuration();
+                pvTable.setItems(saveSetEntries);
+                createdByField.textProperty().set(null);
+                saveSetDateField.textProperty().set(null);
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Unable to configure UI for new save set");
             }
@@ -343,19 +334,15 @@ public class ConfigurationController {
             try {
 
                 loadedConfiguration = saveAndRestoreService.getConfiguration(configurationNode.getUniqueId());
-                loadedConfiguration.setPvList(new ArrayList<>());
                 saveSetCommentProperty.set(loadedConfiguration.getDescription());
 
                 //List<ConfigPv> configPvs = saveAndRestoreService.getConfigPvs(node.getUniqueId());
 
                 Collections.sort(loadedConfiguration.getPvList());
                 saveSetNameProperty.set(configurationNode.getName());
-                //saveSetCommentProperty.set(loadedConfig.getProperty(DESCRIPTION_PROPERTY));
                 saveSetCommentProperty.set(loadedConfiguration.getDescription());
-                //saveSetEntries.setAll(configPvs);
                 saveSetEntries.setAll(loadedConfiguration.getPvList());
                 pvTable.setItems(saveSetEntries);
-                pvTable.setEditable(true);
                 dirty.set(false);
                 createdByField.textProperty().set(configurationNode.getUserName());
                 saveSetDateField.textProperty().set(configurationNode.getCreated().toString());

@@ -46,6 +46,15 @@ public class ConfigurationTab extends Tab implements NodeChangedListener {
 
 
     public ConfigurationTab() {
+       configure();
+    }
+
+    public ConfigurationTab(Node node) {
+       configure();
+       editSaveSet(node);
+    }
+
+    private void configure(){
         try {
             FXMLLoader loader = new FXMLLoader();
             ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
@@ -92,7 +101,8 @@ public class ConfigurationTab extends Tab implements NodeChangedListener {
         ImageView imageView = new ImageView(icon);
         Label label = new Label("");
         label.textProperty().bindBidirectional(tabTitleProperty);
-        HBox.setMargin(label, new Insets(3, 5, 0, 5));
+        HBox.setMargin(label, new Insets(1, 5, 0, 3));
+        HBox.setMargin(imageView, new Insets(1, 2, 0, 3));
         container.getChildren().addAll(imageView, label);
 
         return container;

@@ -106,7 +106,7 @@ public class ConfigurationRepository implements CrudRepository<Configuration, St
     }
 
     @Override
-    public Iterable<Configuration> findAll() {
+    public Iterable<Configuration>  findAll() {
         return null;
     }
 
