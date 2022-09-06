@@ -25,7 +25,7 @@ To ease the maintenance of localizations, a report can be generated to quickly f
 compared to the default English localization.
 
 In order to do so, you must first make sure that the locale you're interested in is listed in the
-``configurationData/locales`` section of the ``l10n-status`` Maven profile. In the following example, the report will
+``configuration/locales`` section of the ``l10n-status`` Maven profile. In the following example, the report will
 include the German, Spanish and French localizations.
 
 .. code-block:: xml
@@ -43,7 +43,7 @@ include the German, Spanish and French localizations.
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>l10n-maven-plugin</artifactId>
                 <version>1.0-alpha-2</version>
-                <configurationData>
+                <configuration>
                   <aggregate>true</aggregate>
                   <includes>**/messages*.properties</includes>
                   <locales>
@@ -51,7 +51,7 @@ include the German, Spanish and French localizations.
                     <locale>es</locale>
                     <locale>fr</locale>
                   </locales>
-                </configurationData>
+                </configuration>
               </plugin>
               ...
             </plugins>

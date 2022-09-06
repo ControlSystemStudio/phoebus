@@ -29,7 +29,6 @@ import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
-import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
@@ -363,15 +362,17 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     @Override
-    public ConfigurationData getConfiguration(String nodeId){
+    public Configuration getConfiguration(String nodeId){
         ClientResponse clientResponse = getCall("/config/" + nodeId);
-        return clientResponse.getEntity(ConfigurationData.class);
+        return clientResponse.getEntity(Configuration.class);
     }
 
     @Override
-    public Configuration saveConfiguration(Configuration configuration){
+    public Configuration createConfiguration(String parentId, String configurationName, Configuration configuration){
         WebResource webResource =
-                client.resource(jmasarServiceUrl + "/config");
+                client.resource(jmasarServiceUrl + "/config")
+                        .queryParam("parentId", parentId)
+                        .queryParam("configurationName", configurationName);
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(configuration, CONTENT_TYPE_JSON)
@@ -383,17 +384,17 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     @Override
-    public ConfigurationData updateConfiguration(ConfigurationData configurationData){
+    public Configuration updateConfiguration(Configuration configuration){
         WebResource webResource =
                 client.resource(jmasarServiceUrl + "/config");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
-                .entity(configurationData, CONTENT_TYPE_JSON)
+                .entity(configuration, CONTENT_TYPE_JSON)
                 .post(ClientResponse.class);
         if (response.getStatus() != 200) {
             return null;
         }
-        return response.getEntity(ConfigurationData.class);
+        return response.getEntity(Configuration.class);
     }
 
     @Override

@@ -17,7 +17,7 @@ This historical data can be used to:
 Logged Alarm Messages
 *********************
 
-The alarm logging service creates kafka streams which can be configured to monitor one or more alarm topics. All associated with state change or configurationData change are filtered, time stamped and added to an elastic index.
+The alarm logging service creates kafka streams which can be configured to monitor one or more alarm topics. All associated with state change or configuration change are filtered, time stamped and added to an elastic index.
 
 Examples:
 

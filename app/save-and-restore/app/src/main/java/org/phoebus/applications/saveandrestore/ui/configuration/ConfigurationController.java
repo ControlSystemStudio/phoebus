@@ -48,7 +48,6 @@ import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
-import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
@@ -125,7 +124,7 @@ public class ConfigurationController {
     private Node configurationNode;
     private Node configurationNodeParent;
 
-    private ConfigurationData loadedConfigurationData;
+    private Configuration loadedConfiguration;
 
     private TableView.TableViewSelectionModel<ConfigPv> defaultSelectionModel;
 
@@ -248,21 +247,18 @@ public class ConfigurationController {
 
         UI_EXECUTOR.execute(() -> {
             try {
-                loadedConfigurationData.setDescription(saveSetCommentProperty.getValue());
-                loadedConfigurationData.setPvList(saveSetEntries);
+                loadedConfiguration.setDescription(saveSetCommentProperty.getValue());
+                loadedConfiguration.setPvList(saveSetEntries);
                 configurationNode.setName(saveSetNameProperty.get());
                 if (newConfiguration) {
-                    Configuration configuration = new Configuration();
-                    configuration.setParentUniqueId(configurationNodeParent.getUniqueId());
-                    configuration.setConfigurationData(loadedConfigurationData);
-                    configuration.setNode(configurationNode);
-                    //configurationNode = saveAndRestoreService
-                    //.createNode(configurationNodeParent.getUniqueId(), configurationNode);
-                    //loadedConfigurationData.setUniqueId(configurationNode.getUniqueId());
-                    configurationNode = saveAndRestoreService.saveConfiguration(configuration).getNode();
+                    loadedConfiguration = saveAndRestoreService.saveConfiguration(configurationNodeParent.getUniqueId(),
+                            saveSetNameProperty.get(),
+                            loadedConfiguration);
+                    // Must get the Node object associated with the new configuration as that is new too.
+                    configurationNode = saveAndRestoreService.getNode(loadedConfiguration.getUniqueId());
                     newConfiguration = false;
                 } else {
-                    saveAndRestoreService.updateConfiguration(loadedConfigurationData);
+                    saveAndRestoreService.updateConfiguration(loadedConfiguration);
                 }
 
 
@@ -323,7 +319,7 @@ public class ConfigurationController {
             try {
                 configurationNode = Node.builder().nodeType(NodeType.CONFIGURATION).build();
                 configurationNodeParent = parentNode;
-                loadedConfigurationData = new ConfigurationData();
+                loadedConfiguration = new Configuration();
                 pvTable.setItems(saveSetEntries);
                 createdByField.textProperty().set(null);
                 saveSetDateField.textProperty().set(null);
@@ -340,15 +336,15 @@ public class ConfigurationController {
             this.configurationNode = configurationNode;
             try {
 
-                loadedConfigurationData = saveAndRestoreService.getConfiguration(configurationNode.getUniqueId());
-                saveSetCommentProperty.set(loadedConfigurationData.getDescription());
+                loadedConfiguration = saveAndRestoreService.getConfiguration(configurationNode.getUniqueId());
+                saveSetCommentProperty.set(loadedConfiguration.getDescription());
 
                 //List<ConfigPv> configPvs = saveAndRestoreService.getConfigPvs(node.getUniqueId());
 
-                Collections.sort(loadedConfigurationData.getPvList());
+                Collections.sort(loadedConfiguration.getPvList());
                 saveSetNameProperty.set(configurationNode.getName());
-                saveSetCommentProperty.set(loadedConfigurationData.getDescription());
-                saveSetEntries.setAll(loadedConfigurationData.getPvList());
+                saveSetCommentProperty.set(loadedConfiguration.getDescription());
+                saveSetEntries.setAll(loadedConfiguration.getPvList());
                 pvTable.setItems(saveSetEntries);
                 dirty.set(false);
                 createdByField.textProperty().set(configurationNode.getUserName());

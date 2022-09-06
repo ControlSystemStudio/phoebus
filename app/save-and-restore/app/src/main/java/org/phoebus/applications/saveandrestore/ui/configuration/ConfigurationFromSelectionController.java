@@ -232,7 +232,7 @@ public class ConfigurationFromSelectionController implements Initializable {
             }
         });
 
-        description.setPromptText("ConfigurationData created at " + savesetTimeFormat.format(Instant.now()));
+        description.setPromptText("Configuration created at " + savesetTimeFormat.format(Instant.now()));
 
         selectColumn.setReorderable(false);
         selectColumn.setCellFactory(CheckBoxTableCell.forTableColumn(selectColumn));

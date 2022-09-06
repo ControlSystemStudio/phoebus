@@ -1,4 +1,4 @@
-<project default="app-log-configurationData">
+<project default="app-log-configuration">
   <import file="../../dependencies/ant_settings.xml"/>
 
   <target name="app-credentials-management" depends="compile-app">

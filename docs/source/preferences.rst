@@ -74,15 +74,15 @@ in a site-specific application start script.
 This way, new users do not need to remember to once start with the option,
 and existing users will benefit from changes to the settings file.
 
-Conceptually, preference settings are meant to hold critical configurationData
-parameters like the control system network configurationData.
+Conceptually, preference settings are meant to hold critical configuration
+parameters like the control system network configuration.
 They are configured by system administrators, and once they are properly adjusted
 for your site, there is usually no need to change them.
 
 Most important, these are not settings that an end user would need to see
 and frequently adjust during ordinary use of the application.
 For such runtime settings, each application needs to offer user interface options
-like context menus or configurationData dialogs.
+like context menus or configuration dialogs.
 
 When you package phoebus for distribution at your site, you can also place
 a file ``settings.ini`` in the installation location (see :ref:`locations`).

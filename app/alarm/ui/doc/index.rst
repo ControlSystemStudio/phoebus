@@ -66,7 +66,7 @@ The alarm server tracks updates to the PVs received from the control system.
 The user interface shows the current alarms, allows acknowledgement,
 and provides guidance, links to related displays.
 
-Kafka stores the alarm system configurationData, and provides the
+Kafka stores the alarm system configuration, and provides the
 communication bus between the alarm server and user interface.
 
 .. image:: images/alarm_components.png
@@ -85,21 +85,21 @@ The UI includes the following applications:
  * Alarm Tree: Primarily used to configure the alarm system,
    i.e. to add PVs and define their alarm details.
 
-   The alarm configurationData is hierarchical,
+   The alarm configuration is hierarchical,
    starting from for example a top-level `Accelerator`
-   configurationData to components like `Vacuum`, `RF`,
+   configuration to components like `Vacuum`, `RF`,
    with alarm trigger PVs listed below those components.
    Configuration settings for `Guidance`, `Displays` etc.
    are inherited along the hierarchy, so that all alarm under
    `/Accelerator/Vacuum` will see all the guidance and displays
    configured on `Vacuum`.
 
-   The alarm system does not enforce how the hierarchical configurationData
+   The alarm system does not enforce how the hierarchical configuration
    is used. The 'components' could be subsystems like `Vacuum`, `RF`,
    or they could refer to areas of the machine like `Front End`,
    `Ring`, `Beam Line`. There can be several levels of sub-components,
    and each site can decide how to arrange their alarm trigger PVs
-   to best re-use guidance and display information so that the configurationData
+   to best re-use guidance and display information so that the configuration
    of individual PVs is simplified by benefitting from the inherited
    settings along the hierarchy.
 
@@ -136,7 +136,7 @@ Alarm Configuration Options
 
 Alarm configurations are imported into the Alarm Server in an XML 
 format, the schema for which may be found `here <https://github.com/ControlSystemStudio/phoebus/app/alarm/examples/alarm_configuration.xsd>`_.
-The options for an entry in the hierarchical alarm configurationData
+The options for an entry in the hierarchical alarm configuration
 always include guidance, display links etc. as described further below.
 In addition, alarm PV entries have the following settings.
 
@@ -284,7 +284,7 @@ in case operators are currently unable to acknowledge and handle the alarm.
 If the alarm should always right away perform some action,
 then this is best handled in the IOC.
 
-The automated action configurationData has three parts:
+The automated action configuration has three parts:
 
  * Title:
    The "Title" can be set to a short description of the action.

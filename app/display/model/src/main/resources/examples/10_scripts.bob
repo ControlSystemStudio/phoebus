@@ -146,7 +146,7 @@ a rule could be attached to the label's text property.</text>
     <text>Script attached to label, triggered by the PV,
 updates the label's position based on that PV
 and some other local PVs which are used to pass in 
-constant configurationData parameters.</text>
+constant configuration parameters.</text>
     <y>701</y>
     <width>381</width>
     <height>70</height>

@@ -15,7 +15,7 @@
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_1</name>
-    <text>Displays PVs over time, using a separate Data Browser *.plt file for configurationData.</text>
+    <text>Displays PVs over time, using a separate Data Browser *.plt file for configuration.</text>
     <y>41</y>
     <width>530</width>
     <height>40</height>

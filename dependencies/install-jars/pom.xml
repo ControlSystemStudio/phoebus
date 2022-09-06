@@ -8,7 +8,7 @@
   <artifactId>install-jars</artifactId>
 
 
-  <!-- Note how the configurationData is _inside_ an execution,
+  <!-- Note how the configuration is _inside_ an execution,
        and each exacution has a unique ID.
        Otherwise the plugin would run once with a mix of setups,
        like install the ojdbc jar with the pbraw/pom.xml:
@@ -37,14 +37,14 @@
 	        <executions>
 	          <execution>
 	            <id>install-oracle</id>
-	            <configurationData>
+	            <configuration>
 	              <groupId>com.oracle.jdbc</groupId>
 	              <artifactId>ojdbc8</artifactId>
 	              <version>12.2.0.1</version>
 	              <packaging>jar</packaging>
 	              <file>${basedir}/lib/ojdbc/ojdbc8-12.2.0.1.jar</file>
 	              <generatePom>true</generatePom>
-	            </configurationData>
+	            </configuration>
 	            <goals>
 	              <goal>install-file</goal>
 	            </goals>
@@ -66,7 +66,7 @@
         <executions>
           <execution>
             <id>install-pbraw</id>
-            <configurationData>
+            <configuration>
               <groupId>org.epics</groupId>
               <artifactId>pbrawclient</artifactId>
               <version>0.0.8</version>
@@ -74,7 +74,7 @@
               <file>${basedir}/lib/pbraw/pbrawclient-0.0.8.jar</file>
               <generatePom>false</generatePom>
               <pomFile>${basedir}/lib/pbraw/pom.xml</pomFile>
-            </configurationData>
+            </configuration>
             <goals>
               <goal>install-file</goal>
             </goals>

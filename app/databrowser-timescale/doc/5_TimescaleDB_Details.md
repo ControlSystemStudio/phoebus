@@ -11,7 +11,7 @@ While certain aspects of the hypertable can be changed at runtime,
 a complete reorganization of data into a new chunking setup is expensive.
 The chunking setup should thus be "right" from the start.
 At the time of this writing, however, there is no operational experience that would allow us to
-make qualified suggestions for the "best" chunking configurationData.
+make qualified suggestions for the "best" chunking configuration.
 Details of the TimescaleDB options might also change.
 
 More more, refer to https://docs.timescale.com/timescaledb/latest/
@@ -72,7 +72,7 @@ The basic options are
  * Hypertable with chunks by time and `channel_id`, spreading chunks across different nodes.
    Adds network latency but allows load balancing.
 
-The best configurationData is likely site-specific.
+The best configuration is likely site-specific.
 At this time we cannot offer much guidance beyond pointing to
 https://docs.timescale.com/timescaledb/latest/how-to-guides/hypertables/best-practices:
  

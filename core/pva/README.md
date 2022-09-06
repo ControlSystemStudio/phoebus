@@ -55,7 +55,7 @@ In addition, the Java library reads a Java property of the same name.
 If both the environment variable and the Java property are defined,
 the latter is used.
 
-Key configurationData parameters:
+Key configuration parameters:
 
 `EPICS_PVA_ADDR_LIST`: Space-separated list of host names or IP addresses. Each may be followed by ":port", otherwise defaulting to `EPICS_PVA_BROADCAST_PORT`.  When empty, local subnet is used.
 
@@ -81,7 +81,7 @@ The protocol uses UDP port 5076, then TCP port 5075 for the first server,
 and randomly chosen TCP ports for additional servers on the same host.
 
 By default, IPv4 is used, and local PV name resolution also joins the multicast group 224.0.0.128.
-(These defaults can be changed via configurationData settings, see `PVASettings`.)
+(These defaults can be changed via configuration settings, see `PVASettings`.)
 
 To debug connection issues on Linux, it can be helpful to disable the firewall:
 

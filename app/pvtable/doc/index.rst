@@ -6,7 +6,7 @@ The PV Table provides a tabular view of PV names and their current value with ti
 You can take a "snapshotData" of current values and dates, and the table will now highlight rows
 where the current value differs from the snapshotData.
 
-The configurationData (PV names, saved value, saved date) can be saved and later re-loaded,
+The configuration (PV names, saved value, saved date) can be saved and later re-loaded,
 see details on the file format described below.
 
 .. figure:: images/pv_table.png

@@ -22,6 +22,11 @@ import java.util.List;
 
 /**
  * Class holding data particular to a save & restore configuration (save set) {@link Node}.
+ *
+ * Note that certain properties (name, user id, create date) are contained in the {@link Node} object
+ * associated with the configuration. The <code>uniqueId</code> is used to create this association, i.e.
+ * a {@link Configuration} object as persisted in the remote service will have the same unique id
+ * as the associated {@link Node} object.
  */
 public class Configuration {
 

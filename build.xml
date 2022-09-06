@@ -25,7 +25,7 @@
     <ant target="clean" dir="app/probe"/>
     <ant target="clean" dir="app/logbook/inmemory"/>
     <ant target="clean" dir="app/logbook/ui"/>
-    <ant target="clean" dir="app/log-configurationData"/>
+    <ant target="clean" dir="app/log-configuration"/>
     <ant target="clean" dir="app/pvtree"/>
     <ant target="clean" dir="app/pvtable"/>
     <ant target="clean" dir="app/rtplot"/>
@@ -103,7 +103,7 @@
     <ant dir="app/probe"/>
     <ant dir="app/logbook/inmemory"/>
     <ant dir="app/logbook/ui"/>
-    <ant dir="app/log-configurationData"/>
+    <ant dir="app/log-configuration"/>
     <ant dir="app/pvtree"/>
     <ant dir="app/pvtable"/>
     <ant dir="app/rtplot"/>

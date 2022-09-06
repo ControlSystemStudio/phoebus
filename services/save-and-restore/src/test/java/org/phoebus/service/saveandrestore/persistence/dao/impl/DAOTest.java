@@ -828,7 +828,7 @@ public class DAOTest {
         node1.setNodeType(NodeType.SNAPSHOT);
 
         Node node2 = new Node();
-        node2.setName("ConfigurationData node");
+        node2.setName("Configuration node");
         node2.setNodeType(NodeType.CONFIGURATION);
         assertFalse(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(node1, node2), rootNode));
     }
@@ -844,7 +844,7 @@ public class DAOTest {
         node1 = nodeDAO.createNode(rootNode.getUniqueId(), node1);
 
         Node node2 = new Node();
-        node2.setName("ConfigurationData node");
+        node2.setName("Configuration node");
         node2.setNodeType(NodeType.FOLDER);
         node2 = nodeDAO.createNode(rootNode.getUniqueId(), node2);
 
@@ -871,7 +871,7 @@ public class DAOTest {
         folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
 
         Node node2 = new Node();
-        node2.setName("ConfigurationData node");
+        node2.setName("Configuration node");
         node2.setNodeType(NodeType.CONFIGURATION);
         node2 = nodeDAO.createNode(folderNode.getUniqueId(), node2);
 

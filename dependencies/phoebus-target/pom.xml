@@ -46,13 +46,13 @@
                 </goals>
               </execution>
             </executions>
-            <configurationData>
+            <configuration>
               <executable>python</executable>
               <!-- <workingDirectory>dependencies/phoebus-target</workingDirectory> -->
               <arguments>
                 <argument>${preReleaseScripts}</argument>
               </arguments>
-            </configurationData>
+            </configuration>
           </plugin>
         </plugins>
       </build>
@@ -551,12 +551,12 @@
             <goals>
               <goal>copy-dependencies</goal>
             </goals>
-            <configurationData>
+            <configuration>
               <outputDirectory>${project.build.directory}/lib</outputDirectory>
               <overWriteReleases>false</overWriteReleases>
               <overWriteSnapshots>false</overWriteSnapshots>
               <overWriteIfNewer>true</overWriteIfNewer>
-            </configurationData>
+            </configuration>
           </execution>
         </executions>
       </plugin>

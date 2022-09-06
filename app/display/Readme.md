@@ -175,9 +175,9 @@ BOY had a plain rectangle and a rounded rectangle widget, which has been turned
 into a rectangle widget with a corner radius property.
 BOY had an LED widget, which would either indicate a binary state, which could
 be based on a bit in a number or zero vs. non-zero numeric value. That same LED
-widget could also reflect one of N states, using very different configurationData
+widget could also reflect one of N states, using very different configuration
 parameters. In the Display Builder, there a separate (binary) LED and Multi-State LED widgets.
-Rectangle and LED widgets are automatically mapped from `*.opi` files based on their configurationData.
+Rectangle and LED widgets are automatically mapped from `*.opi` files based on their configuration.
 
 The BOY XYGraph had many different modes of operation,
 some of which depend on the type of PV (scalar vs. waveform).

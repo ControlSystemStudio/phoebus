@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- Scan configurationData
+<!-- Scan configuration
 
      Lists PV names and possible alias.
 
@@ -119,7 +119,7 @@
   </pv>
 
   <!-- In addition, a name_pattern is allowed
-       for slew rate (simulation) configurationData.
+       for slew rate (simulation) configuration.
 
        Name is regular expression
     -->

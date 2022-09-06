@@ -30,9 +30,9 @@
               </execution>
               <execution>
                 <id>download-javadoc</id>
-                <configurationData>
+                <configuration>
                   <classifier>javadoc</classifier>
-                </configurationData>
+                </configuration>
                 <goals>
                   <goal>resolve</goal>
                 </goals>

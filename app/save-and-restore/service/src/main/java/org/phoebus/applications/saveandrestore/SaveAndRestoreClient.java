@@ -20,7 +20,6 @@ package org.phoebus.applications.saveandrestore;
 
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
-import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotWrapper;
@@ -173,11 +172,11 @@ public interface SaveAndRestoreClient {
 
     List<Node> getFromPath(String path);
 
-    ConfigurationData getConfiguration(String nodeId);
+    Configuration getConfiguration(String nodeId);
 
-    Configuration saveConfiguration(Configuration configuration);
+    Configuration createConfiguration(String parentId, String configurationName, Configuration configuration);
 
-    ConfigurationData updateConfiguration(ConfigurationData configurationData);
+    Configuration updateConfiguration(Configuration configuration);
 
     SnapshotData getSnapshot(String nodeId);
 

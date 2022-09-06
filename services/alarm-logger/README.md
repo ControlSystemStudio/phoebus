@@ -35,7 +35,7 @@ ant clean dist
 java -jar target/alarm-logger-<version>.jar -topics MY,ALARM,CONFIGS
 ```
 The argument for the ```-topics``` switch is the comma separated list of alarm configurations you wish to be 
-logged. An alarm configurationData is the value specified 
+logged. An alarm configuration is the value specified 
 for the ```-config``` switch when starting an alarm server instance. See the README.md file in the alarm-server module.
 
 2. Using spring boot  

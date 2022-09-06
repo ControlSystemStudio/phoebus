@@ -85,13 +85,13 @@
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <version>3.2.0</version>
-        <configurationData>
+        <configuration>
           <descriptors>
             <descriptor>src/assembly/src.xml</descriptor>
           </descriptors>
           <tarLongFileMode>posix</tarLongFileMode>
           <appendAssemblyId>false</appendAssemblyId>
-        </configurationData>
+        </configuration>
         <executions>
           <execution>
             <id>make-assembly</id> <!-- this is used for inheritance merges -->

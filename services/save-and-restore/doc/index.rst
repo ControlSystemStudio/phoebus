@@ -63,8 +63,8 @@ REST API for Save Restore Service
 
 **Configuration:**
 
-A Save Restore configurationData is a set of PV's which are used to take a snapshotData.
-The configurationData can also consist of a few options parameters.
+A Save Restore configuration is a set of PV's which are used to take a snapshotData.
+The configuration can also consist of a few options parameters.
 
 - readback pv associated with the pv
 - flag to indicate if this pv should restored
@@ -101,7 +101,7 @@ Get the root node
 Method: GET
 
 Return:
-The root node of the save restore configurationData tree
+The root node of the save restore configuration tree
 
 .. code-block:: JSON
 
@@ -212,7 +212,7 @@ Body:
 
 nodeType: "CONFIGURATION" or "FOLDER"
 
-The nodeType can be used to specify if we want to create a new folder or a new save set configurationData
+The nodeType can be used to specify if we want to create a new folder or a new save set configuration
 
 Return:
 If the node was successfully created you will a 200 response with the details of the newly created node
@@ -231,7 +231,7 @@ If the node was successfully created you will a 200 response with the details of
         "tags": []
     }
 
-Create or Update a configurationData
+Create or Update a configuration
 """"""""""""""""""""""""""""""""
 
 **.../config/{uniqueNodeId}/update**
@@ -306,7 +306,7 @@ A list of all the snapshotData id's
     ]
 
 
-Retrieve all snapshots for a configurationData
+Retrieve all snapshots for a configuration
 """"""""""""""""""""""""""""""""""""""""""
 
 **.../snapshotData/{uniqueNodeId}
@@ -336,7 +336,7 @@ Retrieve snapshots data
 
 Method: GET
 
-Retrieve all Snapshots associated with a particular configurationData identified by `{uniqueNodeId}`
+Retrieve all Snapshots associated with a particular configuration identified by `{uniqueNodeId}`
 
 Return:
 A snapshotData with all the stored data

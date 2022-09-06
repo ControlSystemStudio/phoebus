@@ -4,7 +4,7 @@ Active Jobs
 Opened from the ``Applications``, ``Debug`` menu,
 the Active Jobs panel displays ongoing background jobs.
 
-Examples include jobs that load configurationData files.
+Examples include jobs that load configuration files.
 Long-running jobs can be cancelled.
 
 

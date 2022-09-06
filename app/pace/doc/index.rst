@@ -24,16 +24,16 @@ If the logbook entry fails, PVs are restored to their original value.
 Starting PACE
 -------------
 
-PACE is opened whenever a ``*.pace`` configurationData file is opened,
+PACE is opened whenever a ``*.pace`` configuration file is opened,
 for example via a double-click in the file browser.
 
 
 Using PACE
 ----------
 
-When a ``*.pace`` configurationData file is opened, the table displays
+When a ``*.pace`` configuration file is opened, the table displays
 the current value of PVs.
-Except for columns marked as read-only in the configurationData file
+Except for columns marked as read-only in the configuration file
 (which is also indicated via the cell tool-tip),
 cell values can be edited.
 

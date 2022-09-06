@@ -17,7 +17,7 @@ Goals of the Phoebus project:
  * Retain functionality of key CS-Studio tools,
    specifically the Display Builder, Data Browser,
    PV Table, PV Tree, Alarm UI, Scan UI, ..
-   supporting their original configurationData files
+   supporting their original configuration files
    with 100% compatibility.
 
  * Provide full control of window placement

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-<!-- Scan system configurationData: Alias names for PVs
+<!-- Scan system configuration: Alias names for PVs
 
      scan config file can link to this schema:
      <scan_config

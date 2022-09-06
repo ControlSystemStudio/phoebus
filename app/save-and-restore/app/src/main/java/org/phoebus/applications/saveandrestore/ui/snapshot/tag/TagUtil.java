@@ -49,7 +49,7 @@ public class TagUtil {
     /**
      * Generates a {@link Node} for Add {@link Tag} {@link Dialog}.
      *
-     * @param locationString ConfigurationData location {@link String}
+     * @param locationString Configuration location {@link String}
      * @param snapshotString SnapshotData name {@link String}
      * @return a {@link Node} of {@link GridPane} for information
      */
@@ -98,7 +98,7 @@ public class TagUtil {
     /**
      * Generates a {@link Node} for Remove {@link Tag} {@link Dialog}.
      *
-     * @param locationString ConfigurationData location {@link String}
+     * @param locationString Configuration location {@link String}
      * @param snapshotString SnapshotData name {@link String}
      * @param tag {@link Tag} object to extract {@link Tag} infomation to show
      * @return a {@link Node} of {@link GridPane} for information

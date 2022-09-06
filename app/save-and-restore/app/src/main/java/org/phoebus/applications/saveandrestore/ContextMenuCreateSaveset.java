@@ -66,7 +66,7 @@ public class ContextMenuCreateSaveset implements ContextMenuEntry
     @Override
     public String getName()
     {
-        return "Create/add to a ConfigurationData";
+        return "Create/add to a Configuration";
     }
 
     @Override

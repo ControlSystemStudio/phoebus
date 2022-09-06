@@ -71,12 +71,12 @@
             <goals>
               <goal>copy-dependencies</goal>
             </goals>
-            <configurationData>
+            <configuration>
               <outputDirectory>${project.build.directory}/lib</outputDirectory>
               <overWriteReleases>false</overWriteReleases>
               <overWriteSnapshots>false</overWriteSnapshots>
               <overWriteIfNewer>true</overWriteIfNewer>
-            </configurationData>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -84,7 +84,7 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
 		<version>3.1.0</version>
-        <configurationData>
+        <configuration>
           <archive>
             <manifest>
               <addClasspath>true</addClasspath>
@@ -92,7 +92,7 @@
               <mainClass>org.phoebus.applications.alarm.server.AlarmServerMain</mainClass>
             </manifest>
           </archive>
-        </configurationData>
+        </configuration>
       </plugin>
 
       <!-- Above commands built the product.jar.
@@ -104,12 +104,12 @@
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <version>3.1.1</version>
-        <configurationData>
+        <configuration>
           <tarLongFileMode>posix</tarLongFileMode>
           <descriptors>
             <descriptor>src/main/assembly/assembly.xml</descriptor>
           </descriptors>
-        </configurationData>
+        </configuration>
         <executions>
           <execution>
             <id>make-assembly</id>
@@ -125,7 +125,7 @@
         <executions>
           <execution>
             <phase>verify</phase>
-            <configurationData>
+            <configuration>
               <failOnError>true</failOnError>
               <tasks>
                 <echo message="Adding dependencies to product" />
@@ -149,7 +149,7 @@
                   </manifest>
                 </jar>
               </tasks>
-            </configurationData>
+            </configuration>
             <goals>
               <goal>run</goal>
             </goals>
@@ -160,9 +160,9 @@
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>nexus-staging-maven-plugin</artifactId>
         <version>1.6.8</version>
-        <configurationData>
+        <configuration>
           <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
-        </configurationData>
+        </configuration>
       </plugin>
     </plugins>
   </build>

@@ -20,7 +20,6 @@ package org.phoebus.service.saveandrestore.persistence.dao;
 
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
-import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
@@ -184,18 +183,18 @@ public interface NodeDAO {
 	 */
 	String getFullPath(String uniqueNodeId);
 
-	Configuration saveConfiguration(Configuration configuration);
+	Configuration createConfiguration(String parentsUniqueId, String configurationName, Configuration configuration);
 
-	ConfigurationData getConfiguration(String nodeId);
+	Configuration getConfiguration(String nodeId);
 
 	/**
-	 * Updates an existing {@link ConfigurationData}. In practice an overwrite operation as for instance
-	 * the {@link ConfigurationData#getPvList()} may contain both added and removed elements compared to
+	 * Updates an existing {@link Configuration}. In practice an overwrite operation as for instance
+	 * the {@link Configuration#getPvList()} may contain both added and removed elements compared to
 	 * the persisted object.
-	 * @param configurationData The object to be updated
-	 * @return The updated {@link ConfigurationData}
+	 * @param configuration The object to be updated
+	 * @return The updated {@link Configuration}
 	 */
-	ConfigurationData updateConfiguration(ConfigurationData configurationData);
+	Configuration updateConfiguration(Configuration configuration);
 
 	SnapshotData getSnapshot(String nodeId);
 

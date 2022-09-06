@@ -108,12 +108,12 @@
             <goals>
               <goal>copy-dependencies</goal>
             </goals>
-            <configurationData>
+            <configuration>
               <outputDirectory>${project.build.directory}/lib</outputDirectory>
               <overWriteReleases>false</overWriteReleases>
               <overWriteSnapshots>false</overWriteSnapshots>
               <overWriteIfNewer>true</overWriteIfNewer>
-            </configurationData>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -121,7 +121,7 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
 		<version>3.1.0</version>
-        <configurationData>
+        <configuration>
           <archive>
             <manifest>
               <addClasspath>true</addClasspath>
@@ -129,7 +129,7 @@
               <mainClass>org.csstudio.archive.Engine</mainClass>
             </manifest>
           </archive>
-        </configurationData>
+        </configuration>
       </plugin>
 
       <!-- Update jar, list all lib/* jars in the manifest classpath
@@ -139,7 +139,7 @@
         <executions>
           <execution>
             <phase>verify</phase>
-            <configurationData>
+            <configuration>
               <failOnError>true</failOnError>
               <tasks>
                 <echo message="Adding dependencies to product" />
@@ -161,7 +161,7 @@
                 </jar>
 
               </tasks>
-            </configurationData>
+            </configuration>
             <goals>
               <goal>run</goal>
             </goals>
@@ -172,9 +172,9 @@
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>nexus-staging-maven-plugin</artifactId>
         <version>1.6.8</version>
-        <configurationData>
+        <configuration>
           <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
-        </configurationData>
+        </configuration>
       </plugin>
     </plugins>
   </build>

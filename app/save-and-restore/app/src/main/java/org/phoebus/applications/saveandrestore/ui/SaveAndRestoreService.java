@@ -24,7 +24,6 @@ import org.phoebus.applications.saveandrestore.common.VNoData;
 import org.phoebus.applications.saveandrestore.impl.SaveAndRestoreJerseyClient;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
-import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
@@ -204,17 +203,17 @@ public class SaveAndRestoreService {
         return updatedNode;
     }
 
-    public Configuration saveConfiguration(Configuration configuration) throws Exception {
-        Future<Configuration> future = executor.submit(() -> saveAndRestoreClient.saveConfiguration(configuration));
+    public Configuration saveConfiguration(String parentId, String configurationName, Configuration configuration) throws Exception {
+        Future<Configuration> future = executor.submit(() -> saveAndRestoreClient.createConfiguration(parentId, configurationName, configuration));
         Configuration updatedConfiguration = future.get();
         //notifyNodeChangeListeners(updatedNode);
         return updatedConfiguration;
     }
 
-    public ConfigurationData updateConfiguration(ConfigurationData configurationData) throws Exception {
+    public Configuration updateConfiguration(Configuration configuration) throws Exception {
         /*
-        Future<ConfigurationData> future = executor.submit(() -> saveAndRestoreClient.saveConfiguration(configurationData));
-        ConfigurationData updatedConfigurationData = future.get();
+        Future<Configuration> future = executor.submit(() -> saveAndRestoreClient.saveConfiguration(configuration));
+        Configuration updatedConfigurationData = future.get();
         //notifyNodeChangeListeners(updatedNode);
         return updatedConfigurationData;
 
@@ -303,12 +302,12 @@ public class SaveAndRestoreService {
         return updatedNode;
     }
 
-    public ConfigurationData getConfiguration(String nodeId) throws Exception {
-        Future<ConfigurationData> future = executor.submit(() -> saveAndRestoreClient.getConfiguration(nodeId));
+    public Configuration getConfiguration(String nodeId) throws Exception {
+        Future<Configuration> future = executor.submit(() -> saveAndRestoreClient.getConfiguration(nodeId));
         try {
             return future.get();
         } catch (Exception e) {
-            // ConfigurationData might not exist yet
+            // Configuration might not exist yet
             return null;
         }
     }
