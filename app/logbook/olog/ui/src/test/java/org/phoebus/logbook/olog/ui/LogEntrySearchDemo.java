@@ -63,7 +63,7 @@ public class LogEntrySearchDemo extends ApplicationWrapper {
                             .newInstance(getLogClient(), searchParameters);
                 } else if (clazz.isAssignableFrom(LogPropertiesController.class)) {
                     return clazz.getConstructor().newInstance();
-                } else if (clazz.isAssignableFrom(AttachmentsPreviewController.class)) {
+                } else if (clazz.isAssignableFrom(AttachmentsViewController.class)) {
                     return clazz.getConstructor().newInstance();
                 } else if (clazz.isAssignableFrom(LogEntryCellController.class)) {
                     return clazz.getConstructor().newInstance();
@@ -157,6 +157,7 @@ public class LogEntrySearchDemo extends ApplicationWrapper {
             @Override
             public SearchResult search(Map<String, String> map){
                 LogEntry logEntry = LogEntryBuilder.log()
+                        .id(771L)
                         .createdDate(Instant.now())
                         .description("desc").build();
                 return SearchResult.of(Arrays.asList(logEntry), 1);

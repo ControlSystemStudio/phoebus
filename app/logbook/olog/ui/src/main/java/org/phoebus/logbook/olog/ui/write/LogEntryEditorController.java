@@ -35,9 +35,9 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.logbook.*;
+import org.phoebus.logbook.olog.ui.AttachmentsViewController;
 import org.phoebus.logbook.olog.ui.HelpViewer;
 import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
 import org.phoebus.logbook.olog.ui.PreviewViewer;
@@ -80,10 +80,14 @@ public class LogEntryEditorController {
 
     @SuppressWarnings("unused")
     @FXML
-    private AttachmentsViewController attachmentsViewController;
+    private AttachmentsEditorController attachmentsEditorController;
     @SuppressWarnings("unused")
     @FXML
     private LogPropertiesEditorController logPropertiesEditorController;
+
+    @SuppressWarnings("unused")
+    @FXML
+    private AttachmentsViewController attachmentsViewController;
 
     @FXML
     private Label userFieldLabel;
@@ -199,7 +203,7 @@ public class LogEntryEditorController {
                         completionMessageLabel.textProperty(), submissionInProgress));
         progressIndicator.visibleProperty().bind(submissionInProgress);
         cancelButton.disableProperty().bind(submissionInProgress);
-        attachmentsViewController.setTextArea(textArea);
+        attachmentsEditorController.setTextArea(textArea);
 
         userField.textProperty().bindBidirectional(usernameProperty);
         userField.textProperty().addListener((changeListener, oldVal, newVal) ->
@@ -339,9 +343,7 @@ public class LogEntryEditorController {
                         popOver.hide();
                     }
                 },
-                (tags, popOver) -> {
-                    popOver.hide();
-                }
+                (tags, popOver) -> popOver.hide()
         );
         logbooksPopOver = ListSelectionPopOver.create(
                 (logbooks, popOver) -> {
@@ -350,27 +352,19 @@ public class LogEntryEditorController {
                         popOver.hide();
                     }
                 },
-                (logbooks, popOver) -> {
-                    popOver.hide();
-                }
+                (logbooks, popOver) -> popOver.hide()
         );
 
-        selectedTags.addListener(new ListChangeListener<String>() {
-            @Override
-            public void onChanged(Change<? extends String> change) {
-                List<String> newSelection = new ArrayList<>(change.getList());
-                tagsPopOver.setAvailable(availableTagsAsStringList, newSelection);
-                tagsPopOver.setSelected(newSelection);
-            }
+        selectedTags.addListener((ListChangeListener<String>) change -> {
+            List<String> newSelection = new ArrayList<>(change.getList());
+            tagsPopOver.setAvailable(availableTagsAsStringList, newSelection);
+            tagsPopOver.setSelected(newSelection);
         });
 
-        selectedLogbooks.addListener(new ListChangeListener<String>() {
-            @Override
-            public void onChanged(Change<? extends String> change) {
-                List<String> newSelection = new ArrayList<>(change.getList());
-                logbooksPopOver.setAvailable(availableLogbooksAsStringList, newSelection);
-                logbooksPopOver.setSelected(newSelection);
-            }
+        selectedLogbooks.addListener((ListChangeListener<String>) change -> {
+            List<String> newSelection = new ArrayList<>(change.getList());
+            logbooksPopOver.setAvailable(availableLogbooksAsStringList, newSelection);
+            logbooksPopOver.setSelected(newSelection);
         });
 
         // Note: logbooks and tags are retrieved asynchronously from service
@@ -415,7 +409,7 @@ public class LogEntryEditorController {
             ologLog.setLevel(selectedLevelProperty.get());
             ologLog.setLogbooks(getSelectedLogbooks());
             ologLog.setTags(getSelectedTags());
-            ologLog.setAttachments(attachmentsViewController.getAttachments());
+            ologLog.setAttachments(attachmentsEditorController.getAttachments());
             ologLog.setProperties(logPropertiesEditorController.getProperties());
 
             LogClient logClient =
@@ -446,7 +440,7 @@ public class LogEntryEditorController {
                             logger.log(Level.WARNING, "Secure Store file not found.", ex);
                         }
                     }
-                    attachmentsViewController.deleteTemporaryFiles();
+                    attachmentsEditorController.deleteTemporaryFiles();
                     // This will close the editor
                     Platform.runLater(this::cancel);
                 }
@@ -484,24 +478,14 @@ public class LogEntryEditorController {
         logbooksPopOver.show(addLogbooks);
     }
 
-    private ObservableList<String> getAvailableLogbooksAsStringList(){
-        return availableLogbooksAsStringList;
-    }
-
-    private ObservableList<String> getSelectedLogbooksAsStringList(){
-        return selectedLogbooks;
-    }
-
-    private boolean addSelectedLogbook(String logbookName){
+    private void addSelectedLogbook(String logbookName){
         selectedLogbooks.add(logbookName);
         updateDropDown(logbookDropDown, logbookName, true);
-        return true;
     }
 
-    private boolean removeSelectedLogbook(String logbookName){
+    private void removeSelectedLogbook(String logbookName){
         selectedLogbooks.remove(logbookName);
         updateDropDown(logbookDropDown, logbookName, false);
-        return true;
     }
 
     private void setSelectedLogbooks(List<String> proposedLogbooks, List<String> existingLogbooks) {
@@ -534,24 +518,14 @@ public class LogEntryEditorController {
         tagsPopOver.show(addTags);
     }
 
-    private ObservableList<String> getTagsAsStringList(){
-        return availableTagsAsStringList;
-    }
-
-    private ObservableList<String> getSelectedTagsAsStringList(){
-        return selectedTags;
-    }
-
-    private boolean addSelectedTag(String tagName){
+    private void addSelectedTag(String tagName){
         selectedTags.add(tagName);
         updateDropDown(tagDropDown, tagName, true);
-        return true;
     }
 
-    private boolean removeSelectedTag(String tagName){
+    private void removeSelectedTag(String tagName){
         selectedTags.remove(tagName);
         updateDropDown(tagDropDown, tagName, false);
-        return true;
     }
 
     private void setSelectedTags(List<String> proposedTags, List<String> existingTags) {

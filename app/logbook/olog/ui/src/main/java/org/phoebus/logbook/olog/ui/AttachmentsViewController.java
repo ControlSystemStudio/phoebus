@@ -18,19 +18,24 @@
 
 package org.phoebus.logbook.olog.ui;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
-import javafx.scene.control.*;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.SplitPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -41,7 +46,8 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.logbook.Attachment;
-import org.phoebus.logbook.olog.ui.write.AttachmentsViewController;
+import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.olog.ui.write.AttachmentsEditorController;
 import org.phoebus.ui.application.ApplicationLauncherService;
 import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -54,6 +60,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -62,7 +70,7 @@ import java.util.logging.Logger;
  * Controller for the AttachmentPreview.fxml view. It is designed to be used both
  * by a log entry editor and the read-only log entry details view.
  */
-public class AttachmentsPreviewController {
+public class AttachmentsViewController {
 
     @FXML
     private SplitPane splitPane;
@@ -79,46 +87,42 @@ public class AttachmentsPreviewController {
     @FXML
     private ListView<Attachment> attachmentListView;
 
+    @FXML
+    private Label placeholderLabel;
+
     /**
      * List of attachments selected by user in the preview's {@link ListView}.
      */
-    private ObservableList<Attachment> selectedAttachments = FXCollections.observableArrayList();
+    private final ObservableList<Attachment> selectedAttachments = FXCollections.observableArrayList();
 
-    private SimpleObjectProperty<Attachment> selectedAttachment = new SimpleObjectProperty();
+    private final SimpleObjectProperty<Attachment> selectedAttachment = new SimpleObjectProperty<>();
 
     /**
      * List of listeners that will be notified when user has selected one or multiple attachments in
      * the {@link ListView}.
      */
-    private List<ListChangeListener<Attachment>> listSelectionChangeListeners = new ArrayList<>();
+    private final List<ListChangeListener<Attachment>> listSelectionChangeListeners = new ArrayList<>();
+
+    private final ObservableList<Attachment> attachments = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
 
         attachmentListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         attachmentListView.setCellFactory(view -> new AttachmentRow());
-        attachmentListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<>() {
-            /**
-             * Shows preview of selected attachment.
-             * @param observable
-             * @param oldValue
-             * @param newValue
-             */
-            @Override
-            public void changed(ObservableValue<? extends Attachment> observable, Attachment oldValue, Attachment newValue) {
-                selectedAttachment.set(newValue);
-                showPreview();
-            }
+        attachmentListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            selectedAttachment.set(newValue);
+            showPreview();
         });
 
         attachmentListView.setOnMouseClicked(me -> {
             if (me.getClickCount() == 2) {
                 Attachment attachment = attachmentListView.getSelectionModel()
                         .getSelectedItem();
-                if(!attachment.getContentType().startsWith("image")) {
+                if (!attachment.getContentType().startsWith("image")) {
                     // First try to open the file with an internal Phoebus app
-                    AppResourceDescriptor defaultApp = ApplicationLauncherService.findApplication(attachment.getFile().toURI(),true, null);
-                    if(defaultApp != null) {
+                    AppResourceDescriptor defaultApp = ApplicationLauncherService.findApplication(attachment.getFile().toURI(), true, null);
+                    if (defaultApp != null) {
                         defaultApp.create(attachment.getFile().toURI());
                         return;
                     }
@@ -126,7 +130,7 @@ public class AttachmentsPreviewController {
                     // If not internal apps are found look for external apps
                     String fileName = attachment.getFile().getName();
                     String[] parts = fileName.split("\\.");
-                    if(parts.length == 1 || !ApplicationService.getExtensionsHandledByExternalApp().contains(parts[parts.length - 1])){
+                    if (parts.length == 1 || !ApplicationService.getExtensionsHandledByExternalApp().contains(parts[parts.length - 1])) {
                         // If there is no app configured for the file type, then use the default configured for the OS/User
                         // Note: Do not use Desktop API, as using Java AWT can hang Phoebus / JavaFX Applications
                         try {
@@ -141,24 +145,16 @@ public class AttachmentsPreviewController {
             }
         });
 
-        attachmentListView.getSelectionModel().getSelectedItems().addListener(new ListChangeListener<>() {
-            /**
-             * Notifies listeners of list selection change.
-             * @param change
-             */
-            @Override
-            public void onChanged(Change<? extends Attachment> change) {
-                selectedAttachments.setAll(change.getList());
-                listSelectionChangeListeners.stream().forEach(l -> l.onChanged(change));
-            }
+        attachmentListView.getSelectionModel().getSelectedItems().addListener((ListChangeListener<Attachment>) change -> {
+            selectedAttachments.setAll(change.getList());
+            listSelectionChangeListeners.forEach(l -> l.onChanged(change));
         });
-
 
         attachmentListView.setOnContextMenuRequested((e) -> {
             ContextMenu contextMenu = new ContextMenu();
             MenuItem menuItem = new MenuItem(Messages.DownloadSelected);
-            menuItem.setOnAction(actionEvent -> downloadSelectedAttachments());
-            menuItem.disableProperty().bind(Bindings.createBooleanBinding(() -> selectedAttachments.isEmpty(), selectedAttachments));
+            menuItem.setOnAction(actionEvent -> copySelectedAttachments());
+            menuItem.disableProperty().bind(Bindings.createBooleanBinding(selectedAttachments::isEmpty, selectedAttachments));
 
             contextMenu.getItems().add(menuItem);
             URI selectedResource = !selectedAttachments.isEmpty() ? selectedAttachments.get(0).getFile().toURI() : null;
@@ -166,7 +162,7 @@ public class AttachmentsPreviewController {
             if (selectedResource != null) {
                 contextMenu.getItems().add(new SeparatorMenuItem());
                 final List<AppResourceDescriptor> applications = ApplicationService.getApplications(selectedResource);
-                applications.forEach( app -> {
+                applications.forEach(app -> {
                     MenuItem appMenuItem = new MenuItem(app.getDisplayName());
                     appMenuItem.setGraphic(ImageCache.getImageView(app.getIconURL()));
                     appMenuItem.setOnAction(actionEvent -> app.create(selectedResource));
@@ -199,39 +195,27 @@ public class AttachmentsPreviewController {
         return attachmentListView.getSelectionModel().getSelectedItems();
     }
 
-    /**
-     * Sets the list of attachments and installs a listener that selects and subsequently shows the last item
-     * in the <code>attachments</code>list.
-     *
-     * @param attachments List of {@link Attachment}s to show in the preview.
-     */
-    public void setAttachments(ObservableList<Attachment> attachments) {
-        attachmentListView.setItems(attachments);
-        attachmentListView.getItems().addListener(new ListChangeListener<>() {
-            /**
-             * Handles a change in the {@link ListView} such that a newly added item is selected and
-             * shown in preview. Note that if multiple attachments are added, this method will be called multiple
-             * times, and for each call the current selection is cleared. Consequently the last attachment
-             * will end up being selected and shown in preview.
-             * @param change
-             */
-            @Override
-            public void onChanged(Change<? extends Attachment> change) {
-                while (change.next()) {
-                    if (change.wasAdded()) {
-                        attachmentListView.getSelectionModel().clearSelection();
-                        attachmentListView.getSelectionModel().select(change.getAddedSubList().get(0));
-                    }
-                }
-            }
-        });
-        // Automatically select first attachment.
-        if (attachments != null && attachments.size() > 0) {
-            attachmentListView.getSelectionModel().select(attachments.get(0));
+    public void invalidateAttachmentList(LogEntry logEntry) {
+        if (logEntry.getAttachments().isEmpty()) {
+            placeholderLabel.setText(Messages.NoAttachments);
+        } else {
+            placeholderLabel.setText(Messages.DownloadingAttachments);
         }
+        setAttachments(Collections.emptyList());
     }
 
-    private class AttachmentRow extends ListCell<Attachment> {
+    public void setAttachments(Collection<Attachment> attachments) {
+        Platform.runLater(() -> {
+            this.attachments.setAll(attachments);
+            attachmentListView.setItems(this.attachments);
+            // Update UI
+            if (this.attachments.size() > 0) {
+                attachmentListView.getSelectionModel().select(this.attachments.get(0));
+            }
+        });
+    }
+
+    private static class AttachmentRow extends ListCell<Attachment> {
         @Override
         public void updateItem(Attachment attachment, boolean empty) {
             super.updateItem(attachment, empty);
@@ -263,7 +247,7 @@ public class AttachmentsPreviewController {
      * Shows image preview in preview pane. The size of the {@link ImageView} is calculated based on
      * the size of the preview pane and the actual image size such that the complete image is always shown.
      *
-     * @param attachment
+     * @param attachment The image {@link Attachment} selected by user.
      */
     private void showImagePreview(Attachment attachment) {
         try {
@@ -276,26 +260,25 @@ public class AttachmentsPreviewController {
             imagePreview.visibleProperty().setValue(true);
             imagePreview.setImage(image);
         } catch (IOException ex) {
-            Logger.getLogger(AttachmentsViewController.class.getName())
+            Logger.getLogger(AttachmentsEditorController.class.getName())
                     .log(Level.SEVERE, "Unable to load image file " + attachment.getFile().getAbsolutePath(), ex);
         }
     }
 
     /**
-     * Downloads all selected attachments to folder selected by user.
+     * Copies all selected attachments to folder selected by user. Note that attachment files are
+     * downloaded from service as soon as user has selected a log entry in the search result view.
      */
-    public void downloadSelectedAttachments() {
+    public void copySelectedAttachments() {
         final DirectoryChooser dialog = new DirectoryChooser();
         dialog.setTitle(Messages.SelectFolder);
         dialog.setInitialDirectory(new File(System.getProperty("user.home")));
         File targetFolder = dialog.showDialog(splitPane.getScene().getWindow());
         JobManager.schedule("Save attachments job", (monitor) ->
-        {
-            selectedAttachments.stream().forEach(a -> downloadAttachment(targetFolder, a));
-        });
+                selectedAttachments.stream().forEach(a -> copyAttachment(targetFolder, a)));
     }
 
-    private void downloadAttachment(File targetFolder, Attachment attachment) {
+    private void copyAttachment(File targetFolder, Attachment attachment) {
         try {
             File targetFile = new File(targetFolder, attachment.getName());
             if (targetFile.exists()) {
@@ -313,5 +296,24 @@ public class AttachmentsPreviewController {
 
     public void removeListSelectionChangeListener(ListChangeListener<Attachment> changeListener) {
         listSelectionChangeListeners.remove(changeListener);
+    }
+
+    public void removeAttachments(List<Attachment> attachmentsToRemove) {
+        attachments.removeAll(attachmentsToRemove);
+    }
+
+    public List<Attachment> getAttachments() {
+        return attachments;
+    }
+
+    /**
+     * Adds an {@link Attachment} to the list of {@link Attachment}s and selects it in order
+     * to show a preview (image files only).
+     *
+     * @param attachment The new {@link Attachment}
+     */
+    public void addAttachment(Attachment attachment) {
+        attachments.add(attachment);
+        attachmentListView.getSelectionModel().select(attachment);
     }
 }

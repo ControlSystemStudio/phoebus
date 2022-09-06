@@ -23,7 +23,8 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox fx:id="root" prefHeight="1000" prefWidth="800" HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.write.LogEntryEditorController">
+<VBox fx:id="root" prefHeight="1000" prefWidth="800" HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.phoebus.logbook.olog.ui.write.LogEntryEditorController">
     <padding>
         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
     </padding>
@@ -121,10 +122,6 @@
         </VBox>
 
 
-
-
-
-
         <HBox>
            <children>
               <Label maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
@@ -157,7 +154,7 @@
     <Accordion maxHeight="1.7976931348623157E308">
         <panes>
             <TitledPane animated="false" maxHeight="1.7976931348623157E308" text="%Attachments">
-                <fx:include fx:id="attachmentsView" maxHeight="1.7976931348623157E308" source="AttachmentsView.fxml" />
+                <fx:include fx:id="attachmentsEditor" maxHeight="1.7976931348623157E308" source="AttachmentsEditor.fxml" />
             </TitledPane>
             <TitledPane animated="false" text="%Properties">
                 <fx:include fx:id="logPropertiesEditor" source="LogPropertiesEditor.fxml" />
