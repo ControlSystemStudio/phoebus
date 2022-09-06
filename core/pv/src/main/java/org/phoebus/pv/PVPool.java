@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,8 +11,10 @@ import static org.phoebus.pv.PV.logger;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.logging.Level;
 
 import org.phoebus.framework.preferences.AnnotatedPreferences;
@@ -61,7 +63,7 @@ public class PVPool
     final private static Map<String, PVFactory> factories = new HashMap<>();
 
     /** Default PV name type prefix */
-    @Preference(name="default") private static String default_type;
+    @Preference(name="default") public static String default_type;
 
     static
     {
@@ -83,6 +85,91 @@ public class PVPool
         {
             logger.log(Level.SEVERE, "Cannot initialize PVPool", ex);
         }
+    }
+
+    /** Combination of type and name, <code>type://name</name> */
+    public static class TypedName
+    {
+        /** PV Type */
+        public final String type;
+        /** Name */
+        public final String name;
+
+        /** Analyze PV name
+         *  @param type_name PV Name, "name..." or  "type://name..."
+         *  @return {@link TypedName}
+         */
+        public static TypedName analyze(final String type_name)
+        {
+            final String type, name;
+
+            if (type_name.startsWith("="))
+            {   // Special handling of equations, treating "=...." as "eq://...."
+                type = FormulaPVFactory.TYPE;
+                name = type_name.substring(1);
+            }
+            else
+            {
+                final int sep = type_name.indexOf(SEPARATOR);
+                if (sep > 0)
+                {
+                    type = type_name.substring(0, sep);
+                    name = type_name.substring(sep+SEPARATOR.length());
+                }
+                else
+                {
+                    type = default_type;
+                    name = type_name;
+                }
+            }
+            return new TypedName(type, name);
+        }
+
+        /** @param type "type"
+         *  @param name "name"
+         *  @return "type://name"
+         */
+        public static String format(final String type, final String name)
+        {
+            return type + SEPARATOR + name;
+        }
+
+        private TypedName(final String type, final String name)
+        {
+            this.type = type;
+            this.name = name;
+        }
+
+        @Override
+        public String toString()
+        {
+            return format(type, name);
+        }
+    }
+
+    /** @param name PV Name, may be "xxx" or "type://xxx"
+     *  @param equivalent_pv_prefixes List of equivalent PV prefixes (types), e.g. "ca", "pva"
+     *  @return Set of equivalent names, e.g. "xxx", "ca://xxx", "pva://xxx"
+     */
+    public static Set<String> getNameVariants(final String name, final String [] equivalent_pv_prefixes)
+    {
+        // First, look for name as given
+        final Set<String> variants = new LinkedHashSet<>();
+        variants.add(name);
+        if (equivalent_pv_prefixes != null  &&  equivalent_pv_prefixes.length > 0)
+        {   // Optionally, if the original name is one of the equivalent types ...
+            final TypedName typed = TypedName.analyze(name);
+            for (String type : equivalent_pv_prefixes)
+                if (type.equals(typed.type))
+                {
+                    // .. add equivalent prefixes, starting with base name
+                    variants.add(typed.name);
+                    for (String variant : equivalent_pv_prefixes)
+                        variants.add(TypedName.format(variant, typed.name));
+                    break;
+                }
+        }
+        return variants;
     }
 
     /** PV Pool
@@ -116,13 +203,13 @@ public class PVPool
     {
         if (name.isBlank())
             throw new Exception("Empty PV name");
-        final String[] prefix_base = analyzeName(name);
-        final PVFactory factory = factories.get(prefix_base[0]);
+        final TypedName type_name = TypedName.analyze(name);
+        final PVFactory factory = factories.get(type_name.type);
         if (factory == null)
-            throw new Exception(name + " has unknown PV type '" + prefix_base[0] + "'");
+            throw new Exception(name + " has unknown PV type '" + type_name.type + "'");
 
         final String core_name = factory.getCoreName(name);
-        final ReferencedEntry<PV> ref = pool.createOrGet(core_name, () -> createPV(factory, name, prefix_base[1]));
+        final ReferencedEntry<PV> ref = pool.createOrGet(core_name, () -> createPV(factory, name, type_name.name));
         logger.log(Level.CONFIG, () -> "PV '" + ref.getEntry().getName() + "' references: " + ref.getReferences());
         return ref.getEntry();
     }
@@ -138,36 +225,6 @@ public class PVPool
             logger.log(Level.WARNING, "Cannot create PV '" + name + "'", ex);
         }
         return null;
-    }
-
-    /** Analyze PV name
-     *  @param name PV Name, "base..." or  "prefix://base..."
-     *  @return Array with type (or default) and base name
-     */
-    private static String[] analyzeName(final String name)
-    {
-        final String type, base;
-
-        if (name.startsWith("="))
-        {   // Special handling of equations, treating "=...." as "eq://...."
-            type = FormulaPVFactory.TYPE;
-            base = name.substring(1);
-        }
-        else
-        {
-            final int sep = name.indexOf(SEPARATOR);
-            if (sep > 0)
-            {
-                type = name.substring(0, sep);
-                base = name.substring(sep+SEPARATOR.length());
-            }
-            else
-            {
-                type = default_type;
-                base = name;
-            }
-        }
-        return new String[] { type, base };
     }
 
     /** @param pv PV to be released */

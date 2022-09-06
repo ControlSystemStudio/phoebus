@@ -36,6 +36,10 @@ public abstract class LogbookSearchController {
         this.client = client;
     }
 
+    public LogClient getLogClient(){
+        return client;
+    }
+
     /**
      * Starts a single search job. This should be used to search once.
      * @param searchParams The search parameters

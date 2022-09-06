@@ -23,13 +23,13 @@
   ~  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
   -->
 
-<SplitPane fx:id="splitPane" dividerPositions="0.3" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.AttachmentsPreviewController">
+<SplitPane fx:id="splitPane" dividerPositions="0.3" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.AttachmentsViewController">
     <items>
         <VBox>
             <children>
                 <ListView fx:id="attachmentListView">
                     <placeholder>
-                        <Label text="%NoAttachments" />
+                        <Label fx:id="placeholderLabel" text="%NoAttachments" />
                     </placeholder>
                 </ListView>
             </children>

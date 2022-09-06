@@ -8,7 +8,7 @@ import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
-import org.phoebus.logbook.olog.ui.write.AttachmentsViewController;
+import org.phoebus.logbook.olog.ui.write.AttachmentsEditorController;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
@@ -54,9 +54,9 @@ public class LogEntryTable implements AppInstance {
                             return clazz.getConstructor().newInstance();
                         } else if (clazz.isAssignableFrom(LogPropertiesController.class)) {
                             return clazz.getConstructor().newInstance();
-                        } else if (clazz.isAssignableFrom(AttachmentsPreviewController.class)) {
-                            return clazz.getConstructor().newInstance();
                         } else if (clazz.isAssignableFrom(AttachmentsViewController.class)) {
+                            return clazz.getConstructor().newInstance();
+                        } else if (clazz.isAssignableFrom(AttachmentsEditorController.class)) {
                             return clazz.getConstructor().newInstance();
                         } else if (clazz.isAssignableFrom(MergedLogEntryDisplayController.class)) {
                             return clazz.getConstructor(LogClient.class).newInstance(app.getClient());
@@ -79,9 +79,7 @@ public class LogEntryTable implements AppInstance {
             loader.load();
             controller = loader.getController();
             DockItem tab = new DockItem(this, loader.getRoot());
-            tab.setOnClosed(event -> {
-                controller.shutdown();
-            });
+            tab.setOnClosed(event -> controller.shutdown());
             DockPane.getActiveDockPane().addTab(tab);
         } catch (IOException e) {
             log.log(Level.WARNING, "Cannot load UI", e);
@@ -99,9 +97,9 @@ public class LogEntryTable implements AppInstance {
     }
 
     @Override
-    public void restore(Memento memento){
+    public void restore(Memento memento) {
         Optional<Boolean> hideDetails = memento.getBoolean(HIDE_DETAILS);
-        controller.setShowDetails(hideDetails.isEmpty() ? true : hideDetails.get());
+        controller.setShowDetails(hideDetails.isEmpty() || hideDetails.get());
     }
 
     @Override

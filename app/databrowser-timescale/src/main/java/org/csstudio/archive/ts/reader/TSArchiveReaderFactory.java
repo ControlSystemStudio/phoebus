@@ -7,8 +7,6 @@
  ******************************************************************************/
 package org.csstudio.archive.ts.reader;
 
-import java.util.logging.Logger;
-
 import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.spi.ArchiveReaderFactory;
 
@@ -26,9 +24,6 @@ import org.phoebus.archive.reader.spi.ArchiveReaderFactory;
 @SuppressWarnings("nls")
 public class TSArchiveReaderFactory implements ArchiveReaderFactory
 {
-    /** Common logger */
-    public static final Logger logger = Logger.getLogger(TSArchiveReaderFactory.class.getPackageName());
-
     /** Data source prefix */
     public static final String PREFIX = "ts:";
 

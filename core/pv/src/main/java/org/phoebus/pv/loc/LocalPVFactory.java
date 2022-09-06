@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -61,7 +61,7 @@ public class LocalPVFactory implements PVFactory
         final String[] ntv = ValueHelper.parseName(base_name);
 
         // Actual name: loc://the_pv  without <type> or (initial value)
-        final String actual_name = LocalPVFactory.TYPE + PVPool.SEPARATOR + ntv[0];
+        final String actual_name = PVPool.TypedName.format(LocalPVFactory.TYPE, ntv[0]);
 
         // Info for initial value, null if nothing provided
         final List<String> initial_value = ValueHelper.splitInitialItems(ntv[2]);

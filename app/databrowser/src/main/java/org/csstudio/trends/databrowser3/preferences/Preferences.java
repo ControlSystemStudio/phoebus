@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -87,6 +87,8 @@ public class Preferences
     @Preference public static boolean use_default_archives;
     /** Setting */
     @Preference public static boolean drop_failed_archives;
+    /** Setting */
+    @Preference public static String[]  equivalent_pv_prefixes;
     /** Setting */
     @Preference public static boolean use_trace_names;
     /** Setting */

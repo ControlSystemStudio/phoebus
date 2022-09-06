@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -25,6 +25,7 @@ public class Preferences
     @Preference public static String write_sample_table;
     @Preference public static int max_text_sample_length;
     @Preference public static boolean use_postgres_copy;
+    @Preference public static String[] equivalent_pv_prefixes;
     @Preference public static int log_trouble_samples;
     @Preference public static int log_overrun;
     @Preference public static int write_period;

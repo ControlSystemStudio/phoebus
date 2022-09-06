@@ -24,9 +24,9 @@
 <?import javafx.scene.layout.*?>
 
 <VBox fx:id="root" maxHeight="1.7976931348623157E308" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="org.phoebus.logbook.olog.ui.write.AttachmentsViewController">
+      fx:controller="org.phoebus.logbook.olog.ui.write.AttachmentsEditorController">
     <children>
-        <fx:include fx:id="attachmentsPreview" source="../AttachmentsPreview.fxml" />
+        <fx:include fx:id="attachmentsView" source="../AttachmentsView.fxml" />
         <HBox fx:id="buttonBar" spacing="5.0" GridPane.rowIndex="2" VBox.vgrow="NEVER">
             <Button maxWidth="1.7976931348623157E308" onAction="#addFiles" text="%Add" HBox.hgrow="ALWAYS" />
             <Button fx:id="clipboardButton" maxWidth="1.7976931348623157E308" onAction="#addClipboardContent" text="%ClipboardButton" HBox.hgrow="ALWAYS">

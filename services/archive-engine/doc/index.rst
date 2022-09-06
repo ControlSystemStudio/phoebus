@@ -2,10 +2,14 @@ RDB Archive Engine Service
 ==========================
 
 The RDB archive engine reads samples from PVs and writes them to an RDB.
-The RDB may be MySQL, Posgres or Oracle.
-For a production setup, the latter two offer a partitioned table space
-that allows managing the data by time.
-For smaller setups and to get started, MySQL is very straight forward.
+The RDB may be MySQL, PostgreSQL or Oracle.
+For smaller setups and to get started, MySQL is very straight forward
+and will be described in here.
+For a production setup, PostgreSQL or Oracle can use partitioned table space
+that allows better data management over time.
+See https://github.com/ControlSystemStudio/phoebus/tree/master/app/databrowser-timescale
+for more on using PostgreSQL with the TimescaleDB extension to
+partition data and get optimized data retrieval.
 
 Once the RDB is configured with the archive table schema,
 the archive engine is used both as a command line tool to configure the
@@ -43,9 +47,22 @@ Connect to mysql as root::
     mysql -u root -p'$root'
 
 and then paste the commands shown in ``services/archive-engine/dbd/MySQL.dbd``
-(available online as 
+(available online as
 https://github.com/ControlSystemStudio/phoebus/blob/master/services/archive-engine/dbd/MySQL.dbd )
 to create the table setup for archiving PV samples.
+
+The provided database schema is meant as an example, concentrating on the essential
+tables. It uses a single large ``sample`` table. A production setup
+might prefer to partition the table by for example creating a new partition each month.
+
+The schema as provided does not rely on table constraints.
+For example, while the ``chan_grp.eng_id`` should refer to a valid
+``smpl_eng.eng_id``, there may not be a foreign key constraint to
+enforce this.
+This has been done to minimize RDB overhead, using the database simply
+as "storage" and enforcing the correctness of the data inside the archive engine
+when it is importing a configuration or adding samples.
+For a production setup, you may want to add or remove constraints as desired.
 
 
 View Archive Data
@@ -72,12 +89,14 @@ List configurations::
     archive-engine.sh -list
     Archive Engine Configurations:
     ID  Name     Description        URL
-     1  Demo     Demo Engine        http://localhost:4812         
+     1  Demo     Demo Engine        http://localhost:4812
 
-     
+
 Extract configuration into an XML file::
 
     archive-engine.sh -engine Demo -export Demo.xml
+
+For a description of the XML schema, see ``archive_config.xsd``.
 
 Modify the XML file or create a new one to list the channels
 you want to archive and to configure how they should be samples.
@@ -91,13 +110,37 @@ in this example replacing the original one::
     archive-engine.sh -engine Demo -import Demo.xml -port 4812 -replace_engine
 
 
+PV Name Details
+---------------
+
+The archive engine uses CS-Studio PV names.
+"ca://xxxx" will force a Channel Access connection,
+"pva://xxxx" will force a PV Access connection,
+and just "xxxx" will use the default PV type
+configurable via
+
+    org.phoebus.pv/default=ca
+
+Since EPICS 7, IOCs can support both protocols.
+"xxxx", "ca://xxxx" and "pva://xxxx" will thus
+refer to the same record on the IOC.
+
+The preference setting
+
+    org.csstudio.archive/equivalent_pv_prefixes=ca, pva
+
+causes the archive engine to treat them equivalent as well.
+For details, refer to the description of the
+`equivalent_pv_prefixes` preference setting.
+
+
 Run the Archive Engine
 ----------------------
 
 To start the archive engine for a configuration::
 
     archive-engine.sh -engine Demo -port 4812 -settings my_settings.ini
-    
+
 The engine name ('Demo') needs to match a previously imported configuration name,
 and the port number (4812) needs to match the port number used when importing the configuration.
 The settings (my_settings.ini) typically contain the EPICS CA address list settings
@@ -113,7 +156,7 @@ The running archive engine offers a simple shell::
     ...
     INFO Web Server : http://localhost:4812
     ...
-    > 
+    >
     > help
     Archive Engine Commands:
     help            -  Show commands
