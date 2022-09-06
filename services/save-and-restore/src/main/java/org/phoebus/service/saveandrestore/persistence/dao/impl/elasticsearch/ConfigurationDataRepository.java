@@ -25,7 +25,7 @@ import co.elastic.clients.elasticsearch.core.GetRequest;
 import co.elastic.clients.elasticsearch.core.GetResponse;
 import co.elastic.clients.elasticsearch.core.IndexRequest;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
-import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,7 +39,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Repository
-public class ConfigurationRepository implements CrudRepository<Configuration, String> {
+public class ConfigurationDataRepository implements CrudRepository<ConfigurationData, String> {
 
     @Value("${elasticsearch.folder_node.index:saveandrestore_configuration}")
     public String ES_CONFIGURATION_INDEX;
@@ -48,12 +48,12 @@ public class ConfigurationRepository implements CrudRepository<Configuration, St
     @Qualifier("client")
     ElasticsearchClient client;
 
-    private final Logger logger = Logger.getLogger(ConfigurationRepository.class.getName());
+    private final Logger logger = Logger.getLogger(ConfigurationDataRepository.class.getName());
 
     @Override
-    public <S extends Configuration> S save(S entity) {
+    public <S extends ConfigurationData> S save(S entity) {
         try {
-            IndexRequest<Configuration> indexRequest =
+            IndexRequest<ConfigurationData> indexRequest =
                     IndexRequest.of(i ->
                             i.index(ES_CONFIGURATION_INDEX)
                                     .id(entity.getUniqueId())
@@ -65,8 +65,8 @@ public class ConfigurationRepository implements CrudRepository<Configuration, St
                 GetRequest getRequest =
                         GetRequest.of(g ->
                                 g.index(ES_CONFIGURATION_INDEX).id(response.id()));
-                GetResponse<Configuration> resp =
-                        client.get(getRequest, Configuration.class);
+                GetResponse<ConfigurationData> resp =
+                        client.get(getRequest, ConfigurationData.class);
                 return (S) resp.source();
             }
         } catch (Exception e) {
@@ -77,18 +77,18 @@ public class ConfigurationRepository implements CrudRepository<Configuration, St
     }
 
     @Override
-    public <S extends Configuration> Iterable<S> saveAll(Iterable<S> entities) {
+    public <S extends ConfigurationData> Iterable<S> saveAll(Iterable<S> entities) {
         return null;
     }
 
     @Override
-    public Optional<Configuration> findById(String id) {
+    public Optional<ConfigurationData> findById(String id) {
         try {
             GetRequest getRequest =
                     GetRequest.of(g ->
                             g.index(ES_CONFIGURATION_INDEX).id(id));
-            GetResponse<Configuration> resp =
-                    client.get(getRequest, Configuration.class);
+            GetResponse<ConfigurationData> resp =
+                    client.get(getRequest, ConfigurationData.class);
 
             if (!resp.found()) {
                 return Optional.empty();
@@ -106,12 +106,12 @@ public class ConfigurationRepository implements CrudRepository<Configuration, St
     }
 
     @Override
-    public Iterable<Configuration>  findAll() {
+    public Iterable<ConfigurationData>  findAll() {
         return null;
     }
 
     @Override
-    public Iterable<Configuration> findAllById(Iterable<String> strings) {
+    public Iterable<ConfigurationData> findAllById(Iterable<String> strings) {
         return null;
     }
 
@@ -126,7 +126,7 @@ public class ConfigurationRepository implements CrudRepository<Configuration, St
     }
 
     @Override
-    public void delete(Configuration entity) {
+    public void delete(ConfigurationData entity) {
 
     }
 
@@ -136,7 +136,7 @@ public class ConfigurationRepository implements CrudRepository<Configuration, St
     }
 
     @Override
-    public void deleteAll(Iterable<? extends Configuration> entities) {
+    public void deleteAll(Iterable<? extends ConfigurationData> entities) {
 
     }
 

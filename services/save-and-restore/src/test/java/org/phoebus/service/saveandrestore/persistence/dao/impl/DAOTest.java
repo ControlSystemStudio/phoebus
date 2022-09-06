@@ -26,6 +26,7 @@ import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VInt;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
@@ -60,6 +61,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 @ExtendWith(SpringExtension.class)
 @EnableConfigurationProperties
 @TestExecutionListeners({DependencyInjectionTestExecutionListener.class})
+@Disabled
 public class DAOTest {
 
     @Autowired
@@ -822,11 +824,11 @@ public class DAOTest {
         Node rootNode = nodeDAO.getRootNode();
 
         Node node1 = new Node();
-        node1.setName("Snapshot node");
+        node1.setName("SnapshotData node");
         node1.setNodeType(NodeType.SNAPSHOT);
 
         Node node2 = new Node();
-        node2.setName("Configuration node");
+        node2.setName("ConfigurationData node");
         node2.setNodeType(NodeType.CONFIGURATION);
         assertFalse(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(node1, node2), rootNode));
     }
@@ -837,12 +839,12 @@ public class DAOTest {
         Node rootNode = nodeDAO.getRootNode();
 
         Node node1 = new Node();
-        node1.setName("Snapshot node");
+        node1.setName("SnapshotData node");
         node1.setNodeType(NodeType.CONFIGURATION);
         node1 = nodeDAO.createNode(rootNode.getUniqueId(), node1);
 
         Node node2 = new Node();
-        node2.setName("Configuration node");
+        node2.setName("ConfigurationData node");
         node2.setNodeType(NodeType.FOLDER);
         node2 = nodeDAO.createNode(rootNode.getUniqueId(), node2);
 
@@ -859,7 +861,7 @@ public class DAOTest {
         Node rootNode = nodeDAO.getRootNode();
 
         Node node1 = new Node();
-        node1.setName("Snapshot node");
+        node1.setName("SnapshotData node");
         node1.setNodeType(NodeType.CONFIGURATION);
         node1 = nodeDAO.createNode(rootNode.getUniqueId(), node1);
 
@@ -869,7 +871,7 @@ public class DAOTest {
         folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
 
         Node node2 = new Node();
-        node2.setName("Configuration node");
+        node2.setName("ConfigurationData node");
         node2.setNodeType(NodeType.CONFIGURATION);
         node2 = nodeDAO.createNode(folderNode.getUniqueId(), node2);
 

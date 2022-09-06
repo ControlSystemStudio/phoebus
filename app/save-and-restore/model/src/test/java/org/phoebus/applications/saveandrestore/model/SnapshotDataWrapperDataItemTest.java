@@ -28,7 +28,7 @@ import org.epics.vtype.VType;
  * @author georgweiss
  * Created 14 May 2019
  */
-public class SnapshotWrapperDataItemTest {
+public class SnapshotDataWrapperDataItemTest {
 
 	@Test
 	public void testToString() {

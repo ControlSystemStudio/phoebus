@@ -81,7 +81,7 @@
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.6.2</version>
-        <configuration>
+        <configurationData>
           <source>11</source>
           <target>11</target>
           <fork>true</fork>
@@ -97,7 +97,7 @@
             <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</arg>
             <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.jvm=ALL-UNNAMED</arg>
           </compilerArgs>
-        </configuration>
+        </configurationData>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -108,9 +108,9 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
         <version>2.22.0</version>
-        <configuration>
+        <configurationData>
           <skipITs>${skipITTests}</skipITs>
-        </configuration>
+        </configurationData>
         <executions>
           <execution>
             <goals>
@@ -124,20 +124,20 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>3.1.1</version>
-        <configuration>
+        <configurationData>
           <!-- Only document 'public' code -->
           <show>public</show>
-        </configuration>
+        </configurationData>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
         <version>3.0.0-M5</version>
-        <configuration>
+        <configurationData>
           <tagNameFormat>v@{project.version}</tagNameFormat>
           <autoVersionSubmodules>true</autoVersionSubmodules>
           <releaseProfiles>releases</releaseProfiles>
-        </configuration>
+        </configurationData>
       </plugin>
     </plugins>
   </build>
@@ -163,11 +163,11 @@
         <plugins>
           <plugin>
             <artifactId>maven-failsafe-plugin</artifactId>
-            <configuration>
+            <configurationData>
               <includes>
                 <include>**/*UI.java</include>
               </includes>
-            </configuration>
+            </configurationData>
           </plugin>
         </plugins>
       </build>
@@ -183,12 +183,12 @@
         <plugins>
           <plugin>
             <artifactId>maven-failsafe-plugin</artifactId>
-            <configuration>
+            <configurationData>
               <includes>
                 <include>**/*UI.java</include>
                 <include>**/*IT.java</include>
               </includes>
-            </configuration>
+            </configurationData>
           </plugin>
         </plugins>
       </build>
@@ -203,11 +203,11 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.20</version>
-            <configuration>
+            <configurationData>
               <systemPropertyVariables>
                 <ignore_local_ipv6>true</ignore_local_ipv6>
                </systemPropertyVariables>
-            </configuration>
+            </configurationData>
           </plugin>
         </plugins>
       </build>
@@ -227,11 +227,11 @@
               <goals>
                 <goal>jar</goal>
               </goals>
-              <configuration>
+              <configurationData>
                 <!-- add this to disable checking -->
                 <doclint>none</doclint>
                 <source>11</source>
-              </configuration>
+              </configurationData>
             </execution>
           </executions>
         </plugin>
@@ -271,10 +271,10 @@
             <groupId>kr.motd.maven</groupId>
             <artifactId>sphinx-maven-plugin</artifactId>
             <version>2.10.0</version>
-            <configuration>
+            <configurationData>
               <sourceDirectory>${basedir}/docs/source</sourceDirectory>
               <outputDirectory>${basedir}/docs/build/html</outputDirectory>
-            </configuration>
+            </configurationData>
             <executions>
               <execution>
                 <phase>package</phase>
@@ -297,7 +297,7 @@
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>l10n-maven-plugin</artifactId>
             <version>1.0-alpha-2</version>
-            <configuration>
+            <configurationData>
               <aggregate>true</aggregate>
               <includes>**/messages*.properties</includes>
               <locales>
@@ -305,7 +305,7 @@
                 <locale>es</locale>
                 <locale>fr</locale>
               </locales>
-            </configuration>
+            </configurationData>
           </plugin>
           <!-- Disable all other reports for performance -->
           <plugin>
@@ -332,11 +332,11 @@
             <artifactId>nexus-staging-maven-plugin</artifactId>
             <version>1.6.8</version>
             <extensions>true</extensions>
-            <configuration>
+            <configurationData>
               <serverId>phoebus-releases</serverId>
               <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
               <autoReleaseAfterClose>false</autoReleaseAfterClose>
-            </configuration>
+            </configurationData>
           </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
@@ -358,7 +358,7 @@
   </profiles>
 
   <repositories>
-    <!-- The Nexus snapshot repository hosting the latest diirt modules -->
+    <!-- The Nexus snapshotData repository hosting the latest diirt modules -->
     <repository>
       <id>sonatype-nexus-snapshots</id>
       <name>sonatype-nexus-snapshots</name>
@@ -366,7 +366,7 @@
     </repository>
     <repository>
       <id>es-snapshots</id>
-      <name>elasticsearch snapshot repo</name>
+      <name>elasticsearch snapshotData repo</name>
       <url>https://snapshots.elastic.co/maven/</url>
     </repository>
   </repositories>

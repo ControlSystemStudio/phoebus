@@ -157,13 +157,13 @@
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <version>3.2.0</version>
-        <configuration>
+        <configurationData>
           <descriptors>
             <descriptor>src/assembly/src.xml</descriptor>
           </descriptors>
           <tarLongFileMode>posix</tarLongFileMode>
           <appendAssemblyId>false</appendAssemblyId>
-        </configuration>
+        </configurationData>
         <executions>
           <execution>
             <id>make-assembly</id> <!-- this is used for inheritance merges -->

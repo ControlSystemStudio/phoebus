@@ -20,7 +20,7 @@ This assumes the project has been imported as a maven project into Eclipse(see i
 
     1. Open Eclipse
     2. Go to `Run->External Tools->External Run COnfigurations`
-    3. Create a new `Program` configuration. Set location to `usr/bin/java` on linux.
+    3. Create a new `Program` configurationData. Set location to `usr/bin/java` on linux.
        This is the location of the Java executable. For any other OS, it should not be too hard
        to find that directory.
     4. Set `Working Directory` to `phoebus/phoebus-product/target`.

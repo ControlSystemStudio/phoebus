@@ -72,7 +72,8 @@ public class NodeController extends BaseController {
         if (node.getName() == null || node.getName().isEmpty()) {
             throw new IllegalArgumentException("Node name must be non-null and of non-zero length");
         }
-        return nodeDAO.createNode(parentsUniqueId, node);
+        Node n = nodeDAO.createNode(parentsUniqueId, node);
+        return n;
     }
 
     /**

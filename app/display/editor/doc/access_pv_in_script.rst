@@ -6,7 +6,7 @@ Access PV in Script
 **The pvs object**
 
 The input PVs for a script can be accessed in script via ``pvs`` object. The order of the input PVs in the
-configuration list is preserved in ``pvs``. ``pvs[0]`` is the first input pv. If you have N input PVs, ``pvs[N-1]`` is the last input PV.
+configurationData list is preserved in ``pvs``. ``pvs[0]`` is the first input pv. If you have N input PVs, ``pvs[N-1]`` is the last input PV.
 
 A button-type widget configured to execute script(s) should instead
 reference pvs using ``widget.getPV()`` or ``widget.getPVByName(my_pv_name)``.

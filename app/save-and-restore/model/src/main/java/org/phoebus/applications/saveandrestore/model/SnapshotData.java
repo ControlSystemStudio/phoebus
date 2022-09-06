@@ -21,17 +21,20 @@ package org.phoebus.applications.saveandrestore.model;
 import java.util.List;
 
 /**
- * Class holding data particular to a save & restore configuration (save set) {@link Node}.
+ * Class holding data particular to a save & restore snapshot {@link Node}.
  */
-public class Configuration {
+public class SnapshotData {
 
     /**
      * This must be set to the same unique id as the {@link Node} object
-     * mapping to the save set node.
+     * mapping to the snapshot node.
      */
     private String uniqueId;
-    private String description;
-    private List<ConfigPv> pvList;
+    private String configId;
+    private String comment;
+    private List<SaveAndRestorePv> pvList;
+
+    private List<SaveAndRestorePv> readbackPvList;
 
     public String getUniqueId() {
         return uniqueId;
@@ -41,31 +44,35 @@ public class Configuration {
         this.uniqueId = uniqueId;
     }
 
-    public String getDescription() {
-        return description;
+    public String getConfigId() {
+        return configId;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setConfigId(String configId) {
+        this.configId = configId;
     }
 
-    public List<ConfigPv> getPvList() {
+    public List<SaveAndRestorePv> getPvList() {
         return pvList;
     }
 
-    public void setPvList(List<ConfigPv> pvList) {
+    public void setPvList(List<SaveAndRestorePv> pvList) {
         this.pvList = pvList;
     }
 
-    /**
-     * Clones a {@link Configuration} object. The unique id is not copied, as it should not be.
-     * @param configurationToClone source {@link Node}
-     * @return The cloned {@link Node}
-     */
-    public static Configuration clone(Configuration configurationToClone){
-        Configuration clone = new Configuration();
-        clone.setDescription(configurationToClone.getDescription());
-        clone.setPvList(configurationToClone.getPvList());
-        return clone;
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public List<SaveAndRestorePv> getReadbackPvList() {
+        return readbackPvList;
+    }
+
+    public void setReadbackPvList(List<SaveAndRestorePv> readbackPvList) {
+        this.readbackPvList = readbackPvList;
     }
 }

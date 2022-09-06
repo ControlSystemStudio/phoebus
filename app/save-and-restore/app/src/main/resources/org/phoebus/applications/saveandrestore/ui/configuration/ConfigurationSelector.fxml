@@ -8,9 +8,9 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox minHeight="400.0" minWidth="400.0" prefHeight="550.0" prefWidth="450.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationSelectionController">
+<VBox minHeight="400.0" minWidth="400.0" prefHeight="550.0" prefWidth="450.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationFromSelectionController">
    <children>
-      <Label text="Select a configuration or choose &quot;Create a new configuration&quot;:">
+      <Label text="Select a configurationData or choose &quot;Create a new configurationData&quot;:">
          <VBox.margin>
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
          </VBox.margin>

@@ -25,19 +25,17 @@ import com.sun.jersey.api.client.GenericType;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
-import org.epics.vtype.VType;
-import org.epics.vtype.gson.GsonMessageBodyHandler;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotWrapper;
-import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.applications.saveandrestore.model.ThinWrapper;
 import org.phoebus.applications.saveandrestore.model.UpdateConfigHolder;
 import org.phoebus.applications.saveandrestore.service.Messages;
 import org.phoebus.framework.preferences.PreferencesReader;
@@ -365,9 +363,9 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     @Override
-    public Configuration getConfiguration(String nodeId){
+    public ConfigurationData getConfiguration(String nodeId){
         ClientResponse clientResponse = getCall("/config/" + nodeId);
-        return clientResponse.getEntity(Configuration.class);
+        return clientResponse.getEntity(ConfigurationData.class);
     }
 
     @Override
@@ -385,23 +383,23 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     @Override
-    public Configuration updateConfiguration(Configuration configuration){
+    public ConfigurationData updateConfiguration(ConfigurationData configurationData){
         WebResource webResource =
                 client.resource(jmasarServiceUrl + "/config");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
-                .entity(configuration, CONTENT_TYPE_JSON)
+                .entity(configurationData, CONTENT_TYPE_JSON)
                 .post(ClientResponse.class);
         if (response.getStatus() != 200) {
             return null;
         }
-        return response.getEntity(Configuration.class);
+        return response.getEntity(ConfigurationData.class);
     }
 
     @Override
-    public Snapshot getSnapshot(String nodeId){
+    public SnapshotData getSnapshot(String nodeId){
         ClientResponse clientResponse = getCall("/snapshot/" + nodeId);
-        return clientResponse.getEntity(Snapshot.class);
+        return clientResponse.getEntity(SnapshotData.class);
     }
 
     @Override

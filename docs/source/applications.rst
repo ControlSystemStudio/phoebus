@@ -19,7 +19,7 @@ The following sections describe details of specific application features.
    app/databrowser/doc/index
    app/3d-viewer/doc/index
    app/pace/doc/index
-   app/log-configuration/doc/index
+   app/log-configurationData/doc/index
    app/save-and-restore/app/doc/index
    app/channel/views/doc/index
    app/imageviewer/doc/index

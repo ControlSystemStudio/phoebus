@@ -1076,19 +1076,19 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
     private ContextMenu createContextMenu(final int snapshotIndex) {
         MenuItem removeItem = new MenuItem("Remove");
-//        removeItem.setOnAction(ev -> SaveAndRestoreService.getInstance().execute("Remove Snapshot",
+//        removeItem.setOnAction(ev -> SaveAndRestoreService.getInstance().execute("Remove SnapshotData",
 //            () -> update(controller.removeSnapshot(snapshotIndex))));
         MenuItem setAsBaseItem = new MenuItem("Set As Base");
-//        setAsBaseItem.setOnAction(ev -> SaveAndRestoreService.getInstance().execute("Set new base Snapshot",
+//        setAsBaseItem.setOnAction(ev -> SaveAndRestoreService.getInstance().execute("Set new base SnapshotData",
 //            () -> update(controller.setAsBase(snapshotIndex))));
         MenuItem moveToNewEditor = new MenuItem("Move To New Editor");
-//        moveToNewEditor.setOnAction(ev -> SaveAndRestoreService.getInstance().execute("Open Snapshot",
+//        moveToNewEditor.setOnAction(ev -> SaveAndRestoreService.getInstance().execute("Open SnapshotData",
 //            () -> update(controller.moveSnapshotToNewEditor(snapshotIndex))));
         return new ContextMenu(removeItem, setAsBaseItem, new SeparatorMenuItem(), moveToNewEditor);
     }
 
 //    private void update(final List<TableEntry> entries) {
-//        final List<Snapshot> snaps = controller.getAllSnapshots();
+//        final List<SnapshotData> snaps = controller.getAllSnapshots();
 //        // the readback properties are changed on the UI thread, however they are just flags, which do not have any
 //        // effect on the data model, so they can be read by anyone at anytime
 //        Platform.runLater(

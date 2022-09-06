@@ -4,7 +4,7 @@ Save-And-Restore
 Overview
 --------
 
-The save-and-restore application can be used to take a snapshot of a pre-defined list if PVs at a certain point in
+The save-and-restore application can be used to take a snapshotData of a pre-defined list if PVs at a certain point in
 time, and write the persisted values back to the IOCs at some later point.
 
 The application depends on the save-and-restore service deployed on the network such that it can be accessed over
@@ -69,8 +69,8 @@ Logging
 -------
 
 If a logbook implementation is available in the application, the optional logging module can be used to launch a log entry
-editor for the purpose of logging when a new snapshot has been saved, or when a snapshot has been restored.
-Properties of the snapshot (name, date etc) are automatically set on the log entry rendered by the editor. If
+editor for the purpose of logging when a new snapshotData has been saved, or when a snapshotData has been restored.
+Properties of the snapshotData (name, date etc) are automatically set on the log entry rendered by the editor. If
 a restore action has failed to write one or multiple PVs, a list of these PVs is also added to the log entry.
 
 Script Support
@@ -95,31 +95,31 @@ API
 
 An exception is thrown if the node id is invalid, or if the connection to the remote service fails.
 
-**Get list of snapshot values of a snapshot:**
+**Get list of snapshotData values of a snapshotData:**
 
 .. code-block:: python
 
     from org.phoebus.applications.saveandrestore.script import SaveAndRestoreScriptUtil
-    print SaveAndRestoreScriptUtil.getSnapshotItems("<unique id of a snapshot node>")
+    print SaveAndRestoreScriptUtil.getSnapshotItems("<unique id of a snapshotData node>")
 
-An exception is thrown if the snapshot node id is invalid, or if the connection to the remote service fails.
+An exception is thrown if the snapshotData node id is invalid, or if the connection to the remote service fails.
 
-**Restore a snapshot:**
+**Restore a snapshotData:**
 
 .. code-block:: python
 
     from org.phoebus.applications.saveandrestore.script import SaveAndRestoreScriptUtil
-    report = SaveAndRestoreScriptUtil.restore("<unique id of a snapshot node>", 1000, 1000, False, False)
+    report = SaveAndRestoreScriptUtil.restore("<unique id of a snapshotData node>", 1000, 1000, False, False)
 
 The method signature is ``restore(snapshotNodeId, connectTimeout, writeTimeout, abortOnFail, rollback)`` where:
 
-* ``snapshotNodeId`` is the unique id of an existing snapshot.
-* ``connectTimeout`` is the timeout in ms waiting for all PVs in the snapshot to connect.
+* ``snapshotNodeId`` is the unique id of an existing snapshotData.
+* ``connectTimeout`` is the timeout in ms waiting for all PVs in the snapshotData to connect.
 * ``writeTimeout`` is the timeout in ms for a restore/write operation.
 * ``abortOnFail`` determines if the restore procedure should be aborted if restore/write of a PV fails.
 * ``rollback`` determines whether to rollback if a restore/write operation fails.
 
-This method will obtain saved PV values from the snapshot and restore them to the persisted values. The restore operation
+This method will obtain saved PV values from the snapshotData and restore them to the persisted values. The restore operation
 is synchronous with respect to each PV where each write operation will wait for at most ``writeTimeout`` ms to
 complete. PVs marked as read-only in the save set are not restored.
 
@@ -129,13 +129,13 @@ ms to complete. Once a PV is connected, its current value is read to be used if 
 An exception is thrown if:
 
 * If the connection to the remote service fails.
-* If the snapshot node id is invalid.
-* If any of the PVs in the snapshot fails to connect within ``connectTimeout`` ms.
+* If the snapshotData node id is invalid.
+* If any of the PVs in the snapshotData fails to connect within ``connectTimeout`` ms.
 
 Upon successful completion, a RestoreReport object is returned. It contains the following fields:
 
-* ``snapshotId``: The snapshot id.
-* ``snapshotPath``: The snapshot "path" as defined by the Save-And-Restore tree structure, e.g. ``/folder1/folder2/saveset1/snapshotId``.
+* ``snapshotId``: The snapshotData id.
+* ``snapshotPath``: The snapshotData "path" as defined by the Save-And-Restore tree structure, e.g. ``/folder1/folder2/saveset1/snapshotId``.
 * ``restoreDate``: The date when the restore operation was requested.
 * ``restoredPVs``: A map of successfully restored PV names and the values to which they were restored.
 * ``nonRestoredPVs``: A list of PV names that could not be restored/written, if any.

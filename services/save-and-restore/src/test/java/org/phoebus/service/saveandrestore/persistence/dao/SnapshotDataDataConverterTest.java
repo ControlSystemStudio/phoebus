@@ -44,7 +44,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * @author georgweiss Created 28 Nov 2018
  */
-public class SnapshotDataConverterTest {
+public class SnapshotDataDataConverterTest {
 
 	private static Alarm alarm;
 	private static Time time;
@@ -396,16 +396,6 @@ public class SnapshotDataConverterTest {
 	}
 
 	@Test
-	public void testUnsupportedType() {
-
-		VEnumArray vEnumArray = VEnumArray.of(ArrayInteger.of(1, 2, 3), EnumDisplay.of("a", "b", "c"), Alarm.none(), Time.now());
-
-		assertThrows(NodeNotFoundException.class,
-				() -> SnapshotDataConverter.fromVType(vEnumArray));
-
-	}
-
-	@Test
 	public void testGetScalarValueString() {
 
 		assertEquals("[1]", SnapshotDataConverter.getScalarValueString(Integer.valueOf(1)));
@@ -618,16 +608,15 @@ public class SnapshotDataConverterTest {
 	public void testFromSnapshotPv() {
 
 		SnapshotPv snapshotPv = SnapshotPv.builder().alarmName("name").alarmSeverity(AlarmSeverity.NONE).alarmStatus(AlarmStatus.NONE)
-				.snapshotId(2).dataType(SnapshotPvDataType.LONG).time(1000L).timens(7000).value("[1]").sizes("[1]").configPv(ConfigPv.builder().id(1).build()).build();
+				.snapshotId(2).dataType(SnapshotPvDataType.LONG).time(1000L).timens(7000).value("[1]").sizes("[1]").configPv(ConfigPv.builder().build()).build();
 		SnapshotPv readback = SnapshotPv.builder().alarmName("name").alarmSeverity(AlarmSeverity.NONE).alarmStatus(AlarmStatus.NONE)
-				.snapshotId(2).dataType(SnapshotPvDataType.LONG).time(1000L).timens(7000).value("[1]").sizes("[1]").configPv(ConfigPv.builder().id(1).build()).build();
+				.snapshotId(2).dataType(SnapshotPvDataType.LONG).time(1000L).timens(7000).value("[1]").sizes("[1]").configPv(ConfigPv.builder().build()).build();
 		SnapshotItem snapshotItem = SnapshotDataConverter.fromSnapshotPv(snapshotPv, readback);
 		
 		assertEquals(2, snapshotItem.getSnapshotId());
-		assertEquals(1, snapshotItem.getConfigPv().getId());
 		assertNotNull(snapshotItem.getReadbackValue());
 		
-		snapshotPv = SnapshotPv.builder().snapshotId(1).configPv(ConfigPv.builder().id(1).build()).build();
+		snapshotPv = SnapshotPv.builder().snapshotId(1).configPv(ConfigPv.builder().build()).build();
 		
 		snapshotItem = SnapshotDataConverter.fromSnapshotPv(snapshotPv, readback);
 		

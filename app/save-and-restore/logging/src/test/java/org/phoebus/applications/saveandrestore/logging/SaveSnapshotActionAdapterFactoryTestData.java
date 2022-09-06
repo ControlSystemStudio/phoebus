@@ -24,32 +24,30 @@ import org.phoebus.logbook.LogEntry;
 
 import java.util.List;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
-public class RestoreSnapshotActionAdapterFactoryTest {
+public class SaveSnapshotActionAdapterFactoryTestData {
 
-    private RestoreSnapshotActionAdapterFactory restoreSnapshotActionAdapterFactory = new RestoreSnapshotActionAdapterFactory();
+    private SaveSnapshotActionAdapterFactory saveSnapshotActionAdapterFactory = new SaveSnapshotActionAdapterFactory();
 
     @Test
     public void testGetAdaptableObject(){
-        assertTrue(restoreSnapshotActionAdapterFactory.getAdaptableObject().isAssignableFrom(RestoreSnapshotActionInfo.class));
+        assertTrue(saveSnapshotActionAdapterFactory.getAdaptableObject().isAssignableFrom(SaveSnapshotActionInfo.class));
     }
 
     @Test
     public void testGetAdapterList(){
-        List<? extends Class> list = restoreSnapshotActionAdapterFactory.getAdapterList();
+        List<? extends Class> list = saveSnapshotActionAdapterFactory.getAdapterList();
         assertTrue(list.get(0).isAssignableFrom(LogEntry.class));
     }
 
     @Test
-    public void testAdaptRestoreAction(){
-        RestoreSnapshotActionInfo restoreSnapshotActionInfo = new RestoreSnapshotActionInfo();
-        restoreSnapshotActionInfo.setSnapshotName("snapshot name");
-        restoreSnapshotActionInfo.setFailedPVs(List.of("pv name"));
+    public void testAdaptSaveAction(){
+        SaveSnapshotActionInfo saveSnapshotActionInfo = new SaveSnapshotActionInfo();
+        saveSnapshotActionInfo.setSnapshotName("snapshot name");
 
-        LogEntry logEntry = restoreSnapshotActionAdapterFactory.adapt(restoreSnapshotActionInfo, LogEntry.class).get();
+        LogEntry logEntry = saveSnapshotActionAdapterFactory.adapt(saveSnapshotActionInfo, LogEntry.class).get();
         assertTrue(logEntry.getTitle().contains("snapshot name"));
         assertTrue(logEntry.getDescription().contains("snapshot name"));
-        assertTrue(logEntry.getDescription().contains("pv name"));
     }
 }

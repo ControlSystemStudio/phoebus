@@ -46,20 +46,27 @@ public class ConfigurationTab extends Tab implements NodeChangedListener {
 
 
     public ConfigurationTab() {
-       configure();
+        configure();
     }
 
-    public ConfigurationTab(Node node) {
-       configure();
-       editSaveSet(node);
-    }
-
-    private void configure(){
+    private void configure() {
         try {
             FXMLLoader loader = new FXMLLoader();
             ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
             loader.setResources(resourceBundle);
             loader.setLocation(ConfigurationTab.class.getResource("ConfigurationEditor.fxml"));
+            loader.setControllerFactory(clazz -> {
+                try {
+                    if (clazz.isAssignableFrom(ConfigurationController.class)) {
+                        return clazz.getConstructor(SimpleStringProperty.class)
+                                .newInstance(tabTitleProperty);
+                    }
+                } catch (Exception e) {
+                    Logger.getLogger(ConfigurationTab.class.getName()).log(Level.SEVERE, "Failed to construct ConfigurationController", e);
+
+                }
+                return null;
+            });
             setContent(loader.load());
             configurationController = loader.getController();
             setGraphic(getTabGraphic());
@@ -82,15 +89,16 @@ public class ConfigurationTab extends Tab implements NodeChangedListener {
 
     /**
      * Configures UI to edit an existing save set {@link Node}
+     *
      * @param saveSetNode non-null save set {@link Node}
      */
-    public void editSaveSet(Node saveSetNode){
+    public void editSaveSet(Node saveSetNode) {
         setId(saveSetNode.getUniqueId());
         tabTitleProperty.set(saveSetNode.getName());
         configurationController.editConfiguration(saveSetNode);
     }
 
-    public void configureForNewSaveSet(Node parentNode){
+    public void configureForNewSaveSet(Node parentNode) {
         configurationController.newConfiguration(parentNode);
         tabTitleProperty.set(Messages.contextMenuNewSaveSet);
     }

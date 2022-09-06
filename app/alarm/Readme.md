@@ -1,12 +1,12 @@
 Alarm System
 ============
 
-Update of the alarm system that originally used RDB for configuration,
+Update of the alarm system that originally used RDB for configurationData,
 JMS for updates, RDB for persistence of most recent state.
 
 This development uses Kafka to handle both, using "Compacted Topics".
-For an "Accelerator" configuration, a topic of that name holds the configuration and state changes.
-When clients subscribe, they receive the most recent configuration and state, and from then on updates.
+For an "Accelerator" configurationData, a topic of that name holds the configurationData and state changes.
+When clients subscribe, they receive the most recent configurationData and state, and from then on updates.
 
 
 Kafka Installation
@@ -53,11 +53,11 @@ When the Linux host boots up, the default timeout may not be long enough to allo
     zookeeper.connection.timeout.ms=300000
 
 By default, Kafka will automatically create topics.
-This means you could accidentally start an alarm server for a non-existing configuration.
+This means you could accidentally start an alarm server for a non-existing configurationData.
 The Kafka topics will automatically be created, but they will lack the desired
 settings for compaction etc.
 Best disable auto-topic-creation, create topics on purpose with the correct settings,
-and have alarm tools that try to access a non-existing configuration fail.
+and have alarm tools that try to access a non-existing configurationData fail.
 
     # Suggest to add this to prevent automatic topic creation,
     auto.create.topics.enable=false
@@ -152,13 +152,13 @@ For more, see https://kafka.apache.org/documentation.html
 Configure Alarm Topics
 ----------------------
 
-Run this to create the topics for an "Accelerator" configuration:
+Run this to create the topics for an "Accelerator" configurationData:
 
      sh create_alarm_topics.sh Accelerator
 
 It will create these topics:
 
- * "Accelerator": Alarm configuration and state (compacted)
+ * "Accelerator": Alarm configurationData and state (compacted)
  * "AcceleratorCommand": Commands like "acknowledge" from UI to the alarm server (deleted)
  * "AcceleratorTalk": Annunciations (deleted)
 
@@ -166,11 +166,11 @@ The command messages are unidirectional from the alarm UI to the alarm server.
 The talk messages are unidirectional from the alarm server to the alarm annunciator.
 Both command and talk topics are configured to delete older messages, because only new messages are relevant.
 
-The primary topic is bidirectional. The alarm server receives configuration messages
+The primary topic is bidirectional. The alarm server receives configurationData messages
 and sends state updates. Both types of messages are combined in one topic to assert
 that their order is preserved. If they were sent via separate, unidirectional topics,
 both the server and the client would need to merge the messages based on their time
-stamp, which adds unnecessary complexity. Instead, we communicate both configuration
+stamp, which adds unnecessary complexity. Instead, we communicate both configurationData
 and state updates in one topic, distinguishing the message type via the `key` as
 described below.
 The primary topic is compacted, i.e. it uses `cleanup.policy=compact` to keep
@@ -189,26 +189,26 @@ You can track the log cleaner runs via
 Start Alarm Server
 ------------------
 
-You need to run one alarm server for each configuration.
-For the "Accelerator" configuration on localhost, simply start the alarm server service.
-Otherwise run `-help` to see options for selecting another configuration.
+You need to run one alarm server for each configurationData.
+For the "Accelerator" configurationData on localhost, simply start the alarm server service.
+Otherwise run `-help` to see options for selecting another configurationData.
 
-In the alarm server console you can view the configuration
+In the alarm server console you can view the configurationData
 and for example list active alarms or disconnected PVs.
-To edit the configuration use either the Alarm Tree GUI,
+To edit the configurationData use either the Alarm Tree GUI,
 or the alarm server `-export` and `-import` command line options,
-which create respectively read an XML-based configuration file.
+which create respectively read an XML-based configurationData file.
 
 
 User Interface
 --------------
 
-Open the Alarm Tree to show and edit the configuration.
+Open the Alarm Tree to show and edit the configurationData.
 
 Open Alarm Table as the primary runtime user interface to see and acknowledge active alarms.
 
 Based on preference settings, the alarm user interface can be configured to
-always look at just one alarm configuration, for example "Accelerator",
+always look at just one alarm configurationData, for example "Accelerator",
 or it can be configured to select between several alarm confirgurations at runtime.
 
 
@@ -223,12 +223,12 @@ _______________
 
 - Type `config:`, Config Topic:
 
-The messages in the config topic consist of a path to the alarm tree item that is being configured along with a JSON of its configuration.
+The messages in the config topic consist of a path to the alarm tree item that is being configured along with a JSON of its configurationData.
 Example key:
 
     config:/Accelerator/Vacuum/SomePV
 
-The message always contains the user name and host name of who is changing the configuration.
+The message always contains the user name and host name of who is changing the configurationData.
 
 The full config topic JSON format for a alarm tree leaf:
 
@@ -256,7 +256,7 @@ The full config topic JSON format for a alarm tree node:
         "actions":  [{"title": String, "details": String}]
     }
 
-The configuration of an alarm tree leaf, i.e. a PV, will
+The configurationData of an alarm tree leaf, i.e. a PV, will
 always contain the "description", but otherwise the actual JSON
 format will only contain the used elements.
 
@@ -375,7 +375,7 @@ __________
 
 When aggregating all messages into a long-term topic to preserve a history of all alarm system operations over time,
 the talk, command and state messages can be identified by the type code at the start of the message key,
-i.e. `config:` for configuration, `state:` for state, `command:` for commands (actions) or `talk:` for talk messages.
+i.e. `config:` for configurationData, `state:` for state, `command:` for commands (actions) or `talk:` for talk messages.
 
 __________________
 Demos
@@ -384,12 +384,12 @@ Demos
 `examples/create_alarm_topics.sh Accelerator`
 Run to create the topics used by the following demos.
 
-`AlarmConfigProducerDemo`: Run to create demo configuration.
+`AlarmConfigProducerDemo`: Run to create demo configurationData.
 Loading a demo config with a total of 100000 PVs arranged into several sub and sub-sub sections
 takes less than 5 seconds.
 (A 2011 test of the RDB-based alarm system needed about 5 minutes to load a setup with 50000 PVs)
 
-`AlarmClientModelDemo`: Run to dump the demo configuration
+`AlarmClientModelDemo`: Run to dump the demo configurationData
 
 `AlarmStateProducerDemo`: Run to generate fake alarm state updates.
 May run concurrently with `AlarmTreeUIDemo` to show the updates.
@@ -398,7 +398,7 @@ May run concurrently with `AlarmTreeUIDemo` to show the updates.
 Can be used to configure the alarm tree.
 
 Loads the 100k PV example in about 10 seconds.
-Once loaded, the UI is responsive with the 100000 PV example configuration,
+Once loaded, the UI is responsive with the 100000 PV example configurationData,
 including about 500 alarm updates per second, generated by 1000 PVs that change state every 2 seconds.
 (A 2011 test used about 10 alarms per second average, generated as 400 alarm changes every 40 seconds).
 
@@ -465,7 +465,7 @@ SSL will use SSL encryption and possibly two-way authentication (clients having 
 SASL_SSL will use SSL encryption and SASL authentication, which we will configure below for username/password.
 You may also remove the PLAINTEXT listner if you want to disallow unencrypted communication.
 
-In `/opt/kafka/config/server.properties` add the SSL configuration
+In `/opt/kafka/config/server.properties` add the SSL configurationData
 ```
 # If you want the brokers to authenticate to each other with SASL, use SASL_SSL here
 security.inter.broker.protocol=SSL
@@ -548,7 +548,7 @@ Then run for example
 ./kafka-acls.sh --bootstrap-server broker.your-accelerator.org:9093 --command-config ../config/client.properties --add --allow-principal User:* --operation read --topic Accelerator --topic AcceleratorCommand --topic AcceleratorTalk
 ./kafka-acls.sh --bootstrap-server broker.your-accelerator.org:9093 --command-config ../config/client.properties --add --allow-principal User:special-client.your-accelerator.org --operation read --operation write --topic Accelerator --topic AcceleratorCommand --topic AcceleratorTalk
 ```
-to allow anybody to see the active alarms, but only the special-client to acknowledge them and to change the configuration.
+to allow anybody to see the active alarms, but only the special-client to acknowledge them and to change the configurationData.
 The `../config/client.properties` must have credentails to authenticate the client as a super user.
 So, admin or broker.your-accelerator.org in this case.
 

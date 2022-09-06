@@ -6,7 +6,7 @@ as described at http://www.sphinx-doc.org/en/stable/rest.html.
 
 The top-level repository for help files is phoebus-doc
 (https://github.com/kasemir/phoebus-doc)
-and a snapshot of the current version is accessible on
+and a snapshotData of the current version is accessible on
 http://phoebus-doc.readthedocs.io.
 
 The top-level help repository provides the overall structure
@@ -32,7 +32,7 @@ Overall, the help content is thus generated from a combination of
 3. Pre-generated HTML folders copied from the ``phoebus/**/doc/html`` source tree
 
 In addition to building the help files locally as described below,
-or viewing a snapshot of the current version online
+or viewing a snapshotData of the current version online
 under the link mentioned above, the help content is also bundled into
 the phoebus-based CS-Studio product.
 When the phoebus product is built,

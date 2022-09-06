@@ -310,11 +310,11 @@ public class GitMigrator {
 
                             if (!isSnapshotCompatibleWithSaveSet(saveSetNode, snapshotItems)) {
                                 System.out.println("------------------------------------------------------------------------------------");
-                                System.out.println(" Snapshot not compatible with the saveset!");
+                                System.out.println(" SnapshotData not compatible with the saveset!");
                                 System.out.println(" Check if PV names are the same in saveset and snapshot!");
                                 System.out.println("------------------------------------------------------------------------------------");
                                 System.out.println("    Commit: " + commit.getName());
-                                System.out.println("   Configuration: " + DirectoryUtilities.CreateLocationString(saveSetNode, false));
+                                System.out.println("   ConfigurationData: " + DirectoryUtilities.CreateLocationString(saveSetNode, false));
                                 System.out.println(" Timestamp: " + snapshotName);
                                 System.out.println("------------------------------------------------------------------------------------");
 
@@ -336,8 +336,8 @@ public class GitMigrator {
                                 System.out.println(" Duplicate snapshot found!");
                                 System.out.println("------------------------------------------------------------------------------------");
                                 System.out.println("   Commit: " + commit.getName());
-                                System.out.println("  Configuration: " + DirectoryUtilities.CreateLocationString(saveSetNode, false));
-                                System.out.println(" Snapshot: " + snapshotName);
+                                System.out.println("  ConfigurationData: " + DirectoryUtilities.CreateLocationString(saveSetNode, false));
+                                System.out.println(" SnapshotData: " + snapshotName);
                                 System.out.println(" New name: " + newSnapshotName);
                                 System.out.println("------------------------------------------------------------------------------------");
 

@@ -1,12 +1,12 @@
 Logging Configuration
 =====================
 
-Allows for the runtime configuration of loggers.
+Allows for the runtime configurationData of loggers.
 
 Application developers are encouraged to
 use ``java.util.logging`` for log messages.
 
-To debug a problem, the logging configuration
+To debug a problem, the logging configurationData
 allows you to for example change the log level
 for the ``org.phoebus.pv`` module to use FINE
 or even ALL to see all received PV value updates.

@@ -14,14 +14,14 @@ or alarm system (add, remove, acknowledge alarms).
 Configuring Authorization
 -------------------------
 
-A preference setting selects a more detailed authorization configuration file::
+A preference setting selects a more detailed authorization configurationData file::
 
         org.phoebus.ui/authorization_file=/path/to/authorization.conf
 
 See details of the ``org.phoebus.ui`` preferences for the possible locations
 of that file.
 
-Example authorization configuration file::
+Example authorization configurationData file::
 
         # Authorization Settings
         #

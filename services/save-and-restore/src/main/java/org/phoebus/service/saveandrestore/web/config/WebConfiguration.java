@@ -22,6 +22,8 @@ import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.Ela
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+
+
 @Configuration
 public class WebConfiguration {
 

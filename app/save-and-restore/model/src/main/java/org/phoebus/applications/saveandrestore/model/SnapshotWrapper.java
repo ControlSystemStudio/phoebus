@@ -20,13 +20,13 @@
 package org.phoebus.applications.saveandrestore.model;
 
 /**
- * Wrapper object around a {@link Node} of type {@link NodeType#SNAPSHOT} and associated snapshot data
- * as represented in a {@link Snapshot} object.
+ * Wrapper object around a {@link Node} of type {@link NodeType#SNAPSHOT} and associated snapshotData data
+ * as represented in a {@link SnapshotData} object.
  */
 public class SnapshotWrapper {
 
     private Node snapshotNode;
-    private Snapshot snapshot;
+    private SnapshotData snapshotData;
 
     public Node getSnapshotNode() {
         return snapshotNode;
@@ -36,11 +36,11 @@ public class SnapshotWrapper {
         this.snapshotNode = snapshotNode;
     }
 
-    public Snapshot getSnapshotData() {
-        return snapshot;
+    public SnapshotData getSnapshotData() {
+        return snapshotData;
     }
 
-    public void setSnapshotData(Snapshot snapshot) {
-        this.snapshot = snapshot;
+    public void setSnapshotData(SnapshotData snapshotData) {
+        this.snapshotData = snapshotData;
     }
 }

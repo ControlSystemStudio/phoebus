@@ -3,7 +3,7 @@ Phoebus Documentation
 
 Documentation for https://github.com/ControlSystemStudio/phoebus
 
-View latest snapshot at https://control-system-studio.readthedocs.io
+View latest snapshotData at https://control-system-studio.readthedocs.io
 
 You can build a local copy using a local installation of sphinx or with maven
 

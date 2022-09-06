@@ -23,7 +23,7 @@
     <height>139</height>
     <text>Assume you have many instances of a device.
 
-In this example, a configuration file "devices.xml"
+In this example, a configurationData file "devices.xml"
 lists the name and PV of each device.
 A script attached to this display reads the file
 and then creates one copy of the "template"

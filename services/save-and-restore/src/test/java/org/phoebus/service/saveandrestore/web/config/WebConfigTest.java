@@ -29,7 +29,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
 @ContextHierarchy({@ContextConfiguration(classes = {
-        WebConfiguration.class})})
+        WebConfiguration.class, ControllersTestConfig.class})})
 public class WebConfigTest {
 
     @Autowired

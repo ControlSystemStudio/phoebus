@@ -78,14 +78,12 @@ public class NodeTest {
 				.lastModified(now)
 				.name("name")
 				.nodeType(NodeType.FOLDER)
-				.uniqueId("uniqueid")
 				.build();
 		
 		assertEquals("id1", node.getUniqueId());
 		assertEquals(now, node.getCreated());
 		assertEquals(now, node.getLastModified());
 		assertEquals("name", node.getName());
-		assertEquals("uniqueid", node.getUniqueId());
 		assertEquals(NodeType.FOLDER, node.getNodeType());
 	}
 	

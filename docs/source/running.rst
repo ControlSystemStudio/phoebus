@@ -29,7 +29,7 @@ for the complete list::
         -list                                   -  List available application features
         -server port                            -  Create instance server on given TCP port
         -app probe                              -  Launch an application with input arguments
-        -resource  /tmp/example.plt             -  Open an application configuration file with the default application
+        -resource  /tmp/example.plt             -  Open an application configurationData file with the default application
         -layout /path/to/Example.memento        -  Start with the specified saved layout instead of the default 'memento'
         -clean                                  -  Start with a blank workspace. Overrides -app, -resource and -layout.
         -main org.package.Main                  -  Run alternate application Main

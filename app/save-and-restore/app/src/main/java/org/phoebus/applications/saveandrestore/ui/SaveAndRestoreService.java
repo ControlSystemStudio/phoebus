@@ -24,9 +24,10 @@ import org.phoebus.applications.saveandrestore.common.VNoData;
 import org.phoebus.applications.saveandrestore.impl.SaveAndRestoreJerseyClient;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.Snapshot;
+import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.SnapshotWrapper;
 import org.phoebus.applications.saveandrestore.model.Tag;
@@ -210,11 +211,15 @@ public class SaveAndRestoreService {
         return updatedConfiguration;
     }
 
-    public Configuration updateConfiguration(Configuration configuration) throws Exception {
-        Future<Configuration> future = executor.submit(() -> saveAndRestoreClient.saveConfiguration(configuration));
-        Configuration updatedConfiguration = future.get();
+    public ConfigurationData updateConfiguration(ConfigurationData configurationData) throws Exception {
+        /*
+        Future<ConfigurationData> future = executor.submit(() -> saveAndRestoreClient.saveConfiguration(configurationData));
+        ConfigurationData updatedConfigurationData = future.get();
         //notifyNodeChangeListeners(updatedNode);
-        return updatedConfiguration;
+        return updatedConfigurationData;
+
+         */
+        return null;
     }
 
     public Node saveSnapshot(Node saveSetNode, List<SnapshotItem> snapshotItems, String snapshotName, String comment) throws Exception {
@@ -298,22 +303,22 @@ public class SaveAndRestoreService {
         return updatedNode;
     }
 
-    public Configuration getConfiguration(String nodeId) throws Exception {
-        Future<Configuration> future = executor.submit(() -> saveAndRestoreClient.getConfiguration(nodeId));
+    public ConfigurationData getConfiguration(String nodeId) throws Exception {
+        Future<ConfigurationData> future = executor.submit(() -> saveAndRestoreClient.getConfiguration(nodeId));
         try {
             return future.get();
         } catch (Exception e) {
-            // Configuration might not exist yet
+            // ConfigurationData might not exist yet
             return null;
         }
     }
 
-    public Snapshot getSnapshot(String nodeId) throws Exception {
-        Future<Snapshot> future = executor.submit(() -> saveAndRestoreClient.getSnapshot(nodeId));
+    public SnapshotData getSnapshot(String nodeId) throws Exception {
+        Future<SnapshotData> future = executor.submit(() -> saveAndRestoreClient.getSnapshot(nodeId));
         try {
             return future.get();
         } catch (Exception e) {
-            // Snapshot might not exist yet
+            // SnapshotData might not exist yet
             return null;
         }
     }

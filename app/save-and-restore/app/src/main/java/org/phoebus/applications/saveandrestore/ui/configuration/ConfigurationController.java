@@ -21,7 +21,6 @@ package org.phoebus.applications.saveandrestore.ui.configuration;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -29,7 +28,6 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
@@ -40,9 +38,7 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -52,6 +48,7 @@ import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
@@ -128,7 +125,7 @@ public class ConfigurationController {
     private Node configurationNode;
     private Node configurationNodeParent;
 
-    private Configuration loadedConfiguration;
+    private ConfigurationData loadedConfigurationData;
 
     private TableView.TableViewSelectionModel<ConfigPv> defaultSelectionModel;
 
@@ -139,6 +136,12 @@ public class ConfigurationController {
     private boolean newConfiguration;
 
     private final Logger logger = Logger.getLogger(ConfigurationController.class.getName());
+
+    private SimpleStringProperty tabTitleProperty;
+
+    public ConfigurationController(SimpleStringProperty tabTitleProperty){
+        this.tabTitleProperty = tabTitleProperty;
+    }
 
     @FXML
     public void initialize() {
@@ -245,17 +248,21 @@ public class ConfigurationController {
 
         UI_EXECUTOR.execute(() -> {
             try {
-                loadedConfiguration.setDescription(saveSetCommentProperty.getValue());
-                loadedConfiguration.setPvList(saveSetEntries);
+                loadedConfigurationData.setDescription(saveSetCommentProperty.getValue());
+                loadedConfigurationData.setPvList(saveSetEntries);
                 configurationNode.setName(saveSetNameProperty.get());
                 if (newConfiguration) {
-                    configurationNode = saveAndRestoreService
-                            .createNode(configurationNodeParent.getUniqueId(), configurationNode);
-                    loadedConfiguration.setUniqueId(configurationNode.getUniqueId());
-                    saveAndRestoreService.saveConfiguration(loadedConfiguration);
+                    Configuration configuration = new Configuration();
+                    configuration.setParentUniqueId(configurationNodeParent.getUniqueId());
+                    configuration.setConfigurationData(loadedConfigurationData);
+                    configuration.setNode(configurationNode);
+                    //configurationNode = saveAndRestoreService
+                    //.createNode(configurationNodeParent.getUniqueId(), configurationNode);
+                    //loadedConfigurationData.setUniqueId(configurationNode.getUniqueId());
+                    configurationNode = saveAndRestoreService.saveConfiguration(configuration).getNode();
                     newConfiguration = false;
                 } else {
-                    saveAndRestoreService.updateConfiguration(loadedConfiguration);
+                    saveAndRestoreService.updateConfiguration(loadedConfigurationData);
                 }
 
 
@@ -316,7 +323,7 @@ public class ConfigurationController {
             try {
                 configurationNode = Node.builder().nodeType(NodeType.CONFIGURATION).build();
                 configurationNodeParent = parentNode;
-                loadedConfiguration = new Configuration();
+                loadedConfigurationData = new ConfigurationData();
                 pvTable.setItems(saveSetEntries);
                 createdByField.textProperty().set(null);
                 saveSetDateField.textProperty().set(null);
@@ -333,19 +340,21 @@ public class ConfigurationController {
             this.configurationNode = configurationNode;
             try {
 
-                loadedConfiguration = saveAndRestoreService.getConfiguration(configurationNode.getUniqueId());
-                saveSetCommentProperty.set(loadedConfiguration.getDescription());
+                loadedConfigurationData = saveAndRestoreService.getConfiguration(configurationNode.getUniqueId());
+                saveSetCommentProperty.set(loadedConfigurationData.getDescription());
 
                 //List<ConfigPv> configPvs = saveAndRestoreService.getConfigPvs(node.getUniqueId());
 
-                Collections.sort(loadedConfiguration.getPvList());
+                Collections.sort(loadedConfigurationData.getPvList());
                 saveSetNameProperty.set(configurationNode.getName());
-                saveSetCommentProperty.set(loadedConfiguration.getDescription());
-                saveSetEntries.setAll(loadedConfiguration.getPvList());
+                saveSetCommentProperty.set(loadedConfigurationData.getDescription());
+                saveSetEntries.setAll(loadedConfigurationData.getPvList());
                 pvTable.setItems(saveSetEntries);
                 dirty.set(false);
                 createdByField.textProperty().set(configurationNode.getUserName());
                 saveSetDateField.textProperty().set(configurationNode.getCreated().toString());
+
+                tabTitleProperty.set(configurationNode.getName());
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Unable to load existing save set");
             }

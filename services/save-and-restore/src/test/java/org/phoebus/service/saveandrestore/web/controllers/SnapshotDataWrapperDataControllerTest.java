@@ -55,7 +55,7 @@ import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
 @ExtendWith(SpringExtension.class)
 @ContextHierarchy({ @ContextConfiguration(classes = { ControllersTestConfig.class }) })
 @WebMvcTest(SnapshotController.class)
-public class SnapshotWrapperDataControllerTest {
+public class SnapshotDataWrapperDataControllerTest {
 	
 
 	@Autowired
@@ -144,7 +144,7 @@ public class SnapshotWrapperDataControllerTest {
 	public void testGetSnapshotItems() throws Exception{
 		
 		SnapshotItem si = SnapshotItem.builder()
-				.configPv(ConfigPv.builder().id(1).pvName("pvName").build())
+				.configPv(ConfigPv.builder().pvName("pvName").build())
 				.snapshotId(2)
 				.build();
 		

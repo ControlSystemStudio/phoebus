@@ -14,61 +14,45 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
  */
 
 package org.phoebus.applications.saveandrestore.model;
 
-import org.epics.vtype.VType;
-import org.phoebus.applications.saveandrestore.model.json.VTypeSerializer;
-
-import java.util.List;
-
+/**
+ * Thin wrapper around a {@link Node} of type {@link NodeType#SNAPSHOT} and a
+ * {@link SnapshotData} object.
+ */
 public class Snapshot {
 
-    private String uniqueId;
-    private String configId;
-    private String comment;
-    private List<SaveAndRestorePv> pvList;
+    private Node node;
+    private SnapshotData snapshotData;
 
-    private List<SaveAndRestorePv> readbackPvList;
+    private String parentUniqueId;
 
-    public String getUniqueId() {
-        return uniqueId;
+    public Node getNode() {
+        return node;
     }
 
-    public void setUniqueId(String uniqueId) {
-        this.uniqueId = uniqueId;
+    public void setNode(Node node) {
+        if(!node.getNodeType().equals(NodeType.SNAPSHOT)){
+            throw new RuntimeException("Node must be of type NodeType.SNAPSHOT");
+        }
+        this.node = node;
     }
 
-    public String getConfigId() {
-        return configId;
+    public SnapshotData getConfigurationData() {
+        return snapshotData;
     }
 
-    public void setConfigId(String configId) {
-        this.configId = configId;
+    public void setConfigurationData(SnapshotData snapshotData) {
+        this.snapshotData = snapshotData;
+    }
+    public String getParentUniqueId() {
+        return parentUniqueId;
     }
 
-    public List<SaveAndRestorePv> getPvList() {
-        return pvList;
-    }
-
-    public void setPvList(List<SaveAndRestorePv> pvList) {
-        this.pvList = pvList;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
-
-    public List<SaveAndRestorePv> getReadbackPvList() {
-        return readbackPvList;
-    }
-
-    public void setReadbackPvList(List<SaveAndRestorePv> readbackPvList) {
-        this.readbackPvList = readbackPvList;
+    public void setParentUniqueId(String parentUniqueId) {
+        this.parentUniqueId = parentUniqueId;
     }
 }

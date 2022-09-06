@@ -21,17 +21,16 @@ package org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SaveAndRestorePv;
-import org.phoebus.applications.saveandrestore.model.Snapshot;
+import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.applications.saveandrestore.model.SnapshotPv;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.model.ESTreeNode;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
-import org.phoebus.service.saveandrestore.persistence.dao.SnapshotDataConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -50,10 +49,10 @@ public class ElasticsearchDAO implements NodeDAO {
     private ElasticsearchTreeRepository elasticsearchTreeRepository;
 
     @Autowired
-    private ConfigurationRepository configurationRepository;
+    private ConfigurationDataRepository configurationDataRepository;
 
     @Autowired
-    private SnapshotRepository snapshotRepository;
+    private SnapshotDataRepository snapshotDataRepository;
 
     private static final Logger logger = Logger.getLogger(ElasticsearchDAO.class.getName());
 
@@ -109,7 +108,7 @@ public class ElasticsearchDAO implements NodeDAO {
             throw new IllegalArgumentException(
                     "Parent node is not a folder, cannot create new node of type " + node.getNodeType());
         }
-        // Snapshot can only be created in Config
+        // SnapshotData can only be created in Config
         if (node.getNodeType().equals(NodeType.SNAPSHOT) && !parent.getNodeType().equals(NodeType.CONFIGURATION)) {
             throw new IllegalArgumentException("Parent node is not a configuration, cannot create snapshot");
         }
@@ -245,9 +244,9 @@ public class ElasticsearchDAO implements NodeDAO {
         Node Source = updateNode(sourceNode, true);
 
         if (sourceNode.getNodeType().equals(NodeType.CONFIGURATION)) {
-            Configuration sourceConfiguration = getConfiguration(sourceNode.getUniqueId());
-            copyConfiguration(Source, sourceConfiguration);
-            // TODO copy all snaoshot Nodes and Snapshot objects.
+            ConfigurationData sourceConfigurationData = getConfiguration(sourceNode.getUniqueId());
+            copyConfiguration(Source, sourceConfigurationData);
+            // TODO copy all snaoshot Nodes and SnapshotData objects.
         }
         else if (sourceNode.getNodeType().equals(NodeType.FOLDER)) {
             List<Node> childNodes = getChildNodes(sourceNode.getUniqueId());
@@ -256,15 +255,16 @@ public class ElasticsearchDAO implements NodeDAO {
     }
 
     /**
-     * Copies a {@link Configuration}.
-     * @param targetConfigurationNode The configuration {@link Node} with which the copied {@link Configuration} should be
+     * Copies a {@link ConfigurationData}.
+     * @param targetConfigurationNode The configuration {@link Node} with which the copied {@link ConfigurationData} should be
      * associated. This must already exist in the Elasticsearch index.
-     * @param sourceConfiguration The source {@link Configuration}
+     * @param sourceConfigurationData The source {@link ConfigurationData}
      */
-    private void copyConfiguration(Node targetConfigurationNode, Configuration sourceConfiguration){
-        Configuration clonedConfiguration = Configuration.clone(sourceConfiguration);
-        clonedConfiguration.setUniqueId(targetConfigurationNode.getUniqueId());
-        saveConfiguration(clonedConfiguration);
+    private void copyConfiguration(Node targetConfigurationNode, ConfigurationData sourceConfigurationData){
+        ConfigurationData clonedConfigurationData = ConfigurationData.clone(sourceConfigurationData);
+        clonedConfigurationData.setUniqueId(targetConfigurationNode.getUniqueId());
+        //TODO: fix!
+        //saveConfiguration(clonedConfigurationData);
     }
 
     @Override
@@ -274,18 +274,18 @@ public class ElasticsearchDAO implements NodeDAO {
         if(nodeOptional.isEmpty() || !nodeOptional.get().getNode().getNodeType().equals(NodeType.CONFIGURATION)){
             throw new IllegalArgumentException(String.format("Config node with unique id=%s not found or is wrong type", configToUpdate.getUniqueId()));
         }
-        Optional<Configuration> elasticsearchSavesetOptional = configurationRepository.findById(configToUpdate.getUniqueId());
-        Configuration elasticsearchConfiguration;
+        Optional<ConfigurationData> elasticsearchSavesetOptional = configurationDataRepository.findById(configToUpdate.getUniqueId());
+        ConfigurationData elasticsearchConfigurationData;
         if(elasticsearchSavesetOptional.isEmpty()){
-            elasticsearchConfiguration = new Configuration();
-            elasticsearchConfiguration.setUniqueId(configToUpdate.getUniqueId());
-            elasticsearchConfiguration.setDescription(configToUpdate.getDescription());
+            elasticsearchConfigurationData = new ConfigurationData();
+            elasticsearchConfigurationData.setUniqueId(configToUpdate.getUniqueId());
+            elasticsearchConfigurationData.setDescription(configToUpdate.getDescription());
         }
         else{
-            elasticsearchConfiguration = elasticsearchSavesetOptional.get();
+            elasticsearchConfigurationData = elasticsearchSavesetOptional.get();
         }
-        elasticsearchConfiguration.setPvList(configPvList);
-        configurationRepository.save(elasticsearchConfiguration);
+        elasticsearchConfigurationData.setPvList(configPvList);
+        configurationDataRepository.save(elasticsearchConfigurationData);
 
         // Save the config node to update last modified date
         elasticsearchTreeRepository.save(nodeOptional.get());
@@ -334,7 +334,7 @@ public class ElasticsearchDAO implements NodeDAO {
             configNode.setChildNodes(new ArrayList<>());
         }
         if(configNodeOptional.get().getChildNodes().stream().filter(n -> n.getName().equals(snapshotName)).findFirst().isPresent()){
-            throw new IllegalArgumentException("Snapshot with name " + snapshotName + " already exists");
+            throw new IllegalArgumentException("SnapshotData with name " + snapshotName + " already exists");
         }
         Date now = new Date();
         Node snapshotNode = Node.builder().nodeType(NodeType.SNAPSHOT)
@@ -352,10 +352,10 @@ public class ElasticsearchDAO implements NodeDAO {
         configNodeOptional.get().getChildNodes().add(snapshotNode);
         elasticsearchTreeRepository.save(configNodeOptional.get());
 
-        Snapshot elasticsearchSnapshot = new Snapshot();
-        elasticsearchSnapshot.setConfigId(parentsUniqueId);
-        elasticsearchSnapshot.setComment(comment);
-        elasticsearchSnapshot.setUniqueId(snapshotNode.getUniqueId());
+        SnapshotData elasticsearchSnapshotData = new SnapshotData();
+        elasticsearchSnapshotData.setConfigId(parentsUniqueId);
+        elasticsearchSnapshotData.setComment(comment);
+        elasticsearchSnapshotData.setUniqueId(snapshotNode.getUniqueId());
 
         List<SaveAndRestorePv> snapshotPvs = new ArrayList<>();
         snapshotItems.forEach(si -> {
@@ -364,16 +364,16 @@ public class ElasticsearchDAO implements NodeDAO {
             saveAndRestorePv.setValue(si.getValue());
             snapshotPvs.add(saveAndRestorePv);
         });
-        elasticsearchSnapshot.setPvList(snapshotPvs);
+        elasticsearchSnapshotData.setPvList(snapshotPvs);
 
-        snapshotRepository.save(elasticsearchSnapshot);
+        snapshotDataRepository.save(elasticsearchSnapshotData);
 
         return elasticsearchTreeNode.getNode();
     }
 
     @Override
     public List<ConfigPv> getConfigPvs(String configUniqueId) {
-        Optional<Configuration> elasticsearchSavesetOptional = configurationRepository.findById(configUniqueId);
+        Optional<ConfigurationData> elasticsearchSavesetOptional = configurationDataRepository.findById(configUniqueId);
         if(elasticsearchSavesetOptional.isEmpty()){
             return Collections.emptyList();
         }
@@ -382,7 +382,7 @@ public class ElasticsearchDAO implements NodeDAO {
 
     @Override
     public List<SnapshotItem> getSnapshotItems(String snapshotUniqueId) {
-        Optional<Snapshot> elasticsearchSnapshotOptional = snapshotRepository.findById(snapshotUniqueId);
+        Optional<SnapshotData> elasticsearchSnapshotOptional = snapshotDataRepository.findById(snapshotUniqueId);
         if(elasticsearchSnapshotOptional.isEmpty()){
             return Collections.emptyList();
         }
@@ -471,15 +471,23 @@ public class ElasticsearchDAO implements NodeDAO {
 
     @Override
     public Configuration saveConfiguration(Configuration configuration){
-        return configurationRepository.save(configuration);
+        Node newConfigurationNode = createNode(configuration.getParentUniqueId(), configuration.getNode());
+        configuration.getConfigurationData().setUniqueId(newConfigurationNode.getUniqueId());
+        ConfigurationData newConfigurationData = configurationDataRepository.save(configuration.getConfigurationData());
+        Configuration newConfiguration = new Configuration();
+        newConfiguration.setConfigurationData(newConfigurationData);
+        newConfiguration.setNode(newConfigurationNode);
+        newConfiguration.setParentUniqueId(configuration.getParentUniqueId());
+
+        return newConfiguration;
     }
 
     @Override
-    public Configuration updateConfiguration(Configuration configuration){
-        Configuration existingConfiguration = getConfiguration(configuration.getUniqueId());
-        existingConfiguration.setDescription(configuration.getDescription());
-        existingConfiguration.setPvList(configuration.getPvList());
-        return configurationRepository.save(existingConfiguration);
+    public ConfigurationData updateConfiguration(ConfigurationData configurationData){
+        ConfigurationData existingConfigurationData = getConfiguration(configurationData.getUniqueId());
+        existingConfigurationData.setDescription(configurationData.getDescription());
+        existingConfigurationData.setPvList(configurationData.getPvList());
+        return configurationDataRepository.save(existingConfigurationData);
     }
 
     /**
@@ -574,24 +582,24 @@ public class ElasticsearchDAO implements NodeDAO {
     }
 
     @Override
-    public Configuration getConfiguration(String nodeId) {
-        Optional<Configuration> configuration = configurationRepository.findById(nodeId);
+    public ConfigurationData getConfiguration(String nodeId) {
+        Optional<ConfigurationData> configuration = configurationDataRepository.findById(nodeId);
         if (configuration.isEmpty()) {
-            throw new NodeNotFoundException("Configuration with id " + nodeId + " not found");
+            throw new NodeNotFoundException("ConfigurationData with id " + nodeId + " not found");
         }
         return configuration.get();
     }
 
     @Override
-    public Snapshot saveSnapshot(Snapshot snapshot){
-        return snapshotRepository.save(snapshot);
+    public SnapshotData saveSnapshot(SnapshotData snapshotData){
+        return snapshotDataRepository.save(snapshotData);
     }
 
     @Override
-    public Snapshot getSnapshot(String nodeId){
-        Optional<Snapshot> snapshot = snapshotRepository.findById(nodeId);
+    public SnapshotData getSnapshot(String nodeId){
+        Optional<SnapshotData> snapshot = snapshotDataRepository.findById(nodeId);
         if(snapshot.isEmpty()){
-            throw new NodeNotFoundException("Snapshot with id " + nodeId + " not found");
+            throw new NodeNotFoundException("SnapshotData with id " + nodeId + " not found");
         }
         return snapshot.get();
     }

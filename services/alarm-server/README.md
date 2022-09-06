@@ -41,9 +41,9 @@ some useful startup arguments include
 ```
 -help                       - Help
 -server   localhost:9092    - Location of Kafka server
--config   Accelerator       - Alarm configuration
+-config   Accelerator       - Alarm configurationData
 -settings settings.xml      - Import preferences (PV connectivity) from property format file
--export   config.xml        - Export alarm configuration to file
+-export   config.xml        - Export alarm configurationData to file
 -import   config.xml        - Import alarm configruation from file
 -logging logging.properties - Load log settings
 ```

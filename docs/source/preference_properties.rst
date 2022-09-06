@@ -1185,7 +1185,7 @@ File ../../app/pvtree/src/main/resources/pv_tree_preferences.properties::
    # where it's also unclear if that should turn into AA, AB, AC, .., AZ, BA, BB, BC, .., ZZ
    # or AA, BB, .., ZZ
    #
-   # bigASub is a CSIRO/ASCAP record type, doesn't hurt to add that to the shared configuration
+   # bigASub is a CSIRO/ASCAP record type, doesn't hurt to add that to the shared configurationData
    #
    # scalcout is a bit unfortunate since there is no shortcut for INAA-INLL.
    #
@@ -1223,18 +1223,18 @@ File ../../app/save-and-restore/app/src/main/resources/save_and_restore_preferen
    # Sort snapshots in reverse order of created time. Last item comes first.
    sortSnapshotsTimeReversed=false
    
-   # In "Create/Add to a configuration" dialog, split savesets from folder and show them in ListView
+   # In "Create/Add to a configurationData" dialog, split savesets from folder and show them in ListView
    splitSaveset=false
    
-   # Specify hierarchy parser class to enable TreeTableView in snapshot
-   # Hierarchy parser class should be in ui/snapshot/hierarchyparser
+   # Specify hierarchy parser class to enable TreeTableView in snapshotData
+   # Hierarchy parser class should be in ui/snapshotData/hierarchyparser
    # RegexHierarchyParser is provided for convenience. Use , as separator for each regex pattern.
    # First matched pattern is used to create its hierarchy.
    treeTableView.enable=false
    treeTableView.hierarchyParser=RegexHierarchyParser
    regexHierarchyParser.regexList=(\\w+)_(\\w+):(\\w+)_(\\w+):(.*),(\\w+)_(\\w+):(\\w+)_(.*),(\\w+)_(\\w+):(.*),(\\w+):(.*)
    
-   # Importing/exporting configuration/snapshot to/from CSV (Git SNP/BMS compatible)
+   # Importing/exporting configurationData/snapshotData to/from CSV (Git SNP/BMS compatible)
    enableCSVIO=false
 
 
@@ -1389,7 +1389,7 @@ File ../../app/databrowser/src/main/resources/databrowser_preferences.properties
    archives=jdbc:mysql://localhost/archive|RDB*xnds://localhost/archive/cgi/ArchiveDataServer.cgi
    
    # When opening existing data browser plot,
-   # use archive data sources specified in the configuration file (original default)
+   # use archive data sources specified in the configurationData file (original default)
    # or ignore saved data sources and instead use the preference settings?
    use_default_archives=false
    
@@ -1404,7 +1404,7 @@ File ../../app/databrowser/src/main/resources/databrowser_preferences.properties
    # Re-scale behavior when archived data arrives: NONE, STAGGER
    archive_rescale=STAGGER
    
-   # Shortcuts offered in the Time Axis configuration
+   # Shortcuts offered in the Time Axis configurationData
    # Format:
    # Text for shortcut,start_spec|Another shortcut,start_spec
    time_span_shortcuts=30 Minutes,-30 min|1 Hour,-1 hour|12 Hours,-12 hour|1 Day,-1 days|7 Days,-7 days
@@ -1431,7 +1431,7 @@ File ../../app/databrowser/src/main/resources/databrowser_preferences.properties
    # Prompt / warn when making trace invisible?
    prompt_for_visibility = true
    
-   # Shortcuts offered in the Time Axis configuration
+   # Shortcuts offered in the Time Axis configurationData
    # Format:
    # Text for shortcut,start_spec|Another shortcut,start_spec
    time_span_shortcuts=30 Minutes,-30 min|1 Hour,-1 hour|12 Hours,-12 hour|1 Day,-1 days|7 Days,-7 days

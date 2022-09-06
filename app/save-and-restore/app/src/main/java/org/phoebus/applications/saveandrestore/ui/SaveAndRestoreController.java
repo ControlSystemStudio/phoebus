@@ -1006,7 +1006,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 CSVImporter.importFile(node, file);
             }
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Snapshot import failed", e);
+            LOG.log(Level.WARNING, "SnapshotData import failed", e);
         }
     }
 

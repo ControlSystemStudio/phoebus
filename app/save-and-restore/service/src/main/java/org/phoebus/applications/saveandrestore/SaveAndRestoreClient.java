@@ -18,15 +18,14 @@
 
 package org.phoebus.applications.saveandrestore;
 
-import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotWrapper;
-import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.applications.saveandrestore.model.ThinWrapper;
 
 import java.util.List;
 
@@ -174,13 +173,13 @@ public interface SaveAndRestoreClient {
 
     List<Node> getFromPath(String path);
 
-    Configuration getConfiguration(String nodeId);
+    ConfigurationData getConfiguration(String nodeId);
 
     Configuration saveConfiguration(Configuration configuration);
 
-    Configuration updateConfiguration(Configuration configuration);
+    ConfigurationData updateConfiguration(ConfigurationData configurationData);
 
-    Snapshot getSnapshot(String nodeId);
+    SnapshotData getSnapshot(String nodeId);
 
     SnapshotWrapper saveSnapshot(SnapshotWrapper snapshotWrapper);
 }

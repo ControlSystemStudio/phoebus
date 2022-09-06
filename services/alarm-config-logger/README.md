@@ -1,5 +1,5 @@
 # alarm config logging
-Log the configuration changes made to the alarm server configuration
+Log the configurationData changes made to the alarm server configurationData
 
 ### Dependencies ###
 
@@ -17,17 +17,17 @@ java -jar target/alarm-config-logger-<version>.jar
 
 ### Description ###
 
-The alarm config model creates a git repository, sharing the same name as the alarm topic, which is used to keep track of the alarm configuration changes.
+The alarm config model creates a git repository, sharing the same name as the alarm topic, which is used to keep track of the alarm configurationData changes.
 
 The repo structure is as follows.
 
 <pre>
 Accelerator/  
-    .restore-script/config.xml  # It consists of an XMl dump of the alarm server configuration after each config change  
+    .restore-script/config.xml  # It consists of an XMl dump of the alarm server configurationData after each config change  
     Node1/  
-        alarmconfig.json 	# A json representation of the alarm configuration of this node  
+        alarmconfig.json 	# A json representation of the alarm configurationData of this node  
         PV:alarmPV1/  
-            alarmconfig.json	# A json representation of the alarm configuration of this pv  
+            alarmconfig.json	# A json representation of the alarm configurationData of this pv  
         PV:alarmPV1/  
         PV:alarmPV1/  
 </pre>

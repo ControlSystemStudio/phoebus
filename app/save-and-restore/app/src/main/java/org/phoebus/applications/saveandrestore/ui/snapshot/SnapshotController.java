@@ -69,10 +69,9 @@ import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.common.VNoData;
 import org.phoebus.applications.saveandrestore.common.VTypePair;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
-import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
 import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
@@ -192,7 +191,7 @@ public class SnapshotController implements NodeChangedListener {
     private final BooleanProperty snapshotSaveableProperty = new SimpleBooleanProperty(false);
     private final BooleanProperty showLiveReadbackProperty = new SimpleBooleanProperty(false);
 
-    private final ObservableSet<Integer> dirtySnapshotEntries = FXCollections.observableSet();
+    private final ObservableSet<String> dirtySnapshotEntries = FXCollections.observableSet();
     private String persistentSnapshotName = null;
     private boolean persistentGoldenState = false;
 
@@ -392,9 +391,7 @@ public class SnapshotController implements NodeChangedListener {
 
         preserveSelectionCheckBox.selectedProperty().addListener((observableValue, aBoolean, isSelected) -> {
             if (isSelected) {
-                boolean allSelected = tableEntryItems.values().stream()
-                        .filter(item -> !item.selectedProperty().get())
-                        .collect(Collectors.toList()).isEmpty();
+                boolean allSelected = tableEntryItems.values().stream().allMatch(item -> item.selectedProperty().get());
 
                 if (allSelected) {
                     tableEntryItems.values()
@@ -411,13 +408,12 @@ public class SnapshotController implements NodeChangedListener {
 
             if (filterText.isEmpty()) {
                 List<TableEntry> arrayList = tableEntryItems.values().stream()
-                        .map(item -> {
+                        .peek(item -> {
                             if (!preserveSelectionCheckBox.isSelected()) {
                                 if (!item.readOnlyProperty().get()) {
                                     item.selectedProperty().set(true);
                                 }
                             }
-                            return item;
                         }).collect(Collectors.toList());
 
                 UI_EXECUTOR.execute(() -> {
@@ -472,7 +468,7 @@ public class SnapshotController implements NodeChangedListener {
             });
         });
 
-        dirtySnapshotEntries.addListener((SetChangeListener<Integer>) change -> {
+        dirtySnapshotEntries.addListener((SetChangeListener<String>) change -> {
             if (dirtySnapshotEntries.size() == 0) {
                 snapshotSaveableProperty.set(false);
 
@@ -480,7 +476,6 @@ public class SnapshotController implements NodeChangedListener {
                 snapshotTab.updateTabTitile(persistentSnapshotName, persistentGoldenState);
             } else {
                 snapshotSaveableProperty.set(true);
-
                 snapshotNameProperty.set(persistentSnapshotName + " " + Messages.snapshotModifiedText);
                 snapshotTab.updateTabTitile(persistentSnapshotName + " " + Messages.snapshotModifiedText, false);
             }
@@ -545,15 +540,16 @@ public class SnapshotController implements NodeChangedListener {
     }
 
     /**
-     * Loads data from a {@link org.phoebus.applications.saveandrestore.model.Configuration} in order to populate the
+     * Loads data from a {@link ConfigurationData} in order to populate the
      * view with PV items.
+     *
      * @param node A {@link Node} of type {@link NodeType#CONFIGURATION}
      */
     public void loadSaveSet(Node node) {
         SnapshotController.this.config = saveAndRestoreService.getNode(node.getUniqueId());
         try {
-            Configuration configuration = saveAndRestoreService.getConfiguration(node.getUniqueId());
-            List<ConfigPv> configPvs = configuration.getPvList();
+            ConfigurationData configurationData = saveAndRestoreService.getConfiguration(node.getUniqueId());
+            List<ConfigPv> configPvs = configurationData.getPvList();
             Node snapshot = Node.builder().name(Messages.unnamedSnapshot).nodeType(NodeType.SNAPSHOT).build();
             VSnapshot vSnapshot =
                     new VSnapshot(snapshot, saveSetToSnapshotEntries(configPvs));
@@ -593,9 +589,9 @@ public class SnapshotController implements NodeChangedListener {
                 dirtySnapshotEntries.clear();
                 vSnapshot.getEntries().forEach(item -> item.getValueProperty().addListener((observableValue, vType, newVType) -> {
                     if (!Utilities.areVTypesIdentical(newVType, item.getStoredValue(), false)) {
-                        dirtySnapshotEntries.add(item.getConfigPv().getId());
+                        dirtySnapshotEntries.add(item.getConfigPv().getPvName());
                     } else {
-                        dirtySnapshotEntries.remove(item.getConfigPv().getId());
+                        dirtySnapshotEntries.remove(item.getConfigPv().getPvName());
                     }
                 }));
             } catch (Exception e) {
@@ -725,12 +721,7 @@ public class SnapshotController implements NodeChangedListener {
                     .map(snapshotEntry -> SnapshotItem.builder().value(snapshotEntry.getValue()).configPv(snapshotEntry.getConfigPv()).readbackValue(snapshotEntry.getReadbackValue()).build())
                     .collect(Collectors.toList());
             try {
-                Node snapshotNode = Node.builder().name(snapshotNameProperty.get()).nodeType(NodeType.SNAPSHOT).build();
-                Snapshot snapshot = new Snapshot();
-                snapshot.setComment(snapshotCommentProperty.get());
-
                 snapshotNode = saveAndRestoreService.saveSnapshot(config, snapshotItems, snapshotNameProperty.get(), snapshotCommentProperty.get());
-
                 loadSnapshot();
                 logNewSnapshotSaved();
             } catch (Exception e) {
@@ -1100,7 +1091,6 @@ public class SnapshotController implements NodeChangedListener {
      * Dispose of all allocated resources, except PVs. If <code>closePVs</code> is true the pvs are disposed of,
      * otherwise they are only marked for disposal. It is expected that the caller to this method later checks the PVs
      * and disposes of those that have not been unmarked.
-     *
      */
     private void dispose() {
         synchronized (snapshots) {
@@ -1134,12 +1124,12 @@ public class SnapshotController implements NodeChangedListener {
 
     private void logNewSnapshotSaved() {
         JobManager.schedule("Log new snapshot saved", monitor -> eventReceivers
-                .forEach(r -> r.snapshotSaved(snapshotNode, errorMessage -> showLoggingError(errorMessage))));
+                .forEach(r -> r.snapshotSaved(snapshotNode, this::showLoggingError)));
     }
 
     private void logSnapshotRestored(Node node, List<String> failedPVs) {
         JobManager.schedule("Log snapshot restored", monitor -> eventReceivers
-                .forEach(r -> r.snapshotRestored(node, failedPVs, errorMessage -> showLoggingError(errorMessage))));
+                .forEach(r -> r.snapshotRestored(node, failedPVs, this::showLoggingError)));
     }
 
     private void showLoggingError(String cause) {

@@ -19,9 +19,8 @@ package org.phoebus.service.saveandrestore.web.controllers;
 
 import java.util.List;
 
-import org.epics.vtype.VType;
+import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotWrapper;
-import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.ThinWrapper;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,7 +76,7 @@ public class SnapshotController extends BaseController {
 			@RequestBody List<SnapshotItem> snapshotItems) {
 		
 		if(snapshotName.length() == 0 || userName.length() == 0 || comment.length() == 0) {
-			throw new IllegalArgumentException("Snapshot name, user name and comment must be of non-zero length");
+			throw new IllegalArgumentException("SnapshotData name, user name and comment must be of non-zero length");
 		}
 
 		return nodeDAO.saveSnapshot(configUniqueId, snapshotItems, snapshotName, userName, comment);
@@ -92,13 +91,13 @@ public class SnapshotController extends BaseController {
 		}
 
 		Node savedSnapshotNode = nodeDAO.createNode(parentsUniqueId, snapshotWrapper.getSnapshotNode());
-		Snapshot snapshot = snapshotWrapper.getSnapshotData();
-		snapshot.setUniqueId(savedSnapshotNode.getUniqueId());
-		Snapshot savedSnapshot = nodeDAO.saveSnapshot(snapshot);
+		SnapshotData snapshotData = snapshotWrapper.getSnapshotData();
+		snapshotData.setUniqueId(savedSnapshotNode.getUniqueId());
+		SnapshotData savedSnapshotData = nodeDAO.saveSnapshot(snapshotData);
 
 		SnapshotWrapper newSnapshotWrapper = new SnapshotWrapper();
 		newSnapshotWrapper.setSnapshotNode(savedSnapshotNode);
-		newSnapshotWrapper.setSnapshotData(savedSnapshot);
+		newSnapshotWrapper.setSnapshotData(savedSnapshotData);
 
 		return newSnapshotWrapper;
 	}

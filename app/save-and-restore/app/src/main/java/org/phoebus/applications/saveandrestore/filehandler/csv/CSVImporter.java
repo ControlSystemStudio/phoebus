@@ -223,7 +223,7 @@ public class CSVImporter extends CSVCommon {
                 FXMLLoader loader = new FXMLLoader();
                 loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/ConfigurationFromSelection.fxml"));
                 Stage dialog = new Stage();
-                dialog.setTitle("Import Snapshot");
+                dialog.setTitle("Import SnapshotData");
                 dialog.initModality(Modality.APPLICATION_MODAL);
                 dialog.setScene(new Scene(loader.load()));
 

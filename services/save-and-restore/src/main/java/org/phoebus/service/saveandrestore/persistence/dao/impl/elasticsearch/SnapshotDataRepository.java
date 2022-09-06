@@ -25,7 +25,7 @@ import co.elastic.clients.elasticsearch.core.GetRequest;
 import co.elastic.clients.elasticsearch.core.GetResponse;
 import co.elastic.clients.elasticsearch.core.IndexRequest;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
-import org.phoebus.applications.saveandrestore.model.Snapshot;
+import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,7 +39,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Repository
-public class SnapshotRepository implements CrudRepository<Snapshot, String> {
+public class SnapshotDataRepository implements CrudRepository<SnapshotData, String> {
 
     @Value("${elasticsearch.folder_node.index:saveandrestore_snapshot}")
     public String ES_SNAPSHOT_INDEX;
@@ -48,12 +48,12 @@ public class SnapshotRepository implements CrudRepository<Snapshot, String> {
     @Qualifier("client")
     ElasticsearchClient client;
 
-    private final Logger logger = Logger.getLogger(SnapshotRepository.class.getName());
+    private final Logger logger = Logger.getLogger(SnapshotDataRepository.class.getName());
 
     @Override
-    public <S extends Snapshot> S save(S entity) {
+    public <S extends SnapshotData> S save(S entity) {
         try {
-            IndexRequest<Snapshot> indexRequest =
+            IndexRequest<SnapshotData> indexRequest =
                     IndexRequest.of(i ->
                             i.index(ES_SNAPSHOT_INDEX)
                                     .id(entity.getUniqueId())
@@ -65,8 +65,8 @@ public class SnapshotRepository implements CrudRepository<Snapshot, String> {
                 GetRequest getRequest =
                         GetRequest.of(g ->
                                 g.index(ES_SNAPSHOT_INDEX).id(response.id()));
-                GetResponse<Snapshot> resp =
-                        client.get(getRequest, Snapshot.class);
+                GetResponse<SnapshotData> resp =
+                        client.get(getRequest, SnapshotData.class);
                 return (S) resp.source();
             }
         } catch (Exception e) {
@@ -77,18 +77,18 @@ public class SnapshotRepository implements CrudRepository<Snapshot, String> {
     }
 
     @Override
-    public <S extends Snapshot> Iterable<S> saveAll(Iterable<S> entities) {
+    public <S extends SnapshotData> Iterable<S> saveAll(Iterable<S> entities) {
         return null;
     }
 
     @Override
-    public Optional<Snapshot> findById(String id) {
+    public Optional<SnapshotData> findById(String id) {
         try {
             GetRequest getRequest =
                     GetRequest.of(g ->
                             g.index(ES_SNAPSHOT_INDEX).id(id));
-            GetResponse<Snapshot> resp =
-                    client.get(getRequest, Snapshot.class);
+            GetResponse<SnapshotData> resp =
+                    client.get(getRequest, SnapshotData.class);
 
             if (!resp.found()) {
                 return Optional.empty();
@@ -106,12 +106,12 @@ public class SnapshotRepository implements CrudRepository<Snapshot, String> {
     }
 
     @Override
-    public Iterable<Snapshot> findAll() {
+    public Iterable<SnapshotData> findAll() {
         return null;
     }
 
     @Override
-    public Iterable<Snapshot> findAllById(Iterable<String> strings) {
+    public Iterable<SnapshotData> findAllById(Iterable<String> strings) {
         return null;
     }
 
@@ -126,7 +126,7 @@ public class SnapshotRepository implements CrudRepository<Snapshot, String> {
     }
 
     @Override
-    public void delete(Snapshot entity) {
+    public void delete(SnapshotData entity) {
 
     }
 
@@ -136,7 +136,7 @@ public class SnapshotRepository implements CrudRepository<Snapshot, String> {
     }
 
     @Override
-    public void deleteAll(Iterable<? extends Snapshot> entities) {
+    public void deleteAll(Iterable<? extends SnapshotData> entities) {
 
     }
 

@@ -132,7 +132,7 @@ public class ElasticConfig {
             logger.log(Level.WARNING, "Failed to create index " + ES_CONFIGURATION_INDEX, e);
         }
 
-        // Snapshot index
+        // SnapshotData index
         try (InputStream is = ElasticConfig.class.getResourceAsStream("/snapshot_mapping.json")) {
             BooleanResponse exits = client.indices().exists(ExistsRequest.of(e -> e.index(ES_SNAPSHOT_INDEX)));
             if (!exits.value()) {

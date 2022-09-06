@@ -62,7 +62,7 @@ public class VSnapshot implements Serializable {
 
     /**
      * Returns the snapshot descriptor if it exists, or an empty object, if this snapshot does not have a descriptor.
-     * Snapshot does not have a descriptor if it has not been taken yet.
+     * SnapshotData does not have a descriptor if it has not been taken yet.
      *
      * @return the snapshot descriptor
      */
@@ -123,7 +123,7 @@ public class VSnapshot implements Serializable {
     }
 
     /**
-     * Returns true if this snapshot can be saved or false if already saved. Snapshot can only be saved if it is a new
+     * Returns true if this snapshot can be saved or false if already saved. SnapshotData can only be saved if it is a new
      * snapshot that has never been saved before. If the same snapshot has to be saved again a new instance of this
      * object has to be constructed.
      *

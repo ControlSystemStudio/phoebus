@@ -14,7 +14,7 @@ Build the Phoebus product.
 
 # Run
 
-NOTE: the service is based on Spring Boot using a default configuration. Consequently the build artifact contains 
+NOTE: the service is based on Spring Boot using a default configurationData. Consequently the build artifact contains 
 all dependencies. As such it is launched as a stand-alone jar, see below. To convert the build artifact to a war file for 
 deployment to an application server, see https://spring.io/guides/gs/convert-jar-to-war/ 
 
@@ -37,30 +37,30 @@ folders, configurations (aka save sets) and snapshots.
 * There is always a top level root node of type folder. This cannot be modified
 in any manner.
 
-* Child nodes of folder nodes are folder or configuration nodes. Child nodes
-of configuration nodes are only snapshot nodes. Snapshot nodes do not contain
+* Child nodes of folder nodes are folder or configurationData nodes. Child nodes
+of configurationData nodes are only snapshotData nodes. Snapshot nodes do not contain
 child nodes
 
-* Snapshot nodes are associated with snapshot items (stored PV values) 
+* Snapshot nodes are associated with snapshotData items (stored PV values) 
 not part of the tree structure.
 
 * Each node can be associated with an arbitrary number of string properties, e.g.
-a "golden" property can be set on snapshot nodes.
+a "golden" property can be set on snapshotData nodes.
 
 * Each node has a created date and a last updated date, as well as a user name
 attribute. This should identify the user creating or updating a node.
 
-* Nodes in the tree can be renamed or deleted. When a folder or configuration
+* Nodes in the tree can be renamed or deleted. When a folder or configurationData
 node is deleted, all its child nodes are deleted unconditionally.
 
 * If PV is deleted from a save set, the corresponding PV values of all snapshots
 associated with the save set are also deleted. 
 
-* A folder or configuration node can be moved to another parent node. All
+* A folder or configurationData node can be moved to another parent node. All
 child nodes of the moved node remain child nodes of the moved node.
 
 * Snapshot nodes cannot be moved as they are closely associated with the save set
-defining the list of PVs in the snapshot.
+defining the list of PVs in the snapshotData.
 
 * The service is built upon Spring Boot and depends on a persistence 
 implementation. In its current version, persistence is implemented against

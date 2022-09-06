@@ -34,6 +34,7 @@ import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Future;
 
@@ -82,12 +83,11 @@ public class SaveAndRestoreScriptUtilTest {
         when(saveAndRestoreClient.getNode(UNIQUE_ID)).thenReturn(new Node());
         SnapshotItem snapshotItem = new SnapshotItem();
         ConfigPv configPv = new ConfigPv();
-        configPv.setId(1);
         configPv.setPvName("loc://pv1");
         configPv.setReadOnly(true);
         snapshotItem.setConfigPv(configPv);
         snapshotItem.setValue(VInt.of(7, Alarm.none(), Time.now(), Display.none()));
-        when(saveAndRestoreClient.getSnapshotItems(UNIQUE_ID)).thenReturn(Arrays.asList(snapshotItem));
+        when(saveAndRestoreClient.getSnapshotItems(UNIQUE_ID)).thenReturn(List.of(snapshotItem));
         SaveAndRestoreScriptUtil.restore(UNIQUE_ID, 1000, 1000, false, false);
     }
 
@@ -97,12 +97,11 @@ public class SaveAndRestoreScriptUtilTest {
         when(saveAndRestoreClient.getNode(UNIQUE_ID)).thenReturn(new Node());
         SnapshotItem snapshotItem = new SnapshotItem();
         ConfigPv configPv = new ConfigPv();
-        configPv.setId(1);
         configPv.setPvName("bad");
         configPv.setReadOnly(false);
         snapshotItem.setConfigPv(configPv);
         snapshotItem.setValue(VInt.of(7, Alarm.none(), Time.now(), Display.none()));
-        when(saveAndRestoreClient.getSnapshotItems(UNIQUE_ID)).thenReturn(Arrays.asList(snapshotItem));
+        when(saveAndRestoreClient.getSnapshotItems(UNIQUE_ID)).thenReturn(List.of(snapshotItem));
         SaveAndRestoreScriptUtil.restore(UNIQUE_ID, 1000, 1000, false, false);
     }
 
@@ -113,7 +112,6 @@ public class SaveAndRestoreScriptUtilTest {
 
         SnapshotItem snapshotItem1 = new SnapshotItem();
         ConfigPv configPv1 = new ConfigPv();
-        configPv1.setId(1);
         configPv1.setPvName("loc://pv1");
         configPv1.setReadOnly(false);
         snapshotItem1.setConfigPv(configPv1);
@@ -121,7 +119,6 @@ public class SaveAndRestoreScriptUtilTest {
 
         SnapshotItem snapshotItem2 = new SnapshotItem();
         ConfigPv configPv2 = new ConfigPv();
-        configPv2.setId(2);
         configPv2.setPvName("loc://pv2");
         configPv2.setReadOnly(true);
         snapshotItem2.setConfigPv(configPv2);

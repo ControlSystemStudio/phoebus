@@ -63,8 +63,8 @@ REST API for Save Restore Service
 
 **Configuration:**
 
-A Save Restore configuration is a set of PV's which are used to take a snapshot.
-The configuration can also consist of a few options parameters.
+A Save Restore configurationData is a set of PV's which are used to take a snapshotData.
+The configurationData can also consist of a few options parameters.
 
 - readback pv associated with the pv
 - flag to indicate if this pv should restored
@@ -74,7 +74,7 @@ The configurations can be organized in the file system like directory structure.
 
 **Snapshot:**
 
-A Save set snapshot consists of a list ov pvs along with their values at a particular instant in time.
+A Save set snapshotData consists of a list ov pvs along with their values at a particular instant in time.
 
 REST Services
 -------------
@@ -101,7 +101,7 @@ Get the root node
 Method: GET
 
 Return:
-The root node of the save restore configuration tree
+The root node of the save restore configurationData tree
 
 .. code-block:: JSON
 
@@ -212,7 +212,7 @@ Body:
 
 nodeType: "CONFIGURATION" or "FOLDER"
 
-The nodeType can be used to specify if we want to create a new folder or a new save set configuration
+The nodeType can be used to specify if we want to create a new folder or a new save set configurationData
 
 Return:
 If the node was successfully created you will a 200 response with the details of the newly created node
@@ -231,7 +231,7 @@ If the node was successfully created you will a 200 response with the details of
         "tags": []
     }
 
-Create or Update a configuration
+Create or Update a configurationData
 """"""""""""""""""""""""""""""""
 
 **.../config/{uniqueNodeId}/update**
@@ -282,7 +282,7 @@ Method: GET
 Retrieve all Snapshots id's
 
 Return:
-A list of all the snapshot id's
+A list of all the snapshotData id's
 
 .. code-block:: JSON
 
@@ -306,16 +306,16 @@ A list of all the snapshot id's
     ]
 
 
-Retrieve all snapshots for a configuration
+Retrieve all snapshots for a configurationData
 """"""""""""""""""""""""""""""""""""""""""
 
-**.../snapshot/{uniqueNodeId}
+**.../snapshotData/{uniqueNodeId}
 
 Retrieve a Snapshot without all the data identified by the `{uniqueNodeId}`
 
 
 Return:
-A snapshot with all the metadata
+A snapshotData with all the metadata
 
 .. code-block:: JSON
     [
@@ -332,14 +332,14 @@ A snapshot with all the metadata
 Retrieve snapshots data
 """""""""""""""""""""""
 
-**.../snapshot/{uniqueNodeId}/items
+**.../snapshotData/{uniqueNodeId}/items
 
 Method: GET
 
-Retrieve all Snapshots associated with a particular configuration identified by `{uniqueNodeId}`
+Retrieve all Snapshots associated with a particular configurationData identified by `{uniqueNodeId}`
 
 Return:
-A snapshot with all the stored data
+A snapshotData with all the stored data
 
 
 .. code-block:: JSON

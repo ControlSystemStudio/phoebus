@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-This is the contents of the top portion of a snapshot tab. Since tabs are added and removed dynamically in the
+This is the contents of the top portion of a snapshotData tab. Since tabs are added and removed dynamically in the
 save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
 -->
 

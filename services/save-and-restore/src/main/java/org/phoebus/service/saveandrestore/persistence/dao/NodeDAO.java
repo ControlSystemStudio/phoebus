@@ -20,12 +20,12 @@ package org.phoebus.service.saveandrestore.persistence.dao;
 
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.Snapshot;
+import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -141,7 +141,7 @@ public interface NodeDAO {
 
 	Node saveSnapshot(String parentsUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment, String userName);
 
-	Snapshot saveSnapshot(Snapshot snapshot);
+	SnapshotData saveSnapshot(SnapshotData snapshotData);
 
 	List<ConfigPv> getConfigPvs(String configUniqueId);
 
@@ -186,18 +186,18 @@ public interface NodeDAO {
 
 	Configuration saveConfiguration(Configuration configuration);
 
-	Configuration getConfiguration(String nodeId);
+	ConfigurationData getConfiguration(String nodeId);
 
 	/**
-	 * Updates an existing {@link Configuration}. In practice an overwrite operation as for instance
-	 * the {@link Configuration#getPvList()} may contain both added and removed elements compared to
+	 * Updates an existing {@link ConfigurationData}. In practice an overwrite operation as for instance
+	 * the {@link ConfigurationData#getPvList()} may contain both added and removed elements compared to
 	 * the persisted object.
-	 * @param configuration The object to be updated
-	 * @return The updated {@link Configuration}
+	 * @param configurationData The object to be updated
+	 * @return The updated {@link ConfigurationData}
 	 */
-	Configuration updateConfiguration(Configuration configuration);
+	ConfigurationData updateConfiguration(ConfigurationData configurationData);
 
-	Snapshot getSnapshot(String nodeId);
+	SnapshotData getSnapshot(String nodeId);
 
 	boolean isMoveOrCopyAllowed(List<Node> nodesToMove, Node targetNode);
 
