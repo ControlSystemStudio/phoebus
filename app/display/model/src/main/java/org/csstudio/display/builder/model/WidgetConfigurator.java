@@ -134,6 +134,7 @@ public class WidgetConfigurator
             try
             {
                 property.readFromXML(model_reader, prop_xml);
+                property.setIsValueReadFromFile(true); // todo, integrate into readFromXml?
                 property.useWidgetClass(parseBoolean(prop_xml.getAttribute(XMLTags.USE_CLASS)));
             }
             catch (Exception ex)

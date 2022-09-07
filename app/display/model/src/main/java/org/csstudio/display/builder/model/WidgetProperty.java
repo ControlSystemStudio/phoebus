@@ -48,6 +48,9 @@ public abstract class WidgetProperty<T extends Object> extends PropertyChangeHan
      */
     protected final T default_value;
 
+    /** Was this property's value set from xml, or just from the default value? **/
+    protected volatile boolean is_value_from_file = false;
+
     /** Does property follow the value suggested by class? */
     protected volatile boolean use_class = false;
 
@@ -307,6 +310,14 @@ public abstract class WidgetProperty<T extends Object> extends PropertyChangeHan
      *  @throws Exception on error
      */
     abstract public void readFromXML(final ModelReader model_reader, final Element property_xml) throws Exception;
+
+    public void setIsValueReadFromFile(boolean value) {
+        is_value_from_file = value;
+    }
+
+    public boolean isValueReadFromFile() {
+        return is_value_from_file;
+    }
 
     /** Notify listeners of property change.
      *

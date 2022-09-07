@@ -73,10 +73,12 @@ public class WidgetClassSupport
     {
         private final String specification;
         private final Object value;
+        private final boolean use_class;
 
         /** @param property Property with value to use for class */
         public PropertyValue(final WidgetProperty<?> property)
         {
+            use_class = property.isUsingWidgetClass();
             if (property instanceof MacroizedWidgetProperty)
             {
                 specification = ((MacroizedWidgetProperty<?>) property).getSpecification();
@@ -205,9 +207,12 @@ public class WidgetClassSupport
         else if (! DEFAULT.equals(widget_class))
             logger.log(Level.WARNING, "Widget type '" + type + "' class '" + widget_class + "' is defined more than once");
 
-        for (WidgetProperty<?> property : widget.getProperties())
-            if (property.isUsingWidgetClass())
+        for (WidgetProperty<?> property : widget.getProperties()) {
+            if (property.isValueReadFromFile()) {
+//            if (property.isUsingWidgetClass()) {
                 class_properties.put(property.getName(), new PropertyValue(property));
+            }
+        }
     }
 
     /** Get known widget classes
@@ -291,11 +296,16 @@ public class WidgetClassSupport
         }
 
         final PropertyValue class_setting = class_settings.get(property.getName());
-        if (class_setting == null)
+        if (class_setting == null) {
             property.useWidgetClass(false);
+        }
         else
         {
-            property.useWidgetClass(true);
+            if(class_setting.use_class) {
+                property.useWidgetClass(true);
+            } else {
+                property.useWidgetClass(false);
+            }
             class_setting.apply(property);
         }
     }
