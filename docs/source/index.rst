@@ -38,6 +38,7 @@ Developer Documentation:
    changelog
    docker
    eclipse_debugging
+   gui_testing
 
 Appendix
 ========
