@@ -60,7 +60,6 @@ import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
-import javax.swing.border.Border;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -129,16 +128,13 @@ public class ConfigurationController {
     private final SimpleStringProperty saveSetNameProperty = new SimpleStringProperty();
     private Node configurationNodeParent;
 
-
     private Configuration configuration;
-
-    private TableView.TableViewSelectionModel<ConfigPv> defaultSelectionModel;
 
     private final Logger logger = Logger.getLogger(ConfigurationController.class.getName());
 
-    private SimpleStringProperty tabTitleProperty;
+    private final SimpleStringProperty tabTitleProperty;
 
-    public ConfigurationController(SimpleStringProperty tabTitleProperty){
+    public ConfigurationController(SimpleStringProperty tabTitleProperty) {
         this.tabTitleProperty = tabTitleProperty;
     }
 
@@ -151,8 +147,6 @@ public class ConfigurationController {
         pvTable.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> selectionEmpty.set(nv == null));
 
         pvTable.getSelectionModel().getSelectedItems().addListener((ListChangeListener<ConfigPv>) c -> singelSelection.set(c.getList().size() == 1));
-
-        defaultSelectionModel = pvTable.getSelectionModel();
 
         ContextMenu pvNameContextMenu = new ContextMenu();
 
@@ -171,7 +165,7 @@ public class ConfigurationController {
 
         pvNameColumn.setCellFactory(new Callback<>() {
             @Override
-            public TableCell call(TableColumn param) {
+            public TableCell<ConfigPv, String> call(TableColumn param) {
                 final TableCell<ConfigPv, String> cell = new TableCell<>() {
                     @Override
                     public void updateItem(String item, boolean empty) {
@@ -195,7 +189,7 @@ public class ConfigurationController {
                     pvNameContextMenu.getItems().addAll(deleteMenuItem);
                     pvNameContextMenu.getItems().add(new SeparatorMenuItem());
                     ObservableList<ConfigPv> selectedPVs = pvTable.getSelectionModel().getSelectedItems();
-                    if(!selectedPVs.isEmpty()){
+                    if (!selectedPVs.isEmpty()) {
                         List<ProcessVariable> selectedPVList = selectedPVs.stream()
                                 .map(tableEntry -> new ProcessVariable(tableEntry.getPvName()))
                                 .collect(Collectors.toList());
@@ -224,13 +218,9 @@ public class ConfigurationController {
             }
         });
 
-        saveSetNameProperty.addListener((observableValue, oldValue, newValue) -> {
-            dirty.set(!newValue.equals(configuration.getConfigurationNode().getName()));
-        });
+        saveSetNameProperty.addListener((observableValue, oldValue, newValue) -> dirty.set(!newValue.equals(configuration.getConfigurationNode().getName())));
 
-        saveSetCommentProperty.addListener((observable, oldValue, newValue) -> {
-            dirty.set(!newValue.equals(configuration.getConfigurationData().getDescription()));
-        });
+        saveSetCommentProperty.addListener((observable, oldValue, newValue) -> dirty.set(!newValue.equals(configuration.getConfigurationData().getDescription())));
 
         saveButton.disableProperty().bind(Bindings.createBooleanBinding(() -> dirty.not().get() ||
                         saveSetCommentProperty.isEmpty().get() ||
@@ -249,20 +239,19 @@ public class ConfigurationController {
             try {
                 configuration.getConfigurationData().setDescription(saveSetCommentProperty.getValue());
                 configuration.getConfigurationData().setPvList(saveSetEntries);
-                configuration.getConfigurationNode().setName(saveSetNameProperty.get());
+
                 if (configuration.getConfigurationNode().getUniqueId() == null) { // New configuration
+                    configuration.getConfigurationNode().setName(saveSetNameProperty.get());
                     configuration = saveAndRestoreService.createConfiguration(configurationNodeParent,
                             configuration);
                 } else {
+                    Node configNode = Node.builder().nodeType(NodeType.CONFIGURATION).uniqueId(configuration.getConfigurationNode().getUniqueId())
+                            .name(saveSetNameProperty.get()).build();
+                    configuration.setConfigurationNode(configNode);
                     configuration = saveAndRestoreService.updateConfiguration(configuration);
                 }
                 tabTitleProperty.set(configuration.getConfigurationNode().getName());
                 dirty.set(false);
-
-                //loadedConfig.putProperty(DESCRIPTION_PROPERTY, saveSetCommentProperty.getValue());
-                //loadedConfig = saveAndRestoreService.updateSaveSet(loadedConfig, saveSetEntries);
-
-                //loadConfiguration(configurationNode);
             } catch (Exception e1) {
                 ExceptionDetailsErrorDialog.openError(pvTable,
                         Messages.errorActionFailed,
@@ -285,7 +274,7 @@ public class ConfigurationController {
                 // Disallow duplicate PV names as in a restore operation this would mean that a PV is written
                 // multiple times, possibly with different values.
                 String pvName = pvNames[i].trim();
-                if(saveSetEntries.stream().anyMatch(s -> s.getPvName().equals(pvName))){
+                if (saveSetEntries.stream().anyMatch(s -> s.getPvName().equals(pvName))) {
                     continue;
                 }
                 String readbackPV = i >= readbackPvNames.length ? null : readbackPvNames[i] == null || readbackPvNames[i].isEmpty() ? null : readbackPvNames[i].trim();

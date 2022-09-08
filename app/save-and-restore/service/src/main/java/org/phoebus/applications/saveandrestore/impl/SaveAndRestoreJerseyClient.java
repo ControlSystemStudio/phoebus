@@ -397,7 +397,13 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
                 .entity(configuration, CONTENT_TYPE_JSON)
                 .post(ClientResponse.class);
         if (response.getStatus() != 200) {
-            return null;
+            String message = Messages.updateConfigurationFailed;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                // Ignore
+            }
+            throw new RuntimeException(message);
         }
         return response.getEntity(Configuration.class);
     }

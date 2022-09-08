@@ -692,7 +692,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         dialog.getDialogPane().lookupButton(ButtonType.OK).setDisable(true);
         dialog.getEditor().textProperty().setValue(node.getName());
 
-
         dialog.getEditor().textProperty().addListener((observable, oldValue, newValue) -> {
             String value = newValue.trim();
             dialog.getDialogPane().lookupButton(ButtonType.OK)

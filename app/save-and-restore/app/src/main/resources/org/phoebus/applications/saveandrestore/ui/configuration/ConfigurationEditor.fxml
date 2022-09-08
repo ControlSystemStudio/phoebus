@@ -16,7 +16,7 @@
                <padding>
                   <Insets left="5.0" right="5.0" />
                </padding></Label>
-                <TextField fx:id="saveSetNameField" prefWidth="300.0" promptText="%promptNewSaveSetContent" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.valignment="TOP">
+                <TextField fx:id="saveSetNameField" maxWidth="1.7976931348623157E308" promptText="%promptNewSaveSetContent" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.hgrow="ALWAYS" GridPane.valignment="TOP">
                <GridPane.margin>
                   <Insets top="5.0" />
                </GridPane.margin></TextField>
@@ -27,7 +27,7 @@
                 </Label>
                 <TextArea fx:id="commentTextArea" maxWidth="1.7976931348623157E308" prefRowCount="3" promptText="%descriptionHint" GridPane.columnIndex="3" GridPane.hgrow="ALWAYS" GridPane.rowSpan="3" GridPane.vgrow="ALWAYS">
                     <GridPane.margin>
-                        <Insets right="5.0" top="5.0" />
+                        <Insets bottom="5.0" top="5.0" />
                     </GridPane.margin>
                 </TextArea>
             <Label text="%saveSetDate" GridPane.halignment="LEFT" GridPane.rowIndex="1" GridPane.valignment="CENTER">
@@ -38,9 +38,9 @@
                   <Insets left="5.0" />
                </GridPane.margin></Label>
             <Label fx:id="saveSetDateField" text="Save Set Date" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                <Button fx:id="saveButton" maxHeight="1.7976931348623157E308" mnemonicParsing="false" onAction="#saveConfiguration" text="%save" GridPane.columnIndex="4" GridPane.rowSpan="3">
+                <Button fx:id="saveButton" maxHeight="1.7976931348623157E308" minWidth="70.0" mnemonicParsing="false" onAction="#saveConfiguration" text="%save" GridPane.columnIndex="4" GridPane.rowSpan="3">
                     <GridPane.margin>
-                        <Insets right="5.0" top="5.0" />
+                        <Insets bottom="5.0" right="5.0" top="5.0" />
                     </GridPane.margin>
                <padding>
                   <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />

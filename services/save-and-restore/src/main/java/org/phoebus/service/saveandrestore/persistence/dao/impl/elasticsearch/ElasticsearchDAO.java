@@ -39,6 +39,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.phoebus.applications.saveandrestore.model.Node.ROOT_FOLDER_UNIQUE_ID;
@@ -408,16 +409,16 @@ public class ElasticsearchDAO implements NodeDAO {
             throw new IllegalArgumentException("Updating root node is not allowed");
         }
 
-        // Retrieve parent
-        Optional<ESTreeNode> parentNode = elasticsearchTreeRepository.findById(nodeToUpdate.getUniqueId());
-        if(parentNode.isEmpty()){ // Should not happen in a rename operation, unless there is a race condition (e.g. another client deletes parent node)
+        // Retrieve parent node and its child nodes
+        ESTreeNode elasticsearchParentTreeNode = elasticsearchTreeRepository.getParentNode(nodeToUpdate.getUniqueId());
+        if(elasticsearchParentTreeNode == null){ // Should not happen in a rename operation, unless there is a race condition (e.g. another client deletes parent node)
             throw new NodeNotFoundException(
-                    String.format("Cannot rename new node as parent unique_id=%s does not exist.", nodeToUpdate.getUniqueId()));
+                    String.format("Cannot update node as parent node cannot be determined."));
         }
 
         // The node to be created cannot have same the name and type as any of the parent's
         // child nodes
-        List<Node> parentsChildNodes = parentNode.get().getChildNodes();
+        List<Node> parentsChildNodes = elasticsearchParentTreeNode.getChildNodes();
         if (!isNodeNameValid(nodeToUpdate, parentsChildNodes)) {
             throw new IllegalArgumentException("Node of same name and type already exists in parent node.");
         }
@@ -432,6 +433,9 @@ public class ElasticsearchDAO implements NodeDAO {
         esTreeNode.setNode(nodeToUpdate);
 
         elasticsearchTreeRepository.save(esTreeNode);
+
+        // Now also save the updated parent node as this contains a list of child nodes, one of which has been updated.
+        updateParentNode(elasticsearchParentTreeNode, nodeToUpdate);
 
         return elasticsearchTreeRepository.findById(nodeToUpdate.getUniqueId()).get().getNode();
     }
@@ -503,7 +507,7 @@ public class ElasticsearchDAO implements NodeDAO {
     public Configuration updateConfiguration(final Configuration configuration){
 
         Node existingConfigurationNode = getNode(configuration.getConfigurationNode().getUniqueId());
-        if(existingConfigurationNode.getName().equals(configuration.getConfigurationNode())){
+        if(!existingConfigurationNode.getName().equals(configuration.getConfigurationNode().getName())){
             // Client requests to rename configuration node.
             existingConfigurationNode = updateNode(configuration.getConfigurationNode(), false);
         }
@@ -633,5 +637,29 @@ public class ElasticsearchDAO implements NodeDAO {
     @Override
     public Node findParentFromPathElements(Node node, String[] pathElements, int depth){
         return null;
+    }
+
+    /**
+     * Updates a parent node in order to be consistent with changes performed on a single node
+     * that is a child node.
+     *
+     * @param parentNode The {@link ESTreeNode} representing the parent {@link Node}.
+     * @param updatedNode A {@link Node} that has been updated and thus must be updated in its parent's list
+     *                    of child {@link Node}s
+     */
+    private void updateParentNode(ESTreeNode parentNode, Node updatedNode){
+        Node node = parentNode.getChildNodes().stream()
+                .filter(n -> n.getUniqueId().equals(updatedNode.getUniqueId()))
+                .findFirst()
+                .orElse(null);
+        if(node == null){
+            logger.log(Level.INFO, "Parent node not updated as child not was not present. This should not happen.");
+            return;
+        }
+
+        parentNode.getChildNodes().remove(node);
+        parentNode.getChildNodes().add(updatedNode);
+
+        elasticsearchTreeRepository.save(parentNode);
     }
 }

@@ -123,13 +123,15 @@ public class NodeController extends BaseController {
     }
 
     /**
-     * Renames a node.
+     * Updates a {@link Node}.
+     *
      * <p>
      * A {@link HttpStatus#BAD_REQUEST} is returned if a node of the same name and type already exists in the parent folder,
      * or if the node in question is the root node (0).
+     * </p>
      *
      * @param customTimeForMigration Self-explanatory
-     * @param nodeToUpdate           {@link Node} object containing updated data. Only name and properties may be changed. The user name
+     * @param nodeToUpdate           {@link Node} object containing updated data. Only name, description and properties may be changed. The user name
      *                               should be set by the client in an automated fashion and will be updated by the persistence layer.
      * @return A {@link Node} object representing the updated node.
      */
