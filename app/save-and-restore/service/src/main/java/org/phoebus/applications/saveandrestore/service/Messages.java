@@ -23,6 +23,7 @@ public class Messages {
 
     public static String copyOrMoveNotAllowedBody;
     public static String createNodeFailed;
+    public static String createConfigurationFailed;
     public static String updateConfigurationFailed;
     public static String updateNodeFailed;
 

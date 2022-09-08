@@ -69,7 +69,7 @@ import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.common.VNoData;
 import org.phoebus.applications.saveandrestore.common.VTypePair;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
-import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
@@ -540,7 +540,7 @@ public class SnapshotController implements NodeChangedListener {
     }
 
     /**
-     * Loads data from a {@link Configuration} in order to populate the
+     * Loads data from a {@link ConfigurationData} in order to populate the
      * view with PV items.
      *
      * @param node A {@link Node} of type {@link NodeType#CONFIGURATION}
@@ -548,7 +548,7 @@ public class SnapshotController implements NodeChangedListener {
     public void loadSaveSet(Node node) {
         SnapshotController.this.config = saveAndRestoreService.getNode(node.getUniqueId());
         try {
-            Configuration configuration = saveAndRestoreService.getConfiguration(node.getUniqueId());
+            ConfigurationData configuration = saveAndRestoreService.getConfiguration(node.getUniqueId());
             List<ConfigPv> configPvs = configuration.getPvList();
             Node snapshot = Node.builder().name(Messages.unnamedSnapshot).nodeType(NodeType.SNAPSHOT).build();
             VSnapshot vSnapshot =

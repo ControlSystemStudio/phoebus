@@ -19,6 +19,7 @@ package org.phoebus.service.saveandrestore.web.controllers;
 
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.UpdateConfigHolder;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
@@ -110,15 +111,14 @@ public class ConfigurationController extends BaseController {
 
     @SuppressWarnings("unused")
     @PutMapping(produces = JSON)
-    public Configuration saveConfiguration(@RequestParam(name = "parentId") String parentsUniqueId,
-                                           @RequestParam(name = "configurationName") String configurationName,
-                                           @RequestBody Configuration configuration){
-        return nodeDAO.createConfiguration(parentsUniqueId,  configurationName, configuration);
+    public Configuration createConfiguration(@RequestParam(value = "parentNodeId") String parentNodeId,
+                                             @RequestBody Configuration configuration){
+        return nodeDAO.createConfiguration(parentNodeId, configuration);
     }
 
     @SuppressWarnings("unused")
     @GetMapping(value = "/{uniqueId}", produces = JSON)
-    public Configuration getConfiguration(@PathVariable String uniqueId){
+    public ConfigurationData getConfiguration(@PathVariable String uniqueId){
         return nodeDAO.getConfiguration(uniqueId);
     }
 

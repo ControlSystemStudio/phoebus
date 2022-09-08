@@ -24,6 +24,7 @@ import org.phoebus.applications.saveandrestore.common.VNoData;
 import org.phoebus.applications.saveandrestore.impl.SaveAndRestoreJerseyClient;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
@@ -110,9 +111,9 @@ public class SaveAndRestoreService {
         return node;
     }
 
-    public Node createNode(String parentsUniqueId, Node newTreeNode) throws Exception {
-        Future<Node> future = executor.submit(() -> saveAndRestoreClient.createNewNode(parentsUniqueId, newTreeNode));
-        notifyNodeAddedListeners(getNode(parentsUniqueId), Collections.singletonList(newTreeNode));
+    public Node createNode(String parentNodeId, Node newTreeNode) throws Exception {
+        Future<Node> future = executor.submit(() -> saveAndRestoreClient.createNewNode(parentNodeId, newTreeNode));
+        notifyNodeAddedListeners(getNode(parentNodeId), Collections.singletonList(newTreeNode));
         return future.get();
     }
 
@@ -203,22 +204,19 @@ public class SaveAndRestoreService {
         return updatedNode;
     }
 
-    public Configuration saveConfiguration(String parentId, String configurationName, Configuration configuration) throws Exception {
-        Future<Configuration> future = executor.submit(() -> saveAndRestoreClient.createConfiguration(parentId, configurationName, configuration));
-        Configuration updatedConfiguration = future.get();
-        //notifyNodeChangeListeners(updatedNode);
-        return updatedConfiguration;
+    public Configuration createConfiguration(final Node parentNode, final Configuration configuration) throws Exception {
+        Future<Configuration> future = executor.submit(() -> saveAndRestoreClient.createConfiguration(parentNode.getUniqueId(), configuration));
+        Configuration newConfiguration = future.get();
+        notifyNodeChangeListeners(parentNode);
+        return newConfiguration;
     }
 
     public Configuration updateConfiguration(Configuration configuration) throws Exception {
-        /*
-        Future<Configuration> future = executor.submit(() -> saveAndRestoreClient.saveConfiguration(configuration));
-        Configuration updatedConfigurationData = future.get();
-        //notifyNodeChangeListeners(updatedNode);
-        return updatedConfigurationData;
-
-         */
-        return null;
+        Future<Configuration> future = executor.submit(() -> saveAndRestoreClient.updateConfiguration(configuration));
+        Configuration updatedConfiguration = future.get();
+        // Associated configuration Node may have a new name
+        notifyNodeChangeListeners(configuration.getConfigurationNode());
+        return updatedConfiguration;
     }
 
     public Node saveSnapshot(Node saveSetNode, List<SnapshotItem> snapshotItems, String snapshotName, String comment) throws Exception {
@@ -302,8 +300,8 @@ public class SaveAndRestoreService {
         return updatedNode;
     }
 
-    public Configuration getConfiguration(String nodeId) throws Exception {
-        Future<Configuration> future = executor.submit(() -> saveAndRestoreClient.getConfiguration(nodeId));
+    public ConfigurationData getConfiguration(String nodeId) throws Exception {
+        Future<ConfigurationData> future = executor.submit(() -> saveAndRestoreClient.getConfiguration(nodeId));
         try {
             return future.get();
         } catch (Exception e) {

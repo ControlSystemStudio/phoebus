@@ -164,6 +164,6 @@
         </GridPane>
     </bottom>
    <padding>
-      <Insets bottom="5.0" />
+      <Insets bottom="5.0" top="5.0" />
    </padding>
 </BorderPane>

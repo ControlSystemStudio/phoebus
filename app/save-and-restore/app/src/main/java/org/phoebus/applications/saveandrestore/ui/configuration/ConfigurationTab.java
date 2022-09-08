@@ -95,7 +95,7 @@ public class ConfigurationTab extends Tab implements NodeChangedListener {
     public void editSaveSet(Node saveSetNode) {
         setId(saveSetNode.getUniqueId());
         tabTitleProperty.set(saveSetNode.getName());
-        configurationController.editConfiguration(saveSetNode);
+        configurationController.loadConfiguration(saveSetNode);
     }
 
     public void configureForNewSaveSet(Node parentNode) {

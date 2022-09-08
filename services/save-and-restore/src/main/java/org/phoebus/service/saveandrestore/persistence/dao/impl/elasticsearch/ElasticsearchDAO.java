@@ -21,6 +21,7 @@ package org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SaveAndRestorePv;
@@ -243,7 +244,7 @@ public class ElasticsearchDAO implements NodeDAO {
         Node Source = updateNode(sourceNode, true);
 
         if (sourceNode.getNodeType().equals(NodeType.CONFIGURATION)) {
-            Configuration sourceConfiguration = getConfiguration(sourceNode.getUniqueId());
+            ConfigurationData sourceConfiguration = getConfiguration(sourceNode.getUniqueId());
             copyConfiguration(Source, sourceConfiguration);
             // TODO copy all snaoshot Nodes and SnapshotData objects.
         }
@@ -254,13 +255,13 @@ public class ElasticsearchDAO implements NodeDAO {
     }
 
     /**
-     * Copies a {@link Configuration}.
-     * @param targetConfigurationNode The configuration {@link Node} with which the copied {@link Configuration} should be
+     * Copies a {@link ConfigurationData}.
+     * @param targetConfigurationNode The configuration {@link Node} with which the copied {@link ConfigurationData} should be
      * associated. This must already exist in the Elasticsearch index.
-     * @param sourceConfiguration The source {@link Configuration}
+     * @param sourceConfiguration The source {@link ConfigurationData}
      */
-    private void copyConfiguration(Node targetConfigurationNode, Configuration sourceConfiguration){
-        Configuration clonedConfiguration = Configuration.clone(sourceConfiguration);
+    private void copyConfiguration(Node targetConfigurationNode, ConfigurationData sourceConfiguration){
+        ConfigurationData clonedConfiguration = ConfigurationData.clone(sourceConfiguration);
         clonedConfiguration.setUniqueId(targetConfigurationNode.getUniqueId());
         //TODO: fix!
         //saveConfiguration(clonedConfiguration);
@@ -273,10 +274,10 @@ public class ElasticsearchDAO implements NodeDAO {
         if(nodeOptional.isEmpty() || !nodeOptional.get().getNode().getNodeType().equals(NodeType.CONFIGURATION)){
             throw new IllegalArgumentException(String.format("Config node with unique id=%s not found or is wrong type", configToUpdate.getUniqueId()));
         }
-        Optional<Configuration> elasticsearchSavesetOptional = configurationDataRepository.findById(configToUpdate.getUniqueId());
-        Configuration elasticsearchConfiguration;
+        Optional<ConfigurationData> elasticsearchSavesetOptional = configurationDataRepository.findById(configToUpdate.getUniqueId());
+        ConfigurationData elasticsearchConfiguration;
         if(elasticsearchSavesetOptional.isEmpty()){
-            elasticsearchConfiguration = new Configuration();
+            elasticsearchConfiguration = new ConfigurationData();
             elasticsearchConfiguration.setUniqueId(configToUpdate.getUniqueId());
             elasticsearchConfiguration.setDescription(configToUpdate.getDescription());
         }
@@ -372,7 +373,7 @@ public class ElasticsearchDAO implements NodeDAO {
 
     @Override
     public List<ConfigPv> getConfigPvs(String configUniqueId) {
-        Optional<Configuration> elasticsearchSavesetOptional = configurationDataRepository.findById(configUniqueId);
+        Optional<ConfigurationData> elasticsearchSavesetOptional = configurationDataRepository.findById(configUniqueId);
         if(elasticsearchSavesetOptional.isEmpty()){
             return Collections.emptyList();
         }
@@ -401,11 +402,26 @@ public class ElasticsearchDAO implements NodeDAO {
     public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration) {
         Optional<ESTreeNode> nodeOptional = elasticsearchTreeRepository.findById(nodeToUpdate.getUniqueId());
         if(nodeOptional.isEmpty()){
-            throw new IllegalArgumentException(String.format("CNode with unique id=%s not found", nodeToUpdate.getUniqueId()));
+            throw new IllegalArgumentException(String.format("Node with unique id=%s not found", nodeToUpdate.getUniqueId()));
         }
         else if(nodeOptional.get().getNode().getUniqueId().equals(ROOT_FOLDER_UNIQUE_ID)){
             throw new IllegalArgumentException("Updating root node is not allowed");
         }
+
+        // Retrieve parent
+        Optional<ESTreeNode> parentNode = elasticsearchTreeRepository.findById(nodeToUpdate.getUniqueId());
+        if(parentNode.isEmpty()){ // Should not happen in a rename operation, unless there is a race condition (e.g. another client deletes parent node)
+            throw new NodeNotFoundException(
+                    String.format("Cannot rename new node as parent unique_id=%s does not exist.", nodeToUpdate.getUniqueId()));
+        }
+
+        // The node to be created cannot have same the name and type as any of the parent's
+        // child nodes
+        List<Node> parentsChildNodes = parentNode.get().getChildNodes();
+        if (!isNodeNameValid(nodeToUpdate, parentsChildNodes)) {
+            throw new IllegalArgumentException("Node of same name and type already exists in parent node.");
+        }
+
 
         Date now = new Date();
         if(customTimeForMigration){
@@ -469,19 +485,35 @@ public class ElasticsearchDAO implements NodeDAO {
     }
 
     @Override
-    public Configuration createConfiguration(String parentsUniqueId, String configurationName, Configuration configuration){
-        Node newConfigurationNode = Node.builder().nodeType(NodeType.CONFIGURATION).name(configurationName).build();
-        newConfigurationNode = createNode(parentsUniqueId, newConfigurationNode);
-        configuration.setUniqueId(newConfigurationNode.getUniqueId());
-        return configurationDataRepository.save(configuration);
+    public Configuration createConfiguration(String parentNodeId, Configuration configuration){
+        configuration.getConfigurationNode().setNodeType(NodeType.CONFIGURATION);
+        Node newConfigurationNode = createNode(parentNodeId, configuration.getConfigurationNode());
+        configuration.getConfigurationData().setUniqueId(newConfigurationNode.getUniqueId());
+
+        ConfigurationData newConfigurationData = configurationDataRepository.save(configuration.getConfigurationData());
+
+        Configuration newConfiguration = new Configuration();
+        newConfiguration.setConfigurationNode(newConfigurationNode);
+        newConfiguration.setConfigurationData(newConfigurationData);
+
+        return newConfiguration;
     }
 
     @Override
-    public Configuration updateConfiguration(Configuration configuration){
-        Configuration existingConfiguration = getConfiguration(configuration.getUniqueId());
-        existingConfiguration.setDescription(configuration.getDescription());
-        existingConfiguration.setPvList(configuration.getPvList());
-        return configurationDataRepository.save(existingConfiguration);
+    public Configuration updateConfiguration(final Configuration configuration){
+
+        Node existingConfigurationNode = getNode(configuration.getConfigurationNode().getUniqueId());
+        if(existingConfigurationNode.getName().equals(configuration.getConfigurationNode())){
+            // Client requests to rename configuration node.
+            existingConfigurationNode = updateNode(configuration.getConfigurationNode(), false);
+        }
+
+        ConfigurationData updatedConfigurationData = configurationDataRepository.save(configuration.getConfigurationData());
+
+        return Configuration.builder()
+                .configurationData(updatedConfigurationData)
+                .configurationNode(existingConfigurationNode)
+                .build();
     }
 
     /**
@@ -576,8 +608,8 @@ public class ElasticsearchDAO implements NodeDAO {
     }
 
     @Override
-    public Configuration getConfiguration(String nodeId) {
-        Optional<Configuration> configuration = configurationDataRepository.findById(nodeId);
+    public ConfigurationData getConfiguration(String nodeId) {
+        Optional<ConfigurationData> configuration = configurationDataRepository.findById(nodeId);
         if (configuration.isEmpty()) {
             throw new NodeNotFoundException("Configuration with id " + nodeId + " not found");
         }

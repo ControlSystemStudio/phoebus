@@ -29,6 +29,7 @@ import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
@@ -164,9 +165,9 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     @Override
-    public Node createNewNode(String parentsUniqueId, Node node) {
+    public Node createNewNode(String parentNodeId, Node node) {
         node.setUserName(getCurrentUsersName());
-        WebResource webResource = client.resource(jmasarServiceUrl + "/node").queryParam("parentId", parentsUniqueId);
+        WebResource webResource = client.resource(jmasarServiceUrl + "/node").queryParam("parentNodeId", parentNodeId);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(node, CONTENT_TYPE_JSON)
                 .put(ClientResponse.class);
@@ -362,31 +363,35 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     @Override
-    public Configuration getConfiguration(String nodeId){
+    public ConfigurationData getConfiguration(String nodeId){
         ClientResponse clientResponse = getCall("/config/" + nodeId);
-        return clientResponse.getEntity(Configuration.class);
+        return clientResponse.getEntity(ConfigurationData.class);
     }
 
     @Override
-    public Configuration createConfiguration(String parentId, String configurationName, Configuration configuration){
+    public Configuration createConfiguration(String parentNodeId, Configuration configuration){
         WebResource webResource =
                 client.resource(jmasarServiceUrl + "/config")
-                        .queryParam("parentId", parentId)
-                        .queryParam("configurationName", configurationName);
+                        .queryParam("parentNodeId", parentNodeId);
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(configuration, CONTENT_TYPE_JSON)
                 .put(ClientResponse.class);
         if (response.getStatus() != 200) {
-            return null;
+            String message = Messages.createConfigurationFailed;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                // Ignore
+            }
+            throw new SaveAndRestoreClientException(message);
         }
         return response.getEntity(Configuration.class);
     }
 
     @Override
     public Configuration updateConfiguration(Configuration configuration){
-        WebResource webResource =
-                client.resource(jmasarServiceUrl + "/config");
+        WebResource webResource = client.resource(jmasarServiceUrl + "/config");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(configuration, CONTENT_TYPE_JSON)

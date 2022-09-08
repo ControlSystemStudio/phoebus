@@ -43,11 +43,13 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
 import javafx.util.Callback;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
@@ -58,6 +60,7 @@ import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
+import javax.swing.border.Border;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -68,6 +71,9 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class ConfigurationController {
+
+    @FXML
+    private BorderPane root;
 
     @FXML
     private TableColumn<ConfigPv, String> pvNameColumn;
@@ -121,18 +127,12 @@ public class ConfigurationController {
     private final SimpleBooleanProperty singelSelection = new SimpleBooleanProperty(false);
     private final SimpleStringProperty saveSetCommentProperty = new SimpleStringProperty();
     private final SimpleStringProperty saveSetNameProperty = new SimpleStringProperty();
-    private Node configurationNode;
     private Node configurationNodeParent;
 
-    private Configuration loadedConfiguration;
+
+    private Configuration configuration;
 
     private TableView.TableViewSelectionModel<ConfigPv> defaultSelectionModel;
-
-    /**
-     * Used to determine if UI is used to create a new save set (configuration) or edit an existing.
-     * It is needed to determine how to create or update the save set.
-     */
-    private boolean newConfiguration;
 
     private final Logger logger = Logger.getLogger(ConfigurationController.class.getName());
 
@@ -225,11 +225,11 @@ public class ConfigurationController {
         });
 
         saveSetNameProperty.addListener((observableValue, oldValue, newValue) -> {
-            dirty.set(!newValue.equals(configurationNode.getName()));
+            dirty.set(!newValue.equals(configuration.getConfigurationNode().getName()));
         });
 
         saveSetCommentProperty.addListener((observable, oldValue, newValue) -> {
-            dirty.set(!newValue.equals(configurationNode.getDescription()));
+            dirty.set(!newValue.equals(configuration.getConfigurationData().getDescription()));
         });
 
         saveButton.disableProperty().bind(Bindings.createBooleanBinding(() -> dirty.not().get() ||
@@ -247,25 +247,22 @@ public class ConfigurationController {
 
         UI_EXECUTOR.execute(() -> {
             try {
-                loadedConfiguration.setDescription(saveSetCommentProperty.getValue());
-                loadedConfiguration.setPvList(saveSetEntries);
-                configurationNode.setName(saveSetNameProperty.get());
-                if (newConfiguration) {
-                    loadedConfiguration = saveAndRestoreService.saveConfiguration(configurationNodeParent.getUniqueId(),
-                            saveSetNameProperty.get(),
-                            loadedConfiguration);
-                    // Must get the Node object associated with the new configuration as that is new too.
-                    configurationNode = saveAndRestoreService.getNode(loadedConfiguration.getUniqueId());
-                    newConfiguration = false;
+                configuration.getConfigurationData().setDescription(saveSetCommentProperty.getValue());
+                configuration.getConfigurationData().setPvList(saveSetEntries);
+                configuration.getConfigurationNode().setName(saveSetNameProperty.get());
+                if (configuration.getConfigurationNode().getUniqueId() == null) { // New configuration
+                    configuration = saveAndRestoreService.createConfiguration(configurationNodeParent,
+                            configuration);
                 } else {
-                    saveAndRestoreService.updateConfiguration(loadedConfiguration);
+                    configuration = saveAndRestoreService.updateConfiguration(configuration);
                 }
-
+                tabTitleProperty.set(configuration.getConfigurationNode().getName());
+                dirty.set(false);
 
                 //loadedConfig.putProperty(DESCRIPTION_PROPERTY, saveSetCommentProperty.getValue());
                 //loadedConfig = saveAndRestoreService.updateSaveSet(loadedConfig, saveSetEntries);
 
-                editConfiguration(configurationNode);
+                //loadConfiguration(configurationNode);
             } catch (Exception e1) {
                 ExceptionDetailsErrorDialog.openError(pvTable,
                         Messages.errorActionFailed,
@@ -314,43 +311,45 @@ public class ConfigurationController {
     }
 
     public void newConfiguration(Node parentNode) {
+        configurationNodeParent = parentNode;
+        configuration = new Configuration();
+        configuration.setConfigurationNode(Node.builder().nodeType(NodeType.CONFIGURATION).build());
+        configuration.setConfigurationData(new ConfigurationData());
+        createdByField.textProperty().set(null);
+        saveSetDateField.textProperty().set(null);
+        dirty.set(false);
+    }
+
+    public void loadConfiguration(Node configurationNode) {
+        configuration = new Configuration();
+        configuration.setConfigurationNode(configurationNode);
+        try {
+            configuration.setConfigurationData(saveAndRestoreService.getConfiguration(configurationNode.getUniqueId()));
+        } catch (Exception e) {
+            ExceptionDetailsErrorDialog.openError(root, "Error", "Unable to retrieve configuration data", e);
+            return;
+        }
         UI_EXECUTOR.execute(() -> {
-            newConfiguration = true;
             try {
-                configurationNode = Node.builder().nodeType(NodeType.CONFIGURATION).build();
-                configurationNodeParent = parentNode;
-                loadedConfiguration = new Configuration();
-                pvTable.setItems(saveSetEntries);
-                createdByField.textProperty().set(null);
-                saveSetDateField.textProperty().set(null);
+                saveSetNameProperty.set(configurationNode.getName());
+                createdByField.textProperty().set(configurationNode.getUserName());
+                saveSetDateField.textProperty().set(configurationNode.getCreated().toString());
+                tabTitleProperty.set(configurationNode.getName());
+                loadConfiguration();
             } catch (Exception e) {
-                logger.log(Level.WARNING, "Unable to configure UI for new save set");
+                logger.log(Level.WARNING, "Unable to load existing save set");
             }
         });
     }
 
-    public void editConfiguration(Node configurationNode) {
-
+    private void loadConfiguration() {
         UI_EXECUTOR.execute(() -> {
-            newConfiguration = false;
-            this.configurationNode = configurationNode;
             try {
-
-                loadedConfiguration = saveAndRestoreService.getConfiguration(configurationNode.getUniqueId());
-                saveSetCommentProperty.set(loadedConfiguration.getDescription());
-
-                //List<ConfigPv> configPvs = saveAndRestoreService.getConfigPvs(node.getUniqueId());
-
-                Collections.sort(loadedConfiguration.getPvList());
-                saveSetNameProperty.set(configurationNode.getName());
-                saveSetCommentProperty.set(loadedConfiguration.getDescription());
-                saveSetEntries.setAll(loadedConfiguration.getPvList());
+                saveSetCommentProperty.set(configuration.getConfigurationData().getDescription());
+                Collections.sort(configuration.getConfigurationData().getPvList());
+                saveSetEntries.setAll(configuration.getConfigurationData().getPvList());
                 pvTable.setItems(saveSetEntries);
                 dirty.set(false);
-                createdByField.textProperty().set(configurationNode.getUserName());
-                saveSetDateField.textProperty().set(configurationNode.getCreated().toString());
-
-                tabTitleProperty.set(configurationNode.getName());
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Unable to load existing save set");
             }

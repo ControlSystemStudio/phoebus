@@ -14,63 +14,58 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
  */
 
 package org.phoebus.applications.saveandrestore.model;
 
-import java.util.List;
+import org.phoebus.applications.saveandrestore.model.ConfigPv.Builder;
 
-/**
- * Class holding data particular to a save & restore configuration (save set) {@link Node}.
- *
- * Note that certain properties (name, user id, create date) are contained in the {@link Node} object
- * associated with the configuration. The <code>uniqueId</code> is used to create this association, i.e.
- * a {@link Configuration} object as persisted in the remote service will have the same unique id
- * as the associated {@link Node} object.
- */
 public class Configuration {
 
-    /**
-     * This must be set to the same unique id as the {@link Node} object
-     * mapping to the save set node.
-     */
-    private String uniqueId;
-    private String description;
-    private List<ConfigPv> pvList;
+    private Node configurationNode;
+    private ConfigurationData configurationData;
 
-    public String getUniqueId() {
-        return uniqueId;
+    public Node getConfigurationNode() {
+        return configurationNode;
     }
 
-    public void setUniqueId(String uniqueId) {
-        this.uniqueId = uniqueId;
+    public void setConfigurationNode(Node configurationNode) {
+        this.configurationNode = configurationNode;
     }
 
-    public String getDescription() {
-        return description;
+    public ConfigurationData getConfigurationData() {
+        return configurationData;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setConfigurationData(ConfigurationData configurationData) {
+        this.configurationData = configurationData;
     }
 
-    public List<ConfigPv> getPvList() {
-        return pvList;
+    public static Builder builder(){
+        return new Builder();
     }
 
-    public void setPvList(List<ConfigPv> pvList) {
-        this.pvList = pvList;
-    }
+    public static class Builder{
 
-    /**
-     * Clones a {@link Configuration} object. The unique id is not copied, as it should not be.
-     * @param configurationToClone source {@link Node}
-     * @return The cloned {@link Node}
-     */
-    public static Configuration clone(Configuration configurationToClone){
-        Configuration clone = new Configuration();
-        clone.setDescription(configurationToClone.getDescription());
-        clone.setPvList(configurationToClone.getPvList());
-        return clone;
+        private Configuration configuration;
+
+        private Builder(){
+            configuration = new Configuration();
+        }
+
+        public Configuration.Builder configurationData(ConfigurationData configurationData){
+            configuration.setConfigurationData(configurationData);
+            return this;
+        }
+
+        public Configuration.Builder configurationNode(Node configurationNode){
+            configuration.setConfigurationNode(configurationNode);
+            return this;
+        }
+
+        public Configuration build(){
+            return configuration;
+        }
     }
 }
