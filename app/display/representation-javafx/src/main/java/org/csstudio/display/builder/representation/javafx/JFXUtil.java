@@ -158,35 +158,6 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
         });
     }
 
-    /** Convert font to Java FX "-fx-font" shorthand form; e.g.
-     * [[ <font-style> || <font-weight> ]? <font-size> <font-family> ]
-     * per https://docs.oracle.com/javase/8/javafx/api/javafx/scene/doc-files/cssref.html#typefont
-     *  @param prefix Typically "-fx-font"
-     *  @param font {@link Font}
-     *  @return "-fx-font: italic 64px 'Source Sans Pro';" (recall many-word fonts must be surrounded by single quotes)
-     */
-    public static String cssFontShorthand(final String prefix, final Font font) {
-        final StringBuilder buf = new StringBuilder();
-        buf.append(prefix).append(": ");
-        switch (font.getStyle())
-        {
-            case "Bold":
-                buf.append("bold ");
-                break;
-            case "Italic":
-                buf.append("italic ");
-                break;
-            case "Bold Italic":
-                buf.append("bold italic ");
-                break;
-            default:
-                buf.append("normal ");
-        }
-        buf.append((int)font.getSize()).append("px ");
-        buf.append("'").append(font.getFamily()).append("';");
-        return buf.toString();
-    }
-
     /** Convert font to Java FX "-fx-font-*"
      *  @param prefix Typically "-fx-font"
      *  @param font {@link Font}
