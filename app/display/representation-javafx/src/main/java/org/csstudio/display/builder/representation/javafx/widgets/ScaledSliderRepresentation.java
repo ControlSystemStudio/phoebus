@@ -7,23 +7,6 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx.widgets;
 
-import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
-
-import java.text.DecimalFormat;
-import java.time.Instant;
-import java.util.logging.Level;
-
-import org.csstudio.display.builder.model.DirtyFlag;
-import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
-import org.csstudio.display.builder.model.WidgetProperty;
-import org.csstudio.display.builder.model.WidgetPropertyListener;
-import org.csstudio.display.builder.model.util.VTypeUtil;
-import org.csstudio.display.builder.model.widgets.ScaledSliderWidget;
-import org.csstudio.display.builder.representation.javafx.JFXPreferences;
-import org.csstudio.display.builder.representation.javafx.JFXUtil;
-import org.epics.vtype.Display;
-import org.epics.vtype.VType;
-
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -39,6 +22,22 @@ import javafx.scene.layout.Priority;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.util.converter.FormatStringConverter;
+import org.csstudio.display.builder.model.DirtyFlag;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
+import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.util.VTypeUtil;
+import org.csstudio.display.builder.model.widgets.ScaledSliderWidget;
+import org.csstudio.display.builder.representation.javafx.JFXPreferences;
+import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.epics.vtype.Display;
+import org.epics.vtype.VType;
+
+import java.text.DecimalFormat;
+import java.time.Instant;
+import java.util.logging.Level;
+
+import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
 /** Creates JavaFX item for model widget
  *  @author Amanda Carpenter
@@ -168,8 +167,10 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
         // Since both the widget's PV value and the JFX node's value property might be
         // written to independently during runtime, both must have listeners.
         slider.valueProperty().addListener(this::handleSliderMove);
-        if (toolkit.isEditMode())
+
+        if (toolkit.isEditMode()) {
             dirty_value.checkAndClear();
+        }
         else
         {
             model_widget.runtimePropValue().addPropertyListener(valueChangedListener);
@@ -469,10 +470,11 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
                                  "-fx-text-background-color: " + JFXUtil.webRGB(model_widget.propForegroundColor().getValue()) +
                                  // Axis tick marks
                                  "; -fx-background: " + JFXUtil.webRGB(model_widget.propForegroundColor().getValue()) +
-                                 // Font (XXX: size isn't used, would have to set it on the SliderSkin's axis?)
-                                 "; " + JFXUtil.cssFont("-fx-tick-label-font", font);
-            jfx_node.setStyle(style);
+                                 // Font; NOTE only the shorthand font style is supported for fx-tick-label-font;
+                                 // e.g. fx-tick-label-font-size etc are not supported!
+                                 "; " + JFXUtil.cssFontShorthand("-fx-tick-label-font", font);
 
+            jfx_node.setStyle(style);
             if (model_widget.propShowScale().getValue())
             {
                 String format = model_widget.propScaleFormat().getValue();
@@ -530,8 +532,9 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
                         // --> Set to min
                         slider.setValue(min);
                     }
-                    else
+                    else {
                         slider.setValue(newval);
+                    }
                 }
                 value = newval;
             }

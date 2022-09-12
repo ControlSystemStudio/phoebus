@@ -8,8 +8,12 @@
 package org.csstudio.display.builder.representation.javafx;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.junit.Test;
 
@@ -25,4 +29,54 @@ public class JFXUtilTest
         assertThat(JFXUtil.webRGB(new WidgetColor(15, 255, 0)), equalTo("#0FFF00"));
         assertThat(JFXUtil.webRGB(new WidgetColor(0, 16, 255)), equalTo("#0010FF"));
     }
+
+    @Test
+    public void tetCssFont() {
+
+        // Given a font and prefix
+        String prefix = "foobar";
+        Font font = Font.font("serif", FontWeight.BOLD, FontPosture.ITALIC,37);
+
+        // When converted
+        String actual = JFXUtil.cssFont(prefix, font);
+
+        // Then it matches as expected, note the system lookup finds Serif instead of serif
+        // And the individual pieces are broken out instead of on one line
+        String expected = "foobar-size: 37px;foobar-family: \"Serif\";foobar-weight: bold;foobar-style: italic;";
+        assertEquals(expected, actual);
+
+    }
+
+    @Test
+    public void testCssFontShorthand() {
+
+        // Given a font and prefix
+        String prefix = "foobar";
+        Font font = Font.font("serif", FontWeight.BOLD, FontPosture.ITALIC,37);
+
+        // When converted
+        String actual = JFXUtil.cssFontShorthand(prefix, font);
+
+        // Then it matches as expected, note the system lookup finds Serif instead of serif
+        String expected = "foobar: bold italic 37px 'Serif';";
+        assertEquals(expected, actual);
+
+    }
+
+    @Test
+    public void testCssFontShorthandNonexistentFont() {
+
+        // Given a font and prefix
+        String prefix = "foobar";
+        Font font = Font.font("My Fancy Font That Doesnt Exist", FontWeight.BOLD, FontPosture.ITALIC,37);
+
+        // When converted
+        String actual = JFXUtil.cssFontShorthand(prefix, font);
+
+        // Then it matches as expected
+        String expected = "foobar: bold italic 37px 'System';";
+        assertEquals(expected, actual);
+
+    }
+
 }
