@@ -7,12 +7,17 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx.widgets;
 
-import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
-
-import java.text.DecimalFormat;
-import java.time.Instant;
-import java.util.logging.Level;
-
+import javafx.beans.value.ObservableValue;
+import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
+import javafx.scene.control.Slider;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.util.converter.FormatStringConverter;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -24,21 +29,11 @@ import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.Display;
 import org.epics.vtype.VType;
 
-import javafx.beans.value.ObservableValue;
-import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
-import javafx.scene.control.Slider;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.util.converter.FormatStringConverter;
+import java.text.DecimalFormat;
+import java.time.Instant;
+import java.util.logging.Level;
+
+import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
 /** Creates JavaFX item for model widget
  *  @author Amanda Carpenter
@@ -50,6 +45,7 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
     private final DirtyFlag dirty_layout = new DirtyFlag();
     private final DirtyFlag dirty_enablement = new DirtyFlag();
     private final DirtyFlag dirty_value = new DirtyFlag();
+    private final DirtyFlag dirty_dragging_slider = new DirtyFlag();
     private final UntypedWidgetPropertyListener layoutChangedListener = this::layoutChanged;
     private final UntypedWidgetPropertyListener limitsChangedListener = this::limitsChanged;
     private final WidgetPropertyListener<Boolean> enablementChangedListener = this::enablementChanged;
@@ -168,8 +164,11 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
         // Since both the widget's PV value and the JFX node's value property might be
         // written to independently during runtime, both must have listeners.
         slider.valueProperty().addListener(this::handleSliderMove);
-        if (toolkit.isEditMode())
+        slider.setOnMouseReleased(this::handleSliderMouseRelease);
+
+        if (toolkit.isEditMode()) {
             dirty_value.checkAndClear();
+        }
         else
         {
             model_widget.runtimePropValue().addPropertyListener(valueChangedListener);
@@ -382,6 +381,11 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
         return step * order_of_magnitude;
     }
 
+    private void handleSliderMouseRelease(MouseEvent event) {
+        dirty_value.mark();
+        toolkit.scheduleUpdate(this);
+    }
+
     private void handleSliderMove(final ObservableValue<? extends Number> property, final Number old_value, final Number new_value)
     {
         if (!active)
@@ -396,6 +400,7 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
         toolkit.scheduleUpdate(this);
     }
 
+    /** Called when the toolkit performs a scheduled update **/
     @Override
     public void updateChanges()
     {
@@ -530,8 +535,9 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
                         // --> Set to min
                         slider.setValue(min);
                     }
-                    else
+                    else {
                         slider.setValue(newval);
+                    }
                 }
                 value = newval;
             }
