@@ -470,14 +470,17 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
             final Font font = JFXUtil.convert(model_widget.propFont().getValue());
             markers.setFont(font);
 
+            DecimalFormat fontSizeFormat = new DecimalFormat("#");
+
             final String style = // Text color (and border around the 'track')
                                  "-fx-text-background-color: " + JFXUtil.webRGB(model_widget.propForegroundColor().getValue()) +
                                  // Axis tick marks
                                  "; -fx-background: " + JFXUtil.webRGB(model_widget.propForegroundColor().getValue()) +
-                                 // Font (XXX: size isn't used, would have to set it on the SliderSkin's axis?)
-                                 "; " + JFXUtil.cssFont("-fx-tick-label-font", font);
-            jfx_node.setStyle(style);
+                                 // Font; NOTE only the shorthand font style is supported for fx-tick-label-font;
+                                 // e.g. fx-tick-label-font-size etc are not supported!
+                                 "; " + JFXUtil.cssFontShorthand("-fx-tick-label-font", font);
 
+            jfx_node.setStyle(style);
             if (model_widget.propShowScale().getValue())
             {
                 String format = model_widget.propScaleFormat().getValue();
