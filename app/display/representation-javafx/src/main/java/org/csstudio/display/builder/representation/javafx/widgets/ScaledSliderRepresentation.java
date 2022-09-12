@@ -462,8 +462,6 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
             final Font font = JFXUtil.convert(model_widget.propFont().getValue());
             markers.setFont(font);
 
-            DecimalFormat fontSizeFormat = new DecimalFormat("#");
-
             final String style = // Text color (and border around the 'track')
                                  "-fx-text-background-color: " + JFXUtil.webRGB(model_widget.propForegroundColor().getValue()) +
                                  // Axis tick marks
