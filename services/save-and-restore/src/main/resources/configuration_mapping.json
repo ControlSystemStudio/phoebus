@@ -4,9 +4,6 @@
       "uniqueId" : {
         "type" : "keyword"
       },
-      "description" : {
-        "type" : "keyword"
-      },
       "pvList": {
         "type" : "nested",
         "properties": {

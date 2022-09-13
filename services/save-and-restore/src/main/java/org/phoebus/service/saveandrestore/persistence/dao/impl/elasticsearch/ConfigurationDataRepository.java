@@ -21,6 +21,8 @@ package org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.Refresh;
 import co.elastic.clients.elasticsearch._types.Result;
+import co.elastic.clients.elasticsearch.core.DeleteRequest;
+import co.elastic.clients.elasticsearch.core.DeleteResponse;
 import co.elastic.clients.elasticsearch.core.GetRequest;
 import co.elastic.clients.elasticsearch.core.GetResponse;
 import co.elastic.clients.elasticsearch.core.IndexRequest;
@@ -34,6 +36,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -122,7 +125,20 @@ public class ConfigurationDataRepository implements CrudRepository<Configuration
 
     @Override
     public void deleteById(String s) {
-
+        try {
+            DeleteRequest deleteRequest = DeleteRequest.of(d ->
+                    d.index(ES_CONFIGURATION_INDEX).id(s).refresh(Refresh.True));
+            DeleteResponse deleteResponse = client.delete(deleteRequest);
+            if(deleteResponse.result().equals(Result.Deleted)){
+                logger.log(Level.WARNING, "Configuration with id " + s + " deleted.");
+            }
+            else{
+                logger.log(Level.WARNING, "Configuration with id " + s + " NOT deleted.");
+            }
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Failed to delete configuration with id: " + s, e);
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

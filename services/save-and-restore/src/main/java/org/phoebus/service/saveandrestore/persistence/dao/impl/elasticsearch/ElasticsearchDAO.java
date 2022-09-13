@@ -39,19 +39,22 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static org.phoebus.applications.saveandrestore.model.Node.ROOT_FOLDER_UNIQUE_ID;
 
 public class ElasticsearchDAO implements NodeDAO {
 
+    @SuppressWarnings("unused")
     @Autowired
     private ElasticsearchTreeRepository elasticsearchTreeRepository;
 
+    @SuppressWarnings("unused")
     @Autowired
     private ConfigurationDataRepository configurationDataRepository;
 
+    @SuppressWarnings("unused")
     @Autowired
     private SnapshotDataRepository snapshotDataRepository;
 
@@ -62,19 +65,20 @@ public class ElasticsearchDAO implements NodeDAO {
     public List<Node> getChildNodes(String uniqueNodeId) {
         Optional<ESTreeNode> elasticsearchNode =
                 elasticsearchTreeRepository.findById(uniqueNodeId);
-        if(elasticsearchNode.isEmpty()){
+        if (elasticsearchNode.isEmpty()) {
             return null;
         }
-        return elasticsearchNode.get().getChildNodes() == null ?
-                Collections.emptyList() :
-                elasticsearchNode.get().getChildNodes();
+        Iterable<ESTreeNode> childNodesIterable = elasticsearchTreeRepository.findAllById(elasticsearchNode.get().getChildNodes());
+        List<Node> childNodes = new ArrayList<>();
+        childNodesIterable.forEach(element -> childNodes.add(element.getNode()));
+        return childNodes;
     }
 
     @Override
     public Node getNode(String uniqueNodeId) {
         Optional<ESTreeNode> optional =
                 elasticsearchTreeRepository.findById(uniqueNodeId);
-        if(optional.isEmpty()){
+        if (optional.isEmpty()) {
             return null;
         }
         ESTreeNode elasticsearchNode = optional.get();
@@ -84,21 +88,19 @@ public class ElasticsearchDAO implements NodeDAO {
     @Override
     public void deleteNode(String nodeId) {
         Node nodeToDelete = getNode(nodeId);
-        if (nodeToDelete == null){
+        if (nodeToDelete == null) {
             throw new NodeNotFoundException("Cannot delete non-existing node");
-        }
-        else if(nodeToDelete.getUniqueId().equals(ROOT_FOLDER_UNIQUE_ID)){
+        } else if (nodeToDelete.getUniqueId().equals(ROOT_FOLDER_UNIQUE_ID)) {
             throw new IllegalArgumentException("Root node cannot be deleted");
         }
         deleteNode(nodeToDelete);
-
     }
 
     @Override
     public Node createNode(String parentNodeId, Node node) {
         // Retrieve parent
         Optional<ESTreeNode> parentNode = elasticsearchTreeRepository.findById(parentNodeId);
-        if(parentNode.isEmpty()){
+        if (parentNode.isEmpty()) {
             throw new NodeNotFoundException(
                     String.format("Cannot create new node as parent unique_id=%s does not exist.", parentNodeId));
         }
@@ -116,7 +118,7 @@ public class ElasticsearchDAO implements NodeDAO {
 
         // The node to be created cannot have same the name and type as any of the parent's
         // child nodes
-        List<Node> parentsChildNodes = parentNode.get().getChildNodes();
+        List<Node> parentsChildNodes = getChildNodes(parentNodeId);
         if (!isNodeNameValid(node, parentsChildNodes)) {
             throw new IllegalArgumentException("Node of same name and type already exists in parent node.");
         }
@@ -128,22 +130,34 @@ public class ElasticsearchDAO implements NodeDAO {
 
         elasticsearchTreeRepository.save(newNode);
 
-        if(parentNode.get().getChildNodes() == null){
+        if (parentNode.get().getChildNodes() == null) {
             parentNode.get().setChildNodes(new ArrayList<>());
         }
-        parentNode.get().getChildNodes().add(node);
+        parentNode.get().getChildNodes().add(node.getUniqueId());
         elasticsearchTreeRepository.save(parentNode.get());
 
         return node;
     }
 
-    private boolean isNodeNameValid(Node nodeToCheck, List<Node> parentsChildNodes) {
-        if(parentsChildNodes == null || parentsChildNodes.isEmpty()){
+    /**
+     * Checks if a {@link Node} name is valid. A {@link Node} may not have the same name as another {@link Node}
+     * in the same parent {@link Node}, if they are of the same {@link NodeType}. However, to support
+     * an update operation where other properties (except the name) are changed, the unique id of a {@link Node} is
+     * also considered, i.e. the {@link Node} to check may have the same name as another {@link Node} in the
+     * same parent {@link Node} if the unique id is equal.
+     * @param nodeToCheck The {@link Node} object subject to a check. It may be an existing {@link Node}, or a
+     *                    new {@link Node} being created.
+     * @param parentsChildNodes The list of existing {@link Node}s in the parent {@link Node}
+     * @return <code>true</code> if the <code>nodeToCheck</code> has a "valid" name, otherwise <code>false</code>.
+     */
+    protected boolean isNodeNameValid(Node nodeToCheck, List<Node> parentsChildNodes) {
+        if (parentsChildNodes == null || parentsChildNodes.isEmpty()) {
             return true;
         }
         for (Node node : parentsChildNodes) {
             if (node.getName().equals(nodeToCheck.getName()) &&
-                    node.getNodeType().equals(nodeToCheck.getNodeType())) {
+                    node.getNodeType().equals(nodeToCheck.getNodeType()) &&
+                    !node.getUniqueId().equals(nodeToCheck.getUniqueId())) {
                 return false;
             }
         }
@@ -153,10 +167,9 @@ public class ElasticsearchDAO implements NodeDAO {
     @Override
     public Node getParentNode(String uniqueNodeId) {
         ESTreeNode elasticsearchTreeNode = elasticsearchTreeRepository.getParentNode(uniqueNodeId);
-        if(elasticsearchTreeNode != null){
+        if (elasticsearchTreeNode != null) {
             return elasticsearchTreeNode.getNode();
-        }
-        else{
+        } else {
             return null;
         }
     }
@@ -175,32 +188,31 @@ public class ElasticsearchDAO implements NodeDAO {
         List<Node> sourceNodes = new ArrayList<>();
         nodeIds.forEach(id -> {
             Optional<ESTreeNode> esTreeNode = elasticsearchTreeRepository.findById(id);
-            if(esTreeNode.isPresent()){
-                sourceNodes.add(esTreeNode.get().getNode());
-            }
+            esTreeNode.ifPresent(treeNode -> sourceNodes.add(treeNode.getNode()));
         });
 
         if (sourceNodes.size() != nodeIds.size()) {
             throw new IllegalArgumentException("At least one unique node id not found.");
         }
 
-        if(!isMoveOrCopyAllowed(sourceNodes, targetNode.get().getNode())){
+        if (!isMoveOrCopyAllowed(sourceNodes, targetNode.get().getNode())) {
             throw new IllegalArgumentException("Prerequisites for moving source node(s) not met.");
         }
 
         // Remove source nodes from the list of child nodes in parent node.
         ESTreeNode parentNode = elasticsearchTreeRepository.getParentNode(sourceNodes.get(0).getUniqueId());
-        if(parentNode == null){
+        if (parentNode == null) {
             throw new RuntimeException("Parent node of source node " + sourceNodes.get(0).getUniqueId() + " not found. Should not happen.");
         }
-        parentNode.getChildNodes().removeAll(sourceNodes);
+        parentNode.getChildNodes().removeAll(sourceNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
         parentNode = elasticsearchTreeRepository.save(parentNode);
 
         // Update the target node to include the source nodes in its list of child nodes
-        if(targetNode.get().getChildNodes() == null){
+        if (targetNode.get().getChildNodes() == null) {
             targetNode.get().setChildNodes(new ArrayList<>());
         }
-        targetNode.get().getChildNodes().addAll(sourceNodes);
+        // TODO: FIX!
+        //targetNode.get().getChildNodes().addAll(sourceNodes);
         elasticsearchTreeRepository.save(targetNode.get());
 
         return parentNode.getNode();
@@ -220,16 +232,14 @@ public class ElasticsearchDAO implements NodeDAO {
         List<Node> sourceNodes = new ArrayList<>();
         nodeIds.forEach(id -> {
             Optional<ESTreeNode> esTreeNode = elasticsearchTreeRepository.findById(id);
-            if(esTreeNode.isPresent()){
-                sourceNodes.add(esTreeNode.get().getNode());
-            }
+            esTreeNode.ifPresent(treeNode -> sourceNodes.add(treeNode.getNode()));
         });
 
         if (sourceNodes.size() != nodeIds.size()) {
             throw new IllegalArgumentException("At least one unique node id not found.");
         }
 
-        if(!isMoveOrCopyAllowed(sourceNodes, targetNode.get().getNode())){
+        if (!isMoveOrCopyAllowed(sourceNodes, targetNode.get().getNode())) {
             throw new IllegalArgumentException("Prerequisites for copying source node(s) not met.");
         }
 
@@ -238,7 +248,7 @@ public class ElasticsearchDAO implements NodeDAO {
         return targetNode.get().getNode();
     }
 
-    private void copyNode(Node sourceNode, Node targetNode, String userName){
+    private void copyNode(Node sourceNode, Node targetNode, String userName) {
         Node newSourceNode = createNode(targetNode.getUniqueId(), sourceNode);
         newSourceNode.setUserName(userName);
         newSourceNode.setTags(sourceNode.getTags());
@@ -248,8 +258,7 @@ public class ElasticsearchDAO implements NodeDAO {
             ConfigurationData sourceConfiguration = getConfiguration(sourceNode.getUniqueId());
             copyConfiguration(Source, sourceConfiguration);
             // TODO copy all snaoshot Nodes and SnapshotData objects.
-        }
-        else if (sourceNode.getNodeType().equals(NodeType.FOLDER)) {
+        } else if (sourceNode.getNodeType().equals(NodeType.FOLDER)) {
             List<Node> childNodes = getChildNodes(sourceNode.getUniqueId());
             childNodes.forEach(childNode -> copyNode(childNode, Source, userName));
         }
@@ -257,11 +266,12 @@ public class ElasticsearchDAO implements NodeDAO {
 
     /**
      * Copies a {@link ConfigurationData}.
+     *
      * @param targetConfigurationNode The configuration {@link Node} with which the copied {@link ConfigurationData} should be
-     * associated. This must already exist in the Elasticsearch index.
-     * @param sourceConfiguration The source {@link ConfigurationData}
+     *                                associated. This must already exist in the Elasticsearch index.
+     * @param sourceConfiguration     The source {@link ConfigurationData}
      */
-    private void copyConfiguration(Node targetConfigurationNode, ConfigurationData sourceConfiguration){
+    private void copyConfiguration(Node targetConfigurationNode, ConfigurationData sourceConfiguration) {
         ConfigurationData clonedConfiguration = ConfigurationData.clone(sourceConfiguration);
         clonedConfiguration.setUniqueId(targetConfigurationNode.getUniqueId());
         //TODO: fix!
@@ -272,18 +282,16 @@ public class ElasticsearchDAO implements NodeDAO {
     @Deprecated
     public Node updateConfiguration(Node configToUpdate, List<ConfigPv> configPvList) {
         Optional<ESTreeNode> nodeOptional = elasticsearchTreeRepository.findById(configToUpdate.getUniqueId());
-        if(nodeOptional.isEmpty() || !nodeOptional.get().getNode().getNodeType().equals(NodeType.CONFIGURATION)){
+        if (nodeOptional.isEmpty() || !nodeOptional.get().getNode().getNodeType().equals(NodeType.CONFIGURATION)) {
             throw new IllegalArgumentException(String.format("Config node with unique id=%s not found or is wrong type", configToUpdate.getUniqueId()));
         }
-        Optional<ConfigurationData> elasticsearchSavesetOptional = configurationDataRepository.findById(configToUpdate.getUniqueId());
+        Optional<ConfigurationData> elasticsearchSaveSetOptional = configurationDataRepository.findById(configToUpdate.getUniqueId());
         ConfigurationData elasticsearchConfiguration;
-        if(elasticsearchSavesetOptional.isEmpty()){
+        if (elasticsearchSaveSetOptional.isEmpty()) {
             elasticsearchConfiguration = new ConfigurationData();
             elasticsearchConfiguration.setUniqueId(configToUpdate.getUniqueId());
-            elasticsearchConfiguration.setDescription(configToUpdate.getDescription());
-        }
-        else{
-            elasticsearchConfiguration = elasticsearchSavesetOptional.get();
+        } else {
+            elasticsearchConfiguration = elasticsearchSaveSetOptional.get();
         }
         elasticsearchConfiguration.setPvList(configPvList);
         configurationDataRepository.save(elasticsearchConfiguration);
@@ -304,14 +312,13 @@ public class ElasticsearchDAO implements NodeDAO {
     public List<Node> getSnapshots(String uniqueNodeId) {
         Optional<ESTreeNode> configNodeOptional =
                 elasticsearchTreeRepository.findById(uniqueNodeId);
-        if(configNodeOptional.isEmpty()){
+        if (configNodeOptional.isEmpty()) {
             throw new IllegalArgumentException("Cannot get snapshots for config with id " + uniqueNodeId + " as it does not exist");
         }
-        if(configNodeOptional.get().getChildNodes() == null){
+        if (configNodeOptional.get().getChildNodes() == null) {
             return Collections.emptyList();
-        }
-        else{
-            return configNodeOptional.get().getChildNodes();
+        } else {
+            return getChildNodes(configNodeOptional.get().getNode().getUniqueId());
         }
     }
 
@@ -323,18 +330,18 @@ public class ElasticsearchDAO implements NodeDAO {
     @Override
     public Node saveSnapshot(String parentsUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment, String userName) {
         Optional<ESTreeNode> configNodeOptional = elasticsearchTreeRepository.findById(parentsUniqueId);
-        if(configNodeOptional.isEmpty()){
+        if (configNodeOptional.isEmpty()) {
             throw new NodeNotFoundException("Config node with id " + parentsUniqueId + " not found");
-        }
-        else if(!configNodeOptional.get().getNode().getNodeType().equals(NodeType.CONFIGURATION)){
+        } else if (!configNodeOptional.get().getNode().getNodeType().equals(NodeType.CONFIGURATION)) {
             throw new IllegalArgumentException("Node with id " + parentsUniqueId + " is not a config node");
         }
 
         ESTreeNode configNode = configNodeOptional.get();
-        if(configNode.getChildNodes() == null){
+        if (configNode.getChildNodes() == null) {
             configNode.setChildNodes(new ArrayList<>());
         }
-        if(configNodeOptional.get().getChildNodes().stream().filter(n -> n.getName().equals(snapshotName)).findFirst().isPresent()){
+        List<Node> childNodes = getChildNodes(configNode.getNode().getUniqueId());
+        if (childNodes.stream().anyMatch(n -> n.getName().equals(snapshotName))) {
             throw new IllegalArgumentException("SnapshotData with name " + snapshotName + " already exists");
         }
         Date now = new Date();
@@ -350,7 +357,7 @@ public class ElasticsearchDAO implements NodeDAO {
 
         // Update parent config node's child node list
 
-        configNodeOptional.get().getChildNodes().add(snapshotNode);
+        configNodeOptional.get().getChildNodes().add(snapshotNode.getUniqueId());
         elasticsearchTreeRepository.save(configNodeOptional.get());
 
         SnapshotData elasticsearchSnapshotData = new SnapshotData();
@@ -374,20 +381,19 @@ public class ElasticsearchDAO implements NodeDAO {
 
     @Override
     public List<ConfigPv> getConfigPvs(String configUniqueId) {
-        Optional<ConfigurationData> elasticsearchSavesetOptional = configurationDataRepository.findById(configUniqueId);
-        if(elasticsearchSavesetOptional.isEmpty()){
+        Optional<ConfigurationData> elasticsearchSaveSetOptional = configurationDataRepository.findById(configUniqueId);
+        if (elasticsearchSaveSetOptional.isEmpty()) {
             return Collections.emptyList();
         }
-        return elasticsearchSavesetOptional.get().getPvList();
+        return elasticsearchSaveSetOptional.get().getPvList();
     }
 
     @Override
     public List<SnapshotItem> getSnapshotItems(String snapshotUniqueId) {
         Optional<SnapshotData> elasticsearchSnapshotOptional = snapshotDataRepository.findById(snapshotUniqueId);
-        if(elasticsearchSnapshotOptional.isEmpty()){
+        if (elasticsearchSnapshotOptional.isEmpty()) {
             return Collections.emptyList();
-        }
-        else {
+        } else {
             List<SnapshotItem> items = new ArrayList<>();
             elasticsearchSnapshotOptional.get().getPvList().forEach(pv -> {
                 VType value = pv.getValue();
@@ -402,30 +408,27 @@ public class ElasticsearchDAO implements NodeDAO {
     @Override
     public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration) {
         Optional<ESTreeNode> nodeOptional = elasticsearchTreeRepository.findById(nodeToUpdate.getUniqueId());
-        if(nodeOptional.isEmpty()){
+        if (nodeOptional.isEmpty()) {
             throw new IllegalArgumentException(String.format("Node with unique id=%s not found", nodeToUpdate.getUniqueId()));
-        }
-        else if(nodeOptional.get().getNode().getUniqueId().equals(ROOT_FOLDER_UNIQUE_ID)){
+        } else if (nodeOptional.get().getNode().getUniqueId().equals(ROOT_FOLDER_UNIQUE_ID)) {
             throw new IllegalArgumentException("Updating root node is not allowed");
         }
 
         // Retrieve parent node and its child nodes
         ESTreeNode elasticsearchParentTreeNode = elasticsearchTreeRepository.getParentNode(nodeToUpdate.getUniqueId());
-        if(elasticsearchParentTreeNode == null){ // Should not happen in a rename operation, unless there is a race condition (e.g. another client deletes parent node)
-            throw new NodeNotFoundException(
-                    String.format("Cannot update node as parent node cannot be determined."));
+        if (elasticsearchParentTreeNode == null) { // Should not happen in a rename operation, unless there is a race condition (e.g. another client deletes parent node)
+            throw new NodeNotFoundException("Cannot update node as parent node cannot be determined.");
         }
 
         // The node to be created cannot have same the name and type as any of the parent's
         // child nodes
-        List<Node> parentsChildNodes = elasticsearchParentTreeNode.getChildNodes();
+        List<Node> parentsChildNodes = getChildNodes(elasticsearchParentTreeNode.getNode().getUniqueId());
         if (!isNodeNameValid(nodeToUpdate, parentsChildNodes)) {
             throw new IllegalArgumentException("Node of same name and type already exists in parent node.");
         }
 
-
         Date now = new Date();
-        if(customTimeForMigration){
+        if (customTimeForMigration) {
             nodeToUpdate.setCreated(now);
         }
         nodeToUpdate.setLastModified(now);
@@ -433,9 +436,6 @@ public class ElasticsearchDAO implements NodeDAO {
         esTreeNode.setNode(nodeToUpdate);
 
         elasticsearchTreeRepository.save(esTreeNode);
-
-        // Now also save the updated parent node as this contains a list of child nodes, one of which has been updated.
-        updateParentNode(elasticsearchParentTreeNode, nodeToUpdate);
 
         return elasticsearchTreeRepository.findById(nodeToUpdate.getUniqueId()).get().getNode();
     }
@@ -465,32 +465,30 @@ public class ElasticsearchDAO implements NodeDAO {
         return null;
     }
 
-    private void deleteNode(Node nodeToDelete){
-         if (nodeToDelete.getNodeType().equals(NodeType.CONFIGURATION)) {
-            // TODO: delete save set document
-            for (Node node : getChildNodes(nodeToDelete.getUniqueId())) {
-                deleteNode(node);
-            }
-        } else if (nodeToDelete.getNodeType().equals(NodeType.FOLDER)) {
-            for (Node node : getChildNodes(nodeToDelete.getUniqueId())) {
-                deleteNode(node);
-            }
-        } else if (nodeToDelete.getNodeType().equals(NodeType.SNAPSHOT)) {
-            // TODO: delete snapshot document
+    private void deleteNode(Node nodeToDelete) {
+        for (Node node : getChildNodes(nodeToDelete.getUniqueId())) {
+            deleteNode(node);
         }
 
         // Update the parent node to update its list of child nodes
         ESTreeNode parentNode = elasticsearchTreeRepository.getParentNode(nodeToDelete.getUniqueId());
-        parentNode.getChildNodes().remove(nodeToDelete);
+        parentNode.getChildNodes().remove(nodeToDelete.getUniqueId());
         elasticsearchTreeRepository.save(parentNode);
 
         // Delete the node
         elasticsearchTreeRepository.deleteById(nodeToDelete.getUniqueId());
+
+        if (nodeToDelete.getNodeType().equals(NodeType.CONFIGURATION)) {
+            configurationDataRepository.deleteById(nodeToDelete.getUniqueId());
+        }
+        else if(nodeToDelete.getNodeType().equals(NodeType.SNAPSHOT)){
+            snapshotDataRepository.deleteById(nodeToDelete.getUniqueId());
+        }
     }
 
     @Override
-    public Configuration createConfiguration(String parentNodeId, Configuration configuration){
-        configuration.getConfigurationNode().setNodeType(NodeType.CONFIGURATION);
+    public Configuration createConfiguration(String parentNodeId, Configuration configuration) {
+        configuration.getConfigurationNode().setNodeType(NodeType.CONFIGURATION); // Force node type
         Node newConfigurationNode = createNode(parentNodeId, configuration.getConfigurationNode());
         configuration.getConfigurationData().setUniqueId(newConfigurationNode.getUniqueId());
 
@@ -504,13 +502,16 @@ public class ElasticsearchDAO implements NodeDAO {
     }
 
     @Override
-    public Configuration updateConfiguration(final Configuration configuration){
+    public Configuration updateConfiguration(final Configuration configuration) {
 
         Node existingConfigurationNode = getNode(configuration.getConfigurationNode().getUniqueId());
-        if(!existingConfigurationNode.getName().equals(configuration.getConfigurationNode().getName())){
-            // Client requests to rename configuration node.
-            existingConfigurationNode = updateNode(configuration.getConfigurationNode(), false);
-        }
+
+        // Set name and description, even if unchanged.
+        existingConfigurationNode.setName(configuration.getConfigurationNode().getName());
+        existingConfigurationNode.setDescription(configuration.getConfigurationNode().getDescription());
+        // Update last modified date
+        existingConfigurationNode.setLastModified(new Date());
+        existingConfigurationNode = updateNode(existingConfigurationNode, false);
 
         ConfigurationData updatedConfigurationData = configurationDataRepository.save(configuration.getConfigurationData());
 
@@ -551,12 +552,12 @@ public class ElasticsearchDAO implements NodeDAO {
         Optional<Node> saveSetNode = nodes.stream()
                 .filter(node -> node.getNodeType().equals(NodeType.CONFIGURATION)).findFirst();
         // Save set nodes may not be moved/copied to root node.
-        if(saveSetNode.isPresent() && targetNode.getUniqueId().equals(rootNode.getUniqueId())){
+        if (saveSetNode.isPresent() && targetNode.getUniqueId().equals(rootNode.getUniqueId())) {
             logger.info("Move/copy of save set node(s) to root node not allowed.");
             return false;
         }
         if (nodes.size() > 1) {
-            // Check that all elements are of same type and have same parent.
+            // Check that all elements are of same type and have the same parent.
             NodeType firstElementType = nodes.get(0).getNodeType();
             Node parentNodeOfFirst = getParentNode(nodes.get(0).getUniqueId());
             for (int i = 1; i < nodes.size(); i++) {
@@ -580,8 +581,8 @@ public class ElasticsearchDAO implements NodeDAO {
             }
         }
 
-        for(Node sourceNode : nodes){
-            if(containedInSubTree(sourceNode, targetNode.getUniqueId())){
+        for (Node sourceNode : nodes) {
+            if (containedInSubTree(sourceNode, targetNode.getUniqueId())) {
                 return false;
             }
         }
@@ -589,21 +590,19 @@ public class ElasticsearchDAO implements NodeDAO {
         return true;
     }
 
-    private boolean containedInSubTree(Node startNode, String nodeId){
+    private boolean containedInSubTree(Node startNode, String nodeId) {
         Optional<ESTreeNode> esTreeNode = elasticsearchTreeRepository.findById(startNode.getUniqueId());
-        if(esTreeNode.isEmpty()){
+        if (esTreeNode.isEmpty()) {
             throw new IllegalArgumentException("Unable to check if node " + nodeId + " is contained in subtree of node " +
                     startNode.getUniqueId() + " as the node " + startNode.getUniqueId() + " does not exist");
         }
-        if(esTreeNode.get().getNode().getUniqueId().equals(nodeId)){
+        if (esTreeNode.get().getNode().getUniqueId().equals(nodeId)) {
             return true;
-        }
-        else if(esTreeNode.get().getChildNodes() != null && !esTreeNode.get().getChildNodes().isEmpty()){
-            for (Node childNode : esTreeNode.get().getChildNodes()){
-                if(childNode.getUniqueId().equals(nodeId)){
+        } else if (esTreeNode.get().getChildNodes() != null && !esTreeNode.get().getChildNodes().isEmpty()) {
+            for (Node childNode : getChildNodes(esTreeNode.get().getNode().getUniqueId())) {
+                if (childNode.getUniqueId().equals(nodeId)) {
                     return true;
-                }
-                else {
+                } else {
                     return containedInSubTree(childNode, nodeId);
                 }
             }
@@ -621,45 +620,21 @@ public class ElasticsearchDAO implements NodeDAO {
     }
 
     @Override
-    public SnapshotData saveSnapshot(SnapshotData snapshotData){
+    public SnapshotData saveSnapshot(SnapshotData snapshotData) {
         return snapshotDataRepository.save(snapshotData);
     }
 
     @Override
-    public SnapshotData getSnapshot(String nodeId){
+    public SnapshotData getSnapshot(String nodeId) {
         Optional<SnapshotData> snapshot = snapshotDataRepository.findById(nodeId);
-        if(snapshot.isEmpty()){
+        if (snapshot.isEmpty()) {
             throw new NodeNotFoundException("SnapshotData with id " + nodeId + " not found");
         }
         return snapshot.get();
     }
 
     @Override
-    public Node findParentFromPathElements(Node node, String[] pathElements, int depth){
+    public Node findParentFromPathElements(Node node, String[] pathElements, int depth) {
         return null;
-    }
-
-    /**
-     * Updates a parent node in order to be consistent with changes performed on a single node
-     * that is a child node.
-     *
-     * @param parentNode The {@link ESTreeNode} representing the parent {@link Node}.
-     * @param updatedNode A {@link Node} that has been updated and thus must be updated in its parent's list
-     *                    of child {@link Node}s
-     */
-    private void updateParentNode(ESTreeNode parentNode, Node updatedNode){
-        Node node = parentNode.getChildNodes().stream()
-                .filter(n -> n.getUniqueId().equals(updatedNode.getUniqueId()))
-                .findFirst()
-                .orElse(null);
-        if(node == null){
-            logger.log(Level.INFO, "Parent node not updated as child not was not present. This should not happen.");
-            return;
-        }
-
-        parentNode.getChildNodes().remove(node);
-        parentNode.getChildNodes().add(updatedNode);
-
-        elasticsearchTreeRepository.save(parentNode);
     }
 }

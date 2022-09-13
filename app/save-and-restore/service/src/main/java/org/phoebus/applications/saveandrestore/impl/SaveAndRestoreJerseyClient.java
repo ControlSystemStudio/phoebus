@@ -370,10 +370,10 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
     @Override
     public Configuration createConfiguration(String parentNodeId, Configuration configuration){
+        configuration.getConfigurationNode().setUserName(getCurrentUsersName());
         WebResource webResource =
                 client.resource(jmasarServiceUrl + "/config")
                         .queryParam("parentNodeId", parentNodeId);
-
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(configuration, CONTENT_TYPE_JSON)
                 .put(ClientResponse.class);

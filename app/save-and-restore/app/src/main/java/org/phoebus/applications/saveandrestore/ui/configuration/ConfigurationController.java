@@ -22,6 +22,7 @@ package org.phoebus.applications.saveandrestore.ui.configuration;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -52,6 +53,7 @@ import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.core.types.ProcessVariable;
@@ -59,7 +61,9 @@ import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.util.time.TimestampFormats;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -69,7 +73,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class ConfigurationController {
+public class ConfigurationController implements NodeChangedListener {
 
     @FXML
     private BorderPane root;
@@ -81,7 +85,7 @@ public class ConfigurationController {
     private TableView<ConfigPv> pvTable;
 
     @FXML
-    private TextArea commentTextArea;
+    private TextArea descriptionTextArea;
 
     @FXML
     private Button saveButton;
@@ -107,10 +111,12 @@ public class ConfigurationController {
     private final SimpleBooleanProperty readOnlyProperty = new SimpleBooleanProperty(false);
 
     @FXML
-    private TextField saveSetNameField;
+    private TextField configurationNameField;
+    @FXML
+    private Label configurationCreatedDateField;
 
     @FXML
-    private Label saveSetDateField;
+    private Label configurationLastModifiedDateField;
     @FXML
     private Label createdByField;
 
@@ -124,18 +130,22 @@ public class ConfigurationController {
 
     private final SimpleBooleanProperty selectionEmpty = new SimpleBooleanProperty(false);
     private final SimpleBooleanProperty singelSelection = new SimpleBooleanProperty(false);
-    private final SimpleStringProperty saveSetCommentProperty = new SimpleStringProperty();
-    private final SimpleStringProperty saveSetNameProperty = new SimpleStringProperty();
+    private final SimpleStringProperty configurationDescriptionProperty = new SimpleStringProperty();
+    private final SimpleStringProperty configurationNameProperty = new SimpleStringProperty();
     private Node configurationNodeParent;
 
-    private Configuration configuration;
+    private final SimpleObjectProperty<Node> configurationNode = new SimpleObjectProperty<>();
+
+    private final ConfigurationTab configurationTab;
+
+    //private Configuration configuration;
+
+    private ConfigurationData configurationData;
 
     private final Logger logger = Logger.getLogger(ConfigurationController.class.getName());
 
-    private final SimpleStringProperty tabTitleProperty;
-
-    public ConfigurationController(SimpleStringProperty tabTitleProperty) {
-        this.tabTitleProperty = tabTitleProperty;
+    public ConfigurationController(ConfigurationTab configurationTab) {
+        this.configurationTab = configurationTab;
     }
 
     @FXML
@@ -206,8 +216,8 @@ public class ConfigurationController {
 
         pvNameField.textProperty().bindBidirectional(pvNameProperty);
         readbackPvNameField.textProperty().bindBidirectional(readbackPvNameProperty);
-        saveSetNameField.textProperty().bindBidirectional(saveSetNameProperty);
-        commentTextArea.textProperty().bindBidirectional(saveSetCommentProperty);
+        configurationNameField.textProperty().bindBidirectional(configurationNameProperty);
+        descriptionTextArea.textProperty().bindBidirectional(configurationDescriptionProperty);
 
         saveSetEntries.addListener((ListChangeListener<ConfigPv>) change -> {
             while (change.next()) {
@@ -218,45 +228,61 @@ public class ConfigurationController {
             }
         });
 
-        saveSetNameProperty.addListener((observableValue, oldValue, newValue) -> dirty.set(!newValue.equals(configuration.getConfigurationNode().getName())));
+        configurationNameProperty.addListener((observableValue, oldValue, newValue) -> dirty.set(!newValue.equals(configurationNode.getName())));
 
-        saveSetCommentProperty.addListener((observable, oldValue, newValue) -> dirty.set(!newValue.equals(configuration.getConfigurationData().getDescription())));
+        configurationDescriptionProperty.addListener((observable, oldValue, newValue) -> dirty.set(!newValue.equals(configurationNode.get().getDescription())));
 
         saveButton.disableProperty().bind(Bindings.createBooleanBinding(() -> dirty.not().get() ||
-                        saveSetCommentProperty.isEmpty().get() ||
-                        saveSetNameProperty.isEmpty().get(),
-                dirty, saveSetCommentProperty, saveSetNameProperty));
+                        configurationDescriptionProperty.isEmpty().get() ||
+                        configurationNameProperty.isEmpty().get(),
+                dirty, configurationDescriptionProperty, configurationNameProperty));
 
         addPvButton.disableProperty().bind(pvNameField.textProperty().isEmpty());
 
         readOnlyCheckBox.selectedProperty().bindBidirectional(readOnlyProperty);
+
+        configurationNode.addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                configurationNameProperty.set(newValue.getName());
+                configurationCreatedDateField.textProperty().set(newValue.getCreated() != null ?
+                        TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(newValue.getCreated().getTime())) : null);
+                configurationLastModifiedDateField.textProperty().set(newValue.getLastModified() != null ?
+                        TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(newValue.getLastModified().getTime())) : null);
+                createdByField.textProperty().set(newValue.getUserName());
+                configurationDescriptionProperty.set(configurationNode.get().getDescription());
+            }
+        });
+
+        SaveAndRestoreService.getInstance().addNodeChangeListener(this);
     }
 
     @FXML
     public void saveConfiguration() {
-
         UI_EXECUTOR.execute(() -> {
             try {
-                configuration.getConfigurationData().setDescription(saveSetCommentProperty.getValue());
-                configuration.getConfigurationData().setPvList(saveSetEntries);
-
-                if (configuration.getConfigurationNode().getUniqueId() == null) { // New configuration
-                    configuration.getConfigurationNode().setName(saveSetNameProperty.get());
+                configurationNode.get().setName(configurationNameProperty.get());
+                configurationNode.get().setDescription(configurationDescriptionProperty.get());
+                configurationData.setPvList(saveSetEntries);
+                Configuration configuration = new Configuration();
+                configuration.setConfigurationNode(configurationNode.get());
+                configuration.setConfigurationData(configurationData);
+                if (configurationNode.get().getUniqueId() == null) { // New configuration
                     configuration = saveAndRestoreService.createConfiguration(configurationNodeParent,
                             configuration);
+                    configurationTab.setId(configuration.getConfigurationNode().getUniqueId());
+                    configurationTab.updateTabTitle(configuration.getConfigurationNode().getName());
                 } else {
-                    Node configNode = Node.builder().nodeType(NodeType.CONFIGURATION).uniqueId(configuration.getConfigurationNode().getUniqueId())
-                            .name(saveSetNameProperty.get()).build();
-                    configuration.setConfigurationNode(configNode);
                     configuration = saveAndRestoreService.updateConfiguration(configuration);
                 }
-                tabTitleProperty.set(configuration.getConfigurationNode().getName());
+                configurationData = configuration.getConfigurationData();
                 dirty.set(false);
+                loadConfiguration(configuration.getConfigurationNode());
             } catch (Exception e1) {
                 ExceptionDetailsErrorDialog.openError(pvTable,
                         Messages.errorActionFailed,
                         Messages.errorCreateSaveSetFailed,
                         e1);
+                // Primary failure reason
             }
         });
     }
@@ -301,42 +327,42 @@ public class ConfigurationController {
 
     public void newConfiguration(Node parentNode) {
         configurationNodeParent = parentNode;
-        configuration = new Configuration();
-        configuration.setConfigurationNode(Node.builder().nodeType(NodeType.CONFIGURATION).build());
-        configuration.setConfigurationData(new ConfigurationData());
-        createdByField.textProperty().set(null);
-        saveSetDateField.textProperty().set(null);
+        configurationNode.set(Node.builder().nodeType(NodeType.CONFIGURATION).build());
+        configurationData = new ConfigurationData();
+        UI_EXECUTOR.execute(() -> configurationNameField.requestFocus());
         dirty.set(false);
     }
 
-    public void loadConfiguration(Node configurationNode) {
-        configuration = new Configuration();
-        configuration.setConfigurationNode(configurationNode);
+    public void loadConfiguration(final Node node) {
         try {
-            configuration.setConfigurationData(saveAndRestoreService.getConfiguration(configurationNode.getUniqueId()));
+            configurationData = saveAndRestoreService.getConfiguration(node.getUniqueId());
         } catch (Exception e) {
             ExceptionDetailsErrorDialog.openError(root, "Error", "Unable to retrieve configuration data", e);
             return;
         }
+        // Create a cloned Node object to avoid changes in the Node object contained in the tree view.
+        configurationNode.set(Node.builder().uniqueId(node.getUniqueId())
+                .name(node.getName())
+                .nodeType(NodeType.CONFIGURATION)
+                .description(node.getDescription())
+                .userName(node.getUserName())
+                .created(node.getCreated())
+                .lastModified(node.getLastModified())
+                .build());
         UI_EXECUTOR.execute(() -> {
             try {
-                saveSetNameProperty.set(configurationNode.getName());
-                createdByField.textProperty().set(configurationNode.getUserName());
-                saveSetDateField.textProperty().set(configurationNode.getCreated().toString());
-                tabTitleProperty.set(configurationNode.getName());
-                loadConfiguration();
+                loadConfigurationData();
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Unable to load existing save set");
             }
         });
     }
 
-    private void loadConfiguration() {
+    private void loadConfigurationData() {
         UI_EXECUTOR.execute(() -> {
             try {
-                saveSetCommentProperty.set(configuration.getConfigurationData().getDescription());
-                Collections.sort(configuration.getConfigurationData().getPvList());
-                saveSetEntries.setAll(configuration.getConfigurationData().getPvList());
+                Collections.sort(configurationData.getPvList());
+                saveSetEntries.setAll(configurationData.getPvList());
                 pvTable.setItems(saveSetEntries);
                 dirty.set(false);
             } catch (Exception e) {
@@ -354,5 +380,19 @@ public class ConfigurationController {
             return result.isPresent() && result.get().equals(ButtonType.OK);
         }
         return true;
+    }
+
+    @Override
+    public void nodeChanged(Node node) {
+        if (node.getUniqueId().equals(configurationNode.get().getUniqueId())) {
+            configurationNode.setValue(Node.builder().uniqueId(node.getUniqueId())
+                    .name(node.getName())
+                    .nodeType(NodeType.CONFIGURATION)
+                    .userName(node.getUserName())
+                    .description(node.getDescription())
+                    .created(node.getCreated())
+                    .lastModified(node.getLastModified())
+                    .build());
+        }
     }
 }

@@ -24,8 +24,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
 
 /**
  * Class representing a node in a tree structure maintained by the save-and-restore service. Node types are
@@ -138,24 +136,6 @@ public class Node implements Comparable<Node>, Serializable {
                     .findFirst()
                     .ifPresent(item -> tags.remove(item));
         }
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (other == null) {
-            return false;
-        }
-        if (other instanceof Node) {
-            Node otherNode = (Node) other;
-            return nodeType.equals(otherNode.getNodeType()) &&
-                    uniqueId.equals(otherNode.getUniqueId());
-        }
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(nodeType, uniqueId);
     }
 
     /**

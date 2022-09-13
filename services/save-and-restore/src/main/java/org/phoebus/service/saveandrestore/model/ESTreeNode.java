@@ -26,7 +26,7 @@ import java.util.List;
 public class ESTreeNode {
 
     private Node node;
-    private List<Node> childNodes;
+    private List<String> childNodes;
 
     public Node getNode() {
         return node;
@@ -36,11 +36,11 @@ public class ESTreeNode {
         this.node = node;
     }
 
-    public List<Node> getChildNodes() {
+    public List<String> getChildNodes() {
         return childNodes;
     }
 
-    public void setChildNodes(List<Node> childNodes) {
+    public void setChildNodes(List<String> childNodes) {
         this.childNodes = childNodes;
     }
 }

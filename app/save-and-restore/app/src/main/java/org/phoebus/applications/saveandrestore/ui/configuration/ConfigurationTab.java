@@ -42,8 +42,7 @@ public class ConfigurationTab extends Tab implements NodeChangedListener {
 
     private ConfigurationController configurationController;
 
-    private final SimpleStringProperty tabTitleProperty = new SimpleStringProperty();
-
+    private SimpleStringProperty tabTitleProperty = new SimpleStringProperty(Messages.contextMenuNewSaveSet);
 
     public ConfigurationTab() {
         configure();
@@ -58,8 +57,8 @@ public class ConfigurationTab extends Tab implements NodeChangedListener {
             loader.setControllerFactory(clazz -> {
                 try {
                     if (clazz.isAssignableFrom(ConfigurationController.class)) {
-                        return clazz.getConstructor(SimpleStringProperty.class)
-                                .newInstance(tabTitleProperty);
+                        return clazz.getConstructor(ConfigurationTab.class)
+                                .newInstance(this);
                     }
                 } catch (Exception e) {
                     Logger.getLogger(ConfigurationTab.class.getName()).log(Level.SEVERE, "Failed to construct ConfigurationController", e);
@@ -100,7 +99,6 @@ public class ConfigurationTab extends Tab implements NodeChangedListener {
 
     public void configureForNewSaveSet(Node parentNode) {
         configurationController.newConfiguration(parentNode);
-        tabTitleProperty.set(Messages.contextMenuNewSaveSet);
     }
 
     private javafx.scene.Node getTabGraphic() {
@@ -121,5 +119,9 @@ public class ConfigurationTab extends Tab implements NodeChangedListener {
         if (node.getUniqueId().equals(getId())) {
             tabTitleProperty.set(node.getName());
         }
+    }
+
+    public void updateTabTitle(String tabTitle){
+        tabTitleProperty.set(tabTitle);
     }
 }

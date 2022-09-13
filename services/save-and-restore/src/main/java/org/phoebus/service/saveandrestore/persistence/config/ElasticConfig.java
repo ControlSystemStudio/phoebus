@@ -157,7 +157,7 @@ public class ElasticConfig {
             if (!indexClient.exists(e -> e.index(ES_TREE_INDEX).id(ROOT_FOLDER_UNIQUE_ID)).value()) {
                 Date now = new Date();
                 Node node = Node.builder().nodeType(NodeType.FOLDER).uniqueId(ROOT_FOLDER_UNIQUE_ID).name("Root folder")
-                        .userName("olog").created(now).lastModified(now).build();
+                        .userName("anonymous").created(now).lastModified(now).build();
                 ESTreeNode elasticsearchTreeNode = new ESTreeNode();
                 elasticsearchTreeNode.setNode(node);
 

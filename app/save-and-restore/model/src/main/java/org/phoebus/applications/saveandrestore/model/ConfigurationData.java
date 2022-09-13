@@ -35,7 +35,6 @@ public class ConfigurationData {
      * mapping to the save set node.
      */
     private String uniqueId;
-    private String description;
     private List<ConfigPv> pvList;
 
     public String getUniqueId() {
@@ -44,14 +43,6 @@ public class ConfigurationData {
 
     public void setUniqueId(String uniqueId) {
         this.uniqueId = uniqueId;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public List<ConfigPv> getPvList() {
@@ -69,7 +60,6 @@ public class ConfigurationData {
      */
     public static ConfigurationData clone(ConfigurationData configurationToClone){
         ConfigurationData clone = new ConfigurationData();
-        clone.setDescription(configurationToClone.getDescription());
         clone.setPvList(configurationToClone.getPvList());
         return clone;
     }

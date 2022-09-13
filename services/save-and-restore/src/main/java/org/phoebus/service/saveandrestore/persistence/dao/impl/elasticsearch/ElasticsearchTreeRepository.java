@@ -34,10 +34,14 @@ import co.elastic.clients.elasticsearch.core.GetRequest;
 import co.elastic.clients.elasticsearch.core.GetResponse;
 import co.elastic.clients.elasticsearch.core.IndexRequest;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
+import co.elastic.clients.elasticsearch.core.MgetRequest;
+import co.elastic.clients.elasticsearch.core.MgetResponse;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.mget.MultiGetResponseItem;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
+import org.elasticsearch.common.util.iterable.Iterables;
 import org.phoebus.service.saveandrestore.model.ESTreeNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -48,6 +52,9 @@ import org.springframework.stereotype.Repository;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -89,7 +96,7 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to save folder node: " + elasticTreeNode, e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save folder node: " + elasticTreeNode.getNode().getName());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save node: " + elasticTreeNode.getNode().getName());
         }
         return null;
     }
@@ -114,7 +121,7 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
             return Optional.of(resp.source());
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to retrieve folder node with id: " + id, e);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to retrieve folder node with id: " + id);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to retrieve node with id: " + id);
         }
     }
 
@@ -136,9 +143,38 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
         return null;
     }
 
+    /**
+     * Retrieves {@link ESTreeNode}s corresponding to the provided list of unique ids.
+     *
+     * Note that if a unique id is not found in the index, this method will <b>not</b> throw an {@link Exception}. The returned
+     * {@link List} of {@link ESTreeNode} may consequently be shorter than the input list of unique ids, or
+     * even empty. It is hence up to the callee to determine how to handle a potential discrepancy.
+     *
+     * @param uniqueIds A {@link Iterable} of unique ids. If <code>null</code>, an empty {@link List} is
+     *                  returned.
+     * @return A (potentially empty) {@link List} of existing {@link ESTreeNode}s.
+     */
     @Override
-    public Iterable<ESTreeNode> findAllById(Iterable<String> strings) {
-        return null;
+    public Iterable<ESTreeNode> findAllById(Iterable<String> uniqueIds) {
+        if(uniqueIds == null || !uniqueIds.iterator().hasNext()){
+            return Collections.emptyList();
+        }
+        List<String> ids = new ArrayList<>();
+        uniqueIds.forEach(id -> ids.add(id));
+        MgetRequest mgetRequest = MgetRequest.of(m -> m.index(ES_TREE_INDEX).ids(ids));
+        try {
+            List<ESTreeNode> treeNodes = new ArrayList<>();
+            MgetResponse<ESTreeNode> resp = client.mget(mgetRequest, ESTreeNode.class);
+            resp.docs().forEach(doc -> {
+                if(doc.result().found()){ // Only add elements that actually exist
+                    treeNodes.add(doc.result().source());
+                }
+            });
+            return treeNodes;
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Failed to retrieve multiple nodes");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to retrieve multiple nodes");
+        }
     }
 
     @Override
@@ -193,12 +229,10 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
      * <code>null</code>.
      */
     public ESTreeNode getParentNode(String uniqueId){
-        DisMaxQuery.Builder parentQuery = new DisMaxQuery.Builder();
         Builder bqb = new Builder();
-        bqb.must(WildcardQuery.of(w -> w.field("childNodes.uniqueId").value(uniqueId))._toQuery());
-        parentQuery.queries(q -> q.nested(NestedQuery.of(n -> n.path("childNodes").query(bqb.build()._toQuery()).scoreMode(ChildScoreMode.None))));
+        bqb.must(WildcardQuery.of(w -> w.field("childNodes").value(uniqueId))._toQuery());
         SearchRequest searchRequest = SearchRequest.of(s -> s.index(ES_TREE_INDEX)
-                .query(parentQuery.build()._toQuery())
+                .query(bqb.build()._toQuery())
                 .timeout("60s"));
         try {
             SearchResponse<ESTreeNode> searchResponse = client.search(searchRequest, ESTreeNode.class);
