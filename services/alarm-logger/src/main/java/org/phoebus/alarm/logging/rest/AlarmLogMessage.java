@@ -158,7 +158,7 @@ public class AlarmLogMessage {
 
     public static class AlarmInstantDeserializer extends JsonDeserializer<Instant> {
 
-        private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
+        private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").withZone(ZoneId.of("UTC"));
 
         public AlarmInstantDeserializer() {
         }
