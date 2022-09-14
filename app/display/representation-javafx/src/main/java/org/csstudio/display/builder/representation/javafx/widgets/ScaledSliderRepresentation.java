@@ -167,6 +167,7 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
         // Since both the widget's PV value and the JFX node's value property might be
         // written to independently during runtime, both must have listeners.
         slider.valueProperty().addListener(this::handleSliderMove);
+        slider.setOnMouseReleased(this::handleSliderMouseRelease);
 
         if (toolkit.isEditMode()) {
             dirty_value.checkAndClear();
@@ -387,6 +388,11 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
     {
         if (!active)
             toolkit.fireWrite(model_widget, new_value);
+    }
+
+    private void handleSliderMouseRelease(MouseEvent event) {
+        dirty_value.mark();
+        toolkit.scheduleUpdate(this);
     }
 
     private void valueChanged(final WidgetProperty<? extends VType> property, final VType old_value, final VType new_value)
