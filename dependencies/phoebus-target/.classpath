@@ -35,7 +35,9 @@
     <classpathentry exported="true" kind="lib" path="target/lib/connect-api-2.0.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/connect-json-2.0.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/controlsfx-11.0.3.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/derby-10.14.1.0.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/derby-10.16.1.1.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/derbytools-10.16.1.1.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/derbyshared-10.16.1.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/eclipselink-2.7.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-java-7.17.3.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-rest-client-7.17.3.jar"/>

@@ -13,10 +13,12 @@ import static org.csstudio.display.builder.representation.ToolkitRepresentation.
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Collection;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 
+import javafx.scene.input.KeyEvent;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.properties.NamedWidgetColor;
@@ -53,7 +55,6 @@ import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
@@ -111,7 +112,12 @@ public class WidgetColorPopOverController implements Initializable {
     /*
      * ---- color property -----------------------------------------------------
      */
-    private final ObjectProperty<WidgetColor> color = new SimpleObjectProperty<>(this, "color", WidgetColorService.getColor(NamedWidgetColors.BACKGROUND)) {
+    private final ObjectProperty<WidgetColor> color = new SimpleObjectProperty<>(this, "color",
+            // Initialize with an empty color, the initial color will be initialized from the widget
+            // default in #setInitialConditions (after color property listeners have been defined)
+            // where e.g. all the related fields in the widget will be subsequently updated/initialized
+            null
+    ) {
         @Override
         protected void invalidated() {
 
@@ -150,9 +156,9 @@ public class WidgetColorPopOverController implements Initializable {
         ButtonBar.setButtonData(okButton, ButtonType.OK.getButtonData());
         root.addEventFilter(KeyEvent.KEY_PRESSED, event ->
         {
-            if (event.getCode() == KeyCode.ENTER)
+            if (event.getCode() == KeyCode.ENTER) {
                 okPressed(null);
-                event.consume();
+            }
         });
 
         picker.valueProperty().addListener(( observable, oldColor, newColor ) -> {
@@ -292,6 +298,14 @@ public class WidgetColorPopOverController implements Initializable {
             }
 
         });
+
+        // Keyboard navigation
+        TabNavigator.createCyclicalNavigation(List.of(
+                colorNames, searchField,
+                picker,
+                redSpinner, greenSpinner, blueSpinner, alphaSpinner,
+                okButton, defaultButton, cancelButton
+        ));
 
     }
 

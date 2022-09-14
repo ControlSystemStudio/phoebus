@@ -49,7 +49,6 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
     private final DirtyFlag dirty_layout = new DirtyFlag();
     private final DirtyFlag dirty_enablement = new DirtyFlag();
     private final DirtyFlag dirty_value = new DirtyFlag();
-    private final DirtyFlag dirty_dragging_slider = new DirtyFlag();
     private final UntypedWidgetPropertyListener layoutChangedListener = this::layoutChanged;
     private final UntypedWidgetPropertyListener limitsChangedListener = this::limitsChanged;
     private final WidgetPropertyListener<Boolean> enablementChangedListener = this::enablementChanged;
@@ -168,7 +167,6 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
         // Since both the widget's PV value and the JFX node's value property might be
         // written to independently during runtime, both must have listeners.
         slider.valueProperty().addListener(this::handleSliderMove);
-        slider.setOnMouseReleased(this::handleSliderMouseRelease);
 
         if (toolkit.isEditMode()) {
             dirty_value.checkAndClear();
@@ -385,11 +383,6 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
         return step * order_of_magnitude;
     }
 
-    private void handleSliderMouseRelease(MouseEvent event) {
-        dirty_value.mark();
-        toolkit.scheduleUpdate(this);
-    }
-
     private void handleSliderMove(final ObservableValue<? extends Number> property, final Number old_value, final Number new_value)
     {
         if (!active)
@@ -404,7 +397,6 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
         toolkit.scheduleUpdate(this);
     }
 
-    /** Called when the toolkit performs a scheduled update **/
     @Override
     public void updateChanges()
     {
@@ -478,10 +470,11 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
                                  "-fx-text-background-color: " + JFXUtil.webRGB(model_widget.propForegroundColor().getValue()) +
                                  // Axis tick marks
                                  "; -fx-background: " + JFXUtil.webRGB(model_widget.propForegroundColor().getValue()) +
-                                 // Font (XXX: size isn't used, would have to set it on the SliderSkin's axis?)
-                                 "; " + JFXUtil.cssFont("-fx-tick-label-font", font);
-            jfx_node.setStyle(style);
+                                 // Font; NOTE only the shorthand font style is supported for fx-tick-label-font;
+                                 // e.g. fx-tick-label-font-size etc are not supported!
+                                 "; " + JFXUtil.cssFontShorthand("-fx-tick-label-font", font);
 
+            jfx_node.setStyle(style);
             if (model_widget.propShowScale().getValue())
             {
                 String format = model_widget.propScaleFormat().getValue();

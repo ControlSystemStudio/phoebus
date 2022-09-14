@@ -414,8 +414,19 @@ public class RDBArchiveWriter implements ArchiveWriter
             final int N = additional.size();
             for (int i = 1; i < N; i++)
             {
+                if (dialect == Dialect.Oracle){
+                    insert_array_sample.setTimestamp(2, stamp);
+                }
+                else
+                {
+                    // Truncate the time stamp
+                    Timestamp truncated = Timestamp.from(stamp.toInstant());
+                    truncated.setNanos(0);
+                    insert_array_sample.setTimestamp(2, truncated);
+                    // Set the nanos in a separate column
+                    insert_array_sample.setInt(6, stamp.getNanos());
+                }
                 insert_array_sample.setInt(1, channel.getId());
-                insert_array_sample.setTimestamp(2, stamp);
                 insert_array_sample.setInt(3, i);
                 // Patch NaN.
                 // Conundrum: Should we set the status/severity to indicate NaN?
@@ -427,10 +438,7 @@ public class RDBArchiveWriter implements ArchiveWriter
                 if (Double.isNaN(additional.getDouble(i)))
                     insert_array_sample.setDouble(4, 0.0);
                 else
-                    insert_array_sample.setDouble(4, additional.getDouble(i));
-                // MySQL nanosecs
-                if (dialect == Dialect.MySQL  ||  dialect == Dialect.PostgreSQL)
-                    insert_array_sample.setInt(5, stamp.getNanos());
+                    insert_array_sample.setDouble(4, additional.getDouble(i));             
                 // Batch
                 insert_array_sample.addBatch();
                 ++batched_double_array_inserts;
@@ -474,14 +482,23 @@ public class RDBArchiveWriter implements ArchiveWriter
             final Timestamp stamp, final int severity,
             final Status status) throws Exception
     {
+        if (dialect == Dialect.Oracle){
+            insert_xx.setTimestamp(2, stamp);
+        }
+        else
+        {
+            // Truncate the time stamp
+            Timestamp truncated = Timestamp.from(stamp.toInstant());
+            truncated.setNanos(0);
+            insert_xx.setTimestamp(2, truncated);
+            // Set the nanos in a separate column
+            insert_xx.setInt(6, stamp.getNanos());
+        }
+
         // Set the stuff that's common to each type
         insert_xx.setInt(1, channel.getId());
-        insert_xx.setTimestamp(2, stamp);
         insert_xx.setInt(3, severity);
         insert_xx.setInt(4, status.getId());
-        // MySQL nanosecs
-        if (dialect == Dialect.MySQL  ||  dialect == Dialect.PostgreSQL)
-            insert_xx.setInt(6, stamp.getNanos());
         // Batch
         insert_xx.addBatch();
     }
