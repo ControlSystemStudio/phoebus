@@ -157,7 +157,6 @@ public class WidgetColorPopOverController implements Initializable {
         {
             if (event.getCode() == KeyCode.ENTER)
                 okPressed(null);
-                event.consume();
         });
 
         picker.valueProperty().addListener(( observable, oldColor, newColor ) -> {
