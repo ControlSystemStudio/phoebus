@@ -112,7 +112,12 @@ public class WidgetColorPopOverController implements Initializable {
     /*
      * ---- color property -----------------------------------------------------
      */
-    private final ObjectProperty<WidgetColor> color = new SimpleObjectProperty<>(this, "color", WidgetColorService.getColor(NamedWidgetColors.BACKGROUND)) {
+    private final ObjectProperty<WidgetColor> color = new SimpleObjectProperty<>(this, "color",
+            // Initialize with an empty color, the initial color will be initialized from the widget
+            // default in #setInitialConditions (after color property listeners have been defined)
+            // where e.g. all the related fields in the widget will be subsequently updated/initialized
+            null
+    ) {
         @Override
         protected void invalidated() {
 
@@ -153,7 +158,6 @@ public class WidgetColorPopOverController implements Initializable {
         {
             if (event.getCode() == KeyCode.ENTER) {
                 okPressed(null);
-                event.consume();
             }
         });
 
