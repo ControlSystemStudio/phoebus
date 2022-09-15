@@ -23,7 +23,6 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import org.phoebus.applications.alarm.AlarmSystem;
-import org.phoebus.applications.alarm.ResettableTimeout;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
@@ -182,7 +181,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             model.addListener(AlarmTreeView.this);
         }
         else
-            ResettableTimeout.timer.schedule(this::startup, AlarmSystem.alarm_tree_startup_ms, TimeUnit.MILLISECONDS);
+            UpdateThrottle.TIMER.schedule(this::startup, AlarmSystem.alarm_tree_startup_ms, TimeUnit.MILLISECONDS);
 
         // Caller will start the model once we return from constructor
     }
