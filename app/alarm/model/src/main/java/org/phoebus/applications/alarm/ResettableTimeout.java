@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -31,7 +31,7 @@ public class ResettableTimeout
 {
     private final long timeout_secs;
 
-	private final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("ResettableTimeout"));
+	public static final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("ResettableTimeout"));
     private final CountDownLatch no_more_messages = new CountDownLatch(1);
     private final Runnable signal_no_more_messages = () -> no_more_messages.countDown();
     private final AtomicReference<ScheduledFuture<?>> timeout = new AtomicReference<>();
