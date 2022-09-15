@@ -21,7 +21,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
-import javafx.application.Application;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
@@ -487,7 +486,7 @@ public class DockItem extends Tab
         // application (e.g. the width and height of the Display widget if
         // it's the display application). Otherwise, use the parent window dimensions.
         AppInstance application = this.getApplication();
-        application.getDimensionHint().ifPresentOrElse(dimension -> {
+        application.getPositionAndSizeHint().ifPresentOrElse(dimension -> {
             // use the dimension hints suggested by the application
             // such as possibly Display widget dimensions
             other.setWidth(dimension.getWidth() + extra_width);
