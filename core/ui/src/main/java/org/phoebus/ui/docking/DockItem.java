@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
+import javafx.application.Application;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
@@ -454,12 +455,14 @@ public class DockItem extends Tab
                 other.setX(loc.getX());
                 other.setY(loc.getY());
             }
+
         }
         event.consume();
     }
 
     private Stage detach()
     {
+
         // For size of new stage, approximate the
         // current size of the item, i.e. the size
         // of its DockPane, adding some extra space
@@ -479,8 +482,21 @@ public class DockItem extends Tab
         other.setTitle(UUID.randomUUID().toString());
 
         DockStage.configureStage(other, this);
-        other.setWidth(old_parent.getWidth() + extra_width);
-        other.setHeight(old_parent.getHeight() + extra_height);
+
+        // Set the dimensions of the stage using the dimension hint from the
+        // application (e.g. the width and height of the Display widget if
+        // it's the display application). Otherwise, use the parent window dimensions.
+        AppInstance application = this.getApplication();
+        application.getDimensionHint().ifPresentOrElse(dimension -> {
+            // use the dimension hints suggested by the application
+            // such as possibly Display widget dimensions
+            other.setWidth(dimension.getWidth() + extra_width);
+            other.setHeight(dimension.getHeight() + extra_height);
+        }, () -> {
+            // use the parent window dimensions if no dimension hints
+            other.setWidth(old_parent.getWidth() + extra_width);
+            other.setHeight(old_parent.getHeight() + extra_height);
+        });
 
         // Assert that styles used in old scene are still available
         for (String css : old_scene.getStylesheets())

@@ -9,6 +9,7 @@ package org.csstudio.display.builder.runtime.app;
 
 import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
+import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.Objects;
@@ -505,5 +506,18 @@ public class DisplayRuntimeInstance implements AppInstance
         representation.shutdown();
 
         navigation.dispose();
+    }
+
+    @Override
+    public Optional<Dimension> getDimensionHint() {
+        return Optional.ofNullable(active_model).flatMap(displayModel -> {
+            Integer width = displayModel.propWidth().getValue();
+            Integer height = displayModel.propHeight().getValue();
+            if(width != null && width > 0 && height != null && height > 0) {
+                return Optional.of(new Dimension(width, height));
+            } else {
+                return Optional.empty();
+            }
+        });
     }
 }

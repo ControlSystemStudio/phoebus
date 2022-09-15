@@ -1,5 +1,7 @@
 package org.phoebus.framework.spi;
 
+import java.awt.Dimension;
+import java.util.Optional;
 import org.phoebus.framework.persistence.Memento;
 
 public interface AppInstance {
@@ -38,4 +40,13 @@ public interface AppInstance {
     public default void save(Memento memento) {
         // Default does nothing
     }
+
+    /**
+     * Get possible window dimension for the application instance, if it defines one
+     * (for example, Display Runtime may want the window to be the size defined in the display)
+     *
+     * @return Empty optional if no dimension is specified by the application instance.
+     */
+    public default Optional<Dimension> getDimensionHint() { return Optional.empty(); }
+
 }
