@@ -65,6 +65,8 @@
     <batik.version>1.14</batik.version>
     <mockito.version>2.23.4</mockito.version>
     <postgresql.driver.version>42.2.9</postgresql.driver.version>
+    <!-- When connections to older MySQL server fail because of CLIENT_PLUGIN_AUTH, downgrade to 5.1.45 -->
+    <mysql.version>8.0.30</mysql.version>
     <jetty.version>9.4.30.v20200611</jetty.version>
     <apache.commons.math.version>3.6.1</apache.commons.math.version>
     <junit.version>4.13.1</junit.version>
