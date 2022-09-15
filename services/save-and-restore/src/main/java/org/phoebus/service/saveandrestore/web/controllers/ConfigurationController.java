@@ -49,44 +49,6 @@ public class ConfigurationController extends BaseController {
     private Logger logger = Logger.getLogger(ConfigurationController.class.getName());
 
     /**
-     * Updates a configuration. For instance, user may change the name of the
-     * configuration or modify the list of PVs. NOTE: in case PVs are removed from
-     * the configuration, the corresponding snapshot values are also deleted.
-     * <p>
-     * A {@link HttpStatus#NOT_FOUND} is returned if the specified node id does not exist.
-     * <p>
-     * A {@link HttpStatus#BAD_REQUEST} is returned if the specified node id is a configuration node, or if a user name has not
-     * been specified in the config data.
-     *
-     * @param uniqueNodeId       The unique id of the configuration.
-     * @param updateConfigHolder Wrapper of a {@link Node} object representing the config node and a list of {@link ConfigPv}s
-     * @return The updated configuration {@link Node} object.
-     */
-    @SuppressWarnings("unused")
-    @Deprecated
-    @PostMapping(value = "/{uniqueNodeId}/update", produces = JSON)
-    public ResponseEntity<Node> updateConfiguration(@PathVariable String uniqueNodeId,
-                                                    @RequestBody UpdateConfigHolder updateConfigHolder) {
-
-        if (updateConfigHolder.getConfig() == null) {
-            throw new IllegalArgumentException("Cannot update a null configuration");
-        } else if (updateConfigHolder.getConfigPvList() == null) {
-            throw new IllegalArgumentException("Cannot update a configration with a null config PV list");
-        } else if (updateConfigHolder.getConfig().getUserName() == null ||
-                updateConfigHolder.getConfig().getUserName().isEmpty()) {
-            throw new IllegalArgumentException("Will not update a configuration where user name is null or empty");
-        }
-
-        for (ConfigPv configPv : updateConfigHolder.getConfigPvList()) {
-            if (configPv.getPvName() == null || configPv.getPvName().isEmpty()) {
-                throw new IllegalArgumentException("Cannot update configuration, encountered a null or empty PV name");
-            }
-        }
-
-        return new ResponseEntity<>(nodeDAO.updateConfiguration(updateConfigHolder.getConfig(), updateConfigHolder.getConfigPvList()), HttpStatus.OK);
-    }
-
-    /**
      * Returns a potentially empty list of {@link Node}s associated with the specified configuration node id.
      * <p>
      * A {@link HttpStatus#NOT_FOUND} is returned if the specified configuration does not exist.

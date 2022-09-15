@@ -244,7 +244,7 @@ public class CSVImporter extends CSVCommon {
             }
         }
 
-        List<ConfigPv> configPvs = saveAndRestoreService.getConfigPvs(parentOfImport.getUniqueId());
+        List<ConfigPv> configPvs = saveAndRestoreService.getConfiguration(parentOfImport.getUniqueId()).getPvList();
         List<SnapshotItem> snapshotItems = new ArrayList<>();
         for (Map<String, String> snapshotEntry : csvParser.getEntries()) {
             SnapshotItem snapshotItem = SnapshotItem.builder()
@@ -287,7 +287,7 @@ public class CSVImporter extends CSVCommon {
     }
 
     private static boolean checkSnapshotCompatibility(List<Map<String, String>> entries) throws Exception {
-        List<ConfigPv> configPvs = saveAndRestoreService.getConfigPvs(parentOfImport.getUniqueId());
+        List<ConfigPv> configPvs = saveAndRestoreService.getConfiguration(parentOfImport.getUniqueId()).getPvList();
 
         int numConfigPvsInSaveset = configPvs.size();
         int numMatching = 0;

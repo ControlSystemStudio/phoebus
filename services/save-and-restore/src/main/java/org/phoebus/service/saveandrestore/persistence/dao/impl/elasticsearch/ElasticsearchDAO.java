@@ -279,30 +279,6 @@ public class ElasticsearchDAO implements NodeDAO {
     }
 
     @Override
-    @Deprecated
-    public Node updateConfiguration(Node configToUpdate, List<ConfigPv> configPvList) {
-        Optional<ESTreeNode> nodeOptional = elasticsearchTreeRepository.findById(configToUpdate.getUniqueId());
-        if (nodeOptional.isEmpty() || !nodeOptional.get().getNode().getNodeType().equals(NodeType.CONFIGURATION)) {
-            throw new IllegalArgumentException(String.format("Config node with unique id=%s not found or is wrong type", configToUpdate.getUniqueId()));
-        }
-        Optional<ConfigurationData> elasticsearchSaveSetOptional = configurationDataRepository.findById(configToUpdate.getUniqueId());
-        ConfigurationData elasticsearchConfiguration;
-        if (elasticsearchSaveSetOptional.isEmpty()) {
-            elasticsearchConfiguration = new ConfigurationData();
-            elasticsearchConfiguration.setUniqueId(configToUpdate.getUniqueId());
-        } else {
-            elasticsearchConfiguration = elasticsearchSaveSetOptional.get();
-        }
-        elasticsearchConfiguration.setPvList(configPvList);
-        configurationDataRepository.save(elasticsearchConfiguration);
-
-        // Save the config node to update last modified date
-        elasticsearchTreeRepository.save(nodeOptional.get());
-
-        return elasticsearchTreeRepository.findById(configToUpdate.getUniqueId()).get().getNode();
-    }
-
-    @Override
     public Node getRootNode() {
         ESTreeNode root = elasticsearchTreeRepository.findById(ROOT_FOLDER_UNIQUE_ID).get();
         return root.getNode();

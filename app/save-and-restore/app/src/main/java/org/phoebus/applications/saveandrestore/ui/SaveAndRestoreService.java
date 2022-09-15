@@ -125,19 +125,6 @@ public class SaveAndRestoreService {
         executor.submit(() -> saveAndRestoreClient.deleteNodes(nodeIds)).get();
     }
 
-    public List<ConfigPv> getConfigPvs(String uniqueNodeId) throws Exception {
-        Future<List<ConfigPv>> future = executor.submit(() -> saveAndRestoreClient.getConfigPvs(uniqueNodeId));
-        return future.get();
-    }
-
-    public Node updateSaveSet(Node configToUpdate, List<ConfigPv> configPvList) throws Exception {
-        Future<Node> future = executor.submit(() -> saveAndRestoreClient.updateConfiguration(configToUpdate, configPvList));
-        Node updatedNode = future.get();
-        notifyNodeChangeListeners(updatedNode);
-        return updatedNode;
-    }
-
-
     public String getServiceIdentifier() {
         return saveAndRestoreClient.getServiceUrl();
     }

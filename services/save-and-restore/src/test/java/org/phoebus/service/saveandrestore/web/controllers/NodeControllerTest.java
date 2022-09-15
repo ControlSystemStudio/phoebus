@@ -429,7 +429,7 @@ public class NodeControllerTest {
 
         UpdateConfigHolder holder = UpdateConfigHolder.builder().config(config).configPvList(configPvList).build();
 
-        when(nodeDAO.updateConfiguration(holder.getConfig(), holder.getConfigPvList())).thenReturn(config);
+        //when(nodeDAO.updateConfiguration(holder.getConfig(), holder.getConfigPvList())).thenReturn(config);
 
         MockHttpServletRequestBuilder request = post("/config/a/update").contentType(JSON)
                 .content(objectMapper.writeValueAsString(holder));
@@ -462,7 +462,7 @@ public class NodeControllerTest {
         List<ConfigPv> configPvList = Arrays.asList(ConfigPv.builder().build());
         holder.setConfigPvList(configPvList);
 
-        when(nodeDAO.updateConfiguration(holder.getConfig(), holder.getConfigPvList())).thenReturn(config);
+        //when(nodeDAO.updateConfiguration(holder.getConfig(), holder.getConfigPvList())).thenReturn(config);
 
         request = post("/config/a/update").contentType(JSON)
                 .content(objectMapper.writeValueAsString(holder));

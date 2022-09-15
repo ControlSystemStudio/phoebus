@@ -97,15 +97,6 @@ public interface NodeDAO {
 	 */
 	Node copyNodes(List<String> nodeIds, String targetId, String userName);
 
-	/**
-	 * Updates an existing configuration, e.g. changes its name or list of PVs.
-	 *
-	 * @param configToUpdate The configuration to update.
-	 * @param configPvList The updated list of {@link ConfigPv}s
-	 * @return The updated configuration object
-	 */
-	Node updateConfiguration(Node configToUpdate, List<ConfigPv> configPvList);
-
 
 	/**
 	 * Convenience method

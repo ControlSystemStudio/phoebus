@@ -45,11 +45,12 @@ import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVCommon;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.core.types.ProcessVariable;
-import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.net.URL;
@@ -58,12 +59,10 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -76,15 +75,11 @@ import java.util.logging.Logger;
 public class ConfigurationFromSelectionController implements Initializable {
 
     private final SaveAndRestoreService saveAndRestoreService = SaveAndRestoreService.getInstance();
-    private final PreferencesReader preferencesReader =
-            new PreferencesReader(SaveAndRestoreApplication.class, "/save_and_restore_preferences.properties");
     private final Logger LOGGER = Logger.getLogger(SaveAndRestoreService.class.getName());
-
-    private final String DESCRIPTION_PROPERTY = "description";
 
     private final SimpleIntegerProperty numSelected = new SimpleIntegerProperty();
 
-    private class TableRowEntry {
+    private static class TableRowEntry {
         private boolean selected;
         private ConfigPv pv;
     }
@@ -132,7 +127,7 @@ public class ConfigurationFromSelectionController implements Initializable {
     @FXML
     private Button discardButton;
 
-    private SimpleObjectProperty<Node> targetNode = new SimpleObjectProperty<>();
+    private final SimpleObjectProperty<Node> targetNode = new SimpleObjectProperty<>();
 
     private boolean isDisabledSaveSetSelectionInBrowsing;
 
@@ -141,6 +136,7 @@ public class ConfigurationFromSelectionController implements Initializable {
     }
 
     private SimpleObjectProperty<Node> createdSaveset = null;
+
 
     public void setCreatedSavesetProperty(SimpleObjectProperty<Node> createdSaveset) {
         this.createdSaveset = createdSaveset;
@@ -166,8 +162,6 @@ public class ConfigurationFromSelectionController implements Initializable {
 
                         saveButton.setDisable(false);
 
-                        saveSetName.getStyleClass().remove("input-error");
-                        saveSetName.setTooltip(null);
                     } else {
                         saveSetName.setText("");
                         description.setText("");
@@ -180,9 +174,9 @@ public class ConfigurationFromSelectionController implements Initializable {
                         nodeListInFolder.clear();
                         saveAndRestoreService.getChildNodes(newNode).forEach(item -> nodeListInFolder.add(item.getName()));
 
-                        saveSetName.getStyleClass().remove("input-error");
-                        saveSetName.setTooltip(null);
                     }
+                    saveSetName.getStyleClass().remove("input-error");
+                    saveSetName.setTooltip(null);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -199,10 +193,10 @@ public class ConfigurationFromSelectionController implements Initializable {
                 dialog.setTitle("Choose a folder, a saveset, or create one");
                 dialog.getIcons().add(ImageCache.getImage(ImageCache.class, "/icons/logo.png"));
                 dialog.initModality(Modality.APPLICATION_MODAL);
-                loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/ConfigurationSelector.fxml"));
+                loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/configuration/ConfigurationSelector.fxml"));
                 dialog.setScene(new Scene(loader.load()));
 
-                final BaseConfigurationSelectionController saveSetSelectionController = loader.getController();
+                final ConfigurationSelectionController saveSetSelectionController = loader.getController();
                 if (isDisabledSaveSetSelectionInBrowsing) {
                     saveSetSelectionController.disableConfigurationSelection();
                 }
@@ -322,6 +316,7 @@ public class ConfigurationFromSelectionController implements Initializable {
         }
     }
 
+    @SuppressWarnings("unused")
     @FXML
     private void save(ActionEvent ae) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -346,27 +341,29 @@ public class ConfigurationFromSelectionController implements Initializable {
                     .name(saveSetName.getText().trim().isEmpty() ? saveSetName.getPromptText() : saveSetName.getText().trim())
                     .build();
 
-            Node parentNode = selectedNode;
-
             try {
-                Node newSaveSet = saveAndRestoreService.createNode(parentNode.getUniqueId(), newSaveSetBuild);
 
-                newSaveSet.setDescription(description.getText().trim().isEmpty() ? description.getPromptText() : description.getText().trim());
-                newSaveSet = saveAndRestoreService.updateSaveSet(newSaveSet, pvs);
+                ConfigurationData configurationData = new ConfigurationData();
+                configurationData.setPvList(pvs);
+
+                Configuration configuration = new Configuration();
+                newSaveSetBuild.setDescription(description.getText().trim().isEmpty() ? description.getPromptText() : description.getText().trim());
+                configuration.setConfigurationNode(newSaveSetBuild);
+                configuration.setConfigurationData(configurationData);
+
+                configuration = saveAndRestoreService.createConfiguration(selectedNode, configuration);
 
                 if (createdSaveset != null) {
-                    createdSaveset.set(newSaveSet);
+                    createdSaveset.set(configuration.getConfigurationNode());
                 }
             } catch (Exception e) {
-                String alertMessage = "Cannot save PVs in parent node: " + parentNode.getName() + "(" + parentNode.getUniqueId() + ")";
+                String alertMessage = "Cannot save PVs in parent node: " + selectedNode.getName() + "(" + selectedNode.getUniqueId() + ")";
 
                 alert = new Alert(Alert.AlertType.ERROR);
                 alert.setContentText(alertMessage);
                 alert.show();
 
                 LOGGER.severe(alertMessage);
-
-                e.printStackTrace();
             }
         } else { // NodeType.CONFIGURATION
             Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
@@ -380,19 +377,19 @@ public class ConfigurationFromSelectionController implements Initializable {
             Node parentNode = null;
             try {
                 parentNode = saveAndRestoreService.getParentNode(selectedNode.getUniqueId());
+                ConfigurationData configurationData = saveAndRestoreService.getConfiguration(selectedNode.getUniqueId());
+                List<ConfigPv> storedPvs = configurationData.getPvList();
+                storedPvs.addAll(pvs);
 
-                List<ConfigPv> storedPvs = saveAndRestoreService.getConfigPvs(selectedNode.getUniqueId());
-                Set<ConfigPv> pvSet = new HashSet<ConfigPv>();
-                pvSet.addAll(storedPvs);
-                pvSet.addAll(pvs);
+                Configuration configuration = new Configuration();
+                configuration.setConfigurationNode(selectedNode);
+                configuration.setConfigurationData(configurationData);
 
-                saveAndRestoreService.updateSaveSet(selectedNode, new ArrayList<>(pvSet));
+                saveAndRestoreService.updateConfiguration(configuration);
             } catch (Exception e) {
                 alert = new Alert(Alert.AlertType.ERROR);
                 alert.setContentText("Cannot save PVs in parent node: " + parentNode.getName() + "(" + parentNode.getUniqueId() + ")");
                 alert.show();
-
-                e.printStackTrace();
             }
         }
         ((Stage) saveButton.getScene().getWindow()).close();

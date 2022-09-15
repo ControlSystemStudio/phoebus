@@ -36,6 +36,8 @@ import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
@@ -257,7 +259,8 @@ public class GitMigrator {
     }
 
     private Node createSaveSetNode(Node parentNode, FilePair filePair) {
-        Node saveSetNode = null;
+        Node saveSetNode;
+        Configuration configuration = new Configuration();
         try {
             List<RevCommit> commits = findCommitsFor(filePair.bms);
             // Only latest commit considered for bms files
@@ -273,17 +276,23 @@ public class GitMigrator {
                     .lastModified(commitDate)
                     .description(commitMessage)
                     .build();
-            saveSetNode = saveAndRestoreService.createNode(parentNode.getUniqueId(), saveSetNode);
+
             String fullPath = gitRoot.getAbsolutePath() + "/" + filePair.bms;
             List<ConfigPv> configPvs = FileReaderHelper.readSaveSet(new FileInputStream(fullPath));
-            saveAndRestoreService.updateSaveSet(saveSetNode, configPvs);
+            ConfigurationData configurationData = new ConfigurationData();
+            configurationData.setPvList(configPvs);
+
+            configuration.setConfigurationNode(saveSetNode);
+            configuration.setConfigurationData(configurationData);
+
+            configuration = saveAndRestoreService.createConfiguration(parentNode, configuration);
             if (!filePair.snp.isEmpty()) {
                 createSnapshots(saveSetNode, filePair.snp);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return saveSetNode;
+        return configuration.getConfigurationNode();
     }
 
     private void createSnapshots(Node saveSetNode, String relativeSnpFilePath) {
@@ -412,14 +421,14 @@ public class GitMigrator {
     }
 
     private List<SnapshotItem> setConfigPvIds(Node saveSetNode, List<SnapshotItem> snapshotItems) throws Exception {
-        List<ConfigPv> configPvs = saveAndRestoreService.getConfigPvs(saveSetNode.getUniqueId());
+        List<ConfigPv> configPvs = saveAndRestoreService.getConfiguration(saveSetNode.getUniqueId()).getPvList();
         snapshotItems.forEach(snapshotItem -> configPvs.stream().filter(configPv -> configPv.equals(snapshotItem.getConfigPv())).findFirst().ifPresent(snapshotItem::setConfigPv));
 
         return snapshotItems;
     }
 
     private boolean isSnapshotCompatibleWithSaveSet(Node saveSetNode, List<SnapshotItem> snapshotItems) throws Exception {
-        List<ConfigPv> configPvs = saveAndRestoreService.getConfigPvs(saveSetNode.getUniqueId());
+        List<ConfigPv> configPvs = saveAndRestoreService.getConfiguration(saveSetNode.getUniqueId()).getPvList();
 
         if (addPVsForIncompatibleSaveset) {
             List<ConfigPv> newConfigPvs = new ArrayList<>();
@@ -431,8 +440,12 @@ public class GitMigrator {
             });
 
             if (!newConfigPvs.isEmpty()) {
-                configPvs.addAll(newConfigPvs);
-                saveAndRestoreService.updateSaveSet(saveSetNode, configPvs);
+                ConfigurationData configurationData = saveAndRestoreService.getConfiguration(saveSetNode.getUniqueId());
+                configurationData.getPvList().addAll(newConfigPvs);
+                Configuration configuration = new Configuration();
+                configuration.setConfigurationData(configurationData);
+                configuration.setConfigurationNode(saveSetNode);
+                saveAndRestoreService.updateConfiguration(configuration);
             }
 
             return true;

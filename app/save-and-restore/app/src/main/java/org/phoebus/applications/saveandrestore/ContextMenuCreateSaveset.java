@@ -92,7 +92,7 @@ public class ContextMenuCreateSaveset implements ContextMenuEntry
 
         try {
             FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/ConfigurationFromSelection.fxml"));
+            loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/configuration/ConfigurationFromSelection.fxml"));
             Parent root = loader.load();
             Stage dialog = new Stage();
             dialog.setTitle(getName());

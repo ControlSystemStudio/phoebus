@@ -158,13 +158,6 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     @Override
-    public List<ConfigPv> getConfigPvs(String configUniqueId) {
-        ClientResponse response = getCall("/config/" + configUniqueId + "/items");
-        return response.getEntity(new GenericType<List<ConfigPv>>() {
-        });
-    }
-
-    @Override
     public Node createNewNode(String parentNodeId, Node node) {
         node.setUserName(getCurrentUsersName());
         WebResource webResource = client.resource(jmasarServiceUrl + "/node").queryParam("parentNodeId", parentNodeId);
@@ -255,34 +248,6 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
     private String getCurrentUsersName() {
         return System.getProperty("user.name");
-    }
-
-    @Override
-    public Node updateConfiguration(Node configToUpdate, List<ConfigPv> configPvList) {
-
-        configToUpdate.setUserName(getCurrentUsersName());
-
-        WebResource webResource = client.resource(jmasarServiceUrl + "/config/" + configToUpdate.getUniqueId() + "/update");
-
-        UpdateConfigHolder holder = UpdateConfigHolder.builder()
-                .config(configToUpdate)
-                .configPvList(configPvList)
-                .build();
-
-        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
-                .entity(holder, CONTENT_TYPE_JSON)
-                .post(ClientResponse.class);
-        if (response.getStatus() != 200) {
-            String message = Messages.updateConfigurationFailed;
-            try {
-                message = new String(response.getEntityInputStream().readAllBytes());
-            } catch (IOException e) {
-                // Ignore
-            }
-            throw new RuntimeException(message);
-        }
-
-        return response.getEntity(Node.class);
     }
 
     @Override

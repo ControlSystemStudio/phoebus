@@ -103,7 +103,7 @@ public class CSVExporter extends CSVCommon {
         printStream.println(Comment(ENDING_TAG));
 
         printStream.println(Record(H_PV_NAME, H_READBACK, H_READ_ONLY));
-        List<ConfigPv> entries = saveAndRestoreService.getConfigPvs(nodeToExport.getUniqueId());
+        List<ConfigPv> entries = saveAndRestoreService.getConfiguration(nodeToExport.getUniqueId()).getPvList();
         for (ConfigPv entry : entries) {
             printStream.println(Record(entry.getPvName(), entry.getReadbackPvName(), entry.isReadOnly() ? "1" : "0"));
         }

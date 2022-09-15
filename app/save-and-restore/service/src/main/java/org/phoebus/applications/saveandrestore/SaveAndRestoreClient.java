@@ -96,13 +96,6 @@ public interface SaveAndRestoreClient {
     Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment);
 
     /**
-     *
-     * @param configUniqueId Unique id of a save set (config) {@link Node}
-     * @return A list of {@link ConfigPv}s associated with the save set. May be empty.
-     */
-    List<ConfigPv> getConfigPvs(String configUniqueId);
-
-    /**
      * Creates a new {@link Node}
      * @param parentsUniqueId Unique id of the parent {@link Node} for the new {@link Node}
      * @param node A {@link Node} object that should be created (=persisted).
@@ -133,14 +126,6 @@ public interface SaveAndRestoreClient {
      * @param nodeIds List of unique {@link Node} ids.
      */
     void deleteNodes(List<String> nodeIds);
-
-    /**
-     * Update a save set (config) {@link Node}, e.g. when new PVs are added.
-     * @param configToUpdate The unique id of the {@link Node} subject to update.
-     * @param configPvList The list of {@link ConfigPv}s associated with the save set.
-     * @return The updated {@link Node}
-     */
-    Node updateConfiguration(Node configToUpdate, List<ConfigPv> configPvList);
 
     /**
      * @return All {@link Tag}s persisted on the remote service.
