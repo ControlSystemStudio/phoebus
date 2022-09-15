@@ -225,10 +225,9 @@ public class PhoebusApplication extends Application {
 
     private static final WeakReference<DockItemWithInput> NO_ACTIVE_ITEM_WITH_INPUT = new WeakReference<>(null);
 
-    public static KeyCombination closeAllTabsKeyCombination =
-            PlatformInfo.is_mac_os_x ?
-                    new KeyCodeCombination(KeyCode.W, KeyCombination.SHIFT_DOWN, KeyCodeCombination.SHORTCUT_DOWN) :
-                    new KeyCodeCombination(KeyCode.F4, KeyCombination.SHIFT_DOWN, KeyCombination.CONTROL_DOWN);
+    public static KeyCombination closeAllTabsKeyCombination = PlatformInfo.is_mac_os_x ?
+        new KeyCodeCombination(KeyCode.W, KeyCombination.SHIFT_DOWN, KeyCodeCombination.SHORTCUT_DOWN) :
+        new KeyCodeCombination(KeyCode.F4, KeyCombination.SHIFT_DOWN, KeyCombination.CONTROL_DOWN);
 
 
     /**
@@ -397,9 +396,7 @@ public class PhoebusApplication extends Application {
         if (Preferences.ui_monitor_period > 0)
             freezeup_check = new ResponsivenessMonitor(3 * Preferences.ui_monitor_period,
                     Preferences.ui_monitor_period, TimeUnit.MILLISECONDS);
-
-
-
+        
         closeAllTabsMenuItem.acceleratorProperty().setValue(closeAllTabsKeyCombination);
 
     }

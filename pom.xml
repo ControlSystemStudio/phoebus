@@ -60,7 +60,7 @@
   <properties>
     <epics.version>7.0.8</epics.version>
     <vtype.version>1.0.5</vtype.version>
-    <openjfx.version>18</openjfx.version>
+    <openjfx.version>19</openjfx.version>
     <jackson.version>2.12.3</jackson.version>
     <batik.version>1.14</batik.version>
     <mockito.version>2.23.4</mockito.version>
@@ -75,6 +75,7 @@
     <skipITTests>true</skipITTests>
     <guava.version>31.0.1-jre</guava.version>
     <log4j-to-slf4j.version>2.17.1</log4j-to-slf4j.version>
+    <derby.version>10.16.1.1</derby.version>
   </properties>
   <build>
     <plugins>

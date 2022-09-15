@@ -155,6 +155,8 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
         model_widget.runtimePropValue().addPropertyListener(valueChangedListener);
         jfx_node.valueProperty().addListener(this::nodeValueChanged);
         model_widget.runtimePropConfigure().addPropertyListener(runtimeConfChangedListener);
+        jfx_node.setOnMouseReleased(this::handleScrollbarMouseRelease);
+
         valueChanged(null, null, null);
     }
 
@@ -241,6 +243,11 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
             updateLimits(model_widget.propLimitsFromPV().getValue());
             dirty_size.mark();
         }
+        dirty_value.mark();
+        toolkit.scheduleUpdate(this);
+    }
+
+    private void handleScrollbarMouseRelease(MouseEvent event) {
         dirty_value.mark();
         toolkit.scheduleUpdate(this);
     }
