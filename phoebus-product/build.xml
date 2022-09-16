@@ -31,7 +31,7 @@
       </fileset>
     </copy>
   	
-  	<!-- Create settings_template.ini -->
+    <!-- Create settings_template.ini -->
     <exec executable="python3" failonerror="true">
         <arg line="create_settings_template.py -c -v ${build}/lib" />
     </exec>
