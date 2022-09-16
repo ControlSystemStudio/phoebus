@@ -3,6 +3,7 @@ import glob
 import zipfile
 import os
 import shutil
+import sys
 
 
 def create_settings_template(product_location: str, include_comments: bool, verbose: bool) -> None:
@@ -15,6 +16,10 @@ def create_settings_template(product_location: str, include_comments: bool, verb
     """
     # find all jar files so we can unzip jar and find preference files
     jar_file_list = glob.glob(product_location + "/*.jar")
+    if len(jar_file_list) <= 0:
+        sys.stderr.write("No *.jar files found in '{}'\n".format(product_location))
+        sys.stderr.write("Need to build sources?\n")
+        sys.exit(-1)
 
     # temp directory to hold unzipped jar file contents (deleted at end of script)
     tmp_zip_dir = "./tmp-zip"
