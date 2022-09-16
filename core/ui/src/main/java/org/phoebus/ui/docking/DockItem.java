@@ -447,16 +447,41 @@ public class DockItem extends Tab
             // but event.getX(), getSceneX(), getScreenX() are all 0.0.
             // --> Using MouseInfo, which is actually AWT code
             final Stage other = item.detach();
-            final PointerInfo pi = MouseInfo.getPointerInfo();
-            if (pi != null)
-            {
-                final Point loc = pi.getLocation();
-                other.setX(loc.getX());
-                other.setY(loc.getY());
-            }
+
+            // Try to use the x/y location of the stage using the dimension hint if it
+            // has been specified; Otherwise, use the pointer location
+            AppInstance application = this.getApplication();
+            application.getPositionAndSizeHint().ifPresentOrElse(dimension -> {
+                // If the x and y position are default values (zero) then
+                // use the cursor position
+                if (isDefaultPosition(dimension.getX()) && isDefaultPosition(dimension.getY())) {
+                    setLocationToMousePointer(other);
+                }
+                // Otherwise use the position hint
+                else {
+                    other.setX(dimension.getX());
+                    other.setY(dimension.getY());
+                }
+            }, () -> {
+                setLocationToMousePointer(other);
+            });
 
         }
         event.consume();
+    }
+
+    private void setLocationToMousePointer(Stage stage) {
+        final PointerInfo pi = MouseInfo.getPointerInfo();
+        if (pi != null)
+        {
+            final Point loc = pi.getLocation();
+            stage.setX(loc.getX());
+            stage.setY(loc.getY());
+        }
+    }
+
+    private boolean isDefaultPosition(double pos) {
+        return pos > -1.0 && pos < 1.0;
     }
 
     private Stage detach()
