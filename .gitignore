@@ -112,6 +112,8 @@ buildNumber.properties
 # Avoid ignoring Maven wrapper jar file (.jar files are usually ignored)
 !/.mvn/wrapper/maven-wrapper.jar
 
+# Exclude complete settings template file if it is created
+phoebus-product/settings_template.ini
 
 # End of https://www.gitignore.io/api/maven,eclipse
 /.gitignore
