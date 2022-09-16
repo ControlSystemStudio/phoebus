@@ -95,6 +95,9 @@ public class AlarmSystem
     /** Limit for the number of context menu items */
     @Preference public static int alarm_menu_max_items;
 
+    /** Initial Alarm Tree UI update delay [ms] */
+    @Preference public static int alarm_tree_startup_ms;
+
     /** Alarm table columns */
     @Preference public static String[] alarm_table_columns;
 
