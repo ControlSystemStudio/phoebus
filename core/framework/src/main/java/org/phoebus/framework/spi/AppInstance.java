@@ -1,5 +1,7 @@
 package org.phoebus.framework.spi;
 
+import java.awt.geom.Rectangle2D;
+import java.util.Optional;
 import org.phoebus.framework.persistence.Memento;
 
 public interface AppInstance {
@@ -38,4 +40,15 @@ public interface AppInstance {
     public default void save(Memento memento) {
         // Default does nothing
     }
+
+    /**
+     * Get possible window size and position for the application instance, if defined
+     * (for example, Display Runtime may want the window to be the size defined in the display)
+     *
+     * (Note: Use Rectangle2D to avoid loading AWT toolkit; we only need a data container)
+     *
+     * @return Empty optional if no dimension is specified by the application instance.
+     */
+    public default Optional<Rectangle2D> getPositionAndSizeHint() { return Optional.empty(); }
+
 }

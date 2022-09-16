@@ -447,19 +447,46 @@ public class DockItem extends Tab
             // but event.getX(), getSceneX(), getScreenX() are all 0.0.
             // --> Using MouseInfo, which is actually AWT code
             final Stage other = item.detach();
-            final PointerInfo pi = MouseInfo.getPointerInfo();
-            if (pi != null)
-            {
-                final Point loc = pi.getLocation();
-                other.setX(loc.getX());
-                other.setY(loc.getY());
-            }
+
+            // Try to use the x/y location of the stage using the dimension hint if it
+            // has been specified; Otherwise, use the pointer location
+            AppInstance application = this.getApplication();
+            application.getPositionAndSizeHint().ifPresentOrElse(dimension -> {
+                // If the x and y position are default values (zero) then
+                // use the cursor position
+                if (isDefaultPosition(dimension.getX()) && isDefaultPosition(dimension.getY())) {
+                    setLocationToMousePointer(other);
+                }
+                // Otherwise use the position hint
+                else {
+                    other.setX(dimension.getX());
+                    other.setY(dimension.getY());
+                }
+            }, () -> {
+                setLocationToMousePointer(other);
+            });
+
         }
         event.consume();
     }
 
+    private void setLocationToMousePointer(Stage stage) {
+        final PointerInfo pi = MouseInfo.getPointerInfo();
+        if (pi != null)
+        {
+            final Point loc = pi.getLocation();
+            stage.setX(loc.getX());
+            stage.setY(loc.getY());
+        }
+    }
+
+    private boolean isDefaultPosition(double pos) {
+        return pos > -1.0 && pos < 1.0;
+    }
+
     private Stage detach()
     {
+
         // For size of new stage, approximate the
         // current size of the item, i.e. the size
         // of its DockPane, adding some extra space
@@ -479,8 +506,21 @@ public class DockItem extends Tab
         other.setTitle(UUID.randomUUID().toString());
 
         DockStage.configureStage(other, this);
-        other.setWidth(old_parent.getWidth() + extra_width);
-        other.setHeight(old_parent.getHeight() + extra_height);
+
+        // Set the dimensions of the stage using the dimension hint from the
+        // application (e.g. the width and height of the Display widget if
+        // it's the display application). Otherwise, use the parent window dimensions.
+        AppInstance application = this.getApplication();
+        application.getPositionAndSizeHint().ifPresentOrElse(dimension -> {
+            // use the dimension hints suggested by the application
+            // such as possibly Display widget dimensions
+            other.setWidth(dimension.getWidth() + extra_width);
+            other.setHeight(dimension.getHeight() + extra_height);
+        }, () -> {
+            // use the parent window dimensions if no dimension hints
+            other.setWidth(old_parent.getWidth() + extra_width);
+            other.setHeight(old_parent.getHeight() + extra_height);
+        });
 
         // Assert that styles used in old scene are still available
         for (String css : old_scene.getStylesheets())

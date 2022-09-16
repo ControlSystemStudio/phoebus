@@ -9,6 +9,8 @@ package org.csstudio.display.builder.runtime.app;
 
 import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
+
+import java.awt.geom.Rectangle2D;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.Objects;
@@ -506,4 +508,23 @@ public class DisplayRuntimeInstance implements AppInstance
 
         navigation.dispose();
     }
+
+    @Override
+    public Optional<Rectangle2D> getPositionAndSizeHint() {
+        return Optional.ofNullable(active_model).flatMap(displayModel -> {
+            Integer width = displayModel.propWidth().getValue();
+            Integer height = displayModel.propHeight().getValue();
+            if(width != null && width > 0 && height != null && height > 0) {
+                return Optional.of(new Rectangle2D.Double(
+                        displayModel.propX().getValue(),
+                        displayModel.propY().getValue(),
+                        width,
+                        height
+                ));
+            } else {
+                return Optional.empty();
+            }
+        });
+    }
+
 }
