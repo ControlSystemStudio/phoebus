@@ -19,7 +19,6 @@
 
 package org.phoebus.applications.saveandrestore.model;
 
-import org.phoebus.applications.saveandrestore.model.ConfigPv.Builder;
 
 public class Configuration {
 

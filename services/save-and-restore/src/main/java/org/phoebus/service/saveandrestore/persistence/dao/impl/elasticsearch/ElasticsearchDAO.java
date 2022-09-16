@@ -25,6 +25,7 @@ import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SaveAndRestorePv;
+import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
@@ -255,7 +256,7 @@ public class ElasticsearchDAO implements NodeDAO {
         Node Source = updateNode(sourceNode, true);
 
         if (sourceNode.getNodeType().equals(NodeType.CONFIGURATION)) {
-            ConfigurationData sourceConfiguration = getConfiguration(sourceNode.getUniqueId());
+            ConfigurationData sourceConfiguration = getConfigurationData(sourceNode.getUniqueId());
             copyConfiguration(Source, sourceConfiguration);
             // TODO copy all snaoshot Nodes and SnapshotData objects.
         } else if (sourceNode.getNodeType().equals(NodeType.FOLDER)) {
@@ -337,8 +338,6 @@ public class ElasticsearchDAO implements NodeDAO {
         elasticsearchTreeRepository.save(configNodeOptional.get());
 
         SnapshotData elasticsearchSnapshotData = new SnapshotData();
-        elasticsearchSnapshotData.setConfigId(parentsUniqueId);
-        elasticsearchSnapshotData.setComment(comment);
         elasticsearchSnapshotData.setUniqueId(snapshotNode.getUniqueId());
 
         List<SaveAndRestorePv> snapshotPvs = new ArrayList<>();
@@ -587,24 +586,34 @@ public class ElasticsearchDAO implements NodeDAO {
     }
 
     @Override
-    public ConfigurationData getConfiguration(String nodeId) {
-        Optional<ConfigurationData> configuration = configurationDataRepository.findById(nodeId);
+    public ConfigurationData getConfigurationData(String uniqueId) {
+        Optional<ConfigurationData> configuration = configurationDataRepository.findById(uniqueId);
         if (configuration.isEmpty()) {
-            throw new NodeNotFoundException("Configuration with id " + nodeId + " not found");
+            throw new NodeNotFoundException("Configuration with id " + uniqueId + " not found");
         }
         return configuration.get();
     }
 
     @Override
-    public SnapshotData saveSnapshot(SnapshotData snapshotData) {
-        return snapshotDataRepository.save(snapshotData);
+    public Snapshot saveSnapshot(String parentNodeId, Snapshot snapshot) {
+        snapshot.getSnapshotNode().setNodeType(NodeType.SNAPSHOT); // Force node type
+        Node newSnapshotNode = createNode(parentNodeId, snapshot.getSnapshotNode());
+        snapshot.getSnapshotData().setUniqueId(newSnapshotNode.getUniqueId());
+
+        SnapshotData newSnapshotData = snapshotDataRepository.save(snapshot.getSnapshotData());
+
+        Snapshot newSnapshot = new Snapshot();
+        newSnapshot.setSnapshotData(newSnapshotData);
+        newSnapshot.setSnapshotNode(newSnapshotNode);
+
+        return newSnapshot;
     }
 
     @Override
-    public SnapshotData getSnapshot(String nodeId) {
-        Optional<SnapshotData> snapshot = snapshotDataRepository.findById(nodeId);
+    public SnapshotData getSnapshotData(String uniqueId) {
+        Optional<SnapshotData> snapshot = snapshotDataRepository.findById(uniqueId);
         if (snapshot.isEmpty()) {
-            throw new NodeNotFoundException("SnapshotData with id " + nodeId + " not found");
+            throw new NodeNotFoundException("SnapshotData with id " + uniqueId + " not found");
         }
         return snapshot.get();
     }

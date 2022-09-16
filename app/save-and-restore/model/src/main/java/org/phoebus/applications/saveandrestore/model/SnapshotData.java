@@ -26,12 +26,10 @@ import java.util.List;
 public class SnapshotData {
 
     /**
-     * This must be set to the same unique id as the {@link Node} object
-     * mapping to the snapshot node.
+     * This <b>must</b> be set to the same unique id as the {@link Node} object
+     * mapping to the snapshot {@link Node}.
      */
     private String uniqueId;
-    private String configId;
-    private String comment;
     private List<SaveAndRestorePv> pvList;
 
     private List<SaveAndRestorePv> readbackPvList;
@@ -44,28 +42,12 @@ public class SnapshotData {
         this.uniqueId = uniqueId;
     }
 
-    public String getConfigId() {
-        return configId;
-    }
-
-    public void setConfigId(String configId) {
-        this.configId = configId;
-    }
-
     public List<SaveAndRestorePv> getPvList() {
         return pvList;
     }
 
     public void setPvList(List<SaveAndRestorePv> pvList) {
         this.pvList = pvList;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
     }
 
     public List<SaveAndRestorePv> getReadbackPvList() {

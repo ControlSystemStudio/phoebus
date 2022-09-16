@@ -23,6 +23,7 @@ public class Messages {
 
     public static String alertContinue;
     public static String alertAddingPVsToSaveset;
+    public static String baseSetpoint;
     public static String buttonRefresh;
     public static String buttonSearch;
     public static String contextMenuAddTagWithComment;
@@ -40,6 +41,9 @@ public class Messages {
     public static String copyOrMoveNotAllowedBody;
     public static String copyOrMoveNotAllowedHeader;
     public static String copyUniqueIdToClipboard;
+    public static String currentPVValue;
+    public static String currentReadbackValue;
+    public static String currentSetpointValue;
     public static String createNewTagDialogTitle;
     public static String deletionNotAllowed;
     public static String deletionNotAllowedHeader;
@@ -52,48 +56,52 @@ public class Messages {
     public static String exportSnapshotLabel;
     public static String importSaveSetLabel;
     public static String importSnapshotLabel;
+    public static String includeThisPV;
+    public static String inverseSelection;
     public static String jmasarServiceUnavailable;
     public static String labelMultiplier;
     public static String labelThreshold;
+    public static String liveReadbackVsSetpoint;
+    public static String liveSetpoint;
     public static String loggingFailedTitle;
     public static String loggingFailed;
     public static String loggingFailedCauseUnknown;
+    public static String makeRestorable;
+    public static String makeReadOnly;
     public static String menuItemDeleteSelectedPVs;
     public static String openResourceFailedTitle;
     public static String openResourceFailedHeader;
     public static String promptCloseSnapshotTabTitle;
     public static String promptCloseSnapshotTabContent;
-    public static String promptDeletePVTitle;
-    public static String promptDeletePVFromSaveSet;
     public static String promptDeleteSelectedTitle;
     public static String promptDeleteSelectedHeader;
     public static String promptDeleteSelectedContent;
     public static String promptNewFolder;
-    public static String promptNewSaveSetTitle;
-    public static String promptNewSaveSetContent;
+
     public static String promptRenameNodeTitle;
     public static String promptRenameNodeContent;
-    public static String restoreErrorTitle;
-    public static String restoreErrorContent;
+
+    public static String pvName;
+    public static String noValueAvailable;
+    public static String readbackPVName;
+
     public static String saveSnapshotErrorContent;
     public static String saveTagButtonLabel;
     public static String searchEntryToolTip;
-    public static String searchKeywordLabel;
-    public static String searchOptionSnapshotName;
-    public static String searchOptionSnapshotComment;
-    public static String searchOptionTagName;
-    public static String searchOptionTagComment;
-    public static String searchTableEntryTypeColumn;
-    public static String searchTableNameColumn;
-    public static String searchTableCommentColumn;
-    public static String searchTableCreatedColumn;
-    public static String searchTableCreatorColumn;
+
     public static String searchWindowLabel;
+    public static String setpoint;
+    public static String setpointPVWhen;
+    public static String severity;
     public static String snapshotModifiedText;
+    public static String status;
+    public static String storedReadbackValue;
+    public static String storedValues;
     public static String tagNameLabel;
     public static String tagCommentLabel;
     public static String tagRemoveConfirmationTitle;
     public static String tagRemoveConfirmationContent;
+    public static String timestamp;
     public static String toolTipShowLiveReadback;
     public static String toolTipShowStoredReadback;
     public static String toolTipShowTreeTable;

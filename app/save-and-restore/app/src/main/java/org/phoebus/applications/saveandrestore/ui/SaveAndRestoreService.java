@@ -22,14 +22,13 @@ import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.common.VNoData;
 import org.phoebus.applications.saveandrestore.impl.SaveAndRestoreJerseyClient;
-import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.applications.saveandrestore.model.SnapshotWrapper;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -153,10 +152,9 @@ public class SaveAndRestoreService {
                 goldenTag = Tag.goldenTag(userName);
             }
 
-            if(golden){
+            if (golden) {
                 tags.add(goldenTag);
-            }
-            else{
+            } else {
                 tags.remove(goldenTag);
             }
 
@@ -298,7 +296,7 @@ public class SaveAndRestoreService {
     }
 
     public SnapshotData getSnapshot(String nodeId) throws Exception {
-        Future<SnapshotData> future = executor.submit(() -> saveAndRestoreClient.getSnapshot(nodeId));
+        Future<SnapshotData> future = executor.submit(() -> saveAndRestoreClient.getSnapshotData(nodeId));
         try {
             return future.get();
         } catch (Exception e) {
@@ -307,10 +305,10 @@ public class SaveAndRestoreService {
         }
     }
 
-    public SnapshotWrapper saveSnapshot(SnapshotWrapper snapshotWrapper) throws Exception {
-        Future<SnapshotWrapper> future = executor.submit(() -> saveAndRestoreClient.saveSnapshot(snapshotWrapper));
-        SnapshotWrapper updatedSnapshotWrapper = future.get();
+    public Snapshot saveSnapshot(String parentNodeId, Snapshot snapshot) throws Exception {
+        Future<Snapshot> future = executor.submit(() -> saveAndRestoreClient.saveSnapshot(parentNodeId, snapshot));
+        Snapshot updatedSnapshot = future.get();
         //notifyNodeChangeListeners(updatedNode);
-        return updatedSnapshotWrapper;
+        return updatedSnapshot;
     }
 }

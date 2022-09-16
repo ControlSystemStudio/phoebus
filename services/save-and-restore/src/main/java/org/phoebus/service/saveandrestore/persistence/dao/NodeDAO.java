@@ -22,6 +22,7 @@ import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
@@ -130,9 +131,11 @@ public interface NodeDAO {
 	 */
 	Node getSnapshotNode(String uniqueNodeId);
 
+	@Deprecated
 	Node saveSnapshot(String parentsUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment, String userName);
 
-	SnapshotData saveSnapshot(SnapshotData snapshotData);
+
+	Snapshot saveSnapshot(String parentNodeId, Snapshot snapshot);
 
 	List<ConfigPv> getConfigPvs(String configUniqueId);
 
@@ -177,7 +180,7 @@ public interface NodeDAO {
 
 	Configuration createConfiguration(String parentNodeId, Configuration configuration);
 
-	ConfigurationData getConfiguration(String nodeId);
+	ConfigurationData getConfigurationData(String uniqueId);
 
 	/**
 	 * Updates an existing {@link ConfigurationData}. In practice an overwrite operation as for instance
@@ -188,7 +191,7 @@ public interface NodeDAO {
 	 */
 	Configuration updateConfiguration(Configuration configuration);
 
-	SnapshotData getSnapshot(String nodeId);
+	SnapshotData getSnapshotData(String uniqueId);
 
 	boolean isMoveOrCopyAllowed(List<Node> nodesToMove, Node targetNode);
 

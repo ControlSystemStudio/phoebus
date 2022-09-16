@@ -145,7 +145,7 @@ public class CSVImporter extends CSVCommon {
         }
 
         FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/ConfigurationFromSelection.fxml"));
+        loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/configuration/ConfigurationFromSelection.fxml"));
         Stage dialog = new Stage();
         dialog.setTitle("Import Save Set");
         dialog.initModality(Modality.WINDOW_MODAL);
@@ -221,7 +221,7 @@ public class CSVImporter extends CSVCommon {
 
             if (response.isPresent() && response.get().equals(ButtonType.OK)) {
                 FXMLLoader loader = new FXMLLoader();
-                loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/ConfigurationFromSelection.fxml"));
+                loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/configuration/ConfigurationFromSelection.fxml"));
                 Stage dialog = new Stage();
                 dialog.setTitle("Import SnapshotData");
                 dialog.initModality(Modality.APPLICATION_MODAL);

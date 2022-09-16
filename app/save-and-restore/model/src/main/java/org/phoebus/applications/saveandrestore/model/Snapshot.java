@@ -25,34 +25,22 @@ package org.phoebus.applications.saveandrestore.model;
  */
 public class Snapshot {
 
-    private Node node;
+    private Node snapshotNode;
     private SnapshotData snapshotData;
 
-    private String parentUniqueId;
-
-    public Node getNode() {
-        return node;
+    public Node getSnapshotNode() {
+        return snapshotNode;
     }
 
-    public void setNode(Node node) {
-        if(!node.getNodeType().equals(NodeType.SNAPSHOT)){
-            throw new RuntimeException("Node must be of type NodeType.SNAPSHOT");
-        }
-        this.node = node;
+    public void setSnapshotNode(Node snapshotNode) {
+        this.snapshotNode = snapshotNode;
     }
 
-    public SnapshotData getConfigurationData() {
+    public SnapshotData getSnapshotData() {
         return snapshotData;
     }
 
-    public void setConfigurationData(SnapshotData snapshotData) {
+    public void setSnapshotData(SnapshotData snapshotData) {
         this.snapshotData = snapshotData;
-    }
-    public String getParentUniqueId() {
-        return parentUniqueId;
-    }
-
-    public void setParentUniqueId(String parentUniqueId) {
-        this.parentUniqueId = parentUniqueId;
     }
 }

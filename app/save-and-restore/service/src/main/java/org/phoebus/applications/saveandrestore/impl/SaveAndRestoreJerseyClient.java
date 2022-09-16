@@ -27,16 +27,14 @@ import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
-import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
-import org.phoebus.applications.saveandrestore.model.SnapshotWrapper;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.applications.saveandrestore.model.UpdateConfigHolder;
 import org.phoebus.applications.saveandrestore.service.Messages;
 import org.phoebus.framework.preferences.PreferencesReader;
 
@@ -140,6 +138,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
         });
     }
 
+    @Deprecated
     @Override
     public Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment) {
         WebResource webResource = client.resource(jmasarServiceUrl + "/snapshot/" + configUniqueId)
@@ -328,13 +327,13 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     @Override
-    public ConfigurationData getConfiguration(String nodeId){
+    public ConfigurationData getConfiguration(String nodeId) {
         ClientResponse clientResponse = getCall("/config/" + nodeId);
         return clientResponse.getEntity(ConfigurationData.class);
     }
 
     @Override
-    public Configuration createConfiguration(String parentNodeId, Configuration configuration){
+    public Configuration createConfiguration(String parentNodeId, Configuration configuration) {
         configuration.getConfigurationNode().setUserName(getCurrentUsersName());
         WebResource webResource =
                 client.resource(jmasarServiceUrl + "/config")
@@ -355,7 +354,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     @Override
-    public Configuration updateConfiguration(Configuration configuration){
+    public Configuration updateConfiguration(Configuration configuration) {
         WebResource webResource = client.resource(jmasarServiceUrl + "/config");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
@@ -374,22 +373,28 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     @Override
-    public SnapshotData getSnapshot(String nodeId){
+    public SnapshotData getSnapshotData(String nodeId) {
         ClientResponse clientResponse = getCall("/snapshot/" + nodeId);
         return clientResponse.getEntity(SnapshotData.class);
     }
 
     @Override
-    public SnapshotWrapper saveSnapshot(SnapshotWrapper snapshotWrapper){
+    public Snapshot saveSnapshot(String parentNodeId, Snapshot snapshot){
         WebResource webResource =
-                client.resource(jmasarServiceUrl + "/snapshot");
-
+                client.resource(jmasarServiceUrl + "/snapshot")
+                        .queryParam("parentNodeId", parentNodeId);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
-                .entity(snapshotWrapper, CONTENT_TYPE_JSON)
+                .entity(snapshot, CONTENT_TYPE_JSON)
                 .put(ClientResponse.class);
         if (response.getStatus() != 200) {
-            return null;
+            String message = Messages.saveSnaphotFailed;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                // Ignore
+            }
+            throw new SaveAndRestoreClientException(message);
         }
-        return response.getEntity(SnapshotWrapper.class);
+        return response.getEntity(Snapshot.class);
     }
 }

@@ -31,8 +31,8 @@ import java.util.List;
 public class ConfigurationData {
 
     /**
-     * This must be set to the same unique id as the {@link Node} object
-     * mapping to the save set node.
+     * This <b>must</b> be set to the same unique id as the {@link Node} object
+     * mapping to the configuration {@link Node}.
      */
     private String uniqueId;
     private List<ConfigPv> pvList;

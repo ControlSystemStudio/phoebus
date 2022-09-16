@@ -4,12 +4,6 @@
       "uniqueId" : {
         "type" : "keyword"
       },
-      "configId" : {
-        "type" : "keyword"
-      },
-      "comment" : {
-        "type" : "keyword"
-      },
       "pvList": {
         "type" : "nested",
         "properties": {

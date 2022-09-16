@@ -21,11 +21,9 @@ import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.UpdateConfigHolder;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -80,8 +78,8 @@ public class ConfigurationController extends BaseController {
 
     @SuppressWarnings("unused")
     @GetMapping(value = "/{uniqueId}", produces = JSON)
-    public ConfigurationData getConfiguration(@PathVariable String uniqueId){
-        return nodeDAO.getConfiguration(uniqueId);
+    public ConfigurationData getConfigurationData(@PathVariable String uniqueId){
+        return nodeDAO.getConfigurationData(uniqueId);
     }
 
     @SuppressWarnings("unused")

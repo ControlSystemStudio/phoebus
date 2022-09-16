@@ -111,10 +111,10 @@ public class SnapshotController implements NodeChangedListener {
     private TextArea snapshotComment;
 
     @FXML
-    private TextField createdBy;
+    private Label createdBy;
 
     @FXML
-    private TextField createdDate;
+    private Label createdDate;
 
     @FXML
     private BorderPane borderPane;
@@ -220,11 +220,6 @@ public class SnapshotController implements NodeChangedListener {
     private ServiceLoader<SaveAndRestoreEventReceiver> eventReceivers;
 
     private Node snapshotNode;
-
-
-    public SnapshotController(Node snapshotNode) {
-        this.snapshotNode = snapshotNode;
-    }
 
     @FXML
     public void initialize() {

@@ -9,7 +9,7 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane fx:id="borderPane" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotController">
+<BorderPane fx:id="borderPane" style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotController">
 <top>
 <VBox fx:id="vBox" maxHeight="1.7976931348623157E308" prefWidth="1188.0">
 
@@ -42,37 +42,37 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
       </rowConstraints>
        <children>
 
-          <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" style="-fx-font-weight: 900;" text="Created by:" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.hgrow="NEVER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
+          <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" style="-fx-font-weight: 900;" text="%createdBy" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.hgrow="NEVER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
              <GridPane.margin>
                 <Insets right="5.0" />
              </GridPane.margin>
          </Label>
-          <TextField fx:id="createdBy" editable="false" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="CENTER">
+          <Label fx:id="createdBy" text="Created By" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="CENTER">
                <GridPane.margin>
                    <Insets right="5.0" />
                </GridPane.margin>
-         </TextField>
-          <Label text="Snapshot date:" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.hgrow="NEVER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+         </Label>
+          <Label text="%createdDate" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.hgrow="NEVER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
              <GridPane.margin>
                 <Insets right="5.0" />
              </GridPane.margin>
          </Label>
-          <TextField fx:id="createdDate" editable="false" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+          <Label fx:id="createdDate" text="Created Date" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.valignment="CENTER">
              <GridPane.margin>
                 <Insets right="5.0" />
              </GridPane.margin>
-         </TextField>
-          <Label fx:id="snapshotNameLabel" text="Snapshot name:" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="0" GridPane.valignment="CENTER">
+         </Label>
+          <Label fx:id="snapshotNameLabel" text="%snapshotName" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="0" GridPane.valignment="CENTER">
                <GridPane.margin>
                    <Insets right="5.0" />
                </GridPane.margin>
           </Label>
-          <TextField fx:id="snapshotName" maxWidth="1.7976931348623157E308" promptText="Enter a name (mandatory)" GridPane.columnIndex="1" GridPane.rowIndex="0">
+          <TextField fx:id="snapshotName" maxWidth="1.7976931348623157E308" promptText="%snapshotNameFieldHint" GridPane.columnIndex="1" GridPane.rowIndex="0">
                <GridPane.margin>
                    <Insets right="5.0" />
                </GridPane.margin>
           </TextField>
-          <Label fx:id="snapshotCommentLabel" alignment="CENTER_RIGHT" contentDisplay="RIGHT" text="Comment:" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.hgrow="NEVER" GridPane.valignment="CENTER">
+          <Label fx:id="snapshotCommentLabel" alignment="CENTER_RIGHT" contentDisplay="RIGHT" text="%comment" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.hgrow="NEVER" GridPane.valignment="CENTER">
                <GridPane.margin>
                    <Insets left="20.0" right="5.0" top="5.0" />
                </GridPane.margin>
@@ -82,17 +82,17 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                    <Insets bottom="5.0" right="5.0" top="5.0" />
                </GridPane.margin>
          </TextArea>
-          <Button fx:id="restoreButton" maxHeight="1.7976931348623157E308" onAction="#restore" prefHeight="82.0" prefWidth="78.0" text="Restore" GridPane.columnIndex="4" GridPane.rowSpan="3">
+          <Button fx:id="restoreButton" maxHeight="1.7976931348623157E308" onAction="#restore" prefHeight="82.0" prefWidth="78.0" text="%restore" GridPane.columnIndex="4" GridPane.rowSpan="3">
              <GridPane.margin>
                 <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
              </GridPane.margin>
          </Button>
-          <Button fx:id="takeSnapshotButton" maxHeight="1.7976931348623157E308" onAction="#takeSnapshot" GridPane.columnIndex="6" GridPane.rowIndex="0" GridPane.rowSpan="3">
+          <Button fx:id="takeSnapshotButton"  maxHeight="1.7976931348623157E308" onAction="#takeSnapshot" GridPane.columnIndex="6" GridPane.rowIndex="0" GridPane.rowSpan="3">
              <graphic>
                 <VBox alignment="CENTER" maxHeight="Infinity">
                    <children>
-                      <Label alignment="CENTER" contentDisplay="CENTER" text="Take" />
-                      <Label text="Snapshot">
+                      <Label alignment="CENTER" contentDisplay="CENTER" text="%take" />
+                      <Label text="%snapshot">
                          <VBox.margin>
                             <Insets top="5.0" />
                          </VBox.margin>
@@ -108,8 +108,8 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
              <graphic>
                 <VBox alignment="CENTER">
                    <children>
-                      <Label text="Save" />
-                      <Label text="Snapshot" />
+                      <Label text="%save" />
+                      <Label text="%snapshot" />
                    </children>
                 </VBox>
              </graphic>
@@ -122,12 +122,12 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
     </GridPane>
    <ToolBar maxWidth="1.7976931348623157E308" nodeOrientation="LEFT_TO_RIGHT" prefHeight="40.0" prefWidth="1188.0">
       <items>
-         <CheckBox fx:id="preserveSelectionCheckBox" mnemonicParsing="false" text="Preserve selection after" />
-         <Label text="Filter:" />
+         <CheckBox fx:id="preserveSelectionCheckBox" mnemonicParsing="false" text="%preserveSelection" />
+         <Label text="%filter" />
          <TextField fx:id="filterTextField" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="26.0" HBox.hgrow="ALWAYS" />
-         <Label fx:id="thresholdLabel" text="Δ Threshold (%)" />
+         <Label fx:id="thresholdLabel" text="%threashold" />
          <Spinner fx:id="thresholdSpinner" editable="true" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" />
-         <Label fx:id="multiplierLabel" text="Restore with scale" />
+         <Label fx:id="multiplierLabel" text="%restoreWithScale" />
          <Spinner fx:id="multiplierSpinner" editable="true" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" />
       </items>
    </ToolBar>

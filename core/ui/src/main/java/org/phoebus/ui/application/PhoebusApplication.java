@@ -396,7 +396,7 @@ public class PhoebusApplication extends Application {
         if (Preferences.ui_monitor_period > 0)
             freezeup_check = new ResponsivenessMonitor(3 * Preferences.ui_monitor_period,
                     Preferences.ui_monitor_period, TimeUnit.MILLISECONDS);
-        
+
         closeAllTabsMenuItem.acceleratorProperty().setValue(closeAllTabsKeyCombination);
 
     }

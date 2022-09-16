@@ -70,8 +70,8 @@ public class SnapshotTab extends Tab {
         loader.setControllerFactory(clazz -> {
                     try {
                         if (clazz.isAssignableFrom(SnapshotController.class)) {
-                            return clazz.getConstructor(Node.class)
-                                    .newInstance(node);
+                            return clazz.getConstructor()
+                                    .newInstance();
                         }
                     } catch (Exception e) {
                         ExceptionDetailsErrorDialog.openError("Error",

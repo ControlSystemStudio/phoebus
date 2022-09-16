@@ -30,7 +30,7 @@
                         <Insets bottom="5.0" top="5.0" />
                     </GridPane.margin>
                 </TextArea>
-            <Label text="%configurationCreatedDate" GridPane.halignment="RIGHT" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+            <Label text="%createdDate" GridPane.halignment="RIGHT" GridPane.rowIndex="1" GridPane.valignment="CENTER">
                <padding>
                   <Insets bottom="3.0" left="5.0" right="2.0" top="8.0" />
                </padding>
