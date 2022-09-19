@@ -40,15 +40,15 @@ import java.util.List;
 public class TagController extends BaseController {
 
     @Autowired
-    private NodeDAO services;
+    private NodeDAO nodeDAO;
 
     @GetMapping("/tags")
     public List<Tag> getTags() {
-        return services.getAllTags();
+        return nodeDAO.getAllTags();
     }
 
     @GetMapping("/tag/{snapshotUniqueId}")
     public List<Tag> getTag(@PathVariable String snapshotUniqueId) {
-        return services.getTags(snapshotUniqueId);
+        return nodeDAO.getTags(snapshotUniqueId);
     }
 }

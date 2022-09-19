@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.service.saveandrestore.persistence.config.ElasticConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.test.context.ContextConfiguration;
@@ -39,7 +40,7 @@ import java.util.UUID;
 
 @ExtendWith(SpringExtension.class)
 @EnableConfigurationProperties
-@ContextHierarchy({@ContextConfiguration(classes = {ElasticsearchTestConfig.class})})
+@ContextHierarchy({@ContextConfiguration(classes = {ElasticConfig.class})})
 @TestExecutionListeners({DependencyInjectionTestExecutionListener.class})
 public class ElasticsearchDAOTest {
 

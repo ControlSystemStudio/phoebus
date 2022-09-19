@@ -31,6 +31,7 @@ import org.phoebus.applications.saveandrestore.model.json.VTypeSerializer;
 import org.phoebus.service.saveandrestore.model.ESTreeNode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
@@ -46,29 +47,29 @@ import java.util.logging.Logger;
 import static org.phoebus.applications.saveandrestore.model.Node.ROOT_FOLDER_UNIQUE_ID;
 
 @Configuration
+@ComponentScan(basePackages = {"org.phoebus.service.saveandrestore"})
 @PropertySource("classpath:application.properties")
 public class ElasticConfig {
 
     private static final Logger logger = Logger.getLogger(ElasticConfig.class.getName());
 
-    @Value("${elasticsearch.folder_node.index:saveandrestore_tree}")
+    @Value("${elasticsearch.tree_node.index:saveandrestore_tree}")
     public String ES_TREE_INDEX;
 
-    @Value("${elasticsearch.folder_node.index:saveandrestore_configuration}")
+    @Value("${elasticsearch.configuration_node.index:saveandrestore_configuration}")
     public String ES_CONFIGURATION_INDEX;
 
-    @Value("${elasticsearch.folder_node.index:saveandrestore_snapshot}")
+    @Value("${elasticsearch.snapshot_node.index:saveandrestore_snapshot}")
     public String ES_SNAPSHOT_INDEX;
 
     @Value("${elasticsearch.network.host:localhost}")
     private String host;
     @Value("${elasticsearch.http.port:9200}")
     private int port;
-    @Value("${elasticsearch.create.indices:true}")
-    private String createIndices;
 
     private ElasticsearchClient client;
     private static final AtomicBoolean esInitialized = new AtomicBoolean();
+
 
     @Bean({"client"})
     public ElasticsearchClient getClient() {
@@ -90,7 +91,7 @@ public class ElasticConfig {
                     jacksonJsonpMapper
             );
             client = new ElasticsearchClient(transport);
-            esInitialized.set(!Boolean.parseBoolean(createIndices));
+            //esInitialized.set(!Boolean.parseBoolean(createIndices));
             if (esInitialized.compareAndSet(false, true)) {
                 elasticIndexValidation(client);
                 elasticIndexInitialization(client);
