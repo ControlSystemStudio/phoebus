@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -79,6 +79,9 @@ public class Widget
      *  which needs to be handled for each such widget.
      */
     public static final Version BASE_WIDGET_VERSION = new Version(2, 0, 0);
+
+    /** Typical version of legacy BOY display widgets */
+    public static final Version TYPICAL_LEGACY_WIDGET_VERSION = new Version(1, 0, 0);
 
     // These user data keys are reserved for internal use
     // of the framework.
