@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Profile;
 
 @SpringBootConfiguration
 @ComponentScan(basePackages = "org.phoebus.service.saveandrestore.web.controllers")
-@Profile("!ITtest")
+@Profile("!IT")
 public class ControllersTestConfig {
 
     @Bean

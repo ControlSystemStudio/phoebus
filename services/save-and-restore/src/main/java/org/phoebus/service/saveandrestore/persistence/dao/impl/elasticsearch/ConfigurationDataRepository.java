@@ -21,12 +21,19 @@ package org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.Refresh;
 import co.elastic.clients.elasticsearch._types.Result;
+import co.elastic.clients.elasticsearch._types.query_dsl.MatchAllQuery;
+import co.elastic.clients.elasticsearch.core.CountRequest;
+import co.elastic.clients.elasticsearch.core.CountResponse;
+import co.elastic.clients.elasticsearch.core.DeleteByQueryRequest;
+import co.elastic.clients.elasticsearch.core.DeleteByQueryResponse;
 import co.elastic.clients.elasticsearch.core.DeleteRequest;
 import co.elastic.clients.elasticsearch.core.DeleteResponse;
+import co.elastic.clients.elasticsearch.core.ExistsRequest;
 import co.elastic.clients.elasticsearch.core.GetRequest;
 import co.elastic.clients.elasticsearch.core.GetResponse;
 import co.elastic.clients.elasticsearch.core.IndexRequest;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
+import co.elastic.clients.transport.endpoints.BooleanResponse;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -105,6 +112,13 @@ public class ConfigurationDataRepository implements CrudRepository<Configuration
 
     @Override
     public boolean existsById(String s) {
+        try {
+            ExistsRequest existsRequest = ExistsRequest.of(e -> e.index(ES_CONFIGURATION_INDEX).id(s));
+            BooleanResponse existsResponse = client.exists(existsRequest);
+            return existsResponse.value();
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Failed to query if ConfigurationData with id " + s + " exists");
+        }
         return false;
     }
 
@@ -120,7 +134,16 @@ public class ConfigurationDataRepository implements CrudRepository<Configuration
 
     @Override
     public long count() {
-        return 0;
+        try{
+            CountRequest countRequest = CountRequest.of(c ->
+                    c.index(ES_CONFIGURATION_INDEX));
+            CountResponse countResponse = client.count(countRequest);
+            return countResponse.count();
+        }
+        catch(Exception e){
+            logger.log(Level.SEVERE, "Failed to count ConfigurationData objects" , e);
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -158,6 +181,14 @@ public class ConfigurationDataRepository implements CrudRepository<Configuration
 
     @Override
     public void deleteAll() {
-
+        try {
+            DeleteByQueryRequest deleteRequest = DeleteByQueryRequest.of(d ->
+                    d.index(ES_CONFIGURATION_INDEX).query(new MatchAllQuery.Builder().build()._toQuery()).refresh(true));
+            DeleteByQueryResponse deleteResponse = client.deleteByQuery(deleteRequest);
+            logger.log(Level.INFO, "Deleted " + deleteResponse.deleted() + " ConfigurationData objects");
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Failed to delete all ConfigurationData objects", e);
+            throw new RuntimeException(e);
+        }
     }
 }

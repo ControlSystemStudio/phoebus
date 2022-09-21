@@ -36,6 +36,7 @@ import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
+import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.model.ESTreeNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -111,7 +112,7 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to save ESTreeNode object: " + elasticTreeNode, e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "ESTreeNode object: " + elasticTreeNode.getNode().getName());
+            throw new RuntimeException("ESTreeNode object: " + elasticTreeNode.getNode().getName());
         }
         return null;
     }
@@ -131,12 +132,12 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
                     client.get(getRequest, ESTreeNode.class);
 
             if (!resp.found()) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ESTreeNode with id " + id + " not found.");
+                throw new NodeNotFoundException("ESTreeNode with id " + id + " not found.");
             }
             return Optional.of(resp.source());
-        } catch (Exception e) {
+        } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to retrieve ESTreeNode with id: " + id, e);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to ESTreeNode with id: " + id);
+            throw new RuntimeException("Failed to ESTreeNode with id: " + id);
         }
     }
 
@@ -188,7 +189,7 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
             return treeNodes;
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to retrieve multiple nodes");
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to retrieve multiple nodes");
+            throw new NodeNotFoundException("Failed to retrieve multiple nodes");
         }
     }
 
@@ -254,14 +255,13 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
             if (!searchResponse.hits().hits().isEmpty()) {
                 if (searchResponse.hits().hits().size() > 1) {
                     logger.log(Level.SEVERE, "Node " + uniqueId + " is child node of multiple nodes. Should not happen!");
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                            "Node " + uniqueId + " contained in multiple parent nodes. Should not happen!");
+                    throw new RuntimeException("Node " + uniqueId + " contained in multiple parent nodes. Should not happen!");
                 }
                 List<ESTreeNode> result =
                         searchResponse.hits().hits().stream().map(Hit::source).collect(Collectors.toList());
                 return result.get(0);
             } else {
-                return null;
+                throw new NodeNotFoundException("Unable to locate parent node for unique id " + uniqueId);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

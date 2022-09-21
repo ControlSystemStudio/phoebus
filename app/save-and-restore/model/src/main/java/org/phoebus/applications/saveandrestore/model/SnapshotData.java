@@ -21,7 +21,7 @@ package org.phoebus.applications.saveandrestore.model;
 import java.util.List;
 
 /**
- * Class holding data particular to a save & restore snapshot {@link Node}.
+ * Class holding data particular to a save-n-restore snapshot {@link Node}.
  */
 public class SnapshotData {
 

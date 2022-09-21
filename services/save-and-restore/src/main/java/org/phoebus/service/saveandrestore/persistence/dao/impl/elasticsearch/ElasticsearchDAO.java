@@ -69,6 +69,9 @@ public class ElasticsearchDAO implements NodeDAO {
         if (elasticsearchNode.isEmpty()) {
             return null;
         }
+        if(elasticsearchNode.get().getChildNodes() == null){
+            return Collections.emptyList();
+        }
         Iterable<ESTreeNode> childNodesIterable = elasticsearchTreeRepository.findAllById(elasticsearchNode.get().getChildNodes());
         List<Node> childNodes = new ArrayList<>();
         childNodesIterable.forEach(element -> childNodes.add(element.getNode()));
@@ -106,13 +109,19 @@ public class ElasticsearchDAO implements NodeDAO {
                     String.format("Cannot create new node as parent unique_id=%s does not exist.", parentNodeId));
         }
         Node parent = parentNode.get().getNode();
+        // Root node may only contain FOLDER nodes
+        if(parent.getUniqueId().equals(ROOT_FOLDER_UNIQUE_ID) && (node.getNodeType().equals(NodeType.CONFIGURATION))||
+                node.getNodeType().equals(NodeType.SNAPSHOT)){
+            throw new IllegalArgumentException(
+                    "Root folder may only contain folder nodes.");
+        }
         // Folder and Config can only be created in a Folder
         if ((node.getNodeType().equals(NodeType.FOLDER) || node.getNodeType().equals(NodeType.CONFIGURATION))
                 && !parent.getNodeType().equals(NodeType.FOLDER)) {
             throw new IllegalArgumentException(
                     "Parent node is not a folder, cannot create new node of type " + node.getNodeType());
         }
-        // SnapshotData can only be created in Config
+        // Snapshot can only be created in Config
         if (node.getNodeType().equals(NodeType.SNAPSHOT) && !parent.getNodeType().equals(NodeType.CONFIGURATION)) {
             throw new IllegalArgumentException("Parent node is not a configuration, cannot create snapshot");
         }
@@ -167,6 +176,9 @@ public class ElasticsearchDAO implements NodeDAO {
 
     @Override
     public Node getParentNode(String uniqueNodeId) {
+        if(uniqueNodeId.equals(ROOT_FOLDER_UNIQUE_ID)){ // Root node is its own parent
+            return getRootNode();
+        }
         ESTreeNode elasticsearchTreeNode = elasticsearchTreeRepository.getParentNode(uniqueNodeId);
         if (elasticsearchTreeNode != null) {
             return elasticsearchTreeNode.getNode();
@@ -389,6 +401,11 @@ public class ElasticsearchDAO implements NodeDAO {
             throw new IllegalArgumentException("Updating root node is not allowed");
         }
 
+        // Changing node type is not supported
+        if(!nodeOptional.get().getNode().getNodeType().equals(nodeToUpdate.getNodeType())){
+            throw new IllegalArgumentException("Chaning node type is not allowed");
+        }
+
         // Retrieve parent node and its child nodes
         ESTreeNode elasticsearchParentTreeNode = elasticsearchTreeRepository.getParentNode(nodeToUpdate.getUniqueId());
         if (elasticsearchParentTreeNode == null) { // Should not happen in a rename operation, unless there is a race condition (e.g. another client deletes parent node)
@@ -514,6 +531,11 @@ public class ElasticsearchDAO implements NodeDAO {
      */
     @Override
     public boolean isMoveOrCopyAllowed(List<Node> nodes, Node targetNode) {
+        // Does target node even exist?
+        Optional<ESTreeNode> esTargetTreeNodeOptional = elasticsearchTreeRepository.findById(targetNode.getUniqueId());
+        if(esTargetTreeNodeOptional.isEmpty()){
+            throw new NodeNotFoundException("Target node " + targetNode.getUniqueId() + " does not exist.");
+        }
         Node rootNode = getRootNode();
         // Check for root node and snapshot
         Optional<Node> rootOrSnapshotNode = nodes.stream()
@@ -523,10 +545,10 @@ public class ElasticsearchDAO implements NodeDAO {
             logger.info("Move/copy not allowed: source node(s) list contains snapshot or root node.");
             return false;
         }
-        // Check if selection contains save set node.
+        // Check if selection contains configuration or snapshot node.
         Optional<Node> saveSetNode = nodes.stream()
                 .filter(node -> node.getNodeType().equals(NodeType.CONFIGURATION)).findFirst();
-        // Save set nodes may not be moved/copied to root node.
+        // Configuration nodes may not be moved/copied to root node.
         if (saveSetNode.isPresent() && targetNode.getUniqueId().equals(rootNode.getUniqueId())) {
             logger.info("Move/copy of save set node(s) to root node not allowed.");
             return false;
@@ -556,33 +578,16 @@ public class ElasticsearchDAO implements NodeDAO {
             }
         }
 
+        ESTreeNode esTreeNode = esTargetTreeNodeOptional.get();
+
+        // Verify that none of the source nodes is already contained in the target node.
         for (Node sourceNode : nodes) {
-            if (containedInSubTree(sourceNode, targetNode.getUniqueId())) {
+            if(esTreeNode.getChildNodes().contains(sourceNode.getUniqueId())){
                 return false;
             }
         }
 
         return true;
-    }
-
-    private boolean containedInSubTree(Node startNode, String nodeId) {
-        Optional<ESTreeNode> esTreeNode = elasticsearchTreeRepository.findById(startNode.getUniqueId());
-        if (esTreeNode.isEmpty()) {
-            throw new IllegalArgumentException("Unable to check if node " + nodeId + " is contained in subtree of node " +
-                    startNode.getUniqueId() + " as the node " + startNode.getUniqueId() + " does not exist");
-        }
-        if (esTreeNode.get().getNode().getUniqueId().equals(nodeId)) {
-            return true;
-        } else if (esTreeNode.get().getChildNodes() != null && !esTreeNode.get().getChildNodes().isEmpty()) {
-            for (Node childNode : getChildNodes(esTreeNode.get().getNode().getUniqueId())) {
-                if (childNode.getUniqueId().equals(nodeId)) {
-                    return true;
-                } else {
-                    return containedInSubTree(childNode, nodeId);
-                }
-            }
-        }
-        return false;
     }
 
     @Override

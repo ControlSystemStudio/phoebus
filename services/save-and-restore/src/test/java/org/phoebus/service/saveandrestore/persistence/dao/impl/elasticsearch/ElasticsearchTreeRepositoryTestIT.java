@@ -55,11 +55,15 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Integration test to be executed against a running Elasticsearch 8.x instance.
+ * It must be run with application property spring.profiles.active=IT.
+ */
 @TestInstance(Lifecycle.PER_CLASS)
 @SpringBootTest
 @ContextConfiguration(classes = ElasticConfig.class)
 @TestPropertySource(locations = "classpath:test_application.properties")
-@Profile("ITtest")
+@Profile("IT")
 @SuppressWarnings("unused")
 public class ElasticsearchTreeRepositoryTestIT {
 

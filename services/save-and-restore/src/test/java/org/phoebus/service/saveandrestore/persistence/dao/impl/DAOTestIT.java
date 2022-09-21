@@ -18,6 +18,10 @@
 
 package org.phoebus.service.saveandrestore.persistence.dao.impl;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.indices.DeleteIndexRequest;
+import co.elastic.clients.elasticsearch.indices.ExistsRequest;
+import co.elastic.clients.transport.endpoints.BooleanResponse;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
@@ -25,9 +29,12 @@ import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VInt;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -36,18 +43,27 @@ import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.SnapshotNotFoundException;
+import org.phoebus.service.saveandrestore.persistence.config.ElasticConfig;
+import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ConfigurationDataRepository;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchDAO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Profile;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -58,15 +74,32 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-@ExtendWith(SpringExtension.class)
-@EnableConfigurationProperties
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class})
-@Disabled
-public class DAOTest {
+/**
+ * Integration test to be executed against a running Elasticsearch 8.x instance.
+ * It must be run with application property spring.profiles.active=IT.
+ */
+@TestInstance(Lifecycle.PER_CLASS)
+@SpringBootTest
+@ContextConfiguration(classes = ElasticConfig.class)
+@TestPropertySource(locations = "classpath:test_application.properties")
+@Profile("IT")
+@SuppressWarnings("unused")
+public class DAOTestIT {
 
     @Autowired
-    @SuppressWarnings("unused")
     private ElasticsearchDAO nodeDAO;
+
+    @Autowired
+    private ConfigurationDataRepository configurationDataRepository;
+
+    @Autowired
+    private ElasticsearchClient client;
+
+    @Value("${elasticsearch.tree_node.index:test_saveandrestore_configuration}")
+    private String ES_CONFIGURATION_INDEX;
+
+    @Value("${elasticsearch.tree_node.index:test_saveandrestore_tree}")
+    private String ES_TREE_INDEX;
 
     private static Alarm alarm;
     private static Time time;
@@ -81,56 +114,49 @@ public class DAOTest {
 
     @Test
     public void testNewNode() {
-
         Node root = nodeDAO.getRootNode();
-
         Date lastModified = root.getLastModified();
-
         Node folder = Node.builder().name("SomeFolder").userName("username").build();
-
         Node newNode = nodeDAO.createNode(root.getUniqueId(), folder);
-
         root = nodeDAO.getRootNode();
-
         assertNotNull(newNode);
         assertEquals(NodeType.FOLDER, newNode.getNodeType());
-
         // Check that the parent folder's last modified date is updated
         assertTrue(root.getLastModified().getTime() > lastModified.getTime());
+
+        nodeDAO.deleteNode(newNode.getUniqueId());
     }
 
     @Test
-
     public void testNewFolderNoDuplicateName() {
 
         Node rootNode = nodeDAO.getRootNode();
-
         Node folder1 = Node.builder().name("Folder 1").build();
-
         Node folder2 = Node.builder().name("Folder 2").build();
-
         // Create a new folder
         assertNotNull(nodeDAO.createNode(rootNode.getUniqueId(), folder1));
-
         // Try to create a new folder with a different name in the same parent directory
         assertNotNull(nodeDAO.createNode(rootNode.getUniqueId(), folder2));
 
+        nodeDAO.deleteNode(folder2.getUniqueId());
+        nodeDAO.deleteNode(folder1.getUniqueId());
     }
 
     @Test
-
     public void testNewConfigNoConfigPvs() {
         Node rootNode = nodeDAO.getRootNode();
 
+        Node topLevelFolderNode =
+                nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().name("top level folder").build());
+
         Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("My config").build();
-
-        Node newConfig = nodeDAO.createNode(rootNode.getUniqueId(), config);
-
+        Node newConfig = nodeDAO.createNode(topLevelFolderNode.getUniqueId(), config);
         assertTrue(nodeDAO.getConfigPvs(newConfig.getUniqueId()).isEmpty());
+
+        nodeDAO.deleteNode(topLevelFolderNode.getUniqueId());
     }
 
     @Test
-
     public void testDeleteConfiguration() {
 
         Node rootNode = nodeDAO.getRootNode();
@@ -143,13 +169,13 @@ public class DAOTest {
 
         try {
             nodeDAO.getNode(config.getUniqueId());
-            fail("NodeNotFeoundException expected");
+            fail("NodeNotFoundException expected");
         } catch (Exception exception) {
             exception.printStackTrace();
         }
         try {
             nodeDAO.getNode(snapshot.getUniqueId());
-            fail("NodeNotFeoundExcewption expected");
+            fail("NodeNotFoundException expected");
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -157,7 +183,6 @@ public class DAOTest {
 
 
     @Test
-
     public void testDeleteConfigurationAndPvs() {
 
         Node rootNode = nodeDAO.getRootNode();
@@ -172,15 +197,10 @@ public class DAOTest {
         //config = nodeDAO.updateConfiguration(config, List.of(configPv));
 
         nodeDAO.deleteNode(config.getUniqueId());
-
-        // TODO: Check that PVs have been deleted. Imposed by foreign key constraint on
-        // config_pv table
-
     }
 
 
     @Test
-
     public void testDeleteFolder() {
         Node rootNode = nodeDAO.getRootNode();
         Node root = nodeDAO.getNode(rootNode.getUniqueId());
@@ -197,26 +217,25 @@ public class DAOTest {
         assertTrue(root.getLastModified().getTime() > rootLastModified.getTime());
         try {
             nodeDAO.getNode(config.getUniqueId());
-            fail("NodeNotFeoundException expected");
+            fail("NodeNotFoundException expected");
         } catch (NodeNotFoundException exception) {
             exception.printStackTrace();
         }
         try {
             nodeDAO.getNode(folder2.getUniqueId());
-            fail("NodeNotFeoundException expected");
+            fail("NodeNotFoundException expected");
         } catch (Exception exception) {
             exception.printStackTrace();
         }
     }
 
     @Test
-
     public void testDeleteRootFolder() {
         assertThrows(IllegalArgumentException.class, () -> nodeDAO.deleteNode(nodeDAO.getRootNode().getUniqueId()));
     }
 
     @Test
-
+    @Disabled
     public void testDeleteConfigurationLeaveReferencedPVs() {
 
         Node rootNode = nodeDAO.getRootNode();
@@ -241,11 +260,12 @@ public class DAOTest {
         Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("My config 3").build();
         Node newConfig = nodeDAO.createNode(rootNode.getUniqueId(), config);
         Node configFromDB = nodeDAO.getNode(newConfig.getUniqueId());
-        assertEquals(newConfig, configFromDB);
+        assertEquals(newConfig.getUniqueId(), configFromDB.getUniqueId());
+        nodeDAO.deleteNode(newConfig.getUniqueId());
     }
 
     @Test
-
+    @Disabled
     public void testGetConfigForSnapshot() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -266,13 +286,13 @@ public class DAOTest {
     }
 
     @Test
-
-    public void testGetParentNodeDataAccessException() {
-        assertNull(nodeDAO.getParentNode("nonexisting"));
+    public void testGetParentNodeForNonexistingNode() {
+        assertThrows(NodeNotFoundException.class,
+                () -> nodeDAO.getParentNode("nonexisting"));
     }
 
     @Test
-
+    @Disabled
     public void testTakeSnapshot() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -306,14 +326,13 @@ public class DAOTest {
     }
 
     @Test
-
+    @Disabled
     public void testGetSnapshotsNoSnapshots() {
-
         assertTrue(nodeDAO.getSnapshots("a").isEmpty());
     }
 
     @Test
-
+    @Disabled
     public void testGetSnapshotItemsWithNullPvValues() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -338,7 +357,7 @@ public class DAOTest {
     }
 
     @Test
-
+    @Disabled
     public void testSnapshotTag() {
         Node rootNode = nodeDAO.getRootNode();
         Node folderNode = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().name("testFolder").nodeType(NodeType.FOLDER).build());
@@ -371,17 +390,14 @@ public class DAOTest {
     }
 
     @Test
-
     public void testGetRootsParent() {
         Node rootNode = nodeDAO.getRootNode();
         Node parent = nodeDAO.getParentNode(rootNode.getUniqueId());
-
         assertEquals(rootNode.getUniqueId(), parent.getUniqueId());
     }
 
 
     @Test
-
     public void testGetChildNodes() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -392,17 +408,18 @@ public class DAOTest {
 
         List<Node> childNodes = nodeDAO.getChildNodes(rootNode.getUniqueId());
         assertTrue(nodeDAO.getChildNodes(folder1.getUniqueId()).isEmpty());
+
+        nodeDAO.deleteNode(folder1.getUniqueId());
     }
 
     @Test
-
     public void testGetChildNodesOfNonExistingNode() {
         assertThrows(NodeNotFoundException.class,
                 () -> nodeDAO.getChildNodes("non-existing"));
     }
 
     @Test
-
+    @Disabled
     public void testUpdateConfig() throws Exception {
 
         Node rootNode = nodeDAO.getRootNode();
@@ -463,27 +480,18 @@ public class DAOTest {
     }
 
     @Test
-    public void testUpdateNonExistinConfiguration() {
-        //assertThrows(NodeNotFoundException.class,
-        //        () -> nodeDAO.updateConfiguration(Node.builder().uniqueId("-1").build(), null));
-    }
-
-    @Test
-
     public void testUpdateNonExistingNode() {
         assertThrows(NodeNotFoundException.class,
-                () -> nodeDAO.updateNode(new Node(), false));
+                () -> nodeDAO.updateNode(Node.builder().uniqueId("bad").build(), false));
     }
 
     @Test
-
     public void testUpdateRootNode() {
         assertThrows(IllegalArgumentException.class,
                 () -> nodeDAO.updateNode(nodeDAO.getRootNode(), false));
     }
 
     @Test
-
     public void testUpdateNodeType() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -496,10 +504,12 @@ public class DAOTest {
         Node node = folderNode;
         assertThrows(IllegalArgumentException.class,
                 () -> nodeDAO.updateNode(node, false));
+
+        nodeDAO.deleteNode(folderNode.getUniqueId());
     }
 
     @Test
-
+    @Disabled
     public void testGetFolderThatIsNotAFolder() {
 
         Node rootNode = nodeDAO.getRootNode();
@@ -518,19 +528,20 @@ public class DAOTest {
     }
 
     @Test
-
     public void testNoNameClash1() {
 
         Node rootNode = nodeDAO.getRootNode();
 
         Node n1 = Node.builder().uniqueId("1").name("n1").build();
-        nodeDAO.createNode(rootNode.getUniqueId(), n1);
+        n1 = nodeDAO.createNode(rootNode.getUniqueId(), n1);
         Node n2 = Node.builder().nodeType(NodeType.CONFIGURATION).uniqueId("2").name("n1").build();
-        nodeDAO.createNode(rootNode.getUniqueId(), n2);
+        n2 = nodeDAO.createNode(rootNode.getUniqueId(), n2);
+
+        nodeDAO.deleteNode(n1.getUniqueId());
+        nodeDAO.deleteNode(n2.getUniqueId());
     }
 
     @Test
-
     public void testNoNameClash() {
 
         Node rootNode = nodeDAO.getRootNode();
@@ -539,10 +550,12 @@ public class DAOTest {
         nodeDAO.createNode(rootNode.getUniqueId(), n1);
         Node n2 = Node.builder().uniqueId("2").name("n2").build();
         nodeDAO.createNode(rootNode.getUniqueId(), n2);
+
+        nodeDAO.deleteNode(n1.getUniqueId());
+        nodeDAO.deleteNode(n2.getUniqueId());
     }
 
     @Test
-
     public void testUpdateNodeNewNameInvalid() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -560,11 +573,14 @@ public class DAOTest {
 
         assertThrows(IllegalArgumentException.class,
                 () -> nodeDAO.updateNode(node, false));
+
+        nodeDAO.deleteNode(node1.getUniqueId());
+        nodeDAO.deleteNode(node2.getUniqueId());
     }
 
 
     @Test
-
+    @Disabled
     public void testGetSnapshotThatIsNotSnapshot() {
         Node root = nodeDAO.getRootNode();
         Node node = nodeDAO.createNode(root.getUniqueId(), Node.builder().name("dsa").build());
@@ -573,14 +589,14 @@ public class DAOTest {
     }
 
     @Test
-
+    @Disabled
     public void testGetNonExistingSnapshot() {
         assertThrows(NodeNotFoundException.class,
                 () -> nodeDAO.getSnapshotNode("nonExisting"));
     }
 
     @Test
-
+    @Disabled
     public void testSaveSnapshot() {
         Node rootNode = nodeDAO.getRootNode();
         Node config = Node.builder().name("My config 3").nodeType(NodeType.CONFIGURATION).build();
@@ -598,30 +614,31 @@ public class DAOTest {
     }
 
     @Test
-
     public void testCreateNodeWithNonNullUniqueId() {
         Node rootNode = nodeDAO.getRootNode();
         Node folder = Node.builder().name("Folder").nodeType(NodeType.FOLDER).uniqueId("uniqueid").build();
         folder = nodeDAO.createNode(rootNode.getUniqueId(), folder);
         assertNotEquals("uniqueid", folder.getUniqueId());
+        nodeDAO.deleteNode(folder.getUniqueId());
     }
 
     @Test
-
     public void testCreateNodeWithNonNullParentNode() {
         assertThrows(NodeNotFoundException.class,
                 () -> nodeDAO.createNode("invalid unique node id", new Node()));
     }
 
     @Test
-
     public void testCreateFolderInConfigNode() {
         Node rootNode = nodeDAO.getRootNode();
+
+        Node topLevelFolderNode =
+                nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().name("top level folder").build());
 
         Node configNode = new Node();
         configNode.setName("Config");
         configNode.setNodeType(NodeType.CONFIGURATION);
-        configNode = nodeDAO.createNode(rootNode.getUniqueId(), configNode);
+        configNode = nodeDAO.createNode(topLevelFolderNode.getUniqueId(), configNode);
 
         Node folderNode = new Node();
         folderNode.setName("Folder");
@@ -630,10 +647,11 @@ public class DAOTest {
         Node node = configNode;
         assertThrows(IllegalArgumentException.class,
                 () -> nodeDAO.createNode(node.getUniqueId(), folderNode));
+
+        nodeDAO.deleteNode(topLevelFolderNode.getUniqueId());
     }
 
     @Test
-
     public void testCreateConfigInConfigNode() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -648,10 +666,12 @@ public class DAOTest {
         Node node = configNode;
         assertThrows(IllegalArgumentException.class,
                 () -> nodeDAO.createNode(node.getUniqueId(), node));
+
+        nodeDAO.deleteNode(configNode.getUniqueId());
     }
 
     @Test
-
+    @Disabled
     public void testCreateSnapshotInFolderNode() {
         Node rootNode = nodeDAO.getRootNode();
         Node snapshotNode = new Node();
@@ -663,14 +683,13 @@ public class DAOTest {
     }
 
     @Test
-
     public void testCreateNameClash() {
         Node rootNode = nodeDAO.getRootNode();
 
         Node configNode = new Node();
         configNode.setName("Config");
         configNode.setNodeType(NodeType.CONFIGURATION);
-        nodeDAO.createNode(rootNode.getUniqueId(), configNode);
+        configNode = nodeDAO.createNode(rootNode.getUniqueId(), configNode);
 
         Node anotherConfig = new Node();
         anotherConfig.setName("Config");
@@ -678,6 +697,8 @@ public class DAOTest {
 
         assertThrows(IllegalArgumentException.class,
                 () -> nodeDAO.createNode(rootNode.getUniqueId(), anotherConfig));
+
+        nodeDAO.deleteNode(configNode.getUniqueId());
     }
 
     @Test
@@ -693,12 +714,12 @@ public class DAOTest {
     }
 
     @Test
-
+    @Disabled
     public void testFindParentFromPathElements() {
         Node rootNode = nodeDAO.getRootNode();
         Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
         Node b = nodeDAO.createNode(a.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("b").build());
-        nodeDAO.createNode(b.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("c").build());
+        Node c = nodeDAO.createNode(b.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("c").build());
 
         Node found = nodeDAO.findParentFromPathElements(rootNode, "/a/b/c".split("/"), 1);
         assertEquals(found.getUniqueId(), b.getUniqueId());
@@ -714,10 +735,13 @@ public class DAOTest {
 
         found = nodeDAO.findParentFromPathElements(rootNode, "/a/d/c".split("/"), 1);
         assertNull(found);
+
+        nodeDAO.deleteNode(a.getUniqueId());
+        nodeDAO.deleteNode(b.getUniqueId());
     }
 
     @Test
-
+    @Disabled
     public void testGetFromPathTwoNodes() {
         Node rootNode = nodeDAO.getRootNode();
         Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
@@ -730,7 +754,7 @@ public class DAOTest {
     }
 
     @Test
-
+    @Disabled
     public void testGetFromPathOneNode() {
         Node rootNode = nodeDAO.getRootNode();
         Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
@@ -751,7 +775,7 @@ public class DAOTest {
     }
 
     @Test
-
+    @Disabled
     public void testGetFromPathZeroNodes() {
         Node rootNode = nodeDAO.getRootNode();
         Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
@@ -766,19 +790,21 @@ public class DAOTest {
     }
 
     @Test
+    @Disabled
     public void testGetFullPathNullNodeId() {
         assertThrows(NodeNotFoundException.class,
                 () -> nodeDAO.getFullPath(null));
     }
 
     @Test
+    @Disabled
     public void testGetFullPathInvalidNodeId() {
         assertThrows(NodeNotFoundException.class,
                 () -> nodeDAO.getFullPath("invalid"));
     }
 
     @Test
-
+    @Disabled
     public void testGetFullPathNonExistingNode() {
         Node rootNode = nodeDAO.getRootNode();
         Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
@@ -790,7 +816,7 @@ public class DAOTest {
     }
 
     @Test
-
+    @Disabled
     public void testGetFullPathRootNode() {
         Node rootNode = nodeDAO.getRootNode();
         Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
@@ -801,7 +827,7 @@ public class DAOTest {
     }
 
     @Test
-
+    @Disabled
     public void testGetFullPath() {
         Node rootNode = nodeDAO.getRootNode();
         Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
@@ -812,14 +838,13 @@ public class DAOTest {
     }
 
     @Test
-
     public void testIsMoveAllowedRootNode() {
         Node rootNode = nodeDAO.getRootNode();
         assertFalse(nodeDAO.isMoveOrCopyAllowed(List.of(rootNode), rootNode));
     }
 
     @Test
-
+    @Disabled
     public void testIsMoveAllowedSnapshotNode() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -834,35 +859,39 @@ public class DAOTest {
     }
 
     @Test
-
     public void testIsMoveAllowedSameType() {
         Node rootNode = nodeDAO.getRootNode();
+
+        Node topLevelFolderNode =
+                nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().name("top level folder").build());
 
         Node node1 = new Node();
         node1.setName("SnapshotData node");
         node1.setNodeType(NodeType.CONFIGURATION);
-        node1 = nodeDAO.createNode(rootNode.getUniqueId(), node1);
+        node1 = nodeDAO.createNode(topLevelFolderNode.getUniqueId(), node1);
 
         Node node2 = new Node();
         node2.setName("Configuration node");
         node2.setNodeType(NodeType.FOLDER);
-        node2 = nodeDAO.createNode(rootNode.getUniqueId(), node2);
+        node2 = nodeDAO.createNode(topLevelFolderNode.getUniqueId(), node2);
 
         Node targetNode = new Node();
+        targetNode.setUniqueId(Node.ROOT_FOLDER_UNIQUE_ID);
         targetNode.setName("Target node");
         targetNode.setNodeType(NodeType.FOLDER);
 
         assertFalse(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(node1, node2), targetNode));
+
+        nodeDAO.deleteNode(topLevelFolderNode.getUniqueId());
     }
 
     @Test
-
     public void testIsMoveAllowedSameParentFolder() {
         Node rootNode = nodeDAO.getRootNode();
 
         Node node1 = new Node();
         node1.setName("SnapshotData node");
-        node1.setNodeType(NodeType.CONFIGURATION);
+        node1.setNodeType(NodeType.FOLDER);
         node1 = nodeDAO.createNode(rootNode.getUniqueId(), node1);
 
         Node folderNode = new Node();
@@ -878,12 +907,15 @@ public class DAOTest {
         Node targetNode = new Node();
         targetNode.setName("Target node");
         targetNode.setNodeType(NodeType.FOLDER);
+        targetNode.setUniqueId(UUID.randomUUID().toString());
 
         assertFalse(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(node1, node2), targetNode));
+
+        nodeDAO.deleteNode(node1.getUniqueId());
+        nodeDAO.deleteNode(node2.getUniqueId());
     }
 
     @Test
-
     public void testMoveNodesInvalidId() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -895,16 +927,18 @@ public class DAOTest {
         Node node2 = new Node();
         node2.setName("Node2");
         node2.setNodeType(NodeType.FOLDER);
-        nodeDAO.createNode(rootNode.getUniqueId(), node2);
+        node2 = nodeDAO.createNode(rootNode.getUniqueId(), node2);
 
         List<String> nodeIds = Arrays.asList(node1.getUniqueId(), "non-existing");
 
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(NodeNotFoundException.class,
                 () -> nodeDAO.moveNodes(nodeIds, rootNode.getUniqueId(), "userName"));
+
+        nodeDAO.deleteNode(node1.getUniqueId());
+        nodeDAO.deleteNode(node2.getUniqueId());
     }
 
     @Test
-
     public void testMoveNodesNameAndTypeClash() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -929,10 +963,13 @@ public class DAOTest {
         node4 = nodeDAO.createNode(node2.getUniqueId(), node4);
 
         assertFalse(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(node3, node4), rootNode));
+
+        nodeDAO.deleteNode(node1.getUniqueId());
+        nodeDAO.deleteNode(node2.getUniqueId());
+
     }
 
     @Test
-
     public void testIsMoveAllowedTargetNotInSelectionTree() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -958,10 +995,13 @@ public class DAOTest {
 
         assertTrue(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(secondLevelFolder1, secondLevelFolder2), rootNode));
 
+        nodeDAO.deleteNode(firstLevelFolder1.getUniqueId());
+        nodeDAO.deleteNode(firstLevelFolder2.getUniqueId());
+
     }
 
     @Test
-
+    @Disabled
     public void testIsMoveAllowedTargetInSelectionTree() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -987,10 +1027,14 @@ public class DAOTest {
 
         assertFalse(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(firstLevelFolder2, firstLevelFolder1), secondLevelFolder2));
 
+        nodeDAO.deleteNode(firstLevelFolder1.getUniqueId());
+        nodeDAO.deleteNode(firstLevelFolder2.getUniqueId());
+
+
     }
 
     @Test
-
+    @Disabled
     public void testIsMoveAllowedMoveSaveSetToRoot() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1003,14 +1047,14 @@ public class DAOTest {
     }
 
     @Test
-
+    @Disabled
     public void testMoveNodesToNonExistingTarget() {
         assertThrows(NodeNotFoundException.class,
                 () -> nodeDAO.moveNodes(Collections.emptyList(), "non existing", "user"));
     }
 
     @Test
-
+    @Disabled
     public void testMoveNodesToNonFolder() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1025,7 +1069,7 @@ public class DAOTest {
     }
 
     @Test
-
+    @Disabled
     public void testMoveSnasphot() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1046,7 +1090,7 @@ public class DAOTest {
     }
 
     @Test
-
+    @Disabled
     public void testMoveNodes() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1073,7 +1117,7 @@ public class DAOTest {
     }
 
     @Test
-
+    @Disabled
     public void testCopyFolderToSameParent() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1088,7 +1132,7 @@ public class DAOTest {
     }
 
     @Test
-
+    @Disabled
     public void testCopyConfigToSameParent() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1103,7 +1147,7 @@ public class DAOTest {
     }
 
     @Test
-
+    @Disabled
     public void testCopyFolderToOtherParent() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1124,7 +1168,7 @@ public class DAOTest {
     }
 
     @Test
-
+    @Disabled
     public void testCopyConfigToOtherParent() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1150,7 +1194,7 @@ public class DAOTest {
     }
 
     @Test
-
+    @Disabled
     public void testCopyMultipleFolders() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1176,8 +1220,7 @@ public class DAOTest {
     }
 
     @Test
-
-
+    @Disabled
     public void testCopyFolderAndConfig() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1204,7 +1247,7 @@ public class DAOTest {
     }
 
     @Test
-
+    @Disabled
     public void testCopyFolderWithConfigAndSnapshot() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1244,7 +1287,7 @@ public class DAOTest {
     }
 
     @Test
-
+    @Disabled
     public void testCopySubtree() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1270,7 +1313,7 @@ public class DAOTest {
     }
 
     @Test
-
+    @Disabled
     public void testCopySnapshot() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1295,7 +1338,7 @@ public class DAOTest {
     }
 
     @Test
-
+    @Disabled
     public void testCopyConfigWithSnapshots() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1334,7 +1377,7 @@ public class DAOTest {
     }
 
     @Test
-
+    @Disabled
     public void testDeleteNode() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1348,14 +1391,14 @@ public class DAOTest {
     }
 
     @Test
-
+    @Disabled
     public void testDeleteNodeInvalid() {
         assertThrows(NodeNotFoundException.class,
                 () -> nodeDAO.deleteNode("invalid"));
     }
 
     @Test
-
+    @Disabled
     public void testDeleteTree() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1371,5 +1414,77 @@ public class DAOTest {
 
         nodeDAO.deleteNode(folderNode.getUniqueId());
         assertTrue(nodeDAO.getChildNodes(rootNode.getUniqueId()).isEmpty());
+    }
+
+    /**
+     * This method should verify that the target {@link Node} is <code>not</code>
+     * found in any of the source {@link Node}s subtrees.
+     */
+    @Test
+    public void testContainedInSubTree(){
+        Node rootNode = nodeDAO.getRootNode();
+
+        Node L1F1 = new Node();
+        L1F1.setName("L1F1");
+        L1F1.setNodeType(NodeType.FOLDER);
+        L1F1 = nodeDAO.createNode(rootNode.getUniqueId(), L1F1);
+
+        Node L1F2 = new Node();
+        L1F2.setName("L1F2");
+        L1F2.setNodeType(NodeType.FOLDER);
+        L1F2 = nodeDAO.createNode(rootNode.getUniqueId(), L1F2);
+
+        Node L2F1 = new Node();
+        L2F1.setName("L2F1");
+        L2F1.setNodeType(NodeType.FOLDER);
+        L2F1 = nodeDAO.createNode(L1F1.getUniqueId(), L2F1);
+
+        Node L2F2 = new Node();
+        L2F2.setName("L2F2");
+        L2F2.setNodeType(NodeType.FOLDER);
+        L2F2 = nodeDAO.createNode(L1F1.getUniqueId(), L2F2);
+
+        // OK to copy/move level 2 folders to root
+        assertTrue(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(L2F1), rootNode));
+
+        // NOT OK to copy/move level 1 folders to root as they are already there
+        assertFalse(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(L1F1), rootNode));
+
+        nodeDAO.deleteNode(L1F1.getUniqueId());
+        nodeDAO.deleteNode(L1F2.getUniqueId());
+
+    }
+
+    /**
+     * Convenience method: as test methods create data, there is a need to
+     * remove it when a test method has completed.
+     */
+    private void deleteAllConfigurationData(){
+        configurationDataRepository.deleteAll();
+    }
+
+    @AfterAll
+    public void dropIndices() {
+        try {
+            BooleanResponse exists = client.indices().exists(ExistsRequest.of(e -> e.index(ES_CONFIGURATION_INDEX)));
+            if (exists.value()) {
+                client.indices().delete(
+                        DeleteIndexRequest.of(
+                                c -> c.index(ES_CONFIGURATION_INDEX)));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            BooleanResponse exists = client.indices().exists(ExistsRequest.of(e -> e.index(ES_TREE_INDEX)));
+            if (exists.value()) {
+                client.indices().delete(
+                        DeleteIndexRequest.of(
+                                c -> c.index(ES_TREE_INDEX)));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
