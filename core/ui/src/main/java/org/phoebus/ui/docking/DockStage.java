@@ -163,9 +163,6 @@ public class DockStage
 
         // Force window to be visible
         stage.show();
-        stage.toFront();
-        stage.setAlwaysOnTop(true);
-        stage.setAlwaysOnTop(false);
 
         Styles.setSceneStyle(scene);
         try
