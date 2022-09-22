@@ -82,6 +82,9 @@ public class PVAByteArray extends PVAData implements PVAArray
             }
             value = new_items;
         }
+        else if(new_value instanceof String){
+            set(((String)new_value).getBytes());
+        }
         else
             throw new Exception("Cannot set " + formatType() + " to " + new_value);
     }
