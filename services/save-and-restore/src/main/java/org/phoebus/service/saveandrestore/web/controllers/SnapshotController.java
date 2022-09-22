@@ -60,16 +60,16 @@ public class SnapshotController extends BaseController {
     @Deprecated
     @PutMapping(value = "/snapshot/{configUniqueId}", produces = JSON)
     public Node saveSnapshot(@PathVariable String configUniqueId,
-                             @RequestParam String snapshotName,
-                             @RequestParam String userName,
-                             @RequestParam String comment,
+                             @RequestParam(name = "snapshotName") String snapshotName,
+                             @RequestParam(name = "userName") String userName,
+                             @RequestParam(name = "comment") String comment,
                              @RequestBody List<SnapshotItem> snapshotItems) {
 
         if (snapshotName.length() == 0 || userName.length() == 0 || comment.length() == 0) {
             throw new IllegalArgumentException("SnapshotData name, user name and comment must be of non-zero length");
         }
 
-        return nodeDAO.saveSnapshot(configUniqueId, snapshotItems, snapshotName, userName, comment);
+        return nodeDAO.saveSnapshot(configUniqueId, snapshotItems, snapshotName, comment, userName);
     }
 
     @PutMapping(value = "/snapshot", produces = JSON)

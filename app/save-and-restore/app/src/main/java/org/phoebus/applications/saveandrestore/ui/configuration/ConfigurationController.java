@@ -325,10 +325,15 @@ public class ConfigurationController implements NodeChangedListener {
         pvNameField.requestFocus();
     }
 
+    /**
+     * Configures the controller
+     * @param parentNode
+     */
     public void newConfiguration(Node parentNode) {
         configurationNodeParent = parentNode;
         configurationNode.set(Node.builder().nodeType(NodeType.CONFIGURATION).build());
         configurationData = new ConfigurationData();
+        pvTable.setItems(saveSetEntries);
         UI_EXECUTOR.execute(() -> configurationNameField.requestFocus());
         dirty.set(false);
     }
@@ -349,13 +354,7 @@ public class ConfigurationController implements NodeChangedListener {
                 .created(node.getCreated())
                 .lastModified(node.getLastModified())
                 .build());
-        UI_EXECUTOR.execute(() -> {
-            try {
-                loadConfigurationData();
-            } catch (Exception e) {
-                logger.log(Level.WARNING, "Unable to load existing save set");
-            }
-        });
+        loadConfigurationData();
     }
 
     private void loadConfigurationData() {

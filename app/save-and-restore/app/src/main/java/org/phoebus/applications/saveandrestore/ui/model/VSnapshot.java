@@ -20,6 +20,7 @@ package org.phoebus.applications.saveandrestore.ui.model;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.common.Utilities;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.util.time.TimestampFormats;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -148,9 +149,9 @@ public class VSnapshot implements Serializable {
     @Override
     public String toString() {
         if (isSaved()) {
-            return Utilities.timestampToBigEndianString(Instant.ofEpochMilli(snapshot.getLastModified().getTime()), true);
+            return TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(snapshot.getLastModified().getTime()));
         } else if (snapshot.getCreated() != null) {
-            return Utilities.timestampToBigEndianString(Instant.ofEpochMilli(snapshot.getCreated().getTime()), true);
+            return TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(snapshot.getCreated().getTime()));
         } else {
             return "<unnamed snaphot>";
         }

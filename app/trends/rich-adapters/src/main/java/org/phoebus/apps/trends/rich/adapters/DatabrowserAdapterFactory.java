@@ -96,7 +96,7 @@ public class DatabrowserAdapterFactory implements AdapterFactory {
         StringBuffer body = new StringBuffer();
         databrowserSelection.getPlotTitle().ifPresent(body::append);
         body.append("databrowser plot for the following pvs:" + System.lineSeparator());
-        body.append(databrowserSelection.getPlotPVs().stream().collect(Collectors.joining(System.lineSeparator())));
+        body.append(databrowserSelection.getPlotPVs().stream().collect(Collectors.joining("  " + System.lineSeparator())));
         body.append(System.lineSeparator());
         body.append("Over the time period: " +  databrowserSelection.getPlotTime().toAbsoluteInterval().toString());
         return body.toString();

@@ -64,6 +64,7 @@ import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.util.time.TimestampFormats;
 
 import java.lang.reflect.Field;
 import java.security.AccessController;
@@ -126,7 +127,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                     if (instant == null) {
                         setText("---");
                     } else {
-                        setText(Utilities.timestampToLittleEndianString(item.tableEntry.timestampProperty().get(), true));
+                        setText(TimestampFormats.SECONDS_FORMAT.format(item.tableEntry.timestampProperty().get()));
                     }
                 }
             }

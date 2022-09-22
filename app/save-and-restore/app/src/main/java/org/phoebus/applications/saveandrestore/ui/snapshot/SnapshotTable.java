@@ -55,6 +55,7 @@ import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.core.types.TimeStampedProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.util.time.TimestampFormats;
 
 import java.lang.reflect.Field;
 import java.security.AccessController;
@@ -100,7 +101,7 @@ class SnapshotTable extends TableView<TableEntry> {
                 setText("---");
                 setStyle("");
             } else {
-                setText(Utilities.timestampToLittleEndianString(item, true));
+                setText(TimestampFormats.SECONDS_FORMAT.format((item)));
             }
         }
     }

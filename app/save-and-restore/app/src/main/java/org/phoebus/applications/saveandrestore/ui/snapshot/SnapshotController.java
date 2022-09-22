@@ -84,6 +84,7 @@ import org.phoebus.pv.PVFactory;
 import org.phoebus.pv.PVPool;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockPane;
+import org.phoebus.util.time.TimestampFormats;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -486,7 +487,7 @@ public class SnapshotController implements NodeChangedListener {
         this.snapshotTab = snapshotTab;
     }
 
-    public void loadSnapshot() {
+    private void loadSnapshot() {
         if (snapshotNode == null) {
             return;
         }
@@ -567,7 +568,7 @@ public class SnapshotController implements NodeChangedListener {
                 List<SnapshotItem> snapshotItems = saveAndRestoreService.getSnapshotItems(snapshotNode.getUniqueId());
 
                 snapshotCommentProperty.set(snapshotNode.getDescription());
-                createdDateTextProperty.set(snapshotNode.getCreated().toString());
+                createdDateTextProperty.set(TimestampFormats.SECONDS_FORMAT.format(snapshotNode.getCreated().toInstant()));
                 createdByTextProperty.set(snapshotNode.getUserName());
                 snapshotNameProperty.set(snapshotNode.getName());
 

@@ -336,6 +336,7 @@ public class ElasticsearchDAO implements NodeDAO {
         Date now = new Date();
         Node snapshotNode = Node.builder().nodeType(NodeType.SNAPSHOT)
                 .name(snapshotName)
+                .description(comment)
                 .userName(userName)
                 .uniqueId(UUID.randomUUID().toString())
                 .created(now)

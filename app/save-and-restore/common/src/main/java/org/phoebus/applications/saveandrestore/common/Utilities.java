@@ -80,15 +80,11 @@ import org.epics.vtype.ValueFormat;
 import org.phoebus.core.vtypes.VTypeHelper;
 
 import java.math.BigInteger;
-import java.text.DateFormat;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -165,27 +161,14 @@ public final class Utilities {
      * The character code for the greek delta letter
      */
     public static final char DELTA_CHAR = '\u0394';
-    private static final char SEMI_COLON = ';';
+
     private static final char COMMA = ',';
     // All formats use thread locals, to avoid problems if any of the static methods are invoked concurrently
     private static final ThreadLocal FORMAT = ThreadLocal.withInitial(() -> {
         ValueFormat vf = new SimpleValueFormat(3);
         vf.setNumberFormat(NumberFormats.toStringFormat());
         return vf;
-
-
     });
-    private static final ThreadLocal<DateFormat> LE_TIMESTAMP_FORMATTER = ThreadLocal
-            .withInitial(() -> new SimpleDateFormat("HH:mm:ss.SSS MMM dd"));
-    private static final ThreadLocal<DateFormat> SLE_TIMESTAMP_FORMATTER = ThreadLocal
-            .withInitial(() -> new SimpleDateFormat("HH:mm:ss.SSS MMM dd yyyy"));
-    private static final ThreadLocal<DateFormat> BE_TIMESTAMP_FORMATTER = ThreadLocal
-            .withInitial(() -> new SimpleDateFormat("MMM dd HH:mm:ss"));
-    private static final ThreadLocal<DateFormat> SBE_TIMESTAMP_FORMATTER = ThreadLocal
-            .withInitial(() -> new SimpleDateFormat("yyyy MMM dd HH:mm:ss"));
-    private static final Pattern COMMA_PATTERN = Pattern.compile("\\,");
-    private static final ThreadLocal<DecimalFormat> NANO_FORMATTER = ThreadLocal
-            .withInitial(() -> new DecimalFormat("000000000"));
 
     /**
      * Private constructor to prevent instantiation of this class.
@@ -291,12 +274,12 @@ public final class Utilities {
             return VNumberArray.of(list, alarm, time, Display.none());
         } else if (type instanceof VStringArray) {
             String[] elements = data.split("\\,");
-            List<String> list = Arrays.asList(elements).stream().map(String::trim).collect(Collectors.toList());
+            List<String> list = Arrays.stream(elements).map(String::trim).collect(Collectors.toList());
             list = list.stream().map(s -> s.substring(1, s.length() - 1)).collect(Collectors.toList());
             return VStringArray.of(list, alarm, time);
         } else if (type instanceof VBooleanArray) {
             String[] elements = data.split("\\,");
-            List<String> list = Arrays.asList(elements).stream().map(String::trim).collect(Collectors.toList());
+            List<String> list = Arrays.stream(elements).map(String::trim).collect(Collectors.toList());
             boolean[] booleans = new boolean[list.size()];
             for (int i = 0; i < list.size(); i++) {
                 booleans[i] = Integer.parseInt(list.get(i)) > 0 ? true : false;
@@ -992,7 +975,6 @@ public final class Utilities {
      * @param baseValue the base value to compare the value to
      * @return formatted percentage of the difference
      */
-    @SuppressWarnings("unchecked")
     public static String deltaValueToPercentage(VType value, VType baseValue) {
         if (value instanceof VNumber && baseValue instanceof VNumber) {
             double data = ((VNumber) value).getValue().doubleValue();
@@ -1016,37 +998,6 @@ public final class Utilities {
         }
 
         return "";
-    }
-
-    /**
-     * Transforms the timestamp to string, using the format HH:mm:ss.SSS MMM dd (yyyy).
-     *
-     * @param t           the timestamp to transform
-     * @param includeYear true if the year should included in the format
-     * @return string representation of the timestamp using the above format
-     */
-    public static String timestampToLittleEndianString(Instant t, boolean includeYear) {
-        if (t == null) {
-            return null;
-        }
-        return includeYear ? SLE_TIMESTAMP_FORMATTER.get().format(Date.from(t))
-                : LE_TIMESTAMP_FORMATTER.get().format(Date.from(t));
-    }
-
-    /**
-     * Transforms the date to string formatted as yyyy MMM dd HH:mm:ss. Year is only included if the parameter
-     * <code>includeYear</code> is true.
-     *
-     * @param t           the date to transform
-     * @param includeYear true if the year should be included or false otherwise
-     * @return string representation of the date
-     */
-    public static String timestampToBigEndianString(Instant t, boolean includeYear) {
-        if (t == null) {
-            return null;
-        }
-        return includeYear ? SBE_TIMESTAMP_FORMATTER.get().format(Date.from(t))
-                : BE_TIMESTAMP_FORMATTER.get().format(Date.from(t));
     }
 
     /**
@@ -1097,49 +1048,49 @@ public final class Utilities {
                 if (threshold.isPresent()) {
                     return ((Threshold<Long>) threshold.get()).isWithinThreshold(data, base);
                 }
-                return Long.compare(data, base) == 0;
+                return data == base;
             } else if (v1 instanceof VUInt) {
                 long data = ((VUInt) v1).getValue().longValue();
                 long base = ((VUInt) v2).getValue().longValue();
                 if (threshold.isPresent()) {
                     return ((Threshold<Long>) threshold.get()).isWithinThreshold(data, base);
                 }
-                return Long.compare(data, base) == 0;
+                return data == base;
             } else if (v1 instanceof VInt) {
                 int data = ((VInt) v1).getValue();
                 int base = ((VNumber) v2).getValue().intValue();
                 if (threshold.isPresent()) {
                     return ((Threshold<Integer>) threshold.get()).isWithinThreshold(data, base);
                 }
-                return Integer.compare(data, base) == 0;
+                return data == base;
             } else if (v1 instanceof VUShort) {
                 int data = ((VUShort) v1).getValue().intValue();
                 int base = ((VUShort) v2).getValue().intValue();
                 if (threshold.isPresent()) {
                     return ((Threshold<Integer>) threshold.get()).isWithinThreshold(data, base);
                 }
-                return Integer.compare(data, base) == 0;
+                return data == base;
             } else if (v1 instanceof VShort) {
                 short data = ((VShort) v1).getValue();
                 short base = ((VNumber) v2).getValue().shortValue();
                 if (threshold.isPresent()) {
                     return ((Threshold<Short>) threshold.get()).isWithinThreshold(data, base);
                 }
-                return Short.compare(data, base) == 0;
+                return data == base;
             } else if (v1 instanceof VUByte) {
                 int data = ((VUByte) v1).getValue().intValue();
                 int base = ((VNumber) v2).getValue().intValue();
                 if (threshold.isPresent()) {
                     return ((Threshold<Integer>) threshold.get()).isWithinThreshold(data, base);
                 }
-                return Integer.compare(data, base) == 0;
+                return data == base;
             } else if (v1 instanceof VByte) {
                 byte data = ((VByte) v1).getValue();
                 byte base = ((VNumber) v2).getValue().byteValue();
                 if (threshold.isPresent()) {
                     return ((Threshold<Byte>) threshold.get()).isWithinThreshold(data, base);
                 }
-                return Byte.compare(data, base) == 0;
+                return data == base;
             }
         } else if (v1 instanceof VBoolean && v2 instanceof VBoolean) {
             boolean b = ((VBoolean) v1).getValue();
@@ -1148,11 +1099,11 @@ public final class Utilities {
         } else if (v1 instanceof VEnum && v2 instanceof VEnum) {
             String b = ((VEnum) v1).getValue();
             String c = ((VEnum) v2).getValue();
-            return b == c || b != null && b.equals(c);
+            return Objects.equals(b, c);
         } else if (v1 instanceof VString && v2 instanceof VString) {
             String b = ((VString) v1).getValue();
             String c = ((VString) v2).getValue();
-            return b == c || b != null && b.equals(c);
+            return Objects.equals(b, c);
         } else if (v1 instanceof VNumberArray && v2 instanceof VNumberArray) {
             if ((v1 instanceof VByteArray && v2 instanceof VByteArray)
                     || (v1 instanceof VUByteArray && v2 instanceof VUByteArray)
@@ -1181,7 +1132,7 @@ public final class Utilities {
                     return false;
                 }
                 for (int i = 0; i < size; i++) {
-                    if (Long.compare(UInteger.valueOf(b.getInt(i)).longValue(), UInteger.valueOf(c.getInt(i)).longValue()) != 0) {
+                    if (UInteger.valueOf(b.getInt(i)).longValue() != UInteger.valueOf(c.getInt(i)).longValue()) {
                         return false;
                     }
                 }
@@ -1194,7 +1145,7 @@ public final class Utilities {
                     return false;
                 }
                 for (int i = 0; i < size; i++) {
-                    if (Long.compare(b.getLong(i), c.getLong(i)) != 0) {
+                    if (b.getLong(i) != c.getLong(i)) {
                         return false;
                     }
                 }
@@ -1280,31 +1231,31 @@ public final class Utilities {
             } else if (v1 instanceof VLong && v2 instanceof VLong) {
                 long data = ((VLong) v1).getValue();
                 long base = ((VLong) v2).getValue();
-                return Long.compare(data, base) == 0;
+                return data == base;
             } else if (v1 instanceof VUInt && v2 instanceof VUInt) {
                 long data = UnsignedConversions.toLong(((VUInt) v1).getValue().intValue());
                 long base = UnsignedConversions.toLong(((VUInt) v2).getValue().intValue());
-                return Long.compare(data, base) == 0;
+                return data == base;
             } else if (v1 instanceof VInt && v2 instanceof VInt) {
                 int data = ((VInt) v1).getValue();
                 int base = ((VInt) v2).getValue();
-                return Integer.compare(data, base) == 0;
+                return data == base;
             } else if (v1 instanceof VUShort && v2 instanceof VUShort) {
                 int data = UnsignedConversions.toInt(((VUShort) v1).getValue().shortValue());
                 int base = UnsignedConversions.toInt(((VUShort) v2).getValue().shortValue());
-                return Integer.compare(data, base) == 0;
+                return data == base;
             } else if (v1 instanceof VShort && v2 instanceof VShort) {
                 short data = ((VShort) v1).getValue();
                 short base = ((VShort) v2).getValue();
-                return Short.compare(data, base) == 0;
+                return data == base;
             } else if (v1 instanceof VUByte && v2 instanceof VUByte) {
                 int data = UnsignedConversions.toInt(((VUByte) v1).getValue().byteValue());
                 int base = UnsignedConversions.toInt(((VUByte) v2).getValue().byteValue());
-                return Integer.compare(data, base) == 0;
+                return data == base;
             } else if (v1 instanceof VByte && v2 instanceof VByte) {
                 byte data = ((VByte) v1).getValue();
-                byte base = ((VByte) v2).getValue().byteValue();
-                return Byte.compare(data, base) == 0;
+                byte base = ((VByte) v2).getValue();
+                return data == base;
             }
         } else if (v1 instanceof VBoolean && v2 instanceof VBoolean) {
             boolean b = ((VBoolean) v1).getValue();
@@ -1348,7 +1299,7 @@ public final class Utilities {
                     return false;
                 }
                 for (int i = 0; i < size; i++) {
-                    if (Long.compare(b.getLong(i), c.getLong(i)) != 0) {
+                    if (b.getLong(i) != c.getLong(i)) {
                         return false;
                     }
                 }

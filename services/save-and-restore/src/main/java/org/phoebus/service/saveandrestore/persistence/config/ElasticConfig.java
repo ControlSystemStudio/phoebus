@@ -1,7 +1,6 @@
 package org.phoebus.service.saveandrestore.persistence.config;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.EmptyObject;
 import co.elastic.clients.elasticsearch._types.Refresh;
 import co.elastic.clients.elasticsearch._types.Result;
 import co.elastic.clients.elasticsearch.core.IndexRequest;
@@ -13,16 +12,9 @@ import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
-import org.epics.vtype.Display;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
@@ -37,8 +29,6 @@ import org.springframework.context.annotation.PropertySource;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.NumberFormat;
-import java.time.Instant;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -173,8 +163,7 @@ public class ElasticConfig {
                 if (response.result().equals(Result.Created)) {
                     logger.log(Level.INFO, "Root node created");
                 }
-            }
-            else{
+            } else {
                 logger.log(Level.INFO, "Root node found, not creating it");
             }
         } catch (IOException e) {
