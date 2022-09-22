@@ -30,9 +30,7 @@ import org.mockito.stubbing.Answer;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.UpdateConfigHolder;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
-import org.phoebus.service.saveandrestore.model.ESTreeNode;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchTreeRepository;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
@@ -417,75 +415,6 @@ public class NodeControllerTest {
     @Test
     public void testMoveNodeNoUsername() throws Exception {
         MockHttpServletRequestBuilder request = post("/move").param("to", "b");
-
-        mockMvc.perform(request).andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void testUpdateConfig() throws Exception {
-
-        Node config = Node.builder().nodeType(NodeType.CONFIGURATION).userName("myusername").uniqueId("0").build();
-        List<ConfigPv> configPvList = Arrays.asList(ConfigPv.builder().pvName("name").build());
-
-        UpdateConfigHolder holder = UpdateConfigHolder.builder().config(config).configPvList(configPvList).build();
-
-        //when(nodeDAO.updateConfiguration(holder.getConfig(), holder.getConfigPvList())).thenReturn(config);
-
-        MockHttpServletRequestBuilder request = post("/config/a/update").contentType(JSON)
-                .content(objectMapper.writeValueAsString(holder));
-
-        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
-                .andReturn();
-
-        // Make sure response contains expected data
-        objectMapper.readValue(result.getResponse().getContentAsString(), Node.class);
-    }
-
-    @Test
-    public void testUpdateConfigBadConfigPv() throws Exception {
-
-        Node config = Node.builder().nodeType(NodeType.CONFIGURATION).uniqueId("0").build();
-        UpdateConfigHolder holder = UpdateConfigHolder.builder().build();
-
-        MockHttpServletRequestBuilder request = post("/config/a/update").contentType(JSON)
-                .content(objectMapper.writeValueAsString(holder));
-
-        mockMvc.perform(request).andExpect(status().isBadRequest());
-
-        holder.setConfig(config);
-
-        request = post("/config/a/update").contentType(JSON)
-                .content(objectMapper.writeValueAsString(holder));
-
-        mockMvc.perform(request).andExpect(status().isBadRequest());
-
-        List<ConfigPv> configPvList = Arrays.asList(ConfigPv.builder().build());
-        holder.setConfigPvList(configPvList);
-
-        //when(nodeDAO.updateConfiguration(holder.getConfig(), holder.getConfigPvList())).thenReturn(config);
-
-        request = post("/config/a/update").contentType(JSON)
-                .content(objectMapper.writeValueAsString(holder));
-
-        mockMvc.perform(request).andExpect(status().isBadRequest());
-
-        request = post("/config/a/update").contentType(JSON)
-                .content(objectMapper.writeValueAsString(holder));
-
-        mockMvc.perform(request).andExpect(status().isBadRequest());
-
-        config.setUserName("");
-
-        request = post("/config/a/update").contentType(JSON)
-                .content(objectMapper.writeValueAsString(holder));
-
-        mockMvc.perform(request).andExpect(status().isBadRequest());
-
-        configPvList = Arrays.asList(ConfigPv.builder().pvName("").build());
-        holder.setConfigPvList(configPvList);
-
-        request = post("/config/a/update").contentType(JSON)
-                .content(objectMapper.writeValueAsString(holder));
 
         mockMvc.perform(request).andExpect(status().isBadRequest());
     }
