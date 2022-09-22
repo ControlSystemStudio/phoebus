@@ -35,7 +35,6 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
@@ -48,14 +47,10 @@ import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.Con
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Profile;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -63,7 +58,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -124,7 +118,7 @@ public class DAOTestIT {
         // Check that the parent folder's last modified date is updated
         assertTrue(root.getLastModified().getTime() > lastModified.getTime());
 
-        nodeDAO.deleteNode(newNode.getUniqueId());
+        clearAllData();
     }
 
     @Test
@@ -138,8 +132,7 @@ public class DAOTestIT {
         // Try to create a new folder with a different name in the same parent directory
         assertNotNull(nodeDAO.createNode(rootNode.getUniqueId(), folder2));
 
-        nodeDAO.deleteNode(folder2.getUniqueId());
-        nodeDAO.deleteNode(folder1.getUniqueId());
+        clearAllData();
     }
 
     @Test
@@ -153,19 +146,23 @@ public class DAOTestIT {
         Node newConfig = nodeDAO.createNode(topLevelFolderNode.getUniqueId(), config);
         assertTrue(nodeDAO.getConfigPvs(newConfig.getUniqueId()).isEmpty());
 
-        nodeDAO.deleteNode(topLevelFolderNode.getUniqueId());
+        clearAllData();
     }
 
     @Test
     public void testDeleteConfiguration() {
 
         Node rootNode = nodeDAO.getRootNode();
+
+        Node topLevelFolderNode =
+                nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().name("top level folder").build());
+
         Node config = Node.builder().name("My config").nodeType(NodeType.CONFIGURATION).build();
 
-        config = nodeDAO.createNode(rootNode.getUniqueId(), config);
+        config = nodeDAO.createNode(topLevelFolderNode.getUniqueId(), config);
         Node snapshot = nodeDAO.createNode(config.getUniqueId(), Node.builder().name("node").nodeType(NodeType.SNAPSHOT).build());
 
-        nodeDAO.deleteNode(config.getUniqueId());
+        nodeDAO.deleteNode(topLevelFolderNode.getUniqueId());
 
         try {
             nodeDAO.getNode(config.getUniqueId());
@@ -187,16 +184,19 @@ public class DAOTestIT {
 
         Node rootNode = nodeDAO.getRootNode();
 
+        Node topLevelFolderNode =
+                nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().name("top level folder").build());
+
         ConfigPv configPv = ConfigPv.builder().pvName("pvName").build();
 
         Node config = Node.builder().nodeType(NodeType.CONFIGURATION).build();
 
         config.setName("My config");
 
-        config = nodeDAO.createNode(rootNode.getUniqueId(), config);
-        //config = nodeDAO.updateConfiguration(config, List.of(configPv));
+        // This should not throw exception
+        nodeDAO.createNode(topLevelFolderNode.getUniqueId(), config);
 
-        nodeDAO.deleteNode(config.getUniqueId());
+        clearAllData();
     }
 
 
@@ -235,33 +235,16 @@ public class DAOTestIT {
     }
 
     @Test
-    @Disabled
-    public void testDeleteConfigurationLeaveReferencedPVs() {
-
-        Node rootNode = nodeDAO.getRootNode();
-        nodeDAO.getNode(rootNode.getUniqueId());
-        ConfigPv configPv1 = ConfigPv.builder().pvName("pvName").build();
-        ConfigPv configPv2 = ConfigPv.builder().pvName("pvName2").build();
-        Node config1 = Node.builder().nodeType(NodeType.CONFIGURATION).name("My config").build();
-        config1 = nodeDAO.createNode(rootNode.getUniqueId(), config1);
-        //nodeDAO.updateConfiguration(config1, Arrays.asList(configPv1, configPv2));
-        Node config2 = Node.builder().name("My config 2").nodeType(NodeType.CONFIGURATION).build();
-        config2 = nodeDAO.createNode(rootNode.getUniqueId(), config2);
-        //nodeDAO.updateConfiguration(config2, List.of(configPv2));
-        nodeDAO.deleteNode(config1.getUniqueId());
-
-        assertEquals(1, nodeDAO.getConfigPvs(config2.getUniqueId()).size());
-
-    }
-
-    @Test
     public void testGetNodeAsConfig() {
         Node rootNode = nodeDAO.getRootNode();
         Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("My config 3").build();
-        Node newConfig = nodeDAO.createNode(rootNode.getUniqueId(), config);
+        Node topLevelFolderNode =
+                nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().name("top level folder").build());
+        Node newConfig = nodeDAO.createNode(topLevelFolderNode.getUniqueId(), config);
         Node configFromDB = nodeDAO.getNode(newConfig.getUniqueId());
         assertEquals(newConfig.getUniqueId(), configFromDB.getUniqueId());
-        nodeDAO.deleteNode(newConfig.getUniqueId());
+
+        clearAllData();
     }
 
     @Test
@@ -409,7 +392,7 @@ public class DAOTestIT {
         List<Node> childNodes = nodeDAO.getChildNodes(rootNode.getUniqueId());
         assertTrue(nodeDAO.getChildNodes(folder1.getUniqueId()).isEmpty());
 
-        nodeDAO.deleteNode(folder1.getUniqueId());
+        clearAllData();
     }
 
     @Test
@@ -505,7 +488,7 @@ public class DAOTestIT {
         assertThrows(IllegalArgumentException.class,
                 () -> nodeDAO.updateNode(node, false));
 
-        nodeDAO.deleteNode(folderNode.getUniqueId());
+        clearAllData();
     }
 
     @Test
@@ -532,13 +515,15 @@ public class DAOTestIT {
 
         Node rootNode = nodeDAO.getRootNode();
 
-        Node n1 = Node.builder().uniqueId("1").name("n1").build();
-        n1 = nodeDAO.createNode(rootNode.getUniqueId(), n1);
-        Node n2 = Node.builder().nodeType(NodeType.CONFIGURATION).uniqueId("2").name("n1").build();
-        n2 = nodeDAO.createNode(rootNode.getUniqueId(), n2);
+        Node topLevelFolderNode =
+                nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().name("top level folder").build());
 
-        nodeDAO.deleteNode(n1.getUniqueId());
-        nodeDAO.deleteNode(n2.getUniqueId());
+        Node n1 = Node.builder().uniqueId("1").name("n1").build();
+        nodeDAO.createNode(topLevelFolderNode.getUniqueId(), n1);
+        Node n2 = Node.builder().nodeType(NodeType.CONFIGURATION).uniqueId("2").name("n1").build();
+        nodeDAO.createNode(topLevelFolderNode.getUniqueId(), n2);
+
+        clearAllData();
     }
 
     @Test
@@ -551,8 +536,7 @@ public class DAOTestIT {
         Node n2 = Node.builder().uniqueId("2").name("n2").build();
         nodeDAO.createNode(rootNode.getUniqueId(), n2);
 
-        nodeDAO.deleteNode(n1.getUniqueId());
-        nodeDAO.deleteNode(n2.getUniqueId());
+        clearAllData();
     }
 
     @Test
@@ -574,8 +558,7 @@ public class DAOTestIT {
         assertThrows(IllegalArgumentException.class,
                 () -> nodeDAO.updateNode(node, false));
 
-        nodeDAO.deleteNode(node1.getUniqueId());
-        nodeDAO.deleteNode(node2.getUniqueId());
+        clearAllData();
     }
 
 
@@ -619,7 +602,8 @@ public class DAOTestIT {
         Node folder = Node.builder().name("Folder").nodeType(NodeType.FOLDER).uniqueId("uniqueid").build();
         folder = nodeDAO.createNode(rootNode.getUniqueId(), folder);
         assertNotEquals("uniqueid", folder.getUniqueId());
-        nodeDAO.deleteNode(folder.getUniqueId());
+
+        clearAllData();
     }
 
     @Test
@@ -648,17 +632,20 @@ public class DAOTestIT {
         assertThrows(IllegalArgumentException.class,
                 () -> nodeDAO.createNode(node.getUniqueId(), folderNode));
 
-        nodeDAO.deleteNode(topLevelFolderNode.getUniqueId());
+        clearAllData();
     }
 
     @Test
     public void testCreateConfigInConfigNode() {
         Node rootNode = nodeDAO.getRootNode();
 
+        Node topLevelFolderNode =
+                nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().name("top level folder").build());
+
         Node configNode = new Node();
         configNode.setName("Config");
         configNode.setNodeType(NodeType.CONFIGURATION);
-        configNode = nodeDAO.createNode(rootNode.getUniqueId(), configNode);
+        configNode = nodeDAO.createNode(topLevelFolderNode.getUniqueId(), configNode);
 
         Node anotherConfig = new Node();
         anotherConfig.setName("Another Config");
@@ -667,7 +654,7 @@ public class DAOTestIT {
         assertThrows(IllegalArgumentException.class,
                 () -> nodeDAO.createNode(node.getUniqueId(), node));
 
-        nodeDAO.deleteNode(configNode.getUniqueId());
+        clearAllData();
     }
 
     @Test
@@ -686,10 +673,13 @@ public class DAOTestIT {
     public void testCreateNameClash() {
         Node rootNode = nodeDAO.getRootNode();
 
+        Node topLevelFolderNode =
+                nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().name("top level folder").build());
+
         Node configNode = new Node();
         configNode.setName("Config");
         configNode.setNodeType(NodeType.CONFIGURATION);
-        configNode = nodeDAO.createNode(rootNode.getUniqueId(), configNode);
+        nodeDAO.createNode(topLevelFolderNode.getUniqueId(), configNode);
 
         Node anotherConfig = new Node();
         anotherConfig.setName("Config");
@@ -698,7 +688,7 @@ public class DAOTestIT {
         assertThrows(IllegalArgumentException.class,
                 () -> nodeDAO.createNode(rootNode.getUniqueId(), anotherConfig));
 
-        nodeDAO.deleteNode(configNode.getUniqueId());
+        clearAllData();
     }
 
     @Test
@@ -736,8 +726,7 @@ public class DAOTestIT {
         found = nodeDAO.findParentFromPathElements(rootNode, "/a/d/c".split("/"), 1);
         assertNull(found);
 
-        nodeDAO.deleteNode(a.getUniqueId());
-        nodeDAO.deleteNode(b.getUniqueId());
+        clearAllData();
     }
 
     @Test
@@ -882,7 +871,7 @@ public class DAOTestIT {
 
         assertFalse(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(node1, node2), targetNode));
 
-        nodeDAO.deleteNode(topLevelFolderNode.getUniqueId());
+        clearAllData();
     }
 
     @Test
@@ -907,12 +896,11 @@ public class DAOTestIT {
         Node targetNode = new Node();
         targetNode.setName("Target node");
         targetNode.setNodeType(NodeType.FOLDER);
-        targetNode.setUniqueId(UUID.randomUUID().toString());
+        targetNode.setUniqueId(node1.getUniqueId());
 
         assertFalse(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(node1, node2), targetNode));
 
-        nodeDAO.deleteNode(node1.getUniqueId());
-        nodeDAO.deleteNode(node2.getUniqueId());
+        clearAllData();
     }
 
     @Test
@@ -934,8 +922,7 @@ public class DAOTestIT {
         assertThrows(NodeNotFoundException.class,
                 () -> nodeDAO.moveNodes(nodeIds, rootNode.getUniqueId(), "userName"));
 
-        nodeDAO.deleteNode(node1.getUniqueId());
-        nodeDAO.deleteNode(node2.getUniqueId());
+        clearAllData();
     }
 
     @Test
@@ -964,8 +951,7 @@ public class DAOTestIT {
 
         assertFalse(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(node3, node4), rootNode));
 
-        nodeDAO.deleteNode(node1.getUniqueId());
-        nodeDAO.deleteNode(node2.getUniqueId());
+        clearAllData();
 
     }
 
@@ -995,8 +981,7 @@ public class DAOTestIT {
 
         assertTrue(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(secondLevelFolder1, secondLevelFolder2), rootNode));
 
-        nodeDAO.deleteNode(firstLevelFolder1.getUniqueId());
-        nodeDAO.deleteNode(firstLevelFolder2.getUniqueId());
+        clearAllData();
 
     }
 
@@ -1027,14 +1012,10 @@ public class DAOTestIT {
 
         assertFalse(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(firstLevelFolder2, firstLevelFolder1), secondLevelFolder2));
 
-        nodeDAO.deleteNode(firstLevelFolder1.getUniqueId());
-        nodeDAO.deleteNode(firstLevelFolder2.getUniqueId());
-
-
+        clearAllData();
     }
 
     @Test
-    @Disabled
     public void testIsMoveAllowedMoveSaveSetToRoot() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1047,36 +1028,41 @@ public class DAOTestIT {
     }
 
     @Test
-    @Disabled
     public void testMoveNodesToNonExistingTarget() {
         assertThrows(NodeNotFoundException.class,
                 () -> nodeDAO.moveNodes(Collections.emptyList(), "non existing", "user"));
     }
 
     @Test
-    @Disabled
     public void testMoveNodesToNonFolder() {
         Node rootNode = nodeDAO.getRootNode();
+
+        Node topLevelFolderNode =
+                nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().name("top level folder").build());
 
         Node configNode = new Node();
         configNode.setName("Config");
         configNode.setNodeType(NodeType.CONFIGURATION);
-        configNode = nodeDAO.createNode(rootNode.getUniqueId(), configNode);
+        configNode = nodeDAO.createNode(topLevelFolderNode.getUniqueId(), configNode);
 
         Node node = configNode;
         assertThrows(IllegalArgumentException.class,
                 () -> nodeDAO.moveNodes(List.of("someId"), node.getUniqueId(), "user"));
+
+        clearAllData();
     }
 
     @Test
-    @Disabled
     public void testMoveSnasphot() {
         Node rootNode = nodeDAO.getRootNode();
+
+        Node topLevelFolderNode =
+                nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().name("top level folder").build());
 
         Node configNode = new Node();
         configNode.setName("Config");
         configNode.setNodeType(NodeType.CONFIGURATION);
-        configNode = nodeDAO.createNode(rootNode.getUniqueId(), configNode);
+        configNode = nodeDAO.createNode(topLevelFolderNode.getUniqueId(), configNode);
 
         Node snapshotNode = new Node();
         snapshotNode.setName("Snapshot");
@@ -1087,10 +1073,11 @@ public class DAOTestIT {
         assertThrows(IllegalArgumentException.class,
                 () -> nodeDAO.moveNodes(List.of(uniqueId), rootNode.getUniqueId(),
                         "user"));
+
+        clearAllData();
     }
 
     @Test
-    @Disabled
     public void testMoveNodes() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1114,10 +1101,12 @@ public class DAOTestIT {
         rootNode = nodeDAO.moveNodes(Arrays.asList(folderNode1.getUniqueId(), folderNode2.getUniqueId()), rootNode.getUniqueId(), "user");
 
         assertEquals(3, nodeDAO.getChildNodes(rootNode.getUniqueId()).size());
+
+        clearAllData();
+
     }
 
     @Test
-    @Disabled
     public void testCopyFolderToSameParent() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1129,25 +1118,30 @@ public class DAOTestIT {
         assertThrows(IllegalArgumentException.class,
                 () -> nodeDAO.copyNodes(List.of(uniqueId), rootNode.getUniqueId(),
                         "username"));
+
+        clearAllData();
     }
 
     @Test
-    @Disabled
     public void testCopyConfigToSameParent() {
         Node rootNode = nodeDAO.getRootNode();
+
+        Node topLevelFolderNode =
+                nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().name("top level folder").build());
 
         Node configNode = new Node();
         configNode.setName("Config");
         configNode.setNodeType(NodeType.CONFIGURATION);
-        configNode = nodeDAO.createNode(rootNode.getUniqueId(), configNode);
+        configNode = nodeDAO.createNode(topLevelFolderNode.getUniqueId(), configNode);
         String uniqueId = configNode.getUniqueId();
         assertThrows(IllegalArgumentException.class,
                 () -> nodeDAO.copyNodes(List.of(uniqueId), rootNode.getUniqueId(),
                         "username"));
+
+        clearAllData();
     }
 
     @Test
-    @Disabled
     public void testCopyFolderToOtherParent() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1165,6 +1159,8 @@ public class DAOTestIT {
 
         List<Node> childNodes = nodeDAO.getChildNodes(rootNode.getUniqueId());
         assertEquals(2, childNodes.size());
+
+        clearAllData();
     }
 
     @Test
@@ -1450,18 +1446,18 @@ public class DAOTestIT {
         // NOT OK to copy/move level 1 folders to root as they are already there
         assertFalse(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(L1F1), rootNode));
 
-        nodeDAO.deleteNode(L1F1.getUniqueId());
-        nodeDAO.deleteNode(L1F2.getUniqueId());
+        clearAllData();
 
     }
 
     /**
-     * Convenience method: as test methods create data, there is a need to
-     * remove it when a test method has completed.
+     * Deletes all child nodes of the root node, i.e. all data except root node.
      */
-    private void deleteAllConfigurationData(){
-        configurationDataRepository.deleteAll();
+    private void clearAllData(){
+        List<Node> childNodes = nodeDAO.getChildNodes(Node.ROOT_FOLDER_UNIQUE_ID);
+        childNodes.forEach(node -> nodeDAO.deleteNode(node.getUniqueId()));
     }
+
 
     @AfterAll
     public void dropIndices() {

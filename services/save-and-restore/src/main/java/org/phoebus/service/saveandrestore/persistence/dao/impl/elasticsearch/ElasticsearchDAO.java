@@ -110,8 +110,8 @@ public class ElasticsearchDAO implements NodeDAO {
         }
         Node parent = parentNode.get().getNode();
         // Root node may only contain FOLDER nodes
-        if(parent.getUniqueId().equals(ROOT_FOLDER_UNIQUE_ID) && (node.getNodeType().equals(NodeType.CONFIGURATION))||
-                node.getNodeType().equals(NodeType.SNAPSHOT)){
+        if(parent.getUniqueId().equals(ROOT_FOLDER_UNIQUE_ID) && (node.getNodeType().equals(NodeType.CONFIGURATION)||
+                node.getNodeType().equals(NodeType.SNAPSHOT))){
             throw new IllegalArgumentException(
                     "Root folder may only contain folder nodes.");
         }
@@ -224,11 +224,11 @@ public class ElasticsearchDAO implements NodeDAO {
         if (targetNode.get().getChildNodes() == null) {
             targetNode.get().setChildNodes(new ArrayList<>());
         }
-        // TODO: FIX!
-        //targetNode.get().getChildNodes().addAll(sourceNodes);
-        elasticsearchTreeRepository.save(targetNode.get());
 
-        return parentNode.getNode();
+        targetNode.get().getChildNodes().addAll(sourceNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
+        ESTreeNode updatedTargetNode = elasticsearchTreeRepository.save(targetNode.get());
+
+        return updatedTargetNode.getNode();
     }
 
     @Override
