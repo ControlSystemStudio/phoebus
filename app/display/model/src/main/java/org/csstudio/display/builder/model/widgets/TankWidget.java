@@ -96,6 +96,10 @@ public class TankWidget extends PVWidget
                 if (element != null)
                     tank.font.readFromXML(model_reader, element);
 
+                element = XMLUtil.getChildElement(xml, "show_scale");
+                if (element != null)
+                    tank.scale_visible.readFromXML(model_reader, element);
+
                 if (XMLUtil.getChildBoolean(xml, "show_markers").orElse(true)  &&
                     (XMLUtil.getChildBoolean(xml, "show_hi").orElse(true)   ||
                      XMLUtil.getChildBoolean(xml, "show_hihi").orElse(true) ||
