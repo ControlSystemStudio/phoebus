@@ -19,11 +19,18 @@
 
 package org.phoebus.applications.saveandrestore.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.epics.vtype.VType;
+import org.phoebus.applications.saveandrestore.model.json.VTypeDeserializer;
+import org.phoebus.applications.saveandrestore.model.json.VTypeSerializer;
 
 public class SaveAndRestorePv {
 
     private String pvName;
+
+    @JsonSerialize(using = VTypeSerializer.class)
+    @JsonDeserialize(using = VTypeDeserializer.class)
     private VType value;
 
     public String getPvName() {
@@ -40,5 +47,31 @@ public class SaveAndRestorePv {
 
     public void setValue(VType value) {
         this.value = value;
+    }
+
+    public static Builder builder(){
+        return new Builder();
+    }
+
+    public static class Builder{
+        private SaveAndRestorePv saveAndRestorePv;
+
+        private Builder(){
+            saveAndRestorePv = new SaveAndRestorePv();
+        }
+
+        public Builder pvName(String pvName){
+            saveAndRestorePv.setPvName(pvName);
+            return this;
+        }
+
+        public Builder value(VType value){
+            saveAndRestorePv.setValue(value);
+            return this;
+        }
+
+        public SaveAndRestorePv build(){
+            return saveAndRestorePv;
+        }
     }
 }

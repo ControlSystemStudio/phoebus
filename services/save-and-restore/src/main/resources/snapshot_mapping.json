@@ -4,18 +4,10 @@
       "uniqueId" : {
         "type" : "keyword"
       },
-      "pvList": {
+      "snapshotItems" : {
         "type" : "nested",
         "properties": {
-          "pv": {
-            "type": "text"
-          }
-        }
-      },
-      "readbackPvList": {
-        "type" : "nested",
-        "properties": {
-          "pv" : {
+          "data": {
             "type": "text"
           }
         }

@@ -145,7 +145,6 @@ public class SnapshotDataWrapperDataControllerTest {
 		
 		SnapshotItem si = SnapshotItem.builder()
 				.configPv(ConfigPv.builder().pvName("pvName").build())
-				.snapshotId(2)
 				.build();
 		
 		when(nodeDAO.getSnapshotItems("si")).thenReturn(Arrays.asList(si));

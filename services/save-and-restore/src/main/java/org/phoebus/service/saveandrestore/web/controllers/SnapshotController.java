@@ -72,6 +72,8 @@ public class SnapshotController extends BaseController {
         return nodeDAO.saveSnapshot(configUniqueId, snapshotItems, snapshotName, comment, userName);
     }
 
+
+
     @PutMapping(value = "/snapshot", produces = JSON)
     public Snapshot saveSnapshot(@RequestParam(value = "parentNodeId") String parentNodeId,
                                  @RequestBody Snapshot snapshot) {

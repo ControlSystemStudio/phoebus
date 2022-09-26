@@ -128,6 +128,7 @@ public class SaveAndRestoreService {
         return saveAndRestoreClient.getServiceUrl();
     }
 
+    @Deprecated
     public List<SnapshotItem> getSnapshotItems(String uniqueNodeId) throws Exception {
         Future<List<SnapshotItem>> future = executor.submit(() -> saveAndRestoreClient.getSnapshotItems(uniqueNodeId));
         return future.get();
@@ -305,10 +306,22 @@ public class SaveAndRestoreService {
         }
     }
 
-    public Snapshot saveSnapshot(String parentNodeId, Snapshot snapshot) throws Exception {
-        Future<Snapshot> future = executor.submit(() -> saveAndRestoreClient.saveSnapshot(parentNodeId, snapshot));
+    public Snapshot saveSnapshot(Node configurationNode, Snapshot snapshot) throws Exception {
+        // Some beautifying is needed to ensure successful serialization.
+        List<SnapshotItem> beautifiedItems = snapshot.getSnapshotData().getSnapshotItems().stream().map(snapshotItem -> {
+            if (snapshotItem.getValue() instanceof VNoData || snapshotItem.getValue() instanceof VDisconnectedData) {
+                snapshotItem.setValue(null);
+            }
+            if (snapshotItem.getReadbackValue() instanceof VNoData || snapshotItem.getReadbackValue() instanceof VDisconnectedData) {
+                snapshotItem.setReadbackValue(null);
+            }
+            return snapshotItem;
+        }).collect(Collectors.toList());
+        snapshot.getSnapshotData().setSnasphotItems(beautifiedItems);
+        Future<Snapshot> future = executor.submit(() -> saveAndRestoreClient.saveSnapshot(configurationNode.getUniqueId(), snapshot));
         Snapshot updatedSnapshot = future.get();
-        //notifyNodeChangeListeners(updatedNode);
+        // Notify listeners as the configuration node has a new child node.
+        notifyNodeChangeListeners(configurationNode);
         return updatedSnapshot;
     }
 }

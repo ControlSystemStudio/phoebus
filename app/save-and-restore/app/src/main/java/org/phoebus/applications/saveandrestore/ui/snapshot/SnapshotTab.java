@@ -29,6 +29,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -40,7 +41,7 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SnapshotTab extends Tab {
+public class SnapshotTab extends Tab implements NodeChangedListener {
 
     public SaveAndRestoreService saveAndRestoreService;
 
@@ -68,17 +69,17 @@ public class SnapshotTab extends Tab {
         loader.setLocation(SnapshotTab.class.getResource("SnapshotEditor.fxml"));
 
         loader.setControllerFactory(clazz -> {
-                    try {
-                        if (clazz.isAssignableFrom(SnapshotController.class)) {
-                            return clazz.getConstructor()
-                                    .newInstance();
-                        }
-                    } catch (Exception e) {
-                        ExceptionDetailsErrorDialog.openError("Error",
-                                "Failed to open new snapshot tab", e);
-                    }
-                    return null;
-                });
+            try {
+                if (clazz.isAssignableFrom(SnapshotController.class)) {
+                    return clazz.getConstructor(SnapshotTab.class)
+                            .newInstance(this);
+                }
+            } catch (Exception e) {
+                ExceptionDetailsErrorDialog.openError("Error",
+                        "Failed to open new snapshot tab", e);
+            }
+            return null;
+        });
 
         BorderPane borderPane;
         try {
@@ -104,7 +105,6 @@ public class SnapshotTab extends Tab {
         setGraphic(container);
 
         snapshotController = loader.getController();
-        snapshotController.setSnapshotTab(this);
         tabTitleProperty.set(node.getNodeType().equals(NodeType.SNAPSHOT) ? node.getName() : Messages.unnamedSnapshot);
 
         boolean isGolden = node.getTags() != null && node.getTags().stream().anyMatch(t -> t.getName().equals("golden"));
@@ -115,7 +115,12 @@ public class SnapshotTab extends Tab {
             if(!snapshotController.handleSnapshotTabClosed()){
                 event.consume();
             }
+            else{
+                SaveAndRestoreService.getInstance().removeNodeChangeListener(this);
+            }
         });
+
+        SaveAndRestoreService.getInstance().addNodeChangeListener(this);
     }
 
     public void updateTabTitile(String name, boolean golden){
@@ -123,11 +128,22 @@ public class SnapshotTab extends Tab {
         tabTitleProperty.set(name);
     }
 
-    public void loadSaveSet(org.phoebus.applications.saveandrestore.model.Node node){
-        snapshotController.loadSaveSet(node);
+    public void newSnapshot(org.phoebus.applications.saveandrestore.model.Node configurationNode){
+        snapshotController.newSnapshot(configurationNode);
+    }
+
+    public void loadSnapshot(Node snapshotNode){
+        snapshotController.loadSnapshot(snapshotNode);
     }
 
     public void addSnapshot(org.phoebus.applications.saveandrestore.model.Node node){
         snapshotController.addSnapshot(node);
+    }
+
+    @Override
+    public void nodeChanged(Node node) {
+        if (node.getUniqueId().equals(getId())) {
+            tabTitleProperty.set(node.getName());
+        }
     }
 }

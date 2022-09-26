@@ -121,6 +121,10 @@ public class ConfigurationTab extends Tab implements NodeChangedListener {
         }
     }
 
+    /**
+     * Updates tab title, e.g. if user has renamed the configuration.
+     * @param tabTitle The wanted tab title.
+     */
     public void updateTabTitle(String tabTitle){
         tabTitleProperty.set(tabTitle);
     }

@@ -14,38 +14,26 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
  */
 
-package org.phoebus.applications.saveandrestore.model;
+package org.phoebus.service.saveandrestore.web.controllers;
 
-import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-/**
- * Class holding data particular to a save-n-restore snapshot {@link Node}.
- */
-public class SnapshotData {
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-    /**
-     * This <b>must</b> be set to the same unique id as the {@link Node} object
-     * mapping to the snapshot {@link Node}.
-     */
-    private String uniqueId;
-
-    private List<SnapshotItem> snapshotItems;
-
-    public String getUniqueId() {
-        return uniqueId;
-    }
-
-    public void setUniqueId(String uniqueId) {
-        this.uniqueId = uniqueId;
-    }
-
-    public List<SnapshotItem> getSnapshotItems() {
-        return snapshotItems;
-    }
-
-    public void setSnasphotItems(List<SnapshotItem> snapshotItems) {
-        this.snapshotItems = snapshotItems;
+@RestControllerAdvice
+public class ControllersConfig {
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public void handle(HttpMessageNotReadableException e) {
+        Logger.getLogger(ControllersConfig.class.getName()).log(Level.WARNING, "Returning HTTP 400 Bad Request", e);
+        throw e;
     }
 }

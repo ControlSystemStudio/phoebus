@@ -282,7 +282,6 @@ public class ConfigurationController implements NodeChangedListener {
                         Messages.errorActionFailed,
                         Messages.errorCreateSaveSetFailed,
                         e1);
-                // Primary failure reason
             }
         });
     }
@@ -326,8 +325,9 @@ public class ConfigurationController implements NodeChangedListener {
     }
 
     /**
-     * Configures the controller
-     * @param parentNode
+     * Configures the controller to create a new configuration.
+     * @param parentNode The parent {@link Node} for the new configuration, i.e. must be a
+     *                   {@link Node} of type {@link NodeType#FOLDER}.
      */
     public void newConfiguration(Node parentNode) {
         configurationNodeParent = parentNode;
@@ -338,6 +338,10 @@ public class ConfigurationController implements NodeChangedListener {
         dirty.set(false);
     }
 
+    /**
+     * Loads an existing configuration {@link Node} and its associated {@link ConfigurationData}.
+     * @param node An existing {@link Node} of type {@link NodeType#CONFIGURATION}.
+     */
     public void loadConfiguration(final Node node) {
         try {
             configurationData = saveAndRestoreService.getConfiguration(node.getUniqueId());

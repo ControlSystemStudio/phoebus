@@ -353,15 +353,6 @@ public class ElasticsearchDAO implements NodeDAO {
         SnapshotData elasticsearchSnapshotData = new SnapshotData();
         elasticsearchSnapshotData.setUniqueId(snapshotNode.getUniqueId());
 
-        List<SaveAndRestorePv> snapshotPvs = new ArrayList<>();
-        snapshotItems.forEach(si -> {
-            SaveAndRestorePv saveAndRestorePv = new SaveAndRestorePv();
-            saveAndRestorePv.setPvName(si.getConfigPv().getPvName());
-            saveAndRestorePv.setValue(si.getValue());
-            snapshotPvs.add(saveAndRestorePv);
-        });
-        elasticsearchSnapshotData.setPvList(snapshotPvs);
-
         snapshotDataRepository.save(elasticsearchSnapshotData);
 
         return elasticsearchTreeNode.getNode();
@@ -376,8 +367,10 @@ public class ElasticsearchDAO implements NodeDAO {
         return elasticsearchSaveSetOptional.get().getPvList();
     }
 
+    @Deprecated
     @Override
     public List<SnapshotItem> getSnapshotItems(String snapshotUniqueId) {
+        /*
         Optional<SnapshotData> elasticsearchSnapshotOptional = snapshotDataRepository.findById(snapshotUniqueId);
         if (elasticsearchSnapshotOptional.isEmpty()) {
             return Collections.emptyList();
@@ -391,6 +384,10 @@ public class ElasticsearchDAO implements NodeDAO {
             });
             return items;
         }
+
+         */
+
+        return null;
     }
 
     @Override

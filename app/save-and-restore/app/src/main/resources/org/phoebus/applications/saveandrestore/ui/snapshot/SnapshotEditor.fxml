@@ -38,16 +38,17 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-          <RowConstraints />
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+               <RowConstraints />
       </rowConstraints>
        <children>
 
-          <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" style="-fx-font-weight: 900;" text="%createdBy" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.hgrow="NEVER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
+          <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" style="-fx-font-weight: 900;" text="%createdBy" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.hgrow="NEVER" GridPane.rowIndex="3" GridPane.valignment="CENTER">
              <GridPane.margin>
                 <Insets right="5.0" />
              </GridPane.margin>
          </Label>
-          <Label fx:id="createdBy" text="Created By" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="CENTER">
+          <Label fx:id="createdBy" maxWidth="1.7976931348623157E308" text="Created By" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.valignment="CENTER">
                <GridPane.margin>
                    <Insets right="5.0" />
                </GridPane.margin>
@@ -57,7 +58,7 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                 <Insets right="5.0" />
              </GridPane.margin>
          </Label>
-          <Label fx:id="createdDate" text="Created Date" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+          <Label fx:id="createdDate" maxWidth="1.7976931348623157E308" text="Created Date" GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.valignment="CENTER">
              <GridPane.margin>
                 <Insets right="5.0" />
              </GridPane.margin>
@@ -77,17 +78,17 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                    <Insets left="20.0" right="5.0" top="5.0" />
                </GridPane.margin>
          </Label>
-          <TextArea fx:id="snapshotComment" maxWidth="1.7976931348623157E308" promptText="Enter a comment (mandatory)" GridPane.columnIndex="3" GridPane.hgrow="ALWAYS" GridPane.rowSpan="3">
+          <TextArea fx:id="snapshotComment" maxWidth="1.7976931348623157E308" promptText="Enter a comment (mandatory)" GridPane.columnIndex="3" GridPane.hgrow="ALWAYS" GridPane.rowSpan="4">
                <GridPane.margin>
                    <Insets bottom="5.0" right="5.0" top="5.0" />
                </GridPane.margin>
          </TextArea>
-          <Button fx:id="restoreButton" maxHeight="1.7976931348623157E308" onAction="#restore" prefHeight="82.0" prefWidth="78.0" text="%restore" GridPane.columnIndex="4" GridPane.rowSpan="3">
+          <Button fx:id="restoreButton" maxHeight="1.7976931348623157E308" onAction="#restore" prefHeight="82.0" prefWidth="78.0" text="%restore" GridPane.columnIndex="4" GridPane.rowSpan="4">
              <GridPane.margin>
                 <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
              </GridPane.margin>
          </Button>
-          <Button fx:id="takeSnapshotButton"  maxHeight="1.7976931348623157E308" onAction="#takeSnapshot" GridPane.columnIndex="6" GridPane.rowIndex="0" GridPane.rowSpan="3">
+          <Button fx:id="takeSnapshotButton" maxHeight="1.7976931348623157E308" onAction="#takeSnapshot" GridPane.columnIndex="6" GridPane.rowIndex="0" GridPane.rowSpan="4">
              <graphic>
                 <VBox alignment="CENTER" maxHeight="Infinity">
                    <children>
@@ -104,7 +105,7 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                 <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
              </GridPane.margin>
          </Button>
-          <Button fx:id="saveSnapshotButton" maxHeight="1.7976931348623157E308" onAction="#saveSnapshot" GridPane.columnIndex="7" GridPane.rowIndex="0" GridPane.rowSpan="3">
+          <Button fx:id="saveSnapshotButton" maxHeight="1.7976931348623157E308" onAction="#saveSnapshot" GridPane.columnIndex="7" GridPane.rowIndex="0" GridPane.rowSpan="4">
              <graphic>
                 <VBox alignment="CENTER">
                    <children>
@@ -117,6 +118,12 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                 <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
              </GridPane.margin>
           </Button>
+               <Label text="%lastModifiedDate" GridPane.halignment="RIGHT" GridPane.hgrow="NEVER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
+                  <GridPane.margin>
+                     <Insets right="5.0" />
+                  </GridPane.margin>
+               </Label>
+               <Label fx:id="snapshotLastModifiedLabel" text="Last Modified Date" GridPane.columnIndex="1" GridPane.rowIndex="2" />
 
        </children>
     </GridPane>

@@ -18,10 +18,15 @@
 
 package org.phoebus.applications.saveandrestore.impl;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.GenericType;
+import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
@@ -83,7 +88,12 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
         DefaultClientConfig defaultClientConfig = new DefaultClientConfig();
         defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_READ_TIMEOUT, httpClientReadTimeout);
         defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, httpClientConnectTimeout);
-        defaultClientConfig.getClasses().add(JacksonJsonProvider.class);
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.setSerializationInclusion(Include.NON_NULL);
+        JacksonJsonProvider jacksonJsonProvider = new JacksonJsonProvider(mapper);
+        defaultClientConfig.getSingletons().add(jacksonJsonProvider);
+        //defaultClientConfig.getClasses().add(JacksonJsonProvider.class);
         //defaultClientConfig.getClasses().add(GsonMessageBodyHandler.class);
         client = Client.create(defaultClientConfig);
     }
@@ -131,6 +141,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
         });
     }
 
+    @Deprecated
     @Override
     public List<SnapshotItem> getSnapshotItems(String snapshotUniqueId) {
         ClientResponse response = getCall("/snapshot/" + snapshotUniqueId + "/items");
@@ -380,12 +391,20 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
     @Override
     public Snapshot saveSnapshot(String parentNodeId, Snapshot snapshot){
+        snapshot.getSnapshotNode().setUserName(getCurrentUsersName());
         WebResource webResource =
                 client.resource(jmasarServiceUrl + "/snapshot")
                         .queryParam("parentNodeId", parentNodeId);
-        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
-                .entity(snapshot, CONTENT_TYPE_JSON)
-                .put(ClientResponse.class);
+        ClientResponse response = null;
+        try {
+            response = webResource.accept(CONTENT_TYPE_JSON)
+                    .entity(snapshot, CONTENT_TYPE_JSON)
+                    .put(ClientResponse.class);
+        } catch (UniformInterfaceException e) {
+            throw new RuntimeException(e);
+        } catch (ClientHandlerException e) {
+            throw new RuntimeException(e);
+        }
         if (response.getStatus() != 200) {
             String message = Messages.saveSnaphotFailed;
             try {

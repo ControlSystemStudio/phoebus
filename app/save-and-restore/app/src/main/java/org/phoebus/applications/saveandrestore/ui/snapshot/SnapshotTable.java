@@ -51,7 +51,6 @@ import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.ui.MultitypeTableCell;
 import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
 import org.phoebus.applications.saveandrestore.common.VTypePair;
-import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.core.types.TimeStampedProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
@@ -650,7 +649,7 @@ class SnapshotTable extends TableView<TableEntry> {
 
             ObjectProperty<VTypePair> value = e.getRowValue().valueProperty();
             value.setValue(new VTypePair(value.get().base, updatedValue, value.get().threshold));
-            controller.updateSnapshot(0, e.getRowValue(), updatedValue);
+            controller.updateLoadedSnapshot(0, e.getRowValue(), updatedValue);
         });
 
         storedValueBaseColumn.getColumns().add(storedValueColumn);
@@ -758,7 +757,7 @@ class SnapshotTable extends TableView<TableEntry> {
 
             ObjectProperty<VTypePair> value = e.getRowValue().valueProperty();
             value.setValue(new VTypePair(value.get().base, updatedValue, value.get().threshold));
-            controller.updateSnapshot(0, e.getRowValue(), updatedValue);
+            controller.updateLoadedSnapshot(0, e.getRowValue(), updatedValue);
 
             for (int i = 1; i < snapshots.size(); i++) {
                 ObjectProperty<VTypePair> compareValue = e.getRowValue().compareValueProperty(i);

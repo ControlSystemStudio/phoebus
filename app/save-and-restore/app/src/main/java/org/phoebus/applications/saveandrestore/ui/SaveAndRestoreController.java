@@ -477,7 +477,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     protected void openSaveSetForSnapshot() {
         TreeItem<Node> treeItem = browserSelectionModel.getSelectedItems().get(0);
         SnapshotTab tab = new SnapshotTab(treeItem.getValue(), saveAndRestoreService);
-        tab.loadSaveSet(treeItem.getValue());
+        tab.newSnapshot(treeItem.getValue());
 
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);
@@ -560,6 +560,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 break;
             case SNAPSHOT:
                 tab = new SnapshotTab(node, saveAndRestoreService);
+                ((SnapshotTab) tab).loadSnapshot(node);
                 break;
             case FOLDER:
             default:
@@ -741,8 +742,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             return;
         }
         nodeSubjectToUpdate.setValue(node);
-        // Folder node changes may include structure changes, so expand to force update.
-        if (nodeSubjectToUpdate.getValue().getNodeType().equals(NodeType.FOLDER)) {
+        // Folder and configuration node changes may include structure changes, so expand to force update.
+        if (nodeSubjectToUpdate.getValue().getNodeType().equals(NodeType.FOLDER) ||
+                nodeSubjectToUpdate.getValue().getNodeType().equals(NodeType.CONFIGURATION)) {
             if (nodeSubjectToUpdate.getParent() != null) { // null means root folder as it has no parent
                 nodeSubjectToUpdate.getParent().getChildren().sort(treeNodeComparator);
             }

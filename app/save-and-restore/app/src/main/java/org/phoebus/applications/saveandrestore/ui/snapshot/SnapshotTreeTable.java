@@ -746,7 +746,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
             ObjectProperty<VTypePair> value = treeTableEntry.tableEntry.valueProperty();
             value.setValue(new VTypePair(value.get().base, updatedValue, value.get().threshold));
-            controller.updateSnapshot(0, e.getRowValue().getValue().tableEntry, updatedValue);
+            controller.updateLoadedSnapshot(0, e.getRowValue().getValue().tableEntry, updatedValue);
         });
 
         storedValueBaseColumn.getColumns().add(storedValueColumn);
@@ -875,7 +875,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
             ObjectProperty<VTypePair> value = treeTableEntry.tableEntry.valueProperty();
             value.setValue(new VTypePair(value.get().base, updatedValue, value.get().threshold));
-            controller.updateSnapshot(0, e.getRowValue().getValue().tableEntry, updatedValue);
+            controller.updateLoadedSnapshot(0, e.getRowValue().getValue().tableEntry, updatedValue);
 
             for (int i = 1; i < snapshots.size(); i++) {
                 ObjectProperty<VTypePair> compareValue = e.getRowValue().getValue().tableEntry.compareValueProperty(i);

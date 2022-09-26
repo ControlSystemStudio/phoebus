@@ -77,6 +77,7 @@ public interface SaveAndRestoreClient {
      * @param snapshotUniqueId Unique id of a snapshot {@link Node}
      * @return A list of {@link SnapshotItem}s associated with the snapshot.
      */
+    @Deprecated
     List<SnapshotItem> getSnapshotItems(String snapshotUniqueId);
 
     /**

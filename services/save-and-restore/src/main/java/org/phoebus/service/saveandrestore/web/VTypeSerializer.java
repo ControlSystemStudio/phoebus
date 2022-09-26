@@ -30,6 +30,7 @@ import org.epics.vtype.json.VTypeToJson;
 import org.springframework.boot.jackson.JsonComponent;
 
 import javax.json.Json;
+import javax.json.JsonObject;
 import javax.json.JsonReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -52,7 +53,8 @@ public class VTypeSerializer {
             JsonReader jsonReader = null;
             try {
                 jsonReader = Json.createReader(new ByteArrayInputStream(valueAsJson.getBytes()));
-                return VTypeToJson.toVType(jsonReader.readObject());
+                JsonObject jsonObject = jsonReader.readObject();
+                return VTypeToJson.toVType(jsonObject);
             }
             finally {
                 if(jsonReader != null) {
