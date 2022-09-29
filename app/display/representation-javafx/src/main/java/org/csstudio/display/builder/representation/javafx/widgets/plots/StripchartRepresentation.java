@@ -332,6 +332,7 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
             config.setName(axis.title().getValue());
             config.setRange(axis.minimum().getValue(), axis.maximum().getValue());
             config.setAutoScale(axis.autoscale().getValue());
+            config.setColor(model.getPlotForeground());
             config.setLogScale(axis.logscale().getValue());
             config.setGridVisible(axis.grid().getValue());
             config.setVisible(axis.visible().getValue());
