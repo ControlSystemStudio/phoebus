@@ -83,9 +83,22 @@ public class Rubberband
     {
         if (! active)
             return;
+
+        // Get the current coords of the pointer, relative to the parent
         final Point2D in_parent = parent.sceneToLocal(event.getSceneX(), event.getSceneY());
         x1 = in_parent.getX();
         y1 = in_parent.getY();
+
+        // If outside the parent window,
+        // then set the coords to the parent window border (zero)
+        if(x1 <-1) {
+            x1 = 0;
+        }
+        if(y1 <-1) {
+            y1 = 0;
+        }
+
+        // Update the rectangle coords and dimensions
         rect.setX(Math.min(x0, x1));
         rect.setY(Math.min(y0, y1));
         rect.setWidth(Math.abs(x1 - x0));
