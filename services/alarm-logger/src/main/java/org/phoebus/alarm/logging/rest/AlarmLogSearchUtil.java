@@ -63,6 +63,8 @@ public class AlarmLogSearchUtil {
     private static final String STARTTIME = "start";
     private static final String ENDTIME = "end";
 
+    private static final String ROOT = "root";
+
     private static final String CONFIG_INDEX_FORMAT = "_alarms_config";
     private static final String STATE_INDEX_FORMAT = "_alarms_state";
 
@@ -133,6 +135,25 @@ public class AlarmLogSearchUtil {
                                             )
                                     )
                             )
+                    );
+                    configSet = true;
+                    break;
+                case ROOT:
+                    boolQuery.must(
+                            Query.of(b -> b.bool(s -> s.should(
+                                    Query.of(q -> q
+                                            .wildcard(WildcardQuery.of(w -> w
+                                                            .field("config").value("state:/" + parameter.getValue().strip() + "*")
+                                                    )
+                                            )
+                                    ),
+                                    Query.of(q -> q
+                                            .wildcard(WildcardQuery.of(w -> w
+                                                            .field("config").value("config:/" + parameter.getValue().strip() + "*")
+                                                    )
+                                            )
+                                    )
+                            )))
                     );
                     configSet = true;
                     break;
