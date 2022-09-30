@@ -38,6 +38,7 @@ import javafx.scene.paint.Color;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.PlatformInfo;
 
@@ -162,7 +163,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
                         .setText(node.getName());
                 snapshotBox.lookup("#tagIcon").setVisible(node.getTags() != null && !node.getTags().isEmpty());
                 setGraphic(snapshotBox);
-                if (node.hasTag("golden")) {
+                if (node.hasTag(Tag.GOLDEN)) {
                     ((ImageView) snapshotBox.lookup("#snapshotIcon")).setImage(ImageCache.getImage(BrowserTreeCell.class, "/icons/save-and-restore/snapshot-golden.png"));
                 } else {
                     ((ImageView) snapshotBox.lookup("#snapshotIcon")).setImage(ImageCache.getImage(BrowserTreeCell.class, "/icons/save-and-restore/snapshot.png"));

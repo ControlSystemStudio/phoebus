@@ -34,7 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -48,8 +47,8 @@ public class SaveAndRestoreService {
 
     private final ExecutorService executor;
 
-    private final List<NodeChangedListener> nodeChangeListeners = Collections.synchronizedList(new ArrayList());
-    private final List<NodeAddedListener> nodeAddedListeners = Collections.synchronizedList(new ArrayList());
+    private final List<NodeChangedListener> nodeChangeListeners = Collections.synchronizedList(new ArrayList<>());
+    private final List<NodeAddedListener> nodeAddedListeners = Collections.synchronizedList(new ArrayList<>());
 
     private static final Logger LOG = LoggerFactory.getLogger(SaveAndRestoreService.class.getName());
 
@@ -128,12 +127,6 @@ public class SaveAndRestoreService {
         return saveAndRestoreClient.getServiceUrl();
     }
 
-    @Deprecated
-    public List<SnapshotItem> getSnapshotItems(String uniqueNodeId) throws Exception {
-        Future<List<SnapshotItem>> future = executor.submit(() -> saveAndRestoreClient.getSnapshotItems(uniqueNodeId));
-        return future.get();
-    }
-
     public Node getParentNode(String uniqueNodeId) throws Exception {
         Future<Node> future = executor.submit(() -> saveAndRestoreClient.getParentNode(uniqueNodeId));
         return future.get();
@@ -146,9 +139,10 @@ public class SaveAndRestoreService {
             Tag goldenTag;
             if (tags == null) {
                 tags = new ArrayList<>();
+                node.setTags(tags);
             }
-            if (node.hasTag("golden")) {
-                goldenTag = tags.stream().filter(t -> t.getName().equals("golden")).findFirst().get();
+            if (node.hasTag(Tag.GOLDEN)) {
+                goldenTag = tags.stream().filter(t -> t.getName().equals(Tag.GOLDEN)).findFirst().get();
             } else {
                 goldenTag = Tag.goldenTag(userName);
             }
@@ -205,32 +199,13 @@ public class SaveAndRestoreService {
         return updatedConfiguration;
     }
 
-    public Node saveSnapshot(Node saveSetNode, List<SnapshotItem> snapshotItems, String snapshotName, String comment) throws Exception {
-        // Some beautifying is needed to ensure successful serialization.
-        List<SnapshotItem> beautifiedItems = snapshotItems.stream().map(snapshotItem -> {
-            if (snapshotItem.getValue() instanceof VNoData || snapshotItem.getValue() instanceof VDisconnectedData) {
-                snapshotItem.setValue(null);
-            }
-            if (snapshotItem.getReadbackValue() instanceof VNoData || snapshotItem.getReadbackValue() instanceof VDisconnectedData) {
-                snapshotItem.setReadbackValue(null);
-            }
-            return snapshotItem;
-        }).collect(Collectors.toList());
-        Future<Node> future =
-                executor.submit(() -> saveAndRestoreClient.saveSnapshot(saveSetNode.getUniqueId(), beautifiedItems, snapshotName, comment));
-
-        Node savedSnapshot = future.get();
-        notifyNodeAddedListeners(saveSetNode, Arrays.asList(savedSnapshot));
-        return savedSnapshot;
-    }
-
     public List<Tag> getAllTags() throws Exception {
-        Future<List<Tag>> future = executor.submit(() -> saveAndRestoreClient.getAllTags());
+        Future<List<Tag>> future = executor.submit(saveAndRestoreClient::getAllTags);
         return future.get();
     }
 
     public List<Node> getAllSnapshots() throws Exception {
-        Future<List<Node>> future = executor.submit(() -> saveAndRestoreClient.getAllSnapshots());
+        Future<List<Node>> future = executor.submit(saveAndRestoreClient::getAllSnapshots);
         return future.get();
     }
 
@@ -243,7 +218,7 @@ public class SaveAndRestoreService {
     }
 
     private void notifyNodeChangeListeners(Node changedNode) {
-        nodeChangeListeners.stream().forEach(listener -> listener.nodeChanged(changedNode));
+        nodeChangeListeners.forEach(listener -> listener.nodeChanged(changedNode));
     }
 
     public void addNodeAddedListener(NodeAddedListener nodeAddedListener) {
@@ -255,7 +230,7 @@ public class SaveAndRestoreService {
     }
 
     private void notifyNodeAddedListeners(Node parentNode, List<Node> newNodes) {
-        nodeAddedListeners.stream().forEach(listener -> listener.nodesAdded(parentNode, newNodes));
+        nodeAddedListeners.forEach(listener -> listener.nodesAdded(parentNode, newNodes));
     }
 
     /**
@@ -268,25 +243,23 @@ public class SaveAndRestoreService {
      * @param sourceNodes A list of {@link Node}s of type {@link NodeType#FOLDER} or {@link NodeType#CONFIGURATION}.
      * @param targetNode  A {@link Node} of type {@link NodeType#FOLDER}.
      * @return The target {@link Node} containing the source {@link Node} along with any other {@link Node}s
-     * @throws Exception
+     * @throws Exception if move operation fails.
      */
     public Node moveNodes(List<Node> sourceNodes, Node targetNode) throws Exception {
         // Map list of nodes to list of unique ids
         List<String> sourceNodeIds = sourceNodes.stream().map(Node::getUniqueId).collect(Collectors.toList());
         Future<Node> future = executor.submit(() -> saveAndRestoreClient.moveNodes(sourceNodeIds, targetNode.getUniqueId()));
-        Node updatedNode = future.get();
-        return updatedNode;
+        return future.get();
     }
 
     public Node copyNode(List<Node> sourceNodes, Node targetNode) throws Exception {
         // Map list of nodes to list of unique ids
         List<String> sourceNodeIds = sourceNodes.stream().map(Node::getUniqueId).collect(Collectors.toList());
         Future<Node> future = executor.submit(() -> saveAndRestoreClient.copyNodes(sourceNodeIds, targetNode.getUniqueId()));
-        Node updatedNode = future.get();
-        return updatedNode;
+        return future.get();
     }
 
-    public ConfigurationData getConfiguration(String nodeId) throws Exception {
+    public ConfigurationData getConfiguration(String nodeId) {
         Future<ConfigurationData> future = executor.submit(() -> saveAndRestoreClient.getConfiguration(nodeId));
         try {
             return future.get();
@@ -296,7 +269,7 @@ public class SaveAndRestoreService {
         }
     }
 
-    public SnapshotData getSnapshot(String nodeId) throws Exception {
+    public SnapshotData getSnapshot(String nodeId) {
         Future<SnapshotData> future = executor.submit(() -> saveAndRestoreClient.getSnapshotData(nodeId));
         try {
             return future.get();

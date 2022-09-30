@@ -45,34 +45,10 @@ public class SnapshotController extends BaseController {
         return nodeDAO.getSnapshotData(uniqueId);
     }
 
-    @Deprecated
-    @GetMapping(value = "/snapshot/{uniqueNodeId}/items", produces = JSON)
-    public List<SnapshotItem> getSnapshotItems(@PathVariable String uniqueNodeId) {
-
-        return nodeDAO.getSnapshotItems(uniqueNodeId);
-    }
-
     @GetMapping(value = "/snapshots", produces = JSON)
     public List<Node> getAllSnapshots() {
         return nodeDAO.getAllSnapshots();
     }
-
-    @Deprecated
-    @PutMapping(value = "/snapshot/{configUniqueId}", produces = JSON)
-    public Node saveSnapshot(@PathVariable String configUniqueId,
-                             @RequestParam(name = "snapshotName") String snapshotName,
-                             @RequestParam(name = "userName") String userName,
-                             @RequestParam(name = "comment") String comment,
-                             @RequestBody List<SnapshotItem> snapshotItems) {
-
-        if (snapshotName.length() == 0 || userName.length() == 0 || comment.length() == 0) {
-            throw new IllegalArgumentException("SnapshotData name, user name and comment must be of non-zero length");
-        }
-
-        return nodeDAO.saveSnapshot(configUniqueId, snapshotItems, snapshotName, comment, userName);
-    }
-
-
 
     @PutMapping(value = "/snapshot", produces = JSON)
     public Snapshot saveSnapshot(@RequestParam(value = "parentNodeId") String parentNodeId,

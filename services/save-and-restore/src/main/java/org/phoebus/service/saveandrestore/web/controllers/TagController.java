@@ -46,9 +46,4 @@ public class TagController extends BaseController {
     public List<Tag> getTags() {
         return nodeDAO.getAllTags();
     }
-
-    @GetMapping("/tag/{snapshotUniqueId}")
-    public List<Tag> getTag(@PathVariable String snapshotUniqueId) {
-        return nodeDAO.getTags(snapshotUniqueId);
-    }
 }

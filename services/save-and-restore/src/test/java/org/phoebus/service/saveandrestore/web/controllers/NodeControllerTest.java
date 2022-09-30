@@ -451,25 +451,6 @@ public class NodeControllerTest {
     }
 
     @Test
-    public void testGetConfigPvs() throws Exception {
-
-        ConfigPv configPv = ConfigPv.builder()
-                .pvName("pvname")
-                .build();
-
-        when(nodeDAO.getConfigPvs("cpv")).thenReturn(Arrays.asList(configPv));
-
-        MockHttpServletRequestBuilder request = get("/config/cpv/items");
-
-        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
-                .andReturn();
-
-        // Make sure response contains expected data
-        objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<List<ConfigPv>>() {
-        });
-    }
-
-    @Test
     public void testGetFromPath() throws Exception {
         when(nodeDAO.getFromPath("/a/b/c")).thenReturn(null);
         MockHttpServletRequestBuilder request = get("/path?path=/a/b/c");

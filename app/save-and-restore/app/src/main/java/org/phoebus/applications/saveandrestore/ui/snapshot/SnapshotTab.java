@@ -29,6 +29,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.framework.nls.NLS;
@@ -107,7 +108,7 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
         snapshotController = loader.getController();
         tabTitleProperty.set(node.getNodeType().equals(NodeType.SNAPSHOT) ? node.getName() : Messages.unnamedSnapshot);
 
-        boolean isGolden = node.getTags() != null && node.getTags().stream().anyMatch(t -> t.getName().equals("golden"));
+        boolean isGolden = node.getTags() != null && node.getTags().stream().anyMatch(t -> t.getName().equals(Tag.GOLDEN));
 
         tabGraphicImageProperty.set(isGolden ? goldenImage : regularImage);
 

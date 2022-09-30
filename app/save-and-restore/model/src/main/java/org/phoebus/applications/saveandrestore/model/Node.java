@@ -112,8 +112,8 @@ public class Node implements Comparable<Node>, Serializable {
         this.description = description;
     }
 
-    public boolean hasTag(String tagName){
-        if(tags == null || tags.isEmpty()){
+    public boolean hasTag(String tagName) {
+        if (tags == null || tags.isEmpty()) {
             return false;
         }
         return tags.stream().anyMatch(t -> t.getName().equals(tagName));
@@ -205,7 +205,7 @@ public class Node implements Comparable<Node>, Serializable {
             return this;
         }
 
-        public Builder description(String description){
+        public Builder description(String description) {
             node.setDescription(description);
             return this;
         }

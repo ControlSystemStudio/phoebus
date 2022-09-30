@@ -123,7 +123,8 @@ public class NodeController extends BaseController {
     }
 
     /**
-     * Updates a {@link Node}.
+     * Updates a {@link Node}. The purpose is to support modification of name or comment/description, or both. Modification of
+     * node type is not supported.
      *
      * <p>
      * A {@link HttpStatus#BAD_REQUEST} is returned if a node of the same name and type already exists in the parent folder,

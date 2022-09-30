@@ -1,23 +1,23 @@
 /**
  * Copyright (C) 2020 Facility for Rare Isotope Beams
- *
+ * <p>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *
+ * <p>
  * Contact Information: Facility for Rare Isotope Beam,
- *                      Michigan State University,
- *                      East Lansing, MI 48824-1321
- *                      http://frib.msu.edu
+ * Michigan State University,
+ * East Lansing, MI 48824-1321
+ * http://frib.msu.edu
  */
 package org.phoebus.applications.saveandrestore.filehandler.csv;
 
@@ -54,6 +54,7 @@ import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 
@@ -77,9 +78,14 @@ public class CSVExporter extends CSVCommon {
         nodeToExport = node;
 
         switch (node.getNodeType()) {
-            case CONFIGURATION: exportSaveset();  break;
-            case      SNAPSHOT: exportSnapshot(); break;
-                       default: throw new Exception("The node of " + node.getNodeType() + " is not supported for export!");
+            case CONFIGURATION:
+                exportSaveset();
+                break;
+            case SNAPSHOT:
+                exportSnapshot();
+                break;
+            default:
+                throw new Exception("The node of " + node.getNodeType() + " is not supported for export!");
         }
     }
 
@@ -95,7 +101,7 @@ public class CSVExporter extends CSVCommon {
         printStream.println(Comment(DESCRIPTION_TAG));
         // Corner case: description is not set if user chooses to export before save set is saved to service
         String description = nodeToExport.getDescription();
-        if (description == null){
+        if (description == null) {
             description = "description";
         }
         printStream.println(Comment(description.replaceAll("([\\r\\n])", "$1" + COMMENT_PREFIX + " ")).trim());
@@ -136,7 +142,8 @@ public class CSVExporter extends CSVCommon {
         printStream.println(Comment(ENDING_TAG));
 
         printStream.println(Record(H_PV_NAME, H_SELECTED, H_TIMESTAMP, H_STATUS, H_SEVERITY, H_VALUE_TYPE, H_VALUE, H_READBACK, H_READBACK_VALUE, H_DELTA, H_READ_ONLY));
-        List<SnapshotItem> snapshotItems = saveAndRestoreService.getSnapshotItems(nodeToExport.getUniqueId());
+        SnapshotData snapshotData = saveAndRestoreService.getSnapshot(nodeToExport.getUniqueId());
+        List<SnapshotItem> snapshotItems = snapshotData.getSnapshotItems();
 
         for (SnapshotItem snapshotItem : snapshotItems) {
             printStream.println(Record(snapshotItem));
@@ -278,7 +285,7 @@ public class CSVExporter extends CSVCommon {
                 return "ulong";
             } else if (clazz.equals(Float.class)) {
                 return "float";
-            } else if (clazz.equals(Double.class)){
+            } else if (clazz.equals(Double.class)) {
                 return "double";
             }
 

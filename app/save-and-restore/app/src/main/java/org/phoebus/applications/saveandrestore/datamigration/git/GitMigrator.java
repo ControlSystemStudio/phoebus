@@ -40,6 +40,8 @@ import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.Snapshot;
+import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
@@ -353,10 +355,13 @@ public class GitMigrator {
                                 snapshotName = newSnapshotName;
                             }
 
-                            Node snapshotNode = saveAndRestoreService.saveSnapshot(saveSetNode,
-                                    snapshotItems,
-                                    snapshotName,
-                                    commit.getFullMessage());
+                            Snapshot snapshot = new Snapshot();
+                            snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).name(snapshotName).description(commit.getFullMessage()).build());
+                            SnapshotData snapshotData = new SnapshotData();
+                            snapshotData.setSnasphotItems(snapshotItems);
+                            snapshot.setSnapshotData(snapshotData);
+
+                            Node snapshotNode = saveAndRestoreService.saveSnapshot(saveSetNode, snapshot).getSnapshotNode();
 
                             snapshotNode = saveAndRestoreService.getNode(snapshotNode.getUniqueId());
                             if (tag != null) {

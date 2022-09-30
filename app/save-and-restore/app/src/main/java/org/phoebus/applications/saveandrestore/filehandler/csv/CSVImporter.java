@@ -75,6 +75,9 @@ import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.datamigration.git.FileUtilities;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.Snapshot;
+import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationFromSelectionController;
@@ -275,15 +278,22 @@ public class CSVImporter extends CSVCommon {
             }
         }
 
-        Node snapshot = saveAndRestoreService.saveSnapshot(parentOfImport, snapshotItems, csvParser.getSnapshotName(), csvParser.getDescription());
-        snapshot.setCreated(Date.from(csvParser.getTimestamp()));
-        snapshot.setUserName(csvParser.getCreator());
+        Snapshot snapshot = new Snapshot();
+        snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT)
+                .name(csvParser.getSnapshotName()).description(csvParser.getDescription()).build());
+        SnapshotData snapshotData = new SnapshotData();
+        snapshotData.setSnasphotItems(snapshotItems);
+        snapshot.setSnapshotData(snapshotData);
+
+        Node snapshotNode = saveAndRestoreService.saveSnapshot(parentOfImport, snapshot).getSnapshotNode();
+        snapshotNode.setCreated(Date.from(csvParser.getTimestamp()));
+        snapshotNode.setUserName(csvParser.getCreator());
         csvParser.getTags().forEach(tag -> {
             //tag.setSnapshotId(snapshot.getUniqueId());
 
-            snapshot.addTag(tag);
+            snapshotNode.addTag(tag);
         });
-        saveAndRestoreService.updateNode(snapshot, true);
+        saveAndRestoreService.updateNode(snapshotNode, true);
     }
 
     private static boolean checkSnapshotCompatibility(List<Map<String, String>> entries) throws Exception {

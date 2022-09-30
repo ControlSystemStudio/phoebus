@@ -51,7 +51,7 @@ import java.util.logging.Logger;
 @Repository
 public class ConfigurationDataRepository implements CrudRepository<ConfigurationData, String> {
 
-    @Value("${elasticsearch.folder_node.index:saveandrestore_configuration}")
+    @Value("${elasticsearch.configuration_node.index:saveandrestore_configuration}")
     public String ES_CONFIGURATION_INDEX;
 
     @Autowired

@@ -38,7 +38,6 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
-import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.service.Messages;
 import org.phoebus.framework.preferences.PreferencesReader;
@@ -50,13 +49,11 @@ import java.util.logging.Logger;
 
 public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
-    private Client client;
+    private final Client client;
     private static final String CONTENT_TYPE_JSON = "application/json; charset=UTF-8";
     private final Logger logger = Logger.getLogger(SaveAndRestoreJerseyClient.class.getName());
 
-    private String jmasarServiceUrl;
-    private int httpClientReadTimeout;
-    private int httpClientConnectTimeout;
+    private final String jmasarServiceUrl;
 
     private static final int DEFAULT_READ_TIMEOUT = 5000; // ms
     private static final int DEFAULT_CONNECT_TIMEOUT = 3000; // ms
@@ -66,7 +63,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
         PreferencesReader preferencesReader = new PreferencesReader(SaveAndRestoreClient.class, "/client_preferences.properties");
         this.jmasarServiceUrl = preferencesReader.get("jmasar.service.url");
 
-        httpClientReadTimeout = DEFAULT_READ_TIMEOUT;
+        int httpClientReadTimeout = DEFAULT_READ_TIMEOUT;
         String readTimeoutString = preferencesReader.get("httpClient.readTimeout");
         try {
             httpClientReadTimeout = Integer.parseInt(readTimeoutString);
@@ -75,7 +72,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
             logger.log(Level.INFO, "Property httpClient.readTimeout \"" + readTimeoutString + "\" is not a number, using default value " + DEFAULT_READ_TIMEOUT + " ms");
         }
 
-        httpClientConnectTimeout = DEFAULT_CONNECT_TIMEOUT;
+        int httpClientConnectTimeout = DEFAULT_CONNECT_TIMEOUT;
         String connectTimeoutString = preferencesReader.get("httpClient.connectTimeout");
         try {
             httpClientConnectTimeout = Integer.parseInt(connectTimeoutString);
@@ -93,13 +90,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
         mapper.setSerializationInclusion(Include.NON_NULL);
         JacksonJsonProvider jacksonJsonProvider = new JacksonJsonProvider(mapper);
         defaultClientConfig.getSingletons().add(jacksonJsonProvider);
-        //defaultClientConfig.getClasses().add(JacksonJsonProvider.class);
-        //defaultClientConfig.getClasses().add(GsonMessageBodyHandler.class);
         client = Client.create(defaultClientConfig);
-    }
-
-    public void setServiceUrl(String serviceUrl) {
-        this.jmasarServiceUrl = serviceUrl;
     }
 
     @Override
@@ -130,41 +121,15 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
         } else {
             response = getCall("/node/" + node.getUniqueId() + "/children");
         }
-        return response.getEntity(new GenericType<List<Node>>() {
+        return response.getEntity(new GenericType<>() {
         });
     }
 
     @Override
     public List<Node> getChildNodes(String uniqueNodeId) throws SaveAndRestoreClientException {
         ClientResponse response = getCall("/node/" + uniqueNodeId + "/children");
-        return response.getEntity(new GenericType<List<Node>>() {
+        return response.getEntity(new GenericType<>() {
         });
-    }
-
-    @Deprecated
-    @Override
-    public List<SnapshotItem> getSnapshotItems(String snapshotUniqueId) {
-        ClientResponse response = getCall("/snapshot/" + snapshotUniqueId + "/items");
-        return response.getEntity(new GenericType<List<SnapshotItem>>() {
-        });
-    }
-
-    @Deprecated
-    @Override
-    public Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment) {
-        WebResource webResource = client.resource(jmasarServiceUrl + "/snapshot/" + configUniqueId)
-                .queryParam("snapshotName", snapshotName.replaceAll("%", "%25"))
-                .queryParam("comment", comment.replaceAll("%", "%25"))
-                .queryParam("userName", getCurrentUsersName());
-        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
-                .entity(snapshotItems, CONTENT_TYPE_JSON)
-                .put(ClientResponse.class);
-
-        if (response.getStatus() != 200) {
-            throw new SaveAndRestoreClientException(response.getEntity(String.class));
-        }
-
-        return response.getEntity(Node.class);
     }
 
     @Override
@@ -229,7 +194,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).get(ClientResponse.class);
         if (response.getStatus() != 200) {
-            String message = null;
+            String message;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
@@ -253,7 +218,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
     @Override
     public void deleteNodes(List<String> nodeIds) {
-        nodeIds.forEach(id -> deleteNode(id));
+        nodeIds.forEach(this::deleteNode);
     }
 
     private String getCurrentUsersName() {
@@ -263,14 +228,14 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     @Override
     public List<Tag> getAllTags() {
         ClientResponse response = getCall("/tags");
-        return response.getEntity(new GenericType<List<Tag>>() {
+        return response.getEntity(new GenericType<>() {
         });
     }
 
     @Override
     public List<Node> getAllSnapshots() {
         ClientResponse response = getCall("/snapshots");
-        return response.getEntity(new GenericType<List<Node>>() {
+        return response.getEntity(new GenericType<>() {
         });
     }
 
@@ -390,12 +355,12 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     @Override
-    public Snapshot saveSnapshot(String parentNodeId, Snapshot snapshot){
+    public Snapshot saveSnapshot(String parentNodeId, Snapshot snapshot) {
         snapshot.getSnapshotNode().setUserName(getCurrentUsersName());
         WebResource webResource =
                 client.resource(jmasarServiceUrl + "/snapshot")
                         .queryParam("parentNodeId", parentNodeId);
-        ClientResponse response = null;
+        ClientResponse response;
         try {
             response = webResource.accept(CONTENT_TYPE_JSON)
                     .entity(snapshot, CONTENT_TYPE_JSON)

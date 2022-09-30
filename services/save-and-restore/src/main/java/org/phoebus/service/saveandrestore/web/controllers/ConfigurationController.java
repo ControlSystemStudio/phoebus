@@ -62,13 +62,6 @@ public class ConfigurationController extends BaseController {
         return nodeDAO.getSnapshots(uniqueNodeId);
     }
 
-
-    @SuppressWarnings("unused")
-    @GetMapping(value = "/{uniqueNodeId}/items", produces = JSON)
-    public List<ConfigPv> getConfigPvs(@PathVariable String uniqueNodeId) {
-        return nodeDAO.getConfigPvs(uniqueNodeId);
-    }
-
     @SuppressWarnings("unused")
     @PutMapping(produces = JSON)
     public Configuration createConfiguration(@RequestParam(value = "parentNodeId") String parentNodeId,

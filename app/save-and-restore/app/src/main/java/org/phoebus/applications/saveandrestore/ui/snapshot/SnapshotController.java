@@ -28,9 +28,6 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableSet;
-import javafx.collections.SetChangeListener;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
@@ -75,6 +72,7 @@ import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
 import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
@@ -108,9 +106,6 @@ import java.util.stream.Collectors;
 public class SnapshotController implements NodeChangedListener {
 
     @FXML
-    private Label snapshotCommentLabel;
-
-    @FXML
     private TextArea snapshotComment;
 
     @FXML
@@ -121,9 +116,6 @@ public class SnapshotController implements NodeChangedListener {
 
     @FXML
     private BorderPane borderPane;
-
-    @FXML
-    private Label snapshotNameLabel;
 
     @FXML
     private Label snapshotLastModifiedLabel;
@@ -177,7 +169,7 @@ public class SnapshotController implements NodeChangedListener {
     /**
      * The {@link SnapshotTab} controlled by this controller.
      */
-    private SnapshotTab snapshotTab;
+    private final SnapshotTab snapshotTab;
 
     private SaveAndRestoreService saveAndRestoreService;
 
@@ -196,12 +188,7 @@ public class SnapshotController implements NodeChangedListener {
     private final Map<String, String> readbacks = new HashMap<>();
     private final Map<String, TableEntry> tableEntryItems = new LinkedHashMap<>();
     private final BooleanProperty snapshotRestorableProperty = new SimpleBooleanProperty(false);
-    private final BooleanProperty snapshotSaveableProperty = new SimpleBooleanProperty(false);
     private final BooleanProperty showLiveReadbackProperty = new SimpleBooleanProperty(false);
-
-    private final ObservableSet<String> dirtySnapshotEntries = FXCollections.observableSet();
-    private String persistentSnapshotName = null;
-    private boolean persistentGoldenState = false;
 
     private final boolean showStoredReadbacks = false;
 
@@ -212,9 +199,14 @@ public class SnapshotController implements NodeChangedListener {
     private boolean isTreeTableViewEnabled;
 
     /**
-     * Property used to indicate if data hase changed, e.g. new snapshot data or changed name or comment.
+     * Property used to indicate if snapshot node has changed with respect to name or comment, or both.
      */
-    private final SimpleBooleanProperty dirty = new SimpleBooleanProperty(false);
+    private final SimpleBooleanProperty nodeDataDirty = new SimpleBooleanProperty(false);
+
+    /**
+     * Property used to indicate if there is new snapshot data to save.
+     */
+    private final SimpleBooleanProperty snapshotDataDirty = new SimpleBooleanProperty(false);
 
     private Node configNode;
 
@@ -247,13 +239,10 @@ public class SnapshotController implements NodeChangedListener {
         isTreeTableViewEnabled = new PreferencesReader(getClass(), "/save_and_restore_preferences.properties").getBoolean("treeTableView.enable");
 
         snapshotName.textProperty().bindBidirectional(snapshotNameProperty);
-        snapshotNameProperty.addListener(((observableValue, oldValue, newValue) -> {
-            dirty.set(newValue != null && !newValue.equals(snapshotNode.getName()));
-        }));
+        snapshotNameProperty.addListener(((observableValue, oldValue, newValue) -> nodeDataDirty.set(newValue != null && !newValue.equals(snapshotNode.getName()))));
 
-        snapshotComment.textProperty().addListener(((observableValue, oldValue, newValue) -> {
-            dirty.set(!newValue.equals(snapshotNode.getName()));
-        }));
+        snapshotComment.textProperty().bindBidirectional(snapshotCommentProperty);
+        snapshotCommentProperty.addListener(((observableValue, oldValue, newValue) -> nodeDataDirty.set(newValue != null && !newValue.equals(snapshotNode.getDescription()))));
 
         createdBy.textProperty().bind(createdByTextProperty);
         createdDate.textProperty().bind(createdDateTextProperty);
@@ -277,10 +266,11 @@ public class SnapshotController implements NodeChangedListener {
             });
         }
 
-        saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() -> {
-            boolean canSave = snapshotSaveableProperty.get() && (!snapshotNameProperty.isEmpty().get() && !snapshotCommentProperty.isEmpty().get());
-            return !canSave;
-        }, snapshotSaveableProperty, snapshotNameProperty, snapshotCommentProperty));
+        saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() -> (nodeDataDirty.not().get() &&
+                        snapshotDataDirty.not().get()) ||
+                        snapshotNameProperty.isEmpty().get() ||
+                        snapshotCommentProperty.isEmpty().get(),
+                nodeDataDirty, snapshotDataDirty, snapshotNameProperty, snapshotCommentProperty));
 
         showLiveReadbackButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/icons/show_live_readback_column.png"))));
         showLiveReadbackButton.setTooltip(new Tooltip(Messages.toolTipShowLiveReadback));
@@ -467,26 +457,8 @@ public class SnapshotController implements NodeChangedListener {
             });
         });
 
-        dirtySnapshotEntries.addListener((SetChangeListener<String>) change -> {
-            if (dirtySnapshotEntries.size() == 0) {
-                snapshotSaveableProperty.set(false);
-
-                snapshotNameProperty.set(persistentSnapshotName);
-                snapshotTab.updateTabTitile(persistentSnapshotName, persistentGoldenState);
-            } else {
-                snapshotSaveableProperty.set(true);
-                snapshotNameProperty.set(persistentSnapshotName + " " + Messages.snapshotModifiedText);
-                snapshotTab.updateTabTitile(persistentSnapshotName + " " + Messages.snapshotModifiedText, false);
-            }
-        });
-
         // Locate registered SaveAndRestoreEventReceivers
         eventReceivers = ServiceLoader.load(SaveAndRestoreEventReceiver.class);
-
-        snapshotNameProperty.addListener((observableValue, oldValue, newValue) ->
-                dirty.set(!newValue.equals(snapshotNode.getName())));
-
-        //loadSnapshotInternal();
     }
 
     public void loadSnapshot(Node snapshotNode) {
@@ -499,13 +471,10 @@ public class SnapshotController implements NodeChangedListener {
             snapshotNameProperty.set(snapshotNode.getName());
             snapshotUniqueIdProperty.set(snapshotNode.getUniqueId());
 
-            boolean isGolden = snapshotNode.getTags() != null && snapshotNode.getTags().stream().anyMatch(t -> t.getName().equals("golden"));
+            boolean isGolden = snapshotNode.getTags() != null && snapshotNode.getTags().stream().anyMatch(t -> t.getName().equals(Tag.GOLDEN));
 
             snapshotTab.updateTabTitile(snapshotNode.getName(), isGolden);
             snapshotTab.setId(snapshotNode.getUniqueId());
-
-            persistentSnapshotName = snapshotNode.getName();
-            persistentGoldenState = isGolden;
         } catch (Exception e) {
             LOGGER.log(Level.INFO, "Error loading snapshot", e);
         }
@@ -525,9 +494,9 @@ public class SnapshotController implements NodeChangedListener {
 
         try {
             Node snapshot = saveAndRestoreService.getNode(treeNode.getUniqueId());
-            List<SnapshotItem> snapshotItems = saveAndRestoreService.getSnapshotItems(snapshot.getUniqueId());
+            SnapshotData snapshotData = saveAndRestoreService.getSnapshot(snapshot.getUniqueId());
             VSnapshot vSnapshot =
-                    new VSnapshot(snapshot, snapshotItemsToSnapshotEntries(snapshotItems));
+                    new VSnapshot(snapshot, snapshotItemsToSnapshotEntries(snapshotData.getSnapshotItems()));
             List<TableEntry> tableEntries = addSnapshot(vSnapshot);
             snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
             if (isTreeTableViewEnabled) {
@@ -577,7 +546,7 @@ public class SnapshotController implements NodeChangedListener {
                 snapshotNameProperty.set(snapshotNode.getName());
 
                 snapshotTab.setId(snapshotNode.getUniqueId());
-                snapshotTab.updateTabTitile(snapshotNode.getName(), false);
+                snapshotTab.updateTabTitile(snapshotNode.getName(), snapshotNode.hasTag(Tag.GOLDEN));
 
                 VSnapshot vSnapshot =
                         new VSnapshot(snapshotNode, snapshotItemsToSnapshotEntries(snapshotData.getSnapshotItems()));
@@ -589,14 +558,6 @@ public class SnapshotController implements NodeChangedListener {
                 }
                 snapshotRestorableProperty.set(true);
 
-                dirtySnapshotEntries.clear();
-                vSnapshot.getEntries().forEach(item -> item.getValueProperty().addListener((observableValue, vType, newVType) -> {
-                    if (!Utilities.areVTypesIdentical(newVType, item.getStoredValue(), false)) {
-                        dirtySnapshotEntries.add(item.getConfigPv().getPvName());
-                    } else {
-                        dirtySnapshotEntries.remove(item.getConfigPv().getPvName());
-                    }
-                }));
             } catch (Exception e) {
                 LOGGER.log(Level.INFO, "Error loading snapshot", e);
             }
@@ -661,12 +622,10 @@ public class SnapshotController implements NodeChangedListener {
             snapshotCommentProperty.set(null);
             createdByTextProperty.set(null);
             createdDateTextProperty.set(null);
-            snapshotSaveableProperty.setValue(false);
-
             snapshotTab.setId(null);
             snapshotTab.updateTabTitile(Messages.unnamedSnapshot, false);
-            dirtySnapshotEntries.clear();
-            dirty.set(true);
+            nodeDataDirty.set(true);
+            snapshotDataDirty.set(true);
         });
         try {
             List<SnapshotEntry> entries = new ArrayList<>(tableEntryItems.size());
@@ -708,7 +667,7 @@ public class SnapshotController implements NodeChangedListener {
                 if (isTreeTableViewEnabled) {
                     snapshotTreeTable.updateTable(tableEntries, snapshots, showLiveReadbackProperty.get(), false, showDeltaPercentage);
                 }
-                snapshotSaveableProperty.setValue(true);
+                nodeDataDirty.set(true);
             });
         } catch (Exception e) {
             LOGGER.log(Level.INFO, "Error taking snapshot", e);
@@ -717,7 +676,7 @@ public class SnapshotController implements NodeChangedListener {
 
     @FXML
     public void saveSnapshot() {
-        if (snapshotSaveableProperty.get()) { // There is a new snapshot to save
+        if (snapshotDataDirty.get()) { // There is a new snapshot to save
             VSnapshot vSnapshot = snapshots.get(0);
             List<SnapshotEntry> snapshotEntries = vSnapshot.getEntries();
             List<SnapshotItem> snapshotItems = snapshotEntries
@@ -733,6 +692,7 @@ public class SnapshotController implements NodeChangedListener {
 
             try {
                 snapshot = saveAndRestoreService.saveSnapshot(configNode, snapshot);
+                snapshotDataDirty.set(false);
                 snapshotNode = snapshot.getSnapshotNode();
                 loadSnapshotInternal();
                 logNewSnapshotSaved();
@@ -811,7 +771,7 @@ public class SnapshotController implements NodeChangedListener {
             }
         }
         connectPVs();
-        UI_EXECUTOR.execute(() -> snapshotSaveableProperty.set(snapshotData.isSaveable()));
+        UI_EXECUTOR.execute(() -> nodeDataDirty.set(snapshotData.isSaveable()));
         return new ArrayList<>(tableEntryItems.values());
     }
 
@@ -854,8 +814,8 @@ public class SnapshotController implements NodeChangedListener {
             }
             connectPVs();
             UI_EXECUTOR.execute(() -> {
-                if (!snapshotSaveableProperty.get()) {
-                    snapshotSaveableProperty.set(data.isSaveable());
+                if (!nodeDataDirty.get()) {
+                    nodeDataDirty.set(data.isSaveable());
                 }
                 snapshotRestorableProperty.set(true);
             });
@@ -1090,7 +1050,7 @@ public class SnapshotController implements NodeChangedListener {
     }
 
     public boolean handleSnapshotTabClosed() {
-        if (snapshotSaveableProperty.get()) {
+        if (nodeDataDirty.get()) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle(Messages.promptCloseSnapshotTabTitle);
             alert.setContentText(Messages.promptCloseSnapshotTabContent);

@@ -48,4 +48,10 @@ public class SnapshotData {
     public void setSnasphotItems(List<SnapshotItem> snapshotItems) {
         this.snapshotItems = snapshotItems;
     }
+
+    public static SnapshotData clone(SnapshotData snapshotDataToClone){
+        SnapshotData snapshotData = new SnapshotData();
+        snapshotData.setSnasphotItems(snapshotDataToClone.getSnapshotItems());
+        return snapshotData;
+    }
 }

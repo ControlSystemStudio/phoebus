@@ -41,7 +41,7 @@ import java.util.logging.Logger;
 @Repository
 public class SnapshotDataRepository implements CrudRepository<SnapshotData, String> {
 
-    @Value("${elasticsearch.folder_node.index:saveandrestore_snapshot}")
+    @Value("${elasticsearch.snapshot_node.index:saveandrestore_snapshot}")
     public String ES_SNAPSHOT_INDEX;
 
     @Autowired

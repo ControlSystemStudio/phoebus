@@ -212,8 +212,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 return;
             }
             if (item.getValue().getNodeType().equals(NodeType.SNAPSHOT)) {
-                toggleGoldenMenuItemText.set(item.getValue().hasTag("golden") ? Messages.contextMenuRemoveGoldenTag : Messages.contextMenuTagAsGolden);
-                toggleGoldenImageViewProperty.set(item.getValue().hasTag("golden")  ? snapshotImageView : snapshotGoldenImageView);
+                toggleGoldenMenuItemText.set(item.getValue().hasTag(Tag.GOLDEN) ? Messages.contextMenuRemoveGoldenTag : Messages.contextMenuTagAsGolden);
+                toggleGoldenImageViewProperty.set(item.getValue().hasTag(Tag.GOLDEN)  ? snapshotImageView : snapshotGoldenImageView);
             }
             // Check if a tab has already been opened for this node.
             boolean highlighted = highlightTab(item.getValue().getUniqueId());
@@ -379,7 +379,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     protected void toggleGoldenProperty(Node node) {
         try {
             Node updatedNode = saveAndRestoreService.tagSnapshotAsGolden(node,
-                    !node.hasTag("golden"));
+                    !node.hasTag(Tag.GOLDEN));
             browserSelectionModel.getSelectedItems().get(0).setValue(updatedNode);
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Failed to toggle golden property", e);
@@ -1103,7 +1103,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             tagList.remove(tagList.size() - 1);
         }
 
-        if (node.getTags().isEmpty()) {
+        if (node.getTags() == null || node.getTags().isEmpty()) {
             CustomMenuItem noTags = TagWidget.NoTagMenuItem();
             noTags.setDisable(true);
             tagList.add(noTags);

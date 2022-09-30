@@ -31,17 +31,19 @@ import org.epics.vtype.VDouble;
 import org.epics.vtype.VInt;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.Snapshot;
+import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
-import org.phoebus.service.saveandrestore.SnapshotNotFoundException;
 import org.phoebus.service.saveandrestore.persistence.config.ElasticConfig;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ConfigurationDataRepository;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchDAO;
@@ -58,6 +60,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -131,20 +134,6 @@ public class DAOTestIT {
         assertNotNull(nodeDAO.createNode(rootNode.getUniqueId(), folder1));
         // Try to create a new folder with a different name in the same parent directory
         assertNotNull(nodeDAO.createNode(rootNode.getUniqueId(), folder2));
-
-        clearAllData();
-    }
-
-    @Test
-    public void testNewConfigNoConfigPvs() {
-        Node rootNode = nodeDAO.getRootNode();
-
-        Node topLevelFolderNode =
-                nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().name("top level folder").build());
-
-        Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("My config").build();
-        Node newConfig = nodeDAO.createNode(topLevelFolderNode.getUniqueId(), config);
-        assertTrue(nodeDAO.getConfigPvs(newConfig.getUniqueId()).isEmpty());
 
         clearAllData();
     }
@@ -248,24 +237,40 @@ public class DAOTestIT {
     }
 
     @Test
-    @Disabled
     public void testGetConfigForSnapshot() {
         Node rootNode = nodeDAO.getRootNode();
 
+        Node folderNode = nodeDAO.createNode(rootNode.getUniqueId(),
+                Node.builder().name("folder").build());
+
         Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("My config 3").build();
 
-        config = nodeDAO.createNode(rootNode.getUniqueId(), config);
-        //nodeDAO.updateConfiguration(config, List.of(ConfigPv.builder().pvName("whatever").build()));
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(config);
+        ConfigurationData configurationData = new ConfigurationData();
+        configurationData.setPvList(List.of(ConfigPv.builder().pvName("whatever").build()));
+        configuration.setConfigurationData(configurationData);
 
-        List<ConfigPv> configPvs = nodeDAO.getConfigPvs(config.getUniqueId());
-        SnapshotItem item1 = SnapshotItem.builder().configPv(configPvs.get(0))
+        configuration = nodeDAO.createConfiguration(folderNode.getUniqueId(), configuration);
+
+        SnapshotItem item1 = SnapshotItem.builder().configPv(configuration.getConfigurationData().getPvList().get(0))
                 .value(VDouble.of(7.7, alarm, time, display)).build();
 
-        Node newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), List.of(item1), "snapshot name", "user", "comment");
+        Snapshot snapshot = new Snapshot();
+        snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).name("snapshot name")
+                .description("comment")
+                .userName("user").build());
+        SnapshotData snapshotData = new SnapshotData();
+        snapshotData.setSnasphotItems(List.of(item1));
+        snapshot.setSnapshotData(snapshotData);
+
+        Node newSnapshot = nodeDAO.saveSnapshot(configuration.getConfigurationNode().getUniqueId(), snapshot).getSnapshotNode();
 
         config = nodeDAO.getParentNode(newSnapshot.getUniqueId());
 
         assertNotNull(config);
+
+        clearAllData();
     }
 
     @Test
@@ -275,101 +280,157 @@ public class DAOTestIT {
     }
 
     @Test
-    @Disabled
     public void testTakeSnapshot() {
         Node rootNode = nodeDAO.getRootNode();
+        Node folderNode =
+                Node.builder().name("folder").build();
+
+        folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
 
         Node config = Node.builder().name("My config 3").nodeType(NodeType.CONFIGURATION).build();
 
-        config = nodeDAO.createNode(rootNode.getUniqueId(), config);
-        //nodeDAO.updateConfiguration(config, List.of(ConfigPv.builder().pvName("whatever").readbackPvName("readback_whatever").build()));
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(config);
+        ConfigurationData configurationData = new ConfigurationData();
+        configurationData.setPvList(List.of(ConfigPv.builder()
+                .pvName("whatever").readbackPvName("readback_whatever").build()));
+        configuration.setConfigurationData(configurationData);
 
-        SnapshotItem item1 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(config.getUniqueId()).get(0))
+        configuration = nodeDAO.createConfiguration(folderNode.getUniqueId(), configuration);
+
+        SnapshotItem item1 = SnapshotItem.builder().configPv(configuration.getConfigurationData().getPvList().get(0))
                 .value(VDouble.of(7.7, alarm, time, display)).readbackValue(VDouble.of(8.8, alarm, time, display))
                 .build();
 
-        Node newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), List.of(item1), "snapshot name", "user", "comment");
-        List<SnapshotItem> snapshotItems = nodeDAO.getSnapshotItems(newSnapshot.getUniqueId());
+        Snapshot snapshot = new Snapshot();
+        snapshot.setSnapshotNode(Node.builder()
+                .name("snapshot name")
+                .userName("user")
+                .description("comment")
+                .build());
+        SnapshotData snapshotData = new SnapshotData();
+        snapshotData.setSnasphotItems(List.of(item1));
+        snapshot.setSnapshotData(snapshotData);
+
+        snapshot = nodeDAO.saveSnapshot(config.getUniqueId(), snapshot);
+
+        List<SnapshotItem> snapshotItems = snapshot.getSnapshotData().getSnapshotItems();
         assertEquals(1, snapshotItems.size());
         assertEquals(7.7, ((VDouble) snapshotItems.get(0).getValue()).getValue().doubleValue(), 0.01);
         assertEquals(8.8, ((VDouble) snapshotItems.get(0).getReadbackValue()).getValue().doubleValue(), 0.01);
 
-        Node fullSnapshot = nodeDAO.getSnapshotNode(newSnapshot.getUniqueId());
-        assertNotNull(fullSnapshot);
-        snapshotItems = nodeDAO.getSnapshotItems(newSnapshot.getUniqueId());
-        assertEquals(1, snapshotItems.size());
-
         List<Node> snapshots = nodeDAO.getSnapshots(config.getUniqueId());
         assertEquals(1, snapshots.size());
 
-        nodeDAO.deleteNode(newSnapshot.getUniqueId());
+        nodeDAO.deleteNode(snapshot.getSnapshotNode().getUniqueId());
 
         snapshots = nodeDAO.getSnapshots(config.getUniqueId());
         assertTrue(snapshots.isEmpty());
+
+        clearAllData();
     }
 
     @Test
-    @Disabled
     public void testGetSnapshotsNoSnapshots() {
-        assertTrue(nodeDAO.getSnapshots("a").isEmpty());
+        assertThrows(NodeNotFoundException.class,
+                () -> nodeDAO.getSnapshots("a"));
     }
 
     @Test
-    @Disabled
     public void testGetSnapshotItemsWithNullPvValues() {
         Node rootNode = nodeDAO.getRootNode();
+        Node folderNode = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder()
+                .name("folder2")
+                .build());
 
         Node config = Node.builder().name("My config 3").nodeType(NodeType.CONFIGURATION).build();
 
-        config = nodeDAO.createNode(rootNode.getUniqueId(), config);
-        //nodeDAO.updateConfiguration(config, List.of(ConfigPv.builder().pvName("whatever").build()));
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(config);
+        ConfigurationData configurationData = new ConfigurationData();
+        configurationData.setPvList(List.of(ConfigPv.builder()
+                .pvName("whatever").readbackPvName("readback_whatever").build()));
+        configuration.setConfigurationData(configurationData);
 
-        SnapshotItem item1 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(config.getUniqueId()).get(0))
+        configuration = nodeDAO.createConfiguration(folderNode.getUniqueId(), configuration);
+
+        SnapshotItem item1 = SnapshotItem.builder().configPv(configuration.getConfigurationData().getPvList().get(0))
                 .value(VDouble.of(7.7, alarm, time, display))
                 .build();
-        Node newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), List.of(item1), "name", "comment", "user");
-        List<SnapshotItem> snapshotItems = nodeDAO.getSnapshotItems(newSnapshot.getUniqueId());
-        assertEquals(7.7, ((VDouble) snapshotItems.get(0).getValue()).getValue().doubleValue(), 0.01);
-        assertNull(snapshotItems.get(0).getReadbackValue());
 
-        item1 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(config.getUniqueId()).get(0))
-                .build();
-        newSnapshot = nodeDAO.saveSnapshot(config.getUniqueId(), List.of(item1), "name2", "comment", "user");
-        snapshotItems = nodeDAO.getSnapshotItems(newSnapshot.getUniqueId());
-        assertTrue(snapshotItems.isEmpty());
+        Snapshot snapshot = new Snapshot();
+        snapshot.setSnapshotNode(Node.builder()
+                .name("name")
+                .userName("user")
+                .description("comment")
+                .build());
+        SnapshotData snapshotData = new SnapshotData();
+        snapshotData.setSnasphotItems(List.of(item1));
+        snapshot.setSnapshotData(snapshotData);
+
+        snapshot = nodeDAO.saveSnapshot(config.getUniqueId(), snapshot);
+
+        assertEquals(7.7, ((VDouble) snapshot.getSnapshotData().getSnapshotItems().get(0).getValue()).getValue().doubleValue(), 0.01);
+        assertNull(snapshot.getSnapshotData().getSnapshotItems().get(0).getReadbackValue());
+
+        Snapshot snapshot1 = new Snapshot();
+        snapshot1.setSnapshotNode(Node.builder()
+                .name("name2")
+                .userName("user")
+                .description("comment")
+                .build());
+        SnapshotData snapshotData1 = new SnapshotData();
+        snapshot1.setSnapshotData(snapshotData1);
+
+        snapshot1 = nodeDAO.saveSnapshot(config.getUniqueId(), snapshot1);
+
+        assertNull(snapshot1.getSnapshotData().getSnapshotItems());
+
+        clearAllData();
     }
 
     @Test
-    @Disabled
     public void testSnapshotTag() {
         Node rootNode = nodeDAO.getRootNode();
         Node folderNode = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().name("testFolder").nodeType(NodeType.FOLDER).build());
-        Node savesetNode = nodeDAO.createNode(folderNode.getUniqueId(), Node.builder().name("testSaveset").nodeType(NodeType.CONFIGURATION).build());
-        Node snapshot = nodeDAO.createNode(savesetNode.getUniqueId(), Node.builder().name("testSnapshot").nodeType(NodeType.SNAPSHOT).build());
+
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(Node.builder().name("testConfiguration").nodeType(NodeType.CONFIGURATION).build());
+        configuration.setConfigurationData(new ConfigurationData());
+
+        Node configNode = nodeDAO.createConfiguration(folderNode.getUniqueId(), configuration).getConfigurationNode();
+
+        Snapshot snapshot = new Snapshot();
+        snapshot.setSnapshotNode(Node.builder().name("testSnapshot").nodeType(NodeType.SNAPSHOT).build());
+        snapshot.setSnapshotData(new SnapshotData());
+
+        Node snapshotNode = nodeDAO.saveSnapshot(configNode.getUniqueId(), snapshot).getSnapshotNode();
 
         Tag tag = Tag.builder().name("tag1").comment("comment1").userName("testUser1").build();
-        snapshot.addTag(tag);
+        snapshotNode.addTag(tag);
 
-        snapshot = nodeDAO.updateNode(snapshot, false);
-        assertEquals(1, snapshot.getTags().size());
-        assertEquals("tag1", snapshot.getTags().get(0).getName());
-        assertEquals("comment1", snapshot.getTags().get(0).getComment());
-        assertEquals("testUser1", snapshot.getTags().get(0).getUserName());
+        snapshotNode = nodeDAO.updateNode(snapshotNode, false);
+        assertEquals(1, snapshotNode.getTags().size());
+        assertEquals("tag1", snapshotNode.getTags().get(0).getName());
+        assertEquals("comment1", snapshotNode.getTags().get(0).getComment());
+        assertEquals("testUser1", snapshotNode.getTags().get(0).getUserName());
 
         // Adding the same named tag doesn't affect anything.
         tag = Tag.builder().name("tag1").comment("comment2").userName("testUser2").build();
-        snapshot.addTag(tag);
+        snapshotNode.addTag(tag);
 
-        snapshot = nodeDAO.updateNode(snapshot, false);
-        assertEquals(1, snapshot.getTags().size());
-        assertEquals("tag1", snapshot.getTags().get(0).getName());
-        assertEquals("comment1", snapshot.getTags().get(0).getComment());
-        assertEquals("testUser1", snapshot.getTags().get(0).getUserName());
+        snapshotNode = nodeDAO.updateNode(snapshotNode, false);
+        assertEquals(1, snapshotNode.getTags().size());
+        assertEquals("tag1", snapshotNode.getTags().get(0).getName());
+        assertEquals("comment1", snapshotNode.getTags().get(0).getComment());
+        assertEquals("testUser1", snapshotNode.getTags().get(0).getUserName());
 
-        snapshot.removeTag(tag);
+        snapshotNode.removeTag(tag);
 
-        snapshot = nodeDAO.updateNode(snapshot, false);
-        assertEquals(0, snapshot.getTags().size());
+        snapshotNode = nodeDAO.updateNode(snapshotNode, false);
+        assertEquals(0, snapshotNode.getTags().size());
+
+        clearAllData();
     }
 
     @Test
@@ -378,7 +439,6 @@ public class DAOTestIT {
         Node parent = nodeDAO.getParentNode(rootNode.getUniqueId());
         assertEquals(rootNode.getUniqueId(), parent.getUniqueId());
     }
-
 
     @Test
     public void testGetChildNodes() {
@@ -402,64 +462,91 @@ public class DAOTestIT {
     }
 
     @Test
-    @Disabled
+    public void testUpdateNode() {
+        Node rootNode = nodeDAO.getRootNode();
+        Node folderA = Node.builder().name("folder A").build();
+        folderA = nodeDAO.createNode(rootNode.getUniqueId(), folderA);
+        String uniqueId = folderA.getUniqueId();
+        folderA.setName("folderB");
+        folderA = nodeDAO.updateNode(folderA, false);
+
+        assertEquals("folderB", folderA.getName());
+        assertEquals(uniqueId, folderA.getUniqueId());
+
+        clearAllData();
+    }
+
+    @Test
     public void testUpdateConfig() throws Exception {
 
         Node rootNode = nodeDAO.getRootNode();
 
-        nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().name("SomeFolder").build());
+        Node folder = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().name("SomeFolder").build());
+
+        Node config = Node.builder().name("My config").nodeType(NodeType.CONFIGURATION).name("name").build();
 
         ConfigPv configPv1 = ConfigPv.builder().pvName("configPv1").build();
         ConfigPv configPv2 = ConfigPv.builder().pvName("configPv2").build();
 
-        Node config = Node.builder().name("My config").nodeType(NodeType.CONFIGURATION).name("name").build();
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(config);
+        ConfigurationData configurationData = new ConfigurationData();
+        configurationData.setPvList(Arrays.asList(configPv1, configPv2));
+        configuration.setConfigurationData(configurationData);
 
-        config = nodeDAO.createNode(rootNode.getUniqueId(), config);
-        //nodeDAO.updateConfiguration(config, Arrays.asList(configPv1, configPv2));
+        configuration = nodeDAO.createConfiguration(folder.getUniqueId(), configuration);
 
         Date lastModified;
 
-        SnapshotItem item1 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(config.getUniqueId()).get(0))
+        SnapshotItem item1 = SnapshotItem.builder().configPv(configuration.getConfigurationData().getPvList().get(0))
                 .value(VDouble.of(7.7, alarm, time, display)).build();
 
-        SnapshotItem item2 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(config.getUniqueId()).get(0))
+        SnapshotItem item2 = SnapshotItem.builder().configPv(configuration.getConfigurationData().getPvList().get(0))
                 .value(VInt.of(7, alarm, time, display)).build();
 
-        Node snapshot = nodeDAO.saveSnapshot(config.getUniqueId(), Arrays.asList(item1, item2), "name", "comment", "user");
+        Snapshot snapshot = new Snapshot();
+        snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).name("name").userName("user").description("comment").build());
+        SnapshotData snapshotData = new SnapshotData();
+        snapshotData.setSnasphotItems(Arrays.asList(item1, item2));
+        snapshot.setSnapshotData(snapshotData);
 
-        List<SnapshotItem> snapshotItems = nodeDAO.getSnapshotItems(snapshot.getUniqueId());
+        snapshot = nodeDAO.saveSnapshot(config.getUniqueId(), snapshot);
+
+        // Save another snapshot with same data
+        Snapshot snapshot1 = new Snapshot();
+        snapshot1.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).name("name1").userName("user").description("comment").build());
+        SnapshotData snapshotData1 = new SnapshotData();
+        snapshotData1.setSnasphotItems(Arrays.asList(item1, item2));
+        snapshot1.setSnapshotData(snapshotData1);
+
+        nodeDAO.saveSnapshot(config.getUniqueId(), snapshot1);
+
+        List<SnapshotItem> snapshotItems = snapshot.getSnapshotData().getSnapshotItems();
 
         assertEquals(7.7, ((VDouble) snapshotItems.get(0).getValue()).getValue().doubleValue(), 0.01);
         assertEquals(7, ((VInt) snapshotItems.get(1).getValue()).getValue().intValue());
 
-        Node fullSnapshot = nodeDAO.getSnapshotNode(snapshot.getUniqueId());
-
-        assertNotNull(fullSnapshot);
-
         List<Node> snapshots = nodeDAO.getSnapshots(config.getUniqueId());
         assertFalse(snapshots.isEmpty());
-        assertEquals(2, nodeDAO.getSnapshotItems(fullSnapshot.getUniqueId()).size());
+        assertEquals(2, snapshots.size());
 
         lastModified = config.getLastModified();
 
         Thread.sleep(100);
-        Node updatedConfig = null; // = nodeDAO.updateConfiguration(config, Arrays.asList(configPv1, configPv2));
+        Node updatedConfig = nodeDAO.updateNode(config, false);
 
         assertNotEquals(lastModified, updatedConfig.getLastModified());
 
         // Verify that last modified time has been updated
         assertTrue(updatedConfig.getLastModified().getTime() > lastModified.getTime());
 
-        // Verify the list of PVs
-        assertEquals(2, nodeDAO.getConfigPvs(config.getUniqueId()).size());
-
         ConfigPv configPv3 = ConfigPv.builder().pvName("configPv3").build();
+        configurationData.setPvList(Arrays.asList(configPv1, configPv2, configPv3));
+        configuration.setConfigurationData(configurationData);
 
-        //nodeDAO.updateConfiguration(config, Arrays.asList(configPv1, configPv2, configPv3));
-
+        configuration = nodeDAO.updateConfiguration(configuration);
         // Verify the list of PVs
-        assertEquals(3, nodeDAO.getConfigPvs(config.getUniqueId()).size());
-
+        assertEquals(3, configuration.getConfigurationData().getPvList().size());
     }
 
     @Test
@@ -489,25 +576,6 @@ public class DAOTestIT {
                 () -> nodeDAO.updateNode(node, false));
 
         clearAllData();
-    }
-
-    @Test
-    @Disabled
-    public void testGetFolderThatIsNotAFolder() {
-
-        Node rootNode = nodeDAO.getRootNode();
-
-        Node folder1 = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().name("SomeFolder").build());
-
-        ConfigPv configPv1 = ConfigPv.builder().pvName("configPv1").build();
-
-        Node config = Node.builder().name("My config").nodeType(NodeType.CONFIGURATION).build();
-
-        config = nodeDAO.createNode(folder1.getUniqueId(), config);
-        //nodeDAO.updateConfiguration(config, List.of(configPv1));
-
-        assertNotEquals(NodeType.FOLDER, nodeDAO.getNode(config.getUniqueId()).getNodeType());
-
     }
 
     @Test
@@ -559,41 +627,6 @@ public class DAOTestIT {
                 () -> nodeDAO.updateNode(node, false));
 
         clearAllData();
-    }
-
-
-    @Test
-    @Disabled
-    public void testGetSnapshotThatIsNotSnapshot() {
-        Node root = nodeDAO.getRootNode();
-        Node node = nodeDAO.createNode(root.getUniqueId(), Node.builder().name("dsa").build());
-        assertThrows(SnapshotNotFoundException.class,
-                () -> nodeDAO.getSnapshotNode(node.getUniqueId()));
-    }
-
-    @Test
-    @Disabled
-    public void testGetNonExistingSnapshot() {
-        assertThrows(NodeNotFoundException.class,
-                () -> nodeDAO.getSnapshotNode("nonExisting"));
-    }
-
-    @Test
-    @Disabled
-    public void testSaveSnapshot() {
-        Node rootNode = nodeDAO.getRootNode();
-        Node config = Node.builder().name("My config 3").nodeType(NodeType.CONFIGURATION).build();
-        config = nodeDAO.createNode(rootNode.getUniqueId(), config);
-        //nodeDAO.updateConfiguration(config, List.of(ConfigPv.builder().pvName("whatever").build()));
-
-        SnapshotItem item1 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(config.getUniqueId()).get(0))
-                .value(VDouble.of(7.7, alarm, time, display)).readbackValue(VDouble.of(7.7, alarm, time, display))
-                .build();
-
-        Node snapshotNode = nodeDAO.saveSnapshot(config.getUniqueId(), List.of(item1), "snapshotName", "comment", "userName");
-        List<SnapshotItem> snapshotItems = nodeDAO.getSnapshotItems(snapshotNode.getUniqueId());
-        assertEquals(1, snapshotItems.size());
-
     }
 
     @Test
@@ -658,15 +691,16 @@ public class DAOTestIT {
     }
 
     @Test
-    @Disabled
     public void testCreateSnapshotInFolderNode() {
         Node rootNode = nodeDAO.getRootNode();
+        Node folderNode = nodeDAO.createNode(rootNode.getUniqueId(),
+                Node.builder().name("folder").build());
         Node snapshotNode = new Node();
         snapshotNode.setName("Snapshot");
         snapshotNode.setNodeType(NodeType.SNAPSHOT);
 
         assertThrows(IllegalArgumentException.class,
-                () -> nodeDAO.createNode(rootNode.getUniqueId(), snapshotNode));
+                () -> nodeDAO.createNode(folderNode.getUniqueId(), snapshotNode));
     }
 
     @Test
@@ -704,7 +738,6 @@ public class DAOTestIT {
     }
 
     @Test
-    @Disabled
     public void testFindParentFromPathElements() {
         Node rootNode = nodeDAO.getRootNode();
         Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
@@ -730,7 +763,6 @@ public class DAOTestIT {
     }
 
     @Test
-    @Disabled
     public void testGetFromPathTwoNodes() {
         Node rootNode = nodeDAO.getRootNode();
         Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
@@ -740,10 +772,11 @@ public class DAOTestIT {
 
         List<Node> nodes = nodeDAO.getFromPath("/a/b/c");
         assertEquals(2, nodes.size());
+
+        clearAllData();
     }
 
     @Test
-    @Disabled
     public void testGetFromPathOneNode() {
         Node rootNode = nodeDAO.getRootNode();
         Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
@@ -761,10 +794,11 @@ public class DAOTestIT {
         nodes = nodeDAO.getFromPath("/a");
         assertEquals(1, nodes.size());
         assertEquals(a.getUniqueId(), nodes.get(0).getUniqueId());
+
+        clearAllData();
     }
 
     @Test
-    @Disabled
     public void testGetFromPathZeroNodes() {
         Node rootNode = nodeDAO.getRootNode();
         Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
@@ -776,24 +810,29 @@ public class DAOTestIT {
 
         nodes = nodeDAO.getFromPath("/a/x/c");
         assertNull(nodes);
+
+        clearAllData();
     }
 
     @Test
-    @Disabled
     public void testGetFullPathNullNodeId() {
-        assertThrows(NodeNotFoundException.class,
+        assertThrows(IllegalArgumentException.class,
                 () -> nodeDAO.getFullPath(null));
     }
 
     @Test
-    @Disabled
+    public void testGetFullPathEmptyNodeId() {
+        assertThrows(IllegalArgumentException.class,
+                () -> nodeDAO.getFullPath(""));
+    }
+
+    @Test
     public void testGetFullPathInvalidNodeId() {
         assertThrows(NodeNotFoundException.class,
                 () -> nodeDAO.getFullPath("invalid"));
     }
 
     @Test
-    @Disabled
     public void testGetFullPathNonExistingNode() {
         Node rootNode = nodeDAO.getRootNode();
         Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
@@ -802,10 +841,11 @@ public class DAOTestIT {
         // This will throw NodeNotFoundException
         assertThrows(NodeNotFoundException.class,
                 () -> nodeDAO.getFullPath("nonExisting"));
+
+        clearAllData();
     }
 
     @Test
-    @Disabled
     public void testGetFullPathRootNode() {
         Node rootNode = nodeDAO.getRootNode();
         Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
@@ -813,10 +853,11 @@ public class DAOTestIT {
         nodeDAO.createNode(b.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("c").build());
 
         assertEquals("/", nodeDAO.getFullPath(rootNode.getUniqueId()));
+
+        clearAllData();
     }
 
     @Test
-    @Disabled
     public void testGetFullPath() {
         Node rootNode = nodeDAO.getRootNode();
         Node a = nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("a").build());
@@ -824,6 +865,8 @@ public class DAOTestIT {
         Node c = nodeDAO.createNode(b.getUniqueId(), Node.builder().nodeType(NodeType.FOLDER).name("c").build());
 
         assertEquals("/a/b/c", nodeDAO.getFullPath(c.getUniqueId()));
+
+        clearAllData();
     }
 
     @Test
@@ -833,18 +876,22 @@ public class DAOTestIT {
     }
 
     @Test
-    @Disabled
     public void testIsMoveAllowedSnapshotNode() {
         Node rootNode = nodeDAO.getRootNode();
 
         Node node1 = new Node();
         node1.setName("SnapshotData node");
         node1.setNodeType(NodeType.SNAPSHOT);
+        node1.setUniqueId(UUID.randomUUID().toString());
 
         Node node2 = new Node();
         node2.setName("Configuration node");
         node2.setNodeType(NodeType.CONFIGURATION);
-        assertFalse(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(node1, node2), rootNode));
+        node2.setUniqueId(UUID.randomUUID().toString());
+
+        assertFalse(nodeDAO.isMoveOrCopyAllowed(List.of(node1), rootNode));
+
+        assertFalse(nodeDAO.isMoveOrCopyAllowed(List.of(node2), rootNode));
     }
 
     @Test
@@ -915,7 +962,7 @@ public class DAOTestIT {
         Node node2 = new Node();
         node2.setName("Node2");
         node2.setNodeType(NodeType.FOLDER);
-        node2 = nodeDAO.createNode(rootNode.getUniqueId(), node2);
+        nodeDAO.createNode(rootNode.getUniqueId(), node2);
 
         List<String> nodeIds = Arrays.asList(node1.getUniqueId(), "non-existing");
 
@@ -967,7 +1014,7 @@ public class DAOTestIT {
         Node firstLevelFolder2 = new Node();
         firstLevelFolder2.setName("First Level folder 2");
         firstLevelFolder2.setNodeType(NodeType.FOLDER);
-        firstLevelFolder2 = nodeDAO.createNode(rootNode.getUniqueId(), firstLevelFolder2);
+        nodeDAO.createNode(rootNode.getUniqueId(), firstLevelFolder2);
 
         Node secondLevelFolder1 = new Node();
         secondLevelFolder1.setName("Second level folder 1");
@@ -986,7 +1033,6 @@ public class DAOTestIT {
     }
 
     @Test
-    @Disabled
     public void testIsMoveAllowedTargetInSelectionTree() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1010,7 +1056,7 @@ public class DAOTestIT {
         secondLevelFolder2.setNodeType(NodeType.FOLDER);
         secondLevelFolder2 = nodeDAO.createNode(firstLevelFolder1.getUniqueId(), secondLevelFolder2);
 
-        assertFalse(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(firstLevelFolder2, firstLevelFolder1), secondLevelFolder2));
+        assertFalse(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(firstLevelFolder1, firstLevelFolder2), secondLevelFolder2));
 
         clearAllData();
     }
@@ -1021,6 +1067,7 @@ public class DAOTestIT {
 
         Node saveSetNode = new Node();
         saveSetNode.setNodeType(NodeType.CONFIGURATION);
+        saveSetNode.setUniqueId(UUID.randomUUID().toString());
         saveSetNode.setName("Save Set");
 
         assertFalse(nodeDAO.isMoveOrCopyAllowed(List.of(saveSetNode), rootNode));
@@ -1164,7 +1211,6 @@ public class DAOTestIT {
     }
 
     @Test
-    @Disabled
     public void testCopyConfigToOtherParent() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1181,16 +1227,23 @@ public class DAOTestIT {
         Node config = new Node();
         config.setName("Config");
         config.setNodeType(NodeType.CONFIGURATION);
-        config = nodeDAO.createNode(folderNode.getUniqueId(), config);
 
-        nodeDAO.copyNodes(List.of(config.getUniqueId()), folderNode2.getUniqueId(), "username");
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(config);
+        ConfigurationData configurationData = new ConfigurationData();
+        configuration.setConfigurationData(configurationData);
+
+        configuration = nodeDAO.createConfiguration(folderNode.getUniqueId(), configuration);
+
+        nodeDAO.copyNodes(List.of(configuration.getConfigurationNode().getUniqueId()), folderNode2.getUniqueId(), "username");
 
         List<Node> childNodes = nodeDAO.getChildNodes(rootNode.getUniqueId());
         assertEquals(2, childNodes.size());
+
+        clearAllData();
     }
 
     @Test
-    @Disabled
     public void testCopyMultipleFolders() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1213,10 +1266,11 @@ public class DAOTestIT {
 
         List<Node> childNodes = nodeDAO.getChildNodes(rootNode.getUniqueId());
         assertEquals(3, childNodes.size());
+
+        clearAllData();
     }
 
     @Test
-    @Disabled
     public void testCopyFolderAndConfig() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1240,11 +1294,13 @@ public class DAOTestIT {
         assertThrows(IllegalArgumentException.class,
                 () -> nodeDAO.copyNodes(Arrays.asList(folderUniqueId,
                         configUniqueId), rootNode.getUniqueId(), "username"));
+
+        clearAllData();
     }
 
     @Test
-    @Disabled
     public void testCopyFolderWithConfigAndSnapshot() {
+
         Node rootNode = nodeDAO.getRootNode();
 
         Node folderNode = new Node();
@@ -1260,30 +1316,42 @@ public class DAOTestIT {
         Node configNode = new Node();
         configNode.setName("Config");
         configNode.setNodeType(NodeType.CONFIGURATION);
-        configNode = nodeDAO.createNode(childFolder1.getUniqueId(), configNode);
 
-        //nodeDAO.updateConfiguration(configNode, List.of(ConfigPv.builder().pvName("whatever").build()));
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(configNode);
+        ConfigurationData configurationData = new ConfigurationData();
+        configurationData.setPvList(List.of(ConfigPv.builder().pvName("whatever").build()));
+        configuration.setConfigurationData(configurationData);
 
-        SnapshotItem item1 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(configNode.getUniqueId()).get(0))
+        configuration = nodeDAO.createConfiguration(childFolder1.getUniqueId(), configuration);
+
+        SnapshotItem item1 = SnapshotItem.builder().configPv(configuration.getConfigurationData().getPvList().get(0))
                 .value(VDouble.of(7.7, alarm, time, display)).readbackValue(VDouble.of(7.7, alarm, time, display))
                 .build();
 
-        nodeDAO.saveSnapshot(configNode.getUniqueId(), List.of(item1), "snapshotName", "comment", "userName");
+        Snapshot snapshot = new Snapshot();
+        snapshot.setSnapshotNode(Node.builder().name("snapshotName").description("comment").userName("userName").build());
+        SnapshotData snapshotData = new SnapshotData();
+        snapshotData.setSnasphotItems(List.of(item1));
+        snapshot.setSnapshotData(snapshotData);
+
+        nodeDAO.saveSnapshot(configNode.getUniqueId(), snapshot);
 
         Node parent = nodeDAO.copyNodes(List.of(childFolder1.getUniqueId()), rootNode.getUniqueId(), "username");
         List<Node> childNodes = nodeDAO.getChildNodes(parent.getUniqueId());
         assertEquals(2, childNodes.size());
 
         Node copiedFolder = childNodes.stream().filter(node -> node.getName().equals("Child Folder 1")).findFirst().get();
-        Node copiedSaveSet = nodeDAO.getChildNodes(copiedFolder.getUniqueId()).get(0);
-        Node copiedSnapshot = nodeDAO.getSnapshots(copiedSaveSet.getUniqueId()).get(0);
+        Node copiedConfiguration = nodeDAO.getChildNodes(copiedFolder.getUniqueId()).get(0);
+        Node copiedSnapshot = nodeDAO.getSnapshots(copiedConfiguration.getUniqueId()).get(0);
         assertEquals("snapshotName", copiedSnapshot.getName());
-        assertEquals(1, nodeDAO.getConfigPvs(copiedSaveSet.getUniqueId()).size());
+        assertEquals(1, nodeDAO.getConfigurationData(copiedConfiguration.getUniqueId()).getPvList().size());
+
+        clearAllData();
 
     }
 
     @Test
-    @Disabled
     public void testCopySubtree() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1306,74 +1374,118 @@ public class DAOTestIT {
 
         assertEquals(2, nodeDAO.getChildNodes(rootNode.getUniqueId()).size());
         assertEquals(1, nodeDAO.getChildNodes(targetNode.getUniqueId()).size());
+
+        clearAllData();
     }
 
     @Test
-    @Disabled
     public void testCopySnapshot() {
+
         Node rootNode = nodeDAO.getRootNode();
+        Node folderNode = nodeDAO.createNode(rootNode.getUniqueId(),
+                Node.builder().name("Folder").build());
 
         Node config = Node.builder().name("My config 3").nodeType(NodeType.CONFIGURATION).build();
-        config = nodeDAO.createNode(rootNode.getUniqueId(), config);
-        //nodeDAO.updateConfiguration(config, List.of(ConfigPv.builder().pvName("whatever").build()));
 
-        SnapshotItem item1 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(config.getUniqueId()).get(0))
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(config);
+        ConfigurationData configurationData = new ConfigurationData();
+        configurationData.setPvList(List.of(ConfigPv.builder().pvName("whatever").build()));
+        configuration.setConfigurationData(configurationData);
+
+        configuration = nodeDAO.createConfiguration(folderNode.getUniqueId(), configuration);
+
+        SnapshotItem item1 = SnapshotItem.builder().configPv(configuration.getConfigurationData().getPvList().get(0))
                 .value(VDouble.of(7.7, alarm, time, display)).readbackValue(VDouble.of(7.7, alarm, time, display))
                 .build();
 
-        Node snapshotNode = nodeDAO.saveSnapshot(config.getUniqueId(), List.of(item1), "snapshotName", "comment", "userName");
+        Snapshot snapshot = new Snapshot();
+        snapshot.setSnapshotNode(Node.builder().name("snapshotName").description("comment").userName("userName").build());
+        SnapshotData snapshotData = new SnapshotData();
+        snapshotData.setSnasphotItems(List.of(item1));
+        snapshot.setSnapshotData(snapshotData);
 
-        Node folderNode = new Node();
-        folderNode.setName("Folder");
-        folderNode.setNodeType(NodeType.FOLDER);
-        folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
+        snapshot = nodeDAO.saveSnapshot(configuration.getConfigurationNode().getUniqueId(), snapshot);
 
-        String uniqueId = folderNode.getUniqueId();
+        String snapshotId = snapshot.getSnapshotNode().getUniqueId();
+
+        Node folderNode1 = new Node();
+        folderNode1.setName("Folder1");
+        folderNode1.setNodeType(NodeType.FOLDER);
+        folderNode1 = nodeDAO.createNode(rootNode.getUniqueId(), folderNode1);
+
+        String uniqueId = folderNode1.getUniqueId();
         assertThrows(IllegalArgumentException.class,
-                () -> nodeDAO.copyNodes(List.of(snapshotNode.getUniqueId()), uniqueId, "username"));
+                () -> nodeDAO.copyNodes(List.of(snapshotId), uniqueId, "username"));
+
+        clearAllData();
     }
 
     @Test
-    @Disabled
     public void testCopyConfigWithSnapshots() {
+
         Node rootNode = nodeDAO.getRootNode();
 
-        Node config = Node.builder().name("My config 3").nodeType(NodeType.CONFIGURATION).build();
-        config = nodeDAO.createNode(rootNode.getUniqueId(), config);
-        //nodeDAO.updateConfiguration(config, List.of(ConfigPv.builder().pvName("whatever").build()));
+        Node folderNode = nodeDAO.createNode(rootNode.getUniqueId(),
+                Node.builder()
+                        .name("Folder")
+                        .build());
 
-        SnapshotItem item1 = SnapshotItem.builder().configPv(nodeDAO.getConfigPvs(config.getUniqueId()).get(0))
+        Node config = Node.builder().name("My config 3").nodeType(NodeType.CONFIGURATION).build();
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(config);
+        ConfigurationData configurationData = new ConfigurationData();
+        configurationData.setPvList(List.of(ConfigPv.builder().pvName("whatever").build()));
+        configuration.setConfigurationData(configurationData);
+
+        configuration = nodeDAO.createConfiguration(folderNode.getUniqueId(), configuration);
+
+        SnapshotItem item1 = SnapshotItem.builder().configPv(configuration.getConfigurationData().getPvList().get(0))
                 .value(VDouble.of(7.7, alarm, time, display)).readbackValue(VDouble.of(7.7, alarm, time, display))
                 .build();
 
-        Node snapshotNode = nodeDAO.saveSnapshot(config.getUniqueId(), List.of(item1), "snapshotName", "comment", "userName");
+        Snapshot snapshot = new Snapshot();
+        snapshot.setSnapshotNode(Node.builder()
+                .nodeType(NodeType.SNAPSHOT)
+                .name("snapshotName")
+                .userName("userName")
+                .description("comment")
+                .build());
+        SnapshotData snapshotData = new SnapshotData();
+        snapshotData.setSnasphotItems(List.of(item1));
+        snapshot.setSnapshotData(snapshotData);
+
+        snapshot = nodeDAO.saveSnapshot(configuration.getConfigurationNode().getUniqueId(), snapshot);
+
+        Node snapshotNode = snapshot.getSnapshotNode();
+
         Tag tag = new Tag();
-        tag.setUserName("username");
+        tag.setUserName("userName");
         tag.setName("tagname");
         tag.setCreated(new Date());
         tag.setComment("tagcomment");
         snapshotNode.addTag(tag);
         nodeDAO.updateNode(snapshotNode, false);
 
-        Node folderNode = new Node();
-        folderNode.setName("Folder");
-        folderNode.setNodeType(NodeType.FOLDER);
-        folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
+        Node folderNode2 = new Node();
+        folderNode2.setName("Folder2");
+        folderNode2 = nodeDAO.createNode(rootNode.getUniqueId(), folderNode2);
 
-        nodeDAO.copyNodes(List.of(config.getUniqueId()), folderNode.getUniqueId(), "username");
+        nodeDAO.copyNodes(List.of(configuration.getConfigurationNode().getUniqueId()), folderNode2.getUniqueId(), "userName");
 
         Node copiedConfig = nodeDAO.getChildNodes(folderNode.getUniqueId()).get(0);
         Node copiedSnapshot = nodeDAO.getChildNodes(copiedConfig.getUniqueId()).get(0);
         assertEquals("snapshotName", copiedSnapshot.getName());
-        assertEquals("username", copiedSnapshot.getUserName());
-        List<Tag> tags = nodeDAO.getTags(copiedSnapshot.getUniqueId());
-        assertEquals("username", tags.get(0).getUserName());
+        assertEquals("userName", copiedSnapshot.getUserName());
+        List<Tag> tags = copiedSnapshot.getTags();
+        assertEquals("userName", tags.get(0).getUserName());
         assertEquals("tagname", tags.get(0).getName());
         assertEquals("tagcomment", tags.get(0).getComment());
+
+        clearAllData();
     }
 
     @Test
-    @Disabled
     public void testDeleteNode() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1387,14 +1499,12 @@ public class DAOTestIT {
     }
 
     @Test
-    @Disabled
     public void testDeleteNodeInvalid() {
         assertThrows(NodeNotFoundException.class,
                 () -> nodeDAO.deleteNode("invalid"));
     }
 
     @Test
-    @Disabled
     public void testDeleteTree() {
         Node rootNode = nodeDAO.getRootNode();
 
@@ -1417,7 +1527,41 @@ public class DAOTestIT {
      * found in any of the source {@link Node}s subtrees.
      */
     @Test
-    public void testContainedInSubTree(){
+    public void testContainedInSubTree() {
+        Node rootNode = nodeDAO.getRootNode();
+
+        Node L1F1 = new Node();
+        L1F1.setName("L1F1");
+        L1F1.setNodeType(NodeType.FOLDER);
+        L1F1 = nodeDAO.createNode(rootNode.getUniqueId(), L1F1);
+
+        Node L1F2 = new Node();
+        L1F2.setName("L1F2");
+        L1F2.setNodeType(NodeType.FOLDER);
+        nodeDAO.createNode(rootNode.getUniqueId(), L1F2);
+
+        Node L2F1 = new Node();
+        L2F1.setName("L2F1");
+        L2F1.setNodeType(NodeType.FOLDER);
+        nodeDAO.createNode(L1F1.getUniqueId(), L2F1);
+
+        Node L2F2 = new Node();
+        L2F2.setName("L2F2");
+        L2F2.setNodeType(NodeType.FOLDER);
+        L2F2 = nodeDAO.createNode(L1F1.getUniqueId(), L2F2);
+
+        // OK to copy/move level 2 folders to root
+        assertTrue(nodeDAO.isMoveOrCopyAllowed(Collections.singletonList(L2F2), rootNode));
+
+        // NOT OK to copy/move level 1 folders to root as they are already there
+        assertFalse(nodeDAO.isMoveOrCopyAllowed(List.of(L1F1), rootNode));
+
+        clearAllData();
+
+    }
+
+    @Test
+    public void testIsContainedInSubTree() {
         Node rootNode = nodeDAO.getRootNode();
 
         Node L1F1 = new Node();
@@ -1435,25 +1579,115 @@ public class DAOTestIT {
         L2F1.setNodeType(NodeType.FOLDER);
         L2F1 = nodeDAO.createNode(L1F1.getUniqueId(), L2F1);
 
+        Node L3F1 = new Node();
+        L3F1.setName("L3F1");
+        L3F1.setNodeType(NodeType.FOLDER);
+        L3F1 = nodeDAO.createNode(L2F1.getUniqueId(), L3F1);
+
         Node L2F2 = new Node();
         L2F2.setName("L2F2");
         L2F2.setNodeType(NodeType.FOLDER);
         L2F2 = nodeDAO.createNode(L1F1.getUniqueId(), L2F2);
 
-        // OK to copy/move level 2 folders to root
-        assertTrue(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(L2F1), rootNode));
-
-        // NOT OK to copy/move level 1 folders to root as they are already there
-        assertFalse(nodeDAO.isMoveOrCopyAllowed(Arrays.asList(L1F1), rootNode));
+        assertTrue(nodeDAO.isContainedInSubtree(rootNode.getUniqueId(), L2F2.getUniqueId()));
+        assertTrue(nodeDAO.isContainedInSubtree(rootNode.getUniqueId(), L3F1.getUniqueId()));
+        assertTrue(nodeDAO.isContainedInSubtree(L1F1.getUniqueId(), L3F1.getUniqueId()));
+        assertFalse(nodeDAO.isContainedInSubtree(L1F1.getUniqueId(), L1F2.getUniqueId()));
+        assertFalse(nodeDAO.isContainedInSubtree(L2F2.getUniqueId(), rootNode.getUniqueId()));
+        assertFalse(nodeDAO.isContainedInSubtree(L1F1.getUniqueId(), L1F1.getUniqueId()));
+        assertFalse(nodeDAO.isContainedInSubtree(L2F1.getUniqueId(), L1F1.getUniqueId()));
 
         clearAllData();
+    }
 
+    @Test
+    public void testGetAllTags() {
+        Node rootNode = nodeDAO.getRootNode();
+
+        Tag goldenTag = Tag.goldenTag("user");
+        Tag tag1 = Tag.builder().name("name1").comment("comment1").userName("user1").build();
+        Tag tag2 = Tag.builder().name("name2").comment("comment2").userName("user2").build();
+
+        Node L1F1 = new Node();
+        L1F1.setName("L1F1");
+        L1F1.setNodeType(NodeType.FOLDER);
+        L1F1.setTags(Collections.singletonList(goldenTag));
+        L1F1 = nodeDAO.createNode(rootNode.getUniqueId(), L1F1);
+
+        Node L1F2 = new Node();
+        L1F2.setName("L1F2");
+        L1F2.setNodeType(NodeType.FOLDER);
+        L1F2.setTags(Collections.singletonList(tag1));
+        nodeDAO.createNode(rootNode.getUniqueId(), L1F2);
+
+        Node L2F1 = new Node();
+        L2F1.setName("L2F1");
+        L2F1.setNodeType(NodeType.FOLDER);
+        L2F1.setTags(Arrays.asList(goldenTag, tag2));
+        L2F1 = nodeDAO.createNode(L1F1.getUniqueId(), L2F1);
+
+        Node L3F1 = new Node();
+        L3F1.setName("L3F1");
+        L3F1.setNodeType(NodeType.FOLDER);
+        nodeDAO.createNode(L2F1.getUniqueId(), L3F1);
+
+        Node L2F2 = new Node();
+        L2F2.setName("L2F2");
+        L2F2.setNodeType(NodeType.FOLDER);
+        nodeDAO.createNode(L1F1.getUniqueId(), L2F2);
+
+        List<Tag> tags = nodeDAO.getAllTags();
+
+        assertEquals(4, tags.size());
+
+        clearAllData();
+    }
+
+    @Test
+    public void testGetAllSnapshots() {
+        Node rootNode = nodeDAO.getRootNode();
+
+        Node folderNode = nodeDAO.createNode(rootNode.getUniqueId(),
+                Node.builder()
+                        .name("Folder")
+                        .build());
+
+        Node config = Node.builder().name("My config 3").nodeType(NodeType.CONFIGURATION).build();
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(config);
+        ConfigurationData configurationData = new ConfigurationData();
+        configurationData.setPvList(List.of(ConfigPv.builder().pvName("whatever").build()));
+        configuration.setConfigurationData(configurationData);
+
+        configuration = nodeDAO.createConfiguration(folderNode.getUniqueId(), configuration);
+
+        SnapshotItem item1 = SnapshotItem.builder().configPv(configuration.getConfigurationData().getPvList().get(0))
+                .value(VDouble.of(7.7, alarm, time, display)).readbackValue(VDouble.of(7.7, alarm, time, display))
+                .build();
+
+        Snapshot snapshot = new Snapshot();
+        snapshot.setSnapshotNode(Node.builder()
+                .nodeType(NodeType.SNAPSHOT)
+                .name("snapshotName")
+                .userName("userName")
+                .description("comment")
+                .build());
+        SnapshotData snapshotData = new SnapshotData();
+        snapshotData.setSnasphotItems(List.of(item1));
+        snapshot.setSnapshotData(snapshotData);
+
+        nodeDAO.saveSnapshot(configuration.getConfigurationNode().getUniqueId(), snapshot);
+
+        List<Node> snapshotNodes = nodeDAO.getAllSnapshots();
+        assertEquals(1, snapshotNodes.size());
+
+        clearAllData();
     }
 
     /**
      * Deletes all child nodes of the root node, i.e. all data except root node.
      */
-    private void clearAllData(){
+    private void clearAllData() {
         List<Node> childNodes = nodeDAO.getChildNodes(Node.ROOT_FOLDER_UNIQUE_ID);
         childNodes.forEach(node -> nodeDAO.deleteNode(node.getUniqueId()));
     }

@@ -21,7 +21,11 @@ package org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.Refresh;
 import co.elastic.clients.elasticsearch._types.Result;
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery.Builder;
+import co.elastic.clients.elasticsearch._types.query_dsl.ExistsQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.NestedQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.TermQuery;
 import co.elastic.clients.elasticsearch.core.DeleteRequest;
 import co.elastic.clients.elasticsearch.core.DeleteResponse;
@@ -36,17 +40,16 @@ import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
+import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.model.ESTreeNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
-import org.springframework.web.server.ResponseStatusException;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,7 +67,7 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
 
     private static final Logger logger = Logger.getLogger(ElasticsearchTreeRepository.class.getName());
 
-    @Value("${elasticsearch.tree_node.index:test_saveandrestore_tree}")
+    @Value("${elasticsearch.tree_node.index:saveandrestore_tree}")
     public String ES_TREE_INDEX;
 
     @Autowired
@@ -76,6 +79,7 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
      * The <code>uniqueId</code> field of the {@link org.phoebus.applications.saveandrestore.model.Node}
      * field is set if <code>null</code> or empty. This is needed for data migration purposes.
      * The same applies also to the <code>created</code> field.
+     *
      * @param elasticTreeNode An {@link ESTreeNode} object
      * @return An {@link ESTreeNode} as persisted in Elasticsearch.
      */
@@ -83,11 +87,11 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
     public <S extends ESTreeNode> S save(S elasticTreeNode) {
         Date now = new Date();
         try {
-            if(elasticTreeNode.getNode().getCreated() == null){
+            if (elasticTreeNode.getNode().getCreated() == null) {
                 elasticTreeNode.getNode().setCreated(now);
             }
 
-            if(elasticTreeNode.getNode().getUniqueId() == null || elasticTreeNode.getNode().getUniqueId().isEmpty()){
+            if (elasticTreeNode.getNode().getUniqueId() == null || elasticTreeNode.getNode().getUniqueId().isEmpty()) {
                 elasticTreeNode.getNode().setUniqueId(UUID.randomUUID().toString());
             }
 
@@ -263,6 +267,52 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
             } else {
                 throw new NodeNotFoundException("Unable to locate parent node for unique id " + uniqueId);
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Retrieves all tags across all nodes in the tree index.
+     *
+     * @param goldenOnly If <code>true</code> only golden tags are considered.
+     * @return A potentially empty list of {@link Tag}s.
+     */
+    public List<ESTreeNode> searchNodesForTag(boolean goldenOnly) {
+        BoolQuery.Builder boolQueryBuilder = new Builder();
+        NestedQuery innerNestedQuery;
+        if (!goldenOnly) {
+            ExistsQuery existsQuery = ExistsQuery.of(e -> e.field("node.tags"));
+            innerNestedQuery = NestedQuery.of(n1 -> n1.path("node.tags").query(existsQuery._toQuery()));
+        } else {
+            MatchQuery matchQuery = MatchQuery.of(m -> m.field("node.tags.name").query(Tag.GOLDEN));
+            innerNestedQuery = NestedQuery.of(n1 -> n1.path("node.tags").query(matchQuery._toQuery()));
+        }
+        NestedQuery outerNestedQuery = NestedQuery.of(n2 -> n2.path("node").query(innerNestedQuery._toQuery()));
+        boolQueryBuilder.must(outerNestedQuery._toQuery());
+        SearchRequest searchRequest = SearchRequest.of(s -> s.index(ES_TREE_INDEX)
+                .query(boolQueryBuilder.build()._toQuery())
+                .timeout("60s"));
+        try {
+            SearchResponse<ESTreeNode> esTreeNodeSearchResponse = client.search(searchRequest, ESTreeNode.class);
+            return esTreeNodeSearchResponse.hits().hits().stream().map(Hit::source).collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<ESTreeNode> getAllNodesByType(NodeType nodeType) {
+        BoolQuery.Builder boolQueryBuilder = new Builder();
+        NestedQuery innerNestedQuery;
+        MatchQuery matchQuery = MatchQuery.of(m -> m.field("node.nodeType").query(nodeType.toString()));
+        innerNestedQuery = NestedQuery.of(n1 -> n1.path("node").query(matchQuery._toQuery()));
+        boolQueryBuilder.must(innerNestedQuery._toQuery());
+        SearchRequest searchRequest = SearchRequest.of(s -> s.index(ES_TREE_INDEX)
+                .query(boolQueryBuilder.build()._toQuery())
+                .timeout("60s"));
+        try {
+            SearchResponse<ESTreeNode> esTreeNodeSearchResponse = client.search(searchRequest, ESTreeNode.class);
+            return esTreeNodeSearchResponse.hits().hits().stream().map(Hit::source).collect(Collectors.toList());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

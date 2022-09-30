@@ -23,7 +23,6 @@ import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
-import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 
 import java.util.List;
@@ -72,24 +71,6 @@ public interface SaveAndRestoreClient {
      * @throws SaveAndRestoreClientException If error occurs when retrieving data
      */
     List<Node> getChildNodes(String uniqueNodeId) throws SaveAndRestoreClientException;
-
-    /**
-     * @param snapshotUniqueId Unique id of a snapshot {@link Node}
-     * @return A list of {@link SnapshotItem}s associated with the snapshot.
-     */
-    @Deprecated
-    List<SnapshotItem> getSnapshotItems(String snapshotUniqueId);
-
-    /**
-     * Persists a new snapshot.
-     *
-     * @param configUniqueId The unique id of the save set (config) node associated with the snapshot.
-     * @param snapshotItems  List of {@link SnapshotItem}s that will be bound to the new snapshot.
-     * @param snapshotName   A name for the snapshot
-     * @param comment        A comment for the snapshot
-     * @return The created snapshot {@link Node}.
-     */
-    Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment);
 
     /**
      * Creates a new {@link Node}
