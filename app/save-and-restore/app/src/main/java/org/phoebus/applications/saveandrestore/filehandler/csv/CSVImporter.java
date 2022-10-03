@@ -88,7 +88,6 @@ import java.text.DecimalFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -265,9 +264,7 @@ public class CSVImporter extends CSVCommon {
             dialog.setTitle("Change snapshot name");
             dialog.setHeaderText("Duplicate snapshot name found!" + System.lineSeparator() + "Please change the snapshot name to continue, or cancel.");
             dialog.getDialogPane().lookupButton(ButtonType.OK).setDisable(true);
-            dialog.getEditor().textProperty().addListener((observableValue, oldName, newName) -> {
-                dialog.getDialogPane().lookupButton(ButtonType.OK).setDisable(childNodeNameList.contains(newName) || newName.equals(csvParser.getSnapshotName()));
-            });
+            dialog.getEditor().textProperty().addListener((observableValue, oldName, newName) -> dialog.getDialogPane().lookupButton(ButtonType.OK).setDisable(childNodeNameList.contains(newName) || newName.equals(csvParser.getSnapshotName())));
 
             Optional<String> response = dialog.showAndWait();
 
@@ -278,25 +275,27 @@ public class CSVImporter extends CSVCommon {
             }
         }
 
+        Node snapshotNode = Node.builder()
+                .nodeType(NodeType.SNAPSHOT)
+                .name(csvParser.getSnapshotName())
+                .description(csvParser.getDescription())
+                .userName(csvParser.getCreator())
+                .build();
+        csvParser.getTags().forEach(snapshotNode::addTag);
+
         Snapshot snapshot = new Snapshot();
-        snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT)
-                .name(csvParser.getSnapshotName()).description(csvParser.getDescription()).build());
+        snapshot.setSnapshotNode(snapshotNode);
         SnapshotData snapshotData = new SnapshotData();
         snapshotData.setSnasphotItems(snapshotItems);
         snapshot.setSnapshotData(snapshotData);
 
-        Node snapshotNode = saveAndRestoreService.saveSnapshot(parentOfImport, snapshot).getSnapshotNode();
-        snapshotNode.setCreated(Date.from(csvParser.getTimestamp()));
-        snapshotNode.setUserName(csvParser.getCreator());
-        csvParser.getTags().forEach(tag -> {
-            //tag.setSnapshotId(snapshot.getUniqueId());
+        snapshot = saveAndRestoreService.saveSnapshot(parentOfImport, snapshot);
 
-            snapshotNode.addTag(tag);
-        });
-        saveAndRestoreService.updateNode(snapshotNode, true);
+        // Need to set custom created date
+        saveAndRestoreService.updateNode(snapshot.getSnapshotNode(), true);
     }
 
-    private static boolean checkSnapshotCompatibility(List<Map<String, String>> entries) throws Exception {
+    private static boolean checkSnapshotCompatibility(List<Map<String, String>> entries)  {
         List<ConfigPv> configPvs = saveAndRestoreService.getConfiguration(parentOfImport.getUniqueId()).getPvList();
 
         int numConfigPvsInSaveset = configPvs.size();
@@ -314,7 +313,7 @@ public class CSVImporter extends CSVCommon {
     private static ConfigPv createConfigPv(Map<String, String> entry) {
         return ConfigPv.builder()
                 .pvName(entry.get(H_PV_NAME))
-                .readbackPvName(entry.get(H_READBACK).isEmpty() ? null : entry.get(H_READBACK))
+                .readbackPvName(entry.get(H_READBACK).isEmpty() ? "" : entry.get(H_READBACK))
                 .readOnly(Boolean.parseBoolean(entry.get(H_READ_ONLY)) || "1".equals(entry.get(H_READ_ONLY)))
                 .build();
     }
@@ -338,7 +337,7 @@ public class CSVImporter extends CSVCommon {
         String[] t = timestamp != null && timestamp.indexOf('.') > 0 ? timestamp.split("\\.")
                 : new String[]{"0", "0"};
         Time time = Time.of(Instant.ofEpochSecond(Long.parseLong(t[0]), Integer.parseInt(t[1])));
-        AlarmStatus alarmStatus = null;
+        AlarmStatus alarmStatus;
         try {
             alarmStatus = AlarmStatus.valueOf(status);
         } catch (IllegalArgumentException e) {
@@ -448,7 +447,6 @@ public class CSVImporter extends CSVCommon {
             case "string_array":
                 String[] str = theValue.split(ARRAY_SPLITTER, -1);
                 List<Integer> sizes = new ArrayList<>();
-                List<String> data = new ArrayList<>();
                 Arrays.stream(str).forEach(s -> sizes.add(s.length()));
                 return VStringArray.of(Arrays.asList(str),
                         new ArrayInteger(CollectionNumbers.toList(sizes)), alarm, time);

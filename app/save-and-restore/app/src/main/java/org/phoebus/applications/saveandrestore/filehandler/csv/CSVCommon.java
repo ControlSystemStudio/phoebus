@@ -41,7 +41,7 @@ public abstract class CSVCommon {
 
     public static final String HIERARCHY_TAG = "Hierarchy:";
     public static final String SAVESETNAME_TAG = "SaveSet name:";
-    public static final String SNAPSHOTNAME_TAG = "SnapshotData name:";
+    public static final String SNAPSHOTNAME_TAG = "Snapshot name:";
     public static final String DESCRIPTION_TAG = "Description:";
     public static final String CREATOR_TAG = "Creator:";
     public static final String DATE_TAG = "Date:";

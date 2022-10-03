@@ -93,6 +93,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -1054,7 +1055,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * @param node The snapshot to which tag is added.
      */
     public void addTagToSnapshot(Node node) {
-        SnapshotNewTagDialog snapshotNewTagDialog = new SnapshotNewTagDialog(node.getTags());
+        SnapshotNewTagDialog snapshotNewTagDialog = new SnapshotNewTagDialog(node.getTags() == null ? new ArrayList<>(): node.getTags());
         snapshotNewTagDialog.initModality(Modality.APPLICATION_MODAL);
 
         String locationString = DirectoryUtilities.CreateLocationString(node, true);
@@ -1069,6 +1070,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             Tag aNewTag = Tag.builder()
                     .name(items.getKey())
                     .comment(items.getValue())
+                    .created(new Date())
                     .userName(System.getProperty("user.name"))
                     .build();
 

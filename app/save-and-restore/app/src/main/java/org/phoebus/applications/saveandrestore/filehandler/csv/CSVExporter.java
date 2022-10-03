@@ -137,8 +137,10 @@ public class CSVExporter extends CSVCommon {
         printStream.println(Comment(TIMESTAMP_FORMATTER.get().format(nodeToExport.getCreated())));
 
         printStream.println(Comment(TAGS_TAG));
-        nodeToExport.getTags().forEach(tag -> printStream.println(Comment(Record(WrapDoubleQuotation(tag.getName()), WrapDoubleQuotation(tag.getComment()), tag.getUserName(), TIMESTAMP_FORMATTER.get().format(tag.getCreated())))));
-
+        // If a node has not tags it may be null
+        if(nodeToExport.getTags() != null){
+            nodeToExport.getTags().forEach(tag -> printStream.println(Comment(Record(WrapDoubleQuotation(tag.getName()), WrapDoubleQuotation(tag.getComment()), tag.getUserName(), TIMESTAMP_FORMATTER.get().format(tag.getCreated())))));
+        }
         printStream.println(Comment(ENDING_TAG));
 
         printStream.println(Record(H_PV_NAME, H_SELECTED, H_TIMESTAMP, H_STATUS, H_SEVERITY, H_VALUE_TYPE, H_VALUE, H_READBACK, H_READBACK_VALUE, H_DELTA, H_READ_ONLY));
@@ -146,7 +148,10 @@ public class CSVExporter extends CSVCommon {
         List<SnapshotItem> snapshotItems = snapshotData.getSnapshotItems();
 
         for (SnapshotItem snapshotItem : snapshotItems) {
-            printStream.println(Record(snapshotItem));
+            // The snapshot value is null if PV was disconnected when snapshot was taken.
+            if(snapshotItem.getValue() != null){
+                printStream.println(Record(snapshotItem));
+            }
         }
 
         printStream.close();
