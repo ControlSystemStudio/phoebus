@@ -1068,7 +1068,7 @@ public class DAOTestIT {
         Node saveSetNode = new Node();
         saveSetNode.setNodeType(NodeType.CONFIGURATION);
         saveSetNode.setUniqueId(UUID.randomUUID().toString());
-        saveSetNode.setName("Save Set");
+        saveSetNode.setName("Configuration");
 
         assertFalse(nodeDAO.isMoveOrCopyAllowed(List.of(saveSetNode), rootNode));
 

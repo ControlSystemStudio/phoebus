@@ -66,8 +66,6 @@ public class ConfigurationSelectionController implements Initializable {
 
     private Node selectedNode = null;
 
-    protected boolean isDisabledSavesetSelection;
-
     public Node getSelectedNode() {
         return selectedNode;
     }
@@ -127,11 +125,11 @@ public class ConfigurationSelectionController implements Initializable {
     private void RecursiveAddNode(TreeItem<Node> parentItem) {
         List<Node> childNodes = saveAndRestoreService.getChildNodes(parentItem.getValue());
         List<TreeItem<Node>> childItems = childNodes.stream()
-                .filter(node -> isDisabledSavesetSelection ? !(node.getNodeType().equals(NodeType.CONFIGURATION) || node.getNodeType().equals(NodeType.SNAPSHOT)) : !node.getNodeType().equals(NodeType.SNAPSHOT) )
+                .filter(node -> isDisabledConfigurationSelection ? !(node.getNodeType().equals(NodeType.CONFIGURATION) || node.getNodeType().equals(NodeType.SNAPSHOT)) : !node.getNodeType().equals(NodeType.SNAPSHOT) )
                 .map(node -> {
                     TreeItem<Node> treeItem = createNode(node);
                     if (node.getNodeType().equals(NodeType.FOLDER)) {
-                        treeItem.getChildren().add(createCreateANewSaveset());
+                        treeItem.getChildren().add(createCreateConfiguration());
                     }
                     RecursiveAddNode(treeItem);
                     return treeItem;
@@ -148,14 +146,14 @@ public class ConfigurationSelectionController implements Initializable {
         };
     }
 
-    private TreeItem<Node> createCreateANewSaveset() {
-        Node newSaveset = Node.builder()
+    private TreeItem<Node> createCreateConfiguration() {
+        Node newConfiguration = Node.builder()
                 .nodeType(NodeType.CONFIGURATION)
-                .name("Create a new saveset")
+                .name("Create a new configuration")
                 .uniqueId("0")
                 .build();
 
-        return createNode(newSaveset);
+        return createNode(newConfiguration);
     }
 
     private void createNewFolder(TreeItem<Node> parentTreeItem) {
@@ -187,7 +185,7 @@ public class ConfigurationSelectionController implements Initializable {
                 Node newTreeNode = saveAndRestoreService
                         .createNode(parentTreeItem.getValue().getUniqueId(), newFolderNode);
                 TreeItem<Node> treeItem = createNode(newTreeNode);
-                treeItem.getChildren().add(createCreateANewSaveset());
+                treeItem.getChildren().add(createCreateConfiguration());
                 parentTreeItem.getChildren().add(treeItem);
                 parentTreeItem.setExpanded(true);
             } catch (Exception e) {
@@ -202,10 +200,6 @@ public class ConfigurationSelectionController implements Initializable {
     @FXML
     private void close() {
         ((Stage) treeView.getScene().getWindow()).close();
-    }
-
-    public void disableSavesetSelection() {
-        isDisabledSavesetSelection = true;
     }
 
     protected boolean isDisabledConfigurationSelection;

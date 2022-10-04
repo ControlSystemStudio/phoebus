@@ -126,7 +126,7 @@ public class ConfigurationController implements NodeChangedListener {
 
     private final SimpleBooleanProperty dirty = new SimpleBooleanProperty(false);
 
-    private final ObservableList<ConfigPv> saveSetEntries = FXCollections.observableArrayList();
+    private final ObservableList<ConfigPv> configurationEntries = FXCollections.observableArrayList();
 
     private final SimpleBooleanProperty selectionEmpty = new SimpleBooleanProperty(false);
     private final SimpleBooleanProperty singelSelection = new SimpleBooleanProperty(false);
@@ -163,7 +163,7 @@ public class ConfigurationController implements NodeChangedListener {
         MenuItem deleteMenuItem = new MenuItem(Messages.menuItemDeleteSelectedPVs,
                 new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/delete.png")));
         deleteMenuItem.setOnAction(ae -> {
-            saveSetEntries.removeAll(pvTable.getSelectionModel().getSelectedItems());
+            configurationEntries.removeAll(pvTable.getSelectionModel().getSelectedItems());
             pvTable.refresh();
         });
 
@@ -219,10 +219,10 @@ public class ConfigurationController implements NodeChangedListener {
         configurationNameField.textProperty().bindBidirectional(configurationNameProperty);
         descriptionTextArea.textProperty().bindBidirectional(configurationDescriptionProperty);
 
-        saveSetEntries.addListener((ListChangeListener<ConfigPv>) change -> {
+        configurationEntries.addListener((ListChangeListener<ConfigPv>) change -> {
             while (change.next()) {
                 if (change.wasAdded() || change.wasRemoved()) {
-                    FXCollections.sort(saveSetEntries);
+                    FXCollections.sort(configurationEntries);
                     dirty.set(true);
                 }
             }
@@ -262,7 +262,7 @@ public class ConfigurationController implements NodeChangedListener {
             try {
                 configurationNode.get().setName(configurationNameProperty.get());
                 configurationNode.get().setDescription(configurationDescriptionProperty.get());
-                configurationData.setPvList(saveSetEntries);
+                configurationData.setPvList(configurationEntries);
                 Configuration configuration = new Configuration();
                 configuration.setConfigurationNode(configurationNode.get());
                 configuration.setConfigurationData(configurationData);
@@ -280,7 +280,7 @@ public class ConfigurationController implements NodeChangedListener {
             } catch (Exception e1) {
                 ExceptionDetailsErrorDialog.openError(pvTable,
                         Messages.errorActionFailed,
-                        Messages.errorCreateSaveSetFailed,
+                        Messages.errorCreateConfigurationFailed,
                         e1);
             }
         });
@@ -299,7 +299,7 @@ public class ConfigurationController implements NodeChangedListener {
                 // Disallow duplicate PV names as in a restore operation this would mean that a PV is written
                 // multiple times, possibly with different values.
                 String pvName = pvNames[i].trim();
-                if (saveSetEntries.stream().anyMatch(s -> s.getPvName().equals(pvName))) {
+                if (configurationEntries.stream().anyMatch(s -> s.getPvName().equals(pvName))) {
                     continue;
                 }
                 String readbackPV = i >= readbackPvNames.length ? null : readbackPvNames[i] == null || readbackPvNames[i].isEmpty() ? null : readbackPvNames[i].trim();
@@ -310,7 +310,7 @@ public class ConfigurationController implements NodeChangedListener {
                         .build();
                 configPVs.add(configPV);
             }
-            saveSetEntries.addAll(configPVs);
+            configurationEntries.addAll(configPVs);
             resetAddPv();
         });
 
@@ -333,7 +333,7 @@ public class ConfigurationController implements NodeChangedListener {
         configurationNodeParent = parentNode;
         configurationNode.set(Node.builder().nodeType(NodeType.CONFIGURATION).build());
         configurationData = new ConfigurationData();
-        pvTable.setItems(saveSetEntries);
+        pvTable.setItems(configurationEntries);
         UI_EXECUTOR.execute(() -> configurationNameField.requestFocus());
         dirty.set(false);
     }
@@ -365,20 +365,20 @@ public class ConfigurationController implements NodeChangedListener {
         UI_EXECUTOR.execute(() -> {
             try {
                 Collections.sort(configurationData.getPvList());
-                saveSetEntries.setAll(configurationData.getPvList());
-                pvTable.setItems(saveSetEntries);
+                configurationEntries.setAll(configurationData.getPvList());
+                pvTable.setItems(configurationEntries);
                 dirty.set(false);
             } catch (Exception e) {
-                logger.log(Level.WARNING, "Unable to load existing save set");
+                logger.log(Level.WARNING, "Unable to load existing configuration");
             }
         });
     }
 
-    public boolean handleSaveSetTabClosed() {
+    public boolean handleConfigurationTabClosed() {
         if (dirty.get()) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Close tab?");
-            alert.setContentText("Save set has been modified but is not saved. Do you wish to continue?");
+            alert.setContentText("Configuration has been modified but is not saved. Do you wish to continue?");
             Optional<ButtonType> result = alert.showAndWait();
             return result.isPresent() && result.get().equals(ButtonType.OK);
         }

@@ -42,7 +42,7 @@ public class ConfigurationTab extends Tab implements NodeChangedListener {
 
     private ConfigurationController configurationController;
 
-    private SimpleStringProperty tabTitleProperty = new SimpleStringProperty(Messages.contextMenuNewSaveSet);
+    private SimpleStringProperty tabTitleProperty = new SimpleStringProperty(Messages.contextMenuNewConfiguration);
 
     public ConfigurationTab() {
         configure();
@@ -76,7 +76,7 @@ public class ConfigurationTab extends Tab implements NodeChangedListener {
         }
 
         setOnCloseRequest(event -> {
-            if (!configurationController.handleSaveSetTabClosed()) {
+            if (!configurationController.handleConfigurationTabClosed()) {
                 event.consume();
             } else {
                 SaveAndRestoreService.getInstance().removeNodeChangeListener(this);
@@ -87,17 +87,17 @@ public class ConfigurationTab extends Tab implements NodeChangedListener {
     }
 
     /**
-     * Configures UI to edit an existing save set {@link Node}
+     * Configures UI to edit an existing configuration {@link Node}
      *
-     * @param saveSetNode non-null save set {@link Node}
+     * @param configurationNode non-null configuration {@link Node}
      */
-    public void editSaveSet(Node saveSetNode) {
-        setId(saveSetNode.getUniqueId());
-        tabTitleProperty.set(saveSetNode.getName());
-        configurationController.loadConfiguration(saveSetNode);
+    public void editCOnfiguration(Node configurationNode) {
+        setId(configurationNode.getUniqueId());
+        tabTitleProperty.set(configurationNode.getName());
+        configurationController.loadConfiguration(configurationNode);
     }
 
-    public void configureForNewSaveSet(Node parentNode) {
+    public void configureForNewConfiguration(Node parentNode) {
         configurationController.newConfiguration(parentNode);
     }
 

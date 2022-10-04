@@ -20,19 +20,19 @@ Nodes and node types
 
 Save-and-restore data managed by the service is arranged in a tree-like structure and hence presented using
 a tree view UI component. In the following objects in the tree are referred to as "nodes". The root of the tree
-structure is a folder that may only contain folder nodes. Folders may contain sub-folders or save sets, or both.
-The child nodes of a save set are snapshots associated with that save set.
+structure is a folder that may only contain folder nodes. Folders may contain sub-folders or configurations, or both.
+The child nodes of a configuration are snapshots associated with that configuration.
 
-There are three node types managed in the application:
+There are hence three node types managed in the application:
 
 - **Folder**: container of other folders or save sets.
-- **Save set**: a list of PV names and associated meta-data.
+- **Configuration**: essentially a list of PV names and associated meta-data.
 - **Snapshot**: the PV values read from PVs listed in a save set.
 
-*NOTE*: If a folder or save set node is deleted, all child nodes are unconditionally and recursively deleted! The user
+*NOTE*: If a folder or configuration node is deleted, all child nodes are unconditionally and recursively deleted! The user
 is prompted to confirm delete actions as deletion is irreversible.
 
-Below screen shot shows the tree structure and a save set editor.
+Below screen shot shows the tree structure and a configuration editor.
 
 .. image:: images/screenshot1.png
    :width: 80%
@@ -49,16 +49,16 @@ Drag-n-drop
 -----------
 
 Nodes in the tree can be copied (mouse + modifier key) or moved using drag-n-drop. The following restrictions apply:
-* Only folder and save set nodes can be copied or moved.
-* Save set nodes cannot be copied or moved to the root folder node.
-* Target node (aka drop target) must be a folder.
+* Only folder and save configuration can be copied or moved.
+* Configuration nodes cannot be copied or moved to the root folder node.
+* Target node (i.e. drop target) must be a folder.
 
 Checks are performed on the service to enforce the above restrictions. If pre-conditions are not met when the selection
 is dropped, the application will present an error dialog.
 
 Drag-n-drop is disabled if multiple nodes are selected and if:
-* Selection contains a combination of folder and save set nodes. All selected nodes must be of same type.
-* Selection contains nodes with different parent nodes. All selected nodes must have the same parent node.
+* Selection contains a combination of folder and configuration nodes. Selected nodes must be of same type.
+* Selection contains nodes with different parent nodes. Selected nodes must have the same parent node.
 
 Once a selection of nodes have been copied or moved successfully, the target folder is refreshed to reflect the change.
 
@@ -69,8 +69,8 @@ Logging
 -------
 
 If a logbook implementation is available in the application, the optional logging module can be used to launch a log entry
-editor for the purpose of logging when a new snapshotData has been saved, or when a snapshotData has been restored.
-Properties of the snapshotData (name, date etc) are automatically set on the log entry rendered by the editor. If
+editor for the purpose of logging when a new snapshot has been saved or restored.
+Properties of the snapshot (name, date etc) are automatically set on the log entry rendered by the editor. If
 a restore action has failed to write one or multiple PVs, a list of these PVs is also added to the log entry.
 
 Script Support
@@ -100,16 +100,16 @@ An exception is thrown if the node id is invalid, or if the connection to the re
 .. code-block:: python
 
     from org.phoebus.applications.saveandrestore.script import SaveAndRestoreScriptUtil
-    print SaveAndRestoreScriptUtil.getSnapshotItems("<unique id of a snapshotData node>")
+    print SaveAndRestoreScriptUtil.getSnapshotItems("<unique id of a snapshot node>")
 
-An exception is thrown if the snapshotData node id is invalid, or if the connection to the remote service fails.
+An exception is thrown if the snapshot node id is invalid, or if the connection to the remote service fails.
 
-**Restore a snapshotData:**
+**Restore a snapshot:**
 
 .. code-block:: python
 
     from org.phoebus.applications.saveandrestore.script import SaveAndRestoreScriptUtil
-    report = SaveAndRestoreScriptUtil.restore("<unique id of a snapshotData node>", 1000, 1000, False, False)
+    report = SaveAndRestoreScriptUtil.restore("<unique id of a snapshot node>", 1000, 1000, False, False)
 
 The method signature is ``restore(snapshotNodeId, connectTimeout, writeTimeout, abortOnFail, rollback)`` where:
 
@@ -119,7 +119,7 @@ The method signature is ``restore(snapshotNodeId, connectTimeout, writeTimeout, 
 * ``abortOnFail`` determines if the restore procedure should be aborted if restore/write of a PV fails.
 * ``rollback`` determines whether to rollback if a restore/write operation fails.
 
-This method will obtain saved PV values from the snapshotData and restore them to the persisted values. The restore operation
+This method will obtain saved PV values from the snapshot and restore them to the persisted values. The restore operation
 is synchronous with respect to each PV where each write operation will wait for at most ``writeTimeout`` ms to
 complete. PVs marked as read-only in the save set are not restored.
 
@@ -129,13 +129,13 @@ ms to complete. Once a PV is connected, its current value is read to be used if 
 An exception is thrown if:
 
 * If the connection to the remote service fails.
-* If the snapshotData node id is invalid.
-* If any of the PVs in the snapshotData fails to connect within ``connectTimeout`` ms.
+* If the snapshot node id is invalid.
+* If any of the PVs in the snapshot fails to connect within ``connectTimeout`` ms.
 
 Upon successful completion, a RestoreReport object is returned. It contains the following fields:
 
-* ``snapshotId``: The snapshotData id.
-* ``snapshotPath``: The snapshotData "path" as defined by the Save-And-Restore tree structure, e.g. ``/folder1/folder2/saveset1/snapshotId``.
+* ``snapshotId``: The snapshot id.
+* ``snapshotPath``: The snapshot "path" as defined by the Save-And-Restore tree structure, e.g. ``/folder1/folder2/saveset1/snapshotId``.
 * ``restoreDate``: The date when the restore operation was requested.
 * ``restoredPVs``: A map of successfully restored PV names and the values to which they were restored.
 * ``nonRestoredPVs``: A list of PV names that could not be restored/written, if any.

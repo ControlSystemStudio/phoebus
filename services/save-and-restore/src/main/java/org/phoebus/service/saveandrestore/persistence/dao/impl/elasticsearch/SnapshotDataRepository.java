@@ -70,8 +70,8 @@ public class SnapshotDataRepository implements CrudRepository<SnapshotData, Stri
                 return (S) resp.source();
             }
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Failed to save save set for config id " + entity.getUniqueId(), e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save save set for config id " + entity.getUniqueId());
+            logger.log(Level.SEVERE, "Failed to save configuration for config id " + entity.getUniqueId(), e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save configuration for config id " + entity.getUniqueId());
         }
         return null;
     }
@@ -95,8 +95,8 @@ public class SnapshotDataRepository implements CrudRepository<SnapshotData, Stri
             }
             return Optional.of(resp.source());
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Failed to retrieve save set with id: " + id, e);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to retrieve save set with id: " + id);
+            logger.log(Level.SEVERE, "Failed to retrieve configuration with id: " + id, e);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to retrieve configuration with id: " + id);
         }
     }
 

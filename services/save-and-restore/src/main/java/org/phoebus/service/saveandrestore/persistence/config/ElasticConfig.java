@@ -110,7 +110,7 @@ public class ElasticConfig {
             logger.log(Level.WARNING, "Failed to create index " + ES_TREE_INDEX, e);
         }
 
-        // Save set index
+        // Configuration index
         try (InputStream is = ElasticConfig.class.getResourceAsStream("/configuration_mapping.json")) {
             BooleanResponse exits = client.indices().exists(ExistsRequest.of(e -> e.index(ES_CONFIGURATION_INDEX)));
             if (!exits.value()) {

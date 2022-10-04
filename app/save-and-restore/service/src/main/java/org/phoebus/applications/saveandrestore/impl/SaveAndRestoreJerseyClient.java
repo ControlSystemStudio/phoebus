@@ -114,18 +114,6 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     @Override
-    public List<Node> getChildNodes(Node node) throws SaveAndRestoreClientException {
-        ClientResponse response;
-        if (node.getNodeType().equals(NodeType.CONFIGURATION)) {
-            response = getCall("/config/" + node.getUniqueId() + "/snapshots");
-        } else {
-            response = getCall("/node/" + node.getUniqueId() + "/children");
-        }
-        return response.getEntity(new GenericType<>() {
-        });
-    }
-
-    @Override
     public List<Node> getChildNodes(String uniqueNodeId) throws SaveAndRestoreClientException {
         ClientResponse response = getCall("/node/" + uniqueNodeId + "/children");
         return response.getEntity(new GenericType<>() {

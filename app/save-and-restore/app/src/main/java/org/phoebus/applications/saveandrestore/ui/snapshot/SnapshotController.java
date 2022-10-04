@@ -520,7 +520,7 @@ public class SnapshotController implements NodeChangedListener {
             List<ConfigPv> configPvs = configuration.getPvList();
             snapshotNode = Node.builder().name(Messages.unnamedSnapshot).nodeType(NodeType.SNAPSHOT).build();
             VSnapshot vSnapshot =
-                    new VSnapshot(snapshotNode, saveSetToSnapshotEntries(configPvs));
+                    new VSnapshot(snapshotNode, configurationToSnapshotEntries(configPvs));
             List<TableEntry> tableEntries = setSnapshotInternal(vSnapshot);
             UI_EXECUTOR.execute(() -> {
                 snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
@@ -529,7 +529,7 @@ public class SnapshotController implements NodeChangedListener {
                 }
             });
         } catch (Exception e) {
-            LOGGER.log(Level.INFO, "Error loading save set", e);
+            LOGGER.log(Level.INFO, "Error loading configuration", e);
         }
     }
 
@@ -835,7 +835,7 @@ public class SnapshotController implements NodeChangedListener {
         return snapshotEntries;
     }
 
-    private List<SnapshotEntry> saveSetToSnapshotEntries(List<ConfigPv> configPvs) {
+    private List<SnapshotEntry> configurationToSnapshotEntries(List<ConfigPv> configPvs) {
         List<SnapshotEntry> snapshotEntries = new ArrayList<>();
         for (ConfigPv configPv : configPvs) {
             SnapshotEntry snapshotEntry =

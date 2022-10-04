@@ -25,40 +25,40 @@ import java.util.List;
 
 /**
  *
- * <code>SaveSetContent</code> provides the contents of a save set file. This class serves only as a container of the
+ * <code>SaveSetContent</code> provides the contents of a configuration file. This class serves only as a container of the
  * loaded data and does not provide any other functionality.
  *
  * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
  *
  */
-public final class SaveSetContent {
+public final class ConfigurationContent {
 
-    private final List<SaveSetEntry> entries;
+    private final List<ConfigurationEntry> entries;
     private final String description;
 
     /**
-     * Constructs a new save set content.
+     * Constructs a new configuration content.
      *
      * @param description the description of the file
      * @param entries the list of PV entries
      */
-    SaveSetContent(String description, List<SaveSetEntry> entries) {
+    ConfigurationContent(String description, List<ConfigurationEntry> entries) {
         this.entries = Collections.unmodifiableList(entries);
         this.description = description;
     }
 
     /**
-     * Return the entries of this save set. Each entry contain the information about a single PV entry in the save set
+     * Return the entries of this configuration. Each entry contain the information about a single PV entry in the configuration
      * file definition.
      *
      * @return the entries
      */
-    public List<SaveSetEntry> getEntries() {
+    public List<ConfigurationEntry> getEntries() {
         return entries;
     }
 
     /**
-     * Return the description of the save set.
+     * Return the description of the configuration.
      *
      * @return the description
      */

@@ -17,7 +17,6 @@
  */
 package org.phoebus.service.saveandrestore.web.controllers;
 
-import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -34,7 +33,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 @RestController
 @RequestMapping("/config")
@@ -44,40 +42,22 @@ public class ConfigurationController extends BaseController {
     @Autowired
     private NodeDAO nodeDAO;
 
-    private Logger logger = Logger.getLogger(ConfigurationController.class.getName());
-
-    /**
-     * Returns a potentially empty list of {@link Node}s associated with the specified configuration node id.
-     * <p>
-     * A {@link HttpStatus#NOT_FOUND} is returned if the specified configuration does not exist.
-     * <p>
-     * A {@link HttpStatus#BAD_REQUEST} is returned if the specified node id is not a configuration.
-     *
-     * @param uniqueNodeId The id of the configuration
-     * @return A potentially empty list of {@link Node}s for the specified configuration.
-     */
-    @SuppressWarnings("unused")
-    @GetMapping(value = "/{uniqueNodeId}/snapshots", produces = JSON)
-    public List<Node> getSnapshots(@PathVariable String uniqueNodeId) {
-        return nodeDAO.getSnapshots(uniqueNodeId);
-    }
-
     @SuppressWarnings("unused")
     @PutMapping(produces = JSON)
     public Configuration createConfiguration(@RequestParam(value = "parentNodeId") String parentNodeId,
-                                             @RequestBody Configuration configuration){
+                                             @RequestBody Configuration configuration) {
         return nodeDAO.createConfiguration(parentNodeId, configuration);
     }
 
     @SuppressWarnings("unused")
     @GetMapping(value = "/{uniqueId}", produces = JSON)
-    public ConfigurationData getConfigurationData(@PathVariable String uniqueId){
+    public ConfigurationData getConfigurationData(@PathVariable String uniqueId) {
         return nodeDAO.getConfigurationData(uniqueId);
     }
 
     @SuppressWarnings("unused")
     @PostMapping(produces = JSON)
-    public Configuration updateConfiguration(@RequestBody Configuration configuration){
+    public Configuration updateConfiguration(@RequestBody Configuration configuration) {
         return nodeDAO.updateConfiguration(configuration);
     }
 }

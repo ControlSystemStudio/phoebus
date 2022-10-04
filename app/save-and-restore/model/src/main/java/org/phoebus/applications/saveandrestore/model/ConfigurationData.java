@@ -21,7 +21,7 @@ package org.phoebus.applications.saveandrestore.model;
 import java.util.List;
 
 /**
- * Class holding data particular to a save-n-restore configuration (save set) {@link Node}.
+ * Class holding data particular to a save-n-restore configuration {@link Node}.
  *
  * Note that certain properties (name, user id, create date) are contained in the {@link Node} object
  * associated with the configuration. The <code>uniqueId</code> is used to create this association, i.e.

@@ -522,7 +522,7 @@ public class ElasticsearchDAO implements NodeDAO {
                 .filter(node -> node.getNodeType().equals(NodeType.CONFIGURATION)).findFirst();
         // Configuration nodes may not be moved/copied to root node.
         if (saveSetNode.isPresent() && targetNode.getUniqueId().equals(ROOT_FOLDER_UNIQUE_ID)) {
-            logger.info("Move/copy of save set node(s) to root node not allowed.");
+            logger.info("Move/copy of configuration node(s) to root node not allowed.");
             return false;
         }
         if (sourceNodes.size() > 1) {

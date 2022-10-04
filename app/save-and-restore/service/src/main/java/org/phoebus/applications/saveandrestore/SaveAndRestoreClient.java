@@ -59,13 +59,6 @@ public interface SaveAndRestoreClient {
     Node getParentNode(String unqiueNodeId);
 
     /**
-     * @param node An existing {@link Node}
-     * @return A list of child {@link Node}s. May be empty.
-     * @throws SaveAndRestoreClientException If error occurs when retrieving data
-     */
-    List<Node> getChildNodes(Node node) throws SaveAndRestoreClientException;
-
-    /**
      * @param uniqueNodeId Id of an existing {@link Node}
      * @return A list of child {@link Node}s. May be empty.
      * @throws SaveAndRestoreClientException If error occurs when retrieving data

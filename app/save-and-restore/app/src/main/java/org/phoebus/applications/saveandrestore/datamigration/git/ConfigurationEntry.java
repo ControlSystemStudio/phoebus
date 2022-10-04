@@ -24,16 +24,14 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- *
- * <code>SaveSetEntry</code> represents a single entry in the save set. It provides all properties of a single PV that
- * are stored in the save set file: the name of the PV, the name of the readback pv, delta used for comparison of
+ * <code>SaveSetEntry</code> represents a single entry in the configuration. It provides all properties of a single PV that
+ * are stored in the configuration file: the name of the PV, the name of the readback pv, delta used for comparison of
  * values, and the flag indicating if the PV is readonly or readable and writable.
  *
- * @see org.phoebus.applications.saveandrestore.ui.model.Threshold
  * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
- *
+ * @see org.phoebus.applications.saveandrestore.common.Threshold
  */
-public class SaveSetEntry implements Serializable {
+public class ConfigurationEntry implements Serializable {
 
     private static final long serialVersionUID = -4899009360011799916L;
 
@@ -47,21 +45,21 @@ public class SaveSetEntry implements Serializable {
      *
      * @param pvName the name of the pv
      */
-    public SaveSetEntry(String pvName) {
+    public ConfigurationEntry(String pvName) {
         this(pvName, null, null, false);
     }
 
     /**
      * Constructs a new entry.
      *
-     * @param pvName the pv name
+     * @param pvName   the pv name
      * @param readback the readback pv name
-     * @param delta the delta string
+     * @param delta    the delta string
      * @param readOnly true if read only and false if read write
      */
-    public SaveSetEntry(String pvName, String readback, String delta, boolean readOnly) {
+    public ConfigurationEntry(String pvName, String readback, String delta, boolean readOnly) {
         if (pvName == null) {
-            throw new IllegalArgumentException("The PV name of a save set entry cannot be null.");
+            throw new IllegalArgumentException("The PV name of a configuration entry cannot be null.");
         }
         this.pvName = pvName;
         this.readback = readback == null ? "" : readback;
@@ -90,7 +88,7 @@ public class SaveSetEntry implements Serializable {
 
     /**
      * Returns the deltas value, which define how to treat the difference between values. The deltas are later
-     * transformed to {@link org.phoebus.applications.saveandrestore.ui.model.Threshold}s, which evaluate the difference between the values. In general if two values
+     * transformed to {@link org.phoebus.applications.saveandrestore.common.Threshold}s, which evaluate the difference between the values. In general if two values
      * differ less than delta, they are considered equal or at least non-critically different. The delta can be a
      * number, or a function. If there is no known delta for a PV the entry should be an empty string.
      *
@@ -118,7 +116,7 @@ public class SaveSetEntry implements Serializable {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(SaveSetEntry.class, pvName, delta, readback, readOnly);
+        return Objects.hash(ConfigurationEntry.class, pvName, delta, readback, readOnly);
     }
 
     /*
@@ -132,15 +130,15 @@ public class SaveSetEntry implements Serializable {
             return true;
         if (obj == null || getClass() != obj.getClass())
             return false;
-        SaveSetEntry other = (SaveSetEntry) obj;
+        ConfigurationEntry other = (ConfigurationEntry) obj;
         return Objects.equals(delta, other.delta) && Objects.equals(pvName, other.pvName)
-            && Objects.equals(readback, other.readback) && readOnly == other.readOnly;
+                && Objects.equals(readback, other.readback) && readOnly == other.readOnly;
     }
 
     /**
-     * Returns the string with which this save set is represented in the file.
+     * Returns the string with which this configuration is represented in the file.
      *
-     * @return the string representing this save set
+     * @return the string representing this configuration
      */
     public String getSaveString() {
         StringBuilder sb = new StringBuilder(200);

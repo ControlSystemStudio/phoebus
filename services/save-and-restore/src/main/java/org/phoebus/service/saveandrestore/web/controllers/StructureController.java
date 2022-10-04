@@ -117,7 +117,7 @@ public class StructureController extends BaseController {
 
     /**
      * Retrieves the node(s) corresponding to the specified "full path". Since a folder node may
-     * contain a folder node and a save set (configuration) node with the same name, this end point will - as long
+     * contain a folder node and a configuration (configuration) node with the same name, this end point will - as long
      * as the specified path is valid - return a list with one or two node objects.
      *
      * @param path Non-null path that must start with a forward slash and not end in a forward slash.

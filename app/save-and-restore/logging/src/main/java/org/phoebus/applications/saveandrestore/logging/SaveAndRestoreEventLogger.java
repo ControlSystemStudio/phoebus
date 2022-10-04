@@ -69,7 +69,7 @@ public class SaveAndRestoreEventLogger implements SaveAndRestoreEventReceiver {
      * Called when a snapshot has been restored.
      *
      * @param node         The restored snapshot {@link Node}
-     * @param failedPVs    List of PV names that could not be restored. Empty if all PVs in the save set were
+     * @param failedPVs    List of PV names that could not be restored. Empty if all PVs in the configuration were
      *                     restored successfully.
      * @param errorHandler An error handler callback.
      */

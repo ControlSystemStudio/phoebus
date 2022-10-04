@@ -149,7 +149,7 @@ public class CSVImporter extends CSVCommon {
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/configuration/ConfigurationFromSelection.fxml"));
         Stage dialog = new Stage();
-        dialog.setTitle("Import Save Set");
+        dialog.setTitle("Import Configuration");
         dialog.initModality(Modality.WINDOW_MODAL);
         try {
             dialog.setScene(new Scene(loader.load()));
@@ -159,7 +159,7 @@ public class CSVImporter extends CSVCommon {
         }
 
         final ConfigurationFromSelectionController controller = loader.getController();
-        controller.disableSaveSetSelectionInBrowsing();
+        controller.disableConfigurationSelectionInBrowsing();
         controller.setData(parentOfImport, csvParser.getSavesetName(), csvParser.getDescription(), csvParser.getEntries());
         dialog.show();
     }
@@ -230,10 +230,10 @@ public class CSVImporter extends CSVCommon {
                 dialog.setScene(new Scene(loader.load()));
 
                 final ConfigurationFromSelectionController controller = loader.getController();
-                controller.disableSaveSetSelectionInBrowsing();
+                controller.disableConfigurationSelectionInBrowsing();
                 controller.setData(null, "", "", csvParser.getEntries());
                 SimpleObjectProperty<Node> createdSaveset = new SimpleObjectProperty<>(null);
-                controller.setCreatedSavesetProperty(createdSaveset);
+                controller.setCreatedConfigurationProperty(createdSaveset);
                 dialog.showAndWait();
 
                 if (createdSaveset.get() == null) {

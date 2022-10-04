@@ -60,14 +60,14 @@ public class BrowserTreeCell extends TreeCell<Node> {
     private javafx.scene.Node snapshotBox;
 
     private final ContextMenu folderContextMenu;
-    private final ContextMenu saveSetContextMenu;
+    private final ContextMenu configurationContextMenu;
     private final ContextMenu snapshotContextMenu;
     private final ContextMenu rootFolderContextMenu;
 
     private static final Border BORDER = new Border(new BorderStroke(Color.GREEN, BorderStrokeStyle.SOLID,
             new CornerRadii(5.0), BorderStroke.THIN));
 
-    public BrowserTreeCell(ContextMenu folderContextMenu, ContextMenu saveSetContextMenu,
+    public BrowserTreeCell(ContextMenu folderContextMenu, ContextMenu configurationContextMenu,
                            ContextMenu snapshotContextMenu, ContextMenu rootFolderContextMenu,
                            SaveAndRestoreController saveAndRestoreCotroller) {
 
@@ -88,7 +88,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
         setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
 
         this.folderContextMenu = folderContextMenu;
-        this.saveSetContextMenu = saveSetContextMenu;
+        this.configurationContextMenu = configurationContextMenu;
         this.snapshotContextMenu = snapshotContextMenu;
         this.rootFolderContextMenu = rootFolderContextMenu;
 
@@ -185,7 +185,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
                 if (description != null && !description.isEmpty()) {
                     setTooltip(new Tooltip(description));
                 }
-                setContextMenu(saveSetContextMenu);
+                setContextMenu(configurationContextMenu);
                 break;
             case FOLDER:
                 String labelText = node.getName();

@@ -22,7 +22,7 @@ import org.phoebus.framework.nls.NLS;
 public class Messages {
 
     public static String alertContinue;
-    public static String alertAddingPVsToSaveset;
+    public static String alertAddingPVsToConfiguration;
     public static String baseSetpoint;
     public static String buttonRefresh;
     public static String buttonSearch;
@@ -32,7 +32,7 @@ public class Messages {
     public static String contextMenuDelete;
     public static String contextMenuEdit;
     public static String contextMenuNewFolder;
-    public static String contextMenuNewSaveSet;
+    public static String contextMenuNewConfiguration;
     public static String contextMenuNoTagWithComment;
     public static String contextMenuRename;
     public static String contextMenuRemoveGoldenTag;
@@ -49,12 +49,12 @@ public class Messages {
     public static String deletionNotAllowedHeader;
     public static String errorActionFailed;
     public static String errorCreateFolderFailed;
-    public static String errorCreateSaveSetFailed;
+    public static String errorCreateConfigurationFailed;
     public static String errorDeleteNodeFailed;
     public static String errorGeneric;
-    public static String exportSaveSetLabel;
+    public static String exportConfigurationLabel;
     public static String exportSnapshotLabel;
-    public static String importSaveSetLabel;
+    public static String importConfigurationLabel;
     public static String importSnapshotLabel;
     public static String includeThisPV;
     public static String inverseSelection;
@@ -117,8 +117,8 @@ public class Messages {
     public static String toolTipTableColumnPVValues;
     public static String toolTipUnionOfSetpointPVNames;
     public static String toolTipTableColumnBaseSetpointValue;
-    public static String toolTipSaveSetExists;
-    public static String toolTipSaveSetExistsOption;
+    public static String toolTipConfigurationExists;
+    public static String toolTipConfigurationExistsOption;
     public static String toolTipMultiplierSpinner;
     public static String unnamedSnapshot;
 

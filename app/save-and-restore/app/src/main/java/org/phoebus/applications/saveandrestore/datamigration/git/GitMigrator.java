@@ -59,10 +59,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Migrates save sets and snapshots from a (cloned) git repository. The migration process makes some assumptions with
+ * Migrates configurations and snapshots from a (cloned) git repository. The migration process makes some assumptions with
  * regards to the file and directory structure of the repository:
  * <ul>
- *     <li>Save set (aka beamline set) files - named *.bms - are found in directories named BeamlineSets.</li>
+ *     <li>Configuration (aka beamline set) files - named *.bms - are found in directories named BeamlineSets.</li>
  *     <li>Snapshots files - named *.snp - are found in directories Snapshots.</li>
  *     <li>There is a one-to-one relation between a bms file and a snp file. The snp file must exist in the Snapshots
  *      directory having same parent as the BeamlineSets directory where the bms file is found.</li>
@@ -89,7 +89,7 @@ import java.util.Map;
  * Add the following setting to the setting file to ignore duplicate snapshots (same commit time)
  * org.phoebus.applications.saveandrestore.datamigration.git/ignoreDuplicateSnapshots=true
  * <p>
- * Add the following setting to the setting file to add PVs for incompatible saveset to correclt migrate snapshots
+ * Add the following setting to the setting file to add PVs for incompatible configuration to correctly migrate snapshots
  * with the newer version of saveset modified by user after older snapshots are taken with older version of saveset
  * org.phoebus.applications.saveandrestore.datamigration.git/addPVsForIncompatibleSaveset=true
  */

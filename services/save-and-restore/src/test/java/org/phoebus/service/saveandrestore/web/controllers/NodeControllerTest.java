@@ -231,23 +231,6 @@ public class NodeControllerTest {
     }
 
     @Test
-    public void testGetSnapshots() throws Exception {
-
-        when(nodeDAO.getSnapshots("s")).thenReturn(Arrays.asList(snapshot));
-
-        MockHttpServletRequestBuilder request = get("/config/s/snapshots").contentType(JSON);
-
-        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
-                .andReturn();
-
-        // Make sure response contains expected data
-        objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<List<Node>>() {
-        });
-
-        reset(nodeDAO);
-    }
-
-    @Test
     public void testGetSnapshotsForNonExistingConfig() throws Exception {
 
         when(nodeDAO.getSnapshots("x")).thenThrow(new NodeNotFoundException("lasdfk"));

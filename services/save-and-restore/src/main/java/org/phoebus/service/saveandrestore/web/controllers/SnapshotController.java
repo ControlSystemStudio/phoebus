@@ -39,7 +39,7 @@ public class SnapshotController extends BaseController {
     @Autowired
     private NodeDAO nodeDAO;
 
-
+    @SuppressWarnings("unused")
     @GetMapping(value = "/snapshot/{uniqueId}", produces = JSON)
     public SnapshotData getSnapshotData(@PathVariable String uniqueId) {
         return nodeDAO.getSnapshotData(uniqueId);
@@ -50,6 +50,7 @@ public class SnapshotController extends BaseController {
         return nodeDAO.getAllSnapshots();
     }
 
+    @SuppressWarnings("unused")
     @PutMapping(value = "/snapshot", produces = JSON)
     public Snapshot saveSnapshot(@RequestParam(value = "parentNodeId") String parentNodeId,
                                  @RequestBody Snapshot snapshot) {

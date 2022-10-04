@@ -89,7 +89,7 @@ public class SaveAndRestoreService {
     }
 
     public List<Node> getChildNodes(Node node) {
-        Future<List<Node>> future = executor.submit(() -> saveAndRestoreClient.getChildNodes(node));
+        Future<List<Node>> future = executor.submit(() -> saveAndRestoreClient.getChildNodes(node.getUniqueId()));
         try {
             return future.get();
         } catch (Exception ie) {

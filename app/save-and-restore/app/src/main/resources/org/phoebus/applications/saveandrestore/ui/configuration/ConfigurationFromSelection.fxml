@@ -32,7 +32,7 @@
                <children>
                   <Label text="Location:" />
                   <Label text="Name:" GridPane.rowIndex="1" />
-                  <TextField fx:id="saveSetName" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+                  <TextField fx:id="configurationName" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="1" />
                   <Button fx:id="browseButton" mnemonicParsing="false" text="Browse" GridPane.columnIndex="2">
                      <GridPane.margin>
                         <Insets left="5.0" />

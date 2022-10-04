@@ -25,36 +25,36 @@ import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.ui.javafx.ImageCache;
 
-public class ContextMenuSaveSet extends ContextMenuBase {
+public class ContextMenuConfiguration extends ContextMenuBase {
 
-    public ContextMenuSaveSet(SaveAndRestoreController saveAndRestoreController, boolean csvEnabled, SimpleBooleanProperty multipleItemsSelected) {
+    public ContextMenuConfiguration(SaveAndRestoreController saveAndRestoreController, boolean csvEnabled, SimpleBooleanProperty multipleItemsSelected) {
         super(saveAndRestoreController, multipleItemsSelected);
 
-        Image editSaveSetIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/edit_saveset.png");
+        Image editConfigurationIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/edit_saveset.png");
         Image csvExportIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_export.png");
 
-        MenuItem openSaveSetMenuItem = new MenuItem(Messages.contextMenuCreateSnapshot, new ImageView(saveSetIcon));
-        openSaveSetMenuItem.setOnAction(ae -> {
-            saveAndRestoreController.openSaveSetForSnapshot();
+        MenuItem openConfigurationMenuItem = new MenuItem(Messages.contextMenuCreateSnapshot, new ImageView(configurationIcon));
+        openConfigurationMenuItem.setOnAction(ae -> {
+            saveAndRestoreController.openConfigurationForSnapshot();
         });
 
-        MenuItem editSaveSetMenuItem = new MenuItem(Messages.contextMenuEdit, new ImageView(editSaveSetIcon));
-        editSaveSetMenuItem.disableProperty().bind(multipleItemsSelected);
-        editSaveSetMenuItem.setOnAction(ae -> {
+        MenuItem editConfigurationMenuItem = new MenuItem(Messages.contextMenuEdit, new ImageView(editConfigurationIcon));
+        editConfigurationMenuItem.disableProperty().bind(multipleItemsSelected);
+        editConfigurationMenuItem.setOnAction(ae -> {
             saveAndRestoreController.nodeDoubleClicked();
         });
 
-        getItems().addAll(openSaveSetMenuItem, editSaveSetMenuItem, renameNodeMenuItem, deleteNodesMenuItem, copyUniqueIdToClipboardMenuItem);
+        getItems().addAll(openConfigurationMenuItem, editConfigurationMenuItem, renameNodeMenuItem, deleteNodesMenuItem, copyUniqueIdToClipboardMenuItem);
 
         if (csvEnabled) {
-            ImageView exportSaveSetIconImageView = new ImageView(csvExportIcon);
-            exportSaveSetIconImageView.setFitWidth(18);
-            exportSaveSetIconImageView.setFitHeight(18);
+            ImageView exportConfigurationIconImageView = new ImageView(csvExportIcon);
+            exportConfigurationIconImageView.setFitWidth(18);
+            exportConfigurationIconImageView.setFitHeight(18);
 
-            MenuItem exportSaveSetMenuItem = new MenuItem(Messages.exportSaveSetLabel, exportSaveSetIconImageView);
-            exportSaveSetIconImageView.disableProperty().bind(multipleItemsSelected);
-            exportSaveSetMenuItem.setOnAction(ae -> {
-                saveAndRestoreController.exportSaveSet();
+            MenuItem exportConfigurationMenuItem = new MenuItem(Messages.exportConfigurationLabel, exportConfigurationIconImageView);
+            exportConfigurationIconImageView.disableProperty().bind(multipleItemsSelected);
+            exportConfigurationMenuItem.setOnAction(ae -> {
+                saveAndRestoreController.exportConfiguration();
             });
 
             ImageView importSnapshotIconImageView = new ImageView(csvImportIcon);
@@ -68,7 +68,7 @@ public class ContextMenuSaveSet extends ContextMenuBase {
             });
 
             if (csvEnabled) {
-                getItems().addAll(exportSaveSetMenuItem, importSnapshotMenuItem);
+                getItems().addAll(exportConfigurationMenuItem, importSnapshotMenuItem);
             }
         }
     }

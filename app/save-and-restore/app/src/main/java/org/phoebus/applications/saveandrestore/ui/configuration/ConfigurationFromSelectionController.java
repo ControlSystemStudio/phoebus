@@ -67,7 +67,7 @@ import java.util.logging.Logger;
 
 /**
  * Interface with ChannelFinder or {@link ProcessVariable} class in clipboard
- * providing an convenient way to create a saveset with many PVs.
+ * providing a convenient way to create a configuration with many PVs.
  *
  * @author <a href="mailto:changj@frib.msu.edu">Genie Jhang</a>
  */
@@ -84,7 +84,7 @@ public class ConfigurationFromSelectionController implements Initializable {
         private ConfigPv pv;
     }
 
-    private static final DateTimeFormatter savesetTimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
+    private static final DateTimeFormatter configurationTimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
 
     private final List<String> nodeListInFolder = new ArrayList<>();
 
@@ -95,7 +95,7 @@ public class ConfigurationFromSelectionController implements Initializable {
     private Button browseButton;
 
     @FXML
-    private TextField saveSetName;
+    private TextField configurationName;
 
     @FXML
     private TextArea description;
@@ -129,17 +129,17 @@ public class ConfigurationFromSelectionController implements Initializable {
 
     private final SimpleObjectProperty<Node> targetNode = new SimpleObjectProperty<>();
 
-    private boolean isDisabledSaveSetSelectionInBrowsing;
+    private boolean isDisabledConfigurationSelectionInBrowsing;
 
-    public void disableSaveSetSelectionInBrowsing() {
-        isDisabledSaveSetSelectionInBrowsing = true;
+    public void disableConfigurationSelectionInBrowsing() {
+        isDisabledConfigurationSelectionInBrowsing = true;
     }
 
-    private SimpleObjectProperty<Node> createdSaveset = null;
+    private SimpleObjectProperty<Node> createdConfiguration = null;
 
 
-    public void setCreatedSavesetProperty(SimpleObjectProperty<Node> createdSaveset) {
-        this.createdSaveset = createdSaveset;
+    public void setCreatedConfigurationProperty(SimpleObjectProperty<Node> createdConfiguration) {
+        this.createdConfiguration = createdConfiguration;
     }
 
     @Override
@@ -148,10 +148,10 @@ public class ConfigurationFromSelectionController implements Initializable {
             if (newNode != null) {
                 try {
                     if (newNode.getNodeType() == NodeType.CONFIGURATION) {
-                        saveSetName.setText(newNode.getName());
+                        configurationName.setText(newNode.getName());
                         description.setText(newNode.getDescription());
 
-                        saveSetName.setEditable(false);
+                        configurationName.setEditable(false);
                         description.setEditable(true);
 
                         Node parentNode = saveAndRestoreService.getParentNode(newNode.getUniqueId());
@@ -163,10 +163,10 @@ public class ConfigurationFromSelectionController implements Initializable {
                         saveButton.setDisable(false);
 
                     } else {
-                        saveSetName.setText("");
+                        configurationName.setText("");
                         description.setText("");
 
-                        saveSetName.setEditable(true);
+                        configurationName.setEditable(true);
                         description.setEditable(true);
 
                         locationTextField.setText(DirectoryUtilities.CreateLocationString(newNode, false));
@@ -175,8 +175,8 @@ public class ConfigurationFromSelectionController implements Initializable {
                         saveAndRestoreService.getChildNodes(newNode).forEach(item -> nodeListInFolder.add(item.getName()));
 
                     }
-                    saveSetName.getStyleClass().remove("input-error");
-                    saveSetName.setTooltip(null);
+                    configurationName.getStyleClass().remove("input-error");
+                    configurationName.setTooltip(null);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -190,20 +190,20 @@ public class ConfigurationFromSelectionController implements Initializable {
 
                 FXMLLoader loader = new FXMLLoader();
                 Stage dialog = new Stage();
-                dialog.setTitle("Choose a folder, a saveset, or create one");
+                dialog.setTitle("Choose a folder, a configuration, or create one");
                 dialog.getIcons().add(ImageCache.getImage(ImageCache.class, "/icons/logo.png"));
                 dialog.initModality(Modality.APPLICATION_MODAL);
                 loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/configuration/ConfigurationSelector.fxml"));
                 dialog.setScene(new Scene(loader.load()));
 
-                final ConfigurationSelectionController saveSetSelectionController = loader.getController();
-                if (isDisabledSaveSetSelectionInBrowsing) {
-                    saveSetSelectionController.disableConfigurationSelection();
+                final ConfigurationSelectionController configurationSelectionController = loader.getController();
+                if (isDisabledConfigurationSelectionInBrowsing) {
+                    configurationSelectionController.disableConfigurationSelection();
                 }
 
                 dialog.showAndWait();
 
-                final Node selectedNode = saveSetSelectionController.getSelectedNode();
+                final Node selectedNode = configurationSelectionController.getSelectedNode();
                 if (selectedNode != null) {
                     targetNode.set(selectedNode);
                 }
@@ -212,21 +212,21 @@ public class ConfigurationFromSelectionController implements Initializable {
             }
         });
 
-        saveSetName.setPromptText(savesetTimeFormat.format(Instant.now()));
-        saveSetName.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
-        saveSetName.textProperty().addListener((observableValue, oldName, newName) -> {
+        configurationName.setPromptText(configurationTimeFormat.format(Instant.now()));
+        configurationName.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        configurationName.textProperty().addListener((observableValue, oldName, newName) -> {
             saveButton.setDisable(nodeListInFolder.contains(newName));
 
             if (saveButton.isDisabled()) {
-                saveSetName.getStyleClass().add("input-error");
-                saveSetName.setTooltip(new Tooltip(Messages.toolTipSaveSetExists + (!isDisabledSaveSetSelectionInBrowsing ? System.lineSeparator() + Messages.toolTipSaveSetExistsOption : "")));
+                configurationName.getStyleClass().add("input-error");
+                configurationName.setTooltip(new Tooltip(Messages.toolTipConfigurationExists + (!isDisabledConfigurationSelectionInBrowsing ? System.lineSeparator() + Messages.toolTipConfigurationExistsOption : "")));
             } else {
-                saveSetName.getStyleClass().remove("input-error");
-                saveSetName.setTooltip(null);
+                configurationName.getStyleClass().remove("input-error");
+                configurationName.setTooltip(null);
             }
         });
 
-        description.setPromptText("Configuration created at " + savesetTimeFormat.format(Instant.now()));
+        description.setPromptText("Configuration created at " + configurationTimeFormat.format(Instant.now()));
 
         selectColumn.setReorderable(false);
         selectColumn.setCellFactory(CheckBoxTableCell.forTableColumn(selectColumn));
@@ -298,7 +298,7 @@ public class ConfigurationFromSelectionController implements Initializable {
             this.targetNode.set(targetNode);
         }
 
-        this.saveSetName.setText(name);
+        this.configurationName.setText(name);
         this.description.setText(description);
 
         for (Map<String, String> entry : entries) {
@@ -336,9 +336,9 @@ public class ConfigurationFromSelectionController implements Initializable {
 
         Node selectedNode = targetNode.get();
         if (selectedNode.getNodeType() == NodeType.FOLDER) {
-            Node newSaveSetBuild = Node.builder()
+            Node newConfigurationBuild = Node.builder()
                     .nodeType(NodeType.CONFIGURATION)
-                    .name(saveSetName.getText().trim().isEmpty() ? saveSetName.getPromptText() : saveSetName.getText().trim())
+                    .name(configurationName.getText().trim().isEmpty() ? configurationName.getPromptText() : configurationName.getText().trim())
                     .build();
 
             try {
@@ -347,14 +347,14 @@ public class ConfigurationFromSelectionController implements Initializable {
                 configurationData.setPvList(pvs);
 
                 Configuration configuration = new Configuration();
-                newSaveSetBuild.setDescription(description.getText().trim().isEmpty() ? description.getPromptText() : description.getText().trim());
-                configuration.setConfigurationNode(newSaveSetBuild);
+                newConfigurationBuild.setDescription(description.getText().trim().isEmpty() ? description.getPromptText() : description.getText().trim());
+                configuration.setConfigurationNode(newConfigurationBuild);
                 configuration.setConfigurationData(configurationData);
 
                 configuration = saveAndRestoreService.createConfiguration(selectedNode, configuration);
 
-                if (createdSaveset != null) {
-                    createdSaveset.set(configuration.getConfigurationNode());
+                if (createdConfiguration != null) {
+                    createdConfiguration.set(configuration.getConfigurationNode());
                 }
             } catch (Exception e) {
                 String alertMessage = "Cannot save PVs in parent node: " + selectedNode.getName() + "(" + selectedNode.getUniqueId() + ")";
@@ -367,7 +367,7 @@ public class ConfigurationFromSelectionController implements Initializable {
             }
         } else { // NodeType.CONFIGURATION
             Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
-            confirmation.setContentText(Messages.alertAddingPVsToSaveset + selectedNode.getName() + System.lineSeparator() + Messages.alertContinue);
+            confirmation.setContentText(Messages.alertAddingPVsToConfiguration + selectedNode.getName() + System.lineSeparator() + Messages.alertContinue);
             Optional<ButtonType> confirmationResponse = confirmation.showAndWait();
 
             if (confirmationResponse.isPresent() && confirmationResponse.get() != ButtonType.OK) {
