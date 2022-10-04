@@ -27,6 +27,7 @@ import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.service.saveandrestore.persistence.config.ElasticConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Profile;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.TestExecutionListeners;
@@ -40,8 +41,9 @@ import java.util.UUID;
 
 @ExtendWith(SpringExtension.class)
 @EnableConfigurationProperties
-@ContextHierarchy({@ContextConfiguration(classes = {ElasticConfig.class})})
+@ContextHierarchy({@ContextConfiguration(classes = {ElasticTestConfig.class})})
 @TestExecutionListeners({DependencyInjectionTestExecutionListener.class})
+@Profile("IT")
 public class ElasticsearchDAOTest {
 
     @Autowired
@@ -77,7 +79,7 @@ public class ElasticsearchDAOTest {
     @Test
     public void testNodeNameAndUniqueIdEqual(){
         Node newNode = Node.builder().name("node1").uniqueId(node1.getUniqueId()).nodeType(NodeType.CONFIGURATION).build();
-        assertTrue(elasticsearchDAO.isNodeNameValid(newNode, Arrays.asList(node1, configNode2, folderNode1)));
+        assertFalse(elasticsearchDAO.isNodeNameValid(newNode, Arrays.asList(node1, configNode2, folderNode1)));
     }
 
     @Test

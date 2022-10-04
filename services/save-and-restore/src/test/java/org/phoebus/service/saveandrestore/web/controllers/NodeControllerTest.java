@@ -21,23 +21,20 @@ package org.phoebus.service.saveandrestore.web.controllers;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
-import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchTreeRepository;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -59,9 +56,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
-@ContextHierarchy({@ContextConfiguration(classes = {ControllersTestConfig.class})})
+@ContextConfiguration(classes = ControllersTestConfig.class)
 @WebMvcTest(NodeController.class)
-
 /**
  * Main purpose of the tests in this class is to verify that REST end points are
  * maintained, i.e. that URLs are not changed and that they return the correct
@@ -76,14 +72,9 @@ public class NodeControllerTest {
     private NodeDAO nodeDAO;
 
     @Autowired
-    private ElasticsearchTreeRepository elasticsearchTreeRepository;
-
-    @Autowired
     private MockMvc mockMvc;
 
     private static Node folderFromClient;
-
-    private static Node rootNode;
 
     private static Node config1;
 
@@ -102,34 +93,14 @@ public class NodeControllerTest {
         snapshot = Node.builder().nodeType(NodeType.SNAPSHOT).nodeType(NodeType.SNAPSHOT).name("name")
                 .build();
 
-        rootNode = Node.builder().uniqueId(Node.ROOT_FOLDER_UNIQUE_ID).name("root").build();
-
     }
 
     @Test
-    @Disabled
-    public void testGetRootNode() throws Exception {
-
-        when(nodeDAO.getRootNode()).thenReturn(rootNode);
-
-        MockHttpServletRequestBuilder request = get("/root").contentType(JSON);
-
-        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
-                .andReturn();
-
-        String s = result.getResponse().getContentAsString();
-        // Make sure response contains expected data
-        objectMapper.readValue(s, Node.class);
-
-    }
-
-    @Test
-    @Disabled
     public void testCreateFolder() throws Exception {
 
-        when(nodeDAO.createNode("p", folderFromClient)).thenReturn(folderFromClient);
+        when(nodeDAO.createNode(Mockito.any(String.class), Mockito.any(Node.class))).thenReturn(folderFromClient);
 
-        MockHttpServletRequestBuilder request = put("/node?parentId=a").contentType(JSON)
+        MockHttpServletRequestBuilder request = put("/node?parentNodeId=a").contentType(JSON)
                 .content(objectMapper.writeValueAsString(folderFromClient));
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
@@ -141,79 +112,79 @@ public class NodeControllerTest {
     }
 
     @Test
-    @Disabled
     public void testCreateFolderNoUsername() throws Exception {
 
         Node folder = Node.builder().name("SomeFolder").uniqueId("11").build();
 
-        MockHttpServletRequestBuilder request = put("/node/p").contentType(JSON)
+        MockHttpServletRequestBuilder request = put("/node?parentNodeId=p").contentType(JSON)
                 .content(objectMapper.writeValueAsString(folder));
 
         mockMvc.perform(request).andExpect(status().isBadRequest());
     }
 
     @Test
-    @Disabled
     public void testCreateFolderParentIdDoesNotExist() throws Exception {
 
-        when(nodeDAO.createNode("p", folderFromClient))
+        when(nodeDAO.createNode(Mockito.anyString(), Mockito.any(Node.class)))
                 .thenThrow(new IllegalArgumentException("Parent folder does not exist"));
 
-        MockHttpServletRequestBuilder request = put("/node/p").contentType(JSON)
+        MockHttpServletRequestBuilder request = put("/node?parentNodeId=p").contentType(JSON)
                 .content(objectMapper.writeValueAsString(folderFromClient));
 
         mockMvc.perform(request).andExpect(status().isBadRequest());
     }
 
     @Test
-    @Disabled
     public void testCreateConfig() throws Exception {
 
         reset(nodeDAO);
 
         Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("config").uniqueId("hhh")
                 .userName("user").build();
-        when(nodeDAO.createNode("p", config)).thenAnswer(new Answer<Node>() {
-            public Node answer(InvocationOnMock invocation) throws Throwable {
-                return config1;
+
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(config);
+
+        when(nodeDAO.createConfiguration(Mockito.any(String.class), Mockito.any(Configuration.class))).thenAnswer(new Answer<Configuration>() {
+            public Configuration answer(InvocationOnMock invocation) {
+                return configuration;
             }
         });
 
-        MockHttpServletRequestBuilder request = put("/node/p").contentType(JSON).content(objectMapper.writeValueAsString(config));
+        MockHttpServletRequestBuilder request = put("/config?parentNodeId=p").contentType(JSON).content(objectMapper.writeValueAsString(configuration));
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
                 .andReturn();
 
         // Make sure response contains expected data
-        objectMapper.readValue(result.getResponse().getContentAsString(), Node.class);
+        objectMapper.readValue(result.getResponse().getContentAsString(), Configuration.class);
     }
 
     @Test
-    @Disabled
     public void testCreateNodeBadRequests() throws Exception {
         reset(nodeDAO);
 
-        Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("config").uniqueId("hhh")
+        Node config = Node.builder().nodeType(NodeType.FOLDER).name("config").uniqueId("hhh")
                 .build();
-        MockHttpServletRequestBuilder request = put("/node/p").contentType(JSON).content(objectMapper.writeValueAsString(config));
+        MockHttpServletRequestBuilder request = put("/node?parentNodeId=p").contentType(JSON).content(objectMapper.writeValueAsString(config));
         mockMvc.perform(request).andExpect(status().isBadRequest());
 
-        config = Node.builder().nodeType(NodeType.CONFIGURATION).name("config").uniqueId("hhh")
+        config = Node.builder().nodeType(NodeType.FOLDER).name("config").uniqueId("hhh")
                 .userName("").build();
 
-        request = put("/node/p").contentType(JSON).content(objectMapper.writeValueAsString(config));
+        request = put("/node?parentNodeId=p").contentType(JSON).content(objectMapper.writeValueAsString(config));
         mockMvc.perform(request).andExpect(status().isBadRequest());
 
-        config = Node.builder().nodeType(NodeType.CONFIGURATION).uniqueId("hhh")
+        config = Node.builder().nodeType(NodeType.FOLDER).uniqueId("hhh")
                 .userName("valid").build();
 
-        request = put("/node/p").contentType(JSON).content(objectMapper.writeValueAsString(config));
+        request = put("/node?parentNodeId=p").contentType(JSON).content(objectMapper.writeValueAsString(config));
         mockMvc.perform(request).andExpect(status().isBadRequest());
 
-        config = Node.builder().nodeType(NodeType.CONFIGURATION).name("").uniqueId("hhh")
+        config = Node.builder().nodeType(NodeType.FOLDER).name("").uniqueId("hhh")
                 .userName("valid").build();
 
-        request = put("/node/p").contentType(JSON).content(objectMapper.writeValueAsString(config));
+        request = put("/node?parentNodeId=p").contentType(JSON).content(objectMapper.writeValueAsString(config));
         mockMvc.perform(request).andExpect(status().isBadRequest());
     }
 
@@ -294,11 +265,8 @@ public class NodeControllerTest {
     }
 
     @Test
-    @Disabled
-    public void testDeleteNodes() throws Exception {
-        MockHttpServletRequestBuilder request = delete("/node")
-                .contentType(JSON)
-                .content(objectMapper.writeValueAsString(Arrays.asList("a")));
+    public void testDeleteNode() throws Exception {
+        MockHttpServletRequestBuilder request = delete("/node/s");
         mockMvc.perform(request).andExpect(status().isOk());
     }
 
@@ -430,14 +398,13 @@ public class NodeControllerTest {
     }
 
     @Test
-    @Disabled
     public void testUpdateNode() throws Exception {
 
         Node node = Node.builder().name("foo").uniqueId("a").build();
 
-        when(nodeDAO.updateNode(node, false)).thenReturn(node);
+        when(nodeDAO.updateNode(Mockito.any(Node.class), Mockito.anyBoolean())).thenReturn(node);
 
-        MockHttpServletRequestBuilder request = post("/node/a/update")
+        MockHttpServletRequestBuilder request = post("/node")
                 .param("customTimeForMigration", "false")
                 .contentType(JSON)
                 .content(objectMapper.writeValueAsString(node));

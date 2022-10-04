@@ -138,7 +138,7 @@ public class NodeController extends BaseController {
      */
     @SuppressWarnings("unused")
     @PostMapping(produces = JSON)
-    public Node updateNode(@RequestParam(value = "customTimeForMigration") String customTimeForMigration,
+    public Node updateNode(@RequestParam(value = "customTimeForMigration", required = false, defaultValue = "false") String customTimeForMigration,
                            @RequestBody Node nodeToUpdate) {
         return nodeDAO.updateNode(nodeToUpdate, Boolean.valueOf(customTimeForMigration));
     }

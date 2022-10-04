@@ -27,12 +27,16 @@ import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.Sna
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.Configuration;
 
 @SpringBootConfiguration
 @ComponentScan(basePackages = "org.phoebus.service.saveandrestore.web.controllers")
-@Profile("!IT")
+@SuppressWarnings("unused")
 public class ControllersTestConfig {
+
+    public ControllersTestConfig(){
+        System.out.println("XXXXXXXXXXXXXXXXXXX");
+    }
 
     @Bean
     public NodeDAO nodeDAO() {
