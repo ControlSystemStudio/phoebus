@@ -202,6 +202,9 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
             style.append("-fx-text-box-border: rgba(236, 236, 236, ")
                     .append(JFXUtil.webAlpha(model_widget.propBackgroundColor().getValue()))
                     .append(");");
+            style.append("-fx-shadow-highlight-color: rgba(236, 236, 236, ")
+                    .append(JFXUtil.webAlpha(model_widget.propBackgroundColor().getValue()))
+                    .append(");");
             jfx_node.setStyle(style.toString());
         }
         if (dirty_value.checkAndClear())
