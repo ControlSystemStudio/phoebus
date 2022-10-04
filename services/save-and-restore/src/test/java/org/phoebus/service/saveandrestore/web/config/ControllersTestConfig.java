@@ -34,10 +34,6 @@ import org.springframework.context.annotation.Configuration;
 @SuppressWarnings("unused")
 public class ControllersTestConfig {
 
-    public ControllersTestConfig(){
-        System.out.println("XXXXXXXXXXXXXXXXXXX");
-    }
-
     @Bean
     public NodeDAO nodeDAO() {
         return Mockito.mock(NodeDAO.class);
