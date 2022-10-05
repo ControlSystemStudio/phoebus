@@ -204,25 +204,21 @@ The a list of all the children nodes of the node with id `{uniqueNodeId}`
 
     [
         {
-            "id": 4,
             "uniqueId": "8cab9311-0c77-4307-a508-a33677ecc631",
             "name": "Camera",
             "created": 1623701073000,
             "lastModified": 1625836981000,
             "nodeType": "CONFIGURATION",
             "userName": "kunal",
-            "properties": {},
             "tags": []
         },
         {
-            "id": 13,
             "uniqueId": "3aa5baa3-8386-4a74-84bb-5fdd9afccc7f",
             "name": "ROI",
             "created": 1623780701000,
             "lastModified": 1623780701000,
             "nodeType": "CONFIGURATION",
             "userName": "kunal",
-            "properties": {},
             "tags": []
         }
     ]
