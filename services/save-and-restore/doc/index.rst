@@ -2,11 +2,11 @@ Save-and-restore service
 ========================
 
 The save-and-restore service implements service as a collection
-of REST endpoints. These can be used by clients to manage configurations(aka save sets) and
-snapshots, to compare snapshots and to restore settings from snapshots.
+of REST endpoints. These can be used by clients to manage configurations (aka save sets) and
+snapshots, to compare snapshots and to restore PV values from snapshots.
 
-The service is packaged as a self-contained Spring Boot jar file, i.e. there are no external dependencies besides the
-JVM and the Elasticsearch instance persisting the data. The service is verified for Elasticsearch 8.x.
+The service is packaged as a self-contained Spring Boot jar file. External dependencies are limited to a JVM (Java 11+)
+and a running instance of Elasticsearch (8.x).
 
 Running the service
 -------------------
@@ -17,28 +17,46 @@ connection parameters for Elasticsearch.
 Elasticsearch setup
 -------------------
 
-During startup the service will create Elasticsearch indices if they are not found. There is hence no need to
-do this manually.
+There is no need to manually created the Elasticsearch indices as these are created by the application if
+they do not yet exist.
 
 REST API for Save Restore Service
 =================================
 
-Terminology
------------
+Node
+----
+
+Data is arranged such that is can be rendered in a tree structure, where each node is of a specific type. See below
+for details. A root node is always available and cannot be deleted.
+
+Each node is uniquely identified through an UUID id. The root node's unique id is always
+``44bef5de-e8e6-4014-af37-b8f6c8a939a2``.
+
+REST end-points documented below can be used to locate particular nodes, or traverse the tree by listing child
+nodes.
+
+Node types
+----------
+
+**Folder:**
+
+A folder node is a container for folder and configuration nodes. The root node is a folder node.
 
 **Configuration:**
 
-A Save Restore configuration is a set of PV's which are used to take a snapshot.
-The configuration can also consist of a few optional parameters.
+A configuration node is essentially a set of PVs defining what data to put in a snapshot. Configuration nodes must be created
+in folder nodes, though not in the root node.
 
-- readback PV associated with the pv
+For each such PV "item" one may also specify:
+
+- a read-back PV
 - flag to indicate if the PV should restored in a restore operation
 
 **Snapshot:**
 
-A snapshot consists of a list of PVs along with their values at a particular instant in time. When taking a snapshot
-in a client, the list of PVs in the snapshot is defined by the list of PVs in the parent configuration node. In
-other words, to take a snapshot the client must point to a configuration defining this list of PVs.
+A snapshot node consists of a list of PV values at a particular instant in time. To take a snapshot the client must point to
+a configuration defining this list of PVs (and optionally read-back PVs). In other words, when saving a snapshot
+the client must specify the unique id of the associated configuration node.
 
 REST Services
 -------------
@@ -48,9 +66,9 @@ The service is implemented as a REST style web service, which – in this contex
 | •  The URL specifies the data element that the operation works upon.
 | •  The HTTP method specifies the type of operation.
 
-| GET: retrieve or query, does not modify data
-| PUT: create or update, replacing the addressed element
-| POST: create or update subordinates of the addressed element
+| GET: retrieve an element, does not modify data
+| PUT: create an element
+| POST: update the addressed element
 | DELETE: delete the addressed element
 
 
@@ -148,6 +166,19 @@ The updated node.
 Updates an existing node with respect to its name or description, or both. The ``nodeType`` cannot be
 updated.
 
+Delete a node
+"""""""""""""
+
+**.../node/{uniqueNodeId}**
+
+Method: DELETE
+
+Deletes the node identified by ``uniqueNodeId``. Deletion is agnostic to the node type.
+
+Note that deletion is recursive:
+
+- Deleting a configuration node will also delete all associated snapshot nodes.
+- Deleting a folder node will delete also delete all nodes in its sub-tree.
 
 Get a node parent
 """""""""""""""""
