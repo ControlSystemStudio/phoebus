@@ -139,23 +139,25 @@ public class AlarmLogSearchUtil {
                     configSet = true;
                     break;
                 case ROOT:
-                    boolQuery.must(
-                            Query.of(b -> b.bool(s -> s.should(
-                                    Query.of(q -> q
-                                            .wildcard(WildcardQuery.of(w -> w
-                                                            .field("config").value("state:/" + parameter.getValue().strip() + "*")
-                                                    )
-                                            )
-                                    ),
-                                    Query.of(q -> q
-                                            .wildcard(WildcardQuery.of(w -> w
-                                                            .field("config").value("config:/" + parameter.getValue().strip() + "*")
-                                                    )
-                                            )
-                                    )
-                            )))
-                    );
-                    configSet = true;
+                    if (!parameter.getValue().equalsIgnoreCase("*")) {
+                        boolQuery.must(
+                                Query.of(b -> b.bool(s -> s.should(
+                                        Query.of(q -> q
+                                                .wildcard(WildcardQuery.of(w -> w
+                                                                .field("config").value("state:/" + parameter.getValue().strip() + "*")
+                                                        )
+                                                )
+                                        ),
+                                        Query.of(q -> q
+                                                .wildcard(WildcardQuery.of(w -> w
+                                                                .field("config").value("config:/" + parameter.getValue().strip() + "*")
+                                                        )
+                                                )
+                                        )
+                                )))
+                        );
+                        configSet = true;
+                    }
                     break;
                 case SEVERITY:
                     if (!parameter.getValue().equalsIgnoreCase("*"))
