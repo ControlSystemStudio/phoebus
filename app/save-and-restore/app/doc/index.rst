@@ -4,11 +4,11 @@ Save-And-Restore
 Overview
 --------
 
-The save-and-restore application can be used to take a snapshotData of a pre-defined list if PVs at a certain point in
-time, and write the persisted values back to the IOCs at some later point.
+The save-and-restore application can be used to take "snapshots" of a pre-defined list if PVs at a certain point in
+time, and write the persisted values back at some later point.
 
-The application depends on the save-and-restore service deployed on the network such that it can be accessed over
-HTTP. The URL of the service is specified in the save-and-restore.properties file or in the settings file
+The application uses the save-and-restore service deployed on the network such that it can be accessed over
+HTTP(s). The URL of the service is specified in the save-and-restore.properties file or in the settings file
 pointed to on the command line.
 
 Connection to PVs works the same as for OPI control widgets. The preference org.phoebus.pv/default will determine
@@ -25,9 +25,9 @@ The child nodes of a configuration are snapshots associated with that configurat
 
 There are hence three node types managed in the application:
 
-- **Folder**: container of other folders or save sets.
+- **Folder**: container for folders and configurations.
 - **Configuration**: essentially a list of PV names and associated meta-data.
-- **Snapshot**: the PV values read from PVs listed in a save set.
+- **Snapshot**: the PV values read from PVs listed in a configuration.
 
 *NOTE*: If a folder or configuration node is deleted, all child nodes are unconditionally and recursively deleted! The user
 is prompted to confirm delete actions as deletion is irreversible.
@@ -49,7 +49,7 @@ Drag-n-drop
 -----------
 
 Nodes in the tree can be copied (mouse + modifier key) or moved using drag-n-drop. The following restrictions apply:
-* Only folder and save configuration can be copied or moved.
+* Only folder and configuration nodes can be copied or moved.
 * Configuration nodes cannot be copied or moved to the root folder node.
 * Target node (i.e. drop target) must be a folder.
 
@@ -113,8 +113,8 @@ An exception is thrown if the snapshot node id is invalid, or if the connection 
 
 The method signature is ``restore(snapshotNodeId, connectTimeout, writeTimeout, abortOnFail, rollback)`` where:
 
-* ``snapshotNodeId`` is the unique id of an existing snapshotData.
-* ``connectTimeout`` is the timeout in ms waiting for all PVs in the snapshotData to connect.
+* ``snapshotNodeId`` is the unique id of an existing snapshot.
+* ``connectTimeout`` is the timeout in ms waiting for all PVs in the snapshot to connect.
 * ``writeTimeout`` is the timeout in ms for a restore/write operation.
 * ``abortOnFail`` determines if the restore procedure should be aborted if restore/write of a PV fails.
 * ``rollback`` determines whether to rollback if a restore/write operation fails.
