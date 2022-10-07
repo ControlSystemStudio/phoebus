@@ -8,6 +8,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import org.phoebus.channel.views.ChannelTableApp;
+import org.phoebus.channel.views.Messages;
 import org.phoebus.channelfinder.Channel;
 import org.phoebus.channelfinder.ChannelUtil;
 import org.phoebus.channelfinder.Property;
@@ -92,10 +93,10 @@ public class ChannelTableController extends ChannelFinderController {
         });
 
         tableView.getColumns().clear();
-        TableColumn<Channel, String> nameCol = new TableColumn<>("Name");
+        TableColumn<Channel, String> nameCol = new TableColumn<>(Messages.ChannelTableNameColumn);
         nameCol.setCellValueFactory(new PropertyValueFactory<Channel, String>("name"));
 
-        TableColumn<Channel, String> ownerCol = new TableColumn<>("Owner");
+        TableColumn<Channel, String> ownerCol = new TableColumn<>(Messages.ChannelTableOwnerColumn);
         ownerCol.setCellValueFactory(new PropertyValueFactory<Channel, String>("owner"));
         tableView.getColumns().addAll(nameCol, ownerCol);
 
@@ -196,9 +197,7 @@ public class ChannelTableController extends ChannelFinderController {
                 if (addTagJob != null) {
                     addTagJob.cancel();
                 }
-                List<String> channelNames = tableView.getSelectionModel().getSelectedItems().stream().map(ch -> {
-                    return ch.getName();
-                }).collect(Collectors.toList());
+                List<String> channelNames = tableView.getSelectionModel().getSelectedItems().stream().map(Channel::getName).collect(Collectors.toList());
                 AddTag2ChannelsJob.submit(getClient(),
                         channelNames,
                         tag,
