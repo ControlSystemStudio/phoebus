@@ -20,14 +20,90 @@ package org.phoebus.service.saveandrestore.application;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
 
 @SpringBootApplication(scanBasePackages = "org.phoebus.service.saveandrestore")
 @EnableScheduling
 @EnableAutoConfiguration
 public class Application {
 
+    private static ConfigurableApplicationContext context;
+
+    private static void help()
+    {
+        System.out.println();
+        System.out.println("Command-line arguments:");
+        System.out.println();
+        System.out.println("-help                                    - This text");
+        System.out.println("-migrate http://legacy.service.url       - Migrate data from legacy service at http://legacy.service.url");
+        System.out.println();
+    }
+
     public static void main(String[] args) {
-    	SpringApplication.run(Application.class, args);
+
+        // load the default properties
+        final Properties properties = PropertiesHelper.getProperties();
+
+        final List<String> arguments = new ArrayList<>(List.of(args));
+        final Iterator<String> iterator = arguments.iterator();
+        boolean runMigration = false;
+        try {
+            while (iterator.hasNext()) {
+                final String command = iterator.next();
+                if (command.equals("-h") || command.equals("-help")) {
+                    help();
+                    System.exit(0);
+                    return;
+                }
+                else if(command.equals("-migrate")){
+                    if (!iterator.hasNext())
+                        throw new Exception("Missing -migrate legacy.service.url");
+                    runMigration = true;
+                    iterator.remove();
+                    properties.put("legacy.service.url",iterator.next());
+                    iterator.remove();
+                }
+            }
+        }
+        catch (Exception ex) {
+            System.out.println("\n>>>> Print StackTrace ....");
+            ex.printStackTrace();
+            System.out.println("\n>>>> Please check available arguments of save & restore as follows:");
+            help();
+            System.exit(-1);
+            return;
+        }
+
+    	context = SpringApplication.run(Application.class, args);
+
+        if(runMigration){
+            try {
+                runMigration(properties.getProperty("legacy.service.url"), true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            finally {
+                close();
+            }
+        }
+    }
+
+    private static void close() {
+        System.out.println("\n Shutdown");
+        if (context != null) {
+            context.close();
+        }
+    }
+
+    private static void runMigration(String legacyServiceUrl, boolean dryRun) {
+        //RestTemplate restTemplate = new RestTemplate()
+
     }
 }
