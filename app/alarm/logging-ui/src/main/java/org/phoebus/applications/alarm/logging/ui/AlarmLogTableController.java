@@ -307,6 +307,7 @@ public class AlarmLogTableController {
         tableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         searchParameters.put(Keys.PV, this.searchString);
+        searchParameters.put(Keys.ROOT, "*");
         searchParameters.put(Keys.MESSAGE, "*");
         searchParameters.put(Keys.SEVERITY, "*");
         searchParameters.put(Keys.CURRENTSEVERITY, "*");
@@ -318,14 +319,17 @@ public class AlarmLogTableController {
         searchParameters.put(Keys.ENDTIME, TimeParser.format(java.time.Duration.ZERO));
         advancedSearchViewController.setSearchParameters(searchParameters);
 
-        query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> {
-            return e.getKey().getName().trim() + "=" + e.getValue().trim();
-        }).collect(Collectors.joining("&")));
+        query.setText(
+                searchParameters.entrySet().stream()
+                        .sorted(Map.Entry.comparingByKey())
+                        .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
+                        .collect(Collectors.joining("&")));
 
-        searchParameters.addListener((MapChangeListener<Keys, String>) change -> query.setText(searchParameters.entrySet().stream()
-                .sorted(Entry.comparingByKey())
-                .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
-                .collect(Collectors.joining("&"))));
+        searchParameters.addListener(
+                (MapChangeListener<Keys, String>) change -> query.setText(searchParameters.entrySet().stream()
+                        .sorted(Entry.comparingByKey())
+                        .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
+                        .collect(Collectors.joining("&"))));
 
         query.setOnKeyPressed(keyEvent -> {
             if (keyEvent.getCode() == KeyCode.ENTER) {
@@ -384,6 +388,7 @@ public class AlarmLogTableController {
         } else {
             searchParameters.put(Keys.PV, "*");
         }
+        searchParameters.put(Keys.ROOT, "*");
         searchParameters.put(Keys.MESSAGE, "*");
         searchParameters.put(Keys.SEVERITY, "*");
         searchParameters.put(Keys.CURRENTSEVERITY, "*");
@@ -479,16 +484,21 @@ public class AlarmLogTableController {
         }
     }
 
+    Map<String, Keys> lookup = Arrays.stream(Keys.values()).collect(Collectors.toMap(Keys::getName, k -> {
+        return k;
+    }));
+
     @FXML
     void updateQuery() {
-        Arrays.asList(query.getText().split("&")).forEach(s -> {
+        List<String> searchTerms = Arrays.asList(query.getText().split("&"));
+        searchTerms.stream().forEach(s -> {
             String key = s.split("=")[0];
-            for (Map.Entry<Keys, String> entry : searchParameters.entrySet()) {
-                if (entry.getKey().getName().equals(key)) {
-                    searchParameters.put(entry.getKey(), s.split("=")[1]);
-                }
+            String value = s.split("=")[1];
+            if(lookup.containsKey(key)) {
+                searchParameters.put(lookup.get(key), value);
             }
         });
+
     }
 
     @FXML
