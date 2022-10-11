@@ -307,6 +307,7 @@ public class AlarmLogTableController {
         tableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         searchParameters.put(Keys.PV, this.searchString);
+        searchParameters.put(Keys.ROOT, "*");
         searchParameters.put(Keys.MESSAGE, "*");
         searchParameters.put(Keys.SEVERITY, "*");
         searchParameters.put(Keys.CURRENTSEVERITY, "*");
