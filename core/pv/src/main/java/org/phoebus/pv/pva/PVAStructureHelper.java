@@ -152,6 +152,8 @@ public class PVAStructureHelper
     {
         if (field instanceof PVANumber)
             return Decoders.decodeNumber(struct, (PVANumber) field);
+        if (field instanceof PVABool)
+            return Decoders.decodeBool(struct, (PVABool) field);
         if (field instanceof PVAString)
             return Decoders.decodeString(struct, (PVAString) field);
         return null;

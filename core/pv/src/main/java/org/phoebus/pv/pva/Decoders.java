@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.epics.pva.data.PVAArray;
+import org.epics.pva.data.PVABool;
 import org.epics.pva.data.PVAByte;
 import org.epics.pva.data.PVAByteArray;
 import org.epics.pva.data.PVADouble;
@@ -50,6 +51,7 @@ import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Display;
 import org.epics.vtype.EnumDisplay;
 import org.epics.vtype.Time;
+import org.epics.vtype.VBoolean;
 import org.epics.vtype.VByte;
 import org.epics.vtype.VByteArray;
 import org.epics.vtype.VDouble;
@@ -319,6 +321,15 @@ public class Decoders
             alarm = warn = Range.undefined();
 
         return Display.of(display, alarm, warn, control, units, format, description);
+    }
+
+    /** @param struct Structure
+     *  @param field Field
+     *  @return Boolean for that field's value
+     */
+    public static VType decodeBool(PVAStructure struct, PVABool field)
+    {
+        return VBoolean.of(field.get(), decodeAlarm(struct), decodeTime(struct));
     }
 
     /** @param struct Structure
