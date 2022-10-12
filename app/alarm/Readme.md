@@ -384,6 +384,8 @@ Demos
 `examples/create_alarm_topics.sh Accelerator`
 Run to create the topics used by the following demos.
 
+The demos are part of the test package included in the [app/alarm/model](https://github.com/ControlSystemStudio/phoebus/tree/master/app/alarm/model/src/test/java/org/phoebus/applications/alarm) module
+
 `AlarmConfigProducerDemo`: Run to create demo configuration.
 Loading a demo config with a total of 100000 PVs arranged into several sub and sub-sub sections
 takes less than 5 seconds.
