@@ -24,6 +24,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Class representing a node in a tree structure maintained by the save-and-restore service. Node types are
@@ -42,6 +43,9 @@ public class Node implements Comparable<Node>, Serializable {
     private NodeType nodeType = NodeType.FOLDER;
     private String userName;
     private List<Tag> tags;
+
+    @Deprecated
+    private Map<String, String> properties;
 
     /**
      * Do not change!!!
@@ -110,6 +114,16 @@ public class Node implements Comparable<Node>, Serializable {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    @Deprecated
+    public Map<String, String> getProperties() {
+        return properties;
+    }
+
+    @Deprecated
+    public void setProperties(Map<String, String> properties) {
+        this.properties = properties;
     }
 
     public boolean hasTag(String tagName) {

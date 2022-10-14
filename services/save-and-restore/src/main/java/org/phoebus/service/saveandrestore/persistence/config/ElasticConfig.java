@@ -60,6 +60,14 @@ public class ElasticConfig {
     private ElasticsearchClient client;
     private static final AtomicBoolean esInitialized = new AtomicBoolean();
 
+    public static final Node ROOT_NODE;
+
+    static{
+        Date now = new Date();
+        ROOT_NODE = Node.builder().nodeType(NodeType.FOLDER).uniqueId(ROOT_FOLDER_UNIQUE_ID).name("Root folder")
+                .userName("anonymous").created(now).lastModified(now).build();
+
+    }
 
     @Bean({"client"})
     public ElasticsearchClient getClient() {
@@ -147,10 +155,8 @@ public class ElasticConfig {
         try {
             if (!indexClient.exists(e -> e.index(ES_TREE_INDEX).id(ROOT_FOLDER_UNIQUE_ID)).value()) {
                 Date now = new Date();
-                Node node = Node.builder().nodeType(NodeType.FOLDER).uniqueId(ROOT_FOLDER_UNIQUE_ID).name("Root folder")
-                        .userName("anonymous").created(now).lastModified(now).build();
                 ESTreeNode elasticsearchTreeNode = new ESTreeNode();
-                elasticsearchTreeNode.setNode(node);
+                elasticsearchTreeNode.setNode(ROOT_NODE);
 
                 IndexRequest<ESTreeNode> indexRequest =
                         IndexRequest.of(i ->

@@ -129,8 +129,13 @@ public class ElasticsearchDAO implements NodeDAO {
             throw new IllegalArgumentException("Node of same name and type already exists in parent node.");
         }
 
-        node.setCreated(new Date());
-        node.setUniqueId(UUID.randomUUID().toString());
+        // To facilitate migration, unique id and created date are set only if null.
+        if(node.getCreated() == null){
+            node.setCreated(new Date());
+        }
+        if(node.getUniqueId() == null){
+            node.setUniqueId(UUID.randomUUID().toString());
+        }
         ESTreeNode newNode = new ESTreeNode();
         newNode.setNode(node);
 
