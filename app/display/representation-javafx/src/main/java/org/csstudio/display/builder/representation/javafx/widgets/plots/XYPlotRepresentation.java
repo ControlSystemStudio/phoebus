@@ -548,7 +548,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         axis.visible().addUntypedPropertyListener(config_listener);
         if (axis instanceof YAxisWidgetProperty) {
             ((YAxisWidgetProperty) axis).onRight().addUntypedPropertyListener(config_listener);
-            ((YAxisWidgetProperty) axis).gridColor().addUntypedPropertyListener(config_listener);
+            ((YAxisWidgetProperty) axis).color().addUntypedPropertyListener(config_listener);
         }
     }
 
@@ -568,7 +568,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         axis.visible().removePropertyListener(config_listener);
         if (axis instanceof YAxisWidgetProperty) {
             ((YAxisWidgetProperty) axis).onRight().removePropertyListener(config_listener);
-            ((YAxisWidgetProperty) axis).gridColor().removePropertyListener(config_listener);
+            ((YAxisWidgetProperty) axis).color().removePropertyListener(config_listener);
         }
     }
 
@@ -685,12 +685,12 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
             ((YAxisImpl)plot_axis).setGridColor(
                     GraphicsUtils.convert(
                             JFXUtil.convert(
-                                    ((YAxisWidgetProperty) model_axis).gridColor().getValue()
+                                    ((YAxisWidgetProperty) model_axis).color().getValue()
                             )
                     )
             );
             plot_axis.setColor(JFXUtil.convert(
-                    ((YAxisWidgetProperty) model_axis).gridColor().getValue()
+                    ((YAxisWidgetProperty) model_axis).color().getValue()
             ));
         }
     }

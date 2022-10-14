@@ -89,7 +89,7 @@ public class PlotWidgetProperties
 
     /** 'grid_color' */
     public static final WidgetPropertyDescriptor<WidgetColor> propGridColor =
-        CommonWidgetProperties.newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "grid_color", Messages.PlotWidget_GridColor);
+        CommonWidgetProperties.newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "grid_color", Messages.PlotWidget_Color);
 
     /** 'x_axis' */
     public final static StructuredWidgetProperty.Descriptor propXAxis =
@@ -173,7 +173,7 @@ public class PlotWidgetProperties
                                 propScaleFont.createProperty(widget, WidgetFontService.get(NamedWidgetFonts.DEFAULT)),
                                 propOnRight.createProperty(widget, false),
                                 CommonWidgetProperties.propVisible.createProperty(widget, true),
-                                propGridColor.createProperty(widget, WidgetColorService.getColor(NamedWidgetColors.GRID))
+                                CommonWidgetProperties.propColor.createProperty(widget, WidgetColorService.getColor(NamedWidgetColors.TEXT))
                   )
             );
         }
@@ -191,8 +191,8 @@ public class PlotWidgetProperties
         @Override
         public WidgetProperty<Boolean> visible()        { return getElement(9); }
 
-        /** @return Grid color */
-        public WidgetProperty<WidgetColor> gridColor()  { return getElement(10); }
+        /** @return Axis/Grid color */
+        public WidgetProperty<WidgetColor> color()  { return getElement(10); }
     };
 
 

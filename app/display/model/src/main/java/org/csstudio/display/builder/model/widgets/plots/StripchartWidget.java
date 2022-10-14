@@ -148,11 +148,36 @@ public class StripchartWidget extends VisibleWidget
         public WidgetProperty<Boolean> visible()        { return getElement(6); }
     };
 
+    public static class YAxisWidgetProperty extends AxisWidgetProperty {
+
+        public static YAxisWidgetProperty create(final StructuredWidgetProperty.Descriptor descriptor, final Widget widget, final String title_text)
+        {
+            return new YAxisWidgetProperty(descriptor, widget,
+                    Arrays.asList(PlotWidgetProperties.propTitle.createProperty(widget, title_text),
+                            PlotWidgetProperties.propAutoscale.createProperty(widget, false),
+                            PlotWidgetProperties.propLogscale.createProperty(widget, false),
+                            CommonWidgetProperties.propMinimum.createProperty(widget, 0.0),
+                            CommonWidgetProperties.propMaximum.createProperty(widget, 100.0),
+                            PlotWidgetProperties.propGrid.createProperty(widget, false),
+                            CommonWidgetProperties.propVisible.createProperty(widget, true),
+                            CommonWidgetProperties.propColor.createProperty(widget, WidgetColorService.getColor(NamedWidgetColors.TEXT))
+                    ));
+        }
+
+        protected YAxisWidgetProperty(Descriptor axis_descriptor, Widget widget, List<WidgetProperty<?>> elements) {
+            super(axis_descriptor, widget, elements);
+        }
+
+        /** @return Axis/Grid color */
+        public WidgetProperty<WidgetColor> color()  { return getElement(7); }
+
+    }
+
     /** 'y_axes' array */
-    public static final ArrayWidgetProperty.Descriptor<AxisWidgetProperty> propYAxes =
+    public static final ArrayWidgetProperty.Descriptor<YAxisWidgetProperty> propYAxes =
         new ArrayWidgetProperty.Descriptor<>(WidgetPropertyCategory.BEHAVIOR, "y_axes", Messages.PlotWidget_YAxes,
                                              (widget, index) ->
-                                             AxisWidgetProperty.create(propYAxis, widget,
+                                             YAxisWidgetProperty.create(propYAxis, widget,
                                                                        index > 0
                                                                        ? Messages.PlotWidget_Y + " " + index
                                                                        : Messages.PlotWidget_Y));
@@ -358,10 +383,10 @@ public class StripchartWidget extends VisibleWidget
                 // Count actual Y axes, because legacy_axis includes skipped X axes
                 ++y_count;
 
-                final AxisWidgetProperty y_axis;
+                final YAxisWidgetProperty y_axis;
                 if (strip.y_axes.size() < y_count)
                 {
-                    y_axis = AxisWidgetProperty.create(propYAxis, strip, "");
+                    y_axis = YAxisWidgetProperty.create(propYAxis, strip, "");
                     strip.y_axes.addElement(y_axis);
                 }
                 else
@@ -452,7 +477,7 @@ public class StripchartWidget extends VisibleWidget
     private volatile WidgetProperty<Boolean> show_legend;
     private volatile WidgetProperty<String> start;
     private volatile WidgetProperty<String> end;
-    private volatile ArrayWidgetProperty<AxisWidgetProperty> y_axes;
+    private volatile ArrayWidgetProperty<YAxisWidgetProperty> y_axes;
     private volatile ArrayWidgetProperty<TraceWidgetProperty> traces;
     private volatile RuntimeEventProperty configure;
     private volatile RuntimeEventProperty open_full;
@@ -485,7 +510,7 @@ public class StripchartWidget extends VisibleWidget
         properties.add(show_legend = PlotWidgetProperties.propLegend.createProperty(this, false));
         properties.add(start = propStart.createProperty(this, "1 minute"));
         properties.add(end = propEnd.createProperty(this, ""));
-        properties.add(y_axes = propYAxes.createProperty(this, Arrays.asList(AxisWidgetProperty.create(propYAxis, this, Messages.PlotWidget_Y))));
+        properties.add(y_axes = propYAxes.createProperty(this, Arrays.asList(YAxisWidgetProperty.create(propYAxis, this, Messages.PlotWidget_Y))));
         properties.add(traces = propTraces.createProperty(this, Arrays.asList(new TraceWidgetProperty(this, 0))));
         properties.add(configure = (RuntimeEventProperty) runtimePropConfigure.createProperty(this, null));
         properties.add(open_full = (RuntimeEventProperty) DataBrowserWidget.runtimePropOpenFull.createProperty(this, null));
@@ -585,7 +610,7 @@ public class StripchartWidget extends VisibleWidget
     }
 
     /** @return 'y_axes' property */
-    public ArrayWidgetProperty<AxisWidgetProperty> propYAxes()
+    public ArrayWidgetProperty<YAxisWidgetProperty> propYAxes()
     {
         return y_axes;
     }
