@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -160,7 +160,14 @@ public class Decoders
             timestamp = NO_TIME;
             usertag = NO_USERTAG;
         }
-        return Time.of(timestamp, usertag, timestamp.getEpochSecond() > 0);
+
+        // A time stamp of all zeroes is not valid.
+        // In addition, a time stamp of 1990/01/02 00:00:00
+        // as used for the Channel Access and IOC time stamp epoch
+        // is considered invalid because IOCs send it for never processed records
+        final boolean valid = timestamp.getNano() != 0  &&
+                              (timestamp.getEpochSecond() > 0 &&  timestamp.getEpochSecond() != 631152000L);
+        return Time.of(timestamp, usertag, valid);
     }
 
     /** @param printfFormat Format from NTScalar display.format
