@@ -74,6 +74,7 @@ import org.epics.vtype.VULong;
 import org.epics.vtype.VULongArray;
 import org.epics.vtype.VUShort;
 import org.epics.vtype.VUShortArray;
+import org.phoebus.pv.ca.DBRHelper;
 
 /** Decodes {@link Time}, {@link Alarm}, {@link Display}, ...
  *  @author Kay Kasemir
@@ -166,7 +167,7 @@ public class Decoders
         // as used for the Channel Access and IOC time stamp epoch
         // is considered invalid because IOCs send it for never processed records
         final boolean valid = timestamp.getNano() != 0  &&
-                              (timestamp.getEpochSecond() > 0 &&  timestamp.getEpochSecond() != 631152000L);
+                              (timestamp.getEpochSecond() > 0 &&  timestamp.getEpochSecond() != DBRHelper.EPICS_EPOCH);
         return Time.of(timestamp, usertag, valid);
     }
 
