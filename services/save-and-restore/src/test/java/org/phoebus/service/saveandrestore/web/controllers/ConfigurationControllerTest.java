@@ -82,7 +82,7 @@ public class ConfigurationControllerTest {
 	
 	private ObjectMapper objectMapper = new ObjectMapper();
 
-	private static final String JSON = "application/json;charset=UTF-8";
+	private static final String JSON = "application/json";
 
 	@Before
 	public void setUp() {
