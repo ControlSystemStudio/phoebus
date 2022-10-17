@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -69,6 +69,9 @@ import gov.aps.jca.dbr.TimeStamp;
 @SuppressWarnings("nls")
 public class DBRHelper
 {
+    /** 1990/01/01 00:00:00 epoch used by Channel Access and records on IOC */
+    public static final long EPICS_EPOCH = 631152000L;
+
     /** @param plain Get plain type of CTRL_... type?
      *  @param type Example data
      *  @return CTRL_... type for this channel.
@@ -155,7 +158,7 @@ public class DBRHelper
         if (epics_time == null)
             return Time.nowInvalid();
 
-        final Instant instant = Instant.ofEpochSecond(epics_time.secPastEpoch() + 631152000L,  (int) epics_time.nsec());
+        final Instant instant = Instant.ofEpochSecond(epics_time.secPastEpoch() + EPICS_EPOCH,  (int) epics_time.nsec());
         if (epics_time.secPastEpoch() <= 0)
             return Time.of(instant, 0, false);
 
