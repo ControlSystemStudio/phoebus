@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Class representing a node in a tree structure maintained by the save-and-restore service. Node types are
@@ -170,6 +171,23 @@ public class Node implements Comparable<Node>, Serializable {
         } else {
             return getName().compareTo(other.getName());
         }
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if(other == null) {
+            return false;
+        }
+        if(other instanceof Node) {
+            Node otherNode = (Node)other;
+            return uniqueId.equals(otherNode.getUniqueId());
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(uniqueId);
     }
 
     public static Builder builder() {
