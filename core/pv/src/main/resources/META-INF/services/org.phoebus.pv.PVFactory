@@ -6,3 +6,4 @@ org.phoebus.pv.pva.PVA_PVFactory
 org.phoebus.pv.opva.PVA_PVFactory
 org.phoebus.pv.mqtt.MQTT_PVFactory
 org.phoebus.pv.formula.FormulaPVFactory
+org.phoebus.pv.tango.Tango_PVFactory
