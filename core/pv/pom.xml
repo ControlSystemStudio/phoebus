@@ -71,7 +71,8 @@
         <artifactId>org.eclipse.paho.client.mqttv3</artifactId>
         <version>1.2.2</version>
     </dependency>
-     <dependency>
+    
+    <dependency>
       <groupId>org.tango-controls</groupId>
       <artifactId>JTango</artifactId>
       <version>9.6.8</version>
