@@ -292,7 +292,8 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
         boolQueryBuilder.must(outerNestedQuery._toQuery());
         SearchRequest searchRequest = SearchRequest.of(s -> s.index(ES_TREE_INDEX)
                 .query(boolQueryBuilder.build()._toQuery())
-                .timeout("60s"));
+                .timeout("60s")
+                .size(1000));
         try {
             SearchResponse<ESTreeNode> esTreeNodeSearchResponse = client.search(searchRequest, ESTreeNode.class);
             return esTreeNodeSearchResponse.hits().hits().stream().map(Hit::source).collect(Collectors.toList());
@@ -309,7 +310,8 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
         boolQueryBuilder.must(innerNestedQuery._toQuery());
         SearchRequest searchRequest = SearchRequest.of(s -> s.index(ES_TREE_INDEX)
                 .query(boolQueryBuilder.build()._toQuery())
-                .timeout("60s"));
+                .timeout("60s")
+                .size(1000));
         try {
             SearchResponse<ESTreeNode> esTreeNodeSearchResponse = client.search(searchRequest, ESTreeNode.class);
             return esTreeNodeSearchResponse.hits().hits().stream().map(Hit::source).collect(Collectors.toList());

@@ -45,6 +45,7 @@ public class SnapshotController extends BaseController {
         return nodeDAO.getSnapshotData(uniqueId);
     }
 
+    @SuppressWarnings("unused")
     @GetMapping(value = "/snapshots", produces = JSON)
     public List<Node> getAllSnapshots() {
         return nodeDAO.getAllSnapshots();
