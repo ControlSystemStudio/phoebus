@@ -18,7 +18,7 @@ public interface LogClient {
      * @param log - LogEntry to be added
      * @return - the created log entry
      */
-    public LogEntry set(LogEntry log) throws LogbookException;
+    LogEntry set(LogEntry log) throws LogbookException;
 
     /**
      * Create a log entry as reply to an existing one.
@@ -39,7 +39,7 @@ public interface LogClient {
      * @param logId LogEntry id
      * @return LogEntry object
      */
-    public LogEntry getLog(Long logId);
+    LogEntry getLog(Long logId);
 
     /**
      * Returns a collection of attachments that matches the logId <code>logId</code>
@@ -47,7 +47,7 @@ public interface LogClient {
      * @param logId LogEntry id
      * @return attachments collection object
      */
-    public Collection<Attachment> listAttachments(Long logId);
+    Collection<Attachment> listAttachments(Long logId);
 
     /**
      * Query for logs based on the criteria specified in the map
@@ -55,21 +55,21 @@ public interface LogClient {
      * @param map - search parameters
      * @return collection of LogEntry objects
      */
-    public List<LogEntry> findLogs(Map<String, String> map);
+    List<LogEntry> findLogs(Map<String, String> map);
 
     /**
      * Return all the logs. ***Warning can return a lot of data***
      *
      * @return Collection of all {@link LogEntry}s
      */
-    public Collection<LogEntry> listLogs();
+    Collection<LogEntry> listLogs();
 
     /**
      * Get a list of all the logbooks currently existings
      *
      * @return string collection of logbooks
      */
-    public default Collection<Logbook> listLogbooks() {
+    default Collection<Logbook> listLogbooks() {
         return Collections.emptyList();
     }
 
@@ -78,7 +78,7 @@ public interface LogClient {
      *
      * @return string collection of tags
      */
-    public default Collection<Tag> listTags() {
+    default Collection<Tag> listTags() {
         return Collections.emptyList();
     }
 
@@ -87,7 +87,7 @@ public interface LogClient {
      *
      * @return list of properties
      */
-    public default Collection<Property> listProperties() {
+    default Collection<Property> listProperties() {
         return Collections.emptyList();
     }
 
@@ -96,7 +96,7 @@ public interface LogClient {
      *
      * @return a list of supported levels
      */
-    public default Collection<String> listLevels() {
+    default Collection<String> listLevels() {
         return Collections.emptyList();
     }
 
@@ -107,7 +107,7 @@ public interface LogClient {
      * @param propertyName - string property name
      * @return list of property attributes
      */
-    public default Collection<String> listAttributes(String propertyName) {
+    default Collection<String> listAttributes(String propertyName) {
         return Collections.emptyList();
     }
 
@@ -118,7 +118,7 @@ public interface LogClient {
      * @param attachment - the at
      * @return {@link InputStream} to the attachment file
      */
-    public default InputStream getAttachment(Long logId, Attachment attachment) throws LogbookException {
+    default InputStream getAttachment(Long logId, Attachment attachment) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -127,7 +127,7 @@ public interface LogClient {
      * @param attachmentName - attachment name
      * @return {@link InputStream} to the attachment file
      */
-    public default InputStream getAttachment(Long logId, String attachmentName) throws LogbookException {
+    default InputStream getAttachment(Long logId, String attachmentName) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -137,7 +137,7 @@ public interface LogClient {
      * @param property - property name
      * @return the @property if it exists
      */
-    public default Property getProperty(String property) throws LogbookException {
+    default Property getProperty(String property) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -148,7 +148,7 @@ public interface LogClient {
      * @param tag - the tag to be created
      * @return The created tag
      */
-    public default Tag set(Tag tag) throws LogbookException {
+    default Tag set(Tag tag) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -160,7 +160,7 @@ public interface LogClient {
      * @param logIds - the log ids to which the above tag is to be added
      * @return the created tag
      */
-    public default Tag set(Tag tag, Collection<Long> logIds) throws LogbookException {
+    default Tag set(Tag tag, Collection<Long> logIds) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -171,7 +171,7 @@ public interface LogClient {
      * @param Logbook - the @logbook to be created
      * @return the created logbook
      */
-    public default Logbook set(Logbook Logbook) throws LogbookException {
+    default Logbook set(Logbook Logbook) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -182,7 +182,7 @@ public interface LogClient {
      * @param logbook - logbook to be created
      * @param logIds  - log ids to which the created logbook is to be
      */
-    public default Logbook set(Logbook logbook, Collection<Long> logIds) throws LogbookException {
+    default Logbook set(Logbook logbook, Collection<Long> logIds) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -193,7 +193,7 @@ public interface LogClient {
      * @param property - the property to be created or replaced
      * @return the created/updated property
      */
-    public default Property set(Property property) throws LogbookException {
+    default Property set(Property property) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -204,7 +204,7 @@ public interface LogClient {
      * @param log - the updated log entry
      * @return the updated LogEntry entry
      */
-    public default LogEntry update(LogEntry log) throws LogbookException {
+    default LogEntry update(LogEntry log) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -214,7 +214,7 @@ public interface LogClient {
      * @param logs set of logs to be added
      * @return return updated logentries
      */
-    public default Collection<LogEntry> update(Collection<LogEntry> logs) throws LogbookException {
+    default Collection<LogEntry> update(Collection<LogEntry> logs) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -224,7 +224,7 @@ public interface LogClient {
      * @param property - the property to be updates
      * @return the updated property
      */
-    public default Property update(Property property) throws LogbookException {
+    default Property update(Property property) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -235,7 +235,7 @@ public interface LogClient {
      * @param logId LogEntry id the tag is to be added
      * @return updated tag
      */
-    public default Tag update(Tag tag, Long logId) throws LogbookException {
+    default Tag update(Tag tag, Long logId) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -247,7 +247,7 @@ public interface LogClient {
      * @param logIds - collection of LogEntry id
      * @return updated tag
      */
-    public default Tag update(Tag tag, Collection<Long> logIds) throws LogbookException {
+    default Tag update(Tag tag, Collection<Long> logIds) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -258,7 +258,7 @@ public interface LogClient {
      * @param logId   - LogEntry id the logbook is to be added
      * @return updated logbook
      */
-    public default Logbook update(Logbook logbook, Long logId) throws LogbookException {
+    default Logbook update(Logbook logbook, Long logId) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -270,7 +270,7 @@ public interface LogClient {
      * @param logIds  - LogEntry id the logbook is to be added
      * @return updated logbook
      */
-    public default Logbook update(Logbook logbook, Collection<Long> logIds) throws LogbookException {
+    default Logbook update(Logbook logbook, Collection<Long> logIds) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -282,7 +282,7 @@ public interface LogClient {
      * @param logId    - LogEntry id the property to be added
      * @return updated property
      */
-    public default Property update(Property property, Long logId) throws LogbookException {
+    default Property update(Property property, Long logId) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -291,7 +291,7 @@ public interface LogClient {
      * @param local - local file to be attached to logId
      * @return the new attachment add to the log entry
      */
-    public default Attachment add(File local, Long logId) throws LogbookException {
+    default Attachment add(File local, Long logId) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -300,7 +300,7 @@ public interface LogClient {
      * @return The log identified by logId
      */
     @Deprecated
-    public default LogEntry findLogById(Long logId) throws LogbookException {
+    default LogEntry findLogById(Long logId) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -308,7 +308,7 @@ public interface LogClient {
      * @param pattern - search pattern
      * @return List of matching {@link LogEntry}
      */
-    public default List<LogEntry> findLogsBySearch(String pattern) throws LogbookException {
+    default List<LogEntry> findLogsBySearch(String pattern) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -318,7 +318,7 @@ public interface LogClient {
      * @param tagName - tag name
      * @return List of matching {@link LogEntry}
      */
-    public default List<LogEntry> findLogsByTag(String tagName) throws LogbookException {
+    default List<LogEntry> findLogsByTag(String tagName) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -328,7 +328,7 @@ public interface LogClient {
      * @param logbookName - logbook name
      * @return List of matching {@link LogEntry}
      */
-    public default List<LogEntry> findLogsByLogbook(String logbookName) throws LogbookException {
+    default List<LogEntry> findLogsByLogbook(String logbookName) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -338,12 +338,12 @@ public interface LogClient {
      * search for logs with property <code>property</code> and optionally value
      * matching pattern<code>propertyValue</code>
      *
-     * @param propertyName
-     * @param attributeName
-     * @param attributeValue
+     * @param propertyName Property identifier
+     * @param attributeName Attribute identifier
+     * @param attributeValue Attribute value
      * @return List of matching {@link LogEntry}
      */
-    public default List<LogEntry> findLogsByProperty(String propertyName, String attributeName, String attributeValue) throws LogbookException {
+    default List<LogEntry> findLogsByProperty(String propertyName, String attributeName, String attributeValue) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -353,7 +353,7 @@ public interface LogClient {
      * @param propertyName - name of the required property
      * @return List of matching {@link LogEntry}
      */
-    public default List<LogEntry> findLogsByProperty(String propertyName) throws LogbookException {
+    default List<LogEntry> findLogsByProperty(String propertyName) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -363,7 +363,7 @@ public interface LogClient {
      *
      * @param tagName - the name of the tag to be deleted
      */
-    public default void deleteTag(String tagName) throws LogbookException {
+    default void deleteTag(String tagName) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -372,7 +372,7 @@ public interface LogClient {
      *
      * @param logbookName - the name of the logbook to be deleted
      */
-    public default void deleteLogbook(String logbookName) throws LogbookException {
+    default void deleteLogbook(String logbookName) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -381,7 +381,7 @@ public interface LogClient {
      *
      * @param propertyName - property to be deleted
      */
-    public default void deleteProperty(String propertyName) throws LogbookException {
+    default void deleteProperty(String propertyName) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -390,7 +390,7 @@ public interface LogClient {
      *
      * @param log LogEntry to be removed
      */
-    public default void delete(LogEntry log) throws LogbookException {
+    default void delete(LogEntry log) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -399,7 +399,7 @@ public interface LogClient {
      *
      * @param logId LogEntry id LogEntry id to be removed
      */
-    public default void delete(Long logId) throws LogbookException {
+    default void delete(Long logId) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -408,7 +408,7 @@ public interface LogClient {
      *
      * @param logIds logs to be removed
      */
-    public default void delete(Collection<LogEntry> logIds) throws LogbookException {
+    default void delete(Collection<LogEntry> logIds) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -418,7 +418,7 @@ public interface LogClient {
      * @param tag   - the tag to be removed
      * @param logId - the log entry from which the tag is to be removed
      */
-    public default void delete(Tag tag, Long logId) throws LogbookException {
+    default void delete(Tag tag, Long logId) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -428,7 +428,7 @@ public interface LogClient {
      * @param tag    - the tag to be removed
      * @param logIds - the logs from which the tag is to be removed
      */
-    public default void delete(Tag tag, Collection<Long> logIds) throws LogbookException {
+    default void delete(Tag tag, Collection<Long> logIds) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -438,7 +438,7 @@ public interface LogClient {
      * @param logbook - the logbook to be removed
      * @param logId   - the log entry from which the logbook is to be removed
      */
-    public default void delete(Logbook logbook, Long logId) throws LogbookException {
+    default void delete(Logbook logbook, Long logId) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -448,7 +448,7 @@ public interface LogClient {
      * @param logbook - the logbook to be removed
      * @param logIds  - the logs from which the logbook is to be removed
      */
-    public default void delete(Logbook logbook, Collection<Long> logIds) throws LogbookException {
+    default void delete(Logbook logbook, Collection<Long> logIds) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -458,7 +458,7 @@ public interface LogClient {
      * @param property - the property to be deleted
      * @param logId    - LogEntry id from which the property is to be removed
      */
-    public default void delete(Property property, Long logId) throws LogbookException {
+    default void delete(Property property, Long logId) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -469,7 +469,7 @@ public interface LogClient {
      * @param property - the property to be deleted
      * @param logIds   - the logs from which to property is to be removed
      */
-    public default void delete(Property property, Collection<Long> logIds) throws LogbookException {
+    default void delete(Property property, Collection<Long> logIds) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -479,7 +479,7 @@ public interface LogClient {
      * @param fileName - the file name to be removed
      * @param logId    - the logid from which the attached file is to be removed
      */
-    public default void delete(String fileName, Long logId) throws LogbookException {
+    default void delete(String fileName, Long logId) throws LogbookException {
         throw new LogbookException(new UnsupportedOperationException());
     }
 
@@ -500,5 +500,13 @@ public interface LogClient {
 
     default void groupLogEntries(List<Long> logEntryIds) throws LogbookException{
         throw new LogbookException(new UnsupportedOperationException());
+    }
+
+    /**
+     * @return Information about the remote service. It is up to the service implementation to
+     * provide relevant information.
+     */
+    default String serviceInfo(){
+        return null;
     }
 }
