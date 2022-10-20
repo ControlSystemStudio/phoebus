@@ -31,6 +31,7 @@ import javafx.util.StringConverter;
 import javafx.util.converter.DefaultStringConverter;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.LogPropertyProvider;
 import org.phoebus.logbook.LogService;
 import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.logbook.Property;
