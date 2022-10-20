@@ -475,7 +475,6 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
 
         model_widget.propBackground().addUntypedPropertyListener(config_listener);
         model_widget.propForeground().addUntypedPropertyListener(config_listener);
-        model_widget.propGridColor().addUntypedPropertyListener(config_listener);
         model_widget.propTitle().addUntypedPropertyListener(config_listener);
         model_widget.propTitleFont().addUntypedPropertyListener(config_listener);
         model_widget.propToolbar().addUntypedPropertyListener(config_listener);
@@ -508,7 +507,6 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
     {
         model_widget.propBackground().removePropertyListener(config_listener);
         model_widget.propForeground().removePropertyListener(config_listener);
-        model_widget.propGridColor().removePropertyListener(config_listener);
         model_widget.propTitle().removePropertyListener(config_listener);
         model_widget.propTitleFont().removePropertyListener(config_listener);
         model_widget.propToolbar().removePropertyListener(config_listener);
@@ -638,7 +636,6 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         final Color foreground = JFXUtil.convert(model_widget.propForeground().getValue());
         plot.setForeground(foreground);
         plot.setBackground(JFXUtil.convert(model_widget.propBackground().getValue()));
-//        plot.setGridColor(JFXUtil.convert(model_widget.propGridColor().getValue()));
         plot.setTitleFont(JFXUtil.convert(model_widget.propTitleFont().getValue()));
         plot.setTitle(model_widget.propTitle().getValue());
 
