@@ -1,4 +1,4 @@
-package org.phoebus.pv.tango;
+package org.phoebus.pv.tga;
 
 
 import org.epics.vtype.*;

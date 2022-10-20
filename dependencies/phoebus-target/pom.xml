@@ -546,6 +546,15 @@
       <version>1.7.28</version>
     </dependency>
 
+    <!-- https://mvnrepository.com/artifact/org.tango-controls/JTango -->
+    <dependency>
+      <groupId>org.tango-controls</groupId>
+      <artifactId>JTango</artifactId>
+      <version>9.7.0</version>
+      <type>pom</type>
+    </dependency>
+
+
 
   </dependencies>
 

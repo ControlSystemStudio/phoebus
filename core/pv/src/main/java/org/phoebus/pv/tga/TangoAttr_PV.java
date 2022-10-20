@@ -1,4 +1,4 @@
-package org.phoebus.pv.tango;
+package org.phoebus.pv.tga;
 
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.CallBack;
@@ -11,96 +11,53 @@ import org.tango.attribute.AttributeTangoType;
 import java.time.Instant;
 import java.util.logging.Level;
 
-
-public class Tango_PV extends PV {
+public class TangoAttr_PV extends PV {
 
     private final String baseName;
-    private  String deviceName;
-    private String variableType;
-    private  String memberVariable;
+    private  String device;
+    private String attribute;
 
-    public Tango_PV(String name, String baseName) throws Exception {
+
+    public TangoAttr_PV(String name, String baseName) throws Exception {
         super(name);
         this.baseName = baseName;
         parseRawName(baseName);
-        if ("att".equals(variableType)){
-            TangoContext.getInstance().subscribeAttributeEvent(deviceName, memberVariable, baseName,this);
-        }else if ("com".equals(variableType)){
-            TangoContext.getInstance().createTangoCommand(deviceName, memberVariable, baseName, this);
-        }
+        TangoAttrContext.getInstance().subscribeAttributeEvent(device, attribute, baseName,this);
     }
 
-    /** Handles these types of tango names:
-     *  <pre>
-     *      att:/device_name/attribute_name --> att && device_name && attribute_name
-     *      com:/device_name/command_name --> com && device_name && command_name
-     *  </pre>
-     */
+
     private void parseRawName(final String name) throws Exception {
-        //String variableType, deviceName, memberVariable;
-        String[] str= name.split(":/");
-
-        if (name.length() <= 4 && str.length > 2)
-            throw new Exception("Invalid input:" + name);
-
-        //Locate tango attribute or command
-        variableType = str[0];
-        String prefix = str[1];
-
-       int pos = prefix.lastIndexOf('/');
-       if (pos <= 0)
-           throw new Exception("Invalid input：" + name);
+        int pos = name.lastIndexOf('/');
+        if (pos <= 0)
+            throw new Exception("Invalid input：" + name);
         //Locate device name
-        deviceName = prefix.substring(0,pos);
-
-        //Locate tango attribute or command name
-        memberVariable = prefix.substring(pos+1);
+        device = name.substring(0,pos);
+        //Locate tango attribute
+        attribute = name.substring(pos+1);
     }
 
-    /**
-     * attributes and commands need to be closed separately.
-     */
+
     @Override
     protected void close()
     {
         try
         {
-            if ("att".equals(variableType)){
-                TangoContext.getInstance().unSubscribeAttributeEvent(baseName);
-            }else if ("com".equals(variableType)){
-                TangoContext.getInstance().removeTangoCommand(baseName);
-            }
-
+            TangoAttrContext.getInstance().unSubscribeAttributeEvent(baseName);
         }
         catch (Exception ex)
         {
-            logger.log(Level.WARNING, "Failed to unsubscribe Tango Attribute/Command from base name " + baseName);
+            logger.log(Level.WARNING, "Failed to unsubscribe Tango Attribute from base name " + baseName);
             ex.printStackTrace();
         }
     }
-
 
     @Override
     public void write(final Object new_value) throws Exception{
         if (new_value == null)
             throw new Exception(getName() + " got null");
-        if ("att".equals(variableType)){
-            TangoContext.getInstance().writeAttribute(baseName, memberVariable, new_value);
-        }else if ("com".equals(variableType)){
-            TangoContext.getInstance().executeTangoCommand(baseName, new_value, this);
-        }
+        TangoAttrContext.getInstance().writeAttribute(baseName, attribute, new_value);
     }
 
-    public void StartCommand(final String commandName) {
-        notifyListenersOfValue(VType.toVType(commandName));
-    }
-
-    /**
-    Return the result after the command is executed。
-     */
-    public void endCommand(final VType value) {
-        notifyListenersOfValue(value);
-    }
 
     class TangoCallBack extends CallBack {
         private final AttributeTangoType type;
@@ -169,4 +126,3 @@ public class Tango_PV extends PV {
         }
     }
 }
-

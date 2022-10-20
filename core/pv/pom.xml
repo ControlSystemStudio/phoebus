@@ -71,11 +71,23 @@
         <artifactId>org.eclipse.paho.client.mqttv3</artifactId>
         <version>1.2.2</version>
     </dependency>
-    
     <dependency>
       <groupId>org.tango-controls</groupId>
-      <artifactId>JTango</artifactId>
+      <artifactId>JTangoCommons</artifactId>
+      <version>9.7.0</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.tango-controls</groupId>
+      <artifactId>JTangoClientLang</artifactId>
       <version>9.6.8</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.tango-controls</groupId>
+      <artifactId>JTangoServer</artifactId>
+      <version>9.6.8</version>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
 </project>

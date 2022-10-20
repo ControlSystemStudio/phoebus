@@ -161,5 +161,6 @@ Currently, all types of scalars are supported, but SPECTRUM and IMAGE are not ye
 
 Examples ::
 
-    tango://att:/devicename/attributename
-    tango://com:/devicename/comandname
+    tga://device/attribute
+    tgc://device/command
+

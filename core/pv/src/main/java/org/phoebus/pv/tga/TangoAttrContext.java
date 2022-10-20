@@ -1,15 +1,13 @@
-package org.phoebus.pv.tango;
+package org.phoebus.pv.tga;
 
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.EventProperties;
 import fr.esrf.TangoApi.AttributeInfoEx;
 import fr.esrf.TangoApi.AttributeProxy;
 import fr.esrf.TangoApi.DeviceAttribute;
-import fr.soleil.tango.clientapi.TangoCommand;
 import org.epics.vtype.*;
 import org.phoebus.pv.PV;
 import org.tango.attribute.AttributeTangoType;
-import org.tango.command.CommandTangoType;
 import org.tango.server.events.EventType;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,28 +15,27 @@ import java.util.logging.Level;
 
 ;
 
-public class TangoContext {
-    private static TangoContext instance;
+public class TangoAttrContext {
+    private static TangoAttrContext instance;
     private final ConcurrentHashMap<String, AttributeProxy> attributeProxys;
     private final ConcurrentHashMap<String, Integer> events;
     private final ConcurrentHashMap<String, AttributeTangoType> types;
-    private final ConcurrentHashMap<String, TangoCommand> commands;
 
 
-    private TangoContext() {
+
+    private TangoAttrContext() {
         events = new ConcurrentHashMap<>();
         attributeProxys = new ConcurrentHashMap<>();
         types = new ConcurrentHashMap<>();
-        commands = new ConcurrentHashMap<>();
     }
 
-    public static synchronized TangoContext getInstance() throws Exception {
+    public static synchronized TangoAttrContext getInstance() throws Exception {
         if (instance == null)
-            instance = new TangoContext();
+            instance = new TangoAttrContext();
         return instance;
     }
 
-    public void subscribeAttributeEvent(String deviceName, String attributeName, String baseName, Tango_PV pv) throws DevFailed {
+    public void subscribeAttributeEvent(String deviceName, String attributeName, String baseName, TangoAttr_PV pv) throws DevFailed {
         String name = deviceName +"/" + attributeName;
         AttributeProxy attributeProxy;
         if (attributeProxys.get(baseName) == null) {
@@ -48,11 +45,10 @@ public class TangoContext {
         }else {
             //nothing to do
         }
+
     }
 
-    private void subscribeAttributeEvent(String baseName, AttributeProxy attributeProxy, Tango_PV pv) throws DevFailed {
-        System.out.println("subscribe tango attribute : " + baseName);
-
+    private void subscribeAttributeEvent(String baseName, AttributeProxy attributeProxy, TangoAttr_PV pv) throws DevFailed {
         AttributeInfoEx attribute_info_ex;
         try {
             attribute_info_ex = attributeProxy.get_info_ex();
@@ -111,7 +107,6 @@ public class TangoContext {
             PV.logger.log(Level.WARNING, "Could not find type of attribute :" + baseName);
             throw new Exception("Tango attribute write failed: attribute type not found.");
         }
-        System.out.println("Tango attribute write: attribute:"+ attributeName + " value:" + new_value);
         VType vType;
         String value;
         switch (type){
@@ -164,83 +159,4 @@ public class TangoContext {
 
     }
 
-
-    public void createTangoCommand(String deviceName, String commandName, String baseName, Tango_PV pv) throws DevFailed {
-        TangoCommand tangoCommand = commands.get(baseName);
-        if ( tangoCommand == null ){
-            tangoCommand = new TangoCommand(deviceName, commandName);
-            commands.put(baseName, tangoCommand);
-        }
-        pv.StartCommand(tangoCommand.getCommandName());
-    }
-
-    public void removeTangoCommand(String baseName) throws Exception {
-        TangoCommand tangoCommand = commands.get(baseName);
-        if (tangoCommand == null){
-            PV.logger.log(Level.WARNING, "Could not remove Tango command \"" + baseName
-                    + "\" due to no internal record of command");
-            throw new Exception("Tango command remove failed: no command record.");
-        }
-        commands.remove(baseName, tangoCommand);
-    }
-
-    public void executeTangoCommand(String baseName, Object new_value, Tango_PV pv) throws Exception {
-        TangoCommand tangoCommand = commands.get(baseName);
-        if (tangoCommand == null){
-            PV.logger.log(Level.WARNING, "Could not find Tango command \"" + baseName
-                    + "\" due to no internal record of command");
-            throw new Exception("Tango command execute failed: no command record.");
-        }
-
-        CommandTangoType typeFromTango = CommandTangoType.getTypeFromTango(tangoCommand.getArginType());
-        Object res;
-        VType value;
-        switch (typeFromTango){
-            case DEVBOOLEAN:
-                res = tangoCommand.execute(Boolean.class, new_value);
-                value = TangoTypeUtil.convert(res, VBoolean.class);
-                pv.endCommand(value);
-                break;
-            case DEVSHORT:
-                res = tangoCommand.execute(Short.class, new_value);
-                value = TangoTypeUtil.convert(res, VShort.class);
-                pv.endCommand(value);
-                break;
-            case DEVLONG64:
-                res = tangoCommand.execute(Long.class, new_value);
-                value = TangoTypeUtil.convert(res, VLong.class);
-                pv.endCommand(value);
-                break;
-            case DEVFLOAT:
-                res = tangoCommand.execute(Float.class, new_value);
-                value = TangoTypeUtil.convert(res, VFloat.class);
-                pv.endCommand(value);
-                break;
-            case DEVDOUBLE:
-                res = tangoCommand.execute(Double.class,new_value);
-                value = TangoTypeUtil.convert(res, VDouble.class);
-                pv.endCommand(value);
-                break;
-            case DEVSTRING:
-                res = tangoCommand.execute(String.class,new_value);
-                value = TangoTypeUtil.convert(res, VString.class);
-                pv.endCommand(value);
-                break;
-            case DEVLONG:
-                res = tangoCommand.execute(Integer.class,new_value);
-                value = TangoTypeUtil.convert(res, VInt.class);
-                pv.endCommand(value);
-                break;
-            case DEVUCHAR:
-                res = tangoCommand.execute(Byte.class,new_value);
-                value = TangoTypeUtil.convert(res, VByte.class);
-                pv.endCommand(value);
-                break;
-            default:
-                throw new IllegalArgumentException("Value " + new_value + " cannot be converted.");
-        }
-
-
-
-    }
 }

@@ -1,12 +1,13 @@
-package org.phoebus.pv.tango;
+package org.phoebus.pv.tga;
 
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVFactory;
 
-public class Tango_PVFactory implements PVFactory {
+
+public class TangoAttr_PVFactory implements PVFactory {
 
     /** PV type implemented by this factory */
-    final public static String TYPE = "tango";
+    final public static String TYPE = "tga";
 
     @Override
     public String getType() {
@@ -15,7 +16,7 @@ public class Tango_PVFactory implements PVFactory {
 
     @Override
     public PV createPV(String name, String base_name) throws Exception {
-        return new Tango_PV(name, base_name);
+        return new TangoAttr_PV(name, base_name);
     }
 
 
