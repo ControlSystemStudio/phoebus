@@ -666,7 +666,7 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
         final ScreenTransform<XTYPE> x_transform = x_axis.getScreenTransform();
         for (YAxisImpl<XTYPE> y_axis : y_axes)
         {
-            y_axis.setGridColor(grid);
+            y_axis.setGridColor(GraphicsUtils.convert(y_axis.getColor()));
             y_axis.paint(gc, plot_bounds);
         }
 

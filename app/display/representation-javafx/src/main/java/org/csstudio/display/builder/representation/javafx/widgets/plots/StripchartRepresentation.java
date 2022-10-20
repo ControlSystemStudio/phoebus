@@ -68,7 +68,7 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
     private final WidgetPropertyListener<Integer> sizeChangedListener = this::sizeChanged;
     private final UntypedWidgetPropertyListener optsChangedListener = this::optsChanged;
     private final UntypedWidgetPropertyListener modelChangedListener = this::modelChanged;
-    private final WidgetPropertyListener<List<AxisWidgetProperty>> axes_listener = this::axesChanged;
+    private final WidgetPropertyListener<List<StripchartWidget.YAxisWidgetProperty>> axes_listener = this::axesChanged;
     private final WidgetPropertyListener<List<TraceWidgetProperty>> traces_listener = this::tracesChanged;
     private final WidgetPropertyListener<Instant> config_dialog_listener = (p, o, n) -> plot.getPlot().showConfigurationDialog();
     private final WidgetPropertyListener<Instant> open_databrowser_listener = (p, o, n) ->
@@ -164,22 +164,22 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
         super.unregisterListeners();
     }
 
-    private void axesChanged(final WidgetProperty<List<AxisWidgetProperty>> prop, final List<AxisWidgetProperty> removed, final List<AxisWidgetProperty> added)
+    private void axesChanged(final WidgetProperty<List<StripchartWidget.YAxisWidgetProperty>> prop, final List<StripchartWidget.YAxisWidgetProperty> removed, final List<StripchartWidget.YAxisWidgetProperty> added)
     {
         // Track/ignore axes
         if (removed != null)
-            for (AxisWidgetProperty axis : removed)
+            for (StripchartWidget.YAxisWidgetProperty axis : removed)
                 ignoreAxisChanges(axis);
 
         if (added != null)
-            for (AxisWidgetProperty axis : added)
+            for (StripchartWidget.YAxisWidgetProperty axis : added)
                 trackAxisChanges(axis);
 
         // Anything changed -> Update complete model
         modelChanged(null, null, null);
     }
 
-    private void trackAxisChanges(final AxisWidgetProperty axis)
+    private void trackAxisChanges(final StripchartWidget.YAxisWidgetProperty axis)
     {
         axis.title().addUntypedPropertyListener(modelChangedListener);
         axis.autoscale().addUntypedPropertyListener(modelChangedListener);
@@ -188,9 +188,10 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
         axis.maximum().addUntypedPropertyListener(modelChangedListener);
         axis.grid().addUntypedPropertyListener(modelChangedListener);
         axis.visible().addUntypedPropertyListener(modelChangedListener);
+        axis.color().addUntypedPropertyListener(modelChangedListener);
     }
 
-    private void ignoreAxisChanges(final AxisWidgetProperty axis)
+    private void ignoreAxisChanges(final StripchartWidget.YAxisWidgetProperty axis)
     {
         axis.title().removePropertyListener(modelChangedListener);
         axis.autoscale().removePropertyListener(modelChangedListener);
@@ -199,6 +200,8 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
         axis.maximum().removePropertyListener(modelChangedListener);
         axis.grid().removePropertyListener(modelChangedListener);
         axis.visible().removePropertyListener(modelChangedListener);
+        axis.color().removePropertyListener(modelChangedListener);
+
     }
 
 
@@ -317,10 +320,10 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
 
         // Value Axes
         int index = 0;
-        final List<AxisWidgetProperty> axes = model_widget.propYAxes().getValue();
+        final List<StripchartWidget.YAxisWidgetProperty> axes = model_widget.propYAxes().getValue();
         while (model.getAxisCount() > axes.size())
             model.removeAxis(model.getAxis(0));
-        for (AxisWidgetProperty axis : axes)
+        for (StripchartWidget.YAxisWidgetProperty axis : axes)
         {
             final AxisConfig config;
             if (index < model.getAxisCount())
@@ -336,6 +339,7 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
             config.setLogScale(axis.logscale().getValue());
             config.setGridVisible(axis.grid().getValue());
             config.setVisible(axis.visible().getValue());
+            config.setColor(JFXUtil.convert(axis.color().getValue()));
             ++index;
         }
 

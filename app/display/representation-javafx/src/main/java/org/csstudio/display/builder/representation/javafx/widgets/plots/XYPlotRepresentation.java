@@ -43,6 +43,8 @@ import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.javafx.rtplot.TraceType;
 import org.csstudio.javafx.rtplot.YAxis;
 import org.csstudio.javafx.rtplot.internal.NumericAxis;
+import org.csstudio.javafx.rtplot.internal.YAxisImpl;
+import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
 import org.epics.util.array.ArrayDouble;
 import org.epics.util.array.ListNumber;
 import org.epics.vtype.Display;
@@ -473,7 +475,6 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
 
         model_widget.propBackground().addUntypedPropertyListener(config_listener);
         model_widget.propForeground().addUntypedPropertyListener(config_listener);
-        model_widget.propGridColor().addUntypedPropertyListener(config_listener);
         model_widget.propTitle().addUntypedPropertyListener(config_listener);
         model_widget.propTitleFont().addUntypedPropertyListener(config_listener);
         model_widget.propToolbar().addUntypedPropertyListener(config_listener);
@@ -506,7 +507,6 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
     {
         model_widget.propBackground().removePropertyListener(config_listener);
         model_widget.propForeground().removePropertyListener(config_listener);
-        model_widget.propGridColor().removePropertyListener(config_listener);
         model_widget.propTitle().removePropertyListener(config_listener);
         model_widget.propTitleFont().removePropertyListener(config_listener);
         model_widget.propToolbar().removePropertyListener(config_listener);
@@ -544,8 +544,10 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         axis.titleFont().addUntypedPropertyListener(config_listener);
         axis.scaleFont().addUntypedPropertyListener(config_listener);
         axis.visible().addUntypedPropertyListener(config_listener);
-        if (axis instanceof YAxisWidgetProperty)
+        if (axis instanceof YAxisWidgetProperty) {
             ((YAxisWidgetProperty) axis).onRight().addUntypedPropertyListener(config_listener);
+            ((YAxisWidgetProperty) axis).color().addUntypedPropertyListener(config_listener);
+        }
     }
 
     /** Ignore changed axis properties
@@ -562,8 +564,10 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         axis.titleFont().removePropertyListener(config_listener);
         axis.scaleFont().removePropertyListener(config_listener);
         axis.visible().removePropertyListener(config_listener);
-        if (axis instanceof YAxisWidgetProperty)
+        if (axis instanceof YAxisWidgetProperty) {
             ((YAxisWidgetProperty) axis).onRight().removePropertyListener(config_listener);
+            ((YAxisWidgetProperty) axis).color().removePropertyListener(config_listener);
+        }
     }
 
     private void yAxesChanged(final WidgetProperty<List<YAxisWidgetProperty>> property,
@@ -632,7 +636,6 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         final Color foreground = JFXUtil.convert(model_widget.propForeground().getValue());
         plot.setForeground(foreground);
         plot.setBackground(JFXUtil.convert(model_widget.propBackground().getValue()));
-        plot.setGridColor(JFXUtil.convert(model_widget.propGridColor().getValue()));
         plot.setTitleFont(JFXUtil.convert(model_widget.propTitleFont().getValue()));
         plot.setTitle(model_widget.propTitle().getValue());
 
@@ -675,6 +678,18 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         plot_axis.setLabelFont(JFXUtil.convert(model_axis.titleFont().getValue()));
         plot_axis.setScaleFont(JFXUtil.convert(model_axis.scaleFont().getValue()));
         plot_axis.setVisible(model_axis.visible().getValue());
+        if(plot_axis instanceof YAxisImpl) {
+            ((YAxisImpl)plot_axis).setGridColor(
+                    GraphicsUtils.convert(
+                            JFXUtil.convert(
+                                    ((YAxisWidgetProperty) model_axis).color().getValue()
+                            )
+                    )
+            );
+            plot_axis.setColor(JFXUtil.convert(
+                    ((YAxisWidgetProperty) model_axis).color().getValue()
+            ));
+        }
     }
 
     private void updateRanges()
