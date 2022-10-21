@@ -43,6 +43,8 @@ public class Messages
                          SearchAvailableItems,
                          SelectFile,
                          SelectFolder,
+                         ServiceConnectionErrorTitle,
+                         ServiceConnectionErrorBody,
                          ShowHideDetails,
                          Tags,
                          TagsTitle,

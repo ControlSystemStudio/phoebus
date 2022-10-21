@@ -122,6 +122,18 @@ public class XYPlotWidget extends VisibleWidget
     /** Legacy properties that have already triggered a warning */
     private final CopyOnWriteArraySet<String> warnings_once = new CopyOnWriteArraySet<>();
 
+    /** Moving gridline color to individual Y-Axes was a backwards-incompatible change
+     *  So the major was incremented from 2.0.0 to 3.0.0
+     */
+    private static final Version VERSION = Version.parse("3.0.0");
+
+    /** @return Widget version number */
+    @Override
+    public Version getVersion()
+    {
+        return VERSION;
+    }
+
     /** Configurator that handles legacy properties */
     private static class Configurator extends WidgetConfigurator
     {
@@ -136,6 +148,7 @@ public class XYPlotWidget extends VisibleWidget
         {
             configureAllPropertiesFromMatchingXML(model_reader, widget, xml);
 
+            // Legacy widget
             if (xml_version.getMajor() < 2)
             {
                 if (StripchartWidget.isLegacyStripchart(xml))
@@ -175,6 +188,24 @@ public class XYPlotWidget extends VisibleWidget
                 if (! plot.propLegend().getValue())
                     for (TraceWidgetProperty trace : plot.propTraces().getValue())
                         trace.traceName().setValue("");
+            }
+
+            // Newer widgets with some high-level properties moved to individual axes
+            if (xml_version.getMajor() < 3) {
+
+                final XYPlotWidget plot = (XYPlotWidget) widget;
+
+                // If grid color was specified, then use it on each axis
+                Element gridColor = XMLUtil.getChildElement(xml, "grid_color");
+                if(gridColor != null) {
+                    plot.y_axes.getValue().forEach(axis -> {
+                        try {
+                            axis.color().readFromXML(model_reader, gridColor);
+                        } catch (Exception e) {
+                            logger.log(Level.WARNING, "Could not read widget color from grid_color of V2 X/Y Plot Widget");
+                        }
+                    });
+                }
             }
             return true;
         }
@@ -303,7 +334,6 @@ public class XYPlotWidget extends VisibleWidget
 
     private volatile WidgetProperty<WidgetColor> foreground;
     private volatile WidgetProperty<WidgetColor> background;
-    private volatile WidgetProperty<WidgetColor> grid;
     private volatile WidgetProperty<String> title;
     private volatile WidgetProperty<WidgetFont> title_font;
     private volatile WidgetProperty<Boolean> show_toolbar;
@@ -332,7 +362,6 @@ public class XYPlotWidget extends VisibleWidget
         super.defineProperties(properties);
         properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BACKGROUND)));
-        properties.add(grid = propGridColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.GRID)));
         properties.add(title = PlotWidgetProperties.propTitle.createProperty(this, ""));
         properties.add(title_font = PlotWidgetProperties.propTitleFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.HEADER2)));
         properties.add(show_toolbar = propToolbar.createProperty(this,false));
@@ -397,12 +426,6 @@ public class XYPlotWidget extends VisibleWidget
     public WidgetProperty<WidgetColor> propForeground()
     {
         return foreground;
-    }
-
-    /** @return 'grid_color' property */
-    public WidgetProperty<WidgetColor> propGridColor()
-    {
-        return grid;
     }
 
     /** @return 'title' property */
