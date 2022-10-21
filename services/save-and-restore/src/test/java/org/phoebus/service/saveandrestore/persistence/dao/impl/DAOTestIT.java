@@ -634,8 +634,7 @@ public class DAOTestIT {
         Node rootNode = nodeDAO.getRootNode();
         Node folder = Node.builder().name("Folder").nodeType(NodeType.FOLDER).uniqueId("uniqueid").build();
         folder = nodeDAO.createNode(rootNode.getUniqueId(), folder);
-        assertNotEquals("uniqueid", folder.getUniqueId());
-
+        assertEquals("uniqueid", folder.getUniqueId());
         clearAllData();
     }
 

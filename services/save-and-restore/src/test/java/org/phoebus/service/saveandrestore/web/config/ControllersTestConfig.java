@@ -28,10 +28,12 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 @SpringBootConfiguration
 @ComponentScan(basePackages = "org.phoebus.service.saveandrestore.web.controllers")
 @SuppressWarnings("unused")
+@Profile("!IT")
 public class ControllersTestConfig {
 
     @Bean

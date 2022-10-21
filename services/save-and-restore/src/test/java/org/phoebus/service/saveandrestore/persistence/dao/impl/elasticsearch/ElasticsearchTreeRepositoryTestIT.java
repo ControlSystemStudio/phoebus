@@ -29,6 +29,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.model.ESTreeNode;
 import org.phoebus.service.saveandrestore.persistence.config.ElasticConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -205,9 +206,8 @@ public class ElasticsearchTreeRepositoryTestIT {
         ESTreeNode parentNode = elasticsearchTreeRepository.getParentNode("aa");
         assertNotNull(parentNode);
 
-        parentNode = elasticsearchTreeRepository.getParentNode("aaa");
-
-        assertNull(parentNode);
+        assertThrows(NodeNotFoundException.class,
+                () -> elasticsearchTreeRepository.getParentNode("aaa"));
     }
 
     @Test
@@ -228,7 +228,7 @@ public class ElasticsearchTreeRepositoryTestIT {
 
         elasticsearchTreeRepository.save(esTreeNode2);
 
-        assertThrows(ResponseStatusException.class,
+        assertThrows(RuntimeException.class,
                 () -> elasticsearchTreeRepository.getParentNode("aaaa"));
     }
 

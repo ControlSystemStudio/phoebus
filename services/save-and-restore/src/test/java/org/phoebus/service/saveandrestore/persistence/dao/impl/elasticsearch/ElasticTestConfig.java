@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
 
 import java.io.IOException;
@@ -41,6 +42,7 @@ import static org.phoebus.applications.saveandrestore.model.Node.ROOT_FOLDER_UNI
 @Configuration
 @ComponentScan(basePackages = {"org.phoebus.service.saveandrestore"})
 @SuppressWarnings("unused")
+@Profile("!IT")
 public class ElasticTestConfig {
 
 
