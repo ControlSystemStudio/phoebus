@@ -113,6 +113,11 @@
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
+      <artifactId>app-display-thumbwheel</artifactId>
+      <version>4.7.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
       <artifactId>app-display-editor</artifactId>
       <version>4.7.1-SNAPSHOT</version>
     </dependency>
