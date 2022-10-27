@@ -1,6 +1,5 @@
 package org.csstudio.display.widget;
 
-import java.util.logging.Level;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import org.csstudio.display.builder.model.DirtyFlag;
@@ -10,10 +9,11 @@ import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.csstudio.display.builder.representation.javafx.widgets.RegionBaseRepresentation;
+import org.csstudio.display.widget.thumbwheel.ThumbWheel;
 import org.epics.vtype.Display;
 import org.epics.vtype.VType;
-import se.europeanspallationsource.javafx.control.thumbwheel.ThumbWheel;
 
+import java.util.logging.Level;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
