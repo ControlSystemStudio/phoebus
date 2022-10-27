@@ -175,6 +175,16 @@ public class PVA_PV extends PV
         // in case some detail in the 'request' caused the PVA server
         // to perform a put-callback type of operation,
         // and a GUI calling write() expect an immediate return.
+
+        // Perform a disconnect check right now to alert caller
+        // of clearly disconnected channel
+        if (isDisconnected(read()))
+            throw new Exception("Channel '" + getName() + "' is not connected");
+
+        // The channel could still disconnect in the middle of the write,
+        // the channel may be read-only or experience other errors
+        // that we'll only see as log messages since we don't want to
+        // wait in 'get()' here...
         channel.write(name_helper.getWriteRequest(), new_value);
     }
 
