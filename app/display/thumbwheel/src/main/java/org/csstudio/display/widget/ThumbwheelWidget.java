@@ -36,7 +36,8 @@ public class ThumbwheelWidget extends WritablePVWidget {
 
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
-            new WidgetDescriptor("thumbwheel", WidgetCategory.MONITOR,
+            new WidgetDescriptor("thumbwheel",
+                    WidgetCategory.CONTROL,
                     "Thumbwheel",
                     "/icons/thumbwheel.gif",
                     "Display a thumbwheel",
