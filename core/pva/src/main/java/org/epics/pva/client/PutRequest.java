@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -153,7 +153,7 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
         final byte subcmd = buffer.get();
         PVAStatus status = PVAStatus.decode(buffer);
         if (! status.isSuccess())
-            throw new Exception(channel + " Put Response for " + request + ": " + status);
+            fail(new Exception(channel + " Put Response for " + request + ": " + status));
 
         if (subcmd == PVAHeader.CMD_SUB_INIT)
         {
@@ -186,9 +186,15 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
             complete(null);
         }
         else
-            throw new Exception("Cannot decode Put " + subcmd + " Reply #" + request_id);
+            fail(new Exception("Cannot decode Put " + subcmd + " Reply #" + request_id));
     }
 
+    /** Handle failure by both notifying whoever waits for this request to complete
+     *  and by throwing exception
+     *
+     *  @param ex Error description
+     *  @throws Exception
+     */
     private void fail(final Exception ex) throws Exception
     {
         completeExceptionally(ex);
