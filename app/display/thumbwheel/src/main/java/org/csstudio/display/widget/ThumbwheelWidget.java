@@ -1,19 +1,26 @@
 package org.csstudio.display.widget;
 
+import org.csstudio.display.builder.model.Version;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetCategory;
+import org.csstudio.display.builder.model.WidgetConfigurator;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
+import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.csstudio.display.builder.model.widgets.PolygonWidget;
 import org.csstudio.display.builder.model.widgets.WritablePVWidget;
+import org.phoebus.framework.persistence.XMLUtil;
+import org.w3c.dom.Element;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newBooleanPropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newColorPropertyDescriptor;
@@ -192,4 +199,37 @@ public class ThumbwheelWidget extends WritablePVWidget {
         return spinner_shaped;
     }
 
+    @Override
+    public WidgetConfigurator getConfigurator(final Version persisted_version)
+            throws Exception
+    {
+        return new LegacyWidgetConfigurator(persisted_version);
+    }
+
+    private static class LegacyWidgetConfigurator extends WidgetConfigurator
+    {
+        public LegacyWidgetConfigurator(Version xml_version) {
+            super(xml_version);
+        }
+
+        @Override
+        public boolean configureFromXML(ModelReader model_reader, Widget widget, Element widget_xml) throws Exception {
+            if (!super.configureFromXML(model_reader, widget, widget_xml))
+                return false;
+
+            final Optional<String> integerDigits = XMLUtil.getChildString(widget_xml, "integerDigits");
+            if(integerDigits.isPresent())
+            {
+                int integer_digits = Integer.parseInt(integerDigits.get());
+                widget.getProperty(propIntegerDigits).setValue(integer_digits);
+            }
+            final Optional<String> decimalDigits = XMLUtil.getChildString(widget_xml, "decimalDigits");
+            if(decimalDigits.isPresent())
+            {
+                int decimal_digits = Integer.parseInt(decimalDigits.get());
+                widget.getProperty(propDecimalDigits).setValue(decimal_digits);
+            }
+            return true;
+        }
+    }
 }
