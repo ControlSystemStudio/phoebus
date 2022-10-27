@@ -179,7 +179,7 @@ public class PVA_PV extends PV
         // Perform a disconnect check right now to alert caller
         // of clearly disconnected channel
         if (isDisconnected(read()))
-            throw new Exception("Channel '" + getName() + "' is not connected");
+            throw new IllegalStateException("Channel '" + getName() + "' is not connected");
 
         // The channel could still disconnect in the middle of the write,
         // the channel may be read-only or experience other errors
