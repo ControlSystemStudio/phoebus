@@ -150,7 +150,7 @@ public class GitMigrator {
         List<FilePair> bmsFiles = new ArrayList<>();
         bmsFiles = findBeamlineSetFiles(bmsFiles, gitRoot);
 
-        bmsFiles.stream().forEach(f -> {
+        bmsFiles.forEach(f -> {
             try {
                 createSaveSetAndAssociatedSnapshots(f);
             } catch (Exception e) {
@@ -159,8 +159,6 @@ public class GitMigrator {
         });
 
         System.exit(0);
-
-
     }
 
     /**
@@ -288,6 +286,7 @@ public class GitMigrator {
             configuration.setConfigurationData(configurationData);
 
             configuration = saveAndRestoreService.createConfiguration(parentNode, configuration);
+            saveSetNode = configuration.getConfigurationNode();
             if (!filePair.snp.isEmpty()) {
                 createSnapshots(saveSetNode, filePair.snp);
             }
@@ -425,7 +424,7 @@ public class GitMigrator {
         return ret;
     }
 
-    private List<SnapshotItem> setConfigPvIds(Node saveSetNode, List<SnapshotItem> snapshotItems) throws Exception {
+    private List<SnapshotItem> setConfigPvIds(Node saveSetNode, List<SnapshotItem> snapshotItems) {
         List<ConfigPv> configPvs = saveAndRestoreService.getConfiguration(saveSetNode.getUniqueId()).getPvList();
         snapshotItems.forEach(snapshotItem -> configPvs.stream().filter(configPv -> configPv.equals(snapshotItem.getConfigPv())).findFirst().ifPresent(snapshotItem::setConfigPv));
 
@@ -468,7 +467,7 @@ public class GitMigrator {
         }
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         if (args.length < 1) {
             System.out.println("Usage: java -jar /path/to/phoebus/product-launcher.jar -settings <myPhoebusIniFile> -main org.phoebus.applications.saveandrestore.datamigration.git.GitMigrator /path/to/git/working/directory");
             System.out.println("The ini file must specify org.phoebus.applications.saveandrestore.datamigration.git/jmasar.service.url=<saveAndRestoreServiceUrl>");

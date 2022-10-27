@@ -271,11 +271,18 @@ public final class FileUtilities {
 
         String[] valueAndLabels = value.split(ENUM_VALUE_SPLITTER);
         if (valueAndLabels.length > 0) {
-            if (valueAndLabels[0].charAt(0) == '[') {
-                valueAndLabels[0] = valueAndLabels[0].substring(1, valueAndLabels[0].length() - 1);
-            }
-            if (valueAndLabels.length > 1) {
-                valueAndLabels[1] = valueAndLabels[1].substring(1, valueAndLabels[1].length() - 1);
+            try {
+                if(valueAndLabels[0].isEmpty()){
+                    valueAndLabels[0] = "";
+                }
+                else if (valueAndLabels[0].charAt(0) == '[') {
+                    valueAndLabels[0] = valueAndLabels[0].substring(1, valueAndLabels[0].length() - 1);
+                }
+                if (valueAndLabels.length > 1) {
+                    valueAndLabels[1] = valueAndLabels[1].substring(1, valueAndLabels[1].length() - 1);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         }
         String theValue = valueAndLabels[0];
