@@ -28,6 +28,7 @@ import org.epics.vtype.VInt;
 import org.flywaydb.test.FlywayTestExecutionListener;
 import org.flywaydb.test.annotation.FlywayTest;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
@@ -69,6 +70,7 @@ import static org.junit.Assert.fail;
 @ContextHierarchy({@ContextConfiguration(classes = {PersistenceConfiguration.class, PersistenceTestConfig.class})})
 @TestPropertySource(properties = {"dbengine = h2"})
 @TestExecutionListeners({DependencyInjectionTestExecutionListener.class, FlywayTestExecutionListener.class})
+@Ignore
 public class DAOTest {
 
     @Autowired
