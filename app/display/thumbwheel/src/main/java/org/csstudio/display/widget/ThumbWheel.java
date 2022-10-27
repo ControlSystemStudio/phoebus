@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.csstudio.display.widget.thumbwheel;
+package org.csstudio.display.widget;
 
 
 import javafx.beans.property.BooleanProperty;
