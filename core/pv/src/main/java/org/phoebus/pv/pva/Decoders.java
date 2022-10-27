@@ -155,8 +155,10 @@ public class Decoders
                 timestamp = NO_TIME;
             else
                 timestamp = Instant.ofEpochSecond(sec.get(), nano.get());
-            final PVAInt user = time.get("userTag");
-            usertag = user == null ? NO_USERTAG : user.get();
+            // 2022-10 EPICS Developers meeting proposed 64 bit (Long) userTag
+            // Allow for that, but only use integer until VType is updated
+            final PVANumber user = time.get("userTag");
+            usertag = user == null ? NO_USERTAG : user.getNumber().intValue();
         }
         else
         {
