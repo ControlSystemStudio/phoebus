@@ -94,12 +94,23 @@ public class ClientDemo
         final PVAChannel ch2 = pva.getChannel("saw", listener);
         CompletableFuture.allOf(ch1.connect(), ch2.connect()).get(5, TimeUnit.SECONDS);
 
-        // Get data
-        Future<PVAStructure> data = ch1.read("");
-        System.out.println(ch1.getName() + " = " + data.get());
+        System.out.println("Connected.. Stop IOC in next 10 seconds to test disconnect");
+        TimeUnit.SECONDS.sleep(10);
 
-        data = ch2.read("");
-        System.out.println(ch2.getName() + " = " + data.get());
+        // Get data
+        try
+        {
+            Future<PVAStructure> data = ch1.read("");
+            System.out.println(ch1.getName() + " = " + data.get());
+
+            data = ch2.read("");
+            System.out.println(ch2.getName() + " = " + data.get());
+        }
+        catch (Exception ex)
+        {
+            System.out.println("Read failed");
+            ex.printStackTrace();
+        }
 
         // Close channels
         ch2.close();
@@ -264,7 +275,7 @@ public class ClientDemo
     }
 
     /** Write ('put') test
-     * 
+     *
      *  Includes a pause to allow manual stopping of the server.
      *
      *  May be used with read-only access security on IOC
