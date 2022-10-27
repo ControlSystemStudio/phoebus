@@ -490,7 +490,7 @@
     <dependency>
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java</artifactId>
-      <version>2.4.1</version>
+      <version>3.21.8</version>
     </dependency>
     <dependency>
       <groupId>org.epics</groupId>
