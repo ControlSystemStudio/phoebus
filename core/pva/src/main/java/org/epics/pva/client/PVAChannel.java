@@ -241,7 +241,7 @@ public class PVAChannel extends SearchRequest.Channel implements AutoCloseable
      *  @param request Request for element to write, e.g. "field(value)"
      *  @param new_value New value: Number, String
      *  @throws Exception on error
-     *  @return {@link Future} for awaiting completion
+     *  @return {@link Future} for awaiting completion and getting Exception in case of error
      *  @deprecated Use {@link #write(boolean, String, Object)}
      */
     @Deprecated
@@ -271,7 +271,7 @@ public class PVAChannel extends SearchRequest.Channel implements AutoCloseable
     *  @param request Request for element to write, e.g. "field(value)"
     *  @param new_value New value: Number, String
     *  @throws Exception on error
-    *  @return {@link Future} for awaiting completion
+    *  @return {@link Future} for awaiting completion and getting Exception in case of error
     */
     public Future<Void> write(final boolean completion, final String request, final Object new_value) throws Exception
     {
