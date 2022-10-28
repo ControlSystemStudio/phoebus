@@ -164,6 +164,27 @@ public class PVA_PV extends PV
     @Override
     public void write(final Object new_value) throws Exception
     {
+        // With Channel Access, there are different protocol options
+        // for "put" vs. "put-callback".
+        // With PVA, it is currently unclear how to distinguish between
+        // these two. The PVA server might honor certain values in the
+        // "request", but that is not documented as part of the protocol.
+        // On one hand, we should 'get()' the result of the write to
+        // receive exceptions for read-only PVs.
+        // On the other hand, such a 'get()' could last a long time
+        // in case some detail in the 'request' caused the PVA server
+        // to perform a put-callback type of operation,
+        // and a GUI calling write() expect an immediate return.
+
+        // Perform a disconnect check right now to alert caller
+        // of clearly disconnected channel
+        if (isDisconnected(read()))
+            throw new IllegalStateException("Channel '" + getName() + "' is not connected");
+
+        // The channel could still disconnect in the middle of the write,
+        // the channel may be read-only or experience other errors
+        // that we'll only see as log messages since we don't want to
+        // wait in 'get()' here...
         channel.write(name_helper.getWriteRequest(), new_value);
     }
 

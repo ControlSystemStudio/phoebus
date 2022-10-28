@@ -86,8 +86,12 @@ public class PVAChannel extends SearchRequest.Channel implements AutoCloseable
     ClientTCPHandler getTCP() throws Exception
     {
         final ClientTCPHandler copy = tcp.get();
+
+        // Channel Access reacts to read/write access while disconnected
+        // via IllegalStateException("Channel not connected.")
+        // Use the same exception, but add channel name
         if (copy == null)
-            throw new Exception("Channel '" + name + "' is not connected");
+            throw new IllegalStateException("Channel '" + name + "' is not connected");
         return copy;
     }
 

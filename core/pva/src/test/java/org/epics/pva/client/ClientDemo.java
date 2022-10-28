@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -94,12 +94,23 @@ public class ClientDemo
         final PVAChannel ch2 = pva.getChannel("saw", listener);
         CompletableFuture.allOf(ch1.connect(), ch2.connect()).get(5, TimeUnit.SECONDS);
 
-        // Get data
-        Future<PVAStructure> data = ch1.read("");
-        System.out.println(ch1.getName() + " = " + data.get());
+        System.out.println("Connected.. Stop IOC in next 10 seconds to test disconnect");
+        TimeUnit.SECONDS.sleep(10);
 
-        data = ch2.read("");
-        System.out.println(ch2.getName() + " = " + data.get());
+        // Get data
+        try
+        {
+            Future<PVAStructure> data = ch1.read("");
+            System.out.println(ch1.getName() + " = " + data.get());
+
+            data = ch2.read("");
+            System.out.println(ch2.getName() + " = " + data.get());
+        }
+        catch (Exception ex)
+        {
+            System.out.println("Read failed");
+            ex.printStackTrace();
+        }
 
         // Close channels
         ch2.close();
@@ -263,6 +274,13 @@ public class ClientDemo
         pva.close();
     }
 
+    /** Write ('put') test
+     *
+     *  Includes a pause to allow manual stopping of the server.
+     *
+     *  May be used with read-only access security on IOC
+     *  to test failed write.
+     */
     @Test
     public void testPut() throws Exception
     {
@@ -270,11 +288,25 @@ public class ClientDemo
         final PVAClient pva = new PVAClient();
 
         // Connect to one or more channels
-        final PVAChannel channel = pva.getChannel("ramp");
+        final PVAChannel channel = pva.getChannel("saw");
         channel.connect().get(5, TimeUnit.SECONDS);
 
+
+        System.out.println("CONNECTED!");
+        System.out.println("Optionally stop the IOC within the next 10 seconds...");
+        TimeUnit.SECONDS.sleep(10);
+        System.out.println("Writing '2'...");
+
         // Write data
-        channel.write("value", 2.0).get(2, TimeUnit.SECONDS);
+        try
+        {
+            channel.write("value", 2.0).get(2, TimeUnit.SECONDS);
+        }
+        catch (Exception ex)
+        {
+            System.out.println("Write failed");
+            ex.printStackTrace();
+        }
 
         // Close channels
         channel.close();

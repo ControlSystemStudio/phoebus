@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -151,9 +151,17 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
             fail(new Exception("Incomplete Put Response"));
         final int request_id = buffer.getInt();
         final byte subcmd = buffer.get();
-        PVAStatus status = PVAStatus.decode(buffer);
+        final PVAStatus status = PVAStatus.decode(buffer);
         if (! status.isSuccess())
-            throw new Exception(channel + " Put Response for " + request + ": " + status);
+        {
+            // Server reported an error with text like "Put not permitted"
+            // for EPICS 7.0.6 QSRV.
+            // Channel access similarly provided an Exception with text
+            // "No write access rights granted."
+            // Not trying to parse the message; passing it up with added
+            // channel name and request info.
+            fail(new Exception(channel + " Write for '" + channel.getName() + "' " + request + " failed with " + status));
+        }
 
         if (subcmd == PVAHeader.CMD_SUB_INIT)
         {
@@ -186,9 +194,15 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
             complete(null);
         }
         else
-            throw new Exception("Cannot decode Put " + subcmd + " Reply #" + request_id);
+            fail(new Exception("Cannot decode Put " + subcmd + " Reply #" + request_id));
     }
 
+    /** Handle failure by both notifying whoever waits for this request to complete
+     *  and by throwing exception
+     *
+     *  @param ex Error description
+     *  @throws Exception
+     */
     private void fail(final Exception ex) throws Exception
     {
         completeExceptionally(ex);
