@@ -4,9 +4,9 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<SplitPane fx:id="splitPane" dividerPositions="0.3" prefHeight="1847.0" prefWidth="707.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController">
+<SplitPane fx:id="splitPane" prefHeight="1847.0" prefWidth="707.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController">
 	<items>
-		<BorderPane prefHeight="200.0" prefWidth="200.0">
+		<BorderPane prefWidth="250.0" maxWidth="400">
 			<top>
 				<HBox>
 					<Label fx:id="jmasarServiceTitle" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" text="Save-and-restore service" HBox.hgrow="ALWAYS">
