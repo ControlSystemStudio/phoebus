@@ -7,11 +7,11 @@
  ******************************************************************************/
 package org.phoebus.pv;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.concurrent.CountDownLatch;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.phoebus.core.vtypes.VTypeHelper;
 
 import io.reactivex.rxjava3.disposables.Disposable;

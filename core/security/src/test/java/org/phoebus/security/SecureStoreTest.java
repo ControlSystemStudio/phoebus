@@ -18,25 +18,26 @@
 
 package org.phoebus.security;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
 import java.io.File;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class SecureStoreTest {
 
     private static SecureStore secureStore;
 
-    @BeforeClass
-    public static void init() throws Exception {
+    @BeforeAll
+    public static void setup() throws Exception {
         File secureStoreFile;
         secureStoreFile = new File(System.getProperty("user.home"), "TestOnlySecureStore.dat");
         secureStoreFile.deleteOnExit();
@@ -72,23 +73,25 @@ public class SecureStoreTest {
         secureStore.delete("some_tag");
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testGetNullTag() throws Exception {
-        secureStore.get(null);
+        assertThrows(NullPointerException.class, () -> secureStore.get(null));
+        ;
     }
 
     @Test
-    public void testDeleteNonExisting() throws Exception{
+    public void testDeleteNonExisting() throws Exception {
         secureStore.delete("nonExisting");
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testDeleteNull() throws Exception{
-        secureStore.delete(null);
+    @Test
+    public void testDeleteNull() throws Exception {
+        assertThrows(NullPointerException.class,
+                () -> secureStore.delete(null));
     }
 
     @Test
-    public void testGetAllScopedTokens() throws  Exception{
+    public void testGetAllScopedTokens() throws Exception {
 
         secureStore.set(SecureStore.USERNAME_TAG, "username");
         secureStore.set(SecureStore.PASSWORD_TAG, "password");
@@ -107,7 +110,7 @@ public class SecureStoreTest {
     }
 
     @Test
-    public void testGetAllScopedToken() throws  Exception{
+    public void testGetAllScopedToken() throws Exception {
 
         secureStore.set(SecureStore.USERNAME_TAG, "username");
         secureStore.set(SecureStore.PASSWORD_TAG, "password");
@@ -134,7 +137,7 @@ public class SecureStoreTest {
 
 
     @Test
-    public void testGetAllScopedTokensLegacyOnly() throws  Exception{
+    public void testGetAllScopedTokensLegacyOnly() throws Exception {
 
         List<ScopedAuthenticationToken> tokens = secureStore.getAuthenticationTokens();
         assertEquals(0, tokens.size());
@@ -152,7 +155,7 @@ public class SecureStoreTest {
     }
 
     @Test
-    public void testSetScopedAuthenticationToken() throws Exception{
+    public void testSetScopedAuthenticationToken() throws Exception {
         secureStore.setScopedAuthentication(new ScopedAuthenticationToken("username", "password"));
         secureStore.setScopedAuthentication(new ScopedAuthenticationToken("scope1", "username1", "password1"));
         secureStore.setScopedAuthentication(new ScopedAuthenticationToken("scope2", "username2", "password2"));
@@ -170,7 +173,7 @@ public class SecureStoreTest {
     }
 
     @Test
-    public void testLegacyAuthenticationToken() throws Exception{
+    public void testLegacyAuthenticationToken() throws Exception {
         secureStore.setScopedAuthentication(new ScopedAuthenticationToken("username", "password"));
 
         ScopedAuthenticationToken scopedAuthenticationToken = secureStore.getScopedAuthenticationToken(null);
@@ -181,7 +184,7 @@ public class SecureStoreTest {
     }
 
     @Test
-    public void testSetInvalidAuthenticationToken() throws Exception{
+    public void testSetInvalidAuthenticationToken() throws Exception {
         try {
             secureStore.setScopedAuthentication(new ScopedAuthenticationToken("username", null));
             fail("Null user name should fail");
@@ -208,7 +211,7 @@ public class SecureStoreTest {
     }
 
     @Test
-    public void testDeleteAllScopedAuthenticationTokens() throws Exception{
+    public void testDeleteAllScopedAuthenticationTokens() throws Exception {
 
         secureStore.setScopedAuthentication(new ScopedAuthenticationToken("username", "password"));
         secureStore.setScopedAuthentication(new ScopedAuthenticationToken("scope1", "username1", "password1"));
@@ -229,7 +232,7 @@ public class SecureStoreTest {
     }
 
     @Test
-    public void testOverwriteScopedAuthentication() throws Exception{
+    public void testOverwriteScopedAuthentication() throws Exception {
         secureStore.setScopedAuthentication(new ScopedAuthenticationToken("Scope1", "username1", "password1"));
 
         ScopedAuthenticationToken token = secureStore.getScopedAuthenticationToken("Scope1");

@@ -28,9 +28,9 @@ import org.epics.vtype.VInt;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VString;
 import org.epics.vtype.VStringArray;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ArrayOfFunctionTest {
 
@@ -46,7 +46,7 @@ public class ArrayOfFunctionTest {
         VString b = VString.of("b", Alarm.none(), Time.now());
         VString c = VString.of("c", Alarm.none(), Time.now());
 
-        VStringArray vStringArray = (VStringArray)arrayOfFunction.compute(a, b, c);
+        VStringArray vStringArray = (VStringArray) arrayOfFunction.compute(a, b, c);
 
         assertEquals(3, vStringArray.getData().size());
         assertEquals("a", vStringArray.getData().get(0));
@@ -57,7 +57,7 @@ public class ArrayOfFunctionTest {
         VInt d1 = VInt.of(2, Alarm.none(), Time.now(), Display.none());
         VInt d2 = VInt.of(3, Alarm.none(), Time.now(), Display.none());
 
-        VNumberArray vNumberArray = (VNumberArray)arrayOfFunction.compute(d0, d1, d2);
+        VNumberArray vNumberArray = (VNumberArray) arrayOfFunction.compute(d0, d1, d2);
         assertEquals(3, vNumberArray.getData().size());
         assertEquals(1, vNumberArray.getData().getInt(0));
         assertEquals(2, vNumberArray.getData().getInt(1));
@@ -65,7 +65,7 @@ public class ArrayOfFunctionTest {
 
         VEnum vEnum = VEnum.of(0, EnumDisplay.of(), Alarm.none(), Time.now());
 
-        vNumberArray = (VNumberArray)arrayOfFunction.compute(vEnum);
-        assertTrue(Double.valueOf(vNumberArray.getData().getDouble(0)).equals(Double.NaN));
+        vNumberArray = (VNumberArray) arrayOfFunction.compute(vEnum);
+        assertEquals(Double.NaN, Double.valueOf(vNumberArray.getData().getDouble(0)));
     }
 }

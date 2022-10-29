@@ -18,15 +18,17 @@
 
 package org.phoebus.security.authorization.tokens;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class ScopedAuthenticationTokenTest {
 
     @Test
-    public void testScopedAuthenticationToken(){
+    public void testScopedAuthenticationToken() {
         ScopedAuthenticationToken scopedAuthenticationToken = new ScopedAuthenticationToken("username", "password");
         assertEquals("username", scopedAuthenticationToken.getUsername());
         assertNull(scopedAuthenticationToken.getScope());
@@ -45,7 +47,7 @@ public class ScopedAuthenticationTokenTest {
     }
 
     @Test
-    public void testEqualsAndHashCode(){
+    public void testEqualsAndHashCode() {
         ScopedAuthenticationToken scopedAuthenticationToken1 = new ScopedAuthenticationToken("username", "password");
         ScopedAuthenticationToken scopedAuthenticationToken2 = new ScopedAuthenticationToken("username", "somethingelse");
         ScopedAuthenticationToken scopedAuthenticationToken3 = new ScopedAuthenticationToken("scope", "username", "somethingelse");

@@ -28,14 +28,16 @@ import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ArrayMultiplicationFunctionTest {
 
     @Test
-    public void compute() throws Exception{
+    public void compute() throws Exception {
         ArrayMultiplicationFunction arrayMultiplicationFunction =
                 new ArrayMultiplicationFunction();
 
@@ -47,7 +49,7 @@ public class ArrayMultiplicationFunctionTest {
         VType array2 = VNumberArray.of(ArrayDouble.of(2.0, 5.0, 7.0),
                 Alarm.of(AlarmSeverity.MINOR, AlarmStatus.NONE, ""), Time.now(), Display.none());
 
-        VNumberArray result = (VNumberArray)arrayMultiplicationFunction.compute(array1, array2);
+        VNumberArray result = (VNumberArray) arrayMultiplicationFunction.compute(array1, array2);
 
         assertEquals(3, result.getData().size());
         assertEquals(2, result.getData().getInt(0));
@@ -56,12 +58,12 @@ public class ArrayMultiplicationFunctionTest {
 
         VType exponent = VDouble.of(2.0, Alarm.none(), Time.now(), Display.none());
 
-        result = (VNumberArray)arrayMultiplicationFunction.compute(array1, exponent);
+        result = (VNumberArray) arrayMultiplicationFunction.compute(array1, exponent);
         assertTrue(Double.valueOf(result.getData().getDouble(0)).equals(Double.NaN));
     }
 
-    @Test(expected = Exception.class)
-    public void testWrongArguments() throws Exception{
+    @Test
+    public void testWrongArguments() {
         ArrayMultiplicationFunction arrayMultiplicationFunction =
                 new ArrayMultiplicationFunction();
 
@@ -70,6 +72,7 @@ public class ArrayMultiplicationFunctionTest {
         VType array2 = VNumberArray.of(ArrayDouble.of(2.0, 5.0, 7.0),
                 Alarm.of(AlarmSeverity.MINOR, AlarmStatus.NONE, ""), Time.now(), Display.none());
 
-        arrayMultiplicationFunction.compute(array1, array2);
+        assertThrows(Exception.class,
+                () -> arrayMultiplicationFunction.compute(array1, array2));
     }
 }

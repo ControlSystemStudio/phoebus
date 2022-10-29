@@ -7,15 +7,16 @@
  ******************************************************************************/
 package org.phoebus.ui.javafx;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-/** JUnit test of {@link RTPlotUpdateThrottle}
+/** JUnit test of {@link UpdateThrottle}
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -23,7 +24,8 @@ public class UpdateThrottleTest
 {
     final private AtomicInteger updates = new AtomicInteger();
 
-    @Test(timeout=5000)
+    @Test
+    @Timeout(5)
     public void testUpdateThrottle() throws Exception
     {
         final Runnable update = new Runnable()

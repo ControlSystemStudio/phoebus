@@ -7,41 +7,38 @@
  ******************************************************************************/
 package org.csstudio.apputil.formula;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.Time;
+import org.epics.vtype.VString;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 
-import org.phoebus.core.vtypes.VTypeHelper;
-
-import org.epics.vtype.AlarmSeverity;
-import org.epics.vtype.Alarm;
-import org.epics.vtype.AlarmStatus;
-import org.epics.vtype.VString;
-import org.epics.vtype.Time;
-
-
-/** Formula tests.
- *  @author Kay Kasemir
+/**
+ * Formula tests.
+ *
+ * @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class FormulaUnitTest
-{
+public class FormulaUnitTest {
     private final static double epsilon = 0.001;
 
-    @BeforeClass
-    public static void setup()
-    {
+    @BeforeAll
+    public static void setup() {
         final Logger root = Logger.getLogger("");
         root.setLevel(Level.FINE);
         for (Handler handler : root.getHandlers())
@@ -49,8 +46,7 @@ public class FormulaUnitTest
     }
 
     @Test
-    public void testBasics() throws Exception
-    {
+    public void testBasics() throws Exception {
         Formula f = new Formula("0");
         assertEquals("0.0", f.toString());
         assertEquals(0.0, VTypeHelper.toDouble(f.eval()), epsilon);
@@ -96,8 +92,7 @@ public class FormulaUnitTest
     }
 
     @Test
-    public void testBool() throws Exception
-    {
+    public void testBool() throws Exception {
         Formula f = new Formula("2 & 3");
         assertEquals(1.0, VTypeHelper.toDouble(f.eval()), epsilon);
 
@@ -127,8 +122,7 @@ public class FormulaUnitTest
     }
 
     @Test
-    public void testFunctions() throws Exception
-    {
+    public void testFunctions() throws Exception {
         Formula f = new Formula("sqrt(2) ^ 2");
         assertEquals(2.0, VTypeHelper.toDouble(f.eval()), epsilon);
 
@@ -192,8 +186,7 @@ public class FormulaUnitTest
         assertEquals(1000.0, VTypeHelper.toDouble(f.eval()), epsilon);
 
         f = new Formula("rnd(10.0)");
-        for (int i=0; i<50; ++i)
-        {
+        for (int i = 0; i < 50; ++i) {
             double rnd = VTypeHelper.toDouble(f.eval());
             assertTrue(rnd >= 0.0);
             assertTrue(rnd < 10.0);
@@ -204,8 +197,7 @@ public class FormulaUnitTest
     }
 
     @Test
-    public void testVariables() throws Exception
-    {
+    public void testVariables() throws Exception {
         VariableNode v[] = new VariableNode[2];
         v[0] = new VariableNode("volt");
         v[1] = new VariableNode("curr");
@@ -227,40 +219,33 @@ public class FormulaUnitTest
         assertEquals(3.0, VTypeHelper.toDouble(f.eval()), epsilon);
 
         f = new Formula("2*PI", v);
-        assertEquals(2.0*Math.PI, VTypeHelper.toDouble(f.eval()), epsilon);
+        assertEquals(2.0 * Math.PI, VTypeHelper.toDouble(f.eval()), epsilon);
 
         v[0] = new VariableNode("PI", 10.0);
         f = new Formula("PI", v);
         assertEquals(10.0, VTypeHelper.toDouble(f.eval()), epsilon);
         assertTrue(f.hasSubnode(v[0]));
-        assertTrue(! f.hasSubnode(v[1]));
+        assertTrue(!f.hasSubnode(v[1]));
 
         assertTrue(f.hasSubnode(v[0].getName()));
-        assertTrue(! f.hasSubnode(v[1].getName()));
+        assertTrue(!f.hasSubnode(v[1].getName()));
 
     }
 
     @Test
-    public void testErrors() throws Exception
-    {
+    public void testErrors() throws Exception {
         Formula f;
-        try
-        {
+        try {
             f = new Formula("-");
             fail("Didn't catch parse error");
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             assertEquals("Unexpected end of formula.", ex.getMessage());
         }
 
-        try
-        {
+        try {
             f = new Formula("max 2");
             fail("Didn't catch parse error");
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             // Can the scanner be fixed to get 'max' instead of 'max2'
             // for the var. name?
             assertEquals("Unknown variable 'max2'", ex.getMessage());
@@ -275,25 +260,20 @@ public class FormulaUnitTest
     }
 
     @Test
-    public void testSPI() throws Exception
-    {
+    public void testSPI() throws Exception {
         Formula f = new Formula("fac(3)");
         assertEquals(6.0, VTypeHelper.toDouble(f.eval()), epsilon);
 
-        try
-        {
+        try {
             f = new Formula("fac(2, 3)");
             fail("Didn't catch argument mismatch");
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             assertThat(ex.getMessage(), containsString("arguments"));
         }
     }
 
     @Test
-    public void testVariableDetermination() throws Exception
-    {
+    public void testVariableDetermination() throws Exception {
         Formula f = new Formula("RFQ_Vac:Pump2:Pressure < 10", true);
         VariableNode vars[] = f.getVariables();
         assertEquals(1, vars.length);
@@ -364,19 +344,15 @@ public class FormulaUnitTest
     }
 
     @Test
-    public void testStrings() throws Exception
-    {
+    public void testStrings() throws Exception {
         // String with escaped quotes: ``Hello, "Dolly!"``
         Formula f = new Formula("\"Hello, \\\"Dolly!\\\"\"");
         assertEquals("Hello, \"Dolly!\"", VTypeHelper.toString(f.eval()));
 
-        try
-        {
+        try {
             new Formula(" \"Text without closing quote");
             fail("Didn't catch missing closing quote");
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             assertThat(ex.getMessage(), containsString("quoted"));
         }
 
@@ -386,21 +362,20 @@ public class FormulaUnitTest
     }
 
     @Test
-    public void testAlarms() throws Exception
-    {
-	VString dataA = VString.of("a", Alarm.none(), Time.now());
+    public void testAlarms() throws Exception {
+        VString dataA = VString.of("a", Alarm.none(), Time.now());
         VString dataB = VString.of("b", Alarm.of(AlarmSeverity.MINOR, AlarmStatus.RECORD, "LOLO"), Time.now());
         VString dataC = VString.of("c", Alarm.of(AlarmSeverity.MAJOR, AlarmStatus.RECORD, "HIHI"), Time.now());
-	VariableNode v[] = new VariableNode[3];
+        VariableNode v[] = new VariableNode[3];
 
         v[0] = new VariableNode("dataA");
         v[1] = new VariableNode("dataB");
-	v[2] = new VariableNode("dataC");
+        v[2] = new VariableNode("dataC");
         v[0].setValue(dataA);
         v[1].setValue(dataB);
-	v[2].setValue(dataC);
+        v[2].setValue(dataC);
 
-	Formula f = new Formula("highestSeverity(dataA, dataB, dataC)", v);
-	assertEquals("MAJOR", VTypeHelper.toString(f.eval()));
+        Formula f = new Formula("highestSeverity(dataA, dataB, dataC)", v);
+        assertEquals("MAJOR", VTypeHelper.toString(f.eval()));
     }
 }

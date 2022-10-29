@@ -4,8 +4,11 @@
  */
 package org.phoebus.util.time;
 
+import org.junit.jupiter.api.Test;
+
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static java.time.Duration.*;
 import static java.time.Period.*;
 import java.time.Duration;
@@ -14,7 +17,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
-import org.junit.Test;
 
 /**
  *

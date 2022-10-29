@@ -7,9 +7,7 @@
  ******************************************************************************/
 package org.phoebus.pv;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -19,8 +17,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.epics.vtype.VType;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.phoebus.core.vtypes.VTypeHelper;
 
 import io.reactivex.rxjava3.disposables.Disposable;
@@ -29,7 +28,7 @@ import io.reactivex.rxjava3.disposables.Disposable;
 @SuppressWarnings("nls")
 public class FormulaTest
 {
-    @BeforeClass
+    @BeforeAll
     public static void setup()
     {
         System.setProperty("java.util.logging.ConsoleHandler.formatter",
@@ -75,7 +74,8 @@ public class FormulaTest
         PVPool.releasePV(pv);
     }
 
-    @Test(timeout = 10000)
+    @Test
+    @Timeout(10)
     public void demoFormula() throws Exception
     {
         runFormula("=`sim://sine` * 2");

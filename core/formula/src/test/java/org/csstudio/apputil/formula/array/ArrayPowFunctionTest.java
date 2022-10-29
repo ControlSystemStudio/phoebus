@@ -26,9 +26,9 @@ import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ArrayPowFunctionTest {
 
@@ -44,14 +44,14 @@ public class ArrayPowFunctionTest {
 
         VNumberArray result = (VNumberArray)arrayPowFunction.compute(array, exponent);
         assertEquals(3, result.getData().size());
-        assertTrue(result.getData().getDouble(0) == 1);
-        assertTrue(result.getData().getDouble(1) == 4);
-        assertTrue(result.getData().getDouble(2) == 9);
+        assertEquals(1, result.getData().getDouble(0));
+        assertEquals(4, result.getData().getDouble(1));
+        assertEquals(9, result.getData().getDouble(2));
 
         result = (VNumberArray)arrayPowFunction.compute(exponent, exponent);
-        assertTrue(Double.valueOf(result.getData().getDouble(0)).equals(Double.NaN));
+        assertEquals(Double.NaN, Double.valueOf(result.getData().getDouble(0)));
 
         result = (VNumberArray)arrayPowFunction.compute(exponent, array);
-        assertTrue(Double.valueOf(result.getData().getDouble(0)).equals(Double.NaN));
+        assertEquals(Double.NaN, Double.valueOf(result.getData().getDouble(0)));
     }
 }

@@ -15,14 +15,16 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.phoebus.ui.javafx.ClearingTextField;
 import org.testfx.framework.junit.ApplicationTest;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test the functionality of the ListSelectionDialog

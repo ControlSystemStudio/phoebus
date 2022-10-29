@@ -4,11 +4,12 @@
  */
 package org.phoebus.util.time;
 
+import org.junit.jupiter.api.Test;
+
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
 import java.time.Instant;
 
-import org.junit.Test;
 
 /**
  *

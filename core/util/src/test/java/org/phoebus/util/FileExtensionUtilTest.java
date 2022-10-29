@@ -18,18 +18,18 @@
 
 package org.phoebus.util;
 
-import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class FileExtensionUtilTest {
 
     @Test
-    public void testFile() throws Exception
-    {
+    public void testFile() throws Exception {
         File bob = new File("/some/path/file.bob");
 
         // Change from no file extension

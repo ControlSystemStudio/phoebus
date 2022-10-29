@@ -5,13 +5,13 @@
 package org.phoebus.util.time;
 
 
+import org.junit.jupiter.api.Test;
+
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.*;
 import static org.phoebus.util.time.TimeDuration.*;
 
 import java.time.Duration;
-
-import org.junit.Test;
 
 /**
  *

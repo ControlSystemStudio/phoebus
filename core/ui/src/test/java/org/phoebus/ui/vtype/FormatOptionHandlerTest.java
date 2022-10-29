@@ -7,15 +7,6 @@
  *******************************************************************************/
 package org.phoebus.ui.vtype;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.hamcrest.MatcherAssert.assertThat;
-
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.util.Arrays;
-
 import org.epics.util.array.ArrayDouble;
 import org.epics.util.array.ArrayInteger;
 import org.epics.util.array.ListNumber;
@@ -32,10 +23,21 @@ import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VString;
 import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Arrays;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /** JUnit test of {@link FormatOptionHandler}
+ *  To run test in a specific locale, set via
+ *  java -Duser.country=SE -Duser.language=en
+ *  or in code: Locale.setDefault(new Locale("en", "SE"));
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -47,17 +49,8 @@ public class FormatOptionHandlerTest
             Range.of(-8, 8),
             Range.of(-10, 10), "V", fmt);
 
-    @Before
-    public void setup()
-    {
-        // To run test in a specific locale, set via
-        //   java -Duser.country=SE -Duser.language=en
-        // or in code:
-        //   Locale.setDefault(new Locale("en", "SE"));
-    }
-
     @Test
-    public void testNaNInf() throws Exception
+    public void testNaNInf()
     {
         VType number = VDouble.of(Double.NaN, Alarm.none(), Time.now(), display);
         String text = FormatOptionHandler.format(number, FormatOption.DEFAULT, -1, true);
@@ -76,7 +69,7 @@ public class FormatOptionHandlerTest
     }
 
     @Test
-    public void testDecimal() throws Exception
+    public void testDecimal()
     {
         VType number = VDouble.of(3.16, Alarm.none(), Time.now(), display);
 
@@ -105,7 +98,7 @@ public class FormatOptionHandlerTest
     }
 
     @Test
-    public void testEnum() throws Exception
+    public void testEnum()
     {
         final VEnum value = VEnum.of(1, EnumDisplay.of("One", "Two"), Alarm.none(), Time.now());
         String text = FormatOptionHandler.format(value, FormatOption.DECIMAL, 4, true);
@@ -118,7 +111,7 @@ public class FormatOptionHandlerTest
     }
 
     @Test
-    public void testExponential() throws Exception
+    public void testExponential()
     {
         VType number = VDouble.of(3.16, Alarm.none(), Time.now(), display);
 
@@ -136,7 +129,7 @@ public class FormatOptionHandlerTest
     }
 
     @Test
-    public void testEngineering() throws Exception
+    public void testEngineering()
     {
         VType number = VDouble.of(0.0316, Alarm.none(), Time.now(), display);
 
@@ -172,7 +165,7 @@ public class FormatOptionHandlerTest
     }
 
     @Test
-    public void testHexFormat() throws Exception
+    public void testHexFormat()
     {
         VType number = VDouble.of(65535.0, Alarm.none(), Time.now(), display);
 
@@ -190,7 +183,7 @@ public class FormatOptionHandlerTest
     }
 
     @Test
-    public void testHexParse() throws Exception
+    public void testHexParse()
     {
         final VType number = VDouble.of(65535.0, Alarm.none(), Time.now(), display);
 
@@ -214,7 +207,7 @@ public class FormatOptionHandlerTest
     }
 
     @Test
-    public void testString() throws Exception
+    public void testString()
     {   // Actual String
         VType value = VString.of("Test1", Alarm.none(), Time.now());
         String text = FormatOptionHandler.format(value, FormatOption.DEFAULT, -1, true);
@@ -254,7 +247,7 @@ public class FormatOptionHandlerTest
     }
 
     @Test
-    public void testCompact() throws Exception
+    public void testCompact()
     {
         String text = FormatOptionHandler.format(VDouble.of(65.43, Alarm.none(), Time.now(), display), FormatOption.COMPACT, 2, true);
         System.out.println(text);
@@ -270,7 +263,7 @@ public class FormatOptionHandlerTest
     }
 
     @Test
-    public void testBinary() throws Exception
+    public void testBinary()
     {
         String text = FormatOptionHandler.format(VLong.of(0b101010, Alarm.none(), Time.now(), display), FormatOption.BINARY, 10, true);
         System.out.println(text);
@@ -282,7 +275,7 @@ public class FormatOptionHandlerTest
     }
 
     @Test
-    public void testBinaryParse() throws Exception
+    public void testBinaryParse()
     {
         final VType number = VLong.of(0b101010, Alarm.none(), Time.now(), display);
 
@@ -306,7 +299,7 @@ public class FormatOptionHandlerTest
     }
 
     @Test
-    public void testArray() throws Exception
+    public void testArray()
     {
         final ListNumber data = ArrayDouble.of(1.0, 2.0, 3.0, 4.0);
         VType value = VNumberArray.of(data, Alarm.none(), Time.now(), display);
@@ -321,7 +314,7 @@ public class FormatOptionHandlerTest
     }
 
     @Test
-    public void testSexagesimalFormat() throws Exception
+    public void testSexagesimalFormat()
     {
         final VType sexaPositiveValue = VDouble.of(12.5824414, Alarm.none(), Time.now(), display),
                     sexaNegativeValue = VDouble.of(-12.5824414, Alarm.none(), Time.now(), display),
@@ -344,7 +337,7 @@ public class FormatOptionHandlerTest
     }
 
     @Test
-    public void testSexagesimalParser() throws Exception
+    public void testSexagesimalParser()
     {
         final VType number = VDouble.of(0.0, Alarm.none(), Time.now(), display);
         assertEquals(12.5824414, (Double)FormatOptionHandler.parse(number, "12:34:56.789", FormatOption.SEXAGESIMAL), 0.0000001);
@@ -355,7 +348,7 @@ public class FormatOptionHandlerTest
     }
 
     @Test
-    public void testNumberParsing() throws Exception
+    public void testNumberParsing()
     {
         VType value = VDouble.of(3.16, Alarm.none(), Time.now(), display);
 
@@ -365,7 +358,7 @@ public class FormatOptionHandlerTest
     }
 
     @Test
-    public void testNumberArrayParsing() throws Exception
+    public void testNumberArrayParsing()
     {
         final ListNumber data = ArrayDouble.of(1.0, 2.0, 3.0, 4.0);
         final VType value = VNumberArray.of(data, Alarm.none(), Time.now(), display);
@@ -377,7 +370,7 @@ public class FormatOptionHandlerTest
     }
 
     @Test
-    public void testStringArrayParsing() throws Exception
+    public void testStringArrayParsing()
     {
         final VType value = VStringArray.of(Arrays.asList("Flintstone, \"Al\" Fred", "Jane"), Alarm.none(), Time.now());
 
