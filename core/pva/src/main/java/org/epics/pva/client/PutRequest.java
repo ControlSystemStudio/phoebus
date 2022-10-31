@@ -26,6 +26,9 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
 {
     private final PVAChannel channel;
 
+    /** Perform a processing/blocking "put"? */
+    private final boolean completion;
+
     /** Request "field(value)" or "field(struct.sub.value)" */
     private final String request;
 
@@ -43,14 +46,16 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
 
     /** Request to write channel's value
      *  @param channel {@link PVAChannel}
+     *  @param completion Perform a write that triggers processing and only returns on completion?
      *  @param request Request for element to write, e.g. "field(value)"
      *  @param new_value Value to write.
      *                   Must be accepted by {@link PVAData#setValue(Object)}
      *                   for the requested field.
      */
-    public PutRequest(final PVAChannel channel, final String request, final Object new_value)
+    public PutRequest(final PVAChannel channel, final boolean completion, final String request, final Object new_value)
     {
         this.channel = channel;
+        this.completion = completion;
         this.request = request;
         if (request.startsWith("field(")  &&  request.endsWith(")"))
             request_path = request.substring(6, request.length()-1);
@@ -89,7 +94,7 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
             buffer.putInt(request_id);
             buffer.put(PVAHeader.CMD_SUB_INIT);
 
-            final FieldRequest field_request = new FieldRequest(request);
+            final FieldRequest field_request = new FieldRequest(completion, request);
             field_request.encodeType(buffer);
             field_request.encode(buffer);
             buffer.putInt(size_offset, buffer.position() - payload_start);
