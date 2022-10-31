@@ -10,7 +10,7 @@ package org.csstudio.display.builder.runtime.test;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +20,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.python.core.PyCode;
 import org.python.core.PySystemState;
 import org.python.core.RegistryKey;
@@ -144,7 +144,7 @@ public class JythonTest
     public void testPathWithThreads() throws Exception
     {
         // Initialize on some other thread
-        executor.submit(() -> init()).get();
+        executor.submit(this::init).get();
 
         for (int i=0; i<RUNTIME_SECONDS; ++i)
         {

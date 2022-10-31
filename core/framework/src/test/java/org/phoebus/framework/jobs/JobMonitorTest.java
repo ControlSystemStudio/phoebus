@@ -7,10 +7,10 @@
  ******************************************************************************/
 package org.phoebus.framework.jobs;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.jupiter.api.Test;
 
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** Demo of the JobMonitor API
  *  @author Kay Kasemir
@@ -19,7 +19,7 @@ import org.junit.Test;
 public class JobMonitorTest
 {
     @Test
-    public void testIndeterminateJobMonitor() throws Exception
+    public void testIndeterminateJobMonitor()
     {
         final JobMonitor monitor = new BasicJobMonitor();
         monitor.beginTask("Whatever");
@@ -29,7 +29,7 @@ public class JobMonitorTest
     }
 
     @Test
-    public void testJobMonitorAccounting() throws Exception
+    public void testJobMonitorAccounting()
     {
         final JobMonitor monitor = new BasicJobMonitor();
         monitor.beginTask("Steps", 3);
@@ -43,7 +43,7 @@ public class JobMonitorTest
     }
 
     @Test
-    public void testSubJobMonitor() throws Exception
+    public void testSubJobMonitor()
     {
         final JobMonitor monitor = new BasicJobMonitor();
         monitor.beginTask("Startup", 4);

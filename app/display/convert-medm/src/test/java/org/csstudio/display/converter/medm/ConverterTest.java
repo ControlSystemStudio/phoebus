@@ -1,6 +1,6 @@
 package org.csstudio.display.converter.medm;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -15,16 +15,18 @@ import java.util.stream.Collectors;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.ModelReader;
+import org.csstudio.display.builder.model.properties.ScriptPV;
 import org.csstudio.display.builder.model.rules.RuleInfo;
 import org.csstudio.display.builder.model.rules.RuleInfo.ExpressionInfo;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 
 @SuppressWarnings("nls")
 public class ConverterTest
 {
-    @Before
-    public void init()
+    @BeforeAll
+    public static void init()
     {
         final Logger root = Logger.getLogger("");
         root.setLevel(Level.ALL);
@@ -73,7 +75,7 @@ public class ConverterTest
             final List<String> pvs = rules.get(0)
                                           .getPVs()
                                           .stream()
-                                          .map(pv -> pv.getName())
+                                          .map(ScriptPV::getName)
                                           .collect(Collectors.toList());
             assertEquals(List.of("$(xx):A_SHUTTER_CLOSEDBI", "$(xx):A_BEAM_PRESENTBI", "$(xx):B_SHUTTER_CLOSEDBI", "$(xx):B_BEAM_PRESENTBI"),
                          pvs);

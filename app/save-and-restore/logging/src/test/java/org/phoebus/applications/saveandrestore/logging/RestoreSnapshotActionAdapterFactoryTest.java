@@ -19,12 +19,13 @@
 
 package org.phoebus.applications.saveandrestore.logging;
 
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 import org.phoebus.logbook.LogEntry;
 
 import java.util.List;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class RestoreSnapshotActionAdapterFactoryTest {
 

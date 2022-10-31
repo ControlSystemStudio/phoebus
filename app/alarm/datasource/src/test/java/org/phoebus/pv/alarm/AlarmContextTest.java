@@ -1,8 +1,8 @@
 package org.phoebus.pv.alarm;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class AlarmContextTest {
 
@@ -37,22 +37,6 @@ public class AlarmContextTest {
         assertEquals("Failed to decode pv name with colon", pathWithColon, AlarmContext.decodedURLPath(encodedPathWithColon));
         assertEquals("Failed to decode pv name with delimiter and colon", pathWithDelimiterAndColon, AlarmContext.decodedURLPath(encodedPathWithDelimiterAndColon));
     }
-
-//    @Test
-//    public void testKafkaPathEncoding()
-//    {
-//        String pathWithDelimiter = "OPR/TEST/sim://test";
-//        String pathWithColon = "OPR/TEST/SR:test:pv";
-//        String pathWithDelimiterAndColon = "OPR/TEST/sim://SR:test:pv";
-//
-//        String kafkaPathWithDelimiter = "OPR/TEST/sim:\\/\\/test";
-//        String kafkaPathWithColon = "OPR/TEST/SR:test:pv";
-//        String kafkaPathWithDelimiterAndColon = "OPR/TEST/sim:\\/\\/SR:test:pv";
-//
-//        assertEquals("Failed to encode pv kafka path with delimiter", kafkaPathWithDelimiter, AlarmContext.encodedKafkaPath(pathWithDelimiter));
-//        assertEquals("Failed to encode pv kafka path with colon", kafkaPathWithColon, AlarmContext.encodedKafkaPath(pathWithColon));
-//        assertEquals("Failed to encode pv kafka path with delimiter and colon", kafkaPathWithDelimiterAndColon, AlarmContext.encodedKafkaPath(pathWithDelimiterAndColon));
-//    }
 
     @Test
     public void testKafkaPathDecoding()

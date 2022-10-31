@@ -1,16 +1,15 @@
 package org.phoebus.applications.alarm.server;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.junit.Before;
-import org.junit.Test;
 
 /** JUnit test of the {@link EnabledDateTimeFilter}
  *  @author Jacqueline Garrahan
@@ -18,14 +17,13 @@ import org.junit.Test;
 @SuppressWarnings("nls")
 public class EnabledDateTimeFilterTest
 {
-    private AtomicInteger updates = new AtomicInteger();
+    private final AtomicInteger updates = new AtomicInteger();
 
     // Start with is_enabled false
     private boolean is_enabled = false;
-    public static final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
-    @Before
-    public void setup()
+    @BeforeAll
+    public static void setup()
     {
         // Configure logging to show 'all'
         final Logger logger = Logger.getLogger("");
@@ -39,7 +37,7 @@ public class EnabledDateTimeFilterTest
 
     public void filterChanged(final boolean enabled)
     {
-        System.err.println("Enabled date sets to " + String.valueOf(enabled));
+        System.err.println("Enabled date sets to " + enabled);
         updates.incrementAndGet();
         synchronized (this)
         {
@@ -48,7 +46,8 @@ public class EnabledDateTimeFilterTest
         }
     }
 
-    @Test(timeout=8000)
+    @Test
+    @Timeout(8)
     public void testEnableDate() throws Exception
     {
         is_enabled = false;

@@ -20,12 +20,14 @@
 package org.csstudio.display.builder.representation.javafx;
 
 import javafx.scene.image.Image;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.net.URL;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class SVGHelperTest {
 
@@ -81,7 +83,7 @@ public class SVGHelperTest {
      * Verifies that <code>null</code> is returned when loading gif file.
      */
     @Test
-    public void testSVGHelperGifFile() throws Exception{
+    public void testSVGHelperGifFile() {
         String path;
         try {
             path = getPath("interlock.gif");
@@ -96,7 +98,7 @@ public class SVGHelperTest {
      * Verifies that <code>null</code> is returned when loading tiff file.
      */
     @Test
-    public void testSVGHelperTiffFile() throws Exception{
+    public void testSVGHelperTiffFile() {
 
         String path;
         try {

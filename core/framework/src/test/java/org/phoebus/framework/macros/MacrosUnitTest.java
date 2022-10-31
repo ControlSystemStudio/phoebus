@@ -7,14 +7,14 @@
  *******************************************************************************/
 package org.phoebus.framework.macros;
 
+import org.junit.jupiter.api.Test;
+
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-
-import org.junit.Test;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /** JUnit test of macro handling
  *  @author Kay Kasemir
@@ -24,7 +24,7 @@ public class MacrosUnitTest
 {
     /** Test check of macro name */
     @Test
-    public void testNames() throws Exception
+    public void testNames()
     {
         assertThat(Macros.checkMacroName("ExampleMacro"), nullValue());
         assertThat(Macros.checkMacroName("My_Macro"), nullValue());
@@ -40,7 +40,7 @@ public class MacrosUnitTest
      *  @throws Exception on error
      */
     @Test
-    public void testCheck() throws Exception
+    public void testCheck()
     {
         assertThat(MacroHandler.containsMacros("Plain Text"), equalTo(false));
         assertThat(MacroHandler.containsMacros("${S}"), equalTo(true));
@@ -52,7 +52,7 @@ public class MacrosUnitTest
     }
 
     @Test
-    public void testBraces() throws Exception
+    public void testBraces()
     {
         assertThat(MacroHandler.findClosingBrace("${X\\(XX}", 1), equalTo(7));
         assertThat(MacroHandler.findClosingBrace("$(XXX)", 1), equalTo(5));
@@ -194,7 +194,7 @@ public class MacrosUnitTest
      *  @throws Exception on error
      */
     @Test
-    public void testRecursion() throws Exception
+    public void testRecursion()
     {
         final Macros macros = new Macros();
         macros.add("S", "$(S)");

@@ -7,18 +7,19 @@
  *******************************************************************************/
 package org.csstudio.display.builder.runtime.test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicReference;
-
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.runtime.pv.PVFactory;
 import org.csstudio.display.builder.runtime.pv.RuntimePV;
 import org.csstudio.display.builder.runtime.pv.RuntimePVListener;
 import org.epics.vtype.VType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+
 
 /** JUnit demo of the {@link PVFactory}
  *  @author Kay Kasemir
@@ -36,15 +37,10 @@ public class PVFactoryTest
 
             final CountDownLatch updates = new CountDownLatch(1);
             final AtomicReference<Number> number = new AtomicReference<>();
-            RuntimePVListener listener = new RuntimePVListener()
-            {
-                @Override
-                public void valueChanged(RuntimePV pv, VType value)
-                {
-                    System.out.println(pv.getName() + " = " + value);
-                    number.set(VTypeUtil.getValueNumber(value));
-                    updates.countDown();
-                }
+            RuntimePVListener listener = (pv1, value) -> {
+                System.out.println(pv1.getName() + " = " + value);
+                number.set(VTypeUtil.getValueNumber(value));
+                updates.countDown();
             };
             pv.addListener(listener);
             updates.await();

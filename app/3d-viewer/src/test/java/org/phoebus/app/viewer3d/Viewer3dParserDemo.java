@@ -7,12 +7,11 @@
  *******************************************************************************/
 package org.phoebus.app.viewer3d;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.ByteArrayInputStream;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.phoebus.applications.viewer3d.Viewer3d;
 import org.phoebus.applications.viewer3d.Xform;
 

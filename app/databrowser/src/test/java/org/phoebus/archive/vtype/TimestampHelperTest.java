@@ -7,14 +7,14 @@
  ******************************************************************************/
 package org.phoebus.archive.vtype;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.jupiter.api.Test;
+import org.phoebus.util.time.TimeDuration;
+import org.phoebus.util.time.TimestampFormats;
 
 import java.time.Instant;
 
-import org.junit.Test;
-import org.phoebus.util.time.TimeDuration;
-import org.phoebus.util.time.TimestampFormats;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test of {@link TimestampHelper}
  *  @author Kay Kasemir

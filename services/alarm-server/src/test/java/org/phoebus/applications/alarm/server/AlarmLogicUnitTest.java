@@ -7,9 +7,13 @@
  ******************************************************************************/
 package org.phoebus.applications.alarm.server;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.phoebus.applications.alarm.Messages;
+import org.phoebus.applications.alarm.model.AlarmState;
+import org.phoebus.applications.alarm.model.SeverityLevel;
+import org.phoebus.util.time.TimeDuration;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -17,12 +21,9 @@ import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.Ignore;
-import org.junit.Test;
-import org.phoebus.applications.alarm.Messages;
-import org.phoebus.applications.alarm.model.AlarmState;
-import org.phoebus.applications.alarm.model.SeverityLevel;
-import org.phoebus.util.time.TimeDuration;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** JUnit test of AlarmLogic
  *  @author Kay Kasemir
@@ -115,11 +116,11 @@ public class AlarmLogicUnitTest
                 (fired_update ? "new, " : "old, ") +
                 (annunciated ? "annunciate : " : "silent     : ") +
                 logic.toString());
-            assertEquals("Update", update, fired_update);
-            assertEquals("Annunciation", annunciate, annunciated);
-            assertEquals("Current severity", current_sevr, logic.getCurrentState().getSeverity());
+            assertEquals(update, fired_update, "Update");
+            assertEquals(annunciate, annunciated, "Annunciation");
+            assertEquals(current_sevr, logic.getCurrentState().getSeverity(), "Current severity");
             assertEquals("Current message", current_msg, logic.getCurrentState().getMessage());
-            assertEquals("Alarm severity", sevr, logic.getAlarmState().getSeverity());
+            assertEquals(sevr, logic.getAlarmState().getSeverity(), "Alarm severity");
             assertEquals("Alarm message", msg, logic.getAlarmState().getMessage());
             // Reset
             fired_update = false;
@@ -128,7 +129,7 @@ public class AlarmLogicUnitTest
 
         void checkEnablementChange()
         {
-            assertTrue("Enablement changed", fired_enablement);
+            assertTrue(fired_enablement, "Enablement changed");
             System.out.println("Logic is " + (logic.isEnabled() ? "enabled" : "disabled"));
             fired_enablement = false;
         }
@@ -907,8 +908,9 @@ public class AlarmLogicUnitTest
         logic.check(true, true, SeverityLevel.MINOR, "high", SeverityLevel.MINOR, "high");
     }
 
-    @Ignore
-    @Test(timeout=60000)
+    @Disabled
+    @Test
+    @Timeout(6)
     public void testGlobalNotifications() throws Exception
     {
         System.out.println("* testGlobalNotifications");
@@ -1036,7 +1038,7 @@ public class AlarmLogicUnitTest
         assertEquals(SeverityLevel.OK, logic.getGlobalAlarm().getSeverity());
     }
 
-    @Ignore
+    @Disabled
     @Test
     public void testGlobalEscalation() throws Exception
     {

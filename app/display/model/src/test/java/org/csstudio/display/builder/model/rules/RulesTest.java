@@ -7,11 +7,6 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.rules;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
-
-import java.util.Arrays;
-
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.Points;
@@ -19,10 +14,17 @@ import org.csstudio.display.builder.model.properties.ScriptPV;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.csstudio.display.builder.model.properties.WidgetFontStyle;
+import org.csstudio.display.builder.model.rules.RuleInfo.ExprInfoString;
+import org.csstudio.display.builder.model.rules.RuleInfo.ExprInfoValue;
 import org.csstudio.display.builder.model.widgets.LabelWidget;
 import org.csstudio.display.builder.model.widgets.PolylineWidget;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test of Rules
  *  @author Kay Kasemir
@@ -32,7 +34,7 @@ public class RulesTest
 {
     /** Rule that checks pv0>10 and picks a certain value for that */
     @Test
-    public void testValueForCondition() throws Exception
+    public void testValueForCondition()
     {
         final ImageWidget widget = new ImageWidget();
 
@@ -40,8 +42,8 @@ public class RulesTest
         width.setValue(47);
 
         final RuleInfo rule = new RuleInfo("WidthBasedOnPV", "data_width", false,
-                Arrays.asList(new RuleInfo.ExprInfoValue<Integer>("pv0>10", width)),
-                Arrays.asList(new ScriptPV("XSize")));
+                List.of(new ExprInfoValue<>("pv0>10", width)),
+                List.of(new ScriptPV("XSize")));
 
         System.out.println(rule);
         final String script = RuleToScript.generatePy(widget, rule);
@@ -52,12 +54,12 @@ public class RulesTest
 
     /** Rules that uses the value of a PV within an expression */
     @Test
-    public void testValueAsExpression() throws Exception
+    public void testValueAsExpression()
     {
         final Widget widget = new ImageWidget();
         final RuleInfo rule = new RuleInfo("WidthFromPV", "data_width", true,
-                Arrays.asList(new RuleInfo.ExprInfoString("true", "pv0")),
-                Arrays.asList(new ScriptPV("XSize")));
+                List.of(new ExprInfoString("true", "pv0")),
+                List.of(new ScriptPV("XSize")));
 
         System.out.println(rule);
         final String script = RuleToScript.generatePy(widget, rule);
@@ -68,7 +70,7 @@ public class RulesTest
 
     /** Rule that uses color */
     @Test
-    public void testColorRule() throws Exception
+    public void testColorRule()
     {
         final LabelWidget widget = new LabelWidget();
 
@@ -76,8 +78,8 @@ public class RulesTest
         color.setValue(new WidgetColor(1, 2, 3, 4));
 
         final RuleInfo rule = new RuleInfo("Color", "foreground_color", false,
-                Arrays.asList(new RuleInfo.ExprInfoValue<WidgetColor>("pv0 > 10", color)),
-                Arrays.asList(new ScriptPV("Whatever")));
+                List.of(new ExprInfoValue<>("pv0 > 10", color)),
+                List.of(new ScriptPV("Whatever")));
 
         System.out.println(rule);
         final String script = RuleToScript.generatePy(widget, rule);
@@ -88,7 +90,7 @@ public class RulesTest
 
     /** Rule that uses font */
     @Test
-    public void testFontRule() throws Exception
+    public void testFontRule()
     {
         final LabelWidget widget = new LabelWidget();
 
@@ -96,8 +98,8 @@ public class RulesTest
         font.setValue(new WidgetFont("Liberation Sans", WidgetFontStyle.ITALIC, 18.0));
 
         final RuleInfo rule = new RuleInfo("Font", "font", false,
-                Arrays.asList(new RuleInfo.ExprInfoValue<WidgetFont>("pv0 > 10", font)),
-                Arrays.asList(new ScriptPV("Whatever")));
+                List.of(new ExprInfoValue<>("pv0 > 10", font)),
+                List.of(new ScriptPV("Whatever")));
 
         System.out.println(rule);
         final String script = RuleToScript.generatePy(widget, rule);
@@ -108,7 +110,7 @@ public class RulesTest
 
     /** Rule that uses points */
     @Test
-    public void testPointsRule() throws Exception
+    public void testPointsRule()
     {
         final PolylineWidget widget = new PolylineWidget();
 
@@ -116,8 +118,8 @@ public class RulesTest
         points.setValue(new Points(0.0, 0.0, 42.0, 42.0));
 
         final RuleInfo rule = new RuleInfo("Points", "points", false,
-                Arrays.asList(new RuleInfo.ExprInfoValue<Points>("pv0 > 10", points)),
-                Arrays.asList(new ScriptPV("Whatever")));
+                List.of(new ExprInfoValue<>("pv0 > 10", points)),
+                List.of(new ScriptPV("Whatever")));
 
         System.out.println(rule);
         final String script = RuleToScript.generatePy(widget, rule);

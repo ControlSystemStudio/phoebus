@@ -18,10 +18,11 @@
 
 package org.phoebus.logbook.olog.ui.write;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.phoebus.olog.es.api.model.OlogLog;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class AttachmentsEditorControllerTest {
 

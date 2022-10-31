@@ -1,10 +1,10 @@
 package org.phoebus.pv.alarm;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class AlarmPVInfoTest {
 
@@ -19,26 +19,30 @@ public class AlarmPVInfoTest {
         AlarmPVInfo alarmPVInfo = AlarmPVInfo.of(onlyRoot);
         assertEquals("Failed to parse the root info for pv: " + onlyRoot,
                 alarmPVInfo.getRoot(), "root");
-        assertEquals("Failed to parse the path info for pv: " + onlyRoot,
-                alarmPVInfo.getPath(), Optional.empty());
+        assertEquals(
+                alarmPVInfo.getPath(), Optional.empty(),
+                "Failed to parse the path info for pv: " + onlyRoot);
 
         alarmPVInfo = AlarmPVInfo.of(oneNode);
         assertEquals("Failed to parse the root info for pv: " + oneNode,
                 alarmPVInfo.getRoot(), "root");
-        assertEquals("Failed to parse the path info for pv: " + oneNode,
-                alarmPVInfo.getPath(), Optional.of("/firstNode"));
+        assertEquals(
+                alarmPVInfo.getPath(), Optional.of("/firstNode"),
+                "Failed to parse the path info for pv: " + oneNode);
 
         alarmPVInfo = AlarmPVInfo.of(twoNode);
         assertEquals("Failed to parse the root info for pv: " + twoNode,
                 alarmPVInfo.getRoot(), "root");
-        assertEquals("Failed to parse the path info for pv: " + twoNode,
-                alarmPVInfo.getPath(), Optional.of("/firstNode/secondNode"));
+        assertEquals(
+                alarmPVInfo.getPath(), Optional.of("/firstNode/secondNode"),
+                "Failed to parse the path info for pv: " + twoNode);
 
         alarmPVInfo = AlarmPVInfo.of(leaf);
         assertEquals("Failed to parse the root info for pv: " + leaf,
                 alarmPVInfo.getRoot(), "root");
-        assertEquals("Failed to parse the path info for pv: " + leaf,
-                alarmPVInfo.getPath(), Optional.of("/firstNode/secondNode/alarmPV"));
+        assertEquals(
+                alarmPVInfo.getPath(), Optional.of("/firstNode/secondNode/alarmPV"),
+                "Failed to parse the path info for pv: " + leaf);
 
     }
 
@@ -84,49 +88,57 @@ public class AlarmPVInfoTest {
         AlarmPVInfo alarmPVInfo = AlarmPVInfo.of(onlyRoot+"."+activeField);
         assertEquals("Failed to parse the root info for pv: " + onlyRoot,
                 alarmPVInfo.getRoot(), "root");
-        assertEquals("Failed to parse the path info for pv: " + onlyRoot,
-                alarmPVInfo.getPath(), Optional.empty());
+        assertEquals(
+                alarmPVInfo.getPath(), Optional.empty(),
+                "Failed to parse the path info for pv: " + onlyRoot);
         assertEquals("Failed to parse the complete path info for pv: " + onlyRoot,
                 "/root",
                 alarmPVInfo.getCompletePath());
-        assertEquals("Failed to parse the field path info for pv: " + onlyRoot,
+        assertEquals(
                 Optional.of(activeField),
-                alarmPVInfo.getField());
+                alarmPVInfo.getField(),
+                "Failed to parse the field path info for pv: " + onlyRoot);
 
         alarmPVInfo = AlarmPVInfo.of(onlyRoot+"."+stateField);
         assertEquals("Failed to parse the root info for pv: " + onlyRoot,
                 alarmPVInfo.getRoot(), "root");
-        assertEquals("Failed to parse the path info for pv: " + onlyRoot,
-                alarmPVInfo.getPath(), Optional.empty());
+        assertEquals(
+                alarmPVInfo.getPath(), Optional.empty(),
+                "Failed to parse the path info for pv: " + onlyRoot);
         assertEquals("Failed to parse the complete path info for pv: " + onlyRoot,
                 "/root",
                 alarmPVInfo.getCompletePath());
-        assertEquals("Failed to parse the field path info for pv: " + onlyRoot,
+        assertEquals(
                 Optional.of(stateField),
-                alarmPVInfo.getField());
+                alarmPVInfo.getField(),
+                "Failed to parse the field path info for pv: " + onlyRoot);
 
         alarmPVInfo = AlarmPVInfo.of(onlyRoot+"."+enableField);
         assertEquals("Failed to parse the root info for pv: " + onlyRoot,
                 alarmPVInfo.getRoot(), "root");
-        assertEquals("Failed to parse the path info for pv: " + onlyRoot,
-                alarmPVInfo.getPath(), Optional.empty());
+        assertEquals(
+                alarmPVInfo.getPath(), Optional.empty(),
+                "Failed to parse the path info for pv: " + onlyRoot);
         assertEquals("Failed to parse the complete path info for pv: " + onlyRoot,
                 "/root",
                 alarmPVInfo.getCompletePath());
-        assertEquals("Failed to parse the field path info for pv: " + onlyRoot,
+        assertEquals(
                 Optional.of(enableField),
-                alarmPVInfo.getField());
+                alarmPVInfo.getField(),
+                "Failed to parse the field path info for pv: " + onlyRoot);
 
         alarmPVInfo = AlarmPVInfo.of(onlyRoot+"."+durationField);
         assertEquals("Failed to parse the root info for pv: " + onlyRoot,
                 alarmPVInfo.getRoot(), "root");
-        assertEquals("Failed to parse the path info for pv: " + onlyRoot,
-                alarmPVInfo.getPath(), Optional.empty());
+        assertEquals(
+                alarmPVInfo.getPath(), Optional.empty(),
+                "Failed to parse the path info for pv: " + onlyRoot);
         assertEquals("Failed to parse the complete path info for pv: " + onlyRoot,
                 "/root",
                 alarmPVInfo.getCompletePath());
-        assertEquals("Failed to parse the field path info for pv: " + onlyRoot,
+        assertEquals(
                 Optional.of(durationField),
-                alarmPVInfo.getField());
+                alarmPVInfo.getField(),
+                "Failed to parse the field path info for pv: " + onlyRoot);
     }
 }

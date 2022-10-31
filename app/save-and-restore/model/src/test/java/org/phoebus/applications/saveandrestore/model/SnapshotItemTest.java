@@ -18,11 +18,11 @@
 
 package org.phoebus.applications.saveandrestore.model;
 
-import org.junit.Test;
-
-import static org.junit.Assert.*;
-
 import org.epics.vtype.VType;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author georgweiss

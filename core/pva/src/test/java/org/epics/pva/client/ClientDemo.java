@@ -7,10 +7,10 @@
  ******************************************************************************/
 package org.epics.pva.client;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import org.epics.pva.PVASettings;
+import org.epics.pva.data.PVAData;
+import org.epics.pva.data.PVAStructure;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -20,10 +20,10 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.LogManager;
 
-import org.epics.pva.PVASettings;
-import org.epics.pva.data.PVAData;
-import org.epics.pva.data.PVAStructure;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /** Demo using demo.db from test resources:
  *    softIocPVA -m N='' -d demo.db
@@ -51,7 +51,7 @@ public class ClientDemo
         try
         (   // Create a client and channel (will be auto-closed)
             final PVAClient pva = new PVAClient();
-            final PVAChannel ch = pva.getChannel("ramp");
+            final PVAChannel ch = pva.getChannel("ramp")
         )
         {
             // Connect
@@ -339,9 +339,7 @@ public class ClientDemo
 
         // Connect to one or more channels
         final ClientChannelListener channel_listener = (ch, state) ->
-        {
-            System.out.println(ch.getName() + ": " + state);
-        };
+                System.out.println(ch.getName() + ": " + state);
         final PVAChannel ch1 = pva.getChannel("ramp", channel_listener);
         final PVAChannel ch2 = pva.getChannel("saw", channel_listener);
 

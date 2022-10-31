@@ -7,15 +7,15 @@
  ******************************************************************************/
 package org.csstudio.javafx.rtplot;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.csstudio.javafx.rtplot.data.InstrumentedReadWriteLock;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 
-import org.csstudio.javafx.rtplot.data.InstrumentedReadWriteLock;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test of the {@link InstrumentedReadWriteLock}
  *  @author Kay Kasemir
@@ -58,7 +58,7 @@ public class InstrumentedReadWriteLockTest
         System.out.println(info);
         assertThat(writer_has_lock, equalTo(false));
         assertThat(info, containsString("no owner"));
-        assertThat(info, containsString("pending writers (" + writer.toString()));
+        assertThat(info, containsString("pending writers (" + writer));
 
         // We can get another read lock
         assertThat(lock.readLock().tryLock(), equalTo(true));
@@ -76,6 +76,6 @@ public class InstrumentedReadWriteLockTest
 
         // Can no longer obtain the read lock
         assertThat(lock.readLock().tryLock(), equalTo(false));
-        assertThat(info, containsString("owned by " + writer.toString()));
+        assertThat(info, containsString("owned by " + writer));
     }
 }

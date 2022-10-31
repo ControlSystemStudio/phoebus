@@ -7,14 +7,15 @@
  ******************************************************************************/
 package org.phoebus.framework.jobs;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** Demo of the Job API
  *  @author Kay Kasemir
@@ -85,7 +86,7 @@ public class JobTest
         did_some_steps.await();
 
         // Cancel
-        JobManager.getJobs().forEach(job -> job.cancel());
+        JobManager.getJobs().forEach(Job::cancel);
         // Show final info
         while (true)
         {
@@ -99,7 +100,8 @@ public class JobTest
         assertThat(the_job.getMonitor().isDone(), equalTo(true));
     }
 
-    @Test(timeout=10000)
+    @Test
+    @Timeout(10)
     public void demoParallel() throws Exception
     {
         final AtomicBoolean you_can_quit = new AtomicBoolean();

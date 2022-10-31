@@ -9,10 +9,10 @@ package org.csstudio.display.builder;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assume.assumeThat;
+import static org.junit.jupiter.api.Assumptions.*;
 
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.phoebus.ui.javafx.PlatformInfo;
 
 /** JUnit test of path handling
@@ -40,7 +40,7 @@ public class PathTest
     }
 
     @Test
-    public void testDirectory() throws Exception
+    public void testDirectory()
     {
         String loc;
 
@@ -55,9 +55,9 @@ public class PathTest
     }
 
     @Test
-    public void testCombineNotWindows() throws Exception
+    public void testCombineNotWindows()
     {
-        assumeThat(PlatformInfo.isWindows, equalTo(false));
+        //assumingThat(false, () -> PlatformInfo.isWindows);
         String path;
 
         path = ModelResourceUtil.combineDisplayPaths(null, "example.opi");
@@ -77,9 +77,9 @@ public class PathTest
     }
 
     @Test
-    public void testCombineWindows() throws Exception
+    public void testCombineWindows()
     {
-        assumeThat(PlatformInfo.isWindows, equalTo(true));
+        //assumeThat(PlatformInfo.isWindows, equalTo(true));
         String path;
 
         path = ModelResourceUtil.combineDisplayPaths(null, "example.opi");
@@ -98,16 +98,16 @@ public class PathTest
         assertThat(path, equalTo("C:/home/beamline/main.bob"));
     }
 
-    public void checkRelativePath(String parent, String path, String expectedResult) throws Exception
+    public void checkRelativePath(String parent, String path, String expectedResult)
     {
         String resultingPath = ModelResourceUtil.getRelativePath(parent, path);
         assertThat(resultingPath, equalTo(expectedResult));
     }
 
     @Test
-    public void testRelativeNotWindows() throws Exception
+    public void testRelativeNotWindows()
     {
-        assumeThat(PlatformInfo.isWindows, equalTo(false));
+        //assumeThat(PlatformInfo.isWindows, equalTo(false));
         String parent = "/one/of/my/directories/parent.bob";
 
         // Same dir
@@ -146,9 +146,9 @@ public class PathTest
     }
 
     @Test
-    public void testRelativeWindows() throws Exception
+    public void testRelativeWindows()
     {
-        assumeThat(PlatformInfo.isWindows, equalTo(true));
+        //assumeThat(PlatformInfo.isWindows, equalTo(true));
         String parent = "C:\\one\\of\\my\\directories\\parent.bob";
 
         // Same dir
@@ -194,7 +194,7 @@ public class PathTest
     }
 
     @Test
-    public void testRelativePathForURL() throws Exception {
+    public void testRelativePathForURL() {
         // Same relative layout of file.bob and other.bob, via http ..
         String parent = "http://server/folder/main/file.bob";
         checkRelativePath(parent, "http://server/folder/main/other.bob", "other.bob");

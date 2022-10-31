@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SuppressWarnings("nls")
 public class SecondsParserUnitTest {
     @BeforeAll
-    public void setup() {
+    public static void setup() {
         // Check if test runs OK outside of US where it was originally written
         Locale.setDefault(Locale.FRENCH);
     }
