@@ -1,0 +1,33 @@
+<project default="app-display-thumbwheel">
+  <import file="../../../dependencies/ant_settings.xml"/>
+
+  <target name="app-display-model">
+    <mkdir dir="${classes}"/>
+    <javac destdir="${classes}" debug="${debug}">
+      <src path="${src}"/>
+      <src path="${test}"/>
+      <classpath>
+        <path refid="app-classpath"/>
+      </classpath>
+    </javac>
+  	
+    <jar destfile="${build}/app-display-thumbwheel-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+
+  <target name="test-display-thumbwheel" depends="app-display-thumbwheel">
+    <junit printsummary="withOutAndErr" haltonfailure="yes">
+      <classpath>
+        <path refid="app-classpath"/>
+        <pathelement path="${build}/app-display-thumbwheel-${version}.jar"/>
+      </classpath>
+      <batchtest>
+        <zipfileset src="${build}/app-display-thumbwheel-${version}.jar" includes="**/*Test.class"/>
+      </batchtest>
+      <formatter type="plain" usefile="false"/>
+    </junit>
+  </target>
+	
+</project>
