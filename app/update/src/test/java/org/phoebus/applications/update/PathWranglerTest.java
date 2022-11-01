@@ -8,7 +8,7 @@
 package org.phoebus.applications.update;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static MatcherAssert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.junit.jupiter.api.Test;
 

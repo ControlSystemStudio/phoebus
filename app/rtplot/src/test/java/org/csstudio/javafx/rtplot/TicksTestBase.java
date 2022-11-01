@@ -8,7 +8,7 @@
 package org.csstudio.javafx.rtplot;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.*;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -20,9 +20,10 @@ import org.csstudio.javafx.rtplot.internal.LinearTicks;
 import org.csstudio.javafx.rtplot.internal.MajorTick;
 import org.csstudio.javafx.rtplot.internal.MinorTick;
 import org.csstudio.javafx.rtplot.internal.Ticks;
-import org.junit.After;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 
 /** Helper for testing ticks
  *  @author Kay Kasemir
@@ -30,18 +31,18 @@ import org.junit.Test;
 @SuppressWarnings("nls")
 public class TicksTestBase
 {
-    final BufferedImage buf = new BufferedImage(400, 50, BufferedImage.TYPE_INT_ARGB);
-    final Graphics2D gc = buf.createGraphics();
+    final static BufferedImage buf = new BufferedImage(400, 50, BufferedImage.TYPE_INT_ARGB);
+    final static Graphics2D gc = buf.createGraphics();
 
-    @BeforeClass
+    @BeforeAll
     public static void setup()
     {
         // Set locate for predictable formatting results
         Locale.setDefault(Locale.US);
     }
 
-    @After
-    public void cleanup()
+    @AfterAll
+    public static void cleanup()
     {
         gc.dispose();
     }

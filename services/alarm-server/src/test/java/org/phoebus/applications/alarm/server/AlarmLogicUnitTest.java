@@ -41,7 +41,7 @@ public class AlarmLogicUnitTest
         private boolean fired_update = false;
         private boolean annunciated = false;
         final private AtomicInteger global_updates = new AtomicInteger();
-        private AtomicReference<AlarmState> global_alarm = new AtomicReference<>();
+        private final AtomicReference<AlarmState> global_alarm = new AtomicReference<>();
 
         AlarmLogicDemo(final boolean latching, final boolean annunciating)
         {
@@ -119,9 +119,9 @@ public class AlarmLogicUnitTest
             assertEquals(update, fired_update, "Update");
             assertEquals(annunciate, annunciated, "Annunciation");
             assertEquals(current_sevr, logic.getCurrentState().getSeverity(), "Current severity");
-            assertEquals("Current message", current_msg, logic.getCurrentState().getMessage());
+            assertEquals(current_msg, logic.getCurrentState().getMessage(), "Current message");
             assertEquals(sevr, logic.getAlarmState().getSeverity(), "Alarm severity");
-            assertEquals("Alarm message", msg, logic.getAlarmState().getMessage());
+            assertEquals(msg, logic.getAlarmState().getMessage(), "Alarm message");
             // Reset
             fired_update = false;
             annunciated = false;
@@ -697,7 +697,7 @@ public class AlarmLogicUnitTest
     }
 
     @Test
-    public void testLatchedAnnunciatedCount() throws Exception
+    public void testLatchedAnnunciatedCount()
     {
         System.out.println("* Latched, annunciated, count: minor, ok, minor, ok");
         final int delay = 200;
@@ -748,7 +748,7 @@ public class AlarmLogicUnitTest
     }
 
     @Test
-    public void testShadesOfInvalid() throws Exception
+    public void testShadesOfInvalid()
     {
         System.out.println("* Invalid/disconnected, Invalid/Timeout");
         final AlarmLogicDemo logic = new AlarmLogicDemo(true, true);
@@ -824,7 +824,7 @@ public class AlarmLogicUnitTest
      *  This checks for that problem
      */
     @Test
-    public void testUnlatchedAnnunciatedCount() throws Exception
+    public void testUnlatchedAnnunciatedCount()
     {
         System.out.println("* NonLatched, annunciated, count: minor, ok, minor, ok");
         final int delay = 10;
@@ -869,7 +869,7 @@ public class AlarmLogicUnitTest
     }
 
     @Test
-    public void testMaintenanceMode() throws Exception
+    public void testMaintenanceMode()
     {
         System.out.println("* testMaintenanceMode");
         AlarmLogicDemo logic = new AlarmLogicDemo(false, true);

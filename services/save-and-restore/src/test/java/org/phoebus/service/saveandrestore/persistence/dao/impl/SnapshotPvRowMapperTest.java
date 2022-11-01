@@ -18,15 +18,14 @@
 
 package org.phoebus.service.saveandrestore.persistence.dao.impl;
 
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.phoebus.service.saveandrestore.model.internal.SnapshotPv;
 
 import java.sql.ResultSet;
 
-import org.junit.Test;
-import org.mockito.Mockito;
-
-import org.phoebus.service.saveandrestore.model.internal.SnapshotPv;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 /**
  * @author georgweiss
@@ -53,7 +52,7 @@ public class SnapshotPvRowMapperTest {
 		when(resultSet.getString("provider")).thenReturn("ca");
 		
 		
-		assertTrue(new SnapshotPvRowMapper().mapRow(resultSet, 0) instanceof SnapshotPv);
+		assertTrue(new SnapshotPvRowMapper().mapRow(resultSet, 0) != null);
 	}
 	
 	@Test

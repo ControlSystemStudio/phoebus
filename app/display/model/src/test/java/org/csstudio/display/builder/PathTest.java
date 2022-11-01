@@ -7,13 +7,14 @@
  *******************************************************************************/
 package org.csstudio.display.builder;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assumptions.*;
-
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.junit.jupiter.api.Test;
-import org.phoebus.ui.javafx.PlatformInfo;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test of path handling
  *  @author Kay Kasemir
@@ -22,7 +23,7 @@ import org.phoebus.ui.javafx.PlatformInfo;
 public class PathTest
 {
     @Test
-    public void testNormalize() throws Exception
+    public void testNormalize()
     {
         String path;
 
@@ -57,10 +58,7 @@ public class PathTest
     @Test
     public void testCombineNotWindows()
     {
-        //assumingThat(false, () -> PlatformInfo.isWindows);
-        String path;
-
-        path = ModelResourceUtil.combineDisplayPaths(null, "example.opi");
+        String path = ModelResourceUtil.combineDisplayPaths(null, "example.opi");
         assertThat(path, equalTo("example.opi"));
 
         path = ModelResourceUtil.combineDisplayPaths("examples/dummy.opi", "example.opi");
@@ -77,12 +75,10 @@ public class PathTest
     }
 
     @Test
+    @EnabledOnOs(OS.WINDOWS)
     public void testCombineWindows()
     {
-        //assumeThat(PlatformInfo.isWindows, equalTo(true));
-        String path;
-
-        path = ModelResourceUtil.combineDisplayPaths(null, "example.opi");
+        String path = ModelResourceUtil.combineDisplayPaths(null, "example.opi");
         assertThat(path, equalTo("example.opi"));
 
         path = ModelResourceUtil.combineDisplayPaths("examples/dummy.opi", "example.opi");
@@ -105,9 +101,9 @@ public class PathTest
     }
 
     @Test
+    @DisabledOnOs(OS.WINDOWS)
     public void testRelativeNotWindows()
     {
-        //assumeThat(PlatformInfo.isWindows, equalTo(false));
         String parent = "/one/of/my/directories/parent.bob";
 
         // Same dir
@@ -146,9 +142,9 @@ public class PathTest
     }
 
     @Test
+    @EnabledOnOs(OS.WINDOWS)
     public void testRelativeWindows()
     {
-        //assumeThat(PlatformInfo.isWindows, equalTo(true));
         String parent = "C:\\one\\of\\my\\directories\\parent.bob";
 
         // Same dir
