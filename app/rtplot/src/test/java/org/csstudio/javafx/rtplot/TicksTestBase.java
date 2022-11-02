@@ -7,15 +7,6 @@
  ******************************************************************************/
 package org.csstudio.javafx.rtplot;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.*;
-
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-
 import org.csstudio.javafx.rtplot.internal.LinearTicks;
 import org.csstudio.javafx.rtplot.internal.MajorTick;
 import org.csstudio.javafx.rtplot.internal.MinorTick;
@@ -23,6 +14,15 @@ import org.csstudio.javafx.rtplot.internal.Ticks;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 
 /** Helper for testing ticks

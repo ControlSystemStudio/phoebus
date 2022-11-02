@@ -7,10 +7,11 @@
  *******************************************************************************/
 package org.csstudio.display.builder.runtime.test;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.*;
+import org.junit.jupiter.api.Test;
+import org.python.core.PyCode;
+import org.python.core.PySystemState;
+import org.python.core.RegistryKey;
+import org.python.util.PythonInterpreter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,11 +21,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import org.junit.jupiter.api.Test;
-import org.python.core.PyCode;
-import org.python.core.PySystemState;
-import org.python.core.RegistryKey;
-import org.python.util.PythonInterpreter;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** Jython Demo
  *

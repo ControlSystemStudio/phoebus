@@ -7,16 +7,16 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.*;
+import org.csstudio.display.builder.model.Widget;
+import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.csstudio.display.builder.model.Widget;
-import org.junit.jupiter.api.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test of {@link UpdateThrottleTest}
  *

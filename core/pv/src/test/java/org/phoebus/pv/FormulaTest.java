@@ -7,7 +7,12 @@
  ******************************************************************************/
 package org.phoebus.pv;
 
-import static org.junit.jupiter.api.Assertions.*;
+import io.reactivex.rxjava3.disposables.Disposable;
+import org.epics.vtype.VType;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -16,13 +21,9 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.epics.vtype.VType;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
-import org.phoebus.core.vtypes.VTypeHelper;
-
-import io.reactivex.rxjava3.disposables.Disposable;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** @author Kay Kasemir */
 @SuppressWarnings("nls")

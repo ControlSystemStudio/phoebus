@@ -1,6 +1,13 @@
 package org.csstudio.display.converter.medm;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.persist.ModelReader;
+import org.csstudio.display.builder.model.properties.ScriptPV;
+import org.csstudio.display.builder.model.rules.RuleInfo;
+import org.csstudio.display.builder.model.rules.RuleInfo.ExpressionInfo;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,14 +19,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import org.csstudio.display.builder.model.DisplayModel;
-import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.persist.ModelReader;
-import org.csstudio.display.builder.model.properties.ScriptPV;
-import org.csstudio.display.builder.model.rules.RuleInfo;
-import org.csstudio.display.builder.model.rules.RuleInfo.ExpressionInfo;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 @SuppressWarnings("nls")

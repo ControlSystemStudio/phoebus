@@ -18,10 +18,7 @@
 
 package org.phoebus.applications.saveandrestore.model.json;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.time.Instant;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.epics.util.array.CollectionNumbers;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
@@ -33,14 +30,15 @@ import org.epics.vtype.VDouble;
 import org.epics.vtype.VDoubleArray;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VType;
-
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+
+import java.time.Instant;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author georgweiss Created 30 Nov 2018

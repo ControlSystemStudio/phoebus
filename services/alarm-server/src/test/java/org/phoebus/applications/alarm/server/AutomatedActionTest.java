@@ -7,10 +7,14 @@
  ******************************************************************************/
 package org.phoebus.applications.alarm.server;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.*;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.phoebus.applications.alarm.AlarmSystem;
+import org.phoebus.applications.alarm.client.AlarmClientNode;
+import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.model.SeverityLevel;
+import org.phoebus.applications.alarm.model.TitleDetailDelay;
+import org.phoebus.applications.alarm.server.actions.AutomatedActions;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
@@ -23,14 +27,10 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.phoebus.applications.alarm.AlarmSystem;
-import org.phoebus.applications.alarm.client.AlarmClientNode;
-import org.phoebus.applications.alarm.model.AlarmTreeItem;
-import org.phoebus.applications.alarm.model.SeverityLevel;
-import org.phoebus.applications.alarm.model.TitleDetailDelay;
-import org.phoebus.applications.alarm.server.actions.AutomatedActions;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** JUnit test of the AutomatedActions
  *  @author Kay Kasemir

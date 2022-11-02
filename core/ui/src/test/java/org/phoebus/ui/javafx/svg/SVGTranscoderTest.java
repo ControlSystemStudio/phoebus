@@ -21,10 +21,11 @@ package org.phoebus.ui.javafx.svg;
 import javafx.scene.image.Image;
 import org.junit.jupiter.api.Test;
 
-
 import java.io.InputStream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class SVGTranscoderTest {
 
