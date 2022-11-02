@@ -23,8 +23,8 @@ import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VInt;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
@@ -37,8 +37,9 @@ import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.Future;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 public class SaveAndRestoreScriptUtilTest {
@@ -48,7 +49,7 @@ public class SaveAndRestoreScriptUtilTest {
     private static PV localPV1;
     private static PV localPV2;
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         saveAndRestoreClient = Mockito.mock(SaveAndRestoreClient.class);
         SaveAndRestoreScriptUtil.setSaveAndRestoreClient(saveAndRestoreClient);
@@ -61,22 +62,24 @@ public class SaveAndRestoreScriptUtilTest {
         }
     }
 
-    @Test(expected = Exception.class)
+    @Test
     public void testRestoreInvalidSnapshotId() throws Exception {
         Mockito.reset(saveAndRestoreClient);
         when(saveAndRestoreClient.getNode(UNIQUE_ID)).thenThrow(RuntimeException.class);
-        SaveAndRestoreScriptUtil.restore(UNIQUE_ID, 1000, 100, false, false);
+        assertThrows(Exception.class,
+                () -> SaveAndRestoreScriptUtil.restore(UNIQUE_ID, 1000, 100, false, false));
     }
 
-    @Test(expected = Exception.class)
+    @Test
     public void testRestoreNoSnapshotItems() throws Exception {
         Mockito.reset(saveAndRestoreClient);
         when(saveAndRestoreClient.getNode(UNIQUE_ID)).thenReturn(new Node());
         when(saveAndRestoreClient.getSnapshotItems(UNIQUE_ID)).thenThrow(RuntimeException.class);
-        SaveAndRestoreScriptUtil.restore(UNIQUE_ID, 1000, 1000, false, false);
+        assertThrows(Exception.class,
+                () -> SaveAndRestoreScriptUtil.restore(UNIQUE_ID, 1000, 1000, false, false));
     }
 
-    @Test(expected = Exception.class)
+    @Test
     public void testRestoreNoRestorablePVs() throws Exception {
         Mockito.reset(saveAndRestoreClient);
         when(saveAndRestoreClient.getNode(UNIQUE_ID)).thenReturn(new Node());
@@ -88,10 +91,11 @@ public class SaveAndRestoreScriptUtilTest {
         snapshotItem.setConfigPv(configPv);
         snapshotItem.setValue(VInt.of(7, Alarm.none(), Time.now(), Display.none()));
         when(saveAndRestoreClient.getSnapshotItems(UNIQUE_ID)).thenReturn(Arrays.asList(snapshotItem));
-        SaveAndRestoreScriptUtil.restore(UNIQUE_ID, 1000, 1000, false, false);
+        assertThrows(Exception.class,
+                () -> SaveAndRestoreScriptUtil.restore(UNIQUE_ID, 1000, 1000, false, false));
     }
 
-    @Test(expected = Exception.class)
+    @Test
     public void testRestoreConnectionFailed() throws Exception {
         Mockito.reset(saveAndRestoreClient);
         when(saveAndRestoreClient.getNode(UNIQUE_ID)).thenReturn(new Node());
@@ -103,7 +107,8 @@ public class SaveAndRestoreScriptUtilTest {
         snapshotItem.setConfigPv(configPv);
         snapshotItem.setValue(VInt.of(7, Alarm.none(), Time.now(), Display.none()));
         when(saveAndRestoreClient.getSnapshotItems(UNIQUE_ID)).thenReturn(Arrays.asList(snapshotItem));
-        SaveAndRestoreScriptUtil.restore(UNIQUE_ID, 1000, 1000, false, false);
+        assertThrows(Exception.class,
+                () -> SaveAndRestoreScriptUtil.restore(UNIQUE_ID, 1000, 1000, false, false));
     }
 
     @Test

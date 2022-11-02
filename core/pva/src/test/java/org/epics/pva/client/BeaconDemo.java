@@ -7,14 +7,14 @@
  ******************************************************************************/
 package org.epics.pva.client;
 
+import org.epics.pva.PVASettings;
+import org.junit.jupiter.api.Test;
+
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
-
-import org.epics.pva.PVASettings;
-import org.junit.Test;
 
 /** Beacon demo using demo.db from test resources
  *

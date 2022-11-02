@@ -7,12 +7,13 @@
  ******************************************************************************/
 package org.phoebus.framework.preferences;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** JUnit test of {@link AnnotatedPreferences}
  *  @author Kay Kasemir
@@ -62,7 +63,7 @@ public class AnnotatedPreferencesTest
 	public static String[] example_first_last;
 	
 	
-	static enum ExampleEnum { RED, GREEN, BLUE };
+	enum ExampleEnum { RED, GREEN, BLUE }
 	
 	@Preference
 	public static ExampleEnum example_enum;
@@ -79,7 +80,7 @@ public class AnnotatedPreferencesTest
 		assertEquals(42, example_int);
 		assertEquals("Fred Flintstone", example_string);
 		assertEquals(3.14, example_double, 0.1);
-		assertEquals(true, example_bool);
+		assertTrue(example_bool);
 		assertArrayEquals(new int[] { 128, 50, 255}, example_rgb);
 		assertArrayEquals(new String[] { "One", "Two", "Three" }, example_strings);
 		assertEquals(new File("/tmp/example.dat"), example_file);

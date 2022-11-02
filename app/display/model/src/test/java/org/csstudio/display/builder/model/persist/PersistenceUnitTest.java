@@ -7,22 +7,6 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.persist;
 
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propName;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.MatcherAssert.assertThat;
-
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.csstudio.display.builder.model.CustomWidget;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
@@ -34,8 +18,25 @@ import org.csstudio.display.builder.model.properties.StringWidgetProperty;
 import org.csstudio.display.builder.model.properties.WidgetFontStyle;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.LabelWidget;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propName;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.MatcherAssert.assertThat;
+
 
 /** JUnit test of widget persistence
  *
@@ -58,7 +59,7 @@ public class PersistenceUnitTest
     }
 
     /** Initialize factory for tests */
-    @BeforeClass
+    @BeforeAll
     public static void setup()
     {
         WidgetFactoryUnitTest.initializeFactory();
@@ -75,8 +76,7 @@ public class PersistenceUnitTest
         {
             writer.writeModel(model);
         }
-        String xml = out.toString();
-        return xml;
+        return out.toString();
     }
 
     /** Writing widgets as XML

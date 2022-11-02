@@ -7,32 +7,31 @@
  ******************************************************************************/
 package org.phoebus.pv;
 
+import io.reactivex.rxjava3.disposables.Disposable;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VType;
+import org.junit.jupiter.api.Test;
+import org.phoebus.pv.loc.LocalPVFactory;
+import org.phoebus.pv.loc.ValueHelper;
+
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.CoreMatchers.sameInstance;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.epics.vtype.VDouble;
-import org.epics.vtype.VType;
-import org.junit.Test;
-import org.phoebus.pv.loc.LocalPVFactory;
-import org.phoebus.pv.loc.ValueHelper;
-
-import io.reactivex.rxjava3.disposables.Disposable;
-
-/** @author Kay Kasemir */
+/**
+ * @author Kay Kasemir
+ */
 @SuppressWarnings("nls")
-public class LocalPVTest
-{
+public class LocalPVTest {
     @Test
-    public void testParser() throws Exception
-    {
+    public void testParser() throws Exception {
         String[] ntv = ValueHelper.parseName("x(42)");
         assertThat(ntv[0], equalTo("x"));
         assertThat(ntv[1], nullValue());
@@ -70,42 +69,31 @@ public class LocalPVTest
     }
 
     @Test
-    public void testParserErrors()
-    {
-        try
-        {
+    public void testParserErrors() {
+        try {
             ValueHelper.parseName("");
             fail("missing name");
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             assertThat(ex.getMessage(), containsString("name"));
         }
 
-        try
-        {
+        try {
             ValueHelper.parseName("number<VLong(32)");
             fail("missing type");
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             assertThat(ex.getMessage(), containsString("type"));
         }
 
-        try
-        {
+        try {
             ValueHelper.parseName("number(32");
             fail("missing value");
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             assertThat(ex.getMessage(), containsString("value"));
         }
     }
 
     @Test
-    public void testLocalPV() throws Exception
-    {
+    public void testLocalPV() throws Exception {
         final LocalPVFactory factory = new LocalPVFactory();
         PV pv1 = factory.createPV("loc://x(42)", "x(42)");
         assertThat(pv1.getName(), equalTo("loc://x"));
@@ -116,21 +104,21 @@ public class LocalPVTest
         final VType value = pv1.read();
         System.out.println(value);
         assertThat(value, instanceOf(VDouble.class));
-        assertThat(((VDouble)value).getValue(), equalTo(42.0));
+        assertThat(((VDouble) value).getValue(), equalTo(42.0));
 
         pv1.close();
     }
 
-    /** For local PVs, assert that notifications happen right away
-     *  inside the calling thread.
-     *
-     *  Some other tests as well as the 'ArrayPVDispatcher' used in the display runtime
-     *  depend on 'write' to a local PV having an immediate effect,
-     *  not decoupled to another thread.
+    /**
+     * For local PVs, assert that notifications happen right away
+     * inside the calling thread.
+     * <p>
+     * Some other tests as well as the 'ArrayPVDispatcher' used in the display runtime
+     * depend on 'write' to a local PV having an immediate effect,
+     * not decoupled to another thread.
      */
     @Test
-    public void testLocalPVNotifications() throws Exception
-    {
+    public void testLocalPVNotifications() throws Exception {
         Thread.currentThread().setName("TestThread");
         final PV pv = PVPool.getPV("loc://event_demo(1)");
 
@@ -156,7 +144,7 @@ public class LocalPVTest
         assertThat(update_thread_name.get(), equalTo("TestThread"));
         final VType value = pv.read();
         assertThat(value, instanceOf(VDouble.class));
-        assertThat(((VDouble)value).getValue(), equalTo(42.0));
+        assertThat(((VDouble) value).getValue(), equalTo(42.0));
 
         sub.dispose();
         PVPool.releasePV(pv);

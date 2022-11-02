@@ -28,9 +28,9 @@ import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ArrayInverseScalarDivisionFunctionTest {
 
@@ -46,14 +46,14 @@ public class ArrayInverseScalarDivisionFunctionTest {
                 Alarm.of(AlarmSeverity.MAJOR, AlarmStatus.NONE, ""), Time.now(), Display.none());
         VType factor = VDouble.of(100.0, Alarm.none(), Time.now(), Display.none());
 
-        VNumberArray result = (VNumberArray)arrayScalarDivisionFunction.compute(factor, array);
+        VNumberArray result = (VNumberArray) arrayScalarDivisionFunction.compute(factor, array);
 
         assertEquals(3, result.getData().size());
         assertEquals(50, result.getData().getInt(0));
         assertEquals(10, result.getData().getInt(1));
         assertEquals(5, result.getData().getInt(2));
 
-        result = (VNumberArray)arrayScalarDivisionFunction.compute(array, array);
-        assertTrue(Double.valueOf(result.getData().getDouble(0)).equals(Double.NaN));
+        result = (VNumberArray) arrayScalarDivisionFunction.compute(array, array);
+        assertEquals(Double.NaN, Double.valueOf(result.getData().getDouble(0)));
     }
 }

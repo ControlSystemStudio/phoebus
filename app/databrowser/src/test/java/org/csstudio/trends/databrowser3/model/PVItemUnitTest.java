@@ -7,12 +7,12 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.model;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test for PVSamples
  *  @author Kay Kasemir

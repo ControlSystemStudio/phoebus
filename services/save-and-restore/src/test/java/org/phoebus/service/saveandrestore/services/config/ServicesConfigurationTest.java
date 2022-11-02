@@ -18,19 +18,19 @@
 
 package org.phoebus.service.saveandrestore.services.config;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.phoebus.service.saveandrestore.persistence.config.PersistenceConfiguration;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextHierarchy({ @ContextConfiguration(classes = { ServicesConfiguration.class, PersistenceConfiguration.class}) })
 @TestPropertySource(properties = {"dbengine = h2"})
 public class ServicesConfigurationTest {

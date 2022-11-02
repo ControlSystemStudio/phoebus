@@ -7,22 +7,22 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.model;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
+import org.epics.vtype.Time;
+import org.epics.vtype.VNumber;
+import org.epics.vtype.VType;
+import org.junit.jupiter.api.Test;
+import org.phoebus.pv.TimeHelper;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.epics.vtype.Alarm;
-import org.epics.vtype.Display;
-import org.epics.vtype.Time;
-import org.epics.vtype.VNumber;
-import org.epics.vtype.VType;
-import org.junit.Test;
-import org.phoebus.pv.TimeHelper;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /** JUnit test for PVSamples
  *  @author Kay Kasemir
@@ -45,20 +45,20 @@ public class PVSamplesUnitTest
             history.add(TestHelper.makeValue(i));
         samples.mergeArchivedData("Test", history);
         // PVSamples include continuation until 'now'
-        System.out.println(samples.toString());
+        System.out.println(samples);
         assertEquals(history.size()+1, samples.size());
 
         // Add 2 'live' samples
         samples.addLiveSample(TestHelper.makeValue(samples.size()));
         samples.addLiveSample(TestHelper.makeValue(samples.size()));
         // PVSamples include history, live, continuation until 'now'
-        System.out.println(samples.toString());
+        System.out.println(samples);
         assertEquals(history.size()+3, samples.size());
 
         // Add a non-numeric sample
         samples.addLiveSample(TestHelper.makeError(samples.size(), "Disconnected"));
         // PVSamples include history, live, NO continuation
-        System.out.println(samples.toString());
+        System.out.println(samples);
         assertEquals(history.size()+3, samples.size());
 
         // Check if the history.setBorderTime() update works
@@ -71,7 +71,7 @@ public class PVSamplesUnitTest
         // Since 'live' data starts at 11, history is only visible up to there,
         // i.e. 0..10 = 11 in history plus 3 'live' samples
         assertEquals(11 + 3, samples.size());
-        System.out.println(samples.toString());
+        System.out.println(samples);
     }
 
     /** When 'monitoring' a PV, IOCs will send data with zero time stamps

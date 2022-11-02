@@ -23,10 +23,10 @@ import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VInt;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SeverityLevelHelperTest {
 

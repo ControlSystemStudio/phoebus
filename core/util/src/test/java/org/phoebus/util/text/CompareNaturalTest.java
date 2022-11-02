@@ -7,24 +7,24 @@
  ******************************************************************************/
 package org.phoebus.util.text;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-/** JUnit Test of {@link CompareNatural}
- *  @author Kay Kasemir
+/**
+ * JUnit Test of {@link CompareNatural}
+ *
+ * @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class CompareNaturalTest
-{
+public class CompareNaturalTest {
     @Test
-    public void testComparison()
-    {
+    public void testComparison() {
         final List<String> items = Arrays.asList("Sys1:V", "Sys1:A", "Sys10:V", "Sys10:A");
 
         // ASCII-type sort places "Sys10.." before "Sys1:" because '0' < ':'

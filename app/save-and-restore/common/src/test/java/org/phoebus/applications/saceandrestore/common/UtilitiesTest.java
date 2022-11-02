@@ -64,7 +64,7 @@ import org.epics.vtype.VULong;
 import org.epics.vtype.VULongArray;
 import org.epics.vtype.VUShort;
 import org.epics.vtype.VUShortArray;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.phoebus.applications.saveandrestore.common.Threshold;
 import org.phoebus.applications.saveandrestore.common.Utilities;
 import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
@@ -73,14 +73,14 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Optional;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class UtilitiesTest {
 
@@ -845,7 +845,7 @@ public class UtilitiesTest {
         val2 = VBoolean.of(false, alarm, time);
         result = Utilities.valueToCompareString(val1, val2, Optional.empty());
         assertEquals("false", result.getString());
-        assertTrue(result.getValuesEqual() == 0);
+        assertEquals(0, result.getValuesEqual());
         assertTrue(result.isWithinThreshold());
         assertEquals(0, result.getAbsoluteDelta(), 0.0);
 
@@ -860,8 +860,6 @@ public class UtilitiesTest {
 
     /**
      * Tests {@link Utilities#areVTypesIdentical(VType, VType, boolean)} method.
-     *
-     * @throws InterruptedException
      */
     @Test
     public void testVTypesIdentical() {
@@ -1335,7 +1333,7 @@ public class UtilitiesTest {
         val2 = VBoolean.of(false, alarm, time);
         result = Utilities.deltaValueToString(val1, val2, Optional.empty());
         assertEquals("false", result.getString());
-        assertTrue(result.getValuesEqual() == 0);
+        assertEquals(0, result.getValuesEqual());
         assertTrue(result.isWithinThreshold());
 
         val1 = VString.of("a", alarm, time);
@@ -1351,8 +1349,6 @@ public class UtilitiesTest {
         Alarm alarm = Alarm.none();
         Display display = Display.none();
         Time time = Time.now();
-
-        Optional<Threshold<?>> threshold = Optional.of(new Threshold<>(5d, -5d));
 
         VDouble val1 = VDouble.of(5d, alarm, time, display);
         VDouble val2 = VDouble.of(4d, alarm, time, display);

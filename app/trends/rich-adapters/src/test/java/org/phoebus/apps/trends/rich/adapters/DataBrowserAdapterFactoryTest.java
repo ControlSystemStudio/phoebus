@@ -20,7 +20,7 @@ package org.phoebus.apps.trends.rich.adapters;
 
 import javafx.scene.image.Image;
 import org.csstudio.trends.databrowser3.ui.selection.DatabrowserSelection;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.phoebus.applications.email.EmailEntry;
 import org.phoebus.logbook.LogEntry;
@@ -32,8 +32,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 public class DataBrowserAdapterFactoryTest {
 

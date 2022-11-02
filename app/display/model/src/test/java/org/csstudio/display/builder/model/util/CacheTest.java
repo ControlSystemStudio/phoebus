@@ -6,12 +6,9 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 package org.csstudio.display.builder.model.util;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.sameInstance;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
+
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.util.Collection;
@@ -25,8 +22,12 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.junit.Before;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.sameInstance;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /** JUnit test of {@link Cache}
  *  @author Kay Kasemir
@@ -34,10 +35,10 @@ import org.junit.Test;
 @SuppressWarnings("nls")
 public class CacheTest
 {
-    private Logger logger;
+    private static Logger logger;
 
-    @Before
-    public void setup()
+    @BeforeAll
+    public static void setup()
     {
         System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tH:%1$tM:%1$tS %4$s: %5$s %n");
         logger = Logger.getLogger("");

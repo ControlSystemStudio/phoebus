@@ -7,13 +7,8 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
 import java.util.Arrays;
@@ -21,8 +16,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /** JUnit test of the {@link WidgetFactory}
  *  @author Kay Kasemir
@@ -70,7 +70,7 @@ public class WidgetFactoryUnitTest
     }
 
     /** Initialize factory for tests */
-    @BeforeClass
+    @BeforeAll
     public static void setup()
     {
         initializeFactory();
@@ -121,10 +121,9 @@ public class WidgetFactoryUnitTest
     }
 
     /** Fail on unknown widget
-     *  @throws Exception on error
      */
     @Test
-    public void testUnknownWidgetType() throws Exception
+    public void testUnknownWidgetType()
     {
         try
         {
@@ -182,18 +181,16 @@ public class WidgetFactoryUnitTest
 
     /** List all widgets, sorted by number of properties */
     @Test
-    public void widgetStats() throws Exception
+    public void widgetStats()
     {
         System.out.format("%-20s %s\n", "Widget Type", "Number of Properties");
         WidgetFactory.getInstance()
                      .getWidgetDescriptions()
                      .stream()
                      .filter(desc -> ! isTestWidget(desc))
-                     .map(desc -> desc.createWidget())
+                     .map(WidgetDescriptor::createWidget)
                      .sorted((a, b) -> a.getProperties().size() - b.getProperties().size())
                      .forEach(widget ->
-                     {
-                         System.out.format("%-20s %d\n", widget.getType(), widget.getProperties().size());
-                     });
+                             System.out.format("%-20s %d\n", widget.getType(), widget.getProperties().size()));
     }
 }

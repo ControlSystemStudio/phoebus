@@ -26,7 +26,7 @@ public class LoadModelAction extends ActionDescription
     private final Window window = null;
     private final EditorGUI editor;
 
-    /** @param save_handler Will be invoked with file name */
+    /** @param editor Will be invoked with file name */
     public LoadModelAction(final EditorGUI editor)
     {
         super("icons/open.png", Messages.LoadDisplay_TT);

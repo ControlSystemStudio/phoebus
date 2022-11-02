@@ -18,8 +18,11 @@
 
 package org.csstudio.trends.databrowser3.model;
 
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class ModelTest {
 
@@ -38,8 +41,6 @@ public class ModelTest {
             fail("Unexpected exception");
             return;
         }
-        String uniqueId1 = modelItem1.getUniqueId();
-        String uniqueId2 = modelItem2.getUniqueId();
 
         assertEquals(modelItem1.getUniqueId(), model.getItemByUniqueId(modelItem1.getUniqueId()).getUniqueId());
         assertEquals(modelItem2.getUniqueId(), model.getItemByUniqueId(modelItem2.getUniqueId()).getUniqueId());

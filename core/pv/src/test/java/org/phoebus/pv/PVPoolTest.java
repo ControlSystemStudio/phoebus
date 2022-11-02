@@ -15,7 +15,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.prefs.Preferences;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.phoebus.pv.PVPool.TypedName;
 import org.phoebus.pv.ca.JCA_Preferences;
 

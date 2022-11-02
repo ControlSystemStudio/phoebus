@@ -9,7 +9,7 @@ package org.phoebus.applications.alarm;
 
 import java.io.ByteArrayOutputStream;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmConfigMonitor;
 import org.phoebus.applications.alarm.model.xml.XmlModelWriter;

@@ -7,13 +7,13 @@
  ******************************************************************************/
 package org.epics.pva.client;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
 import org.epics.pva.data.Hexdump;
 import org.epics.pva.data.PVAData;
 import org.epics.pva.data.PVATypeRegistry;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 @SuppressWarnings("nls")
 public class TestFieldRequest

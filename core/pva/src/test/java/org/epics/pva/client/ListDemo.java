@@ -7,12 +7,12 @@
  ******************************************************************************/
 package org.epics.pva.client;
 
+import org.epics.pva.PVASettings;
+import org.junit.jupiter.api.Test;
+
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.LogManager;
-
-import org.epics.pva.PVASettings;
-import org.junit.Test;
 
 /** Beacon demo using demo.db from test resources
  *

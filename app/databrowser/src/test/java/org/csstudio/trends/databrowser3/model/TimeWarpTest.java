@@ -7,15 +7,15 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.model;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.csstudio.trends.databrowser3.persistence.TimeWarp;
+import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.Period;
 import java.time.temporal.TemporalAmount;
 
-import org.csstudio.trends.databrowser3.persistence.TimeWarp;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** Test of {@link TimeWarp}
  *  @author Kay Kasemir

@@ -7,19 +7,19 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.macros;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Preferences;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.LabelWidget;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.MacroValueProvider;
 import org.phoebus.framework.macros.Macros;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test of macro hierarchy
  *  @author Kay Kasemir
@@ -28,10 +28,9 @@ import org.phoebus.framework.macros.Macros;
 public class MacroHierarchyUnitTest
 {
     /** Test Macro Hierarchy
-     *  @throws Exception on error
      */
     @Test
-    public void testMacroHierarchy() throws Exception
+    public void testMacroHierarchy()
     {
         // Macros start out empty
         MacroValueProvider macros = new Macros();
@@ -86,10 +85,9 @@ public class MacroHierarchyUnitTest
     }
 
     /** Test access to widget properties, Java properties and environment
-     *  @throws Exception on error
      */
     @Test
-    public void testPropertiesAndEnvironment() throws Exception
+    public void testPropertiesAndEnvironment()
     {
         // Display model uses preferences
         final DisplayModel model = new DisplayModel();

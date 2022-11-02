@@ -7,23 +7,23 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.csstudio.display.builder.model.ArrayWidgetProperty.Descriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /** JUnit test of array widget property
  *  @author Kay Kasemir
@@ -77,7 +77,7 @@ public class ArrayWidgetPropertyUnitTest
     };
 
     @Test
-    public void testArrayWidgetProperty() throws Exception
+    public void testArrayWidgetProperty()
     {
         final DemoWidget widget = new DemoWidget();
 
@@ -148,7 +148,7 @@ public class ArrayWidgetPropertyUnitTest
         // Set value to non-default
         widget.propItems().getValue().get(1).setValue("Another (2)");
         // Persist to XML
-        final String xml = ModelWriter.getXML(Arrays.asList(widget));
+        final String xml = ModelWriter.getXML(List.of(widget));
         System.out.println(xml);
         assertThat(xml, containsString("<items>"));
         assertThat(xml, containsString("<item>Another"));
@@ -162,7 +162,7 @@ public class ArrayWidgetPropertyUnitTest
     }
 
     @Test
-    public void testArrayAccess() throws Exception
+    public void testArrayAccess()
     {
         final DemoWidget widget = new DemoWidget();
         final WidgetProperty<?> item = widget.getProperty("items[1]");
@@ -172,7 +172,7 @@ public class ArrayWidgetPropertyUnitTest
     }
 
     @Test
-    public void testPathAccess() throws Exception
+    public void testPathAccess()
     {
         final XYPlotWidget widget = new XYPlotWidget();
 

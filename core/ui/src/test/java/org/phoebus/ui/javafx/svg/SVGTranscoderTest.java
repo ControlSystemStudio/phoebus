@@ -19,13 +19,13 @@
 package org.phoebus.ui.javafx.svg;
 
 import javafx.scene.image.Image;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
 
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class SVGTranscoderTest {
 
@@ -47,36 +47,41 @@ public class SVGTranscoderTest {
     /**
      * Verifies that {@link Exception} is thrown when loading png file.
      */
-    @Test(expected = Exception.class)
-    public void testSVGHelperPngFile() throws Exception{
-        assertNull(SVGTranscoder.loadSVG(getInputStream("/interlock.png"), 400d, 400d));
+    @Test
+    public void testSVGHelperPngFile(){
+        assertThrows(Exception.class,
+                () -> SVGTranscoder.loadSVG(getInputStream("/interlock.png"), 400d, 400d));
     }
 
     /**
      * Verifies that {@link Exception} is thrown when loading jpg file.
      */
-    @Test(expected = Exception.class)
-    public void testSVGHelperJpgFile() throws Exception{
-        SVGTranscoder.loadSVG(getInputStream("/interlock.jpg"), 400d, 400d);
+    @Test
+    public void testSVGHelperJpgFile() {
+        assertThrows(Exception.class,
+                () -> SVGTranscoder.loadSVG(getInputStream("/interlock.jpg"), 400d, 400d));
     }
 
     /**
      * Verifies that {@link Exception} is thrown when loading gif file.
      */
-    @Test(expected = Exception.class)
-    public void testSVGHelperGifFile() throws Exception{
-        assertNull(SVGTranscoder.loadSVG(getInputStream("/interlock.gif"), 400d, 400d));
+    @Test
+    public void testSVGHelperGifFile() {
+        assertThrows(Exception.class,
+                () -> SVGTranscoder.loadSVG(getInputStream("/interlock.gif"), 400d, 400d));
     }
 
     /**
      * Verifies that {@link Exception} is thrown when loading tiff file.
      */
-    @Test(expected = Exception.class)
-    public void testSVGHelperTiffFile() throws Exception{
-        assertNull(SVGTranscoder.loadSVG(getInputStream("/interlock.tiff"), 400d, 400d));
+    @Test
+    public void testSVGHelperTiffFile(){
+
+        assertThrows(Exception.class,
+                () -> SVGTranscoder.loadSVG(getInputStream("/interlock.tiff"), 400d, 400d));
     }
 
-    private InputStream getInputStream(String resource) throws Exception{
+    private InputStream getInputStream(String resource) {
         return getClass().getResourceAsStream(resource);
     }
 }

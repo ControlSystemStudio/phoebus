@@ -7,15 +7,16 @@
  ******************************************************************************/
 package org.csstudio.scan.server;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
-import java.util.concurrent.TimeUnit;
-
 import org.csstudio.scan.device.DeviceInfo;
 import org.csstudio.scan.server.condition.WaitForDevicesCondition;
 import org.csstudio.scan.server.device.DeviceContext;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.TimeUnit;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+
 
 /** Junit test of {@link WaitForDevicesCondition}
  *  @author Kay Kasemir

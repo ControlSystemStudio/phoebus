@@ -7,16 +7,16 @@
  ******************************************************************************/
 package org.epics.pva.client;
 
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
-
 import org.epics.pva.PVASettings;
 import org.epics.pva.data.PVAByteArray;
 import org.epics.pva.data.PVAShortArray;
 import org.epics.pva.data.PVAUnion;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 /** Demo using 'IMAGE' PV from
  *  https://github.com/kasemir/EPICSV4Sandbox/tree/master/ntndarrayServer

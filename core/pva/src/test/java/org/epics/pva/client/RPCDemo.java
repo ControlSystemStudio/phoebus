@@ -7,16 +7,16 @@
  ******************************************************************************/
 package org.epics.pva.client;
 
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
-
 import org.epics.pva.PVASettings;
 import org.epics.pva.data.PVADouble;
 import org.epics.pva.data.PVAString;
 import org.epics.pva.data.PVAStructure;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 /** RPC Demo for 'sum' from EPICS Base example
  *
