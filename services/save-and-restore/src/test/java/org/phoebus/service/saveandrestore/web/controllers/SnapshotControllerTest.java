@@ -18,43 +18,41 @@
 
 package org.phoebus.service.saveandrestore.web.controllers;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.service.saveandrestore.services.IServices;
+import org.phoebus.service.saveandrestore.services.exception.SnapshotNotFoundException;
+import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.ContextHierarchy;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+
+import java.util.Collections;
+import java.util.List;
+
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatcher;
-import org.mockito.Mockito;
-import org.phoebus.service.saveandrestore.services.IServices;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.ContextHierarchy;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.phoebus.applications.saveandrestore.model.ConfigPv;
-import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.service.saveandrestore.services.exception.SnapshotNotFoundException;
-import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
-
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextHierarchy({ @ContextConfiguration(classes = { ControllersTestConfig.class }) })
 @WebMvcTest(SnapshotController.class)
+@SuppressWarnings("unused")
 public class SnapshotControllerTest {
 	
 
@@ -64,17 +62,17 @@ public class SnapshotControllerTest {
 	@Autowired
 	private MockMvc mockMvc;
 
-	private Node config1;
+	private static Node config1;
 
-	private Node snapshot;
+	private static Node snapshot;
 
 
-	private ObjectMapper objectMapper = new ObjectMapper();
+	private final ObjectMapper objectMapper = new ObjectMapper();
 
-	private static final String JSON = "application/json;charset=UTF-8";
+	private static final String JSON = "application/json";
 	
-	@Before
-	public void setUp() {
+	@BeforeAll
+	public static void setUp() {
 
 		config1 = Node.builder()
 				.id(1)
@@ -148,7 +146,7 @@ public class SnapshotControllerTest {
 				.snapshotId(2)
 				.build();
 		
-		when(services.getSnapshotItems("si")).thenReturn(Arrays.asList(si));
+		when(services.getSnapshotItems("si")).thenReturn(Collections.singletonList(si));
 		
 		MockHttpServletRequestBuilder request = get("/snapshot/si/items");
 			
@@ -165,7 +163,7 @@ public class SnapshotControllerTest {
 		MockHttpServletRequestBuilder request = put("/snapshot/configid").param("snapshotName", "a").param("comment", "c").param("userName", "u");
 		mockMvc.perform(request).andExpect(status().isBadRequest());
 		
-		List<SnapshotItem> snapshotItems = Arrays.asList(SnapshotItem.builder().build());
+		List<SnapshotItem> snapshotItems = Collections.singletonList(SnapshotItem.builder().build());
 		
 		request = put("/snapshot/configid")
 				.content(objectMapper.writeValueAsString(snapshotItems))
@@ -203,14 +201,9 @@ public class SnapshotControllerTest {
 		
 		Mockito.reset(services);
 		
-		List<SnapshotItem> snapshotItems = Arrays.asList(SnapshotItem.builder().build());
+		List<SnapshotItem> snapshotItems = Collections.singletonList(SnapshotItem.builder().build());
 
-		when(services.saveSnapshot(Mockito.anyString(), Mockito.argThat(new ArgumentMatcher<List<SnapshotItem>>() {
-			@Override
-			public boolean matches(List<SnapshotItem> o) {
-				return true;
-			}
-		}), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(Node.builder().build());
+		when(services.saveSnapshot(Mockito.anyString(), Mockito.argThat(o -> true), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(Node.builder().build());
 		
 		MockHttpServletRequestBuilder request = put("/snapshot/configid").param("snapshotName", "a").param("comment", "c").param("userName", "u");
 		mockMvc.perform(request).andExpect(status().isBadRequest());

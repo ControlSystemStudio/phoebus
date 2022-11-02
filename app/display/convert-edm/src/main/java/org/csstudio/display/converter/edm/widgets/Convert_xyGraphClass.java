@@ -40,7 +40,9 @@ public class Convert_xyGraphClass extends ConverterBase<XYPlotWidget>
 
         convertColor(r.getBgColor(), widget.propBackground());
         convertColor(r.getFgColor(), widget.propForeground());
-        convertColor(r.getFgColor(), widget.propGridColor());
+        widget.propYAxes().getValue().forEach(propYAxis -> {
+            convertColor(r.getFgColor(), propYAxis.color());
+        });
 
         // X Axis
         if (r.getXLabel() == null)

@@ -7,15 +7,15 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import org.csstudio.display.builder.model.properties.WidgetColor;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /** JUnit test of JFXUtil
  *  @author Kay Kasemir

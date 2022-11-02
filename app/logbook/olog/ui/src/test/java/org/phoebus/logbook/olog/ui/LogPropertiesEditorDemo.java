@@ -18,7 +18,12 @@ import org.phoebus.logbook.olog.ui.write.LogPropertiesEditorController;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

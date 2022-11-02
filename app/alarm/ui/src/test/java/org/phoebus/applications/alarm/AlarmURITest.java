@@ -7,15 +7,15 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import org.junit.jupiter.api.Test;
+import org.phoebus.applications.alarm.ui.AlarmURI;
 
 import java.net.URI;
 
-import org.junit.Test;
-import org.phoebus.applications.alarm.ui.AlarmURI;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /** {@link AlarmURI} Tests
  *  @author Kay Kasemir

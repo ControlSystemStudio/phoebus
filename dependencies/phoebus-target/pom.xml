@@ -8,7 +8,7 @@
   <artifactId>phoebus-target</artifactId>
 
   <properties>
-    <spring.boot-version>2.1.5.RELEASE</spring.boot-version>
+    <spring.boot-version>2.7.3</spring.boot-version>
     <preReleaseScripts>${project.basedir}/release_classpath.py</preReleaseScripts>
   </properties>
 
@@ -68,8 +68,8 @@
       <version>4.7.1-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
       <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
@@ -484,6 +484,12 @@
       <artifactId>testfx-junit</artifactId>
       <version>4.0.13-alpha</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java -->
@@ -546,6 +552,13 @@
       <version>1.7.28</version>
     </dependency>
 
+    <!-- https://mvnrepository.com/artifact/org.tango-controls/JTango -->
+    <dependency>
+      <groupId>org.tango-controls</groupId>
+      <artifactId>JTango</artifactId>
+      <version>9.7.0</version>
+      <type>pom</type>
+    </dependency>
 
   </dependencies>
 

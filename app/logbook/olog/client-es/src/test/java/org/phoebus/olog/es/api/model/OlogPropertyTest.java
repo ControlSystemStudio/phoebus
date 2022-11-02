@@ -18,10 +18,13 @@
 
 package org.phoebus.olog.es.api.model;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.phoebus.logbook.Property;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class OlogPropertyTest {
 

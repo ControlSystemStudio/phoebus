@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -96,11 +96,11 @@ public class WriteDemo
         for (double v=5.0; v>=-1.0; --v)
         {
             TimeUnit.MILLISECONDS.sleep(100);
-            ch1.write("", v);
+            ch1.write(false, "", v);
             TimeUnit.MILLISECONDS.sleep(100);
-            ch2.write("", v);
+            ch2.write(false, "", v);
             TimeUnit.MILLISECONDS.sleep(100);
-            ch3.write("", v);
+            ch3.write(false, "", v);
         }
         System.out.println("Closing PVs");
         ch3.close();

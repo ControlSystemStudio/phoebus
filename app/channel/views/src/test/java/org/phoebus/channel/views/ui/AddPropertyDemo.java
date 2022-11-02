@@ -1,15 +1,15 @@
 package org.phoebus.channel.views.ui;
 
-import java.io.IOException;
-import java.util.Arrays;
-
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import static org.phoebus.channelfinder.Property.Builder.*;
+import java.io.IOException;
+import java.util.Arrays;
+
+import static org.phoebus.channelfinder.Property.Builder.property;
 
 public class AddPropertyDemo extends ApplicationWrapper {
 

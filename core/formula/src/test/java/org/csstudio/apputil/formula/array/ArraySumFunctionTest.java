@@ -26,10 +26,9 @@ import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ArraySumFunctionTest {
 
@@ -45,14 +44,14 @@ public class ArraySumFunctionTest {
 
         VNumberArray result = (VNumberArray)scaleArrayFunction.compute(array, offset);
         assertEquals(3, result.getData().size());
-        assertTrue(result.getData().getDouble(0) == 3);
-        assertTrue(result.getData().getDouble(1) == 4);
-        assertTrue(result.getData().getDouble(2) == 5);
+        assertEquals(3, result.getData().getDouble(0));
+        assertEquals(4, result.getData().getDouble(1));
+        assertEquals(5, result.getData().getDouble(2));
 
         result = (VNumberArray)scaleArrayFunction.compute(offset, offset);
-        assertTrue(Double.valueOf(result.getData().getDouble(0)).equals(Double.NaN));
+        assertEquals(Double.NaN, Double.valueOf(result.getData().getDouble(0)));
 
         result = (VNumberArray)scaleArrayFunction.compute(offset, array);
-        assertTrue(Double.valueOf(result.getData().getDouble(0)).equals(Double.NaN));
+        assertEquals(Double.NaN, Double.valueOf(result.getData().getDouble(0)));
     }
 }

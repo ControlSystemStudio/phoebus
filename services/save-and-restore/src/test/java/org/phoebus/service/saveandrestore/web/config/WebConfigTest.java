@@ -18,35 +18,38 @@
 
 package org.phoebus.service.saveandrestore.web.config;
 
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.phoebus.service.saveandrestore.persistence.config.PersistenceConfiguration;
 import org.phoebus.service.saveandrestore.services.IServices;
 import org.phoebus.service.saveandrestore.services.config.ServicesConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.ContextHierarchy;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringRunner.class)
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+@ExtendWith(SpringExtension.class)
 @ContextHierarchy({ @ContextConfiguration(classes = {
 		PersistenceConfiguration.class, 
 		ServicesConfiguration.class, 
 		WebConfiguration.class})})
+@SuppressWarnings("unused")
 public class WebConfigTest {
 	
 	@Autowired
 	private IServices services;
 	
-	@BeforeClass
+	@BeforeAll
 	public static void init() {
 		System.setProperty("dbengine", "h2");
 	}
 
 	@Test
 	public void testWbeConfig() {
-		Assert.assertNotNull(services);
+		assertNotNull(services);
 	}
 }

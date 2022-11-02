@@ -6,7 +6,7 @@
     <version>4.7.1-SNAPSHOT</version>
   </parent>
   <properties>
-    <spring.boot-version>2.6.7</spring.boot-version>
+    <spring.boot-version>2.7.3</spring.boot-version>
     <java.version>1.11</java.version>
   </properties>
   <artifactId>service-alarm-config-logger</artifactId>

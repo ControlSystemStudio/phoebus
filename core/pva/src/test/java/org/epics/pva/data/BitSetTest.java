@@ -7,13 +7,13 @@
  ******************************************************************************/
 package org.epics.pva.data;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
 import java.util.BitSet;
 
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class BitSetTest
 {

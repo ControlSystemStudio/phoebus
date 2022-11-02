@@ -7,12 +7,12 @@
  *******************************************************************************/
 package org.phoebus.framework.autocomplete;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 @SuppressWarnings("nls")
 public class ProposalTest

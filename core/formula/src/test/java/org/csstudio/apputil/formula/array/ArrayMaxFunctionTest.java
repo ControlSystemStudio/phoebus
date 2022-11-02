@@ -26,9 +26,9 @@ import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VNumberArray;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ArrayMaxFunctionTest {
 
@@ -44,13 +44,15 @@ public class ArrayMaxFunctionTest {
         VNumberArray doubleArray = VNumberArray.of(ArrayDouble.of(1.0, 2.0, 3.0, 4.0, 5), Alarm.none(), Time.now(), Display.none());
 
         VDouble max = (VDouble) arrayMaxFunction.compute(doubleArray);
-        assertEquals("arrayMax Failed to calculate max for double array", Double.valueOf(5), max.getValue());
+        assertEquals(Double.valueOf(5), max.getValue(),
+                "arrayMax Failed to calculate max for double array");
 
 
         // int array
         VNumberArray intArray = VNumberArray.of(ArrayInteger.of(1, 2, 3, 4, 5), Alarm.none(), Time.now(), Display.none());
         max = (VDouble) arrayMaxFunction.compute(intArray);
-        assertEquals("arrayMax Failed to calculate max for int array", Double.valueOf(5), max.getValue());
+        assertEquals(Double.valueOf(5), max.getValue(),
+                "arrayMax Failed to calculate max for int array");
 
     }
 }

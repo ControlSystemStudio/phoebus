@@ -7,13 +7,6 @@
  *******************************************************************************/
 package org.csstudio.display.builder.runtime.test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicReference;
-
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.runtime.pv.ArrayPVDispatcher;
 import org.csstudio.display.builder.runtime.pv.ArrayPVDispatcher.Listener;
@@ -22,7 +15,15 @@ import org.csstudio.display.builder.runtime.pv.RuntimePV;
 import org.epics.util.array.ListNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VStringArray;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+
 
 /** JUnit demo of the {@link ArrayPVDispatcher}
  *  @author Kay Kasemir
@@ -43,16 +44,11 @@ public class ArrayPVDispatcherTest
         final CountDownLatch got_element_pvs = new CountDownLatch(1);
 
         // Listener to the ArrayPVDispatcher
-        final Listener dispatch_listener = new Listener()
-        {
-            @Override
-            public void arrayChanged(final List<RuntimePV> pvs)
-            {
-                System.out.println("Per-element PVs: ");
-                element_pvs.set(pvs);
-                dump(pvs);
-                got_element_pvs.countDown();
-            }
+        final Listener dispatch_listener = pvs -> {
+            System.out.println("Per-element PVs: ");
+            element_pvs.set(pvs);
+            dump(pvs);
+            got_element_pvs.countDown();
         };
 
         final ArrayPVDispatcher dispatcher = new ArrayPVDispatcher(array_pv, "elementA247FE_", dispatch_listener);
@@ -104,14 +100,9 @@ public class ArrayPVDispatcherTest
         final CountDownLatch got_element_pvs = new CountDownLatch(1);
 
         // Listener to the ArrayPVDispatcher
-        final Listener dispatch_listener = new Listener()
-        {
-            @Override
-            public void arrayChanged(final List<RuntimePV> pvs)
-            {
-                element_pvs.set(pvs);
-                got_element_pvs.countDown();
-            }
+        final Listener dispatch_listener = pvs -> {
+            element_pvs.set(pvs);
+            got_element_pvs.countDown();
         };
 
         final ArrayPVDispatcher dispatcher = new ArrayPVDispatcher(array_pv, "elementA247FE_", dispatch_listener);
@@ -157,16 +148,11 @@ public class ArrayPVDispatcherTest
         final CountDownLatch got_element_pvs = new CountDownLatch(1);
 
         // Listener to the ArrayPVDispatcher
-        final Listener dispatch_listener = new Listener()
-        {
-            @Override
-            public void arrayChanged(final List<RuntimePV> pvs)
-            {
-                System.out.println("Per-element PVs: ");
-                element_pvs.set(pvs);
-                dump(pvs);
-                got_element_pvs.countDown();
-            }
+        final Listener dispatch_listener = pvs -> {
+            System.out.println("Per-element PVs: ");
+            element_pvs.set(pvs);
+            dump(pvs);
+            got_element_pvs.countDown();
         };
 
         final ArrayPVDispatcher dispatcher = new ArrayPVDispatcher(array_pv, "element123456_", dispatch_listener);

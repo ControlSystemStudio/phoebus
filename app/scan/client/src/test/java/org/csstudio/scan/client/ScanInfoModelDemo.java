@@ -7,16 +7,17 @@
  ******************************************************************************/
 package org.csstudio.scan.client;
 
-import static org.hamcrest.CoreMatchers.sameInstance;
-import static org.junit.Assert.assertThat;
+import org.csstudio.scan.info.ScanInfo;
+import org.csstudio.scan.info.ScanServerInfo;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import org.csstudio.scan.info.ScanInfo;
-import org.csstudio.scan.info.ScanServerInfo;
-import org.junit.Ignore;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.sameInstance;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test of the {@link ScanInfoModel}
  *  @author Kay Kasemir
@@ -26,7 +27,8 @@ public class ScanInfoModelDemo implements ScanInfoModelListener
 {
     final private CountDownLatch updates = new CountDownLatch(1);
 
-    @Test(timeout=15000)
+    @Test
+    @Timeout(15)
     public void testStart() throws Exception
     {
         final ScanInfoModel model = ScanInfoModel.getInstance();
@@ -62,7 +64,7 @@ public class ScanInfoModelDemo implements ScanInfoModelListener
         System.out.println("Connection error");
     }
 
-    @Ignore
+    @Disabled
     @Test
     public void keepMonitoring() throws Exception
     {

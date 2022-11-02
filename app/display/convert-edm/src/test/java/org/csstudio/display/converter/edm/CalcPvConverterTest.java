@@ -7,11 +7,11 @@
  *******************************************************************************/
 package org.csstudio.display.converter.edm;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
 import org.csstudio.display.converter.edm.widgets.ConverterBase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** Calc PV test
  *  @author Kay Kasemir
@@ -20,7 +20,7 @@ import org.junit.Test;
 public class CalcPvConverterTest extends TestHelper
 {
     @Test
-    public void testCalcPv() throws Exception
+    public void testCalcPv()
     {
         String formula = ConverterBase.convertPVName("CALC\\{A+2}(SomePVName)");
         assertThat(formula, equalTo("=`SomePVName`+2"));

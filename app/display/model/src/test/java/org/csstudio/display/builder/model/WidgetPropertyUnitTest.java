@@ -7,6 +7,17 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model;
 
+import org.csstudio.display.builder.model.properties.EnumWidgetProperty;
+import org.csstudio.display.builder.model.widgets.LabelWidget;
+import org.csstudio.display.builder.model.widgets.TextUpdateWidget;
+import org.csstudio.display.builder.model.widgets.VisibleWidget;
+import org.junit.jupiter.api.Test;
+import org.phoebus.framework.macros.MacroHandler;
+import org.phoebus.framework.macros.Macros;
+
+import java.util.Arrays;
+import java.util.List;
+
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propName;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propType;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propX;
@@ -14,18 +25,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.csstudio.display.builder.model.properties.EnumWidgetProperty;
-import org.csstudio.display.builder.model.widgets.LabelWidget;
-import org.csstudio.display.builder.model.widgets.TextUpdateWidget;
-import org.csstudio.display.builder.model.widgets.VisibleWidget;
-import org.junit.Test;
-import org.phoebus.framework.macros.MacroHandler;
-import org.phoebus.framework.macros.Macros;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /** JUnit test of widget properties
  *  @author Kay Kasemir
@@ -62,7 +62,7 @@ public class WidgetPropertyUnitTest
         assertThat(property.isDefaultValue(), equalTo(false));
     }
 
-    class TestWidget extends Widget
+    static class TestWidget extends Widget
     {
         TestWidget()
         {
@@ -88,10 +88,9 @@ public class WidgetPropertyUnitTest
     }
 
     /** Check property value range
-     *  @throws Exception on error
      */
     @Test
-    public void testPropertyValueRange() throws Exception
+    public void testPropertyValueRange()
     {
         final Widget widget = new TestWidget();
 

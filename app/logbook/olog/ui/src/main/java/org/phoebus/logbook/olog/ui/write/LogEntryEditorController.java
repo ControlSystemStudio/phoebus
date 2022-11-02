@@ -58,6 +58,7 @@ import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.olog.ui.HelpViewer;
 import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
 import org.phoebus.logbook.olog.ui.PreviewViewer;
+import org.phoebus.logbook.olog.ui.menu.SendToLogBookApp;
 import org.phoebus.olog.es.api.OlogProperties;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.security.store.SecureStore;
@@ -88,7 +89,9 @@ public class LogEntryEditorController {
     private final Logger logger = Logger.getLogger(LogEntryEditorController.class.getName());
 
     @FXML
-    private VBox root;
+    private VBox editorPane;
+    @FXML
+    private VBox errorPane;
     @FXML
     private Button submitButton;
     @FXML
@@ -185,6 +188,7 @@ public class LogEntryEditorController {
      */
     private String originalTitle = "";
 
+
     public LogEntryEditorController(LogEntry logEntry, LogEntry inReplyTo, LogEntryCompletionHandler logEntryCompletionHandler) {
         this.replyTo = inReplyTo;
         this.completionHandler = logEntryCompletionHandler;
@@ -205,17 +209,29 @@ public class LogEntryEditorController {
             this.logEntry = logEntry;
         }
     }
-    
+
     @FXML
     public void initialize() {
-        completionMessageLabel.setText("");
+
+        // This could be configured in the fxml, but then these UI components would not be visible
+        // in Scene Builder.
+        completionMessageLabel.textProperty().set("");
+        progressIndicator.visibleProperty().bind(submissionInProgress);
+
+        // Remote log service not reachable, so show error pane.
+        if (!checkConnectivity()) {
+            errorPane.visibleProperty().set(true);
+            editorPane.disableProperty().set(true);
+            return;
+        }
+
         submitButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
                         !inputValid.get() || submissionInProgress.get(),
                 inputValid, submissionInProgress));
         completionMessageLabel.visibleProperty()
                 .bind(Bindings.createBooleanBinding(() -> completionMessageLabel.textProperty().isNotEmpty().get() && !submissionInProgress.get(),
                         completionMessageLabel.textProperty(), submissionInProgress));
-        progressIndicator.visibleProperty().bind(submissionInProgress);
+
         cancelButton.disableProperty().bind(submissionInProgress);
         attachmentsEditorController.setTextArea(textArea);
 
@@ -390,7 +406,7 @@ public class LogEntryEditorController {
     public void cancel() {
         // Need to clear selections.
         SelectionService.getInstance().clearSelection("");
-        ((LogEntryEditorStage) cancelButton.getScene().getWindow()).handleCloseEditor(isDirty, root);
+        ((LogEntryEditorStage) cancelButton.getScene().getWindow()).handleCloseEditor(isDirty, editorPane);
     }
 
     @FXML
@@ -675,5 +691,21 @@ public class LogEntryEditorController {
 
     public boolean isDirty() {
         return isDirty;
+    }
+
+    /**
+     * Checks connectivity to remote service by querying the info end-point. If connection fails,
+     * connectionError property is set to <code>true</code>, which should set opacity of the editor pane, and
+     * set visibility of error pane.
+     */
+    private boolean checkConnectivity() {
+        LogClient logClient = LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory).getLogClient();
+        try {
+            logClient.serviceInfo();
+            return true;
+        } catch (Exception e) {
+            Logger.getLogger(SendToLogBookApp.class.getName()).warning("Failed to query logbook service, it may be off-line.");
+            return false;
+        }
     }
 }

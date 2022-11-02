@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.epics.pva.data.PVABool;
 import org.epics.pva.data.PVAData;
 import org.epics.pva.data.PVAInt;
+import org.epics.pva.data.PVAString;
 import org.epics.pva.data.PVAStructure;
 
 /** Description of the 'field(..)' request used to get/monitor a channel
@@ -44,7 +45,7 @@ class FieldRequest
 {
     private final PVAStructure desc;
 
-    /** Parse field request
+    /** Parse plain field request for "get"
      *  @param request Examples:
      *                 "", "field()",
      *                 "value", "field(value)",
@@ -52,10 +53,10 @@ class FieldRequest
      */
     public FieldRequest(final String request)
     {
-        this(0, request);
+        this(0, false, request);
     }
 
-    /** Parse field request
+    /** Parse field request for "monitor" with optional pipeline
      *  @param pipeline Number of elements for 'pipeline' mode, 0 to disable
      *  @param request Examples:
      *                 "", "field()",
@@ -64,17 +65,60 @@ class FieldRequest
      */
     public FieldRequest(final int pipeline, final String request)
     {
+        this(pipeline, false, request);
+    }
+
+    /** Parse field request for "put" with optional completion
+     *  @param completion Perform a write that triggers processing and only returns on completion?
+     *  @param request Examples:
+     *                 "", "field()",
+     *                 "value", "field(value)",
+     *                 "field(value, timeStamp.userTag)"
+     */
+    public FieldRequest(final boolean completion, final String request)
+    {
+        this(0, completion, request);
+    }
+
+
+    /** Parse field request
+     *  @param pipeline Number of elements for 'pipeline' mode, 0 to disable
+     *  @param completion Perform a write that triggers processing and only returns on completion?
+     *  @param request Examples:
+     *                 "", "field()",
+     *                 "value", "field(value)",
+     *                 "field(value, timeStamp.userTag)"
+     */
+    private FieldRequest(final int pipeline, final boolean completion, final String request)
+    {
+        if (pipeline > 0  &&  completion)
+            throw new IllegalStateException("Cannot use both 'pipeline' (for get) " +
+                                            "and 'completion' (for put) within same request");
         final List<PVAData> items = new ArrayList<>();
 
         if (pipeline > 0)
         {
             // record._options.pipeline=true
-            // 'camonitor' encodes as PVAString 'true', not PVABool
+            // 'pvmonitor' encodes as PVAString 'true', not PVABool
             items.add(
                 new PVAStructure("record", "",
                     new PVAStructure("_options", "",
                         new PVABool("pipeline", true),
                         new PVAInt("queueSize", pipeline)
+                        )));
+        }
+        else if (completion)
+        {
+            // Similar to Channel Access put-callback:
+            // Process passive record (could also use "true" to always process),
+            // then block until processing completes
+            // record._options.process="passive"
+            // record._options.block=true
+            items.add(
+                new PVAStructure("record", "",
+                    new PVAStructure("_options", "",
+                        new PVAString("process", "passive"),
+                        new PVABool("block", true)
                         )));
         }
 
@@ -100,7 +144,7 @@ class FieldRequest
         desc.setTypeID((short)1);
     }
 
-    /** @param "a, b.sub"
+    /** @param field_spec "a, b.sub"
      *  @return [ "a", "b.sub" ]
      */
     private List<String> parseFields(final String field_spec)
@@ -172,7 +216,7 @@ class FieldRequest
         desc.encodeType(buffer, described);
     }
 
-    /** Encode the request value (pipeline option)
+    /** Encode the request value (with pipeline or block, process options)
      *
      *  @param buffer {@link ByteBuffer}
      *  @throws Exception on error

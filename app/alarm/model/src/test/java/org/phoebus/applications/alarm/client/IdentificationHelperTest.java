@@ -7,11 +7,11 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.client;
 
-import static org.junit.Assert.assertTrue;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** JUnit test of {@link IdentificationHelper}
  *  @author Kay Kasemir
@@ -38,7 +38,7 @@ public class IdentificationHelperTest
         while (host.equals("???"))
         {
             ++wait;
-            assertTrue("Timed out waiting for information", wait < 10);
+            assertTrue(wait < 10, "Timed out waiting for information");
             TimeUnit.SECONDS.sleep(1);
             user = IdentificationHelper.getUser();
             host = IdentificationHelper.getHost();

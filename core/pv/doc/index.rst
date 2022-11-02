@@ -151,3 +151,16 @@ Examples ::
 
     sys://timeOffset(12 hours)
     sys://timeOffset(1hour, time, 1)
+
+
+Tango
+------
+Tango is different from EPICS, the smallest unit is Device, which includes the commands, states, and attributes.
+The command and the attribute has been implemented, add prefix to PV Name in editing interface to distinguish, and the command usually has a return value, so need to use *Text Entry* or a combination of *Action button* and *Text Update* components to achieve it.
+Currently, all types of scalars are supported, but SPECTRUM and IMAGE are not yet supported.
+
+Examples ::
+
+    tga://device/attribute
+    tgc://device/command
+

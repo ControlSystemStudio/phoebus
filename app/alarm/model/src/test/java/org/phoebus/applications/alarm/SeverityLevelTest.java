@@ -7,10 +7,10 @@
  ******************************************************************************/
 package org.phoebus.applications.alarm;
 
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.phoebus.applications.alarm.model.SeverityLevel;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** JUnit Plug-in test of alarm severities
  *  @author Kay Kasemir

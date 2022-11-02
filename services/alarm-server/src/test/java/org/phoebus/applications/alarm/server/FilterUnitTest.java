@@ -7,8 +7,11 @@
  ******************************************************************************/
 package org.phoebus.applications.alarm.server;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.phoebus.pv.PV;
+import org.phoebus.pv.PVPool;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -16,10 +19,8 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.phoebus.pv.PV;
-import org.phoebus.pv.PVPool;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test of the {@link Filter}
  *  @author Kay Kasemir
@@ -27,14 +28,14 @@ import org.phoebus.pv.PVPool;
 @SuppressWarnings("nls")
 public class FilterUnitTest
 {
-    private AtomicInteger updates = new AtomicInteger();
+    private final AtomicInteger updates = new AtomicInteger();
 
     // Most recent value from filter.
     // SYNC on this
     private double last_value = Double.NaN;
 
-    @Before
-    public void setup()
+    @BeforeAll
+    public static void setup()
     {
         // Configure logging to show 'all'
         final Logger logger = Logger.getLogger("");
@@ -57,7 +58,8 @@ public class FilterUnitTest
         }
     }
 
-    @Test(timeout=8000)
+    @Test
+    @Timeout(8)
     public void testFilter() throws Exception
     {
         // Create local PVs
@@ -110,7 +112,8 @@ public class FilterUnitTest
         PVPool.releasePV(x);
     }
 
-    @Test(timeout=8000)
+    @Test
+    @Timeout(8)
     public void testUpdates() throws Exception
     {
         // Create local PVs
@@ -150,7 +153,8 @@ public class FilterUnitTest
         PVPool.releasePV(x);
     }
 
-    @Test(timeout=50000)
+    @Test
+    @Timeout(50)
     public void testPVError() throws Exception
     {
         synchronized (this)
@@ -175,11 +179,4 @@ public class FilterUnitTest
 
         filter.stop();
     }
-
-//    @Test
-//    public void keepRunning() throws Exception
-//    {
-//        while (true)
-//            testFilter();
-//    }
 }

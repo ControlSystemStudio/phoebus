@@ -1,15 +1,16 @@
 package org.phoebus.applications.display.navigation;
 
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.Assert.assertTrue;
-
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.CoreMatchers.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * A utility Class for handling the navigation of .bob files
@@ -17,12 +18,13 @@ import static org.hamcrest.CoreMatchers.*;
 public class ProcessOPITest {
 
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testRandomFile()
     {
         File file = new File(getClass().getClassLoader().getResource("random.txt").getFile());
         ProcessOPI processOPI = new ProcessOPI(file);
-        Set<File> result = processOPI.process();
+        assertThrows(UnsupportedOperationException.class,
+                processOPI::process);
     }
 
     @Test
@@ -31,8 +33,8 @@ public class ProcessOPITest {
         File file = new File(getClass().getClassLoader().getResource("bob/root_with_no_children.bob").getFile());
         ProcessOPI processOPI = new ProcessOPI(file);
         Set<File> result = processOPI.process();
-        assertTrue("Failed to parse a bob screen with no children, expected empty list but found list " + result
-                , result.isEmpty());
+        assertTrue(result.isEmpty(),
+                "Failed to parse a bob screen with no children, expected empty list but found list " + result);
     }
 
     @Test
@@ -41,8 +43,8 @@ public class ProcessOPITest {
         File file = new File(getClass().getClassLoader().getResource("opi/root_with_no_children.opi").getFile());
         ProcessOPI processOPI = new ProcessOPI(file);
         Set<File> result = processOPI.process();
-        assertTrue("Failed to parse a bob screen with no children, expected empty list but found list " + result
-                , result.isEmpty());
+        assertTrue(result.isEmpty(),
+                "Failed to parse a bob screen with no children, expected empty list but found list " + result);
     }
     @Test
     public void testBOBList()

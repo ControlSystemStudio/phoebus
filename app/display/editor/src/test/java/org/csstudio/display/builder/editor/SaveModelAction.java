@@ -28,7 +28,7 @@ public class SaveModelAction extends ActionDescription
     private final Window window = null;
     private final EditorGUI editor;
 
-    /** @param save_handler Will be invoked with file name */
+    /** @param editor Will be invoked with file name */
     public SaveModelAction(final EditorGUI editor)
     {
         super("icons/save.png", Messages.SaveDisplay_TT);

@@ -18,8 +18,8 @@
 
 package org.phoebus.logbook.olog.ui.query;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -27,15 +27,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class OlogQueryManagerTest {
 
     private static File file;
     private static File nonEmptyFile;
 
-    @BeforeClass
+    @BeforeAll
     public static void before() {
         try {
             file = File.createTempFile("test", "");
@@ -80,7 +80,7 @@ public class OlogQueryManagerTest {
         assertTrue(oq1.getLastUsed() < oq2.getLastUsed());
 
         // Check that default query is present
-        assertTrue(queryList.stream().filter(q -> q.isDefaultQuery()).findFirst().isPresent());
+        assertTrue(queryList.stream().anyMatch(OlogQuery::isDefaultQuery));
     }
 
     @Test
@@ -95,7 +95,7 @@ public class OlogQueryManagerTest {
             e.printStackTrace();
         }
 
-        OlogQuery retrievedQuery2 = ologQueryManager.getOrAddQuery("query");
+        ologQueryManager.getOrAddQuery("query");
         assertTrue(retrievedQuery.getLastUsed() > lastUsed);
     }
 
