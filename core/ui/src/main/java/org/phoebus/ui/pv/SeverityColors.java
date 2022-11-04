@@ -22,7 +22,7 @@ import javafx.scene.paint.Color;
 public class SeverityColors
 {
     /** Text colors for alarm severity by ordinal */
-    public static final Color[] SEVERITY_COLORS = new Color[]
+    public static final Color[] SEVERITY_TEXT_COLORS = new Color[]
     {
         colorOf(Preferences.ok_severity_text_color),
         colorOf(Preferences.minor_severity_text_color),
@@ -31,12 +31,30 @@ public class SeverityColors
         colorOf(Preferences.undefined_severity_text_color)
     };
 
+    /** Background colors for alarm severity by ordinal */
+    public static final Color[] SEVERITY_BACKGROUND_COLORS = new Color[]
+    {
+        colorOf(Preferences.ok_severity_background_color),
+        colorOf(Preferences.minor_severity_background_color),
+        colorOf(Preferences.major_severity_background_color),
+        colorOf(Preferences.invalid_severity_background_color),
+        colorOf(Preferences.undefined_severity_background_color)
+    };
+
     /** @param severity {@link AlarmSeverity}
      *  @return Suggested text color
      */
     public static Color getTextColor(final AlarmSeverity severity)
     {
-        return SEVERITY_COLORS[severity.ordinal()];
+        return SEVERITY_TEXT_COLORS[severity.ordinal()];
+    }
+
+    /** @param severity {@link AlarmSeverity}
+     *  @return Suggested background color
+     */
+    public static Color getBackgroundColor(final AlarmSeverity severity)
+    {
+        return SEVERITY_BACKGROUND_COLORS[severity.ordinal()];
     }
 
     /** @param rgba RGB or RGBA
