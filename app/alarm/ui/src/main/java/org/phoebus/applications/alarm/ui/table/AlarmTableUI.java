@@ -208,7 +208,10 @@ public class AlarmTableUI extends BorderPane
             {
                 setText(item.toString());
                 if (AlarmSystem.alarm_table_color_background)
+                {
                     setBackground(AlarmUI.getBackground(item));
+                    setTextFill(AlarmUI.getColor(item));
+                }
                 else
                     setTextFill(AlarmUI.getColor(item));
             }
