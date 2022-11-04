@@ -10,19 +10,22 @@
     <name>Label</name>
     <class>TITLE</class>
     <text>Embedded Display Widget</text>
-    <x use_class="true">0</x>
+    <x use_class="true">20</x>
     <y use_class="true">0</y>
     <width>311</width>
-    <height>31</height>
+    <height use_class="true">50</height>
     <font use_class="true">
-      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      <font name="Header 1" family="Source Sans Pro" style="BOLD_ITALIC" size="36.0">
       </font>
     </font>
     <foreground_color use_class="true">
-      <color name="Text" red="0" green="0" blue="0">
+      <color name="HEADER-TEXT" red="0" green="0" blue="0">
       </color>
     </foreground_color>
     <transparent use_class="true">true</transparent>
+    <horizontal_alignment use_class="true">0</horizontal_alignment>
+    <vertical_alignment use_class="true">1</vertical_alignment>
+    <wrap_words use_class="true">false</wrap_words>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_1</name>
@@ -50,10 +53,10 @@ are always a compromise that often results in inconsistent widget sizes.</text>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label</name>
-    <text>Scrollbars</text>
+    <text>Scrollbars (no resize)</text>
     <x>1</x>
     <y>187</y>
-    <width>80</width>
+    <width>140</width>
     <height>26</height>
   </widget>
   <widget type="embedded" version="2.0.0">
@@ -82,19 +85,19 @@ are always a compromise that often results in inconsistent widget sizes.</text>
       <X>Widget grows</X>
     </macros>
     <file>embedded.bob</file>
-    <x>361</x>
+    <x>570</x>
     <y>217</y>
-    <width>180</width>
-    <height>180</height>
+    <width>450</width>
+    <height>193</height>
     <resize>2</resize>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_2</name>
     <text>Size to content</text>
-    <x>361</x>
+    <x>570</x>
     <y>187</y>
-    <width>103</width>
-    <height>26</height>
+    <width>373</width>
+    <height>39</height>
   </widget>
   <widget type="embedded" version="2.0.0">
     <name>Embedded_1</name>
@@ -102,16 +105,16 @@ are always a compromise that often results in inconsistent widget sizes.</text>
       <X>Content gets distorted</X>
     </macros>
     <file>embedded.bob</file>
-    <x>570</x>
+    <x>811</x>
     <y>217</y>
-    <width>460</width>
-    <height>103</height>
+    <width>180</width>
+    <height>180</height>
     <resize>3</resize>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_7</name>
     <text>Stretch the content</text>
-    <x>570</x>
+    <x>811</x>
     <y>187</y>
     <width>180</width>
     <height>26</height>
@@ -271,5 +274,25 @@ the display provided in the macro.</text>
     <y>187</y>
     <width>180</width>
     <height>26</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_9</name>
+    <text>Resize content only if larger</text>
+    <x>355</x>
+    <y>187</y>
+    <width>190</width>
+    <height>26</height>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>Embedded_3</name>
+    <macros>
+      <X>Content shrinks if larger</X>
+    </macros>
+    <file>embedded.bob</file>
+    <x>370</x>
+    <y>217</y>
+    <width>140</width>
+    <height>140</height>
+    <resize>1</resize>
   </widget>
 </display>
