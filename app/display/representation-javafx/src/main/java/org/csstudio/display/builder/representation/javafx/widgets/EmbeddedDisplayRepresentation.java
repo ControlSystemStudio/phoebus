@@ -211,7 +211,8 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
             final int content_width = content_model.propWidth().getValue();
             final int content_height = content_model.propHeight().getValue();
             zoom_factor_x = zoom_factor_y = 1.0;
-            if (resize == Resize.ResizeContent)
+            if (resize == Resize.ResizeContent ||
+                    (resize == Resize.ResizeContentIfLarger && (content_width > widget_width || content_height > widget_height)))
             {
                 final double zoom_x = content_width  > 0 ? (double) widget_width  / content_width : 1.0;
                 final double zoom_y = content_height > 0 ? (double) widget_height / content_height : 1.0;

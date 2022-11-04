@@ -101,6 +101,7 @@ public class Messages
                          PointType_X,
                          Resize_Container,
                          Resize_Content,
+                         Resize_Content_If_Larger,
                          Resize_Crop,
                          Resize_None,
                          Resize_Stretch,

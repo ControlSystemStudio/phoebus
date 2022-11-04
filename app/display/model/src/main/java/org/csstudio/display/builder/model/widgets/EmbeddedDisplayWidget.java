@@ -73,6 +73,11 @@ public class EmbeddedDisplayWidget extends MacroWidget
         /** Scale embedded *.opi or *.bob content to fit the container */
         ResizeContent(Messages.Resize_Content),
 
+        /** Scale embedded *.opi or *.bob content to fit the container,
+         *  but only if container is smaller than content.
+         */
+        ResizeContentIfLarger(Messages.Resize_Content_If_Larger),
+
         /** Size the container to fit the embedded *.opi or *.bob content */
         SizeToContent(Messages.Resize_Container),
 
