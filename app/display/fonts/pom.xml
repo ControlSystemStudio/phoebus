@@ -3,14 +3,18 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app-display</artifactId>
-    <version>4.7.1-SNAPSHOT</version>
+    <version>4.7.1</version>
   </parent>
   <artifactId>app-display-fonts</artifactId>
   <dependencies>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-ui</artifactId>
-      <version>4.7.1-SNAPSHOT</version>
+      <version>4.7.1</version>
     </dependency>
   </dependencies>
+
+  <scm>
+    <tag>v4.7.1</tag>
+  </scm>
 </project>

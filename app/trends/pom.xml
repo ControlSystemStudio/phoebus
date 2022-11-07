@@ -5,10 +5,14 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app</artifactId>
-    <version>4.7.1-SNAPSHOT</version>
+    <version>4.7.1</version>
   </parent>
   <modules>
     <module>rich-adapters</module>
     <module>simple-adapters</module>
   </modules>
+
+  <scm>
+    <tag>v4.7.1</tag>
+  </scm>
 </project>
