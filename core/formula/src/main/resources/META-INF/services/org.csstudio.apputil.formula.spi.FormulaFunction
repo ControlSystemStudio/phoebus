@@ -36,7 +36,8 @@ org.csstudio.apputil.formula.areadetector.ImageYOffsetFunction
 org.csstudio.apputil.formula.areadetector.ImageYReversedFunction
 
 # String
-org.csstudio.apputil.formula.string.StringFunction
+org.csstudio.apputil.formula.string.StringConcatFunction
+org.csstudio.apputil.formula.string.StringEqualsFunction
 
 # Array functions
 org.csstudio.apputil.formula.array.ScaleArrayFormulaFunction
