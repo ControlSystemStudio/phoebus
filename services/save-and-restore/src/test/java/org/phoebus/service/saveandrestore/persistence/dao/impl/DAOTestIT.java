@@ -29,11 +29,13 @@ import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VInt;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
@@ -47,6 +49,7 @@ import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.persistence.config.ElasticConfig;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ConfigurationDataRepository;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchDAO;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -474,6 +477,7 @@ public class DAOTestIT {
         assertEquals(uniqueId, folderA.getUniqueId());
 
         clearAllData();
+
     }
 
     @Test
@@ -577,6 +581,7 @@ public class DAOTestIT {
 
         clearAllData();
     }
+
 
     @Test
     public void testNoNameClash1() {

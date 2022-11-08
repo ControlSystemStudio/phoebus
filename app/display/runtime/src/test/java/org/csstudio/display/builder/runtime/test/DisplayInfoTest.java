@@ -7,16 +7,16 @@
  *******************************************************************************/
 package org.csstudio.display.builder.runtime.test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.sameInstance;
-import static org.junit.Assert.assertThat;
+import org.csstudio.display.builder.runtime.app.DisplayInfo;
+import org.junit.jupiter.api.Test;
+import org.phoebus.framework.macros.Macros;
 
 import java.net.URI;
 
-import org.csstudio.display.builder.runtime.app.DisplayInfo;
-import org.junit.Test;
-import org.phoebus.framework.macros.Macros;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.sameInstance;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test of the {@link DisplayInfo}
  *  @author Kay Kasemir
@@ -25,7 +25,7 @@ import org.phoebus.framework.macros.Macros;
 public class DisplayInfoTest
 {
     @Test
-    public void testDisplayInfo() throws Exception
+    public void testDisplayInfo()
     {
         DisplayInfo info = new DisplayInfo("/some/path/file.bob",  null, new Macros(), true);
         assertThat(info.getPath(), equalTo("/some/path/file.bob"));
@@ -38,7 +38,7 @@ public class DisplayInfoTest
     }
 
     @Test
-    public void testURI2DisplayInfo() throws Exception
+    public void testURI2DisplayInfo()
     {
         // Simple example
         URI url = URI.create("file:/some/path/xx.bob");
@@ -67,7 +67,7 @@ public class DisplayInfoTest
     }
 
     @Test
-    public void testDisplayInfo2URI() throws Exception
+    public void testDisplayInfo2URI()
     {
         // Plain path
         final Macros macros = new Macros();

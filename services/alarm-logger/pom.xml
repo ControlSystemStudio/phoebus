@@ -3,11 +3,11 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>services</artifactId>
-    <version>4.7.1-SNAPSHOT</version>
+    <version>4.7.2-SNAPSHOT</version>
   </parent>
   <properties>
     <java.version>1.11</java.version>
-    <spring.boot-version>2.6.7</spring.boot-version>
+    <spring.boot-version>2.7.3</spring.boot-version>
     <elasticsearch.version>8.2.0</elasticsearch.version>
   </properties>
   <artifactId>service-alarm-logger</artifactId>
@@ -95,12 +95,12 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-util</artifactId>
-      <version>4.7.1-SNAPSHOT</version>
+      <version>4.7.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-alarm-model</artifactId>
-      <version>4.7.1-SNAPSHOT</version>
+      <version>4.7.2-SNAPSHOT</version>
     </dependency>
 
     <!--log4j2 to slf4j adapter-->
@@ -126,13 +126,20 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
 
   </dependencies>
   <build>

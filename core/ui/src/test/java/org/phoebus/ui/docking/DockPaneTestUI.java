@@ -3,7 +3,7 @@ package org.phoebus.ui.docking;
 import java.util.Set;
 
 import org.assertj.core.api.Assertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.application.Messages;
 import org.testfx.framework.junit.ApplicationTest;

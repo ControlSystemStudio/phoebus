@@ -1,13 +1,13 @@
 package org.phoebus.ui.application;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.phoebus.ui.application.MenuEntryService.MenuTreeNode;
 import org.phoebus.ui.spi.MenuEntry;
 
-import static org.junit.Assert.assertTrue;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class MenuEntryServiceTest {
 
@@ -22,7 +22,7 @@ public class MenuEntryServiceTest {
         }
 
         @Override
-        public Void call() throws Exception {
+        public Void call() {
             return null;
         }
 
@@ -44,15 +44,14 @@ public class MenuEntryServiceTest {
                 new testMenuEntry("applications.display", "hello"));
         MenuTreeNode root = new MenuTreeNode("Applications");
         MenuEntryService.getInstance().populateMenuTree(root, menuEntries);
-        assertTrue("Parsing MenuEntries: ", root.getChildren().size() == 1);
-        assertTrue("Parsing MenuEntries: ", root.getMenuItems().size() == 0);
+        assertEquals(1, root.getChildren().size(), "Parsing MenuEntries: ");
+        assertEquals(0, root.getMenuItems().size(), "Parsing MenuEntries: ");
         MenuTreeNode applicationsNode = root.getChildren().get(0);
-        assertTrue("Parsing MenuEntries: ", applicationsNode.getChildren().size() == 1);
-        assertTrue("Parsing MenuEntries: ", applicationsNode.getMenuItems().size() == 0);
+        assertEquals(1, applicationsNode.getChildren().size(), "Parsing MenuEntries: ");
+        assertEquals(0, applicationsNode.getMenuItems().size(), "Parsing MenuEntries: ");
         MenuTreeNode displayNode = applicationsNode.getChildren().get(0);
-        assertTrue("Parsing MenuEntries: ", displayNode.getChildren().size() == 0);
-        assertTrue("Parsing MenuEntries: ", displayNode.getMenuItems().size() == 2);
-        
+        assertEquals(0, displayNode.getChildren().size(), "Parsing MenuEntries: ");
+        assertEquals(2, displayNode.getMenuItems().size(), "Parsing MenuEntries: ");
     }
 
 }

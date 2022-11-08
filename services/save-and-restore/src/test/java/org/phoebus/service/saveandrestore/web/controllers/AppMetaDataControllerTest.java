@@ -19,12 +19,14 @@
 package org.phoebus.service.saveandrestore.web.controllers;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.ContextHierarchy;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -39,6 +41,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @ContextHierarchy({@ContextConfiguration(classes = {ControllersTestConfig.class})})
 @WebMvcTest(AppMetaDataControllerTest.class)
+@ExtendWith(SpringExtension.class)
+@SuppressWarnings("unused")
 public class AppMetaDataControllerTest {
 
 

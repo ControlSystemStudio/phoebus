@@ -1,11 +1,12 @@
 package org.csstudio.display.builder.runtime.test;
 
+import org.csstudio.display.builder.runtime.script.internal.PythonGatewaySupport;
+import org.junit.jupiter.api.Test;
+
 import java.util.HashMap;
 import java.util.Map;
 
-import org.csstudio.display.builder.runtime.script.internal.PythonGatewaySupport;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SuppressWarnings("nls")
 public class PythonGatewaySupportTest
@@ -20,7 +21,7 @@ public class PythonGatewaySupportTest
         }
 
         final String testPath = "../org.csstudio.display.builder.runtime/scripts/";
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<>();
         for (int runs = 0; runs < 10; runs++)
         {
             map.put("0", 0);
@@ -31,16 +32,16 @@ public class PythonGatewaySupportTest
             PythonGatewaySupport.run(map, testPath + "test-script.py");
             System.out.println("  ->  Python set map entries to " + map);
 
-            Assert.assertEquals(0, map.get("0")); //map does not change unchanged elements
-            Assert.assertEquals(1, map.get("1")); //map updates with different elements
+            assertEquals(0, map.get("0")); //map does not change unchanged elements
+            assertEquals(1, map.get("1")); //map updates with different elements
             //methods called on map elements affect map without explicit update
             TestObject obj = (TestObject) map.get("obj");
-            Assert.assertEquals("Hello", obj.getValue());
+            assertEquals("Hello", obj.getValue());
         }
     }
 
     @SuppressWarnings("unused")
-    private class TestObject
+    private static class TestObject
     {
         private Object value;
 

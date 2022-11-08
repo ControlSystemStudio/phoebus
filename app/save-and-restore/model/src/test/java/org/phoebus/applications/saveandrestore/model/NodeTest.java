@@ -1,13 +1,14 @@
 package org.phoebus.applications.saveandrestore.model;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Date;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 public class NodeTest {
 
@@ -60,7 +61,7 @@ public class NodeTest {
         Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("c1").build();
         Node config2 = Node.builder().nodeType(NodeType.CONFIGURATION).name("c2").build();
 
-        assertTrue(folder3.compareTo(folder1) == 0);
+		assertEquals(0, folder3.compareTo(folder1));
         assertTrue(folder2.compareTo(folder1) > 0);
         assertTrue(folder1.compareTo(folder2) < 0);
 

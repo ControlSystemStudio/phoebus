@@ -7,29 +7,21 @@
  *******************************************************************************/
 package org.phoebus.ui.vtype;
 
+import org.junit.jupiter.api.Test;
+
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertEquals;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-
-import org.epics.util.stats.Range;
-import org.epics.vtype.Display;
-import org.junit.Test;
 
 /** JUnit test of {@link SexagesimalFormat}
  *  @author Kay Kasemir
- *  @author lcavalli provided original implementation for BOY, https://github.com/ControlSystemStudio/cs-studio/pull/1978
+ *  @author lcavalli provided original implementation for BOY,
+ *  <a href='https://github.com/ControlSystemStudio/cs-studio/pull/1978'>see this reference</a>.
  */
 @SuppressWarnings("nls")
 public class SexagesimalFormatTest
 {
-    final NumberFormat fmt = DecimalFormat.getNumberInstance();
-    final Display display = Display.of(Range.of(-10, 10),
-                                       Range.of(-9, 9),
-                                       Range.of(-8, 8),
-                                       Range.of(-10, 10), "V", fmt);
 
     @Test
     public void testSexagesimal() throws Exception

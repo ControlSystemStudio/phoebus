@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -443,10 +443,10 @@ public class RTImagePlot extends BorderPane
     }
 
     /** Set axis range for 'full' image
-     *  @param min_x
-     *  @param max_x
-     *  @param min_y
-     *  @param max_y
+     *  @param min_x User coordinates
+     *  @param max_x ...
+     *  @param min_y ...
+     *  @param max_y ...
      */
     public void setAxisRange(final double min_x, final double max_x,
                              final double min_y, final double max_y)

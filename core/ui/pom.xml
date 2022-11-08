@@ -3,13 +3,13 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>core</artifactId>
-    <version>4.7.1-SNAPSHOT</version>
+    <version>4.7.2-SNAPSHOT</version>
   </parent>
   <artifactId>core-ui</artifactId>
   <dependencies>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
       <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
@@ -30,6 +30,12 @@
       <artifactId>testfx-junit</artifactId>
       <version>4.0.13-alpha</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <!-- Include all JavaFX modules so single dependency
          on core-ui will provide all that's needed
@@ -53,27 +59,27 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-framework</artifactId>
-      <version>4.7.1-SNAPSHOT</version>
+      <version>4.7.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-types</artifactId>
-      <version>4.7.1-SNAPSHOT</version>
+      <version>4.7.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-security</artifactId>
-      <version>4.7.1-SNAPSHOT</version>
+      <version>4.7.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-util</artifactId>
-      <version>4.7.1-SNAPSHOT</version>
+      <version>4.7.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-pv</artifactId>
-      <version>4.7.1-SNAPSHOT</version>
+      <version>4.7.2-SNAPSHOT</version>
     </dependency>
 
     <!-- Support for SVG -->

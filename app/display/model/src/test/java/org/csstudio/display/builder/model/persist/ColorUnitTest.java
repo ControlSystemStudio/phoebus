@@ -7,15 +7,16 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.persist;
 
+import org.csstudio.display.builder.model.properties.NamedWidgetColor;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+
+import java.util.concurrent.TimeUnit;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-
-import java.util.concurrent.TimeUnit;
-
-import org.csstudio.display.builder.model.properties.NamedWidgetColor;
-import org.junit.Test;
 
 /** JUnit test of color handling
  *
@@ -90,7 +91,8 @@ public class ColorUnitTest
      *
      *  @throws Exception on error
      */
-    @Test(timeout=30000)
+    @Test
+    @Timeout(30)
     public void testColorService() throws Exception
     {
         System.out.println("On " + Thread.currentThread().getName());

@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app-logbook</artifactId>
-    <version>4.7.1-SNAPSHOT</version>
+    <version>4.7.2-SNAPSHOT</version>
   </parent>
   <artifactId>app-logbook-elog</artifactId>
   <dependencies>
@@ -14,12 +14,12 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-logbook</artifactId>
-      <version>4.7.1-SNAPSHOT</version>
+      <version>4.7.2-SNAPSHOT</version>
     </dependency>
       <dependency>
           <groupId>org.phoebus</groupId>
           <artifactId>core-security</artifactId>
-          <version>4.7.1-SNAPSHOT</version>
+          <version>4.7.2-SNAPSHOT</version>
       </dependency>
     <dependency>
         <groupId>net.dongliu</groupId>

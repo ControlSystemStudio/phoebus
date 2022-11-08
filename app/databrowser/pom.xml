@@ -3,13 +3,13 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app</artifactId>
-    <version>4.7.1-SNAPSHOT</version>
+    <version>4.7.2-SNAPSHOT</version>
   </parent>
   <artifactId>app-databrowser</artifactId>
   <dependencies>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
       <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
@@ -27,37 +27,37 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-framework</artifactId>
-      <version>4.7.1-SNAPSHOT</version>
+      <version>4.7.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-ui</artifactId>
-      <version>4.7.1-SNAPSHOT</version>
+      <version>4.7.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-pv</artifactId>
-      <version>4.7.1-SNAPSHOT</version>
+      <version>4.7.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-util</artifactId>
-      <version>4.7.1-SNAPSHOT</version>
+      <version>4.7.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-formula</artifactId>
-      <version>4.7.1-SNAPSHOT</version>
+      <version>4.7.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-types</artifactId>
-      <version>4.7.1-SNAPSHOT</version>
+      <version>4.7.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-rtplot</artifactId>
-      <version>4.7.1-SNAPSHOT</version>
+      <version>4.7.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.google.protobuf</groupId>

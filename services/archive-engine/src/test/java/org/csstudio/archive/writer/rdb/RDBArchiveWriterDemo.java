@@ -7,11 +7,6 @@
  ******************************************************************************/
 package org.csstudio.archive.writer.rdb;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
-
 import org.csstudio.archive.Preferences;
 import org.csstudio.archive.writer.WriteChannel;
 import org.epics.util.array.ArrayDouble;
@@ -29,9 +24,15 @@ import org.epics.vtype.VEnum;
 import org.epics.vtype.VInt;
 import org.epics.vtype.VLong;
 import org.epics.vtype.VString;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+
 //import org.junit.Ignore;
 
 /** Archive Writer Demo
@@ -47,17 +48,17 @@ public class RDBArchiveWriterDemo
 {
     final Display display = Display.of(Range.of(0, 10), Range.of(1, 9), Range.of(2,  8), Range.of(0, 10), "a.u.", NumberFormats.precisionFormat(2));
 
-    private String name = "jane", array_name = "sim://noiseWaveform(0,10,100,10)";
-    private RDBArchiveWriter writer;
+    private final String name = "jane", array_name = "sim://noiseWaveform(0,10,100,10)";
+    private static RDBArchiveWriter writer;
 
-    @Before
-    public void setup() throws Exception
+    @BeforeAll
+    public static void setup() throws Exception
     {
         writer = new RDBArchiveWriter(Preferences.url, Preferences.user, Preferences.password, Preferences.schema, Preferences.use_array_blob);
     }
 
-    @After
-    public void close()
+    @AfterAll
+    public static void close()
     {
         if (writer != null)
             writer.close();
@@ -126,57 +127,4 @@ public class RDBArchiveWriterDemo
         writer.addSample(channel, VInt.of(42, Alarm.none(), Time.now(), display));
         writer.flush();
     }
-
-//    final private static int TEST_DURATION_SECS = 60;
-//    final private static long FLUSH_COUNT = 500;
-//
-//    /* PostgreSQL 9 Test Results:
-//     *
-//     * HP Compact 8000 Elite Small Form Factor,
-//     * Intel Core Duo, 3GHz, Windows 7, 32 bit,
-//     * Hitachi Hds721025cla382 250gb Sata 7200rpm
-//     *
-//     * Flush Count  100, 500, 1000: ~7000 samples/sec, no big difference
-//     *
-//     * After deleting the constraints of sample.channel_id to channel,
-//     * severity_id and status_id to sev. and status tables: ~12000 samples/sec,
-//     * i.e. almost twice as much.
-//     *
-//     * JProfiler shows most time spent in 'flush', some in addSample()'s call to setTimestamp(),
-//     * but overall time is in RDB, not Java.
-//     *
-//     *
-//     * MySQL Test Results (same w/ original IValue and update to VType):
-//     *
-//     * iMac8,1    2.8GHz Intel Core 2 Duo, 4GB RAM
-//     *
-//     * Without rewriteBatchedStatements=true:  ~7000 samples/sec
-//     * With rewriteBatchedStatements=true   : ~21000 samples/sec
-//     */
-//     // @Ignore
-//    @Test
-//    public void testWriteSpeedDouble() throws Exception
-//    {
-//        if (writer == null)
-//            return;
-//
-//        System.out.println("Write test: Adding samples to " + name + " for " + TEST_DURATION_SECS + " secs");
-//        final WriteChannel channel = writer.getChannel(name);
-//
-//        long count = 0;
-//        final long start = System.currentTimeMillis();
-//        final long end = start + TEST_DURATION_SECS*1000L;
-//        do
-//        {
-//            ++count;
-//            writer.addSample(channel, new ArchiveVNumber(Instant.now(), AlarmSeverity.NONE, "OK", display, 3.14));
-//            if (count % FLUSH_COUNT == 0)
-//                writer.flush();
-//        }
-//        while (System.currentTimeMillis() < end);
-//        writer.flush();
-//
-//        System.out.println("Wrote " + count + " samples, i.e. "
-//                         + ((double)count / TEST_DURATION_SECS) + " samples/sec.");
-//    }
 }

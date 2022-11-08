@@ -7,14 +7,14 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model;
 
-import static org.csstudio.display.builder.model.ModelPlugin.logger;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import org.csstudio.display.builder.model.persist.DelayedStream;
+import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
+import org.csstudio.display.builder.model.persist.WidgetClassesService;
+import org.csstudio.display.builder.model.persist.WidgetFontService;
+import org.csstudio.display.builder.model.properties.NamedWidgetFont;
+import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.csstudio.display.builder.model.widgets.LabelWidget;
+import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
 import java.util.Collection;
@@ -23,14 +23,14 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
-import org.csstudio.display.builder.model.persist.DelayedStream;
-import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
-import org.csstudio.display.builder.model.persist.WidgetClassesService;
-import org.csstudio.display.builder.model.persist.WidgetFontService;
-import org.csstudio.display.builder.model.properties.NamedWidgetFont;
-import org.csstudio.display.builder.model.properties.WidgetFont;
-import org.csstudio.display.builder.model.widgets.LabelWidget;
-import org.junit.Test;
+import static org.csstudio.display.builder.model.ModelPlugin.logger;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test of {@link WidgetClassSupport}
  *  @author Kay Kasemir

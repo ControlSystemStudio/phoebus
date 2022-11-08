@@ -86,8 +86,12 @@ public class PVAChannel extends SearchRequest.Channel implements AutoCloseable
     ClientTCPHandler getTCP() throws Exception
     {
         final ClientTCPHandler copy = tcp.get();
+
+        // Channel Access reacts to read/write access while disconnected
+        // via IllegalStateException("Channel not connected.")
+        // Use the same exception, but add channel name
         if (copy == null)
-            throw new Exception("Channel '" + name + "' is not connected");
+            throw new IllegalStateException("Channel '" + name + "' is not connected");
         return copy;
     }
 
@@ -237,11 +241,41 @@ public class PVAChannel extends SearchRequest.Channel implements AutoCloseable
      *  @param request Request for element to write, e.g. "field(value)"
      *  @param new_value New value: Number, String
      *  @throws Exception on error
-     *  @return {@link Future} for awaiting completion
+     *  @return {@link Future} for awaiting completion and getting Exception in case of error
+     *  @deprecated Use {@link #write(boolean, String, Object)}
      */
+    @Deprecated
     public Future<Void> write(final String request, final Object new_value) throws Exception
     {
-        return new PutRequest(this, request, new_value);
+        return write(false, request, new_value);
+    }
+
+    /** Write (put) an element of the channel's value on server
+    *
+    *  <p>The request needs to address one field of the channel,
+    *  and the value to write must be accepted by that field.
+    *
+    *  <p>For example, when "field(value)" addresses a double field,
+    *  {@link PVADouble#setValue(Object)} will be called, so <code>new_value</code>
+    *  may be a {@link Number}.
+    *
+    *  <p>When "field(value)" addresses a text field,
+    *  {@link PVAString#setValue(Object)} will be called,
+    *  which accepts any object by converting it to a string.
+    *
+    *  <p>When writing an enumerated field, its <code>int index</code>
+    *  will be written, requiring a {@link Number} that's then
+    *  used as an integer.
+    *
+    *  @param completion Perform a processing "put" that blocks until completion, or write-and-forget?
+    *  @param request Request for element to write, e.g. "field(value)"
+    *  @param new_value New value: Number, String
+    *  @throws Exception on error
+    *  @return {@link Future} for awaiting completion and getting Exception in case of error
+    */
+    public Future<Void> write(final boolean completion, final String request, final Object new_value) throws Exception
+    {
+        return new PutRequest(this, completion, request, new_value);
     }
 
     /** Start a subscription

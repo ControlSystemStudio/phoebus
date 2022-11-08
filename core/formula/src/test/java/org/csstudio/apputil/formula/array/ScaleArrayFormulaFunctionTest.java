@@ -26,10 +26,11 @@ import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ScaleArrayFormulaFunctionTest {
 
@@ -68,8 +69,8 @@ public class ScaleArrayFormulaFunctionTest {
       assertTrue(Double.valueOf(result.getData().getDouble(0)).equals(Double.NaN));
    }
 
-   @Test(expected = Exception.class)
-   public void testWrongNnumberOfArgumenst1() throws Exception{
+   @Test
+   public void testWrongNnumberOfArgumenst1() {
       ScaleArrayFormulaFunction scaleArray =
               new ScaleArrayFormulaFunction();
 
@@ -77,16 +78,18 @@ public class ScaleArrayFormulaFunctionTest {
       VType array = VNumberArray.of(ArrayDouble.of(1.0, 2.0, 3.0), Alarm.none(), Time.now(), Display.none());
       VType offset = VDouble.of(1.0, Alarm.none(), Time.now(), Display.none());
 
-      scaleArray.compute(array, factor, offset, offset);
+      assertThrows(Exception.class,
+              () -> scaleArray.compute(array, factor, offset, offset));
    }
 
-   @Test(expected = Exception.class)
-   public void testWrongNnumberOfArgumenst2() throws Exception{
+   @Test
+   public void testWrongNnumberOfArgumenst2(){
       ScaleArrayFormulaFunction scaleArray =
               new ScaleArrayFormulaFunction();
 
       VType array = VNumberArray.of(ArrayDouble.of(1.0, 2.0, 3.0), Alarm.none(), Time.now(), Display.none());
 
-      scaleArray.compute(array);
+      assertThrows(Exception.class,
+              () -> scaleArray.compute(array));
    }
 }

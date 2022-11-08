@@ -64,7 +64,7 @@ import org.epics.vtype.VULong;
 import org.epics.vtype.VULongArray;
 import org.epics.vtype.VUShort;
 import org.epics.vtype.VUShortArray;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.phoebus.applications.saveandrestore.common.Threshold;
 import org.phoebus.applications.saveandrestore.common.Utilities;
 import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
@@ -73,14 +73,14 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Optional;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class UtilitiesTest {
 

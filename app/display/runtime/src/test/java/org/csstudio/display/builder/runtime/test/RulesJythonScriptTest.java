@@ -7,13 +7,6 @@
  *******************************************************************************/
 package org.csstudio.display.builder.runtime.test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
-import java.io.ByteArrayInputStream;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.ModelLoader;
@@ -23,7 +16,14 @@ import org.csstudio.display.builder.runtime.pv.PVFactory;
 import org.csstudio.display.builder.runtime.pv.RuntimePV;
 import org.csstudio.display.builder.runtime.script.internal.Script;
 import org.csstudio.display.builder.runtime.script.internal.ScriptSupport;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import java.io.ByteArrayInputStream;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test of rule support
  *  @author Kay Kasemir

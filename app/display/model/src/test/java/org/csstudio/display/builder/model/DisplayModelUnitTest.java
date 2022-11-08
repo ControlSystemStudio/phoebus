@@ -7,12 +7,12 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model;
 
+import org.csstudio.display.builder.model.widgets.LabelWidget;
+import org.junit.jupiter.api.Test;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
-
-import org.csstudio.display.builder.model.widgets.LabelWidget;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /** Test {@link DisplayModel}
  *  @author Kay Kasemir

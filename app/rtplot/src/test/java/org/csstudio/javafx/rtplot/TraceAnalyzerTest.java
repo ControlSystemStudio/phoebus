@@ -7,17 +7,17 @@
  ******************************************************************************/
 package org.csstudio.javafx.rtplot;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertThat;
-
-import java.time.Instant;
-
 import org.csstudio.javafx.rtplot.data.ArrayPlotDataProvider;
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
 import org.csstudio.javafx.rtplot.data.SimpleDataItem;
 import org.csstudio.javafx.rtplot.data.TimeDataSearch;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import java.time.Instant;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test
  *  @author Kay Kasemir

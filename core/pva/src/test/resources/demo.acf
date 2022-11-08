@@ -1,0 +1,8 @@
+# Test read-only PVs:
+#
+# softIocPVA -m N='' -d demo.db -a demo.acf
+
+ASG(DEFAULT)
+{
+   RULE(1, READ)
+}

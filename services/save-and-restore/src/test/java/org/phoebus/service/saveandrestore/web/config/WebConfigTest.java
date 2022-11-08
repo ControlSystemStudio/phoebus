@@ -28,8 +28,8 @@ import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
-@ContextHierarchy({@ContextConfiguration(classes = {
-        WebConfiguration.class, ControllersTestConfig.class})})
+@ContextHierarchy({@ContextConfiguration(classes = {WebConfiguration.class, ControllersTestConfig.class})})
+@SuppressWarnings("unused")
 public class WebConfigTest {
 
     @Autowired

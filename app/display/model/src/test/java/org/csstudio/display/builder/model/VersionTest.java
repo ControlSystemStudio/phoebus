@@ -7,12 +7,12 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model;
 
+import org.junit.jupiter.api.Test;
+
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
-
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.fail;
 
 
 /** JUnit test of Version

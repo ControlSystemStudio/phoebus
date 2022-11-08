@@ -7,14 +7,15 @@
  ******************************************************************************/
 package org.phoebus.applications.alarm;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+
 
 /** JUnit test of the {@link ResettableTimeout}
  *  @author Kay Kasemir
@@ -23,7 +24,7 @@ import org.junit.Test;
 public class ResettableTimeoutTest
 {
     @Test
-    public void testTimer() throws Exception
+    public void testTimer()
     {
         System.out.println("Check for no timeout ...");
         ResettableTimeout timer = new ResettableTimeout(5);
@@ -40,7 +41,7 @@ public class ResettableTimeoutTest
     }
 
     @Test
-    public void testReset() throws Exception
+    public void testReset()
     {
         System.out.println("Timeout in 4 secs?");
         final ResettableTimeout timer = new ResettableTimeout(4);

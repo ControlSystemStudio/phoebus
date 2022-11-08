@@ -7,15 +7,15 @@
  ******************************************************************************/
 package org.phoebus.applications.alarm.server;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.jupiter.api.Test;
+import org.phoebus.applications.alarm.model.AlarmState;
+import org.phoebus.applications.alarm.model.SeverityLevel;
 
 import java.time.Duration;
 import java.time.Instant;
 
-import org.junit.Test;
-import org.phoebus.applications.alarm.model.AlarmState;
-import org.phoebus.applications.alarm.model.SeverityLevel;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test of the {@link AlarmStateHistory}
  *  @author Kay Kasemir

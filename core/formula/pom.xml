@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>core</artifactId>
-    <version>4.7.1-SNAPSHOT</version>
+    <version>4.7.2-SNAPSHOT</version>
   </parent>
   <dependencies>
    <!-- epics-util -->
@@ -16,14 +16,14 @@
    <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-vtype</artifactId>
-      <version>4.7.1-SNAPSHOT</version>
+      <version>4.7.2-SNAPSHOT</version>
     </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
-      <scope>test</scope>
-    </dependency>
+      <dependency>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter</artifactId>
+          <version>${junit.version}</version>
+          <scope>test</scope>
+      </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-all</artifactId>

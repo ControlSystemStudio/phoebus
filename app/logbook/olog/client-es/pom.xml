@@ -3,7 +3,7 @@
     <parent>
         <artifactId>app-logbook-olog</artifactId>
         <groupId>org.phoebus</groupId>
-        <version>4.7.1-SNAPSHOT</version>
+        <version>4.7.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -67,26 +67,26 @@
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-logbook</artifactId>
-            <version>4.7.1-SNAPSHOT</version>
+            <version>4.7.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-framework</artifactId>
-            <version>4.7.1-SNAPSHOT</version>
+            <version>4.7.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-util</artifactId>
-            <version>4.7.1-SNAPSHOT</version>
+            <version>4.7.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-security</artifactId>
-            <version>4.7.1-SNAPSHOT</version>
+            <version>4.7.2-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
