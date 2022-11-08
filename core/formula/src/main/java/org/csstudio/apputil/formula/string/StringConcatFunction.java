@@ -16,10 +16,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 /**
- * A list of formula functions for string manipulations
+ * A formula functions for string concatenation
  * @author Kunal Shroff
  */
-public class StringFunction implements FormulaFunction {
+public class StringConcatFunction implements FormulaFunction {
 
     @Override
     public String getCategory() {
