@@ -36,6 +36,11 @@ public class Preferences
     @Preference public static int[] major_severity_text_color;
     @Preference public static int[] invalid_severity_text_color;
     @Preference public static int[] undefined_severity_text_color;
+    @Preference public static int[] ok_severity_background_color;
+    @Preference public static int[] minor_severity_background_color;
+    @Preference public static int[] major_severity_background_color;
+    @Preference public static int[] invalid_severity_background_color;
+    @Preference public static int[] undefined_severity_background_color;
 
     static
     {
