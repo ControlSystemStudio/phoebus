@@ -28,16 +28,25 @@ public class BoolDemo
             final PVAServer server = new PVAServer();
         )
         {
-            // Create data structure to serve
+            // Create data structure to serve that claims to be an NTScalar
             final PVATimeStamp time = new PVATimeStamp();
             final PVABool value = new PVABool("value", false);
             final PVAStructure data = new PVAStructure("demo", "epics:nt/NTScalar:1.0",
                                                        value,
                                                        time);
 
-            // Create PV
-            final ServerPV pv = server.createPV("bool", data);
-            System.out.println("Check PV   '" + pv.getName() + "'");
+            // Create custom structure
+            final PVABool flag1 = new PVABool("flag1", false);
+            final PVABool flag2 = new PVABool("flag2", false);
+            final PVABool flag3 = new PVABool("flag3", false);
+            final PVAStructure struct = new PVAStructure("demo2", "CustomStruct",
+                    flag1, flag2, flag3);
+
+
+            // Create PVs
+            final ServerPV pv1 = server.createPV("bool", data);
+            final ServerPV pv2 = server.createPV("struct", struct);
+            System.out.println("Check PV   '" + pv1.getName() + "' or '" + pv2.getName() + "'");
 
             // Update value and timestamp
             while (true)
@@ -45,7 +54,12 @@ public class BoolDemo
                 TimeUnit.SECONDS.sleep(1);
                 value.set(! value.get());
                 time.set(Instant.now());
-                pv.update(data);
+                pv1.update(data);
+
+                flag1.set(value.get());
+                flag2.set(! flag1.get());
+                flag3.set(! flag2.get());
+                pv2.update(struct);
             }
         }
     }

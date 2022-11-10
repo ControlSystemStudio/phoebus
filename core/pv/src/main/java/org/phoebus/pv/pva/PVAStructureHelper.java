@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -69,6 +69,8 @@ public class PVAStructureHelper
                 actual = (PVAStructure) field;
             else if (field instanceof PVANumber)
                 return Decoders.decodeNumber(struct, (PVANumber) field);
+            else if (field instanceof PVABool)
+                return Decoders.decodeBool(struct, (PVABool) field);
             else if (field instanceof PVAStructureArray)
             {
                 if (elementIndex.isPresent())
