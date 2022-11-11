@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -32,7 +32,7 @@ public class PVNameHelper
     // Regular expression for parsing out the array index value if present
     final private static Pattern ARRAY_PATTERN = Pattern.compile(".*(\\[\\S*\\])$");
     final private static Pattern ARRAY_INDEX_PATTERN = Pattern.compile("\\[(\\d*)\\]$");
-    
+
     final private String channel, field, read, write;
     final private Optional<Integer> elementIndex;
 
@@ -103,7 +103,7 @@ public class PVNameHelper
             {
                 elementIndex = Optional.empty();
             }
-            write = "field(" + field + ".value)";
+            write = "field(" + field + ")";
         }
         return new PVNameHelper(channel, field, elementIndex, request.substring(REQUEST_FIELD_START), write);
     }
@@ -145,7 +145,7 @@ public class PVNameHelper
             {
                 elementIndex = Optional.empty();
             }
-            write = "field(" + field + ".value)";
+            write = "field(" + field + ")";
         }
         return new PVNameHelper(channel, field, elementIndex,"field(" + field + ")",  write);
     }
@@ -178,7 +178,7 @@ public class PVNameHelper
         {
             elementIndex = Optional.empty();
         }
-        return new PVNameHelper(channel, "value", elementIndex, "field()", "field(value)");
+        return new PVNameHelper(channel, "value", elementIndex, "field()", "field()");
     }
 
     /** Private to enforce use of <code>forName</code> */
