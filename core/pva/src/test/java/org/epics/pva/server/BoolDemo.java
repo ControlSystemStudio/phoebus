@@ -8,8 +8,12 @@
 package org.epics.pva.server;
 
 import java.time.Instant;
+import java.util.BitSet;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
 
+import org.epics.pva.PVASettings;
 import org.epics.pva.data.PVABool;
 import org.epics.pva.data.PVAStructure;
 import org.epics.pva.data.nt.PVATimeStamp;
@@ -22,6 +26,10 @@ public class BoolDemo
 {
     public static void main(String[] args) throws Exception
     {
+        // Log everything
+        LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/pva_logging.properties"));
+        PVASettings.logger.setLevel(Level.FINE);
+
         try
         (
             // Create PVA Server (auto-closed)
@@ -45,8 +53,13 @@ public class BoolDemo
 
             // Create PVs
             final ServerPV pv1 = server.createPV("bool", data);
-            final ServerPV pv2 = server.createPV("struct", struct);
+            final ServerPV pv2 = server.createPV("struct", struct, (ServerPV pv, BitSet changes, PVAStructure written) ->
+            {
+                System.out.println("Somebody wrote this to '" + pv.getName() + "':\n" + written);
+                pv.update(written);
+            });
             System.out.println("Check PV   '" + pv1.getName() + "' or '" + pv2.getName() + "'");
+            System.out.println("May also try to write:   pvput struct 'flag2=true'");
 
             // Update value and timestamp
             while (true)
