@@ -30,8 +30,6 @@ import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,6 +39,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class SaveAndRestoreService {
@@ -50,7 +50,7 @@ public class SaveAndRestoreService {
     private final List<NodeChangedListener> nodeChangeListeners = Collections.synchronizedList(new ArrayList<>());
     private final List<NodeAddedListener> nodeAddedListeners = Collections.synchronizedList(new ArrayList<>());
 
-    private static final Logger LOG = LoggerFactory.getLogger(SaveAndRestoreService.class.getName());
+    private static final Logger LOG = Logger.getLogger(SaveAndRestoreService.class.getName());
 
     private static SaveAndRestoreService instance;
 
@@ -73,7 +73,7 @@ public class SaveAndRestoreService {
         try {
             return future.get();
         } catch (Exception ie) {
-            LOG.error("Unable to retrieve root node, cause: " + ie.getMessage());
+            LOG.log(Level.SEVERE, "Unable to retrieve root node, cause: " + ie.getMessage());
         }
         return null;
     }
@@ -83,7 +83,7 @@ public class SaveAndRestoreService {
         try {
             return future.get();
         } catch (Exception ie) {
-            LOG.error("Unable to retrieve node " + uniqueNodeId + ", cause: " + ie.getMessage());
+            LOG.log(Level.SEVERE,"Unable to retrieve node " + uniqueNodeId + ", cause: " + ie.getMessage());
         }
         return null;
     }
@@ -93,7 +93,7 @@ public class SaveAndRestoreService {
         try {
             return future.get();
         } catch (Exception ie) {
-            LOG.error("Unable to retrieve child nodes of node " + node.getUniqueId() + ", cause: " + ie.getMessage());
+            LOG.log(Level.SEVERE,"Unable to retrieve child nodes of node " + node.getUniqueId() + ", cause: " + ie.getMessage());
         }
         return null;
     }

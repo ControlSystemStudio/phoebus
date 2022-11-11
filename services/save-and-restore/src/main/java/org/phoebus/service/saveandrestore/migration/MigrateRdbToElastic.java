@@ -167,7 +167,8 @@ public class MigrateRdbToElastic {
                     legacySnapshotNode.setDescription(legacySnapshotNode.getProperties().get("comment"));
                 }
                 List<Tag> tags;
-                if (legacySnapshotNode.getProperties().get("golden") != null) {
+                if (legacySnapshotNode.getProperties().get("golden") != null  &&
+                        legacySnapshotNode.getProperties().get("golden").equals("true")) {
                     if (legacySnapshotNode.getTags() == null) {
                         tags = new ArrayList<>();
                         legacySnapshotNode.setTags(tags);

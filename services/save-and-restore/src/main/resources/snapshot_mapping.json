@@ -7,8 +7,19 @@
       "snapshotItems" : {
         "type" : "nested",
         "properties": {
-          "data": {
-            "type": "text"
+          "configPv": {
+            "properties": {
+              "pvName" : {
+                "type": "keyword"
+              },
+              "readOnly": {
+                "type" : "boolean"
+              }
+            }
+          },
+          "value": {
+            "enabled": false,
+            "type": "object"
           }
         }
       }
