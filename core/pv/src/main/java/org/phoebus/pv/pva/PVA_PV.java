@@ -52,7 +52,7 @@ public class PVA_PV extends PV
         {   // When connected, subscribe to updates
             try
             {
-                channel.subscribe(name_helper.getReadRequest(), this::handleMonitor);
+                channel.subscribe(name_helper.getRequest(), this::handleMonitor);
             }
             catch (Exception ex)
             {
@@ -98,7 +98,7 @@ public class PVA_PV extends PV
     @Override
     public Future<VType> asyncRead() throws Exception
     {
-        final Future<PVAStructure> data = channel.read(name_helper.getReadRequest());
+        final Future<PVAStructure> data = channel.read(name_helper.getRequest());
         // Wrap into Future that converts PVAStructure into VType
         return new Future<>()
         {
@@ -174,7 +174,7 @@ public class PVA_PV extends PV
         // response checked below.
 
         // Perform a plain "put", not "put-callback"
-        final Future<Void> response = channel.write(false, name_helper.getWriteRequest(), new_value);
+        final Future<Void> response = channel.write(false, name_helper.getRequest(), new_value);
 
         // Compared to Channel Access, PVA currently offers no
         // information about writable vs. read-only channels.
@@ -196,7 +196,7 @@ public class PVA_PV extends PV
         // i.e., process target and block until processing completes,
         // akin to a Channel Access put-callback.
         // Return the Future that can be used to await completion
-        return channel.write(true, name_helper.getWriteRequest(), new_value);
+        return channel.write(true, name_helper.getRequest(), new_value);
     }
 
     @Override
