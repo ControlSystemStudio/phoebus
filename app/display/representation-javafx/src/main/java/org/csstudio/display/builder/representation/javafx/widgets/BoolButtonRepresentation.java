@@ -17,6 +17,7 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.properties.ConfirmDialog;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.BoolButtonWidget;
@@ -82,6 +83,10 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
     private final WidgetPropertyListener<Integer> bitChangedListener = this::bitChanged;
     private final WidgetPropertyListener<Boolean> enablementChangedListener = this::enablementChanged;
     private final WidgetPropertyListener<VType> valueChangedListener = this::valueChanged;
+    private final WidgetPropertyListener<Mode> modeChangeListener = this::modeChanged;
+    private final WidgetPropertyListener<ConfirmDialog> confirmDialogWidgetPropertyListener = this::confirmationDialogChanged;
+
+    private ConfirmDialog selectedConfirmationDialog;
 
     @Override
     public Pane createJFXNode() throws Exception
@@ -98,6 +103,8 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
 
         // Fix initial layout
         toolkit.execute(() -> Platform.runLater(button::requestLayout));
+
+        selectedConfirmationDialog = model_widget.propConfirmDialog().getValue();
 
         if (! toolkit.isEditMode())
         {
@@ -187,11 +194,14 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
         model_widget.runtimePropPVWritable().addPropertyListener(enablementChangedListener);
         model_widget.propBit().addPropertyListener(bitChangedListener);
         model_widget.runtimePropValue().addPropertyListener(valueChangedListener);
+        model_widget.propMode().addPropertyListener(modeChangeListener);
+        model_widget.propConfirmDialog().addPropertyListener(confirmDialogWidgetPropertyListener);
 
         imagesChanged(null, null, null);
         bitChanged(model_widget.propBit(), null, model_widget.propBit().getValue());
         enablementChanged(null, null, null);
         valueChanged(null, null, model_widget.runtimePropValue().getValue());
+
     }
 
     @Override
@@ -213,6 +223,8 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
         model_widget.runtimePropPVWritable().removePropertyListener(enablementChangedListener);
         model_widget.propBit().removePropertyListener(bitChangedListener);
         model_widget.runtimePropValue().removePropertyListener(valueChangedListener);
+        model_widget.propMode().removePropertyListener(modeChangeListener);
+        model_widget.propMode().removePropertyListener(confirmDialogWidgetPropertyListener);
         super.unregisterListeners();
     }
 
@@ -259,6 +271,26 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
 
         rt_value = VTypeUtil.getValueNumber(new_value).intValue();
         stateChanged();
+    }
+
+    private void modeChanged(final WidgetProperty<Mode> property, final Mode old_value, final Mode new_value){
+        if(!new_value.equals(Mode.TOGGLE)){
+            model_widget.propConfirmDialog().setValue(ConfirmDialog.NONE);
+        }
+        else{
+            model_widget.propConfirmDialog().setValue(selectedConfirmationDialog);
+        }
+    }
+
+    private void confirmationDialogChanged(final WidgetProperty<ConfirmDialog> property, final ConfirmDialog old_value, final ConfirmDialog new_value){
+        if(!model_widget.propMode().getValue().equals(Mode.TOGGLE) && !new_value.equals(ConfirmDialog.NONE)){
+            Platform.runLater(() -> model_widget.propConfirmDialog().setValue(ConfirmDialog.NONE));
+            selectedConfirmationDialog = ConfirmDialog.NONE;
+        }
+        else{
+            Platform.runLater(() ->  model_widget.propConfirmDialog().setValue(new_value));
+            selectedConfirmationDialog = new_value;
+        }
     }
 
     private void imagesChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
