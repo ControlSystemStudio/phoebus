@@ -452,11 +452,19 @@ public class ElasticsearchDAO implements NodeDAO {
 
     @Override
     public Configuration createConfiguration(String parentNodeId, Configuration configuration) {
+
         configuration.getConfigurationNode().setNodeType(NodeType.CONFIGURATION); // Force node type
         Node newConfigurationNode = createNode(parentNodeId, configuration.getConfigurationNode());
         configuration.getConfigurationData().setUniqueId(newConfigurationNode.getUniqueId());
 
-        ConfigurationData newConfigurationData = configurationDataRepository.save(configuration.getConfigurationData());
+        ConfigurationData newConfigurationData = null;
+        try {
+            newConfigurationData = configurationDataRepository.save(configuration.getConfigurationData());
+        } catch (Exception e) {
+            // Saving configuration data failed, delete node for sake of consistency
+            deleteNode(newConfigurationNode);
+            throw new RuntimeException(e);
+        }
 
         Configuration newConfiguration = new Configuration();
         newConfiguration.setConfigurationNode(newConfigurationNode);
@@ -581,7 +589,14 @@ public class ElasticsearchDAO implements NodeDAO {
         Node newSnapshotNode = createNode(parentNodeId, snapshot.getSnapshotNode());
         snapshot.getSnapshotData().setUniqueId(newSnapshotNode.getUniqueId());
 
-        SnapshotData newSnapshotData = snapshotDataRepository.save(snapshot.getSnapshotData());
+        SnapshotData newSnapshotData = null;
+        try {
+            newSnapshotData = snapshotDataRepository.save(snapshot.getSnapshotData());
+        } catch (Exception e) {
+            // Failed to save snapshot data, delete node for the sake of consistency
+            deleteNode(newSnapshotNode);
+            throw new RuntimeException(e);
+        }
 
         Snapshot newSnapshot = new Snapshot();
         newSnapshot.setSnapshotData(newSnapshotData);

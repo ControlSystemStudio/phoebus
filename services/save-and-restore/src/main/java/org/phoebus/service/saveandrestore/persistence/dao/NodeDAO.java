@@ -108,6 +108,12 @@ public interface NodeDAO {
      */
     List<Node> getSnapshots(String uniqueNodeId);
 
+    /**
+     * Saves the {@link org.phoebus.applications.saveandrestore.model.Snapshot} to the persistence layer.
+     * @param parentNodeId The unique id of the parent {@link Node} for the new {@link Snapshot}.
+     * @param snapshot The {@link Snapshot} data.
+     * @return The persisted {@link Snapshot} data.
+     */
     Snapshot saveSnapshot(String parentNodeId, Snapshot snapshot);
 
     /**
@@ -121,8 +127,14 @@ public interface NodeDAO {
      */
     Node updateNode(Node nodeToUpdate, boolean customTimeForMigration);
 
+    /**
+     * @return All {@link Tag}s across all {@link Node}s
+     */
     List<Tag> getAllTags();
 
+    /**
+     * @return All snapshot {@link Node}s, irrespective of location in the tree structure.
+     */
     List<Node> getAllSnapshots();
 
     /**
@@ -149,8 +161,19 @@ public interface NodeDAO {
      */
     String getFullPath(String uniqueNodeId);
 
+    /**
+     * Saves the {@link org.phoebus.applications.saveandrestore.model.Configuration} to the persistence layer.
+     * @param parentNodeId The unique id of the parent {@link Node} for the new {@link Configuration}.
+     * @param configuration The {@link Configuration} data.
+     * @return The persisted {@link Configuration} data.
+     */
     Configuration createConfiguration(String parentNodeId, Configuration configuration);
 
+    /**
+     * Retrieves the {@link ConfigurationData} for the specified (unique) id.
+     * @param uniqueId Id of the configuration {@link Node}
+     * @return A {@link ConfigurationData} object.
+     */
     ConfigurationData getConfigurationData(String uniqueId);
 
     /**
@@ -163,10 +186,35 @@ public interface NodeDAO {
      */
     Configuration updateConfiguration(Configuration configuration);
 
+    /**
+     * Retrieves the {@link SnapshotData} for the specified (unique) id.
+     * @param uniqueId Id of the snapshot {@link Node}
+     * @return A {@link SnapshotData} object.
+     */
     SnapshotData getSnapshotData(String uniqueId);
 
+    /**
+     * Determines of a move or copy operation is allowed.
+     * @param nodesToMove List of {@link Node}s subject to move/copy.
+     * @param targetNode The target {@link Node} of the move/copy operation
+     * @return <code>true</code> if the list of {@link Node}s can be moved/copied,
+     * otherwise <code>false</code>.
+     */
     boolean isMoveOrCopyAllowed(List<Node> nodesToMove, Node targetNode);
 
-    Node findParentFromPathElements(Node node, String[] pathElements, int depth);
+    /**
+     * Finds the {@link Node} corresponding to the parent of last element in the split path. For instance, given a
+     * path like /pathelement1/pathelement2/pathelement3/pathelement4, this method returns the {@link Node}
+     * for pathelement3. For the special case /pathelement1, this method returns the root {@link Node}.
+     * If any of the path elements cannot be found, or if the last path
+     * element is not a folder, <code>null</code> is returned.
+     *
+     * @param parentNode The parent node from which to continue search.
+     * @param splitPath  An array of path elements assumed to be ordered from top level
+     *                   folder and downwards.
+     * @param index      The index in the <code>splitPath</code> to match node names.
+     * @return The {@link Node} corresponding to the last path element, or <code>null</code>.
+     */
+    Node findParentFromPathElements(Node parentNode, String[] splitPath, int index);
 
 }
