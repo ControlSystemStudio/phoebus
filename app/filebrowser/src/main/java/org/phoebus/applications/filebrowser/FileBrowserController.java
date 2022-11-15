@@ -1,25 +1,5 @@
 package org.phoebus.applications.filebrowser;
 
-import static org.phoebus.applications.filebrowser.FileBrowser.logger;
-
-import java.io.File;
-import java.net.URI;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
-import org.phoebus.framework.selection.SelectionService;
-import org.phoebus.framework.spi.AppResourceDescriptor;
-import org.phoebus.framework.util.ResourceParser;
-import org.phoebus.framework.workbench.ApplicationService;
-import org.phoebus.ui.application.ApplicationLauncherService;
-import org.phoebus.ui.application.ContextMenuService;
-import org.phoebus.ui.application.PhoebusApplication;
-import org.phoebus.ui.dialog.DialogHelper;
-import org.phoebus.ui.javafx.ImageCache;
-
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -45,7 +25,27 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.framework.util.ResourceParser;
+import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.application.ApplicationLauncherService;
+import org.phoebus.ui.application.ContextMenuService;
+import org.phoebus.ui.application.PhoebusApplication;
+import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.ContextMenuEntry;
+
+import java.io.File;
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Level;
+
+import static org.phoebus.applications.filebrowser.FileBrowser.logger;
 
 /**
  * Controller for the file browser app
@@ -400,54 +400,37 @@ public class FileBrowserController {
         else
         {
             // allMatch() would return true for empty, so only check if there are items
-            if (selectedItems.stream().allMatch(item -> item.isLeaf()))
+            if (selectedItems.stream().allMatch(item -> item.isLeaf())){
                 contextMenu.getItems().add(open);
-
-            // If just one entry selected, check if there are multiple apps from which to select
-            if (selectedItems.size() == 1)
-            {
-                final File file = selectedItems.get(0).getValue().file;
-                final URI resource = ResourceParser.getURI(file);
-                final List<AppResourceDescriptor> applications = ApplicationService.getApplications(resource);
-                if (applications.size() > 0)
-                {
-                    openWith.getItems().clear();
-                    for (AppResourceDescriptor app : applications)
-                    {
-                        final MenuItem open_app = new MenuItem(app.getDisplayName());
-                        final URL icon_url = app.getIconURL();
-                        if (icon_url != null)
-                            open_app.setGraphic(new ImageView(icon_url.toExternalForm()));
-                        open_app.setOnAction(event -> app.create(resource));
-                        openWith.getItems().add(open_app);
-                    }
-                    contextMenu.getItems().add(openWith);
-                }
-
-                if (file.isDirectory())
-                {
-                    contextMenu.getItems().add(new SetBaseDirectory(file, this::setRoot));
-                    contextMenu.getItems().add(new SeparatorMenuItem());
-                }
-
-                SelectionService.getInstance().setSelection(this, Arrays.asList(file));
-                List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
-                supported.stream().forEach(action -> {
-                    MenuItem menuItem = new MenuItem(action.getName(), new ImageView(action.getIcon()));
-                    menuItem.setOnAction((ee) -> {
-                        try {
-                            action.call(SelectionService.getInstance().getSelection());
-                        } catch (Exception ex) {
-                            logger.log(Level.WARNING, "Failed to execute " + action.getName() + " from file browser.", ex);
-                        }
-                    });
-                    contextMenu.getItems().add(menuItem);
-                });
-                if(!supported.isEmpty()){
-                    contextMenu.getItems().add(new SeparatorMenuItem());
-                }
             }
 
+            File file = selectedItems.get(0).getValue().file;
+            configureOpenWithMenuItem(selectedItems);
+
+            if (selectedItems.size() == 1) {
+                if(file.isDirectory()){
+                    contextMenu.getItems().add(new SetBaseDirectory(file, this::setRoot));
+                    contextMenu.getItems().add(new SeparatorMenuItem());
+
+
+                    SelectionService.getInstance().setSelection(this, Arrays.asList(file));
+                    List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
+                    supported.stream().forEach(action -> {
+                        MenuItem menuItem = new MenuItem(action.getName(), new ImageView(action.getIcon()));
+                        menuItem.setOnAction((ee) -> {
+                            try {
+                                action.call(SelectionService.getInstance().getSelection());
+                            } catch (Exception ex) {
+                                logger.log(Level.WARNING, "Failed to execute " + action.getName() + " from file browser.", ex);
+                            }
+                        });
+                        contextMenu.getItems().add(menuItem);
+                    });
+                    if (!supported.isEmpty()) {
+                        contextMenu.getItems().add(new SeparatorMenuItem());
+                    }
+                }
+            }
             contextMenu.getItems().add(new CopyPath(selectedItems));
             contextMenu.getItems().add(new SeparatorMenuItem());
         }
@@ -539,5 +522,66 @@ public class FileBrowserController {
     public void shutdown()
     {
         monitor.shutdown();
+    }
+
+    /**
+     * Configures the "Open With" menu item according to:
+     * <ul>
+     *     <li>If user has selected multiple items and they are of different type, the Open With menu item
+     *     is not added.</li>
+     *     <li>If all selected items are of same type, the Open With menu item will be added and the
+     *     the sub-menu items will open all items. This also covers the case when only one item is selected.</li>
+     * </ul>
+     * @param selectedItems List of items selected by user in the tree table view.
+     */
+    private void configureOpenWithMenuItem(List<TreeItem<FileInfo>> selectedItems){
+        if(!areSelectedFilesOfSameType(selectedItems)) {
+            openWith.getItems().clear();
+            return;
+        }
+        // If we make it here, getting the first file to determine actions should be fine since each item in the selection
+        // is of the same "type".
+        final File file = selectedItems.get(0).getValue().file;
+        final URI resource = ResourceParser.getURI(file);
+        final List<AppResourceDescriptor> applications = ApplicationService.getApplications(resource);
+        if (applications.size() > 0)
+        {
+            openWith.getItems().clear();
+            for (AppResourceDescriptor app : applications)
+            {
+                final MenuItem open_app = new MenuItem(app.getDisplayName());
+                final URL icon_url = app.getIconURL();
+                if (icon_url != null)
+                    open_app.setGraphic(new ImageView(icon_url.toExternalForm()));
+                open_app.setOnAction(event -> {
+                    for(TreeItem<FileInfo> item : selectedItems){
+                        URI u = ResourceParser.getURI(item.getValue().file);
+                        app.create(u);
+                    }
+                });
+                openWith.getItems().add(open_app);
+            }
+            contextMenu.getItems().add(openWith);
+        }
+    }
+
+    /**
+     * Examines the file selection to determine whether all files are of the same type. A type is
+     * defined by the file extension (case-insensitive substring after last dot).
+     * @param selectedItems Items selected by user in the tree table view
+     * @return <code>true</code> if all selected files have same (case-insensitive) extension.
+     */
+    private boolean areSelectedFilesOfSameType(List<TreeItem<FileInfo>> selectedItems){
+        File file = selectedItems.get(0).getValue().file;
+        String firstExtension = file.getPath().substring(file.getPath().lastIndexOf(".") + 1).toLowerCase();
+        for(int i = 1; i < selectedItems.size(); i++){
+            file = selectedItems.get(i).getValue().file;
+            String nextExtension = file.getPath().substring(file.getPath().lastIndexOf(".") + 1).toLowerCase();
+            if(!firstExtension.equals(nextExtension)){
+                return false;
+            }
+        }
+
+        return true;
     }
 }
