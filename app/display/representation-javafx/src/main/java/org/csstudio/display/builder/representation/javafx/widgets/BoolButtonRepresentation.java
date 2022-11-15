@@ -12,6 +12,7 @@ import static org.csstudio.display.builder.representation.ToolkitRepresentation.
 import java.util.List;
 import java.util.logging.Level;
 
+import javafx.scene.control.Alert;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
@@ -23,8 +24,10 @@ import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.BoolButtonWidget;
 import org.csstudio.display.builder.model.widgets.BoolButtonWidget.Mode;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.csstudio.display.builder.representation.javafx.Messages;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VType;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.Styles;
 
 import javafx.application.Platform;
@@ -86,8 +89,6 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
     private final WidgetPropertyListener<Mode> modeChangeListener = this::modeChanged;
     private final WidgetPropertyListener<ConfirmDialog> confirmDialogWidgetPropertyListener = this::confirmationDialogChanged;
 
-    private ConfirmDialog selectedConfirmationDialog;
-
     @Override
     public Pane createJFXNode() throws Exception
     {
@@ -103,8 +104,6 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
 
         // Fix initial layout
         toolkit.execute(() -> Platform.runLater(button::requestLayout));
-
-        selectedConfirmationDialog = model_widget.propConfirmDialog().getValue();
 
         if (! toolkit.isEditMode())
         {
@@ -274,22 +273,16 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
     }
 
     private void modeChanged(final WidgetProperty<Mode> property, final Mode old_value, final Mode new_value){
-        if(!new_value.equals(Mode.TOGGLE)){
-            model_widget.propConfirmDialog().setValue(ConfirmDialog.NONE);
-        }
-        else{
-            model_widget.propConfirmDialog().setValue(selectedConfirmationDialog);
+        if(!new_value.equals(Mode.TOGGLE) && !model_widget.propConfirmDialog().getValue().equals(ConfirmDialog.NONE)){
+            showUnsupportedConfigurationDialog();
+            Platform.runLater(() -> model_widget.propMode().setValue(old_value));
         }
     }
 
     private void confirmationDialogChanged(final WidgetProperty<ConfirmDialog> property, final ConfirmDialog old_value, final ConfirmDialog new_value){
-        if(!model_widget.propMode().getValue().equals(Mode.TOGGLE) && !new_value.equals(ConfirmDialog.NONE)){
-            Platform.runLater(() -> model_widget.propConfirmDialog().setValue(ConfirmDialog.NONE));
-            selectedConfirmationDialog = ConfirmDialog.NONE;
-        }
-        else{
-            Platform.runLater(() ->  model_widget.propConfirmDialog().setValue(new_value));
-            selectedConfirmationDialog = new_value;
+        if(!new_value.equals(ConfirmDialog.NONE) && !model_widget.propMode().getValue().equals(Mode.TOGGLE)){
+            showUnsupportedConfigurationDialog();
+            Platform.runLater(() -> model_widget.propConfirmDialog().setValue(old_value));
         }
     }
 
@@ -423,5 +416,17 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
     protected boolean isFilteringEditModeClicks()
     {
         return true;
+    }
+
+    /**
+     * Displays an error message. To be called when an unsupported
+     * combination of mode and confirmation dialog is selected.
+     */
+    private void showUnsupportedConfigurationDialog(){
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(Messages.BoolButtonError_Title);
+        alert.setHeaderText(Messages.BoolButtonError_Body);
+        DialogHelper.positionDialog(alert, jfx_node, 25, 25);
+        alert.showAndWait();
     }
 }
