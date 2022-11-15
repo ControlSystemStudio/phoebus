@@ -12,18 +12,22 @@ import static org.csstudio.display.builder.representation.ToolkitRepresentation.
 import java.util.List;
 import java.util.logging.Level;
 
+import javafx.scene.control.Alert;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.properties.ConfirmDialog;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.BoolButtonWidget;
 import org.csstudio.display.builder.model.widgets.BoolButtonWidget.Mode;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.csstudio.display.builder.representation.javafx.Messages;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VType;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.Styles;
 
 import javafx.application.Platform;
@@ -82,6 +86,8 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
     private final WidgetPropertyListener<Integer> bitChangedListener = this::bitChanged;
     private final WidgetPropertyListener<Boolean> enablementChangedListener = this::enablementChanged;
     private final WidgetPropertyListener<VType> valueChangedListener = this::valueChanged;
+    private final WidgetPropertyListener<Mode> modeChangeListener = this::modeChanged;
+    private final WidgetPropertyListener<ConfirmDialog> confirmDialogWidgetPropertyListener = this::confirmationDialogChanged;
 
     @Override
     public Pane createJFXNode() throws Exception
@@ -187,11 +193,14 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
         model_widget.runtimePropPVWritable().addPropertyListener(enablementChangedListener);
         model_widget.propBit().addPropertyListener(bitChangedListener);
         model_widget.runtimePropValue().addPropertyListener(valueChangedListener);
+        model_widget.propMode().addPropertyListener(modeChangeListener);
+        model_widget.propConfirmDialog().addPropertyListener(confirmDialogWidgetPropertyListener);
 
         imagesChanged(null, null, null);
         bitChanged(model_widget.propBit(), null, model_widget.propBit().getValue());
         enablementChanged(null, null, null);
         valueChanged(null, null, model_widget.runtimePropValue().getValue());
+
     }
 
     @Override
@@ -213,6 +222,8 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
         model_widget.runtimePropPVWritable().removePropertyListener(enablementChangedListener);
         model_widget.propBit().removePropertyListener(bitChangedListener);
         model_widget.runtimePropValue().removePropertyListener(valueChangedListener);
+        model_widget.propMode().removePropertyListener(modeChangeListener);
+        model_widget.propMode().removePropertyListener(confirmDialogWidgetPropertyListener);
         super.unregisterListeners();
     }
 
@@ -259,6 +270,20 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
 
         rt_value = VTypeUtil.getValueNumber(new_value).intValue();
         stateChanged();
+    }
+
+    private void modeChanged(final WidgetProperty<Mode> property, final Mode old_value, final Mode new_value){
+        if(!new_value.equals(Mode.TOGGLE) && !model_widget.propConfirmDialog().getValue().equals(ConfirmDialog.NONE)){
+            showUnsupportedConfigurationDialog();
+            Platform.runLater(() -> model_widget.propMode().setValue(old_value));
+        }
+    }
+
+    private void confirmationDialogChanged(final WidgetProperty<ConfirmDialog> property, final ConfirmDialog old_value, final ConfirmDialog new_value){
+        if(!new_value.equals(ConfirmDialog.NONE) && !model_widget.propMode().getValue().equals(Mode.TOGGLE)){
+            showUnsupportedConfigurationDialog();
+            Platform.runLater(() -> model_widget.propConfirmDialog().setValue(old_value));
+        }
     }
 
     private void imagesChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
@@ -391,5 +416,17 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
     protected boolean isFilteringEditModeClicks()
     {
         return true;
+    }
+
+    /**
+     * Displays an error message. To be called when an unsupported
+     * combination of mode and confirmation dialog is selected.
+     */
+    private void showUnsupportedConfigurationDialog(){
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(Messages.BoolButtonError_Title);
+        alert.setHeaderText(Messages.BoolButtonError_Body);
+        DialogHelper.positionDialog(alert, jfx_node, 25, 25);
+        alert.showAndWait();
     }
 }
