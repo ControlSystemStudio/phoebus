@@ -1,13 +1,16 @@
 package org.phoebus.applications.saveandrestore.model;
 
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertNotEquals;
+import org.junit.jupiter.api.Test;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class NodeTest {
 
@@ -59,8 +62,8 @@ public class NodeTest {
 		
 		Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("c1").build();
 		Node config2 = Node.builder().nodeType(NodeType.CONFIGURATION).name("c2").build();
-		
-		assertTrue(folder3.compareTo(folder1) == 0);
+
+		assertEquals(0, folder3.compareTo(folder1));
 		assertTrue(folder2.compareTo(folder1) > 0);
 		assertTrue(folder1.compareTo(folder2) < 0);
 		
@@ -128,10 +131,10 @@ public class NodeTest {
 		Node node1 = Node.builder().uniqueId("unique").nodeType(NodeType.FOLDER).build();
 		Node node2 = Node.builder().uniqueId("unique").nodeType(NodeType.CONFIGURATION).build();
 		Node node3 = Node.builder().uniqueId("unique").nodeType(NodeType.FOLDER).build();
-		
-		assertFalse(node1.equals(null));
-		assertFalse(node1.equals(node2));
-		assertTrue(node1.equals(node3));
-		assertFalse(node1.equals(new Object()));
+
+		assertNotEquals(null, node1);
+		assertNotEquals(node1, node2);
+		assertEquals(node1, node3);
+		assertNotEquals(node1, new Object());
 	}
 }

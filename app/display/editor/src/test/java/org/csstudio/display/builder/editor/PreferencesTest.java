@@ -7,8 +7,9 @@
  *******************************************************************************/
 package org.csstudio.display.builder.editor;
 
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /** JUnit test of editor preferences
  *  @author Kay Kasemir

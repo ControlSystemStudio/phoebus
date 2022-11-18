@@ -25,9 +25,9 @@ import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VStatistics;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ArrayStatsFunctionTest {
 
@@ -43,8 +43,10 @@ public class ArrayStatsFunctionTest {
 
         VStatistics stats = (VStatistics) arrayStatsFunction.compute(numberArray);
 
-        assertEquals("arrayStats Failed to calculate min", Double.valueOf(1), stats.getMin());
-        assertEquals("arrayStats Failed to calculate max", Double.valueOf(2), stats.getMax());
+        assertEquals( Double.valueOf(1), stats.getMin(),
+                "arrayStats Failed to calculate min");
+        assertEquals(Double.valueOf(2), stats.getMax(),
+                "arrayStats Failed to calculate max");
 
     }
 }

@@ -7,6 +7,9 @@
  ******************************************************************************/
 package org.csstudio.javafx.rtplot.util;
 
+import org.csstudio.javafx.rtplot.internal.util.TemporalRounding;
+import org.junit.jupiter.api.Test;
+
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.Instant;
@@ -15,8 +18,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Locale;
-import org.csstudio.javafx.rtplot.internal.util.TemporalRounding;
-import org.junit.Test;
 
 import static org.csstudio.javafx.rtplot.internal.util.TemporalRounding.SUPPORTED_UNITS;
 import static org.csstudio.javafx.rtplot.internal.util.TemporalRounding.instanceRoundedToNextOrSame;
@@ -25,8 +26,8 @@ import static org.csstudio.javafx.rtplot.internal.util.TemporalRounding.roundUp;
 import static org.csstudio.javafx.rtplot.internal.util.TemporalRounding.roundUpOrSame;
 import static org.csstudio.javafx.rtplot.internal.util.TemporalRounding.zonedDateTimerRoundedToNextOrSame;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /** JUnit test of {@link TemporalRounding}
  *  @author Kay Kasemir

@@ -7,14 +7,14 @@
  ******************************************************************************/
 package org.epics.pva.client;
 
+import org.epics.pva.PVASettings;
+import org.epics.pva.data.PVAStructure;
+import org.junit.jupiter.api.Test;
+
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
-
-import org.epics.pva.PVASettings;
-import org.epics.pva.data.PVAStructure;
-import org.junit.Test;
 
 /** Client demo for IPv6ServerDemo
  *  @author Kay Kasemir

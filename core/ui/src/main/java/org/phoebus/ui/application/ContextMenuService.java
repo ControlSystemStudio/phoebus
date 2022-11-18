@@ -2,6 +2,7 @@ package org.phoebus.ui.application;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.ServiceLoader.Provider;
@@ -82,10 +83,10 @@ public class ContextMenuService {
         final List<ContextMenuEntry> result = contextMenuEntries
             .stream()
             .filter(p -> {
-                return allAdaptableSelectionType.contains(p.getSupportedType());
+                return p.isEnabled() && allAdaptableSelectionType.contains(p.getSupportedType());
             })
             .collect(Collectors.toList());
-        result.sort((a, b) -> a.getName().compareTo(b.getName()));
+        result.sort(Comparator.comparing(ContextMenuEntry::getName));
         return result;
     }
 }

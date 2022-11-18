@@ -15,7 +15,8 @@ import org.csstudio.scan.data.ScanDataIterator;
 import org.csstudio.scan.data.ScanSample;
 import org.csstudio.scan.info.Scan;
 import org.csstudio.scan.server.ScanServerInstance;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 
 @SuppressWarnings("nls")
 public class DerbyLogDemo

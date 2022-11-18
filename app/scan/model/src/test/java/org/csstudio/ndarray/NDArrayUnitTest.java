@@ -7,12 +7,13 @@
  */
 package org.csstudio.ndarray;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
+import org.junit.jupiter.api.Test;
 
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 /** JUnit tests of the {@link NDArray}
  *  @author Kay Kasemir
@@ -81,12 +82,12 @@ public class NDArrayUnitTest
         assertEquals(a, b);
         // Differ in value
         a.setDouble(42, 3);
-        assertFalse(a.equals(b));
+        assertNotEquals(a, b);
 
         a = NDArray.create(new int[][] { { 1, 2}, {3, 4} });
         b = NDArray.create(new int[] { 1, 2, 3, 4 });
         // Different shape
-        assertFalse(a.equals(b));
+        assertNotEquals(a, b);
         // Now equal in value and shape
         b = NDMatrix.reshape(b, 2, 2);
         assertEquals(a, b);

@@ -7,9 +7,9 @@
  */
 package org.csstudio.ndarray;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.Test;
 
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /** JUnit test of {@link NDCompatibility}
  *  @author Kay Kasemir

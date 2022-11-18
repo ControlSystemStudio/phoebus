@@ -27,9 +27,9 @@ import org.epics.vtype.VDoubleArray;
 import org.epics.vtype.VInt;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class HistogramOfFunctionTest {
 
@@ -65,6 +65,6 @@ public class HistogramOfFunctionTest {
 
         vNumberArray = (VNumberArray)function.compute(vNumber);
 
-        assertTrue(Double.valueOf(vNumberArray.getData().getDouble(0)).equals(Double.NaN));
+        assertEquals(Double.NaN, Double.valueOf(vNumberArray.getData().getDouble(0)));
     }
 }

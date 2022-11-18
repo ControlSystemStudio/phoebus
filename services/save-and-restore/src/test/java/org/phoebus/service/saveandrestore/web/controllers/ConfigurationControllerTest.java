@@ -20,11 +20,10 @@ package org.phoebus.service.saveandrestore.web.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -37,33 +36,37 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.ContextHierarchy;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-@RunWith(SpringRunner.class)
-@ContextHierarchy({ @ContextConfiguration(classes = { ControllersTestConfig.class}) })
-@WebMvcTest(ConfigurationController.class)
 
 /**
  * Main purpose of the tests in this class is to verify that REST end points are
  * maintained, i.e. that URLs are not changed and that they return the correct
  * data.
- * 
+ *
  * @author Georg Weiss, European Spallation Source
  *
  */
+@ExtendWith(SpringExtension.class)
+@ContextHierarchy({ @ContextConfiguration(classes = { ControllersTestConfig.class}) })
+@WebMvcTest(ConfigurationController.class)
+@SuppressWarnings("unused")
+
 public class ConfigurationControllerTest {
 
 	@Autowired
@@ -72,20 +75,20 @@ public class ConfigurationControllerTest {
 	@Autowired
 	private MockMvc mockMvc;
 
-	private Node folderFromClient;
+	private static Node folderFromClient;
 
-	private Node rootNode;
+	private static Node rootNode;
 
-	private Node config1;
+	private static Node config1;
 
-	private Node snapshot;
+	private static Node snapshot;
 	
-	private ObjectMapper objectMapper = new ObjectMapper();
+	private final ObjectMapper objectMapper = new ObjectMapper();
 
-	private static final String JSON = "application/json;charset=UTF-8";
+	private static final String JSON = "application/json";
 
-	@Before
-	public void setUp() {
+	@BeforeAll
+	public static void setUp() {
 
 		config1 = Node.builder().nodeType(NodeType.CONFIGURATION).uniqueId("a")
 				.userName("myusername").build();
@@ -161,11 +164,7 @@ public class ConfigurationControllerTest {
 		
 		Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("config").uniqueId("hhh")
 				.userName("user").build();
-		when(services.createNode("p", config)).thenAnswer(new Answer<Node>() {
-			public Node answer(InvocationOnMock invocation) throws Throwable {
-				return config1;
-			}
-		});
+		when(services.createNode("p", config)).thenAnswer((Answer<Node>) invocation -> config1);
 		
 		MockHttpServletRequestBuilder request = put("/node/p").contentType(JSON).content(objectMapper.writeValueAsString(config));
 
@@ -208,11 +207,7 @@ public class ConfigurationControllerTest {
 	public void testGetChildNodes() throws Exception{
 		reset(services);
 		
-		when(services.getChildNodes("p")).thenAnswer(new Answer<List<Node>>() {
-			public List<Node> answer(InvocationOnMock invocation) throws Throwable {
-				return Arrays.asList(config1);
-			}
-		});
+		when(services.getChildNodes("p")).thenAnswer((Answer<List<Node>>) invocation -> Collections.singletonList(config1));
 		
 		MockHttpServletRequestBuilder request = get("/node/p/children").contentType(JSON);
 		
@@ -220,7 +215,7 @@ public class ConfigurationControllerTest {
 				.andReturn();
 		
 		// Make sure response contains expected data
-		List<Node> childNodes = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<List<Node>>() {
+		List<Node> childNodes = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
 		});
 		
 		assertEquals(1, childNodes.size());
@@ -249,7 +244,7 @@ public class ConfigurationControllerTest {
 	@Test
 	public void testGetSnapshots() throws Exception {
 
-		when(services.getSnapshots("s")).thenReturn(Arrays.asList(snapshot));
+		when(services.getSnapshots("s")).thenReturn(Collections.singletonList(snapshot));
 
 		MockHttpServletRequestBuilder request = get("/config/s/snapshots").contentType(JSON);
 
@@ -284,7 +279,7 @@ public class ConfigurationControllerTest {
 	public void testDeleteNodes() throws Exception {
 		MockHttpServletRequestBuilder request = delete("/node")
 				.contentType(JSON)
-				.content(objectMapper.writeValueAsString(Arrays.asList("a")));
+				.content(objectMapper.writeValueAsString(List.of("a")));
 		mockMvc.perform(request).andExpect(status().isOk());
 	}
 
@@ -351,11 +346,11 @@ public class ConfigurationControllerTest {
 
 	@Test
 	public void testMoveNode() throws Exception {
-		when(services.moveNodes(Arrays.asList("a"), "b", "username")).thenReturn(Node.builder().id(2).uniqueId("a").build());
+		when(services.moveNodes(List.of("a"), "b", "username")).thenReturn(Node.builder().id(2).uniqueId("a").build());
 
 		MockHttpServletRequestBuilder request = post("/move")
 				.contentType(JSON)
-				.content(objectMapper.writeValueAsString(Arrays.asList("a")))
+				.content(objectMapper.writeValueAsString(List.of("a")))
 				.param("to", "b")
 				.param("username", "username");
 
@@ -370,7 +365,7 @@ public class ConfigurationControllerTest {
 	public void testMoveNodeUsernameEmpty() throws Exception {
 		MockHttpServletRequestBuilder request = post("/move")
 				.contentType(JSON)
-				.content(objectMapper.writeValueAsString(Arrays.asList("a")))
+				.content(objectMapper.writeValueAsString(List.of("a")))
 				.param("to", "b")
 				.param("username", "");
 
@@ -381,7 +376,7 @@ public class ConfigurationControllerTest {
 	public void testMoveNodeTargetIdEmpty() throws Exception {
 		MockHttpServletRequestBuilder request = post("/move")
 				.contentType(JSON)
-				.content(objectMapper.writeValueAsString(Arrays.asList("a")))
+				.content(objectMapper.writeValueAsString(List.of("a")))
 				.param("to", "")
 				.param("username", "user");
 
@@ -410,7 +405,7 @@ public class ConfigurationControllerTest {
 	public void testUpdateConfig() throws Exception {
 
 		Node config = Node.builder().nodeType(NodeType.CONFIGURATION).userName("myusername").id(0).build();
-		List<ConfigPv> configPvList = Arrays.asList(ConfigPv.builder().id(1).pvName("name").build());
+		List<ConfigPv> configPvList = Collections.singletonList(ConfigPv.builder().id(1).pvName("name").build());
 		
 		UpdateConfigHolder holder = UpdateConfigHolder.builder().config(config).configPvList(configPvList).build();
 		
@@ -444,7 +439,7 @@ public class ConfigurationControllerTest {
 		
 		mockMvc.perform(request).andExpect(status().isBadRequest());
 		
-		List<ConfigPv> configPvList = Arrays.asList(ConfigPv.builder().build());
+		List<ConfigPv> configPvList = Collections.singletonList(ConfigPv.builder().build());
 		holder.setConfigPvList(configPvList);
 		
 		when(services.updateConfiguration(holder.getConfig(), holder.getConfigPvList())).thenReturn(config);
@@ -466,7 +461,7 @@ public class ConfigurationControllerTest {
 
 		mockMvc.perform(request).andExpect(status().isBadRequest());
 		
-		configPvList = Arrays.asList(ConfigPv.builder().pvName("").build());
+		configPvList = Collections.singletonList(ConfigPv.builder().pvName("").build());
 		holder.setConfigPvList(configPvList);
 		
 		request = post("/config/a/update").contentType(JSON)
@@ -513,7 +508,7 @@ public class ConfigurationControllerTest {
 				.pvName("pvname")
 				.build();
 		
-		when(services.getConfigPvs("cpv")).thenReturn(Arrays.asList(configPv));
+		when(services.getConfigPvs("cpv")).thenReturn(Collections.singletonList(configPv));
 		
 		MockHttpServletRequestBuilder request = get("/config/cpv/items");
 			
@@ -535,11 +530,11 @@ public class ConfigurationControllerTest {
 		mockMvc.perform(request).andExpect(status().isBadRequest());
 
 		Node node = Node.builder().name("name").uniqueId("uniqueId").build();
-		when(services.getFromPath("/a/b/c")).thenReturn(Arrays.asList(node));
+		when(services.getFromPath("/a/b/c")).thenReturn(Collections.singletonList(node));
 		request = get("/path?path=/a/b/c");
 		MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
 
-		List<Node> nodes = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<List<Node>>() {
+		List<Node> nodes = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
 		});
 
 		assertEquals(1, nodes.size());

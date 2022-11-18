@@ -39,7 +39,7 @@ public class EnumWidgetPropertyBinding
     {
         // Ignore model updates while we are updating the model,
         // or while user focused on combo box to use it
-        if (updating  ||  jfx_node.isFocused())
+        if (updating)
             return;
         updating = true;
         restore();

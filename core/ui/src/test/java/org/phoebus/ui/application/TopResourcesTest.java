@@ -7,12 +7,12 @@
  ******************************************************************************/
 package org.phoebus.ui.application;
 
+import org.junit.jupiter.api.Test;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.net.URI;
-
-import org.junit.Test;
 
 /** Demo of the TopResources API
  *  @author Kay Kasemir
@@ -21,7 +21,7 @@ import org.junit.Test;
 public class TopResourcesTest
 {
     @Test
-    public void testTopResourcesParsing() throws Exception
+    public void testTopResourcesParsing()
     {
         TopResources tops = TopResources.parse("");
         assertThat(tops.size(), equalTo(0));

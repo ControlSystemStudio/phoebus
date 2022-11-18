@@ -7,18 +7,18 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model;
 
+import org.csstudio.display.builder.model.widgets.GroupWidget;
+import org.junit.jupiter.api.Test;
+import org.phoebus.framework.macros.Macros;
+
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propX;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propY;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.csstudio.display.builder.model.widgets.GroupWidget;
-import org.junit.Test;
-import org.phoebus.framework.macros.Macros;
 
 /** JUnit test of widget property subscriptions
  *  @author Kay Kasemir
@@ -102,7 +102,7 @@ public class WidgetPropertySubscriptionUnitTest
 
         final MacroizedWidgetProperty<String> name_prop = (MacroizedWidgetProperty<String>) widget.propName();
         final AtomicInteger updates = new AtomicInteger();
-        final AtomicReference<String> received_value = new AtomicReference<String>(null);
+        final AtomicReference<String> received_value = new AtomicReference<>(null);
         name_prop.addPropertyListener((prop, old_value, new_value) ->
         {
             System.out.println(prop.getName() + " changes from " + old_value + " to " + new_value);

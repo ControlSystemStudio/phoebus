@@ -18,17 +18,16 @@
 
 package org.phoebus.service.saveandrestore.persistence.dao.impl;
 
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.NodeType;
 
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 
-import org.junit.Test;
-import org.mockito.Mockito;
-
-import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.NodeType;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 /**
  * @author georgweiss Created 7 Feb 2019
@@ -47,6 +46,6 @@ public class NodeRowMapperTest {
 		when(resultSet.getString("username")).thenReturn("username");
 		when(resultSet.getString("type")).thenReturn(NodeType.FOLDER.toString());
 		
-		assertTrue(new NodeRowMapper().mapRow(resultSet, 0) instanceof Node);
+		assertTrue(new NodeRowMapper().mapRow(resultSet, 0) != null);
 	}
 }

@@ -7,36 +7,35 @@
  ******************************************************************************/
 package org.phoebus.pv;
 
+import org.epics.vtype.VType;
+import org.junit.jupiter.api.Test;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.epics.vtype.VType;
-import org.junit.Test;
-
-/** PV demos
+/**
+ * PV demos
  *
- *  <p>Needs to be adjusted to site-specific PV names.
+ * <p>Needs to be adjusted to site-specific PV names.
  *
- *  @author Kay Kasemir
+ * @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVDemo
-{
-    /** Async read is an 'active', round-trip read.
-     *  For channel access, it can trigger processing on the IOC
-     *  and await the result.
+public class PVDemo {
+    /**
+     * Async read is an 'active', round-trip read.
+     * For channel access, it can trigger processing on the IOC
+     * and await the result.
      */
     @Test
-    public void demoAsync() throws Exception
-    {
+    public void demoAsync() throws Exception {
         final PV pv = PVPool.getPV("SomePV");
 
         // The PV needs to be connected
-        try
-        {
+        try {
             CountDownLatch connect = new CountDownLatch(1);
             pv.onValueEvent().subscribe(value ->
             {
@@ -47,30 +46,27 @@ public class PVDemo
 
             // .. before an async read can be issued:
             System.out.println("Async read: " + pv.asyncRead().get(10, TimeUnit.SECONDS));
-        }
-        finally
-        {
+        } finally {
             PVPool.releasePV(pv);
         }
     }
 
-    /** Reading a value from multiple PVs */
+    /**
+     * Reading a value from multiple PVs
+     */
     @Test
-    public void demoReadMultiple() throws Exception
-    {
+    public void demoReadMultiple() throws Exception {
         // Create PVs
         final List<PV> pvs = List.of(PVPool.getPV("SomePV1"),
-                                     PVPool.getPV("SomePV2"),
-                                     PVPool.getPV("SomePV3"),
-                                     // ...
-                                     PVPool.getPV("SomePV99"));
+                PVPool.getPV("SomePV2"),
+                PVPool.getPV("SomePV3"),
+                // ...
+                PVPool.getPV("SomePV99"));
 
-        try
-        {
+        try {
             // Subscribe to all of them
             final List<CompletableFuture<VType>> latest = new ArrayList<>();
-            for (PV pv : pvs)
-            {
+            for (PV pv : pvs) {
                 final CompletableFuture<VType> done = new CompletableFuture<>();
                 latest.add(done);
                 pv.onValueEvent().subscribe(value -> done.complete(value));
@@ -79,14 +75,12 @@ public class PVDemo
             // Await update on all of them (or fail)
             // Somewhat unfortunate that 'allOf' uses array, not list...
             CompletableFuture.allOf(latest.toArray(new CompletableFuture[latest.size()]))
-                             .get(10, TimeUnit.SECONDS);
+                    .get(10, TimeUnit.SECONDS);
 
             // Print all the values
-            for (int i=0; i<pvs.size(); ++i)
+            for (int i = 0; i < pvs.size(); ++i)
                 System.out.println(pvs.get(i).getName() + " = " + latest.get(i).get());
-        }
-        finally
-        {
+        } finally {
             for (PV pv : pvs)
                 PVPool.releasePV(pv);
         }

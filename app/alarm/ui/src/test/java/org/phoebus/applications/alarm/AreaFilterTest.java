@@ -7,18 +7,20 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.hasItems;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-
-import java.util.List;
-
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.area.AreaFilter;
+
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 /** Tests the AreaFilter class and its methods.
  *  @author Evan Smith
  */
@@ -60,10 +62,10 @@ public class AreaFilterTest
 		assertEquals(SeverityLevel.OK, areaFilter.getSeverity(name));
 
 		name = areaFilter.filter(root);
-		assertEquals(null, name);
+		assertNull(name);
 
 		name = areaFilter.filter(a1l3);
-		assertEquals(null, name);
+		assertNull(name);
 
 		List<String> actual = areaFilter.getItems();
 

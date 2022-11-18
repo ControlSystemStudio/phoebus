@@ -11,8 +11,8 @@ import java.time.Instant;
 import java.util.List;
 
 import org.epics.vtype.VType;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.ValueIterator;
 import org.phoebus.archive.reader.spi.ArchiveReaderFactory;
@@ -26,18 +26,17 @@ public class XMLRPCArchiveReaderDemo
 {
     // Meant for the 'ArchiveDataServerStandalone' with ChannelArchiver/DemoData/index
 
-    private static ArchiveReaderFactory factory;
     private static ArchiveReader reader;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws Exception
     {
-        factory = new XMLRPCArchiveReaderFactory();
+        ArchiveReaderFactory factory = new XMLRPCArchiveReaderFactory();
         reader = factory.createReader("xnds://ics-web4.sns.ornl.gov:8080/RPC2?key=1");
     }
 
     @Test
-    public void testInfo() throws Exception
+    public void testInfo()
     {
         System.out.println(reader.getDescription());
     }

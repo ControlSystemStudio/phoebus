@@ -7,10 +7,10 @@
  *******************************************************************************/
 package org.csstudio.display.converter.edm.widgets;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.jupiter.api.Test;
 
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** Color rule expression test
  *  @author Kay Kasemir
@@ -19,7 +19,7 @@ import org.junit.Test;
 public class ColorRuleTest
 {
     @Test
-    public void testColorRuleExpression() throws Exception
+    public void testColorRuleExpression()
     {
         assertThat(ConverterBase.convertColorRuleExpression("=4"), equalTo("pv0==4"));
         assertThat(ConverterBase.convertColorRuleExpression(">=4"), equalTo("pv0>=4"));

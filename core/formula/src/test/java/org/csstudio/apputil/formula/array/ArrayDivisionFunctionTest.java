@@ -26,15 +26,15 @@ import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ArrayDivisionFunctionTest {
 
     @Test
-    public void compute() throws Exception{
+    public void compute() throws Exception {
         ArrayDivisionFunction arrayDivisionFunction =
                 new ArrayDivisionFunction();
 
@@ -46,7 +46,7 @@ public class ArrayDivisionFunctionTest {
         VType array2 = VNumberArray.of(ArrayDouble.of(1.0, 2.0, 5.0),
                 Alarm.none(), Time.now(), Display.none());
 
-        VNumberArray result = (VNumberArray)arrayDivisionFunction.compute(array1, array2);
+        VNumberArray result = (VNumberArray) arrayDivisionFunction.compute(array1, array2);
 
         assertEquals(3, result.getData().size());
         assertEquals(2, result.getData().getInt(0));
@@ -55,12 +55,12 @@ public class ArrayDivisionFunctionTest {
 
         VType exponent = VDouble.of(2.0, Alarm.none(), Time.now(), Display.none());
 
-        result = (VNumberArray)arrayDivisionFunction.compute(array1, exponent);
-        assertTrue(Double.valueOf(result.getData().getDouble(0)).equals(Double.NaN));
+        result = (VNumberArray) arrayDivisionFunction.compute(array1, exponent);
+        assertEquals(Double.NaN, Double.valueOf(result.getData().getDouble(0)));
     }
 
-    @Test(expected = Exception.class)
-    public void testWrongArguments() throws Exception{
+    @Test
+    public void testWrongArguments() {
         ArrayDivisionFunction arrayDivisionFunction =
                 new ArrayDivisionFunction();
 
@@ -69,6 +69,7 @@ public class ArrayDivisionFunctionTest {
         VType array2 = VNumberArray.of(ArrayDouble.of(2.0, 5.0, 7.0),
                 Alarm.none(), Time.now(), Display.none());
 
-        arrayDivisionFunction.compute(array1, array2);
+        assertThrows(Exception.class,
+                () -> arrayDivisionFunction.compute(array1, array2));
     }
 }

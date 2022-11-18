@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -52,7 +52,7 @@ public class PVA_PV extends PV
         {   // When connected, subscribe to updates
             try
             {
-                channel.subscribe(name_helper.getReadRequest(), this::handleMonitor);
+                channel.subscribe(name_helper.getRequest(), this::handleMonitor);
             }
             catch (Exception ex)
             {
@@ -98,7 +98,7 @@ public class PVA_PV extends PV
     @Override
     public Future<VType> asyncRead() throws Exception
     {
-        final Future<PVAStructure> data = channel.read(name_helper.getReadRequest());
+        final Future<PVAStructure> data = channel.read(name_helper.getRequest());
         // Wrap into Future that converts PVAStructure into VType
         return new Future<>()
         {
@@ -164,13 +164,39 @@ public class PVA_PV extends PV
     @Override
     public void write(final Object new_value) throws Exception
     {
-        channel.write(name_helper.getWriteRequest(), new_value);
+        // Perform a disconnect check right now to alert caller
+        // of clearly disconnected channel
+        if (isDisconnected(read()))
+            throw new IllegalStateException("Channel '" + getName() + "' is not connected");
+
+        // The channel could still disconnect in the middle of the write,
+        // or experience other errors which we'll receive in the
+        // response checked below.
+
+        // Perform a plain "put", not "put-callback"
+        final Future<Void> response = channel.write(false, name_helper.getRequest(), new_value);
+
+        // Compared to Channel Access, PVA currently offers no
+        // information about writable vs. read-only channels.
+        // A read-only channel will only inform us about the failed
+        // write in the put response, for which we need to await
+        // the return value from the PVA server.
+        // Waiting for the response from the server, however,
+        // can take a little time, enough to be noticeable in a GUI
+        // that directly calls 'write' from the UI thread.
+        // Still, there seems no alternative to waiting a little bit,
+        // then potentially timing out.
+        response.get(PVA_Preferences.epics_pva_write_reply_timeout_ms, TimeUnit.MILLISECONDS);
     }
 
     @Override
     public Future<?> asyncWrite(final Object new_value) throws Exception
     {
-        return channel.write(name_helper.getWriteRequest(), new_value);
+        // Perform a put with completion,
+        // i.e., process target and block until processing completes,
+        // akin to a Channel Access put-callback.
+        // Return the Future that can be used to await completion
+        return channel.write(true, name_helper.getRequest(), new_value);
     }
 
     @Override

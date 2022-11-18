@@ -7,17 +7,17 @@
  *******************************************************************************/
 package org.csstudio.display.converter.edm;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.opibuilder.converter.model.EdmDisplay;
 import org.csstudio.opibuilder.converter.model.EdmModel;
 import org.csstudio.opibuilder.converter.parser.EdmDisplayParser;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** {@link EdmConverter} test
  *  @author Kay Kasemir
@@ -48,6 +48,6 @@ public class EdmConverterTest extends TestHelper
         final ModelWriter writer = new ModelWriter(buf);
         writer.writeModel(converter.getDisplayModel());
         writer.close();
-        System.out.println(buf.toString());
+        System.out.println(buf);
     }
 }

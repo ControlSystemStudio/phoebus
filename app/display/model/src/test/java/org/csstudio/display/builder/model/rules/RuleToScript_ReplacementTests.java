@@ -7,10 +7,10 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.rules;
 
+import org.junit.jupiter.api.Test;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-
-import org.junit.Test;
 
 /** Test replacement of logical operators in RuleToScript.
  *  @author Amanda Carpenter

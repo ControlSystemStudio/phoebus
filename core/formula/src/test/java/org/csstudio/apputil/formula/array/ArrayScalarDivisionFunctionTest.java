@@ -28,10 +28,9 @@ import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ArrayScalarDivisionFunctionTest {
 
@@ -55,6 +54,6 @@ public class ArrayScalarDivisionFunctionTest {
         assertEquals(15, result.getData().getInt(2));
 
         result = (VNumberArray)arrayScalarDivisionFunction.compute(array, array);
-        assertTrue(Double.valueOf(result.getData().getDouble(0)).equals(Double.NaN));
+        assertEquals(Double.NaN, Double.valueOf(result.getData().getDouble(0)));
     }
 }

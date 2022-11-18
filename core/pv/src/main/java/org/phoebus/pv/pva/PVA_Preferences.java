@@ -43,6 +43,8 @@ public class PVA_Preferences
 {
     private static final PVA_Preferences instance = new PVA_Preferences();
 
+    public static int epics_pva_write_reply_timeout_ms;
+
     /** Prevent direct instantiation */
     private PVA_Preferences()
     {
@@ -76,6 +78,8 @@ public class PVA_Preferences
                            new Object[] { propname, PVA_PVFactory.class.getPackageName(), setting, value });
             }
         }
+
+        epics_pva_write_reply_timeout_ms = prefs.getInt("epics_pva_write_reply_timeout_ms");
     }
 
     /** @return Singleton instance */

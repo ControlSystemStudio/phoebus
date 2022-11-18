@@ -62,8 +62,8 @@ import org.epics.vtype.VULong;
 import org.epics.vtype.VULongArray;
 import org.epics.vtype.VUShort;
 import org.epics.vtype.VUShortArray;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.phoebus.applications.saveandrestore.common.Utilities;
 
 import java.math.BigInteger;
@@ -71,9 +71,9 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * UnitTest for {@link SafeMultiply} APIs
@@ -82,16 +82,16 @@ import static org.junit.Assert.assertTrue;
  */
 
 public class SafeMultiplyTest {
-    private Alarm alarm_1;
-    private Time time_1;
-    private Display display_1;
+    private static Alarm alarm_1;
+    private static Time time_1;
+    private static Display display_1;
 
-    private Alarm alarm_2;
-    private Time time_2;
-    private Display display_2;
+    private static Alarm alarm_2;
+    private static Time time_2;
+    private static Display display_2;
 
-    @Before
-    public void init() {
+    @BeforeAll
+    public static void init() {
         alarm_1 = Alarm.none();
         time_1 = Time.now();
         display_1 = Display.none();
@@ -716,7 +716,7 @@ public class SafeMultiplyTest {
         VNumberArray multipliedDoubleArray = SafeMultiply.multiply(doubleArray, multiplier);
 
         for (int index = 0; index < list.size(); index++) {
-            assertTrue(Double.compare((Double) SafeMultiply.multiply(list.get(index), multiplier), multipliedDoubleArray.getData().getDouble(index)) == 0);
+            assertEquals(0, Double.compare((Double) SafeMultiply.multiply(list.get(index), multiplier), multipliedDoubleArray.getData().getDouble(index)));
         }
 
         System.out.println("multiplier: " + multiplier);
@@ -744,7 +744,7 @@ public class SafeMultiplyTest {
         VNumberArray multipliedFloatArray = SafeMultiply.multiply(floatArray, multiplier);
 
         for (int index = 0; index < list.size(); index++) {
-            assertTrue(Float.compare((Float) SafeMultiply.multiply(list.get(index), multiplier), multipliedFloatArray.getData().getFloat(index)) == 0);
+            assertEquals(0, Float.compare((Float) SafeMultiply.multiply(list.get(index), multiplier), multipliedFloatArray.getData().getFloat(index)));
         }
 
         System.out.println("multiplier: " + multiplier);
@@ -772,7 +772,7 @@ public class SafeMultiplyTest {
         VNumberArray multipliedULongArray = SafeMultiply.multiply(ulongArray, multiplier);
 
         for (int index = 0; index < list.size(); index++) {
-            assertTrue(Long.compareUnsigned(SafeMultiply.multiply(list.get(index), multiplier).longValue(), multipliedULongArray.getData().getLong(index)) == 0);
+            assertEquals(0, Long.compareUnsigned(SafeMultiply.multiply(list.get(index), multiplier).longValue(), multipliedULongArray.getData().getLong(index)));
         }
 
         System.out.println("multiplier: " + multiplier);
@@ -800,7 +800,7 @@ public class SafeMultiplyTest {
         VNumberArray multipliedLongArray = SafeMultiply.multiply(longArray, multiplier);
 
         for (int index = 0; index < list.size(); index++) {
-            assertTrue(Long.compareUnsigned(SafeMultiply.multiply(list.get(index), multiplier).longValue(), multipliedLongArray.getData().getLong(index)) == 0);
+            assertEquals(0, Long.compareUnsigned(SafeMultiply.multiply(list.get(index), multiplier).longValue(), multipliedLongArray.getData().getLong(index)));
         }
 
         System.out.println("multiplier: " + multiplier);
@@ -828,7 +828,7 @@ public class SafeMultiplyTest {
         VNumberArray multipliedUIntegerArray = SafeMultiply.multiply(integerArray, multiplier);
 
         for (int index = 0; index < list.size(); index++) {
-            assertTrue(Integer.compareUnsigned(SafeMultiply.multiply(list.get(index), multiplier).intValue(), multipliedUIntegerArray.getData().getInt(index)) == 0);
+            assertEquals(0, Integer.compareUnsigned(SafeMultiply.multiply(list.get(index), multiplier).intValue(), multipliedUIntegerArray.getData().getInt(index)));
         }
 
         System.out.println("multiplier: " + multiplier);
@@ -856,7 +856,7 @@ public class SafeMultiplyTest {
         VNumberArray multipliedIntegerArray = SafeMultiply.multiply(intArray, multiplier);
 
         for (int index = 0; index < list.size(); index++) {
-            assertTrue(Integer.compareUnsigned(SafeMultiply.multiply(list.get(index), multiplier).intValue(), multipliedIntegerArray.getData().getInt(index)) == 0);
+            assertEquals(0, Integer.compareUnsigned(SafeMultiply.multiply(list.get(index), multiplier).intValue(), multipliedIntegerArray.getData().getInt(index)));
         }
 
         System.out.println("multiplier: " + multiplier);
@@ -884,7 +884,7 @@ public class SafeMultiplyTest {
         VNumberArray multipliedUShortArray = SafeMultiply.multiply(shortArray, multiplier);
 
         for (int index = 0; index < list.size(); index++) {
-            assertTrue(Short.compareUnsigned(SafeMultiply.multiply(list.get(index), multiplier).shortValue(), multipliedUShortArray.getData().getShort(index)) == 0);
+            assertEquals(0, Short.compareUnsigned(SafeMultiply.multiply(list.get(index), multiplier).shortValue(), multipliedUShortArray.getData().getShort(index)));
         }
 
         System.out.println("multiplier: " + multiplier);
@@ -912,7 +912,7 @@ public class SafeMultiplyTest {
         VNumberArray multipliedShortArray = SafeMultiply.multiply(shortArray, multiplier);
 
         for (int index = 0; index < list.size(); index++) {
-            assertTrue(Short.compareUnsigned(SafeMultiply.multiply(list.get(index), multiplier).shortValue(), multipliedShortArray.getData().getShort(index)) == 0);
+            assertEquals(0, Short.compareUnsigned(SafeMultiply.multiply(list.get(index), multiplier).shortValue(), multipliedShortArray.getData().getShort(index)));
         }
 
         System.out.println("multiplier: " + multiplier);
@@ -940,7 +940,7 @@ public class SafeMultiplyTest {
         VNumberArray multipliedUByteArray = SafeMultiply.multiply(byteArray, multiplier);
 
         for (int index = 0; index < list.size(); index++) {
-            assertTrue(Byte.compareUnsigned(SafeMultiply.multiply(list.get(index), multiplier).byteValue(), multipliedUByteArray.getData().getByte(index)) == 0);
+            assertEquals(0, Byte.compareUnsigned(SafeMultiply.multiply(list.get(index), multiplier).byteValue(), multipliedUByteArray.getData().getByte(index)));
         }
 
         System.out.println("multiplier: " + multiplier);
@@ -968,7 +968,7 @@ public class SafeMultiplyTest {
         VNumberArray multipliedByteArray = SafeMultiply.multiply(byteArray, multiplier);
 
         for (int index = 0; index < list.size(); index++) {
-            assertTrue(Byte.compareUnsigned(SafeMultiply.multiply(list.get(index), multiplier).byteValue(), multipliedByteArray.getData().getByte(index)) == 0);
+            assertEquals(0, Byte.compareUnsigned(SafeMultiply.multiply(list.get(index), multiplier).byteValue(), multipliedByteArray.getData().getByte(index)));
         }
 
         System.out.println("multiplier: " + multiplier);

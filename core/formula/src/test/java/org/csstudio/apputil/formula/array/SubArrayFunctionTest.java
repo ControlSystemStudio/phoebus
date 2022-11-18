@@ -27,12 +27,12 @@ import org.epics.vtype.VDouble;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class SubArrayFunctionTest {
 
@@ -54,7 +54,7 @@ public class SubArrayFunctionTest {
         assertEquals(3, result.getData().getInt(1));
 
         result = (VNumberArray)subArrayFunction.compute(from, from, to);
-        assertTrue(Double.valueOf(result.getData().getDouble(0)).equals(Double.NaN));
+        assertEquals(Double.NaN, Double.valueOf(result.getData().getDouble(0)));
 
         VStringArray stringArray = VStringArray.of(List.of("a", "b", "c", "d", "e"));
 
@@ -65,8 +65,8 @@ public class SubArrayFunctionTest {
 
     }
 
-    @Test(expected = Exception.class)
-    public void invalidArguments1() throws Exception{
+    @Test
+    public void invalidArguments1() {
         SubArrayFunction subArrayFunction = new SubArrayFunction();
 
         assertEquals("subArray", subArrayFunction.getName());
@@ -75,11 +75,12 @@ public class SubArrayFunctionTest {
         VType from = VDouble.of(-1.0, Alarm.none(), Time.now(), Display.none());
         VType to = VDouble.of(2.0, Alarm.none(), Time.now(), Display.none());
 
-        subArrayFunction.compute(array, from, to);
+        assertThrows(Exception.class,
+                () -> subArrayFunction.compute(array, from, to));
     }
 
-    @Test(expected = Exception.class)
-    public void invalidArguments2() throws Exception{
+    @Test
+    public void invalidArguments2() {
         SubArrayFunction subArrayFunction = new SubArrayFunction();
 
         assertEquals("subArray", subArrayFunction.getName());
@@ -88,11 +89,12 @@ public class SubArrayFunctionTest {
         VType from = VDouble.of(3.0, Alarm.none(), Time.now(), Display.none());
         VType to = VDouble.of(2.0, Alarm.none(), Time.now(), Display.none());
 
-        subArrayFunction.compute(array, from, to);
+        assertThrows(Exception.class,
+                () -> subArrayFunction.compute(array, from, to));
     }
 
-    @Test(expected = Exception.class)
-    public void invalidArguments3() throws Exception{
+    @Test
+    public void invalidArguments3() {
         SubArrayFunction subArrayFunction = new SubArrayFunction();
 
         assertEquals("subArray", subArrayFunction.getName());
@@ -101,6 +103,7 @@ public class SubArrayFunctionTest {
         VType from = VDouble.of(3.0, Alarm.none(), Time.now(), Display.none());
         VType to = VDouble.of(9.0, Alarm.none(), Time.now(), Display.none());
 
-        subArrayFunction.compute(array, from, to);
+        assertThrows(Exception.class,
+                () -> subArrayFunction.compute(array, from, to));
     }
 }

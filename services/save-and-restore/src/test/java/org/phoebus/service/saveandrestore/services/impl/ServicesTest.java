@@ -18,10 +18,27 @@
 
 package org.phoebus.service.saveandrestore.services.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
+import org.phoebus.service.saveandrestore.services.IServices;
+import org.phoebus.service.saveandrestore.services.config.ServicesTestConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.ContextHierarchy;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
@@ -30,29 +47,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.phoebus.service.saveandrestore.services.IServices;
-import org.phoebus.service.saveandrestore.services.config.ServicesTestConfig;
-import org.phoebus.service.saveandrestore.services.exception.NodeNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.ContextHierarchy;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import org.phoebus.applications.saveandrestore.model.ConfigPv;
-import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
-
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextHierarchy({ @ContextConfiguration(classes = { ServicesTestConfig.class}) })
+@SuppressWarnings("unused")
 public class ServicesTest {
 
 	@Autowired
@@ -61,17 +58,17 @@ public class ServicesTest {
 	@Autowired
 	private NodeDAO nodeDAO;
 
-	private Node configFromClient;
+	private static Node configFromClient;
 
-	private Node config1;
+	private static Node config1;
 
-	private Node configWithParent;
+	private static Node configWithParent;
 
-	List<ConfigPv> configPvList;
+	private static List<ConfigPv> configPvList;
 
 
-	@Before
-	public void setUp(){
+	@BeforeAll
+	public static void setUp(){
 
 		ConfigPv configPv = ConfigPv.builder()
 				.pvName("pvName")
@@ -95,7 +92,7 @@ public class ServicesTest {
 				.nodeType(NodeType.CONFIGURATION)
 				.build();
 
-		configPvList = Arrays.asList(configPv);
+		configPvList = Collections.singletonList(configPv);
 	}
 
 	@Test
@@ -198,7 +195,7 @@ public class ServicesTest {
 		when(nodeDAO.getNode(node.getUniqueId())).thenReturn(node);
 		when(nodeDAO.getParentNode(node.getUniqueId())).thenReturn(parent);
 		Node childNode = Node.builder().id(77).name("name").nodeType(NodeType.CONFIGURATION).build();
-		when(nodeDAO.getChildNodes(parent.getUniqueId())).thenReturn(Arrays.asList(childNode));
+		when(nodeDAO.getChildNodes(parent.getUniqueId())).thenReturn(Collections.singletonList(childNode));
 		services.updateNode(node);
 		verify(nodeDAO, atLeast(1)).updateNode(node, false);
 		reset(nodeDAO);
@@ -248,7 +245,7 @@ public class ServicesTest {
 
 	@Test
 	public void testGetChildNodes() {
-		when(nodeDAO.getChildNodes("a")).thenReturn(Arrays.asList(Node.builder().build()));
+		when(nodeDAO.getChildNodes("a")).thenReturn(Collections.singletonList(Node.builder().build()));
 		assertNotNull(services.getChildNodes("a"));
 	}
 
@@ -260,7 +257,7 @@ public class ServicesTest {
 
 	@Test
 	public void testGetConfigPvs() {
-		when(nodeDAO.getConfigPvs("a")).thenReturn(Arrays.asList(ConfigPv.builder().build()));
+		when(nodeDAO.getConfigPvs("a")).thenReturn(Collections.singletonList(ConfigPv.builder().build()));
 		assertNotNull(services.getConfigPvs("a"));
 	}
 
@@ -273,7 +270,7 @@ public class ServicesTest {
 	@Test
 	public void testGetFromPath(){
 		Node node = Node.builder().name("SomeFolder").build();
-		when(nodeDAO.getFromPath("path")).thenReturn(Arrays.asList(node));
+		when(nodeDAO.getFromPath("path")).thenReturn(Collections.singletonList(node));
 		assertEquals("SomeFolder", services.getFromPath("path").get(0).getName());
 	}
 
@@ -293,7 +290,7 @@ public class ServicesTest {
 		when(nodeDAO.getNode(targetNode.getUniqueId())).thenReturn(targetNode);
 		when(nodeDAO.getChildNodes(targetNode.getUniqueId())).thenReturn(Collections.emptyList());
 
-		services.moveNodes(Arrays.asList(nodeToMove.getUniqueId()), targetNode.getUniqueId(), "user");
+		services.moveNodes(Collections.singletonList(nodeToMove.getUniqueId()), targetNode.getUniqueId(), "user");
 		reset(nodeDAO);
 	}
 
@@ -313,9 +310,9 @@ public class ServicesTest {
 
 		when(nodeDAO.getNode(nodeToMove.getUniqueId())).thenReturn(nodeToMove);
 		when(nodeDAO.getNode(targetNode.getUniqueId())).thenReturn(targetNode);
-		when(nodeDAO.getChildNodes(targetNode.getUniqueId())).thenReturn(Arrays.asList(childNode));
+		when(nodeDAO.getChildNodes(targetNode.getUniqueId())).thenReturn(List.of(childNode));
 
-		services.moveNodes(Arrays.asList(nodeToMove.getUniqueId()), targetNode.getUniqueId(), "user");
+		services.moveNodes(Collections.singletonList(nodeToMove.getUniqueId()), targetNode.getUniqueId(), "user");
 		reset(nodeDAO);
 	}
 }

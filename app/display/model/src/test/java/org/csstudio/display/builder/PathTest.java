@@ -7,13 +7,14 @@
  *******************************************************************************/
 package org.csstudio.display.builder;
 
+import org.csstudio.display.builder.model.util.ModelResourceUtil;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assume.assumeThat;
-
-import org.csstudio.display.builder.model.util.ModelResourceUtil;
-import org.junit.Test;
-import org.phoebus.ui.javafx.PlatformInfo;
 
 /** JUnit test of path handling
  *  @author Kay Kasemir
@@ -22,7 +23,7 @@ import org.phoebus.ui.javafx.PlatformInfo;
 public class PathTest
 {
     @Test
-    public void testNormalize() throws Exception
+    public void testNormalize()
     {
         String path;
 
@@ -40,7 +41,7 @@ public class PathTest
     }
 
     @Test
-    public void testDirectory() throws Exception
+    public void testDirectory()
     {
         String loc;
 
@@ -55,12 +56,9 @@ public class PathTest
     }
 
     @Test
-    public void testCombineNotWindows() throws Exception
+    public void testCombineNotWindows()
     {
-        assumeThat(PlatformInfo.isWindows, equalTo(false));
-        String path;
-
-        path = ModelResourceUtil.combineDisplayPaths(null, "example.opi");
+        String path = ModelResourceUtil.combineDisplayPaths(null, "example.opi");
         assertThat(path, equalTo("example.opi"));
 
         path = ModelResourceUtil.combineDisplayPaths("examples/dummy.opi", "example.opi");
@@ -77,12 +75,10 @@ public class PathTest
     }
 
     @Test
-    public void testCombineWindows() throws Exception
+    @EnabledOnOs(OS.WINDOWS)
+    public void testCombineWindows()
     {
-        assumeThat(PlatformInfo.isWindows, equalTo(true));
-        String path;
-
-        path = ModelResourceUtil.combineDisplayPaths(null, "example.opi");
+        String path = ModelResourceUtil.combineDisplayPaths(null, "example.opi");
         assertThat(path, equalTo("example.opi"));
 
         path = ModelResourceUtil.combineDisplayPaths("examples/dummy.opi", "example.opi");
@@ -98,16 +94,16 @@ public class PathTest
         assertThat(path, equalTo("C:/home/beamline/main.bob"));
     }
 
-    public void checkRelativePath(String parent, String path, String expectedResult) throws Exception
+    public void checkRelativePath(String parent, String path, String expectedResult)
     {
         String resultingPath = ModelResourceUtil.getRelativePath(parent, path);
         assertThat(resultingPath, equalTo(expectedResult));
     }
 
     @Test
-    public void testRelativeNotWindows() throws Exception
+    @DisabledOnOs(OS.WINDOWS)
+    public void testRelativeNotWindows()
     {
-        assumeThat(PlatformInfo.isWindows, equalTo(false));
         String parent = "/one/of/my/directories/parent.bob";
 
         // Same dir
@@ -146,9 +142,9 @@ public class PathTest
     }
 
     @Test
-    public void testRelativeWindows() throws Exception
+    @EnabledOnOs(OS.WINDOWS)
+    public void testRelativeWindows()
     {
-        assumeThat(PlatformInfo.isWindows, equalTo(true));
         String parent = "C:\\one\\of\\my\\directories\\parent.bob";
 
         // Same dir
@@ -194,7 +190,7 @@ public class PathTest
     }
 
     @Test
-    public void testRelativePathForURL() throws Exception {
+    public void testRelativePathForURL() {
         // Same relative layout of file.bob and other.bob, via http ..
         String parent = "http://server/folder/main/file.bob";
         checkRelativePath(parent, "http://server/folder/main/other.bob", "other.bob");

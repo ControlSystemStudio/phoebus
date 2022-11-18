@@ -7,11 +7,11 @@
  ******************************************************************************/
 package org.epics.pva.client;
 
+import org.epics.pva.PVASettings;
+import org.junit.jupiter.api.Test;
+
 import java.util.concurrent.TimeUnit;
 import java.util.logging.LogManager;
-
-import org.epics.pva.PVASettings;
-import org.junit.Test;
 
 /** Demo using 'neutrons' PV from
  *  https://github.com/kasemir/EPICSV4Sandbox/tree/master/neutronsDemoServer

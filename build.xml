@@ -45,6 +45,7 @@
     <ant target="clean" dir="app/display/convert-medm"/>
     <ant target="clean" dir="app/display/convert-edm"/>
     <ant target="clean" dir="app/display/adapters"/>
+    <ant target="clean" dir="app/display/thumbwheel"/>
     <ant target="clean" dir="app/scan/model"/>
     <ant target="clean" dir="app/scan/client"/>
     <ant target="clean" dir="app/scan/ui"/>
@@ -123,6 +124,7 @@
     <ant dir="app/display/convert-medm"/>
     <ant dir="app/display/convert-edm"/>
     <ant dir="app/display/adapters"/>
+    <ant dir="app/display/thumbwheel"/>
     <ant dir="app/scan/model"/>
     <ant dir="app/scan/client"/>
     <ant dir="app/scan/ui"/>

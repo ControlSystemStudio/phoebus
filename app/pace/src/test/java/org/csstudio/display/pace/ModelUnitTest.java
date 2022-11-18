@@ -7,12 +7,13 @@
  ******************************************************************************/
 package org.csstudio.display.pace;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import io.reactivex.rxjava3.disposables.Disposable;
+import org.csstudio.display.pace.model.Cell;
+import org.csstudio.display.pace.model.Model;
+import org.junit.jupiter.api.Test;
+import org.phoebus.core.vtypes.VTypeHelper;
+import org.phoebus.pv.PV;
+import org.phoebus.pv.PVPool;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -21,14 +22,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
-import org.csstudio.display.pace.model.Cell;
-import org.csstudio.display.pace.model.Model;
-import org.junit.Test;
-import org.phoebus.core.vtypes.VTypeHelper;
-import org.phoebus.pv.PV;
-import org.phoebus.pv.PVPool;
-
-import io.reactivex.rxjava3.disposables.Disposable;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /** JUnit test of Model
  *
