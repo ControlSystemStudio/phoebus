@@ -147,10 +147,10 @@
     <classpathentry exported="true" kind="lib" path="target/lib/org.eclipse.jgit-5.0.3.201809091024-r.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/org.eclipse.paho.client.mqttv3-1.2.2.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/parsson-1.0.0.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/pbrawclient-0.0.8.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/picocontainer-1.2.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/pbrawclient-0.0.10.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/postgresql-42.2.9.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/protobuf-java-2.4.1.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/protobuf-java-3.21.9.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/picocontainer-1.2.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/proxytoys-0.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/py4j-0.10.2.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/quartz-2.3.2.jar"/>
