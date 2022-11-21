@@ -286,7 +286,7 @@ public class SlideButtonRepresentation extends RegionBaseRepresentation<HBox, Sl
     private void styleChanged ( final WidgetProperty<?> property, final Object old_value, final Object new_value ) {
 
         foreground = JFXUtil.convert(model_widget.propForegroundColor().getValue());
-        state_colors = "-db-toggle-switch-off: " + JFXUtil.webRGB(model_widget.propOffColor().getValue()) + ";" + "-db-toggle-switch-on: " + JFXUtil.webRGB(model_widget.propOnColor().getValue()) + ";";
+        state_colors = "-db-toggle-switch-off: " + JFXUtil.webRgbOrHex(model_widget.propOffColor().getValue()) + ";" + "-db-toggle-switch-on: " + JFXUtil.webRgbOrHex(model_widget.propOnColor().getValue()) + ";";
 
         dirty_style.mark();
         toolkit.scheduleUpdate(this);
