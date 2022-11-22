@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 
 import static org.phoebus.pv.alarm.AlarmPVFactory.logger;
@@ -93,6 +94,8 @@ public class AlarmContext
                 pvs.remove(alarmPV.getInfo().getCompletePath());
             }
         }
+
+        shutdownClientIfPossbile(alarmPV);
     }
 
     public static synchronized void acknowledgePV(AlarmPV alarmPV, boolean ack)
@@ -296,5 +299,37 @@ public class AlarmContext
     static String decodedKafaPath(String path)
     {
         return path.replace("\\/","/");
+    }
+
+    /**
+     * Shuts down the alarm client, but only if no other alarm PVs in the same
+     * alarm configuration are found in the list of registered PVs.
+     * @param alarmPV Alarm PV
+     */
+    private static void shutdownClientIfPossbile(AlarmPV alarmPV){
+        String config = alarmPV.getInfo().getRoot();
+        if(!remainingPVsInConfig(config)){
+            AlarmClient alarmClient = alarmModels.get(config);
+            if(alarmClient != null){
+                alarmClient.shutdown();
+                alarmModels.remove(config);
+            }
+        }
+    }
+
+    /**
+     * Checks if the list of registered PVs contains any items for the specified
+     * configuration.
+     * @param config An alarm configuration name, i.e. root of the {@link AlarmPV} path.
+     * @return <code>true</code> if additional PVs are found, otherwise <code>false</code>.
+     */
+    private static boolean remainingPVsInConfig(String config){
+        Set<String> pvNames = pvs.keySet();
+        for(String pvName : pvNames){
+            if(pvName.startsWith("/" + config)){
+                return true;
+            }
+        }
+        return false;
     }
 }
