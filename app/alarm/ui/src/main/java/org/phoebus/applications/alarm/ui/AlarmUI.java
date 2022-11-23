@@ -74,7 +74,7 @@ public class AlarmUI
 
     private static final Background[] severity_backgrounds = new Background[]
     {
-        null, // OK
+        new Background(new BackgroundFill(createColor(Preferences.ok_severity_background_color), CornerRadii.EMPTY, Insets.EMPTY)), // OK
         new Background(new BackgroundFill(createColor(Preferences.minor_severity_background_color)    .deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // MINOR_ACK
         new Background(new BackgroundFill(createColor(Preferences.major_severity_background_color)    .deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // MAJOR_ACK
         new Background(new BackgroundFill(createColor(Preferences.invalid_severity_background_color)  .deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // INVALID_ACK
