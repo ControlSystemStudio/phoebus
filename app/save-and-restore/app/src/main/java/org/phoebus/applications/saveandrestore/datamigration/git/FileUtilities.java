@@ -162,7 +162,7 @@ public final class FileUtilities {
                 }
             } else {
                 if (headerMap.isEmpty()) {
-                    throw new IOException("The SnapshotData content is invalid. No CSV header is defined.");
+                    throw new IOException("The Snapshot content is invalid. No CSV header is defined.");
                 }
                 // there are no fields in here that may contain a comma
                 String[] split = split(line);
@@ -218,7 +218,7 @@ public final class FileUtilities {
             }
         }
         if (date == null || date.isEmpty()) {
-            throw new ParseException("SnapshotData does not have a date set.", 0);
+            throw new ParseException("Snapshot does not have a date set.", 0);
         }
         Instant d = TIMESTAMP_FORMATTER.get().parse(date).toInstant();
         return new SnapshotContent(d, entries);

@@ -320,7 +320,7 @@ public class GitMigrator {
 
                             if (!isSnapshotCompatibleWithSaveSet(saveSetNode, snapshotItems)) {
                                 System.out.println("------------------------------------------------------------------------------------");
-                                System.out.println(" SnapshotData not compatible with the saveset!");
+                                System.out.println(" Snapshot not compatible with the saveset!");
                                 System.out.println(" Check if PV names are the same in saveset and snapshot!");
                                 System.out.println("------------------------------------------------------------------------------------");
                                 System.out.println("    Commit: " + commit.getName());
