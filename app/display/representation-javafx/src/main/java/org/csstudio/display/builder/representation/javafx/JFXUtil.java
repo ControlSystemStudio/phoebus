@@ -65,10 +65,22 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
     }
 
     /** Convert model color into web-type RGB text
+     *  @param col {@link WidgetColor}
+     *  @return RGB text of the form "#FF8080"
+     */
+    public static String webHex(final WidgetColor col) {
+        if(col != null) {
+            return String.format((Locale) null, "#%02X%02X%02X", col.getRed(), col.getGreen(), col.getBlue());
+        } else {
+            return "";
+        }
+    }
+
+    /** Convert model color into web-type RGB text if transparent; otherwise converts to hex.
      *  @param color {@link WidgetColor}
      *  @return RGB text of the form "#FF8080"
      */
-    public static String webRGB(final WidgetColor color)
+    public static String webRgbOrHex(final WidgetColor color)
     {
         return webRGBCache.computeIfAbsent(color, col ->
         {
@@ -78,7 +90,7 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
                                  col.getBlue() + ',' +
                                  col.getAlpha()/255f + ')';
             else
-                return String.format((Locale) null, "#%02X%02X%02X", col.getRed(), col.getGreen(), col.getBlue());
+                return webHex(col);
         });
     }
 
@@ -89,7 +101,7 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
      */
     public static StringBuilder appendWebRGB(final StringBuilder buf, final WidgetColor color)
     {
-        return buf.append(webRGB(color));
+        return buf.append(webRgbOrHex(color));
     }
 
     /** Convert model color into CSS style string for shading tabs, buttons, etc
@@ -117,7 +129,7 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
             // The .button.armed state uses
             //   -fx-pressed-base: derive(-fx-base,-6%);
             // which we change into a more obvious variant.
-            final String bg = webRGB(col);
+            final String bg = webRgbOrHex(col);
             return "-fx-base: " + bg + "; " +
                    "-fx-pressed-base: derive(-fx-base,-25%);";
         });

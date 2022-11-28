@@ -473,9 +473,9 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
             markers.setFont(font);
 
             final String style = // Text color (and border around the 'track')
-                                 "-fx-text-background-color: " + JFXUtil.webRGB(model_widget.propForegroundColor().getValue()) +
+                                 "-fx-text-background-color: " + JFXUtil.webRgbOrHex(model_widget.propForegroundColor().getValue()) +
                                  // Axis tick marks
-                                 "; -fx-background: " + JFXUtil.webRGB(model_widget.propForegroundColor().getValue()) +
+                                 "; -fx-background: " + JFXUtil.webRgbOrHex(model_widget.propForegroundColor().getValue()) +
                                  // Font; NOTE only the shorthand font style is supported for fx-tick-label-font;
                                  // e.g. fx-tick-label-font-size etc are not supported!
                                  "; " + JFXUtil.cssFontShorthand("-fx-tick-label-font", font);

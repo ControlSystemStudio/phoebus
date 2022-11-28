@@ -181,8 +181,8 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
             // Tweaking the color used by CSS keeps overall style.
             // See also http://stackoverflow.com/questions/13467259/javafx-how-to-change-progressbar-color-dynamically
             final StringBuilder style = new StringBuilder();
-            style.append("-fx-accent: ").append(JFXUtil.webRGB(model_widget.propFillColor().getValue())).append(';');
-            style.append("-fx-control-inner-background: ").append(JFXUtil.webRGB(model_widget.propBackgroundColor().getValue())).append(';');
+            style.append("-fx-accent: ").append(JFXUtil.webRgbOrHex(model_widget.propFillColor().getValue())).append(';');
+            style.append("-fx-control-inner-background: ").append(JFXUtil.webRgbOrHex(model_widget.propBackgroundColor().getValue())).append(';');
             jfx_node.setStyle(style.toString());
         }
         if (dirty_value.checkAndClear())
