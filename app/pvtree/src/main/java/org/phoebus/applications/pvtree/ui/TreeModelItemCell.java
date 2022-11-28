@@ -11,6 +11,7 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
 import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import org.epics.vtype.AlarmSeverity;
 import org.phoebus.applications.pvtree.model.TreeModelItem;
 import org.phoebus.ui.Preferences;
@@ -89,14 +90,14 @@ class TreeModelItemCell extends TreeCell<TreeModelItem>
             {
                 setGraphic(new ImageView(NO_ICON));
                 setTextFill(Color.BLACK);
-                setBackground(Background.fill(Color.WHITE));
+                setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
             }
             else
             {
                 final int ordinal = severity.ordinal();
                 setGraphic(new ImageView(ALARM_ICONS[ordinal]));
                 setTextFill(SeverityColors.getTextColor(severity));
-                setBackground(Background.fill(SeverityColors.getBackgroundColor(severity)));
+                setBackground(new Background(new BackgroundFill(SeverityColors.getBackgroundColor(severity), null, null)));
             }
         }
     }
