@@ -54,6 +54,7 @@ public class Messages {
     public static String errorGeneric;
     public static String exportConfigurationLabel;
     public static String exportSnapshotLabel;
+    public static String exportSnapshotFailed;
     public static String importConfigurationLabel;
     public static String importSnapshotLabel;
     public static String includeThisPV;

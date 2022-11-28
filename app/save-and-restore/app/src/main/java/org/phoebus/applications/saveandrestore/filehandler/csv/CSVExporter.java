@@ -196,7 +196,9 @@ public class CSVExporter extends CSVCommon {
             }
         } else if (pv instanceof VEnum) {
             VEnum value = (VEnum) pv;
-
+            if(value.getValue().isEmpty()){
+                throw new Exception("Export of enum values with empty string representation is not supported");
+            }
             pvValue = WrapDoubleQuotation(ConvertEnumForm(value));
             timestamp = TimestampString(value.getTime().getTimestamp());
             alarmStatus = value.getAlarm().getStatus().name();
