@@ -52,6 +52,7 @@ public class Messages {
     public static String errorCreateConfigurationFailed;
     public static String errorDeleteNodeFailed;
     public static String errorGeneric;
+    public static String errorTakeSnapshot;
     public static String exportConfigurationLabel;
     public static String exportSnapshotLabel;
     public static String exportSnapshotFailed;
