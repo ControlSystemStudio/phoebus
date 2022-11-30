@@ -18,6 +18,7 @@
 
 package org.phoebus.applications.saveandrestore;
 
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -143,4 +144,6 @@ public interface SaveAndRestoreClient {
     SnapshotData getSnapshotData(String uniqueId);
 
     Snapshot saveSnapshot(String parentNodeId, Snapshot snapshot);
+
+    CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot);
 }

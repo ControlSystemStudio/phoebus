@@ -26,13 +26,18 @@ public class Messages {
     public static String baseSetpoint;
     public static String buttonRefresh;
     public static String buttonSearch;
+    public static String closeConfigurationWarning;
+    public static String closeCompositeSnapshotWarning;
+    public static String closeTabPrompt;
     public static String contextMenuAddTagWithComment;
     public static String contextMenuCreateSnapshot;
     public static String contextMenuCompareSnapshots;
     public static String contextMenuDelete;
     public static String contextMenuEdit;
     public static String contextMenuNewFolder;
+    public static String contextMenuNewCompositeSnapshot;
     public static String contextMenuNewConfiguration;
+
     public static String contextMenuNoTagWithComment;
     public static String contextMenuRename;
     public static String contextMenuRemoveGoldenTag;
@@ -73,7 +78,6 @@ public class Messages {
     public static String menuItemDeleteSelectedPVs;
     public static String openResourceFailedTitle;
     public static String openResourceFailedHeader;
-    public static String promptCloseSnapshotTabTitle;
     public static String promptCloseSnapshotTabContent;
     public static String promptDeleteSelectedTitle;
     public static String promptDeleteSelectedHeader;

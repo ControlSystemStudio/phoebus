@@ -138,8 +138,6 @@ public class ConfigurationController implements NodeChangedListener {
 
     private final ConfigurationTab configurationTab;
 
-    //private Configuration configuration;
-
     private ConfigurationData configurationData;
 
     private final Logger logger = Logger.getLogger(ConfigurationController.class.getName());
@@ -252,6 +250,8 @@ public class ConfigurationController implements NodeChangedListener {
                 configurationDescriptionProperty.set(configurationNode.get().getDescription());
             }
         });
+
+
 
         SaveAndRestoreService.getInstance().addNodeChangeListener(this);
     }
@@ -377,8 +377,8 @@ public class ConfigurationController implements NodeChangedListener {
     public boolean handleConfigurationTabClosed() {
         if (dirty.get()) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle("Close tab?");
-            alert.setContentText("Configuration has been modified but is not saved. Do you wish to continue?");
+            alert.setTitle(Messages.closeTabPrompt);
+            alert.setContentText(Messages.closeConfigurationWarning);
             Optional<ButtonType> result = alert.showAndWait();
             return result.isPresent() && result.get().equals(ButtonType.OK);
         }

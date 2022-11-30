@@ -18,10 +18,12 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
+import org.epics.pva.data.PVAFieldDesc.Array;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.common.VNoData;
 import org.phoebus.applications.saveandrestore.impl.SaveAndRestoreJerseyClient;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -296,5 +298,23 @@ public class SaveAndRestoreService {
         // Notify listeners as the configuration node has a new child node.
         notifyNodeChangeListeners(configurationNode);
         return updatedSnapshot;
+    }
+
+    public List<Node> getCompositeSnapshotData(String compositeSnapshotNodeUniqueId) throws Exception{
+        // TODO: call remote service
+        return new ArrayList<>();
+    }
+
+    public CompositeSnapshot saveCompositeSnapshot(Node parentNode, CompositeSnapshot compositeSnapshot) throws Exception{
+        Future<CompositeSnapshot> future =
+                executor.submit(() -> saveAndRestoreClient.createCompositeSnapshot(parentNode.getUniqueId(), compositeSnapshot));
+        CompositeSnapshot newCompositeSnapshot = future.get();
+        notifyNodeChangeListeners(parentNode);
+        return newCompositeSnapshot;
+    }
+
+    public CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot) throws Exception{
+        // TODO: call remote service
+        return null;
     }
 }

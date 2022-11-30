@@ -36,6 +36,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
@@ -47,6 +49,7 @@ import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.persistence.config.ElasticConfig;
+import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.CompositeSnapshotDataRepository;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ConfigurationDataRepository;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchDAO;
 
@@ -280,6 +283,33 @@ public class DAOTestIT {
     public void testGetParentNodeForNonexistingNode() {
         assertThrows(NodeNotFoundException.class,
                 () -> nodeDAO.getParentNode("nonexisting"));
+    }
+
+    @Test
+    public void testSaveCompositeSnapshot(){
+        Node rootNode = nodeDAO.getRootNode();
+        Node folderNode =
+                Node.builder().name("folder").build();
+
+        folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
+
+        Node compositeSnapshotNode = Node.builder().name("My composite snapshot").nodeType(NodeType.COMPOSITE_SNAPSHOT).build();
+
+        CompositeSnapshot compositeSnapshot = new CompositeSnapshot();
+        compositeSnapshot.setCompositeSnapshotNode(compositeSnapshotNode);
+
+        CompositeSnapshotData compositeSnapshotData = new CompositeSnapshotData();
+        compositeSnapshotData.setUniqueId(compositeSnapshotNode.getUniqueId());
+        compositeSnapshotData.setReferencedSnapshotNodes(Arrays.asList("A", "B", "C"));
+
+        compositeSnapshot.setCompositeSnapshotData(compositeSnapshotData);
+
+        compositeSnapshot = nodeDAO.createCompositeSnapshot(folderNode.getUniqueId(), compositeSnapshot);
+
+        assertEquals(compositeSnapshotNode.getUniqueId(), compositeSnapshot.getCompositeSnapshotNode().getUniqueId());
+        assertEquals(3, compositeSnapshot.getCompositeSnapshotData().getReferencedSnapshotNodes().size());
+
+        clearAllData();
     }
 
     @Test

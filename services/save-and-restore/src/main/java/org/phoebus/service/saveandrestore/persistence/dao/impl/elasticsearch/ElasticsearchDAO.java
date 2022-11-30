@@ -18,6 +18,8 @@
 
 package org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch;
 
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -54,6 +56,9 @@ public class ElasticsearchDAO implements NodeDAO {
     @SuppressWarnings("unused")
     @Autowired
     private SnapshotDataRepository snapshotDataRepository;
+
+    @Autowired
+    private CompositeSnapshotDataRepository compositeSnapshotDataRepository;
 
     private static final Logger logger = Logger.getLogger(ElasticsearchDAO.class.getName());
 
@@ -662,5 +667,27 @@ public class ElasticsearchDAO implements NodeDAO {
             }
         }
         return isContainedInSubTree;
+    }
+
+    @Override
+    public CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot){
+        compositeSnapshot.getCompositeSnapshotNode().setNodeType(NodeType.COMPOSITE_SNAPSHOT); // Force node type
+        Node newCompositeSnapshotNode = createNode(parentNodeId, compositeSnapshot.getCompositeSnapshotNode());
+        compositeSnapshot.getCompositeSnapshotData().setUniqueId(newCompositeSnapshotNode.getUniqueId());
+
+        CompositeSnapshotData newCompositeSnapshotData = null;
+        try {
+            newCompositeSnapshotData = compositeSnapshotDataRepository.save(compositeSnapshot.getCompositeSnapshotData());
+        } catch (Exception e) {
+            // Saving configuration data failed, delete node for sake of consistency
+            deleteNode(newCompositeSnapshotNode);
+            throw new RuntimeException(e);
+        }
+
+        CompositeSnapshot newCompositeSnapshot = new CompositeSnapshot();
+        newCompositeSnapshot.setCompositeSnapshotNode(newCompositeSnapshotNode);
+        newCompositeSnapshot.setCompositeSnapshotData(newCompositeSnapshotData);
+
+        return newCompositeSnapshot;
     }
 }

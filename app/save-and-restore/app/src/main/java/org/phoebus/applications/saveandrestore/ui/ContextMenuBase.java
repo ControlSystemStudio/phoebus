@@ -34,6 +34,8 @@ public abstract class ContextMenuBase extends ContextMenu {
     protected Image configurationIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/configuration.png");
     protected Image csvImportIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_import.png");
 
+    protected Image compositeSnapshotIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/composite-snapshot.png");
+
     protected MenuItem deleteNodesMenuItem;
     protected MenuItem renameNodeMenuItem;
     protected MenuItem copyUniqueIdToClipboardMenuItem;

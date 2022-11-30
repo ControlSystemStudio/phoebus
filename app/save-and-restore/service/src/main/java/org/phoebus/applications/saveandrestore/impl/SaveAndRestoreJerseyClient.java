@@ -32,6 +32,7 @@ import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -368,5 +369,26 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
             throw new SaveAndRestoreClientException(message);
         }
         return response.getEntity(Snapshot.class);
+    }
+
+    @Override
+    public CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot){
+        compositeSnapshot.getCompositeSnapshotNode().setUserName(getCurrentUsersName());
+        WebResource webResource =
+                client.resource(jmasarServiceUrl + "/composite-snapshot")
+                        .queryParam("parentNodeId", parentNodeId);
+        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
+                .entity(compositeSnapshot, CONTENT_TYPE_JSON)
+                .put(ClientResponse.class);
+        if (response.getStatus() != 200) {
+            String message = Messages.createConfigurationFailed;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                // Ignore
+            }
+            throw new SaveAndRestoreClientException(message);
+        }
+        return response.getEntity(CompositeSnapshot.class);
     }
 }

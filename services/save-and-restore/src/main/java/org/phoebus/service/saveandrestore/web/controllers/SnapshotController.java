@@ -17,6 +17,7 @@
  */
 package org.phoebus.service.saveandrestore.web.controllers;
 
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
@@ -56,5 +57,12 @@ public class SnapshotController extends BaseController {
     public Snapshot saveSnapshot(@RequestParam(value = "parentNodeId") String parentNodeId,
                                  @RequestBody Snapshot snapshot) {
         return nodeDAO.saveSnapshot(parentNodeId, snapshot);
+    }
+
+    @SuppressWarnings("unused")
+    @PutMapping(value = "/composite-snapshot", produces = JSON)
+    public CompositeSnapshot createCompositeSnapshot(@RequestParam(value = "parentNodeId") String parentNodeId,
+                                                   @RequestBody CompositeSnapshot compositeSnapshot) {
+        return nodeDAO.createCompositeSnapshot(parentNodeId, compositeSnapshot);
     }
 }

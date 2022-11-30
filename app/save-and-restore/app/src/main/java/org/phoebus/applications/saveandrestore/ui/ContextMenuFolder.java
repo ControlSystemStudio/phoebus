@@ -39,7 +39,12 @@ public class ContextMenuFolder extends ContextMenuBase {
             saveAndRestoreController.createNewConfiguration();
         });
 
-        getItems().addAll(newFolderMenuItem, renameNodeMenuItem, deleteNodesMenuItem, newConfigurationMenuItem, copyUniqueIdToClipboardMenuItem);
+        MenuItem newCompositeSnapshotMenuItem = new MenuItem(Messages.contextMenuNewCompositeSnapshot, new ImageView(compositeSnapshotIcon));
+        newCompositeSnapshotMenuItem.setOnAction(ae -> {
+            saveAndRestoreController.createNewCompositeSnapshot();
+        });
+
+        getItems().addAll(newFolderMenuItem, renameNodeMenuItem, deleteNodesMenuItem, newConfigurationMenuItem, newCompositeSnapshotMenuItem, copyUniqueIdToClipboardMenuItem);
 
         if (csvImportEnabled) {
 

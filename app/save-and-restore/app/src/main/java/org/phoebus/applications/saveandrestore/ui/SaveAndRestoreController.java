@@ -69,6 +69,7 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationTab;
+import org.phoebus.applications.saveandrestore.ui.snapshot.CompositeSnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotNewTagDialog;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
@@ -579,6 +580,13 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         tabPane.getSelectionModel().select(tab);
     }
 
+    private void launchTabForNewCompositeSnapshot(Node parentNode){
+        CompositeSnapshotTab tab = new CompositeSnapshotTab();
+        tab.configureForNewCompositeSnapshot(parentNode);
+        tabPane.getTabs().add(tab);
+        tabPane.getSelectionModel().select(tab);
+    }
+
     private boolean highlightTab(String id){
         for (Tab tab : tabPane.getTabs()) {
             if (tab.getId() != null && tab.getId().equals(id)) {
@@ -593,8 +601,11 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * Creates a new configuration in the selected tree node.
      */
     protected void createNewConfiguration() {
-
         launchTabForNewConfiguration(browserSelectionModel.getSelectedItems().get(0).getValue());
+    }
+
+    protected void createNewCompositeSnapshot(){
+        launchTabForNewCompositeSnapshot(browserSelectionModel.getSelectedItems().get(0).getValue());
     }
 
     /**
@@ -665,7 +676,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         return new TreeItem<>(node) {
             @Override
             public boolean isLeaf() {
-                return node.getNodeType().equals(NodeType.SNAPSHOT);
+                return node.getNodeType().equals(NodeType.SNAPSHOT) || node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT);
             }
         };
     }

@@ -1,0 +1,17 @@
+{
+  "mappings": {
+    "properties": {
+      "uniqueId" : {
+        "type" : "keyword"
+      },
+      "referencedSnapshotNodes": {
+        "type" : "nested",
+        "properties": {
+          "uniqueId": {
+            "type": "keyword"
+          }
+        }
+      }
+    }
+  }
+}

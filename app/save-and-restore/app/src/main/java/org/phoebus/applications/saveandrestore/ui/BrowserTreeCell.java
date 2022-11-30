@@ -58,6 +58,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
     private javafx.scene.Node folderBox;
     private javafx.scene.Node configurationBox;
     private javafx.scene.Node snapshotBox;
+    private javafx.scene.Node compositeSnapshotBox;
 
     private final ContextMenu folderContextMenu;
     private final ContextMenu configurationContextMenu;
@@ -79,7 +80,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
             folderBox = rootNode.lookup("#folder");
             configurationBox = rootNode.lookup("#configuration");
             snapshotBox = rootNode.lookup("#snapshot");
-
+            compositeSnapshotBox = rootNode.lookup("#compositeSnapshot");
         } catch (IOException e) {
             Logger.getLogger(BrowserTreeCell.class.getName())
                     .log(Level.SEVERE, "Failed to load fxml.");
@@ -98,8 +99,8 @@ public class BrowserTreeCell extends TreeCell<Node> {
             }
             final ClipboardContent content = new ClipboardContent();
             Node node = getItem();
-            // Drag-n-drop not supported for root node and snapshot nodes
-            if (node != null && !node.getNodeType().equals(NodeType.SNAPSHOT) && !node.getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)) {
+            // Drag-n-drop not supported for root node
+            if (node != null && !node.getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)) {
                 final List<Node> nodes = new ArrayList<>();
 
                 for (TreeItem<Node> sel : getTreeView().getSelectionModel().getSelectedItems()) {
@@ -134,9 +135,10 @@ public class BrowserTreeCell extends TreeCell<Node> {
             if (targetNode != null) {
                 List<Node> sourceNodes = (List<Node>) event.getDragboard().getContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT);
                 // If the drop target is contained in the selection, return silently...
-                if(sourceNodes.contains(targetNode)){
+                if(!mayDrop(targetNode, sourceNodes)){
                     return;
                 }
+                // If selection contains a snapshot or composite snapshot node, return silently...
                 TransferMode transferMode = event.getTransferMode();
                 getTreeView().getSelectionModel().clearSelection(); // This is needed to help controller implement selection restrictions
                 saveAndRestoreCotroller.performCopyOrMove(sourceNodes, targetNode, transferMode);
@@ -144,7 +146,17 @@ public class BrowserTreeCell extends TreeCell<Node> {
             event.setDropCompleted(true);
             event.consume();
         });
+    }
 
+    private boolean mayDrop(Node targetNode, List<Node> sourceNodes){
+        if(sourceNodes.contains(targetNode)){
+            return false;
+        }
+        if(sourceNodes.stream().filter(n -> n.getNodeType().equals(NodeType.SNAPSHOT) ||
+                n.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)).findFirst().isEmpty()){
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -176,6 +188,16 @@ public class BrowserTreeCell extends TreeCell<Node> {
                 }
                 stringBuffer.append(node.getCreated()).append(" (").append(node.getUserName()).append(")");
                 setTooltip(new Tooltip(stringBuffer.toString()));
+                setEditable(false);
+                break;
+            case COMPOSITE_SNAPSHOT:
+                ((Label) compositeSnapshotBox.lookup("#compositeSnapshotLabel"))
+                        .setText(node.getName());
+                setGraphic(compositeSnapshotBox);
+                if (node.getDescription() != null && !node.getDescription().isEmpty()) {
+                    setTooltip(new Tooltip(node.getDescription()));
+                }
+                setContextMenu(configurationContextMenu);
                 setEditable(false);
                 break;
             case CONFIGURATION:

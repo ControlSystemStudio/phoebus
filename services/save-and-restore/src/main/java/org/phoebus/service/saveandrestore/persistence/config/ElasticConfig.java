@@ -52,6 +52,9 @@ public class ElasticConfig {
     @Value("${elasticsearch.snapshot_node.index:saveandrestore_snapshot}")
     public String ES_SNAPSHOT_INDEX;
 
+    @Value("${elasticsearch.snapshot_node.index:saveandrestore_composite_snapshot}")
+    public String ES_COMPOSITE_SNAPSHOT_INDEX;
+
     @Value("${elasticsearch.network.host:localhost}")
     private String host;
     @Value("${elasticsearch.http.port:9200}")
@@ -142,6 +145,19 @@ public class ElasticConfig {
             }
         } catch (IOException e) {
             logger.log(Level.WARNING, "Failed to create index " + ES_SNAPSHOT_INDEX, e);
+        }
+
+        // Composite snapshot index
+        try (InputStream is = ElasticConfig.class.getResourceAsStream("/composite_snapshot_mapping.json")) {
+            BooleanResponse exits = client.indices().exists(ExistsRequest.of(e -> e.index(ES_COMPOSITE_SNAPSHOT_INDEX)));
+            if (!exits.value()) {
+                CreateIndexResponse result = client.indices().create(
+                        CreateIndexRequest.of(
+                                c -> c.index(ES_COMPOSITE_SNAPSHOT_INDEX).withJson(is)));
+                logger.info("Created index: " + ES_COMPOSITE_SNAPSHOT_INDEX + " : acknowledged " + result.acknowledged());
+            }
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "Failed to create index " + ES_COMPOSITE_SNAPSHOT_INDEX, e);
         }
     }
 
