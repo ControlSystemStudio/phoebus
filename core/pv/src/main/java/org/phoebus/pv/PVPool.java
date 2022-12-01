@@ -87,7 +87,7 @@ public class PVPool
         }
     }
 
-    /** Combination of type and name, <code>type://name</name> */
+    /** Combination of type and name, <code>type://name</code> */
     public static class TypedName
     {
         /** PV Type */
