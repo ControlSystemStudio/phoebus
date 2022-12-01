@@ -48,6 +48,7 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
 import javafx.util.converter.DoubleStringConverter;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
@@ -80,7 +81,6 @@ import org.phoebus.applications.saveandrestore.ui.model.SnapshotEntry;
 import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.preferences.PreferencesReader;
-import org.phoebus.pv.PVFactory;
 import org.phoebus.pv.PVPool;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockPane;
@@ -173,8 +173,6 @@ public class SnapshotController implements NodeChangedListener {
 
     private SaveAndRestoreService saveAndRestoreService;
 
-    private String defaultEpicsProtocol;
-
     private final SimpleStringProperty createdByTextProperty = new SimpleStringProperty();
     private final SimpleStringProperty createdDateTextProperty = new SimpleStringProperty();
 
@@ -230,12 +228,19 @@ public class SnapshotController implements NodeChangedListener {
     }
 
     @FXML
+    private VBox progressIndicator;
+
+    /**
+     * Used to disable portions of the UI when long-lasting operations are in progress, e.g.
+     * take snapshot or save snapshot.
+     */
+    private final SimpleBooleanProperty disabledUi = new SimpleBooleanProperty(false);
+
+    @FXML
     public void initialize() {
 
         saveAndRestoreService = SaveAndRestoreService.getInstance();
 
-        defaultEpicsProtocol =
-                new PreferencesReader(PVFactory.class, "/pv_preferences.properties").get("default");
         isTreeTableViewEnabled = new PreferencesReader(getClass(), "/save_and_restore_preferences.properties").getBoolean("treeTableView.enable");
 
         snapshotName.textProperty().bindBidirectional(snapshotNameProperty);
@@ -459,6 +464,9 @@ public class SnapshotController implements NodeChangedListener {
 
         // Locate registered SaveAndRestoreEventReceivers
         eventReceivers = ServiceLoader.load(SaveAndRestoreEventReceiver.class);
+
+        progressIndicator.visibleProperty().bind(disabledUi);
+        disabledUi.addListener((observable, oldValue, newValue) -> borderPane.setDisable(newValue));
     }
 
     public void loadSnapshot(Node snapshotNode) {
@@ -677,33 +685,41 @@ public class SnapshotController implements NodeChangedListener {
     @FXML
     public void saveSnapshot() {
         if (snapshotDataDirty.get()) { // There is a new snapshot to save
-            VSnapshot vSnapshot = snapshots.get(0);
-            List<SnapshotEntry> snapshotEntries = vSnapshot.getEntries();
-            List<SnapshotItem> snapshotItems = snapshotEntries
-                    .stream()
-                    .map(snapshotEntry -> SnapshotItem.builder().value(snapshotEntry.getValue()).configPv(snapshotEntry.getConfigPv()).readbackValue(snapshotEntry.getReadbackValue()).build())
-                    .collect(Collectors.toList());
+            disabledUi.set(true);
+            JobManager.schedule("Save Snapshot", monitor -> {
+                VSnapshot vSnapshot = snapshots.get(0);
+                List<SnapshotEntry> snapshotEntries = vSnapshot.getEntries();
+                List<SnapshotItem> snapshotItems = snapshotEntries
+                        .stream()
+                        .map(snapshotEntry -> SnapshotItem.builder().value(snapshotEntry.getValue()).configPv(snapshotEntry.getConfigPv()).readbackValue(snapshotEntry.getReadbackValue()).build())
+                        .collect(Collectors.toList());
 
-            SnapshotData snapshotData = new SnapshotData();
-            snapshotData.setSnasphotItems(snapshotItems);
-            Snapshot snapshot = new Snapshot();
-            snapshot.setSnapshotData(snapshotData);
-            snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).name(snapshotNameProperty.get()).description(snapshotCommentProperty.get()).build());
-
-            try {
-                snapshot = saveAndRestoreService.saveSnapshot(configNode, snapshot);
-                snapshotDataDirty.set(false);
-                snapshotNode = snapshot.getSnapshotNode();
-                loadSnapshotInternal();
-                logNewSnapshotSaved();
-            } catch (Exception e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle(Messages.errorActionFailed);
-                alert.setContentText(e.getMessage());
-                alert.setHeaderText(Messages.saveSnapshotErrorContent);
-                DialogHelper.positionDialog(alert, snapshotTab.getTabPane(), -150, -150);
-                alert.showAndWait();
-            }
+                SnapshotData snapshotData = new SnapshotData();
+                snapshotData.setSnasphotItems(snapshotItems);
+                Snapshot snapshot = new Snapshot();
+                snapshot.setSnapshotData(snapshotData);
+                snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).name(snapshotNameProperty.get()).description(snapshotCommentProperty.get()).build());
+                try {
+                    snapshot = saveAndRestoreService.saveSnapshot(configNode, snapshot);
+                    snapshotDataDirty.set(false);
+                    snapshotNode = snapshot.getSnapshotNode();
+                    loadSnapshotInternal();
+                    logNewSnapshotSaved();
+                } catch (Exception e) {
+                    LOGGER.log(Level.SEVERE, "Failed to save snapshot", e);
+                    Platform.runLater(() -> {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle(Messages.errorActionFailed);
+                        alert.setContentText(e.getMessage());
+                        alert.setHeaderText(Messages.saveSnapshotErrorContent);
+                        DialogHelper.positionDialog(alert, snapshotTab.getTabPane(), -150, -150);
+                        alert.showAndWait();
+                    });
+                }
+                finally {
+                    disabledUi.set(false);
+                }
+            });
         } else { // Only snapshot name and/or comment have changed
             updateSnapshot();
         }
@@ -976,7 +992,7 @@ public class SnapshotController implements NodeChangedListener {
         }
     }
 
-    private class PV {
+    private static class PV {
         final String pvName;
         final String readbackPvName;
         CountDownLatch countDownLatch;
@@ -1019,9 +1035,9 @@ public class SnapshotController implements NodeChangedListener {
             if (pvName == null || pvName.isEmpty()) {
                 return null;
             } else if (pvName.startsWith("ca://") || pvName.startsWith("pva://")) {
-                return pvName;
+                return pvName.substring(pvName.lastIndexOf('/') + 1);
             } else {
-                return defaultEpicsProtocol + "://" + pvName;
+                return pvName;
             }
         }
 

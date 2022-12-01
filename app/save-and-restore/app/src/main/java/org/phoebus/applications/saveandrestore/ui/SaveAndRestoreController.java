@@ -978,7 +978,10 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 CSVExporter.export(node, file.getAbsolutePath());
             }
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Failed to export snapshot", e);
+            ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
+                    Messages.errorActionFailed,
+                    e);
+            LOG.log(Level.WARNING, Messages.errorActionFailed, e);
         }
     }
 

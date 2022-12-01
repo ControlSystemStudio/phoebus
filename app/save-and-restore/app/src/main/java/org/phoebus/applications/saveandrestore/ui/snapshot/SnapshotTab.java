@@ -27,6 +27,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.Tag;
@@ -82,15 +83,15 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
             return null;
         });
 
-        BorderPane borderPane;
+        javafx.scene.Node rootNode;
         try {
-            borderPane = loader.load();
+            rootNode = loader.load();
         } catch (IOException e) {
             Logger.getLogger(SnapshotTab.class.getName())
                     .log(Level.SEVERE, "Failed to load fxml", e);
             return;
         }
-        setContent(borderPane);
+        setContent(rootNode);
 
         regularImage = ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/snapshot.png");
         goldenImage = ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/snapshot-golden.png");

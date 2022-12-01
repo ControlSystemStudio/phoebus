@@ -83,10 +83,10 @@
             </children>
             <columnConstraints>
                 <ColumnConstraints />
+                <ColumnConstraints minWidth="120.0" />
                 <ColumnConstraints />
                 <ColumnConstraints />
-                <ColumnConstraints />
-                <ColumnConstraints />
+                <ColumnConstraints minWidth="120.0" />
             </columnConstraints>
             <rowConstraints>
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
