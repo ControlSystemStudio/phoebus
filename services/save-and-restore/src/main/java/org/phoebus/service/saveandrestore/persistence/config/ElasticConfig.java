@@ -52,7 +52,7 @@ public class ElasticConfig {
     @Value("${elasticsearch.snapshot_node.index:saveandrestore_snapshot}")
     public String ES_SNAPSHOT_INDEX;
 
-    @Value("${elasticsearch.snapshot_node.index:saveandrestore_composite_snapshot}")
+    @Value("${elasticsearch.composite_snapshot_node.index:saveandrestore_composite_snapshot}")
     public String ES_COMPOSITE_SNAPSHOT_INDEX;
 
     @Value("${elasticsearch.network.host:localhost}")

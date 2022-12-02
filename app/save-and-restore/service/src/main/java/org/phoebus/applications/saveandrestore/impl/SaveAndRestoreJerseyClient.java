@@ -33,6 +33,7 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -107,6 +108,25 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     @Override
     public Node getNode(String uniqueNodeId) {
         return getCall("/node/" + uniqueNodeId, Node.class);
+    }
+
+    @Override
+    public List<Node> getCompositeSnapshotReferencedNodes(String uniqueNodeId){
+        WebResource webResource = client.resource(jmasarServiceUrl + "/composite-snapshot/" + uniqueNodeId + "/nodes");
+
+        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).get(ClientResponse.class);
+        if (response.getStatus() != 200) {
+            String message;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                message = "N/A";
+            }
+            throw new SaveAndRestoreClientException("Failed : HTTP error code : " + response.getStatus() + ", error message: " + message);
+        }
+
+        return response.getEntity(new GenericType<List<Node>>() {
+        });
     }
 
     @Override
@@ -292,7 +312,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     @Override
-    public ConfigurationData getConfiguration(String nodeId) {
+    public ConfigurationData getConfigurationData(String nodeId) {
         ClientResponse clientResponse = getCall("/config/" + nodeId);
         return clientResponse.getEntity(ConfigurationData.class);
     }
@@ -390,5 +410,11 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
             throw new SaveAndRestoreClientException(message);
         }
         return response.getEntity(CompositeSnapshot.class);
+    }
+
+    @Override
+    public CompositeSnapshotData getCompositeSnapshotData(String uniqueId){
+        ClientResponse clientResponse = getCall("/composite-snapshot/" + uniqueId);
+        return clientResponse.getEntity(CompositeSnapshotData.class);
     }
 }

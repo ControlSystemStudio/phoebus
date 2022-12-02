@@ -39,7 +39,6 @@ import java.util.logging.Logger;
  * objects in the tree structure of the save-and-restore data.
  */
 @RestController
-@RequestMapping(value = "/node")
 public class NodeController extends BaseController {
 
     @SuppressWarnings("unused")
@@ -64,7 +63,7 @@ public class NodeController extends BaseController {
      * @return The new folder in the tree.
      */
     @SuppressWarnings("unused")
-    @PutMapping(produces = JSON)
+    @PutMapping(value = "/node", produces = JSON)
     public Node createNode(@RequestParam(name = "parentNodeId") String parentsUniqueId, @RequestBody final Node node) {
         if (node.getUserName() == null || node.getUserName().isEmpty()) {
             throw new IllegalArgumentException("User name must be non-null and of non-zero length");
@@ -84,19 +83,33 @@ public class NodeController extends BaseController {
      * @return A {@link Node} object if a node with the specified id exists.
      */
     @SuppressWarnings("unused")
-    @GetMapping(value = "/{uniqueNodeId}", produces = JSON)
+    @GetMapping(value = "/node/{uniqueNodeId}", produces = JSON)
     public Node getNode(@PathVariable final String uniqueNodeId) {
         return nodeDAO.getNode(uniqueNodeId);
     }
 
+    /**
+     * Gets nodes as identified by input string array.
+     * <p>
+     * A {@link HttpStatus#NOT_FOUND} is returned if the specified node id does not exist.
+     *
+     * @param uniqueNodeIds The ids of the requested nodes.
+     * @return A list of {@link Node} objects.
+     */
     @SuppressWarnings("unused")
-    @GetMapping(value = "/{uniqueNodeId}/parent", produces = JSON)
+    @GetMapping(value = "/nodes", produces = JSON)
+    public List<Node> getNodes(@RequestBody List<String> uniqueNodeIds) {
+        return nodeDAO.getNodes(uniqueNodeIds);
+    }
+
+    @SuppressWarnings("unused")
+    @GetMapping(value = "/node/{uniqueNodeId}/parent", produces = JSON)
     public Node getParentNode(@PathVariable String uniqueNodeId) {
         return nodeDAO.getParentNode(uniqueNodeId);
     }
 
     @SuppressWarnings("unused")
-    @GetMapping(value = "/{uniqueNodeId}/children", produces = JSON)
+    @GetMapping(value = "/node/{uniqueNodeId}/children", produces = JSON)
     public List<Node> getChildNodes(@PathVariable final String uniqueNodeId) {
         return nodeDAO.getChildNodes(uniqueNodeId);
     }
@@ -116,7 +129,7 @@ public class NodeController extends BaseController {
      * @param uniqueNodeId The non-zero id of the node to delete
      */
     @SuppressWarnings("unused")
-    @DeleteMapping(value = "/{uniqueNodeId}", produces = JSON)
+    @DeleteMapping(value = "/node/{uniqueNodeId}", produces = JSON)
     public void deleteNode(@PathVariable final String uniqueNodeId) {
         logger.info("Deleting node with unique id " + uniqueNodeId);
         nodeDAO.deleteNode(uniqueNodeId);
@@ -137,7 +150,7 @@ public class NodeController extends BaseController {
      * @return A {@link Node} object representing the updated node.
      */
     @SuppressWarnings("unused")
-    @PostMapping(produces = JSON)
+    @PostMapping(value = "/node", produces = JSON)
     public Node updateNode(@RequestParam(value = "customTimeForMigration", required = false, defaultValue = "false") String customTimeForMigration,
                            @RequestBody Node nodeToUpdate) {
         return nodeDAO.updateNode(nodeToUpdate, Boolean.valueOf(customTimeForMigration));

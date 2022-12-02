@@ -33,7 +33,11 @@ import co.elastic.clients.elasticsearch.core.GetRequest;
 import co.elastic.clients.elasticsearch.core.GetResponse;
 import co.elastic.clients.elasticsearch.core.IndexRequest;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
+import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,9 +49,12 @@ import org.springframework.stereotype.Repository;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Repository
 public class CompositeSnapshotDataRepository implements CrudRepository<CompositeSnapshotData, String> {
@@ -123,9 +130,41 @@ public class CompositeSnapshotDataRepository implements CrudRepository<Composite
         return false;
     }
 
+    /**
+     * Retrieves all {@link CompositeSnapshotData} documents. Note that to work around the limits in
+     * Elasticsearch (e.g. max 10000 documents in a search request), the implementation uses paginated search to repeatedly
+     * query for next round of hits. A page size of 100 is used for each query.
+     * @return An {@link Iterable} of {@link CompositeSnapshotData} objects, potentially empty.
+     */
     @Override
     public Iterable<CompositeSnapshotData>  findAll() {
-        return null;
+        List<CompositeSnapshotData> result = new ArrayList<>();
+        int pageSize = 100;
+        int from = 0;
+        while(true){
+            try {
+                SearchResponse<CompositeSnapshotData> searchResponse = runPagedMatchAll(pageSize, from);
+                result.addAll(searchResponse.hits().hits().stream().map(Hit::source).collect(Collectors.toList()));
+                from += searchResponse.hits().hits().size();
+                if(searchResponse.hits().hits().size() < pageSize){
+                    break;
+                }
+            } catch (IOException e) {
+                logger.log(Level.SEVERE, "Failed to get all CompositeSnapshotData objects");
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to get all CompositeSnapshotData objects");
+            }
+        }
+        return result;
+    }
+
+    private SearchResponse<CompositeSnapshotData> runPagedMatchAll(int pageSize, int from) throws IOException{
+        SearchRequest searchRequest =
+                SearchRequest.of(s ->
+                    s.index(ES_COMPOSITE_SNAPSHOT_INDEX)
+                            .query(new MatchAllQuery.Builder().build()._toQuery())
+                            .size(pageSize)
+                            .from(from));
+        return client.search(searchRequest, CompositeSnapshotData.class);
     }
 
     @Override

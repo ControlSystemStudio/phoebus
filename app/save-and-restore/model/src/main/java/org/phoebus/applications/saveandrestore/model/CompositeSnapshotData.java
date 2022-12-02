@@ -31,6 +31,10 @@ import java.util.List;
  */
 public class CompositeSnapshotData {
 
+    /**
+     * This <b>must</b> be set to the same unique id as the {@link Node} object
+     * mapping to the composite snapshot {@link Node}.
+     */
     private String uniqueId;
 
     private List<String> referencedSnapshotNodes;

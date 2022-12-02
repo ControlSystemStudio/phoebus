@@ -275,7 +275,8 @@ public class CompositeSnapshotController implements NodeChangedListener {
                 CompositeSnapshot compositeSnapshot = new CompositeSnapshot();
                 compositeSnapshot.setCompositeSnapshotNode(compositeSnapshotNode.get());
                 CompositeSnapshotData compositeSnapshotData = new CompositeSnapshotData();
-                compositeSnapshotData.setReferencedSnapshotNodes(snapshotEntries.stream().map(Node::getUniqueId).collect(Collectors.toList()));
+                compositeSnapshotData
+                        .setReferencedSnapshotNodes(snapshotEntries.stream().map(e -> e.getUniqueId()).collect(Collectors.toList()));
                 compositeSnapshot.setCompositeSnapshotData(compositeSnapshotData);
 
                 if (compositeSnapshotNode.get().getUniqueId() == null) { // New composite snapshot
@@ -286,7 +287,7 @@ public class CompositeSnapshotController implements NodeChangedListener {
                 } else {
                     compositeSnapshot = saveAndRestoreService.updateCompositeSnapshot(compositeSnapshot);
                 }
-                snapshotEntries.clear();
+                //snapshotEntries.clear();
                 //snapshotEntries.addAll(compositeSnapshot.getSnapshotNodes());
                 // TODO: load data, probably calling loadCompositeSnapshot(Node)
                 dirty.set(false);
@@ -309,7 +310,8 @@ public class CompositeSnapshotController implements NodeChangedListener {
     public void loadCompositeSnapshot(final Node node) {
         try {
             snapshotEntries.clear();
-            snapshotEntries.addAll(saveAndRestoreService.getCompositeSnapshotData(node.getUniqueId()));
+            List<Node> referencedNodes = saveAndRestoreService.getCompositeSnapshotNodes(node.getUniqueId());
+            snapshotEntries.addAll(referencedNodes);
         } catch (Exception e) {
             ExceptionDetailsErrorDialog.openError(root, "Error", "Unable to retrieve configuration data", e);
             return;

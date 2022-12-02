@@ -5,12 +5,7 @@
         "type" : "keyword"
       },
       "referencedSnapshotNodes": {
-        "type" : "nested",
-        "properties": {
-          "uniqueId": {
-            "type": "keyword"
-          }
-        }
+        "type" : "keyword"
       }
     }
   }

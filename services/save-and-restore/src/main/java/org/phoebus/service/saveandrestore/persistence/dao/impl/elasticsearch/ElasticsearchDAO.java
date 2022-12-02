@@ -91,6 +91,13 @@ public class ElasticsearchDAO implements NodeDAO {
     }
 
     @Override
+    public List<Node> getNodes(List<String> uniqueNodeIds){
+        List<Node> nodes = new ArrayList<>();
+        elasticsearchTreeRepository.findAllById(uniqueNodeIds).forEach(n -> nodes.add(n.getNode()));
+        return nodes;
+    }
+
+    @Override
     public void deleteNode(String nodeId) {
         Node nodeToDelete = getNode(nodeId);
         if (nodeToDelete == null) {
@@ -435,9 +442,24 @@ public class ElasticsearchDAO implements NodeDAO {
         resolvePath(parent.getUniqueId(), pathElements);
     }
 
+
     private void deleteNode(Node nodeToDelete) {
         for (Node node : getChildNodes(nodeToDelete.getUniqueId())) {
             deleteNode(node);
+        }
+
+        if (nodeToDelete.getNodeType().equals(NodeType.CONFIGURATION)) {
+            configurationDataRepository.deleteById(nodeToDelete.getUniqueId());
+        } else if (nodeToDelete.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)) {
+            compositeSnapshotDataRepository.deleteById(nodeToDelete.getUniqueId());
+        } else if(nodeToDelete.getNodeType().equals(NodeType.SNAPSHOT)){
+            Node compositeSnapshotReferencingTheSnapshot =
+                    mayDeleteSnapshot(nodeToDelete);
+            if(compositeSnapshotReferencingTheSnapshot != null){
+                throw new RuntimeException("Cannot delete snapshot " + nodeToDelete.getName() +
+                        " as it is referenced in composite snapshot " + compositeSnapshotReferencingTheSnapshot.getName());
+            }
+            snapshotDataRepository.deleteById(nodeToDelete.getUniqueId());
         }
 
         // Update the parent node to update its list of child nodes
@@ -448,11 +470,6 @@ public class ElasticsearchDAO implements NodeDAO {
         // Delete the node
         elasticsearchTreeRepository.deleteById(nodeToDelete.getUniqueId());
 
-        if (nodeToDelete.getNodeType().equals(NodeType.CONFIGURATION)) {
-            configurationDataRepository.deleteById(nodeToDelete.getUniqueId());
-        } else if (nodeToDelete.getNodeType().equals(NodeType.SNAPSHOT)) {
-            snapshotDataRepository.deleteById(nodeToDelete.getUniqueId());
-        }
     }
 
     @Override
@@ -593,7 +610,6 @@ public class ElasticsearchDAO implements NodeDAO {
         snapshot.getSnapshotNode().setNodeType(NodeType.SNAPSHOT); // Force node type
         Node newSnapshotNode = createNode(parentNodeId, snapshot.getSnapshotNode());
         snapshot.getSnapshotData().setUniqueId(newSnapshotNode.getUniqueId());
-
         SnapshotData newSnapshotData = null;
         try {
             newSnapshotData = snapshotDataRepository.save(snapshot.getSnapshotData());
@@ -689,5 +705,54 @@ public class ElasticsearchDAO implements NodeDAO {
         newCompositeSnapshot.setCompositeSnapshotData(newCompositeSnapshotData);
 
         return newCompositeSnapshot;
+    }
+
+    @Override
+    public CompositeSnapshotData getCompositeSnapshotData(String uniqueId){
+        Optional<CompositeSnapshotData> snapshotData = compositeSnapshotDataRepository.findById(uniqueId);
+        if (snapshotData.isEmpty()) {
+            throw new NodeNotFoundException("CompositeSnapshotData with id " + uniqueId + " not found");
+        }
+        return snapshotData.get();
+    }
+
+    @Override
+    public List<CompositeSnapshotData> getAllCompositeSnapshotData(){
+        List<CompositeSnapshotData> list = new ArrayList<>();
+        Iterable<CompositeSnapshotData> iterable = compositeSnapshotDataRepository.findAll();
+        iterable.forEach(list::add);
+        return list;
+    }
+
+    /**
+     * Checks if a snapshot is contained in any composite snapshot.
+     * @param snapshotNode The {@link Node} subject to check.
+     * @return A <code>non-null</code> {@link Node} object in which the checked node is referenced,
+     * otherwise <code>null</code>. Note that this returns the first composite snapshot node where the checked snapshot is
+     * encountered. References in other composite snapshots may exist.
+     */
+    private Node mayDeleteSnapshot(Node snapshotNode){
+        // This is needed to check if a snapshot node is referenced in a composite snapshot
+        List<CompositeSnapshotData> allCompositeSnapshotData = getAllCompositeSnapshotData();
+        for(CompositeSnapshotData compositeSnapshotData : allCompositeSnapshotData){
+            Iterable<ESTreeNode> treeNodes =
+                    elasticsearchTreeRepository.findAllById(compositeSnapshotData.getReferencedSnapshotNodes());
+            for(ESTreeNode treeNode : treeNodes){
+                if(treeNode.getNode().getUniqueId().equals(snapshotNode.getUniqueId())){
+                    return getNode(compositeSnapshotData.getUniqueId());
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * This is mainly for testing purposes. It deletes all documents in all indices.
+     */
+    public void deleteAllData(){
+        elasticsearchTreeRepository.deleteAll();
+        compositeSnapshotDataRepository.deleteAll();
+        configurationDataRepository.deleteAll();
+        snapshotDataRepository.deleteAll();
     }
 }
