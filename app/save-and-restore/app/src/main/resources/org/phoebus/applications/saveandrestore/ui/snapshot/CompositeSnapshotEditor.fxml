@@ -57,7 +57,7 @@
                     <columns>
                         <TableColumn prefWidth="-1.0" text="%snapshotList">
                             <columns>
-                                <TableColumn fx:id="snapshotNameColumn" editable="true" prefWidth="${parent.width * 0.3}" text="%snapshotDescription">
+                                <TableColumn fx:id="snapshotNameColumn" editable="true" prefWidth="${parent.width * 0.3}" text="%snapshotName">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="name" />
                                     </cellValueFactory>

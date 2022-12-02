@@ -139,6 +139,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     protected ContextMenu configurationContextMenu;
     protected ContextMenu snapshotContextMenu;
     protected ContextMenu rootFolderContextMenu;
+    protected ContextMenu compositeSnapshotContextMenu;
 
     protected SimpleStringProperty toggleGoldenMenuItemText = new SimpleStringProperty();
     protected SimpleStringProperty jmasarServiceTitleProperty = new SimpleStringProperty();
@@ -206,6 +207,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         snapshotContextMenu = new ContextMenuSnapshot(this, preferencesReader.getBoolean("enableCSVIO"),
                 toggleGoldenMenuItemText, toggleGoldenImageViewProperty, multipleItemsSelected);
 
+        compositeSnapshotContextMenu = new ContextMenuCompositeSnapshot(this, multipleItemsSelected);
+
         treeView.setEditable(true);
 
         treeView.setOnMouseClicked(me -> {
@@ -231,7 +234,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         saveAndRestoreService.addNodeAddedListener(this);
 
         treeView.setCellFactory(p -> new BrowserTreeCell(folderContextMenu,
-                configurationContextMenu, snapshotContextMenu, rootFolderContextMenu,
+                configurationContextMenu, snapshotContextMenu, rootFolderContextMenu, compositeSnapshotContextMenu,
                 this));
 
         progressIndicator.visibleProperty().bind(changesInProgress);
@@ -485,6 +488,14 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         tabPane.getSelectionModel().select(tab);
     }
 
+    protected void openCompositeSnapshotForRestore(){
+        TreeItem<Node> treeItem = browserSelectionModel.getSelectedItems().get(0);
+        CompositeSnapshotTab tab = new CompositeSnapshotTab();
+
+        tabPane.getTabs().add(tab);
+        tabPane.getSelectionModel().select(tab);
+    }
+
     /**
      * Creates a new folder {@link Node}.
      */
@@ -558,11 +569,15 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         switch (node.getNodeType()) {
             case CONFIGURATION:
                 tab = new ConfigurationTab();
-                ((ConfigurationTab)tab).editCOnfiguration(node);
+                ((ConfigurationTab)tab).editConfiguration(node);
                 break;
             case SNAPSHOT:
                 tab = new SnapshotTab(node, saveAndRestoreService);
                 ((SnapshotTab) tab).loadSnapshot(node);
+                break;
+            case COMPOSITE_SNAPSHOT:
+                tab = new CompositeSnapshotTab();
+                ((CompositeSnapshotTab)tab).editCompositeSnapshot(node);
                 break;
             case FOLDER:
             default:

@@ -55,18 +55,24 @@ public class BrowserTreeCell extends TreeCell<Node> {
     private final ContextMenu configurationContextMenu;
     private final ContextMenu snapshotContextMenu;
     private final ContextMenu rootFolderContextMenu;
+    private final ContextMenu compositeSnapshotContextMenu;
 
     private static final Border BORDER = new Border(new BorderStroke(Color.GREEN, BorderStrokeStyle.SOLID,
             new CornerRadii(5.0), BorderStroke.THIN));
 
+    public BrowserTreeCell(){
+        this(null, null, null, null, null, null);
+    }
+
     public BrowserTreeCell(ContextMenu folderContextMenu, ContextMenu configurationContextMenu,
                            ContextMenu snapshotContextMenu, ContextMenu rootFolderContextMenu,
+                           ContextMenu compositeSnapshotContextMenu,
                            SaveAndRestoreController saveAndRestoreCotroller) {
-
         this.folderContextMenu = folderContextMenu;
         this.configurationContextMenu = configurationContextMenu;
         this.snapshotContextMenu = snapshotContextMenu;
         this.rootFolderContextMenu = rootFolderContextMenu;
+        this.compositeSnapshotContextMenu = compositeSnapshotContextMenu;
 
         setOnDragDetected(event -> {
             if (!saveAndRestoreCotroller.checkMultipleSelection()) {
@@ -175,8 +181,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
                 if (node.getDescription() != null && !node.getDescription().isEmpty()) {
                     setTooltip(new Tooltip(node.getDescription()));
                 }
-                setContextMenu(configurationContextMenu);
-                setEditable(false);
+                setContextMenu(compositeSnapshotContextMenu);
                 break;
             case CONFIGURATION:
                 setText(node.getName());

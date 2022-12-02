@@ -43,6 +43,7 @@ public class Messages {
     public static String contextMenuRemoveGoldenTag;
     public static String contextMenuTagAsGolden;
     public static String contextMenuTagsWithComment;
+    public static String contextMenuOpenCompositeSnapshotForRestore;
     public static String copyOrMoveNotAllowedBody;
     public static String copyOrMoveNotAllowedHeader;
     public static String copyUniqueIdToClipboard;

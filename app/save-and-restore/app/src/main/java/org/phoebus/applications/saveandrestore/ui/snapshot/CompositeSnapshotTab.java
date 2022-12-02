@@ -118,4 +118,15 @@ public class CompositeSnapshotTab extends Tab {
     public void configureForNewCompositeSnapshot(Node parentNode) {
         compositeSnapshotController.newCompositeSnapshot(parentNode);
     }
+
+    /**
+     * Configures UI to edit an existing composite snapshot {@link Node}
+     *
+     * @param compositeSnapshotNode non-null configuration {@link Node}
+     */
+    public void editCompositeSnapshot(Node compositeSnapshotNode) {
+        setId(compositeSnapshotNode.getUniqueId());
+        tabTitleProperty.set(compositeSnapshotNode.getName());
+        compositeSnapshotController.loadCompositeSnapshot(compositeSnapshotNode);
+    }
 }
