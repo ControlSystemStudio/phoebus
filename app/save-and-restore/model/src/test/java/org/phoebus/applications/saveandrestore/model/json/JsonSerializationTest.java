@@ -64,7 +64,6 @@ public class JsonSerializationTest {
 	@Test
 	public void testSerializationAndDeserialzation() throws Exception {
 		SnapshotItem snapshotItem = SnapshotItem.builder().configPv(ConfigPv.builder().pvName("a").build())
-				.snapshotId(2)
 				.value(vDouble)
 				.readbackValue(vDouble)
 				.build();
@@ -81,7 +80,6 @@ public class JsonSerializationTest {
 
 		snapshotItem = SnapshotItem.builder().configPv(ConfigPv.builder().pvName("a")
 				.build())
-				.snapshotId(2)
 				.value(vDoubleArray)
 				.readbackValue(vDoubleArray)
 				.build();
@@ -104,7 +102,6 @@ public class JsonSerializationTest {
 	@Test
 	public void testNaN() throws Exception{
 		SnapshotItem snapshotItem = SnapshotItem.builder().configPv(ConfigPv.builder().pvName("a").build())
-				.snapshotId(2)
 				.value(VDouble.of(Double.NaN, Alarm.none(), Time.now(), Display.none()))
 				.build();
 		String json = objectMapper.writeValueAsString(snapshotItem);
@@ -116,7 +113,6 @@ public class JsonSerializationTest {
 	@Test
 	public void testPositiveInfinity() throws Exception{
 		SnapshotItem snapshotItem = SnapshotItem.builder().configPv(ConfigPv.builder().pvName("a").build())
-				.snapshotId(2)
 				.value(VDouble.of(Double.POSITIVE_INFINITY, Alarm.none(), Time.now(), Display.none()))
 				.build();
 		String json = objectMapper.writeValueAsString(snapshotItem);
@@ -128,7 +124,6 @@ public class JsonSerializationTest {
 	@Test
 	public void testNegativeInfinity() throws Exception{
 		SnapshotItem snapshotItem = SnapshotItem.builder().configPv(ConfigPv.builder().pvName("a").build())
-				.snapshotId(2)
 				.value(VDouble.of(Double.NEGATIVE_INFINITY, Alarm.none(), Time.now(), Display.none()))
 				.build();
 		String json = objectMapper.writeValueAsString(snapshotItem);
@@ -140,7 +135,6 @@ public class JsonSerializationTest {
 	@Test
 	public void testEnum() throws Exception{
 		SnapshotItem snapshotItem = SnapshotItem.builder().configPv(ConfigPv.builder().pvName("a").build())
-				.snapshotId(2)
 				.value(VEnum.of(0, EnumDisplay.of("a", "b"), Alarm.none(), Time.now()))
 				.build();
 		String json = objectMapper.writeValueAsString(snapshotItem);

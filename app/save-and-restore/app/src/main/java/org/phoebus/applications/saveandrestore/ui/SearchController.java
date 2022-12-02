@@ -105,7 +105,7 @@ public class SearchController implements Initializable {
             try {
                 snapshotList = saveAndRestoreService.getAllSnapshots();
                 snapshotList.stream().map(SearchEntry::create).forEach(tableEntries::add);
-                if(searchOptionGoldenOnly.isSelected()){
+                if (searchOptionGoldenOnly.isSelected()) {
                     tableEntries = tableEntries.stream().filter(se -> isSnapshotGolden(se.snapshot)).collect(Collectors.toList());
                 }
 
@@ -154,10 +154,6 @@ public class SearchController implements Initializable {
                     setOnMouseClicked(action -> {
                         if (action.getClickCount() == 2) {
                             Stack<Node> copiedStack = new Stack<>();
-
-                            if (searchEntry.getSnapshot() == null) {
-                                searchEntry.setSnapshot(saveAndRestoreService.getNode(searchEntry.getTag().getSnapshotId()));
-                            }
                             DirectoryUtilities.CreateLocationStringAndNodeStack(searchEntry.getSnapshot(), false).getValue().forEach(copiedStack::push);
                             callerController.locateNode(copiedStack);
                         }
@@ -201,9 +197,11 @@ public class SearchController implements Initializable {
                         flag &= !searchOptionGoldenOnly.isSelected() | isSnapshotGolden(entry.snapshot);
                     } else {
                         flag |= searchOptionTagName.isSelected() & entry.getName().toLowerCase().contains(keyword.toLowerCase());
-                        flag |= searchOptionTagComment.isSelected() & entry.getComment().toLowerCase().contains(keyword.toLowerCase());
+                        // Tag comment may be null, e.g. golden tag
+                        if (entry.getComment() != null) {
+                            flag |= searchOptionTagComment.isSelected() & entry.getComment().toLowerCase().contains(keyword.toLowerCase());
+                        }
                     }
-
                     return flag;
                 }).collect(Collectors.toList());
 
@@ -214,9 +212,9 @@ public class SearchController implements Initializable {
     public void setCallerController(SaveAndRestoreController callerController) {
         this.callerController = callerController;
     }
-    
-    private static boolean isSnapshotGolden(Node node){
-        return node.getProperty("golden") != null && Boolean.valueOf(node.getProperty("golden"));
+
+    private static boolean isSnapshotGolden(Node node) {
+        return node.hasTag(Tag.GOLDEN);
     }
 
     private enum EntryType {SNAPSHOT, TAG}
@@ -248,7 +246,7 @@ public class SearchController implements Initializable {
                 this.snapshot = snapshot;
 
                 name = snapshot.getName();
-                comment = snapshot.getProperty("comment");
+                comment = snapshot.getDescription();
                 created = snapshot.getCreated();
                 creator = snapshot.getUserName();
             } else {
@@ -267,8 +265,7 @@ public class SearchController implements Initializable {
             if (type.equals(EntryType.SNAPSHOT)) {
                 if (isSnapshotGolden(snapshot)) {
                     return new ImageView(ImageCache.getImage(SearchController.class, "/icons/save-and-restore/snapshot-golden.png"));
-                }
-                else {
+                } else {
                     return new ImageView(ImageCache.getImage(SearchController.class, "/icons/save-and-restore/snapshot.png"));
                 }
             } else {

@@ -49,8 +49,8 @@ public class TagUtil {
     /**
      * Generates a {@link Node} for Add {@link Tag} {@link Dialog}.
      *
-     * @param locationString Saveset location {@link String}
-     * @param snapshotString Snapshot name {@link String}
+     * @param locationString Configuration location {@link String}
+     * @param snapshotString SnapshotData name {@link String}
      * @return a {@link Node} of {@link GridPane} for information
      */
     public static Node CreateAddHeader(String locationString, String snapshotString) {
@@ -61,7 +61,7 @@ public class TagUtil {
         headerPane.setPadding(new Insets(15, 15, 15, 15));
 
         Label locationLabel = new Label("Location:");
-        Label snapshotLabel = new Label("Snapshot:");
+        Label snapshotLabel = new Label("SnapshotData:");
 
         Label location = new Label(locationString);
         Label snapshot = new Label(snapshotString);
@@ -98,8 +98,8 @@ public class TagUtil {
     /**
      * Generates a {@link Node} for Remove {@link Tag} {@link Dialog}.
      *
-     * @param locationString Saveset location {@link String}
-     * @param snapshotString Snapshot name {@link String}
+     * @param locationString Configuration location {@link String}
+     * @param snapshotString SnapshotData name {@link String}
      * @param tag {@link Tag} object to extract {@link Tag} infomation to show
      * @return a {@link Node} of {@link GridPane} for information
      */
@@ -111,7 +111,7 @@ public class TagUtil {
         headerPane.setPadding(new Insets(15, 15, 15, 15));
 
         Label locationLabel = new Label("Location:");
-        Label snapshotLabel = new Label("Snapshot:");
+        Label snapshotLabel = new Label("SnapshotData:");
         Label tagNameLabel = new Label("Tag name:");
         Label tagCreatedLabel = new Label("Created on:");
         Label tagCreatorLabel = new Label("Created by:");

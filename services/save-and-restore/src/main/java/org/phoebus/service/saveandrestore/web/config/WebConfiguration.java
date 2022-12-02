@@ -17,17 +17,19 @@
  */
 package org.phoebus.service.saveandrestore.web.config;
 
+import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
+import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchDAO;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import org.phoebus.service.saveandrestore.services.IServices;
-import org.phoebus.service.saveandrestore.services.impl.Services;
+
 
 @Configuration
 public class WebConfiguration {
 
+	@SuppressWarnings("unused")
 	@Bean
-	public IServices services() {
-		return new Services();
+	public NodeDAO nodeDAO() {
+		return new ElasticsearchDAO();
 	}
 }

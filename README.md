@@ -262,4 +262,4 @@ Open the staging repository in [sonatype](https://s01.oss.sonatype.org/#stagingR
 **Note:**
 In order to keep the ant and maven builds in sync, before the prepare:release update the `version` in the 
 dependencies\ant_settings.xml to match the release version number. After the release is completed the `version` should 
-updated to match the next development snapshot version.
+updated to match the next development snapshotData version.

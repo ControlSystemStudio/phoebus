@@ -362,7 +362,7 @@
   </profiles>
 
   <repositories>
-    <!-- The Nexus snapshot repository hosting the latest diirt modules -->
+    <!-- The Nexus snapshotData repository hosting the latest diirt modules -->
     <repository>
       <id>sonatype-nexus-snapshots</id>
       <name>sonatype-nexus-snapshots</name>
@@ -370,7 +370,7 @@
     </repository>
     <repository>
       <id>es-snapshots</id>
-      <name>elasticsearch snapshot repo</name>
+      <name>elasticsearch snapshotData repo</name>
       <url>https://snapshots.elastic.co/maven/</url>
     </repository>
   </repositories>

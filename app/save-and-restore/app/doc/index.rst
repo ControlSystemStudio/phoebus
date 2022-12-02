@@ -4,11 +4,11 @@ Save-And-Restore
 Overview
 --------
 
-The save-and-restore application can be used to take a snapshot of a pre-defined list if PVs at a certain point in
-time, and write the persisted values back to the IOCs at some later point.
+The save-and-restore application can be used to take "snapshots" of a pre-defined list if PVs at a certain point in
+time, and write the persisted values back at some later point.
 
-The application depends on the save-and-restore service deployed on the network such that it can be accessed over
-HTTP. The URL of the service is specified in the save-and-restore.properties file or in the settings file
+The application uses the save-and-restore service deployed on the network such that it can be accessed over
+HTTP(s). The URL of the service is specified in the save-and-restore.properties file or in the settings file
 pointed to on the command line.
 
 Connection to PVs works the same as for OPI control widgets. The preference org.phoebus.pv/default will determine
@@ -20,19 +20,19 @@ Nodes and node types
 
 Save-and-restore data managed by the service is arranged in a tree-like structure and hence presented using
 a tree view UI component. In the following objects in the tree are referred to as "nodes". The root of the tree
-structure is a folder that may only contain folder nodes. Folders may contain sub-folders or save sets, or both.
-The child nodes of a save set are snapshots associated with that save set.
+structure is a folder that may only contain folder nodes. Folders may contain sub-folders or configurations, or both.
+The child nodes of a configuration are snapshots associated with that configuration.
 
-There are three node types managed in the application:
+There are hence three node types managed in the application:
 
-- **Folder**: container of other folders or save sets.
-- **Save set**: a list of PV names and associated meta-data.
-- **Snapshot**: the PV values read from PVs listed in a save set.
+- **Folder**: container for folders and configurations.
+- **Configuration**: essentially a list of PV names and associated meta-data.
+- **Snapshot**: the PV values read from PVs listed in a configuration.
 
-*NOTE*: If a folder or save set node is deleted, all child nodes are unconditionally and recursively deleted! The user
+*NOTE*: If a folder or configuration node is deleted, all child nodes are unconditionally and recursively deleted! The user
 is prompted to confirm delete actions as deletion is irreversible.
 
-Below screen shot shows the tree structure and a save set editor.
+Below screen shot shows the tree structure and a configuration editor.
 
 .. image:: images/screenshot1.png
    :width: 80%
@@ -49,16 +49,16 @@ Drag-n-drop
 -----------
 
 Nodes in the tree can be copied (mouse + modifier key) or moved using drag-n-drop. The following restrictions apply:
-* Only folder and save set nodes can be copied or moved.
-* Save set nodes cannot be copied or moved to the root folder node.
-* Target node (aka drop target) must be a folder.
+* Only folder and configuration nodes can be copied or moved.
+* Configuration nodes cannot be copied or moved to the root folder node.
+* Target node (i.e. drop target) must be a folder.
 
 Checks are performed on the service to enforce the above restrictions. If pre-conditions are not met when the selection
 is dropped, the application will present an error dialog.
 
 Drag-n-drop is disabled if multiple nodes are selected and if:
-* Selection contains a combination of folder and save set nodes. All selected nodes must be of same type.
-* Selection contains nodes with different parent nodes. All selected nodes must have the same parent node.
+* Selection contains a combination of folder and configuration nodes. Selected nodes must be of same type.
+* Selection contains nodes with different parent nodes. Selected nodes must have the same parent node.
 
 Once a selection of nodes have been copied or moved successfully, the target folder is refreshed to reflect the change.
 
@@ -69,7 +69,7 @@ Logging
 -------
 
 If a logbook implementation is available in the application, the optional logging module can be used to launch a log entry
-editor for the purpose of logging when a new snapshot has been saved, or when a snapshot has been restored.
+editor for the purpose of logging when a new snapshot has been saved or restored.
 Properties of the snapshot (name, date etc) are automatically set on the log entry rendered by the editor. If
 a restore action has failed to write one or multiple PVs, a list of these PVs is also added to the log entry.
 
@@ -95,7 +95,7 @@ API
 
 An exception is thrown if the node id is invalid, or if the connection to the remote service fails.
 
-**Get list of snapshot values of a snapshot:**
+**Get list of snapshotData values of a snapshotData:**
 
 .. code-block:: python
 

@@ -58,7 +58,7 @@ public class DirectoryUtilities {
             try {
                 Node parentNode = saveAndRestoreService.getParentNode(node.getUniqueId());
 
-                if (parentNode.getName().equals("Root folder")) {
+                if (parentNode.getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)) {
                     break;
                 }
 

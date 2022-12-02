@@ -76,7 +76,7 @@ public class SaveSnapshotActionAdapterFactory implements AdapterFactory {
         stringBuilder.append("| | |\n");
         // This is needed!
         stringBuilder.append("|-|-|\n");
-        stringBuilder.append("| Snapshot name | ").append(saveSnapshotActionInfo.getSnapshotName()).append(" |\n");
+        stringBuilder.append("| SnapshotData name | ").append(saveSnapshotActionInfo.getSnapshotName()).append(" |\n");
         stringBuilder.append("| Comment | ").append(saveSnapshotActionInfo.getComment()).append(" |\n");
         stringBuilder.append("| Created | ").append(saveSnapshotActionInfo.getSnapshotCreatedDate()).append(" |\n");
     }

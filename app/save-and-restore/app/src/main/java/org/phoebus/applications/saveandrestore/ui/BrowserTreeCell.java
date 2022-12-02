@@ -38,6 +38,7 @@ import javafx.scene.paint.Color;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.PlatformInfo;
 
@@ -55,18 +56,18 @@ import java.util.logging.Logger;
 public class BrowserTreeCell extends TreeCell<Node> {
 
     private javafx.scene.Node folderBox;
-    private javafx.scene.Node saveSetBox;
+    private javafx.scene.Node configurationBox;
     private javafx.scene.Node snapshotBox;
 
     private final ContextMenu folderContextMenu;
-    private final ContextMenu saveSetContextMenu;
+    private final ContextMenu configurationContextMenu;
     private final ContextMenu snapshotContextMenu;
     private final ContextMenu rootFolderContextMenu;
 
     private static final Border BORDER = new Border(new BorderStroke(Color.GREEN, BorderStrokeStyle.SOLID,
             new CornerRadii(5.0), BorderStroke.THIN));
 
-    public BrowserTreeCell(ContextMenu folderContextMenu, ContextMenu saveSetContextMenu,
+    public BrowserTreeCell(ContextMenu folderContextMenu, ContextMenu configurationContextMenu,
                            ContextMenu snapshotContextMenu, ContextMenu rootFolderContextMenu,
                            SaveAndRestoreController saveAndRestoreCotroller) {
 
@@ -76,7 +77,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
             loader.setLocation(BrowserTreeCell.class.getResource("TreeCellGraphic.fxml"));
             javafx.scene.Node rootNode = loader.load();
             folderBox = rootNode.lookup("#folder");
-            saveSetBox = rootNode.lookup("#saveset");
+            configurationBox = rootNode.lookup("#configuration");
             snapshotBox = rootNode.lookup("#snapshot");
 
         } catch (IOException e) {
@@ -87,7 +88,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
         setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
 
         this.folderContextMenu = folderContextMenu;
-        this.saveSetContextMenu = saveSetContextMenu;
+        this.configurationContextMenu = configurationContextMenu;
         this.snapshotContextMenu = snapshotContextMenu;
         this.rootFolderContextMenu = rootFolderContextMenu;
 
@@ -98,7 +99,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
             final ClipboardContent content = new ClipboardContent();
             Node node = getItem();
             // Drag-n-drop not supported for root node and snapshot nodes
-            if (node != null && !node.getNodeType().equals(NodeType.SNAPSHOT) && !node.getName().equals("Root folder")) {
+            if (node != null && !node.getNodeType().equals(NodeType.SNAPSHOT) && !node.getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)) {
                 final List<Node> nodes = new ArrayList<>();
 
                 for (TreeItem<Node> sel : getTreeView().getSelectionModel().getSelectedItems()) {
@@ -162,13 +163,13 @@ public class BrowserTreeCell extends TreeCell<Node> {
                         .setText(node.getName());
                 snapshotBox.lookup("#tagIcon").setVisible(node.getTags() != null && !node.getTags().isEmpty());
                 setGraphic(snapshotBox);
-                if (node.getProperty("golden") != null && Boolean.valueOf(node.getProperty("golden"))) {
+                if (node.hasTag(Tag.GOLDEN)) {
                     ((ImageView) snapshotBox.lookup("#snapshotIcon")).setImage(ImageCache.getImage(BrowserTreeCell.class, "/icons/save-and-restore/snapshot-golden.png"));
                 } else {
                     ((ImageView) snapshotBox.lookup("#snapshotIcon")).setImage(ImageCache.getImage(BrowserTreeCell.class, "/icons/save-and-restore/snapshot.png"));
                 }
                 setContextMenu(snapshotContextMenu);
-                String comment = node.getProperty("comment");
+                String comment = node.getDescription();
                 StringBuffer stringBuffer = new StringBuffer();
                 if (comment != null && !comment.isEmpty()) {
                     stringBuffer.append(comment).append(System.lineSeparator());
@@ -178,17 +179,17 @@ public class BrowserTreeCell extends TreeCell<Node> {
                 setEditable(false);
                 break;
             case CONFIGURATION:
-                ((Label) saveSetBox.lookup("#savesetLabel")).setText(node.getName());
-                setGraphic(saveSetBox);
-                String description = node.getProperty("description");
+                ((Label) configurationBox.lookup("#configurationLabel")).setText(node.getName());
+                setGraphic(configurationBox);
+                String description = node.getDescription();
                 if (description != null && !description.isEmpty()) {
                     setTooltip(new Tooltip(description));
                 }
-                setContextMenu(saveSetContextMenu);
+                setContextMenu(configurationContextMenu);
                 break;
             case FOLDER:
                 String labelText = node.getName();
-                if (node.getProperty("root") != null && Boolean.valueOf(node.getProperty("root"))) {
+                if (node.getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)) {
                     setContextMenu(rootFolderContextMenu);
                 } else {
                     setContextMenu(folderContextMenu);

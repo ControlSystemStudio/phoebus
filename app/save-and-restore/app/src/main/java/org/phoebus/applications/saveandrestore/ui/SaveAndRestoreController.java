@@ -68,7 +68,7 @@ import org.phoebus.applications.saveandrestore.filehandler.csv.CSVImporter;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetTab;
+import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotNewTagDialog;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
@@ -93,6 +93,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -104,7 +105,7 @@ import java.util.stream.Collectors;
 
 /**
  * Main controller for the save & restore UI. In particular, it handles the tree view and operations on it, e.g.
- * creating folders, save sets and launching the snapshot view.
+ * creating folders, configurations and launching the snapshot view.
  */
 public class SaveAndRestoreController implements Initializable, NodeChangedListener, NodeAddedListener {
 
@@ -134,7 +135,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     protected ContextMenu folderContextMenu;
-    protected ContextMenu saveSetContextMenu;
+    protected ContextMenu configurationContextMenu;
     protected ContextMenu snapshotContextMenu;
     protected ContextMenu rootFolderContextMenu;
 
@@ -166,7 +167,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     /**
      *
-     * @param uri If non-null, this is used to load a save set or snapshot into the view.
+     * @param uri If non-null, this is used to load a configuration or snapshot into the view.
      */
     public SaveAndRestoreController(URI uri){
         this.uri = uri;
@@ -193,8 +194,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         folderContextMenu = new ContextMenuFolder(this, preferencesReader.getBoolean("enableCSVIO"), multipleItemsSelected);
         folderContextMenu.setOnShowing(event -> multipleItemsSelected.set(browserSelectionModel.getSelectedItems().size() > 1));
-        saveSetContextMenu = new ContextMenuSaveSet(this, preferencesReader.getBoolean("enableCSVIO"), multipleItemsSelected);
-        saveSetContextMenu.setOnShowing(event -> multipleItemsSelected.set(browserSelectionModel.getSelectedItems().size() > 1));
+        configurationContextMenu = new ContextMenuConfiguration(this, preferencesReader.getBoolean("enableCSVIO"), multipleItemsSelected);
+        configurationContextMenu.setOnShowing(event -> multipleItemsSelected.set(browserSelectionModel.getSelectedItems().size() > 1));
 
         rootFolderContextMenu = new ContextMenu();
         MenuItem newRootFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(folderIcon));
@@ -212,8 +213,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 return;
             }
             if (item.getValue().getNodeType().equals(NodeType.SNAPSHOT)) {
-                toggleGoldenMenuItemText.set(Boolean.parseBoolean(item.getValue().getProperty("golden")) ? Messages.contextMenuRemoveGoldenTag : Messages.contextMenuTagAsGolden);
-                toggleGoldenImageViewProperty.set(Boolean.parseBoolean(item.getValue().getProperty("golden")) ? snapshotImageView : snapshotGoldenImageView);
+                toggleGoldenMenuItemText.set(item.getValue().hasTag(Tag.GOLDEN) ? Messages.contextMenuRemoveGoldenTag : Messages.contextMenuTagAsGolden);
+                toggleGoldenImageViewProperty.set(item.getValue().hasTag(Tag.GOLDEN)  ? snapshotImageView : snapshotGoldenImageView);
             }
             // Check if a tab has already been opened for this node.
             boolean highlighted = highlightTab(item.getValue().getUniqueId());
@@ -229,7 +230,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         saveAndRestoreService.addNodeAddedListener(this);
 
         treeView.setCellFactory(p -> new BrowserTreeCell(folderContextMenu,
-                saveSetContextMenu, snapshotContextMenu, rootFolderContextMenu,
+                configurationContextMenu, snapshotContextMenu, rootFolderContextMenu,
                 this));
 
         progressIndicator.visibleProperty().bind(changesInProgress);
@@ -379,7 +380,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     protected void toggleGoldenProperty(Node node) {
         try {
             Node updatedNode = saveAndRestoreService.tagSnapshotAsGolden(node,
-                    !Boolean.parseBoolean(node.getProperty("golden")));
+                    !node.hasTag(Tag.GOLDEN));
             browserSelectionModel.getSelectedItems().get(0).setValue(updatedNode);
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Failed to toggle golden property", e);
@@ -472,12 +473,12 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     /**
-     * Opens a new snapshot view tab associated with the selected save set.
+     * Opens a new snapshot view tab associated with the selected configuration.
      */
-    protected void openSaveSetForSnapshot() {
+    protected void openConfigurationForSnapshot() {
         TreeItem<Node> treeItem = browserSelectionModel.getSelectedItems().get(0);
         SnapshotTab tab = new SnapshotTab(treeItem.getValue(), saveAndRestoreService);
-        tab.loadSaveSet(treeItem.getValue());
+        tab.newSnapshot(treeItem.getValue());
 
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);
@@ -555,7 +556,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         switch (node.getNodeType()) {
             case CONFIGURATION:
-                tab = new SaveSetTab(node, saveAndRestoreService);
+                tab = new ConfigurationTab();
+                ((ConfigurationTab)tab).editCOnfiguration(node);
                 break;
             case SNAPSHOT:
                 tab = new SnapshotTab(node, saveAndRestoreService);
@@ -566,6 +568,13 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 return;
         }
 
+        tabPane.getTabs().add(tab);
+        tabPane.getSelectionModel().select(tab);
+    }
+
+    private void launchTabForNewConfiguration(Node parentNode){
+        ConfigurationTab tab = new ConfigurationTab();
+        tab.configureForNewConfiguration(parentNode);
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);
     }
@@ -581,66 +590,11 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     /**
-     * Creates a new save set in the selected tree node.
+     * Creates a new configuration in the selected tree node.
      */
-    protected void createNewSaveSet() {
+    protected void createNewConfiguration() {
 
-        TreeItem<Node> parentTreeItem = browserSelectionModel.getSelectedItems().get(0);
-        List<String> existingFolderNames =
-                parentTreeItem.getChildren().stream()
-                        .filter(item -> item.getValue().getNodeType().equals(NodeType.CONFIGURATION))
-                        .map(item -> item.getValue().getName())
-                        .collect(Collectors.toList());
-
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle(Messages.promptNewSaveSetTitle);
-        dialog.setContentText(Messages.promptNewSaveSetContent);
-        dialog.setHeaderText(null);
-        dialog.getDialogPane().lookupButton(ButtonType.OK).setDisable(true);
-
-        dialog.getEditor().textProperty().addListener((observable, oldValue, newValue) -> {
-            String value = newValue.trim();
-            dialog.getDialogPane().lookupButton(ButtonType.OK)
-                    .setDisable(existingFolderNames.contains(value) || value.isEmpty());
-        });
-
-        Optional<String> result = dialog.showAndWait();
-
-        if (result.isPresent()) {
-            Node newSateSetNode = Node.builder()
-                    .nodeType(NodeType.CONFIGURATION)
-                    .name(result.get())
-                    .build();
-            Task<Node> task = new Task<>() {
-                @Override
-                protected Node call() throws Exception {
-                    return saveAndRestoreService
-                            .createNode(browserSelectionModel.getSelectedItems().get(0).getValue().getUniqueId(), newSateSetNode);
-                }
-
-                @Override
-                public void succeeded() {
-                    TreeItem<Node> newSaveSetNode;
-                    try {
-                        newSaveSetNode = createTreeItem(get());
-                    } catch (Exception e) {
-                        LOG.log(Level.WARNING, "Encountered error when creating save set", e);
-                        return;
-                    }
-                    nodeDoubleClicked(newSaveSetNode.getValue());
-                    //browserSelectionModel.clearSelection();
-                }
-
-                @Override
-                public void failed() {
-                    expandTreeNode(parentTreeItem.getParent());
-                    ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
-                            Messages.errorCreateSaveSetFailed, null);
-                }
-            };
-
-            new Thread(task).start();
-        }
+        launchTabForNewConfiguration(browserSelectionModel.getSelectedItems().get(0).getValue());
     }
 
     /**
@@ -679,7 +633,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         dialog.setHeaderText(null);
         dialog.getDialogPane().lookupButton(ButtonType.OK).setDisable(true);
         dialog.getEditor().textProperty().setValue(node.getName());
-
 
         dialog.getEditor().textProperty().addListener((observable, oldValue, newValue) -> {
             String value = newValue.trim();
@@ -730,8 +683,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             return;
         }
         nodeSubjectToUpdate.setValue(node);
-        // Folder node changes may include structure changes, so expand to force update.
-        if (nodeSubjectToUpdate.getValue().getNodeType().equals(NodeType.FOLDER)) {
+        // Folder and configuration node changes may include structure changes, so expand to force update.
+        if (nodeSubjectToUpdate.getValue().getNodeType().equals(NodeType.FOLDER) ||
+                nodeSubjectToUpdate.getValue().getNodeType().equals(NodeType.CONFIGURATION)) {
             if (nodeSubjectToUpdate.getParent() != null) { // null means root folder as it has no parent
                 nodeSubjectToUpdate.getParent().getChildren().sort(treeNodeComparator);
             }
@@ -879,7 +833,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     /**
      * Utility class for the purpose of sorting {@link TreeItem}s. For snapshot {@link Node}s the created date
-     * is used for comparison, while folder and save set {@link Node}s are compared by name.
+     * is used for comparison, while folder and configuration {@link Node}s are compared by name.
      * See {@link Node#compareTo(Node)}.
      */
     protected class TreeNodeComparator implements Comparator<TreeItem<Node>> {
@@ -940,13 +894,13 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     /**
-     * Imports a save set to a folder {@link Node} from file.
+     * Imports a configuration to a folder {@link Node} from file.
      */
-    protected void importSaveSet() {
+    protected void importConfiguration() {
         Node node = browserSelectionModel.getSelectedItems().get(0).getValue();
         try {
             FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle(Messages.importSaveSetLabel);
+            fileChooser.setTitle(Messages.importConfigurationLabel);
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Supported file formats (CSV, SNP)", "*.csv", "*.bms"));
             File file = fileChooser.showOpenDialog(splitPane.getScene().getWindow());
             if (file != null) {
@@ -958,13 +912,13 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     /**
-     * Exports a save set to file.
+     * Exports a configuration to file.
      */
-    protected void exportSaveSet() {
+    protected void exportConfiguration() {
         Node node = browserSelectionModel.getSelectedItems().get(0).getValue();
         try {
             FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle(Messages.exportSaveSetLabel);
+            fileChooser.setTitle(Messages.exportConfigurationLabel);
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV (BMS compatible)", "*.csv"));
             fileChooser.setInitialFileName(browserSelectionModel.getSelectedItems().get(0).getValue().getName());
             File file = fileChooser.showSaveDialog(splitPane.getScene().getWindow());
@@ -976,12 +930,12 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 CSVExporter.export(node, file.getAbsolutePath());
             }
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Save set export failed", e);
+            LOG.log(Level.WARNING, "Configuration export failed", e);
         }
     }
 
     /**
-     * Imports a snapshot from file to a save set. Contets must match the PV list of the selected save set.
+     * Imports a snapshot from file to a configuration. Contents must match the PV list of the selected configuration.
      */
     protected void importSnapshot() {
         Node node = browserSelectionModel.getSelectedItems().get(0).getValue();
@@ -994,7 +948,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 CSVImporter.importFile(node, file);
             }
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Snapshot import failed", e);
+            LOG.log(Level.WARNING, "SnapshotData import failed", e);
         }
     }
 
@@ -1024,7 +978,10 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 CSVExporter.export(node, file.getAbsolutePath());
             }
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Failed to export snapshot", e);
+            ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
+                    Messages.errorActionFailed,
+                    e);
+            LOG.log(Level.WARNING, Messages.errorActionFailed, e);
         }
     }
 
@@ -1041,7 +998,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * @param node The snapshot to which tag is added.
      */
     public void addTagToSnapshot(Node node) {
-        SnapshotNewTagDialog snapshotNewTagDialog = new SnapshotNewTagDialog(node.getTags());
+        SnapshotNewTagDialog snapshotNewTagDialog = new SnapshotNewTagDialog(node.getTags() == null ? new ArrayList<>(): node.getTags());
         snapshotNewTagDialog.initModality(Modality.APPLICATION_MODAL);
 
         String locationString = DirectoryUtilities.CreateLocationString(node, true);
@@ -1054,9 +1011,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         Optional<Pair<String, String>> result = snapshotNewTagDialog.showAndWait();
         result.ifPresent(items -> {
             Tag aNewTag = Tag.builder()
-                    .snapshotId(node.getUniqueId())
                     .name(items.getKey())
                     .comment(items.getValue())
+                    .created(new Date())
                     .userName(System.getProperty("user.name"))
                     .build();
 
@@ -1091,7 +1048,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             tagList.remove(tagList.size() - 1);
         }
 
-        if (node.getTags().isEmpty()) {
+        if (node.getTags() == null || node.getTags().isEmpty()) {
             CustomMenuItem noTags = TagWidget.NoTagMenuItem();
             noTags.setDisable(true);
             tagList.add(noTags);
@@ -1230,10 +1187,10 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     /**
-     * Launches the save & restore app and highlights/loads the "resource" (save set or snapshot) identified
-     * by the {@link URI}. If the save set/snapshot in question cannot be found, an error dialog is shown.
+     * Launches the save & restore app and highlights/loads the "resource" (configuration or snapshot) identified
+     * by the {@link URI}. If the configuration/snapshot in question cannot be found, an error dialog is shown.
      * @param uri An {@link URI} on the form file:/unique-id?app=saveandrestore, where unique-id is the
-     *            unique id of a save set or snapshot.
+     *            unique id of a configuration or snapshot.
      */
     public void openResource(URI uri){
         if(uri == null){

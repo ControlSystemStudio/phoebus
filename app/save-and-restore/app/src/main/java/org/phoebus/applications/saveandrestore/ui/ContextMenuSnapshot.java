@@ -56,8 +56,8 @@ public class ContextMenuSnapshot extends ContextMenuBase {
             saveAndRestoreController.renameNode();
         });
 
-        MenuItem compareSaveSetMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, new ImageView(compareSnapshotIcon));
-        compareSaveSetMenuItem.setOnAction(ae -> {
+        MenuItem compareConfigurationMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, new ImageView(compareSnapshotIcon));
+        compareConfigurationMenuItem.setOnAction(ae -> {
             saveAndRestoreController.comapreSnapshot();
         });
 
@@ -86,7 +86,7 @@ public class ContextMenuSnapshot extends ContextMenuBase {
 
         tagWithComment.getItems().addAll(addTagWithCommentMenuItem, new SeparatorMenuItem());
 
-        getItems().addAll(renameSnapshotItem, deleteSnapshotMenuItem, compareSaveSetMenuItem, tagAsGolden, tagWithComment, copyUniqueIdToClipboardMenuItem);
+        getItems().addAll(renameSnapshotItem, deleteSnapshotMenuItem, compareConfigurationMenuItem, tagAsGolden, tagWithComment, copyUniqueIdToClipboardMenuItem);
 
         if (csvEnabled) {
             ImageView exportSnapshotIconImageView = new ImageView(csvExportIcon);

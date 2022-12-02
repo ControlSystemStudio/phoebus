@@ -38,7 +38,6 @@
           </archive>
         </configuration>
       </plugin>
-
     </plugins>
   </build>
   <profiles>

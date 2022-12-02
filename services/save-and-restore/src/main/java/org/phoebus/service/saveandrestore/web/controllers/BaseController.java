@@ -20,15 +20,16 @@ package org.phoebus.service.saveandrestore.web.controllers;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 
-import org.phoebus.service.saveandrestore.services.exception.NodeNotFoundException;
-import org.phoebus.service.saveandrestore.services.exception.SnapshotNotFoundException;
+import org.phoebus.service.saveandrestore.NodeNotFoundException;
+import org.phoebus.service.saveandrestore.SnapshotNotFoundException;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Base controller that should be extended to make sure exceptions are handled
@@ -40,9 +41,9 @@ import org.phoebus.service.saveandrestore.services.exception.SnapshotNotFoundExc
 @SuppressWarnings("unused")
 public abstract class BaseController {
 	
-	protected static final String JSON = "application/json;charset = UTF-8";
+	public static final String JSON = "application/json";
 	
-	private final Logger logger = LoggerFactory.getLogger(BaseController.class);
+	private final Logger logger = Logger.getLogger(BaseController.class.getName());
 
 
 	/**
@@ -85,6 +86,6 @@ public abstract class BaseController {
 	}
 	
 	private void log(Throwable throwable) {
-		logger.debug("Intercepted {}", throwable.getClass().getName(), throwable);
+		logger.log(Level.INFO, "Intercepted " + throwable.getClass().getName(), throwable);
 	}
 }

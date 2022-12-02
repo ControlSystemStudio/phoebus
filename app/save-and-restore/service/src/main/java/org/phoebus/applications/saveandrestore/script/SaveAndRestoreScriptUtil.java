@@ -19,11 +19,11 @@
 package org.phoebus.applications.saveandrestore.script;
 
 import org.epics.vtype.VType;
+import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.common.Utilities;
+import org.phoebus.applications.saveandrestore.impl.SaveAndRestoreJerseyClient;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
-import org.phoebus.applications.saveandrestore.impl.SaveAndRestoreJerseyClient;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 
@@ -70,8 +70,7 @@ public class SaveAndRestoreScriptUtil {
 
     public static List<SnapshotItem> getSnapshotItems(String snapshotId) {
         ensureClientSet();
-        saveAndRestoreClient.getNode(snapshotId); // This will throw an exception if the snapshot does not exist.
-        return saveAndRestoreClient.getSnapshotItems(snapshotId);
+        return saveAndRestoreClient.getSnapshotData(snapshotId).getSnapshotItems();
     }
 
     /**
@@ -103,7 +102,7 @@ public class SaveAndRestoreScriptUtil {
     public static RestoreReport restore(String snapshotId, int connectTimeout, int writeTimeout, boolean abortOnFail, boolean rollBack) throws Exception {
         ensureClientSet();
         saveAndRestoreClient.getNode(snapshotId); // This will throw an exception if the snapshot does not exist.
-        List<SnapshotItem> snapshotItems = saveAndRestoreClient.getSnapshotItems(snapshotId);
+        List<SnapshotItem> snapshotItems = saveAndRestoreClient.getSnapshotData(snapshotId).getSnapshotItems();
         List<SnapshotItem> restorableItems =
                 snapshotItems.stream().filter(item -> !item.getConfigPv().isReadOnly()).collect(Collectors.toList());
         if (restorableItems.isEmpty()) { // Should really not happen.
@@ -134,13 +133,11 @@ public class SaveAndRestoreScriptUtil {
         } catch (Exception e) {
             logger.log(Level.WARNING, "Failed to connect and read all PVs", e);
             allConnected = false;
-        } finally {
-
         }
 
         // If any of the PVs fails to connect, abort the restore process.
         if (!allConnected) {
-            pvs.entrySet().stream().forEach(entry -> PVPool.releasePV(entry.getValue()));
+            pvs.forEach((key, value) -> PVPool.releasePV(value));
             throw new Exception("Failed to connect to all PVs within " + connectTimeout + " ms.");
         }
         String path = saveAndRestoreClient.getFullPath(snapshotId);
@@ -174,13 +171,13 @@ public class SaveAndRestoreScriptUtil {
         }
         // Determine the list of PVs that were not restored.
         List<String> restorablePVNames = pvs.values().stream().map(PV::getName).collect(Collectors.toList());
-        List<String> restoredPVNames = restoredPVs.keySet().stream().collect(Collectors.toList());
+        List<String> restoredPVNames = new ArrayList<>(restoredPVs.keySet());
         restorablePVNames.removeAll(restoredPVNames);
         restoreReport.setNonRestoredPVs(restorablePVNames);
 
         restoreReport.setRestoredPVs(restoredPVs);
 
-        pvs.entrySet().stream().forEach(entry -> PVPool.releasePV(entry.getValue()));
+        pvs.forEach((key, value) -> PVPool.releasePV(value));
 
         return restoreReport;
     }

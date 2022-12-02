@@ -27,24 +27,31 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.framework.nls.NLS;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 
 import java.io.IOException;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SnapshotTab extends Tab {
+public class SnapshotTab extends Tab implements NodeChangedListener {
 
     public SaveAndRestoreService saveAndRestoreService;
 
-    private SimpleStringProperty tabTitleProperty = new SimpleStringProperty();
+    private final SimpleStringProperty tabTitleProperty = new SimpleStringProperty();
 
     private SnapshotController snapshotController;
 
-    private SimpleObjectProperty<Image> tabGraphicImageProperty = new SimpleObjectProperty<Image>();
+    private final SimpleObjectProperty<Image> tabGraphicImageProperty = new SimpleObjectProperty<>();
 
     private Image regularImage;
     private Image goldenImage;
@@ -58,18 +65,33 @@ public class SnapshotTab extends Tab {
             setId(node.getUniqueId());
         }
 
+        ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
         FXMLLoader loader = new FXMLLoader();
+        loader.setResources(resourceBundle);
         loader.setLocation(SnapshotTab.class.getResource("SnapshotEditor.fxml"));
 
-        BorderPane borderPane;
+        loader.setControllerFactory(clazz -> {
+            try {
+                if (clazz.isAssignableFrom(SnapshotController.class)) {
+                    return clazz.getConstructor(SnapshotTab.class)
+                            .newInstance(this);
+                }
+            } catch (Exception e) {
+                ExceptionDetailsErrorDialog.openError("Error",
+                        "Failed to open new snapshot tab", e);
+            }
+            return null;
+        });
+
+        javafx.scene.Node rootNode;
         try {
-            borderPane = loader.load();
+            rootNode = loader.load();
         } catch (IOException e) {
             Logger.getLogger(SnapshotTab.class.getName())
                     .log(Level.SEVERE, "Failed to load fxml", e);
             return;
         }
-        setContent(borderPane);
+        setContent(rootNode);
 
         regularImage = ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/snapshot.png");
         goldenImage = ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/snapshot-golden.png");
@@ -85,16 +107,22 @@ public class SnapshotTab extends Tab {
         setGraphic(container);
 
         snapshotController = loader.getController();
-        snapshotController.setSnapshotTab(this);
         tabTitleProperty.set(node.getNodeType().equals(NodeType.SNAPSHOT) ? node.getName() : Messages.unnamedSnapshot);
 
-        tabGraphicImageProperty.set(Boolean.parseBoolean(node.getProperty("golden")) ? goldenImage : regularImage);
+        boolean isGolden = node.getTags() != null && node.getTags().stream().anyMatch(t -> t.getName().equals(Tag.GOLDEN));
+
+        tabGraphicImageProperty.set(isGolden ? goldenImage : regularImage);
 
         setOnCloseRequest(event -> {
             if(!snapshotController.handleSnapshotTabClosed()){
                 event.consume();
             }
+            else{
+                SaveAndRestoreService.getInstance().removeNodeChangeListener(this);
+            }
         });
+
+        SaveAndRestoreService.getInstance().addNodeChangeListener(this);
     }
 
     public void updateTabTitile(String name, boolean golden){
@@ -102,15 +130,22 @@ public class SnapshotTab extends Tab {
         tabTitleProperty.set(name);
     }
 
-    public void loadSnapshot(org.phoebus.applications.saveandrestore.model.Node node){
-        snapshotController.loadSnapshot(node);
+    public void newSnapshot(org.phoebus.applications.saveandrestore.model.Node configurationNode){
+        snapshotController.newSnapshot(configurationNode);
     }
 
-    public void loadSaveSet(org.phoebus.applications.saveandrestore.model.Node node){
-        snapshotController.loadSaveSet(node);
+    public void loadSnapshot(Node snapshotNode){
+        snapshotController.loadSnapshot(snapshotNode);
     }
 
     public void addSnapshot(org.phoebus.applications.saveandrestore.model.Node node){
         snapshotController.addSnapshot(node);
+    }
+
+    @Override
+    public void nodeChanged(Node node) {
+        if (node.getUniqueId().equals(getId())) {
+            tabTitleProperty.set(node.getName());
+        }
     }
 }

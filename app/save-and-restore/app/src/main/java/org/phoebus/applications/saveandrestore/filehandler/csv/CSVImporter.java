@@ -75,9 +75,12 @@ import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.datamigration.git.FileUtilities;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.Snapshot;
+import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
-import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetFromSelectionController;
+import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationFromSelectionController;
 
 import java.io.File;
 import java.io.IOException;
@@ -85,7 +88,6 @@ import java.text.DecimalFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -141,13 +143,13 @@ public class CSVImporter extends CSVCommon {
             alert.setContentText("Existing saveset with the same name is found. Duplicate PVs will be ignored." + System.lineSeparator() + "Please review the description.");
             alert.showAndWait();
 
-            csvParser.setDescription(parentOfImport.getProperty("description") + System.lineSeparator() + System.lineSeparator() + "Description from importing:" + System.lineSeparator() + csvParser.getDescription());
+            csvParser.setDescription(parentOfImport.getDescription() + System.lineSeparator() + System.lineSeparator() + "Description from importing:" + System.lineSeparator() + csvParser.getDescription());
         }
 
         FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/SaveSetFromSelection.fxml"));
+        loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/configuration/ConfigurationFromSelection.fxml"));
         Stage dialog = new Stage();
-        dialog.setTitle("Import Save Set");
+        dialog.setTitle("Import Configuration");
         dialog.initModality(Modality.WINDOW_MODAL);
         try {
             dialog.setScene(new Scene(loader.load()));
@@ -156,8 +158,8 @@ public class CSVImporter extends CSVCommon {
             return;
         }
 
-        final SaveSetFromSelectionController controller = loader.getController();
-        controller.disableSaveSetSelectionInBrowsing();
+        final ConfigurationFromSelectionController controller = loader.getController();
+        controller.disableConfigurationSelectionInBrowsing();
         controller.setData(parentOfImport, csvParser.getSavesetName(), csvParser.getDescription(), csvParser.getEntries());
         dialog.show();
     }
@@ -221,17 +223,17 @@ public class CSVImporter extends CSVCommon {
 
             if (response.isPresent() && response.get().equals(ButtonType.OK)) {
                 FXMLLoader loader = new FXMLLoader();
-                loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/SaveSetFromSelection.fxml"));
+                loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/configuration/ConfigurationFromSelection.fxml"));
                 Stage dialog = new Stage();
-                dialog.setTitle("Import Snapshot");
+                dialog.setTitle("Import SnapshotData");
                 dialog.initModality(Modality.APPLICATION_MODAL);
                 dialog.setScene(new Scene(loader.load()));
 
-                final SaveSetFromSelectionController controller = loader.getController();
-                controller.disableSaveSetSelectionInBrowsing();
+                final ConfigurationFromSelectionController controller = loader.getController();
+                controller.disableConfigurationSelectionInBrowsing();
                 controller.setData(null, "", "", csvParser.getEntries());
                 SimpleObjectProperty<Node> createdSaveset = new SimpleObjectProperty<>(null);
-                controller.setCreatedSavesetProperty(createdSaveset);
+                controller.setCreatedConfigurationProperty(createdSaveset);
                 dialog.showAndWait();
 
                 if (createdSaveset.get() == null) {
@@ -244,7 +246,7 @@ public class CSVImporter extends CSVCommon {
             }
         }
 
-        List<ConfigPv> configPvs = saveAndRestoreService.getConfigPvs(parentOfImport.getUniqueId());
+        List<ConfigPv> configPvs = saveAndRestoreService.getConfiguration(parentOfImport.getUniqueId()).getPvList();
         List<SnapshotItem> snapshotItems = new ArrayList<>();
         for (Map<String, String> snapshotEntry : csvParser.getEntries()) {
             SnapshotItem snapshotItem = SnapshotItem.builder()
@@ -262,9 +264,7 @@ public class CSVImporter extends CSVCommon {
             dialog.setTitle("Change snapshot name");
             dialog.setHeaderText("Duplicate snapshot name found!" + System.lineSeparator() + "Please change the snapshot name to continue, or cancel.");
             dialog.getDialogPane().lookupButton(ButtonType.OK).setDisable(true);
-            dialog.getEditor().textProperty().addListener((observableValue, oldName, newName) -> {
-                dialog.getDialogPane().lookupButton(ButtonType.OK).setDisable(childNodeNameList.contains(newName) || newName.equals(csvParser.getSnapshotName()));
-            });
+            dialog.getEditor().textProperty().addListener((observableValue, oldName, newName) -> dialog.getDialogPane().lookupButton(ButtonType.OK).setDisable(childNodeNameList.contains(newName) || newName.equals(csvParser.getSnapshotName())));
 
             Optional<String> response = dialog.showAndWait();
 
@@ -275,19 +275,28 @@ public class CSVImporter extends CSVCommon {
             }
         }
 
-        Node snapshot = saveAndRestoreService.saveSnapshot(parentOfImport, snapshotItems, csvParser.getSnapshotName(), csvParser.getDescription());
-        snapshot.setCreated(Date.from(csvParser.getTimestamp()));
-        snapshot.setUserName(csvParser.getCreator());
-        csvParser.getTags().forEach(tag -> {
-            tag.setSnapshotId(snapshot.getUniqueId());
+        Node snapshotNode = Node.builder()
+                .nodeType(NodeType.SNAPSHOT)
+                .name(csvParser.getSnapshotName())
+                .description(csvParser.getDescription())
+                .userName(csvParser.getCreator())
+                .build();
+        csvParser.getTags().forEach(snapshotNode::addTag);
 
-            snapshot.addTag(tag);
-        });
-        saveAndRestoreService.updateNode(snapshot, true);
+        Snapshot snapshot = new Snapshot();
+        snapshot.setSnapshotNode(snapshotNode);
+        SnapshotData snapshotData = new SnapshotData();
+        snapshotData.setSnasphotItems(snapshotItems);
+        snapshot.setSnapshotData(snapshotData);
+
+        snapshot = saveAndRestoreService.saveSnapshot(parentOfImport, snapshot);
+
+        // Need to set custom created date
+        saveAndRestoreService.updateNode(snapshot.getSnapshotNode(), true);
     }
 
-    private static boolean checkSnapshotCompatibility(List<Map<String, String>> entries) throws Exception {
-        List<ConfigPv> configPvs = saveAndRestoreService.getConfigPvs(parentOfImport.getUniqueId());
+    private static boolean checkSnapshotCompatibility(List<Map<String, String>> entries)  {
+        List<ConfigPv> configPvs = saveAndRestoreService.getConfiguration(parentOfImport.getUniqueId()).getPvList();
 
         int numConfigPvsInSaveset = configPvs.size();
         int numMatching = 0;
@@ -304,7 +313,7 @@ public class CSVImporter extends CSVCommon {
     private static ConfigPv createConfigPv(Map<String, String> entry) {
         return ConfigPv.builder()
                 .pvName(entry.get(H_PV_NAME))
-                .readbackPvName(entry.get(H_READBACK).isEmpty() ? null : entry.get(H_READBACK))
+                .readbackPvName(entry.get(H_READBACK).isEmpty() ? "" : entry.get(H_READBACK))
                 .readOnly(Boolean.parseBoolean(entry.get(H_READ_ONLY)) || "1".equals(entry.get(H_READ_ONLY)))
                 .build();
     }
@@ -328,7 +337,7 @@ public class CSVImporter extends CSVCommon {
         String[] t = timestamp != null && timestamp.indexOf('.') > 0 ? timestamp.split("\\.")
                 : new String[]{"0", "0"};
         Time time = Time.of(Instant.ofEpochSecond(Long.parseLong(t[0]), Integer.parseInt(t[1])));
-        AlarmStatus alarmStatus = null;
+        AlarmStatus alarmStatus;
         try {
             alarmStatus = AlarmStatus.valueOf(status);
         } catch (IllegalArgumentException e) {
@@ -438,7 +447,6 @@ public class CSVImporter extends CSVCommon {
             case "string_array":
                 String[] str = theValue.split(ARRAY_SPLITTER, -1);
                 List<Integer> sizes = new ArrayList<>();
-                List<String> data = new ArrayList<>();
                 Arrays.stream(str).forEach(s -> sizes.add(s.length()));
                 return VStringArray.of(Arrays.asList(str),
                         new ArrayInteger(CollectionNumbers.toList(sizes)), alarm, time);
