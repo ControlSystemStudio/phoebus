@@ -117,7 +117,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     @Override
     public List<Node> getChildNodes(String uniqueNodeId) throws SaveAndRestoreClientException {
         ClientResponse response = getCall("/node/" + uniqueNodeId + "/children");
-        return response.getEntity(new GenericType<>() {
+        return response.getEntity(new GenericType<List<Node>>() {
         });
     }
 
@@ -217,14 +217,14 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     @Override
     public List<Tag> getAllTags() {
         ClientResponse response = getCall("/tags");
-        return response.getEntity(new GenericType<>() {
+        return response.getEntity(new GenericType<List<Tag>>() {
         });
     }
 
     @Override
     public List<Node> getAllSnapshots() {
         ClientResponse response = getCall("/snapshots");
-        return response.getEntity(new GenericType<>() {
+        return response.getEntity(new GenericType<List<Node>>() {
         });
     }
 
