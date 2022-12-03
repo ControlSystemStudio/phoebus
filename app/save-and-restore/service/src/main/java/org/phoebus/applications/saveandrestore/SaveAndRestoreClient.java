@@ -18,6 +18,8 @@
 
 package org.phoebus.applications.saveandrestore;
 
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -50,6 +52,8 @@ public interface SaveAndRestoreClient {
      * @return The {@link Node} object, if it exists.
      */
     Node getNode(String uniqueNodeId);
+
+    List<Node> getCompositeSnapshotReferencedNodes(String uniqueNodeId);
 
     /**
      * @param unqiueNodeId Unique id of a {@link Node}
@@ -133,7 +137,7 @@ public interface SaveAndRestoreClient {
 
     List<Node> getFromPath(String path);
 
-    ConfigurationData getConfiguration(String nodeId);
+    ConfigurationData getConfigurationData(String nodeId);
 
     Configuration createConfiguration(String parentNodeId, Configuration configuration);
 
@@ -143,4 +147,8 @@ public interface SaveAndRestoreClient {
     SnapshotData getSnapshotData(String uniqueId);
 
     Snapshot saveSnapshot(String parentNodeId, Snapshot snapshot);
+
+    CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot);
+
+    CompositeSnapshotData getCompositeSnapshotData(String uniqueId);
 }

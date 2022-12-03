@@ -22,6 +22,8 @@ import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.common.VNoData;
 import org.phoebus.applications.saveandrestore.impl.SaveAndRestoreJerseyClient;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -260,7 +262,7 @@ public class SaveAndRestoreService {
     }
 
     public ConfigurationData getConfiguration(String nodeId) {
-        Future<ConfigurationData> future = executor.submit(() -> saveAndRestoreClient.getConfiguration(nodeId));
+        Future<ConfigurationData> future = executor.submit(() -> saveAndRestoreClient.getConfigurationData(nodeId));
         try {
             return future.get();
         } catch (Exception e) {
@@ -296,5 +298,31 @@ public class SaveAndRestoreService {
         // Notify listeners as the configuration node has a new child node.
         notifyNodeChangeListeners(configurationNode);
         return updatedSnapshot;
+    }
+
+
+    public CompositeSnapshotData getCompositeSnapshot(String compositeSnapshotNodeUniqueId) throws Exception{
+        Future<CompositeSnapshotData> future =
+                executor.submit(() -> saveAndRestoreClient.getCompositeSnapshotData(compositeSnapshotNodeUniqueId));
+       return future.get();
+    }
+
+    public List<Node> getCompositeSnapshotNodes(String compositeSnapshotNodeUniqueId) throws Exception{
+        Future<List<Node>> future =
+                executor.submit(() -> saveAndRestoreClient.getCompositeSnapshotReferencedNodes(compositeSnapshotNodeUniqueId));
+        return future.get();
+    }
+
+    public CompositeSnapshot saveCompositeSnapshot(Node parentNode, CompositeSnapshot compositeSnapshot) throws Exception{
+        Future<CompositeSnapshot> future =
+                executor.submit(() -> saveAndRestoreClient.createCompositeSnapshot(parentNode.getUniqueId(), compositeSnapshot));
+        CompositeSnapshot newCompositeSnapshot = future.get();
+        notifyNodeChangeListeners(parentNode);
+        return newCompositeSnapshot;
+    }
+
+    public CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot) throws Exception{
+        // TODO: call remote service
+        return null;
     }
 }

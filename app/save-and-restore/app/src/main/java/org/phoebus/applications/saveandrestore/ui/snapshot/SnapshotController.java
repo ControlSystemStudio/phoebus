@@ -1044,7 +1044,7 @@ public class SnapshotController implements NodeChangedListener {
     public boolean handleSnapshotTabClosed() {
         if (nodeDataDirty.get()) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle(Messages.promptCloseSnapshotTabTitle);
+            alert.setTitle(Messages.closeTabPrompt);
             alert.setContentText(Messages.promptCloseSnapshotTabContent);
             DialogHelper.positionDialog(alert, snapshotTab.getTabPane(), -150, -150);
             Optional<ButtonType> result = alert.showAndWait();

@@ -21,6 +21,9 @@ package org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.Refresh;
 import co.elastic.clients.elasticsearch._types.Result;
+import co.elastic.clients.elasticsearch._types.query_dsl.MatchAllQuery;
+import co.elastic.clients.elasticsearch.core.DeleteByQueryRequest;
+import co.elastic.clients.elasticsearch.core.DeleteByQueryResponse;
 import co.elastic.clients.elasticsearch.core.GetRequest;
 import co.elastic.clients.elasticsearch.core.GetResponse;
 import co.elastic.clients.elasticsearch.core.IndexRequest;
@@ -34,6 +37,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -142,6 +146,14 @@ public class SnapshotDataRepository implements CrudRepository<SnapshotData, Stri
 
     @Override
     public void deleteAll() {
-
+        try {
+            DeleteByQueryRequest deleteRequest = DeleteByQueryRequest.of(d ->
+                    d.index(ES_SNAPSHOT_INDEX).query(new MatchAllQuery.Builder().build()._toQuery()).refresh(true));
+            DeleteByQueryResponse deleteResponse = client.deleteByQuery(deleteRequest);
+            logger.log(Level.INFO, "Deleted " + deleteResponse.deleted() + " Snapshot objects");
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Failed to delete all Snapshot objects", e);
+            throw new RuntimeException(e);
+        }
     }
 }

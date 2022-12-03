@@ -18,6 +18,8 @@
 
 package org.phoebus.service.saveandrestore.persistence.dao;
 
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -47,6 +49,13 @@ public interface NodeDAO {
      * @return A {@link Node} object
      */
     Node getNode(String uniqueNodeId);
+
+    /**
+     * Retrieve the nodes identified by the list of unique node ids
+     * @param uniqueNodeIds List of unique node ids
+     * @return List of matching nodes
+     */
+    List<Node> getNodes(List<String> uniqueNodeIds);
 
     /**
      * Deletes a {@link Node}, folder or configuration. If the node is a folder, the
@@ -216,5 +225,17 @@ public interface NodeDAO {
      * @return The {@link Node} corresponding to the last path element, or <code>null</code>.
      */
     Node findParentFromPathElements(Node parentNode, String[] splitPath, int index);
+
+    /**
+     * Saves the {@link org.phoebus.applications.saveandrestore.model.CompositeSnapshot} to the persistence layer.
+     * @param parentNodeId The unique id of the parent {@link Node} for the new {@link CompositeSnapshot}.
+     * @param compositeSnapshot The {@link CompositeSnapshot} data.
+     * @return The persisted {@link CompositeSnapshot} data.
+     */
+    CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot);
+
+    CompositeSnapshotData getCompositeSnapshotData(String uniqueId);
+
+    List<CompositeSnapshotData> getAllCompositeSnapshotData();
 
 }

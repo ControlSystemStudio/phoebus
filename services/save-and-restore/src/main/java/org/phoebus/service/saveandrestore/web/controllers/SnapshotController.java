@@ -17,6 +17,8 @@
  */
 package org.phoebus.service.saveandrestore.web.controllers;
 
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
@@ -32,29 +34,43 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@SuppressWarnings("unused")
 @RestController
 public class SnapshotController extends BaseController {
 
-    @SuppressWarnings("unused")
     @Autowired
     private NodeDAO nodeDAO;
 
-    @SuppressWarnings("unused")
     @GetMapping(value = "/snapshot/{uniqueId}", produces = JSON)
     public SnapshotData getSnapshotData(@PathVariable String uniqueId) {
         return nodeDAO.getSnapshotData(uniqueId);
     }
 
-    @SuppressWarnings("unused")
     @GetMapping(value = "/snapshots", produces = JSON)
     public List<Node> getAllSnapshots() {
         return nodeDAO.getAllSnapshots();
     }
 
-    @SuppressWarnings("unused")
     @PutMapping(value = "/snapshot", produces = JSON)
     public Snapshot saveSnapshot(@RequestParam(value = "parentNodeId") String parentNodeId,
                                  @RequestBody Snapshot snapshot) {
         return nodeDAO.saveSnapshot(parentNodeId, snapshot);
+    }
+
+    @PutMapping(value = "/composite-snapshot", produces = JSON)
+    public CompositeSnapshot createCompositeSnapshot(@RequestParam(value = "parentNodeId") String parentNodeId,
+                                                   @RequestBody CompositeSnapshot compositeSnapshot) {
+        return nodeDAO.createCompositeSnapshot(parentNodeId, compositeSnapshot);
+    }
+
+    @GetMapping(value = "/composite-snapshot/{uniqueId}", produces = JSON)
+    public CompositeSnapshotData getCompositeSnapshotData(@PathVariable String uniqueId){
+        return nodeDAO.getCompositeSnapshotData(uniqueId);
+    }
+
+    @GetMapping(value = "/composite-snapshot/{uniqueId}/nodes", produces = JSON)
+    public List<Node> getCompositeSnapshotNodes(@PathVariable String uniqueId){
+        CompositeSnapshotData compositeSnapshotData = nodeDAO.getCompositeSnapshotData(uniqueId);
+        return nodeDAO.getNodes(compositeSnapshotData.getReferencedSnapshotNodes());
     }
 }

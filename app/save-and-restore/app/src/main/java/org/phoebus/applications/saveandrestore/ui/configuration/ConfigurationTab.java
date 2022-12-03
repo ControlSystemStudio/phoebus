@@ -91,7 +91,7 @@ public class ConfigurationTab extends Tab implements NodeChangedListener {
      *
      * @param configurationNode non-null configuration {@link Node}
      */
-    public void editCOnfiguration(Node configurationNode) {
+    public void editConfiguration(Node configurationNode) {
         setId(configurationNode.getUniqueId());
         tabTitleProperty.set(configurationNode.getName());
         configurationController.loadConfiguration(configurationNode);

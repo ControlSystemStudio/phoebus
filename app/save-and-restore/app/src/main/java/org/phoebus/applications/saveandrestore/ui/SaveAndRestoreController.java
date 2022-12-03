@@ -69,6 +69,7 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationTab;
+import org.phoebus.applications.saveandrestore.ui.snapshot.CompositeSnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotNewTagDialog;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
@@ -138,6 +139,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     protected ContextMenu configurationContextMenu;
     protected ContextMenu snapshotContextMenu;
     protected ContextMenu rootFolderContextMenu;
+    protected ContextMenu compositeSnapshotContextMenu;
 
     protected SimpleStringProperty toggleGoldenMenuItemText = new SimpleStringProperty();
     protected SimpleStringProperty jmasarServiceTitleProperty = new SimpleStringProperty();
@@ -205,6 +207,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         snapshotContextMenu = new ContextMenuSnapshot(this, preferencesReader.getBoolean("enableCSVIO"),
                 toggleGoldenMenuItemText, toggleGoldenImageViewProperty, multipleItemsSelected);
 
+        compositeSnapshotContextMenu = new ContextMenuCompositeSnapshot(this, multipleItemsSelected);
+
         treeView.setEditable(true);
 
         treeView.setOnMouseClicked(me -> {
@@ -230,7 +234,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         saveAndRestoreService.addNodeAddedListener(this);
 
         treeView.setCellFactory(p -> new BrowserTreeCell(folderContextMenu,
-                configurationContextMenu, snapshotContextMenu, rootFolderContextMenu,
+                configurationContextMenu, snapshotContextMenu, rootFolderContextMenu, compositeSnapshotContextMenu,
                 this));
 
         progressIndicator.visibleProperty().bind(changesInProgress);
@@ -484,6 +488,14 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         tabPane.getSelectionModel().select(tab);
     }
 
+    protected void openCompositeSnapshotForRestore(){
+        TreeItem<Node> treeItem = browserSelectionModel.getSelectedItems().get(0);
+        CompositeSnapshotTab tab = new CompositeSnapshotTab();
+
+        tabPane.getTabs().add(tab);
+        tabPane.getSelectionModel().select(tab);
+    }
+
     /**
      * Creates a new folder {@link Node}.
      */
@@ -557,11 +569,15 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         switch (node.getNodeType()) {
             case CONFIGURATION:
                 tab = new ConfigurationTab();
-                ((ConfigurationTab)tab).editCOnfiguration(node);
+                ((ConfigurationTab)tab).editConfiguration(node);
                 break;
             case SNAPSHOT:
                 tab = new SnapshotTab(node, saveAndRestoreService);
                 ((SnapshotTab) tab).loadSnapshot(node);
+                break;
+            case COMPOSITE_SNAPSHOT:
+                tab = new CompositeSnapshotTab();
+                ((CompositeSnapshotTab)tab).editCompositeSnapshot(node);
                 break;
             case FOLDER:
             default:
@@ -575,6 +591,13 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     private void launchTabForNewConfiguration(Node parentNode){
         ConfigurationTab tab = new ConfigurationTab();
         tab.configureForNewConfiguration(parentNode);
+        tabPane.getTabs().add(tab);
+        tabPane.getSelectionModel().select(tab);
+    }
+
+    private void launchTabForNewCompositeSnapshot(Node parentNode){
+        CompositeSnapshotTab tab = new CompositeSnapshotTab();
+        tab.configureForNewCompositeSnapshot(parentNode);
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);
     }
@@ -593,8 +616,11 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * Creates a new configuration in the selected tree node.
      */
     protected void createNewConfiguration() {
-
         launchTabForNewConfiguration(browserSelectionModel.getSelectedItems().get(0).getValue());
+    }
+
+    protected void createNewCompositeSnapshot(){
+        launchTabForNewCompositeSnapshot(browserSelectionModel.getSelectedItems().get(0).getValue());
     }
 
     /**
@@ -665,7 +691,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         return new TreeItem<>(node) {
             @Override
             public boolean isLeaf() {
-                return node.getNodeType().equals(NodeType.SNAPSHOT);
+                return node.getNodeType().equals(NodeType.SNAPSHOT) || node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT);
             }
         };
     }
