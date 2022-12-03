@@ -113,11 +113,24 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
             buffer.putInt(request_id);
             buffer.put(PVAHeader.CMD_SUB_DESTROY);
 
-            // Locate the 'value' field
+            // Locate the field to write
             PVAData field = null;
             try
-            {
-                field = data.locate(request_path);
+            {   // Default to "value"
+                if (request_path.isEmpty())
+                    field = data.locate("value");
+                else
+                {   // Start with the addressed element
+                    field = data.locate(request_path);
+                    // Check if there is a ".value" below
+                    if (field instanceof PVAStructure)
+                    {
+                        final PVAStructure struct = (PVAStructure) field;
+                        final PVAData value_sub = struct.get("value");
+                        if (value_sub != null)
+                            field = value_sub;
+                    }
+                }
             }
             catch (Exception ex)
             {

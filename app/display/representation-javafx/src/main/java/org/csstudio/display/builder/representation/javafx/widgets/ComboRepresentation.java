@@ -269,8 +269,8 @@ public class ComboRepresentation extends RegionBaseRepresentation<ComboBox<Strin
                 "-fx-body-color: linear-gradient(to bottom,ladder({0}, derive({0},8%) 75%, derive({0},10%) 80%), derive({0},-8%)); "
               + "-fx-text-base-color: ladder(-fx-color, -fx-light-text-color 45%, -fx-dark-text-color 46%, -fx-dark-text-color 59%, {1}); "
               + "-fx-font: {2} {3}px \"{4}\";",
-                JFXUtil.webRGB(model_widget.propBackgroundColor().getValue()),
-                JFXUtil.webRGB(model_widget.propForegroundColor().getValue()),
+                JFXUtil.webRgbOrHex(model_widget.propBackgroundColor().getValue()),
+                JFXUtil.webRgbOrHex(model_widget.propForegroundColor().getValue()),
                 f.getStyle().toLowerCase().replace("regular", "normal"),
                 f.getSize(),
                 f.getFamily()

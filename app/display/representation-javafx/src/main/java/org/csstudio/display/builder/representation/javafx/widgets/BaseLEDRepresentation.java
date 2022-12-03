@@ -230,7 +230,7 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
             label.setTextFill(color);
             label.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
 
-            led.setStyle("-fx-stroke: " + JFXUtil.webRGB(model_widget.propLineColor().getValue()));
+            led.setStyle("-fx-stroke: " + JFXUtil.webRgbOrHex(model_widget.propLineColor().getValue()));
 
             final int w = model_widget.propWidth().getValue();
             final int h = model_widget.propHeight().getValue();

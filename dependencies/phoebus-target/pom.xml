@@ -149,7 +149,7 @@
     <dependency>
       <groupId>org.python</groupId>
       <artifactId>jython-standalone</artifactId>
-      <version>2.7.2</version>
+      <version>${jython.version}</version>
     </dependency>
     <dependency>
       <groupId>net.sf.py4j</groupId>
@@ -496,12 +496,12 @@
     <dependency>
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java</artifactId>
-      <version>2.4.1</version>
+      <version>3.21.9</version>
     </dependency>
     <dependency>
       <groupId>org.epics</groupId>
       <artifactId>pbrawclient</artifactId>
-      <version>0.0.8</version>
+      <version>0.0.10</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jgit</groupId>

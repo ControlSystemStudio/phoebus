@@ -18,7 +18,12 @@ import java.util.ResourceBundle;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 
+import java.util.function.UnaryOperator;
+import javafx.animation.PauseTransition;
+import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyEvent;
+import javafx.util.Duration;
+import javafx.util.StringConverter;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.properties.NamedWidgetColor;
@@ -74,6 +79,8 @@ public class WidgetColorPopOverController implements Initializable {
     @FXML private ListView<NamedWidgetColor> colorNames;
 
     @FXML private ColorPicker picker;
+
+    @FXML private TextInputControl hexField;
 
     @FXML private Slider redSlider;
     @FXML private Slider greenSlider;
@@ -143,8 +150,54 @@ public class WidgetColorPopOverController implements Initializable {
     }
 
     /*
+     * ---- hex code field ------------------------------------------------
+     */
+    private final PauseTransition debounce = new PauseTransition(Duration.millis(500));
+    private final UnaryOperator<TextFormatter.Change> hexTextFilter = change -> change.getControlNewText().matches("[0-6]?\\p{XDigit}{0,6}") ? change : null;
+    private final StringConverter<Integer> hexTextIntegerConverter = new StringConverter<Integer>() {
+
+        @Override
+        public String toString(Integer hexAsInt) {
+            if (hexAsInt == null) {
+                return "";
+            } else {
+                return String.format("%06X", hexAsInt);
+            }
+        }
+
+        @Override
+        public Integer fromString(String hexAsString) {
+            // Check if null or all white characters
+            if(hexAsString == null || hexAsString.isEmpty()) {
+                return null;
+            } else {
+                return Integer.parseInt(hexAsString, 16);
+            }
+        }
+
+    };
+
+    private final StringConverter<WidgetColor> hexTextColorConverter = new StringConverter<WidgetColor>() {
+
+        @Override
+        public String toString(WidgetColor widgetColor) {
+            return JFXUtil.webHex(widgetColor).replace("#", "");
+        }
+
+        @Override
+        public WidgetColor fromString(String s) {
+            try {
+                return JFXUtil.convert(Color.web(s));
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
+        }
+    };
+
+    /*
      * -------------------------------------------------------------------------
      */
+
     @Override
     public void initialize( URL location, ResourceBundle resources ) {
 
@@ -166,6 +219,15 @@ public class WidgetColorPopOverController implements Initializable {
                 setColor(JFXUtil.convert(newColor));
             }
         });
+
+        hexField.setTextFormatter(new TextFormatter<Integer>(hexTextIntegerConverter, null, hexTextFilter));
+        hexField.textProperty().addListener(( observable, oldColor, newColor) -> {
+            if(!updating) {
+                debounce.setOnFinished(evt -> setColor(hexTextColorConverter.fromString(newColor)));
+                debounce.playFromStart();
+            }
+        });
+
         defaultButton.disableProperty().bind(Bindings.createBooleanBinding(() -> getColor().equals(defaultColor), colorProperty()));
         okButton.disableProperty().bind(Bindings.createBooleanBinding(() -> getColor().equals(originalColor), colorProperty()));
 
@@ -230,10 +292,11 @@ public class WidgetColorPopOverController implements Initializable {
 
             updating = true;
 
-            final Color jfxColor = JFXUtil.convert(getColor());
+            final WidgetColor color = getColor();
 
-            picker.setValue(jfxColor);
-            currentColorCircle.setFill(jfxColor);
+            picker.setValue(JFXUtil.convert(color));
+            hexField.setText(hexTextColorConverter.toString(color));
+            currentColorCircle.setFill(JFXUtil.convert(color));
 
             redSlider.setValue(getRed());
             redSpinner.getValueFactory().setValue(getRed());
@@ -303,7 +366,7 @@ public class WidgetColorPopOverController implements Initializable {
         TabNavigator.createCyclicalNavigation(List.of(
                 colorNames, searchField,
                 picker,
-                redSpinner, greenSpinner, blueSpinner, alphaSpinner,
+                redSpinner, greenSpinner, blueSpinner, alphaSpinner, hexField,
                 okButton, defaultButton, cancelButton
         ));
 

@@ -8,7 +8,7 @@
 package org.phoebus.framework.autocomplete;
 
 import org.csstudio.apputil.formula.math.Sin;
-import org.csstudio.apputil.formula.string.StringFunction;
+import org.csstudio.apputil.formula.string.StringConcatFunction;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -52,7 +52,7 @@ public class FormulaFunctionProposalTest
     @Test
     public void testVarArg()
     {
-        Proposal proposal = new FormulaFunctionProposal(new StringFunction());
+        Proposal proposal = new FormulaFunctionProposal(new StringConcatFunction());
 
         List<MatchSegment> match = proposal.getMatch("=concat(a, b) + 2");
         assertThat(match, equalTo(List.of(MatchSegment.normal("="),
