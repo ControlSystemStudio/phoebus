@@ -29,6 +29,7 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
@@ -58,6 +59,7 @@ import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
@@ -258,9 +260,22 @@ public class CompositeSnapshotController implements NodeChangedListener {
 
         snapshotTable.setOnDragDropped(event -> {
             List<Node> sourceNodes = (List<Node>) event.getDragboard().getContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT);
-            if (mayDrop(sourceNodes)) {
-                snapshotEntries.addAll(sourceNodes);
+            if (!mayDrop(sourceNodes)) {
+                return;
             }
+            checkForDuplicatePVs(sourceNodes, duplicates -> {
+                if(duplicates.isEmpty()){
+                    snapshotEntries.addAll(sourceNodes);
+                }
+                else {
+                    StringBuilder stringBuilder = new StringBuilder();
+                    duplicates.stream().forEach(s -> stringBuilder.append(s).append(System.lineSeparator()));
+                    Platform.runLater(() -> {
+                        ExceptionDetailsErrorDialog.openError("Title", "mssage",
+                                new RuntimeException(stringBuilder.toString()));
+                    });
+                }
+            });
         });
 
         SaveAndRestoreService.getInstance().addNodeChangeListener(this);
@@ -389,19 +404,12 @@ public class CompositeSnapshotController implements NodeChangedListener {
         return true;
     }
 
-    private void checkForDuplicatePVs(List<Node> addedSnapshots, Consumer<Node> completion){
+    private void checkForDuplicatePVs(List<Node> droppedSnapshots, Consumer<List<String>> completion){
         JobManager.schedule("Check snapshot PV duplicates", monitor -> {
-            // First get snapshot data for the snapshots already
-            List<SnapshotItem> candidateItems = new ArrayList<>();
-            for(Node node : addedSnapshots){
-                SnapshotData snapshotData = saveAndRestoreService.getSnapshot(node.getUniqueId());
-
-            }
-
-
-            completion.accept(null);
+            List<String> allSnapshotIds = snapshotEntries.stream().map(Node::getUniqueId).collect(Collectors.toList());
+            allSnapshotIds.addAll(droppedSnapshots.stream().map(Node::getUniqueId).collect(Collectors.toList()));
+            List<String> duplicates = saveAndRestoreService.checkCompositeSnapshotConsistency(allSnapshotIds);
+            completion.accept(duplicates);
         });
     }
-
-
 }

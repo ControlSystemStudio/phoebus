@@ -325,4 +325,17 @@ public class SaveAndRestoreService {
         // TODO: call remote service
         return null;
     }
+
+    /**
+     * Utility for the purpose of checking whether a set of snapshots contain duplicate PV names.
+     * The input snapshot ids may refer to {@link Node}s of types {@link org.phoebus.applications.saveandrestore.model.NodeType#SNAPSHOT}
+     * and {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
+     * @param snapshotNodeIds List of {@link Node} ids corresponding to {@link Node}s of types {@link org.phoebus.applications.saveandrestore.model.NodeType#SNAPSHOT}
+     *      and {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
+     * @return A list of PV names that occur more than once across the list of {@link Node}s corresponding
+     * to the input. Empty if no duplicates are found.
+     */
+    public List<String> checkCompositeSnapshotConsistency(List<String> snapshotNodeIds) throws Exception{
+        return saveAndRestoreClient.checkCompositeSnapshotConsistency(snapshotNodeIds);
+    }
 }

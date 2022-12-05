@@ -18,14 +18,17 @@
 
 package org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch;
 
+import org.apache.commons.collections4.ListUtils;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
+import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.model.ESTreeNode;
@@ -754,5 +757,55 @@ public class ElasticsearchDAO implements NodeDAO {
         compositeSnapshotDataRepository.deleteAll();
         configurationDataRepository.deleteAll();
         snapshotDataRepository.deleteAll();
+    }
+
+    @Override
+    public List<String> checkForPVNameDuplicates(List<String> snapshotIds){
+        // Collect list of all PV names
+        List<String> allPVNames = new ArrayList<>();
+        for(String snapshotNodeId : snapshotIds){
+            nextSnapshotNode(snapshotNodeId, allPVNames);
+        }
+
+        return extractDuplicates(allPVNames);
+    }
+
+    private void nextSnapshotNode(String snapshotNode, List<String> allPVNames){
+        Node node = getNode(snapshotNode);
+        if(node == null){
+            return;
+        }
+        NodeType nodeType = node.getNodeType();
+        if(nodeType.equals(NodeType.COMPOSITE_SNAPSHOT)) {
+            CompositeSnapshotData compositeSnapshotData = getCompositeSnapshotData(node.getUniqueId());
+            for(String referencedNode : compositeSnapshotData.getReferencedSnapshotNodes()){
+                nextSnapshotNode(referencedNode, allPVNames);
+            }
+        }
+        else if(nodeType.equals(NodeType.SNAPSHOT)){
+            SnapshotData snapshotData = getSnapshotData(node.getUniqueId());
+            for(SnapshotItem snapshotItem : snapshotData.getSnapshotItems()){
+                allPVNames.add(snapshotItem.getConfigPv().getPvName());
+            }
+        }
+    }
+
+    /**
+     *
+     * @param allPVNames A list of strings that may contain duplicates
+     * @return A list of PV names found to occur more than once in the input array,or an empty list. If a
+     * PV name occurs N (>1) times, it will still occur only once in the returned list. For instance, if the
+     * input list is <code>Arrays.asList("a", "b", "c", "d", "D", "a", "B", "a", "b")</code>, the returned
+     * list will contain <code>"a", "b"</code>.
+     */
+    protected List<String> extractDuplicates(List<String> allPVNames){
+        List<String> uniqueDuplicates = new ArrayList<>();
+        // Collect PV names that occur only once
+        for(String pvName : allPVNames){
+            if(Collections.frequency(allPVNames, pvName) > 1 && !uniqueDuplicates.contains(pvName)){
+                uniqueDuplicates.add(pvName);
+            }
+        }
+        return uniqueDuplicates;
     }
 }

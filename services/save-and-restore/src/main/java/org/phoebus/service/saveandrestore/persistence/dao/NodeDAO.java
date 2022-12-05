@@ -234,8 +234,23 @@ public interface NodeDAO {
      */
     CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot);
 
+    /**
+     * @param uniqueId Unique id of a {@link Node} of type {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
+     * @return A {@link CompositeSnapshotData} object.
+     */
     CompositeSnapshotData getCompositeSnapshotData(String uniqueId);
 
+    /**
+     * @return List of persisted {@link CompositeSnapshotData} objects.
+     */
     List<CompositeSnapshotData> getAllCompositeSnapshotData();
+
+    /**
+     * Checks for duplicate PV names in the specified list of snapshot or composite snapshot {@link Node}s.
+     * @param snapshotIds list of snapshot or composite snapshot {@link Node}s
+     * @return A list if PV names that occur multiple times in the specified snapshot nodes or snapshot nodes
+     * referenced in composite snapshots. If no duplicates are found, an empty list is returned.
+     */
+    List<String> checkForPVNameDuplicates(List<String> snapshotIds);
 
 }

@@ -27,6 +27,7 @@ import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -73,4 +74,19 @@ public class SnapshotController extends BaseController {
         CompositeSnapshotData compositeSnapshotData = nodeDAO.getCompositeSnapshotData(uniqueId);
         return nodeDAO.getNodes(compositeSnapshotData.getReferencedSnapshotNodes());
     }
+
+    /**
+     * Utility end-point for the purpose of checking whether a set of snapshots contain duplicate PV names.
+     * The input snapshot ids may refer to {@link Node}s of types {@link org.phoebus.applications.saveandrestore.model.NodeType#SNAPSHOT}
+     * and {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
+     * @param snapshotNodeIds List of {@link Node} ids corresponding to {@link Node}s of types {@link org.phoebus.applications.saveandrestore.model.NodeType#SNAPSHOT}
+     *      and {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
+     * @return A list of PV names that occur more than once across the list of {@link Node}s corresponding
+     * to the input. Empty if no duplicates are found.
+     */
+    @PostMapping(value = "/composite-snapshot-consistency-check", produces = JSON)
+    public List<String> checkSnapshotsConsistency(@RequestBody List<String> snapshotNodeIds){
+        return nodeDAO.checkForPVNameDuplicates(snapshotNodeIds);
+    }
+
 }
