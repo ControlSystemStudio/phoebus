@@ -253,4 +253,14 @@ public interface NodeDAO {
      */
     List<String> checkForPVNameDuplicates(List<String> snapshotIds);
 
+    /**
+     * Updates an existing {@link CompositeSnapshotData}. In practice an overwrite operation as for instance
+     * the {@link CompositeSnapshotData#getReferencedSnapshotNodes()} may contain both added and removed elements compared to
+     * the persisted object.
+     *
+     * @param compositeSnapshot The object to be updated
+     * @return The updated {@link ConfigurationData}
+     */
+    CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot);
+
 }

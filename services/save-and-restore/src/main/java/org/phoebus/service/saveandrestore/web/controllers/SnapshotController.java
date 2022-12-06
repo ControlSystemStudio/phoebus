@@ -57,36 +57,4 @@ public class SnapshotController extends BaseController {
                                  @RequestBody Snapshot snapshot) {
         return nodeDAO.saveSnapshot(parentNodeId, snapshot);
     }
-
-    @PutMapping(value = "/composite-snapshot", produces = JSON)
-    public CompositeSnapshot createCompositeSnapshot(@RequestParam(value = "parentNodeId") String parentNodeId,
-                                                   @RequestBody CompositeSnapshot compositeSnapshot) {
-        return nodeDAO.createCompositeSnapshot(parentNodeId, compositeSnapshot);
-    }
-
-    @GetMapping(value = "/composite-snapshot/{uniqueId}", produces = JSON)
-    public CompositeSnapshotData getCompositeSnapshotData(@PathVariable String uniqueId){
-        return nodeDAO.getCompositeSnapshotData(uniqueId);
-    }
-
-    @GetMapping(value = "/composite-snapshot/{uniqueId}/nodes", produces = JSON)
-    public List<Node> getCompositeSnapshotNodes(@PathVariable String uniqueId){
-        CompositeSnapshotData compositeSnapshotData = nodeDAO.getCompositeSnapshotData(uniqueId);
-        return nodeDAO.getNodes(compositeSnapshotData.getReferencedSnapshotNodes());
-    }
-
-    /**
-     * Utility end-point for the purpose of checking whether a set of snapshots contain duplicate PV names.
-     * The input snapshot ids may refer to {@link Node}s of types {@link org.phoebus.applications.saveandrestore.model.NodeType#SNAPSHOT}
-     * and {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
-     * @param snapshotNodeIds List of {@link Node} ids corresponding to {@link Node}s of types {@link org.phoebus.applications.saveandrestore.model.NodeType#SNAPSHOT}
-     *      and {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
-     * @return A list of PV names that occur more than once across the list of {@link Node}s corresponding
-     * to the input. Empty if no duplicates are found.
-     */
-    @PostMapping(value = "/composite-snapshot-consistency-check", produces = JSON)
-    public List<String> checkSnapshotsConsistency(@RequestBody List<String> snapshotNodeIds){
-        return nodeDAO.checkForPVNameDuplicates(snapshotNodeIds);
-    }
-
 }

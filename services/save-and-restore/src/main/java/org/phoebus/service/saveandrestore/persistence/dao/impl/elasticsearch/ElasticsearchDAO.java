@@ -808,4 +808,24 @@ public class ElasticsearchDAO implements NodeDAO {
         }
         return uniqueDuplicates;
     }
+
+    @Override
+    public CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot){
+        Node existingCompositeSnapshotNode = getNode(compositeSnapshot.getCompositeSnapshotNode().getUniqueId());
+
+        // Set name and description, even if unchanged.
+        existingCompositeSnapshotNode.setName(compositeSnapshot.getCompositeSnapshotNode().getName());
+        existingCompositeSnapshotNode.setDescription(compositeSnapshot.getCompositeSnapshotNode().getDescription());
+        // Update last modified date
+        existingCompositeSnapshotNode.setLastModified(new Date());
+        existingCompositeSnapshotNode = updateNode(existingCompositeSnapshotNode, false);
+
+        CompositeSnapshotData updatedCompositeSnapshotData =
+                compositeSnapshotDataRepository.save(compositeSnapshot.getCompositeSnapshotData());
+
+        return CompositeSnapshot.builder()
+                .compositeSnapshotData(updatedCompositeSnapshotData)
+                .compositeSnapshotNode(existingCompositeSnapshotNode)
+                .build();
+    }
 }

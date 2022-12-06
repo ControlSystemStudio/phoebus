@@ -437,4 +437,23 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
         return response.getEntity(new GenericType<List<String>>() {
         });
     }
+
+    @Override
+    public CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot){
+        WebResource webResource = client.resource(jmasarServiceUrl + "/composite-snapshot");
+
+        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
+                .entity(compositeSnapshot, CONTENT_TYPE_JSON)
+                .post(ClientResponse.class);
+        if (response.getStatus() != 200) {
+            String message = Messages.updateConfigurationFailed;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                // Ignore
+            }
+            throw new RuntimeException(message);
+        }
+        return response.getEntity(CompositeSnapshot.class);
+    }
 }

@@ -329,11 +329,9 @@ public class CompositeSnapshotController implements NodeChangedListener {
                     compositeSnapshotTab.setId(compositeSnapshot.getCompositeSnapshotNode().getUniqueId());
                     compositeSnapshotTab.updateTabTitle(compositeSnapshot.getCompositeSnapshotNode().getName());
                 } else {
+                    compositeSnapshotData.setUniqueId(compositeSnapshotNode.get().getUniqueId());
                     compositeSnapshot = saveAndRestoreService.updateCompositeSnapshot(compositeSnapshot);
                 }
-                //snapshotEntries.clear();
-                //snapshotEntries.addAll(compositeSnapshot.getSnapshotNodes());
-                // TODO: load data, probably calling loadCompositeSnapshot(Node)
                 dirty.set(false);
                 loadCompositeSnapshot(compositeSnapshot.getCompositeSnapshotNode());
             } catch (Exception e1) {

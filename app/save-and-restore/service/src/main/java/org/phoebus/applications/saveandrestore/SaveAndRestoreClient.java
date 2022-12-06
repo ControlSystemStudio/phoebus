@@ -162,4 +162,6 @@ public interface SaveAndRestoreClient {
      * to the input. Empty if no duplicates are found.
      */
     List<String> checkCompositeSnapshotConsistency(List<String> snapshotNodeIds);
+
+    CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot);
 }

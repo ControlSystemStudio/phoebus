@@ -354,6 +354,51 @@ public class DAOTestIT {
     }
 
     @Test
+    public void testUpdateCompositeSnapshot(){
+        Node rootNode = nodeDAO.getRootNode();
+        Node folderNode =
+                Node.builder().name("folder").build();
+
+        folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
+
+        Node compositeSnapshotNode = Node.builder().name("My composite snapshot").nodeType(NodeType.COMPOSITE_SNAPSHOT).build();
+
+        CompositeSnapshot compositeSnapshot = new CompositeSnapshot();
+        compositeSnapshot.setCompositeSnapshotNode(compositeSnapshotNode);
+
+        CompositeSnapshotData compositeSnapshotData = new CompositeSnapshotData();
+        compositeSnapshotData.setUniqueId(compositeSnapshotNode.getUniqueId());
+
+        compositeSnapshotData.setReferencedSnapshotNodes(List.of(UUID.randomUUID().toString()));
+
+        compositeSnapshot.setCompositeSnapshotData(compositeSnapshotData);
+
+        compositeSnapshot = nodeDAO.createCompositeSnapshot(folderNode.getUniqueId(), compositeSnapshot);
+
+        // Set new values and update
+        compositeSnapshotNode = compositeSnapshot.getCompositeSnapshotNode();
+        compositeSnapshotNode.setName("Updated name");
+        compositeSnapshotNode.setDescription("Updated description");
+
+        String referencedNode1 = UUID.randomUUID().toString();
+        String referencedNode2 = UUID.randomUUID().toString();
+        compositeSnapshotData = compositeSnapshot.getCompositeSnapshotData();
+        compositeSnapshotData.setReferencedSnapshotNodes(Arrays.asList(referencedNode1, referencedNode2));
+
+        compositeSnapshot.setCompositeSnapshotNode(compositeSnapshotNode);
+        compositeSnapshot.setCompositeSnapshotData(compositeSnapshotData);
+
+        compositeSnapshot = nodeDAO.updateCompositeSnapshot(compositeSnapshot);
+
+        assertEquals(compositeSnapshotNode.getUniqueId(), compositeSnapshot.getCompositeSnapshotNode().getUniqueId());
+        assertEquals("Updated name", compositeSnapshot.getCompositeSnapshotNode().getName());
+        assertEquals("Updated description", compositeSnapshot.getCompositeSnapshotNode().getDescription());
+        assertEquals(2, compositeSnapshot.getCompositeSnapshotData().getReferencedSnapshotNodes().size());
+
+        clearAllData();
+    }
+
+    @Test
     public void testGetAllCompositeSnapshotData(){
         Node rootNode = nodeDAO.getRootNode();
         Node folderNode =

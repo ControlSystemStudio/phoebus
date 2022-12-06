@@ -321,9 +321,12 @@ public class SaveAndRestoreService {
         return newCompositeSnapshot;
     }
 
-    public CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot) throws Exception{
-        // TODO: call remote service
-        return null;
+    public CompositeSnapshot updateCompositeSnapshot(final CompositeSnapshot compositeSnapshot) throws Exception{
+        Future<CompositeSnapshot> future = executor.submit(() -> saveAndRestoreClient.updateCompositeSnapshot(compositeSnapshot));
+        CompositeSnapshot updatedCompositeSnapshot = future.get();
+        // Associated composite snapshot Node may have a new name
+        notifyNodeChangeListeners(updatedCompositeSnapshot.getCompositeSnapshotNode());
+        return updatedCompositeSnapshot;
     }
 
     /**

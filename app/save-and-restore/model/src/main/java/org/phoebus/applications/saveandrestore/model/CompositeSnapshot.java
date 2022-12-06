@@ -19,8 +19,6 @@
 
 package org.phoebus.applications.saveandrestore.model;
 
-import java.util.List;
-
 /**
  * Thin wrapper around a {@link Node} of type {@link NodeType#COMPOSITE_SNAPSHOT} and a
  * {@link CompositeSnapshotData} object representing all referenced {@link Node}s.
@@ -45,5 +43,32 @@ public class CompositeSnapshot {
 
     public void setCompositeSnapshotData(CompositeSnapshotData compositeSnapshotData) {
         this.compositeSnapshotData = compositeSnapshotData;
+    }
+
+    public static CompositeSnapshot.Builder builder(){
+        return new CompositeSnapshot.Builder();
+    }
+
+    public static class Builder{
+
+        private CompositeSnapshot compositeSnapshot;
+
+        private Builder(){
+            compositeSnapshot = new CompositeSnapshot();
+        }
+
+        public CompositeSnapshot.Builder compositeSnapshotData(CompositeSnapshotData compositeSnapshotData){
+            compositeSnapshot.setCompositeSnapshotData(compositeSnapshotData);
+            return this;
+        }
+
+        public CompositeSnapshot.Builder compositeSnapshotNode(Node compositeSnapshotNode){
+            compositeSnapshot.setCompositeSnapshotNode(compositeSnapshotNode);
+            return this;
+        }
+
+        public CompositeSnapshot build(){
+            return compositeSnapshot;
+        }
     }
 }
