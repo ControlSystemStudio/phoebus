@@ -401,7 +401,7 @@ public class CompositeSnapshotController implements NodeChangedListener {
         if (node.getUniqueId().equals(compositeSnapshotNode.get().getUniqueId())) {
             compositeSnapshotNode.setValue(Node.builder().uniqueId(node.getUniqueId())
                     .name(node.getName())
-                    .nodeType(NodeType.CONFIGURATION)
+                    .nodeType(NodeType.COMPOSITE_SNAPSHOT)
                     .userName(node.getUserName())
                     .description(node.getDescription())
                     .created(node.getCreated())

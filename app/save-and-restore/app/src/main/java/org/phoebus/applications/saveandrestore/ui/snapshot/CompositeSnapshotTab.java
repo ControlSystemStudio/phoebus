@@ -29,6 +29,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationController;
 import org.phoebus.framework.nls.NLS;
@@ -44,7 +45,7 @@ import java.util.logging.Logger;
  * Tab for creating or editing composite snapshots,
  * i.e. for node type {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}.
  */
-public class CompositeSnapshotTab extends Tab {
+public class CompositeSnapshotTab extends Tab implements NodeChangedListener {
 
     private CompositeSnapshotController compositeSnapshotController;
 
@@ -93,9 +94,11 @@ public class CompositeSnapshotTab extends Tab {
             if (!compositeSnapshotController.handleCompositeSnapshotTabClosed()) {
                 event.consume();
             } else {
-                //SaveAndRestoreService.getInstance().removeNodeChangeListener(this);
+                SaveAndRestoreService.getInstance().removeNodeChangeListener(this);
             }
         });
+
+        SaveAndRestoreService.getInstance().addNodeChangeListener(this);
     }
 
     public void updateTabTitle(String name){
@@ -128,5 +131,12 @@ public class CompositeSnapshotTab extends Tab {
         setId(compositeSnapshotNode.getUniqueId());
         tabTitleProperty.set(compositeSnapshotNode.getName());
         compositeSnapshotController.loadCompositeSnapshot(compositeSnapshotNode);
+    }
+
+    @Override
+    public void nodeChanged(Node node) {
+        if (node.getUniqueId().equals(getId())) {
+            tabTitleProperty.set(node.getName());
+        }
     }
 }
