@@ -23,6 +23,7 @@ import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -62,6 +63,11 @@ public class CompositeSnapshotController extends BaseController{
     public List<Node> getCompositeSnapshotNodes(@PathVariable String uniqueId){
         CompositeSnapshotData compositeSnapshotData = nodeDAO.getCompositeSnapshotData(uniqueId);
         return nodeDAO.getNodes(compositeSnapshotData.getReferencedSnapshotNodes());
+    }
+
+    @GetMapping(value = "/composite-snapshot/{uniqueId}/items", produces = JSON)
+    public List<SnapshotItem> getCompositeSnapshotItems(@PathVariable String uniqueId){
+        return nodeDAO.getSnapshotItemsFromCompositeSnapshot(uniqueId);
     }
 
     /**

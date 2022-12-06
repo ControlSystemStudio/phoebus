@@ -163,7 +163,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     protected Stage searchWindow;
     protected TreeNodeComparator treeNodeComparator = new TreeNodeComparator();
 
-    protected SimpleBooleanProperty changesInProgress = new SimpleBooleanProperty(false);
+    protected SimpleBooleanProperty disabledUi = new SimpleBooleanProperty(false);
 
     private final URI uri;
 
@@ -237,8 +237,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 configurationContextMenu, snapshotContextMenu, rootFolderContextMenu, compositeSnapshotContextMenu,
                 this));
 
-        progressIndicator.visibleProperty().bind(changesInProgress);
-        changesInProgress.addListener((observable, oldValue, newValue) -> treeView.setDisable(newValue));
+        progressIndicator.visibleProperty().bind(disabledUi);
+        disabledUi.addListener((observable, oldValue, newValue) -> treeView.setDisable(newValue));
 
         loadTreeData();
     }
@@ -440,7 +440,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                changesInProgress.set(true);
+                disabledUi.set(true);
                 List<String> nodeIds =
                         items.stream().map(item -> item.getValue().getUniqueId()).collect(Collectors.toList());
                 saveAndRestoreService.deleteNodes(nodeIds);
@@ -461,7 +461,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 }
                 tabPane.getTabs().removeAll(tabsToRemove);
                 parent.getChildren().removeAll(items);
-                changesInProgress.set(false);
+                disabledUi.set(false);
             }
 
             @Override
@@ -469,7 +469,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 expandTreeNode(items.get(0).getParent());
                 ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
                         MessageFormat.format(Messages.errorDeleteNodeFailed, items.get(0).getValue().getName()), null);
-                changesInProgress.set(false);
+                disabledUi.set(false);
             }
         };
 
@@ -490,7 +490,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     protected void openCompositeSnapshotForRestore(){
         TreeItem<Node> treeItem = browserSelectionModel.getSelectedItems().get(0);
-        CompositeSnapshotTab tab = new CompositeSnapshotTab();
+        SnapshotTab tab = new SnapshotTab(treeItem.getValue(), saveAndRestoreService);
+        tab.loadSnapshot(treeItem.getValue());
 
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);
@@ -1134,7 +1135,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * @param transferMode Must be {@link TransferMode#MOVE} or {@link TransferMode#COPY}.
      */
     protected void performCopyOrMove(List<Node> sourceNodes, Node targetNode, TransferMode transferMode) {
-        changesInProgress.set(true);
+        disabledUi.set(true);
         JobManager.schedule("Copy Or Move save&restore node(s)", monitor -> {
             TreeItem<Node> rootTreeItem = treeView.getRoot();
             TreeItem<Node> targetTreeItem = recursiveSearch(targetNode.getUniqueId(), rootTreeItem);
@@ -1167,7 +1168,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                         .log(Level.SEVERE, "Failed to move or copy");
                 ExceptionDetailsErrorDialog.openError(splitPane, Messages.copyOrMoveNotAllowedHeader, Messages.copyOrMoveNotAllowedBody, exception);
             } finally {
-                changesInProgress.set(false);
+                disabledUi.set(false);
             }
 
         });

@@ -40,6 +40,7 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.service.Messages;
 import org.phoebus.framework.preferences.PreferencesReader;
@@ -126,6 +127,25 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
         }
 
         return response.getEntity(new GenericType<List<Node>>() {
+        });
+    }
+
+    @Override
+    public List<SnapshotItem> getCompositeSnapshotItems(String uniqueNodeId){
+        WebResource webResource = client.resource(jmasarServiceUrl + "/composite-snapshot/" + uniqueNodeId + "/items");
+
+        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).get(ClientResponse.class);
+        if (response.getStatus() != 200) {
+            String message;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                message = "N/A";
+            }
+            throw new SaveAndRestoreClientException("Failed : HTTP error code : " + response.getStatus() + ", error message: " + message);
+        }
+
+        return response.getEntity(new GenericType<List<SnapshotItem>>() {
         });
     }
 

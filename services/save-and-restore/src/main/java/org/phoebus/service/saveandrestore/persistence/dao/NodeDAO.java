@@ -25,6 +25,7 @@ import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 
 import java.util.List;
@@ -262,5 +263,24 @@ public interface NodeDAO {
      * @return The updated {@link ConfigurationData}
      */
     CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot);
+
+    /**
+     * Aggregates a list of {@link SnapshotItem}s from a composite snapshot node. Note that since a
+     * composite snapshot may reference other composite snapshots, the implementation may need to recursively
+     * locate all referenced single snapshots.
+     * @param compositeSnapshotNodeId The if of an existing composite snapshot {@link Node}
+     * @return A list of {@link SnapshotItem}s.
+     */
+    List<SnapshotItem> getSnapshotItemsFromCompositeSnapshot(String compositeSnapshotNodeId);
+
+    /**
+     * Checks if the referenced snapshot {@link Node}s in a {@link CompositeSnapshot} are all
+     * of the supported type, i.e. {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
+     * or {@link org.phoebus.applications.saveandrestore.model.NodeType#SNAPSHOT}
+     * @param compositeSnapshot An existing {@link CompositeSnapshot}.
+     * @return <code>true</code> if all referenced snapshot {@link Node}s in a {@link CompositeSnapshot} are all
+     *      * of the supported type.
+     */
+    boolean checkCompositeSnapshotReferencedNodeTypes(CompositeSnapshot compositeSnapshot);
 
 }

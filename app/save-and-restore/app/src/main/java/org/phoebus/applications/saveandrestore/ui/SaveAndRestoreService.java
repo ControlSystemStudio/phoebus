@@ -313,6 +313,12 @@ public class SaveAndRestoreService {
         return future.get();
     }
 
+    public List<SnapshotItem> getCompositeSnapshotItems(String compositeSnapshotNodeUniqueId) throws Exception{
+        Future<List<SnapshotItem>> future =
+                executor.submit(() -> saveAndRestoreClient.getCompositeSnapshotItems(compositeSnapshotNodeUniqueId));
+        return future.get();
+    }
+
     public CompositeSnapshot saveCompositeSnapshot(Node parentNode, CompositeSnapshot compositeSnapshot) throws Exception{
         Future<CompositeSnapshot> future =
                 executor.submit(() -> saveAndRestoreClient.createCompositeSnapshot(parentNode.getUniqueId(), compositeSnapshot));

@@ -690,6 +690,9 @@ public class ElasticsearchDAO implements NodeDAO {
 
     @Override
     public CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot){
+        if(!checkCompositeSnapshotReferencedNodeTypes(compositeSnapshot)){
+            throw new IllegalArgumentException("Found unsupported node type in list of referenced nodes");
+        }
         List<String> duplicatePVNames = checkForPVNameDuplicates(compositeSnapshot.getCompositeSnapshotData().getReferencedSnapshotNodes());
         if(!duplicatePVNames.isEmpty()){
             throw new IllegalArgumentException("Found duplicate PV names in referenced snapshots");
@@ -815,6 +818,9 @@ public class ElasticsearchDAO implements NodeDAO {
 
     @Override
     public CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot){
+        if(!checkCompositeSnapshotReferencedNodeTypes(compositeSnapshot)){
+            throw new IllegalArgumentException("Found unsupported node type in list of referenced nodes");
+        }
         List<String> duplicatePVNames = checkForPVNameDuplicates(compositeSnapshot.getCompositeSnapshotData().getReferencedSnapshotNodes());
         if(!duplicatePVNames.isEmpty()){
             throw new IllegalArgumentException("Found duplicate PV names in referenced snapshots");
@@ -835,5 +841,59 @@ public class ElasticsearchDAO implements NodeDAO {
                 .compositeSnapshotData(updatedCompositeSnapshotData)
                 .compositeSnapshotNode(existingCompositeSnapshotNode)
                 .build();
+    }
+
+    @Override
+    public List<SnapshotItem> getSnapshotItemsFromCompositeSnapshot(String compositeSnapshotNodeId){
+        List<SnapshotItem> snapshotItems = new ArrayList<>();
+        getSnapshotItemsFromNextNode(compositeSnapshotNodeId, snapshotItems);
+        return snapshotItems;
+    }
+
+    private void getSnapshotItemsFromNextNode(String snapshotNode, List<SnapshotItem> allSnapshotItems){
+        Node node = getNode(snapshotNode);
+        if(node == null){
+            return;
+        }
+        NodeType nodeType = node.getNodeType();
+        if(nodeType.equals(NodeType.COMPOSITE_SNAPSHOT)) {
+            CompositeSnapshotData compositeSnapshotData = getCompositeSnapshotData(node.getUniqueId());
+            for(String referencedNode : compositeSnapshotData.getReferencedSnapshotNodes()){
+                getSnapshotItemsFromNextNode(referencedNode, allSnapshotItems);
+            }
+        }
+        else if(nodeType.equals(NodeType.SNAPSHOT)){
+            SnapshotData snapshotData = getSnapshotData(node.getUniqueId());
+            allSnapshotItems.addAll(snapshotData.getSnapshotItems());
+        }
+    }
+
+    @Override
+    public boolean checkCompositeSnapshotReferencedNodeTypes(CompositeSnapshot compositeSnapshot){
+        for(String nodeId : compositeSnapshot.getCompositeSnapshotData().getReferencedSnapshotNodes()){
+            if(!checkCompositeSnapshotReferencedNodeType(nodeId)){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean checkCompositeSnapshotReferencedNodeType(String nodeId){
+        Node node = getNode(nodeId);
+        if(node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)){
+            CompositeSnapshotData compositeSnapshotData = getCompositeSnapshotData(node.getUniqueId());
+            for(String referencedNode : compositeSnapshotData.getReferencedSnapshotNodes()){
+                if(!checkCompositeSnapshotReferencedNodeType(referencedNode)){
+                    return false;
+                }
+            }
+            return true;
+        }
+        else if(node.getNodeType().equals(NodeType.SNAPSHOT)){
+            return true;
+        }
+        else{
+            return false;
+        }
     }
 }

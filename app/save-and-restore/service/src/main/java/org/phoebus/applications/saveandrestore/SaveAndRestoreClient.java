@@ -25,6 +25,7 @@ import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 
 import java.util.List;
@@ -54,6 +55,8 @@ public interface SaveAndRestoreClient {
     Node getNode(String uniqueNodeId);
 
     List<Node> getCompositeSnapshotReferencedNodes(String uniqueNodeId);
+
+    List<SnapshotItem> getCompositeSnapshotItems(String uniqueNodeId);
 
     /**
      * @param unqiueNodeId Unique id of a {@link Node}
