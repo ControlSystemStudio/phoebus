@@ -426,6 +426,12 @@ public class CompositeSnapshotController implements NodeChangedListener {
         dirty.set(false);
     }
 
+    /**
+     * Checks that dropped source {@link Node}s may be dropped. Only {@link Node}s of type
+     * {@link NodeType#COMPOSITE_SNAPSHOT} and {@link NodeType#SNAPSHOT} may be dropped.
+     * @param sourceNodes List of {@link Node}s, e.g. selected in UI from tree view.
+     * @return <code>true</code> if the source {@link Node}s may be added.
+     */
     private boolean mayDrop(List<Node> sourceNodes) {
         if (sourceNodes.stream().filter(n -> !n.getNodeType().equals(NodeType.SNAPSHOT) &&
                 !n.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)).findFirst().isPresent()) {

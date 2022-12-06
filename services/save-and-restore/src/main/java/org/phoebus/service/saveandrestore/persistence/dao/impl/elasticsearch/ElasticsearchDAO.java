@@ -690,6 +690,10 @@ public class ElasticsearchDAO implements NodeDAO {
 
     @Override
     public CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot){
+        List<String> duplicatePVNames = checkForPVNameDuplicates(compositeSnapshot.getCompositeSnapshotData().getReferencedSnapshotNodes());
+        if(!duplicatePVNames.isEmpty()){
+            throw new IllegalArgumentException("Found duplicate PV names in referenced snapshots");
+        }
         compositeSnapshot.getCompositeSnapshotNode().setNodeType(NodeType.COMPOSITE_SNAPSHOT); // Force node type
         Node newCompositeSnapshotNode = createNode(parentNodeId, compositeSnapshot.getCompositeSnapshotNode());
         compositeSnapshot.getCompositeSnapshotData().setUniqueId(newCompositeSnapshotNode.getUniqueId());
@@ -811,6 +815,10 @@ public class ElasticsearchDAO implements NodeDAO {
 
     @Override
     public CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot){
+        List<String> duplicatePVNames = checkForPVNameDuplicates(compositeSnapshot.getCompositeSnapshotData().getReferencedSnapshotNodes());
+        if(!duplicatePVNames.isEmpty()){
+            throw new IllegalArgumentException("Found duplicate PV names in referenced snapshots");
+        }
         Node existingCompositeSnapshotNode = getNode(compositeSnapshot.getCompositeSnapshotNode().getUniqueId());
 
         // Set name and description, even if unchanged.
