@@ -35,6 +35,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -45,6 +46,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
@@ -64,6 +67,7 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
 
+import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -79,7 +83,9 @@ import java.util.stream.Collectors;
 public class CompositeSnapshotController implements NodeChangedListener {
 
     @FXML
-    private BorderPane root;
+    private StackPane root;
+
+    @FXML BorderPane borderPane;
 
     @FXML
     private TableColumn<Node, Node> snapshotNameColumn;
@@ -125,6 +131,11 @@ public class CompositeSnapshotController implements NodeChangedListener {
     private final CompositeSnapshotTab compositeSnapshotTab;
 
     private final Logger logger = Logger.getLogger(CompositeSnapshotController.class.getName());
+
+    private final SimpleBooleanProperty disabledUi = new SimpleBooleanProperty(false);
+
+    @FXML
+    private VBox progressIndicator;
 
     public CompositeSnapshotController(CompositeSnapshotTab compositeSnapshotTab) {
         this.compositeSnapshotTab = compositeSnapshotTab;
@@ -263,20 +274,38 @@ public class CompositeSnapshotController implements NodeChangedListener {
             if (!mayDrop(sourceNodes)) {
                 return;
             }
+            disabledUi.set(true);
             checkForDuplicatePVs(sourceNodes, duplicates -> {
+                disabledUi.set(false);
                 if(duplicates.isEmpty()){
                     snapshotEntries.addAll(sourceNodes);
                 }
                 else {
+                    int maxItems = 10;
                     StringBuilder stringBuilder = new StringBuilder();
-                    duplicates.stream().forEach(s -> stringBuilder.append(s).append(System.lineSeparator()));
+                    for(int i = 0; i < Math.min(duplicates.size(), maxItems); i++){
+                        stringBuilder.append(duplicates.get(i)).append(System.lineSeparator());
+                    }
+                    if(duplicates.size() > maxItems){
+                        stringBuilder.append(".").append(System.lineSeparator())
+                                    .append(".").append(System.lineSeparator())
+                                    .append(".").append(System.lineSeparator());
+                        stringBuilder.append(MessageFormat.format(Messages.duplicatePVNamesAdditionalItems, duplicates.size() - maxItems));
+                    }
+
                     Platform.runLater(() -> {
-                        ExceptionDetailsErrorDialog.openError("Title", "mssage",
-                                new RuntimeException(stringBuilder.toString()));
+                        Alert alert = new Alert(AlertType.ERROR);
+                        alert.setTitle(Messages.errorGeneric);
+                        alert.setHeaderText(Messages.duplicatePVNamesFoundInSelection);
+                        alert.setContentText(stringBuilder.toString());
+                        alert.showAndWait();
                     });
                 }
             });
         });
+
+        progressIndicator.visibleProperty().bind(disabledUi);
+        disabledUi.addListener((observable, oldValue, newValue) -> borderPane.setDisable(newValue));
 
         SaveAndRestoreService.getInstance().addNodeChangeListener(this);
     }
@@ -314,6 +343,9 @@ public class CompositeSnapshotController implements NodeChangedListener {
                         e1);
             }
         });
+
+        progressIndicator.visibleProperty().bind(disabledUi);
+        disabledUi.addListener((observable, oldValue, newValue) -> borderPane.setDisable(newValue));
     }
 
 
@@ -404,11 +436,24 @@ public class CompositeSnapshotController implements NodeChangedListener {
         return true;
     }
 
+    /**
+     * Calls service to determine if the list of PV names found in referenced snapshots contains duplicates.
+     * @param droppedSnapshots The snapshot {@link Node}s dropped by user into the editor tab.
+     * @param completion Callback receiving a list of duplicate PV names.
+     */
     private void checkForDuplicatePVs(List<Node> droppedSnapshots, Consumer<List<String>> completion){
         JobManager.schedule("Check snapshot PV duplicates", monitor -> {
             List<String> allSnapshotIds = snapshotEntries.stream().map(Node::getUniqueId).collect(Collectors.toList());
             allSnapshotIds.addAll(droppedSnapshots.stream().map(Node::getUniqueId).collect(Collectors.toList()));
-            List<String> duplicates = saveAndRestoreService.checkCompositeSnapshotConsistency(allSnapshotIds);
+            List<String> duplicates = null;
+            try {
+                duplicates = saveAndRestoreService.checkCompositeSnapshotConsistency(allSnapshotIds);
+            } catch (Exception e) {
+                disabledUi.set(false);
+                ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
+                        Messages.duplicatePVNamesCheckFailed,
+                        e);
+            }
             completion.accept(duplicates);
         });
     }

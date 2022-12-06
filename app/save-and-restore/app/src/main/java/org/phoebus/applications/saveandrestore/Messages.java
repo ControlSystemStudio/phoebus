@@ -53,6 +53,10 @@ public class Messages {
     public static String createNewTagDialogTitle;
     public static String deletionNotAllowed;
     public static String deletionNotAllowedHeader;
+
+    public static String duplicatePVNamesAdditionalItems;
+    public static String duplicatePVNamesCheckFailed;
+    public static String duplicatePVNamesFoundInSelection;
     public static String errorActionFailed;
     public static String errorCreateFolderFailed;
     public static String errorCreateConfigurationFailed;
