@@ -23,11 +23,14 @@ a tree view UI component. In the following objects in the tree are referred to a
 structure is a folder that may only contain folder nodes. Folders may contain sub-folders or configurations, or both.
 The child nodes of a configuration are snapshots associated with that configuration.
 
-There are hence three node types managed in the application:
+Additionally a composite snapshot node may reference an arbitrary number of snapshot or composite snapshot nodes.
+
+There are three node types managed in the application:
 
 - **Folder**: container for folders and configurations.
 - **Configuration**: essentially a list of PV names and associated meta-data.
 - **Snapshot**: the PV values read from PVs listed in a configuration.
+- **Composite Snapshot**: aggregation of snapshots or other composite snapshots.
 
 *NOTE*: If a folder or configuration node is deleted, all child nodes are unconditionally and recursively deleted! The user
 is prompted to confirm delete actions as deletion is irreversible.

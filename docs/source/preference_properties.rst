@@ -1271,6 +1271,14 @@ File ../../core/pv/src/main/resources/pv_pva_preferences.properties::
    
    # TCP buffer size for sending data
    epics_pva_send_buffer_size
+   
+   # Timeout used by plain "put" type of write
+   # when checking success or failure.
+   # Note this is not used with asyncWrite,
+   # the "put-callback" which returns a Future
+   # for awaiting the completion,
+   # but only with the plain "put" that returns ASAP
+   epics_pva_write_reply_timeout_ms=1000
 
 
 pvtable
@@ -1677,20 +1685,25 @@ File ../../core/ui/src/main/resources/phoebus_ui_preferences.properties::
    # Details can also depend on the printer driver.
    print_landscape=true
    
-   # Color for 'OK' alarm severity (R,G,B or R,G,B,A values in range 0..255)
+   # Color for text and the background for 'OK' alarm severity (R,G,B or R,G,B,A values in range 0..255)
    ok_severity_text_color=0,255,0
+   ok_severity_background_color=255,255,255
    
-   # Color for 'MINOR' alarm severity
-   minor_severity_text_color=255, 128, 0
+   # Color for text and the background for 'MINOR' alarm severity
+   minor_severity_text_color=255,128,0
+   minor_severity_background_color=255,255,255
    
-   # Color for 'MAJOR' alarm severity
+   # Color for text and the background for 'MAJOR' alarm severity
    major_severity_text_color=255,0,0
+   major_severity_background_color=255,255,255
    
-   # Color for 'INVALID' alarm severity
-   invalid_severity_text_color=255, 0, 255
+   # Color for text and the background for 'INVALID' alarm severity
+   invalid_severity_text_color=255,0,255
+   invalid_severity_background_color=255,255,255
    
-   # Color for 'UNDEFINED' alarm severity
-   undefined_severity_text_color=200, 0, 200, 200
+   # Color for text and the background for 'UNDEFINED' alarm severity
+   undefined_severity_text_color=200,0,200,200
+   undefined_severity_background_color=255,255,255
 
 
 update

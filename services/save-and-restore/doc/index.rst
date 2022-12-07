@@ -58,6 +58,12 @@ A snapshot node consists of a list of PV values at a particular instant in time.
 a configuration defining this list of PVs (and optionally read-back PVs). In other words, when saving a snapshot
 the client must specify the unique id of the associated configuration node.
 
+**Composite Snapshot:**
+
+An aggregation of snapshot nodes and/or other composite snapshot nodes. The referenced nodes must exist in order
+to be able to create a composite snapshot. Moreover, a snapshot node cannot be deleted if it is referenced in
+a composite snapshot.
+
 REST Services
 -------------
 
@@ -331,8 +337,8 @@ same. However, in this case the ``uniqueNodeId`` must identify an existing confi
 
 The body can specify a new name or description, or both. On top of that the list of PVs can be updated. It should
 be noted though that the specified list will replace the existing one, i.e. all PVs that must remain in the updated
-configuration data must be listed in the body. Any PVs in the existing configuration data that are missing from the
-body will be removed..
+configuration data must be listed in the body. Any PVs in the existing configuration data missing from the
+body will be removed.
 
 
 Snapshot Endpoints
@@ -517,4 +523,202 @@ configuration node must be the configuration node associated with the snapshot, 
 of PVs contained in the snapshot. The client needs to specify a name for the new snapshot node, as well as
 a user identity.
 
+Composite Snapshot Endpoints
+----------------------------
 
+Get a composite snapshot
+""""""""""""""""""""""""
+
+To get a composite snapshot node the client should call the end-point associated with getting nodes of any type:
+
+**.../node/{uniqueNodeId}**
+
+where ``uniqueNodeId`` identifies the composite snapshot node.
+
+The actual composite snapshot data associated with a composite snapshot node is maintained in a separate Elasticsearch index and
+is accessible through:
+
+**.../composite-snapshot/{uniqueNodeId}**
+
+where ``uniqueNodeId`` identifies the composite snapshot node.
+
+Method: GET
+
+Return: object describing the composite snapshot data, essentially a list of referenced snapshot and composite
+snapshot nodes.
+
+.. code-block:: JSON
+
+    {
+      "uniqueId": "e80fba66-c7f0-453e-8cb6-12b22fa8c957",
+      "referencedSnapshotNodes": [
+        "b0cee6ff-76a2-46e6-b0ef-d8b78bff26f6",
+        "b6b5a03e-252e-4e6b-a9ac-9d50c23f3f0b"
+      ]
+    }
+
+Create a composite snapshot
+"""""""""""""""""""""""""""
+
+**.../composite-snapshot?parentNodeId=<parent's node id>**
+
+Method: PUT
+
+Return: an object representing the composite snapshot. This object is of the same type as
+the body sent in the request, with additional data set by the service, e.g. the unique id of the
+created composite snapshot node.
+
+Body:
+
+.. code-block:: JSON
+
+    {
+        "compositeSnapshotNode": {
+             "name": "New_Composite_Snapshot",
+             "nodeType": "COMPOSITE_SNAPSHOT",
+             "userName": "johndoe"
+        },
+        "referencedSnapshotNodes": {
+            [
+                "b0cee6ff-76a2-46e6-b0ef-d8b78bff26f6",
+                "b6b5a03e-252e-4e6b-a9ac-9d50c23f3f0b"
+            ]
+        }
+    }
+
+Update a composite snapshot
+"""""""""""""""""""""""""""
+
+**.../composite-snapshot/{uniqueNodeId}**
+
+Method: POST
+
+This endpoint works in the same manner as the for the PUT method, i.e. the body and return value are the
+same. However, in this case the ``uniqueNodeId`` must identify an existing composite snapshot node.
+
+The body can specify a new name or description, or both. On top of that the list of referenced snapshots can be updated. It should
+be noted though that the specified list will replace the existing one, i.e. all referenced snapshots that must remain in the updated
+composite snapshot data must be listed in the body. Any snapshots in the existing configuration data missing from the
+body will be removed.
+
+Get restorable items of a composite snapshot
+""""""""""""""""""""""""""""""""""""""""""""
+
+***.../composite-snapshot/{uniqueId}/items**
+
+Method: GET
+
+Return: a list of all snapshot items as persisted in the snapshots referenced by a composite snapshot.
+
+Body:
+
+.. code-block:: JSON
+
+    [
+      {
+        "configPv": {
+          "pvName": "RFQ-010:RFS-EVR-101:OpMode",
+          "readbackPvName": null,
+          "readOnly": false
+        },
+        "value": {
+          "type": {
+            "name": "VEnum",
+            "version": 1
+          },
+          "value": 0,
+          "alarm": {
+            "severity": "NONE",
+            "status": "NONE",
+            "name": "NONE"
+          },
+          "time": {
+            "unixSec": 1638905851,
+            "nanoSec": 445854166
+          },
+          "enum": {
+            "labels": [
+              "Global"
+            ]
+          }
+        }
+      },
+      {
+        "configPv": {
+          "pvName": "RFQ-010:RFS-EVR-101:RFSyncDly-SP",
+          "readbackPvName": null,
+          "readOnly": false
+        },
+        "value": {
+          "type": {
+            "name": "VDouble",
+            "version": 1
+          },
+          "value": 200.0,
+          "alarm": {
+            "severity": "NONE",
+            "status": "NONE",
+            "name": "NONE"
+          },
+          "time": {
+            "unixSec": 1638475923,
+            "nanoSec": 703595298
+          },
+          "display": {
+            "units": ""
+          }
+        }
+      },
+      {
+        "configPv": {
+          "pvName": "RFQ-010:RFS-EVR-101:RFSyncWdt-SP",
+          "readbackPvName": null,
+          "readOnly": false
+        },
+        "value": {
+          "type": {
+            "name": "VDouble",
+            "version": 1
+          },
+          "value": 100.0,
+          "alarm": {
+            "severity": "NONE",
+            "status": "NONE",
+            "name": "NONE"
+          },
+          "time": {
+            "unixSec": 1639063122,
+            "nanoSec": 320431469
+          },
+          "display": {
+            "units": ""
+          }
+        }
+      },
+      {
+        "configPv": {
+          "pvName": "RFQ-010:RFS-EVR-101:SCDly",
+          "readbackPvName": null,
+          "readOnly": false
+        },
+        "value": {
+          "type": {
+            "name": "VDouble",
+            "version": 1
+          },
+          "value": 493.2,
+          "alarm": {
+            "severity": "NONE",
+            "status": "NONE",
+            "name": "NONE"
+          },
+          "time": {
+            "unixSec": 1639209326,
+            "nanoSec": 372407313
+          },
+          "display": {
+            "units": ""
+          }
+        }
+      }
+    ]
