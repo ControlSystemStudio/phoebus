@@ -358,7 +358,7 @@ public class CompositeSnapshotController implements NodeChangedListener {
             List<Node> referencedNodes = saveAndRestoreService.getCompositeSnapshotNodes(node.getUniqueId());
             snapshotEntries.addAll(referencedNodes);
         } catch (Exception e) {
-            ExceptionDetailsErrorDialog.openError(root, "Error", "Unable to retrieve configuration data", e);
+            ExceptionDetailsErrorDialog.openError(root, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
             return;
         }
         // Create a cloned Node object to avoid changes in the Node object contained in the tree view.

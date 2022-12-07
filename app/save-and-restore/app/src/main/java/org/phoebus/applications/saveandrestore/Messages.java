@@ -63,6 +63,7 @@ public class Messages {
     public static String errorDeleteNodeFailed;
     public static String errorGeneric;
     public static String errorTakeSnapshot;
+    public static String errorUnableToRetrieveData;
     public static String exportConfigurationLabel;
     public static String exportSnapshotLabel;
     public static String exportSnapshotFailed;

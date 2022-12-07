@@ -83,6 +83,7 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.pv.PVPool;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -512,7 +513,17 @@ public class SnapshotController implements NodeChangedListener {
         } else {
             takeSnapshotButton.setDisable(true);
             snapshotTab.setCompositeSnapshotImage();
-            loadCompositeSnapshotInternal();
+            loadCompositeSnapshotInternal(vSnapshot -> {
+                Platform.runLater(() -> {
+                    List<TableEntry> tableEntries = loadSnapshotInternal(vSnapshot);
+
+                    snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
+                    if (isTreeTableViewEnabled) {
+                        snapshotTreeTable.updateTable(tableEntries, snapshots, false, false, false);
+                    }
+                    snapshotRestorableProperty.set(true);
+                });
+            });
         }
     }
 
@@ -589,26 +600,24 @@ public class SnapshotController implements NodeChangedListener {
         });
     }
 
-    private void loadCompositeSnapshotInternal() {
+    private void loadCompositeSnapshotInternal(Consumer<VSnapshot> completion) {
 
-        UI_EXECUTOR.execute(() -> {
+        JobManager.schedule("Load composite snapshot items", items -> {
+            disabledUi.set(true);
+            List<SnapshotItem> snapshotItems;
             try {
-                List<SnapshotItem> snapshotItems =
-                        saveAndRestoreService.getCompositeSnapshotItems(snapshotNode.getUniqueId());
-
-                VSnapshot vSnapshot =
-                        new VSnapshot(snapshotNode, snapshotItemsToSnapshotEntries(snapshotItems));
-                List<TableEntry> tableEntries = loadSnapshotInternal(vSnapshot);
-
-                snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
-                if (isTreeTableViewEnabled) {
-                    snapshotTreeTable.updateTable(tableEntries, snapshots, false, false, false);
-                }
-                snapshotRestorableProperty.set(true);
-
+                snapshotItems = saveAndRestoreService.getCompositeSnapshotItems(snapshotNode.getUniqueId());
             } catch (Exception e) {
-                LOGGER.log(Level.INFO, "Error loading snapshot", e);
+                ExceptionDetailsErrorDialog.openError(snapshotTreeTable, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
+                return;
             }
+            finally {
+                disabledUi.set(false);
+            }
+            VSnapshot vSnapshot =
+                    new VSnapshot(snapshotNode, snapshotItemsToSnapshotEntries(snapshotItems));
+            disabledUi.set(false);
+            completion.accept(vSnapshot);
         });
     }
 
