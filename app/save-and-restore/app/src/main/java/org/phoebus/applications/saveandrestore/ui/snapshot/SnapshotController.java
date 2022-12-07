@@ -487,15 +487,6 @@ public class SnapshotController implements NodeChangedListener {
             return;
         }
         this.snapshotNode = snapshotNode;
-        boolean isCompositeSnapshot = this.snapshotNode.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT);
-        if (!isCompositeSnapshot) {
-            try {
-                this.configNode = saveAndRestoreService.getParentNode(snapshotNode.getUniqueId());
-            } catch (Exception e) {
-                LOGGER.log(Level.INFO, "Error loading snapshot", e);
-                return;
-            }
-        }
         snapshotNameProperty.set(snapshotNode.getName());
         snapshotUniqueIdProperty.set(snapshotNode.getUniqueId());
         snapshotCommentProperty.set(snapshotNode.getDescription());
@@ -505,7 +496,7 @@ public class SnapshotController implements NodeChangedListener {
         snapshotTab.updateTabTitle(snapshotNode.getName());
         snapshotTab.setId(snapshotNode.getUniqueId());
 
-        if (!isCompositeSnapshot) {
+        if (!this.snapshotNode.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)) {
             if(snapshotNode.getTags() != null && snapshotNode.getTags().stream().anyMatch(t -> t.getName().equals(Tag.GOLDEN))){
                 snapshotTab.setGoldenImage();
             }
@@ -580,12 +571,22 @@ public class SnapshotController implements NodeChangedListener {
     }
 
     private void loadSnapshotInternal() {
-
-        UI_EXECUTOR.execute(() -> {
+        disabledUi.set(true);
+        JobManager.schedule("Load snapshot items", monitor -> {
+            SnapshotData snapshotData;
             try {
-                SnapshotData snapshotData = saveAndRestoreService.getSnapshot(snapshotNode.getUniqueId());
-                VSnapshot vSnapshot =
-                        new VSnapshot(snapshotNode, snapshotItemsToSnapshotEntries(snapshotData.getSnapshotItems()));
+               snapshotData = saveAndRestoreService.getSnapshot(snapshotNode.getUniqueId());
+            } catch (Exception e) {
+                ExceptionDetailsErrorDialog.openError(snapshotTreeTable, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
+                LOGGER.log(Level.INFO, "Error loading snapshot", e);
+                return;
+            }
+            finally {
+                disabledUi.set(false);
+            }
+            VSnapshot vSnapshot =
+                    new VSnapshot(snapshotNode, snapshotItemsToSnapshotEntries(snapshotData.getSnapshotItems()));
+            Platform.runLater(() -> {
                 List<TableEntry> tableEntries = loadSnapshotInternal(vSnapshot);
 
                 snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
@@ -593,10 +594,8 @@ public class SnapshotController implements NodeChangedListener {
                     snapshotTreeTable.updateTable(tableEntries, snapshots, false, false, false);
                 }
                 snapshotRestorableProperty.set(true);
-
-            } catch (Exception e) {
-                LOGGER.log(Level.INFO, "Error loading snapshot", e);
-            }
+                disabledUi.set(false);
+            });
         });
     }
 
@@ -608,6 +607,7 @@ public class SnapshotController implements NodeChangedListener {
             try {
                 snapshotItems = saveAndRestoreService.getCompositeSnapshotItems(snapshotNode.getUniqueId());
             } catch (Exception e) {
+                LOGGER.log(Level.INFO, "Error loading composite snapshot for restore", e);
                 ExceptionDetailsErrorDialog.openError(snapshotTreeTable, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
                 return;
             }
@@ -781,16 +781,13 @@ public class SnapshotController implements NodeChangedListener {
     }
 
     private List<TableEntry> setSnapshotInternal(VSnapshot snapshotData) {
-        List<SnapshotEntry> entries = snapshotData.getEntries();
-        synchronized (snapshots) {
-            snapshots.add(snapshotData);
-        }
-        UI_EXECUTOR.execute(() -> snapshotRestorableProperty.set(snapshotData.getSnapshot().isPresent()));
+        snapshots.add(snapshotData);
+        snapshotRestorableProperty.set(snapshotData.getSnapshot().isPresent());
         String name;
         TableEntry e;
         SnapshotEntry entry;
-        for (int i = 0; i < entries.size(); i++) {
-            entry = entries.get(i);
+        for (int i = 0; i < snapshotData.getEntries().size(); i++) {
+            entry = snapshotData.getEntries().get(i);
             e = new TableEntry();
             name = entry.getPVName();
             e.idProperty().setValue(i + 1);
@@ -810,7 +807,7 @@ public class SnapshotController implements NodeChangedListener {
             }
         }
         connectPVs();
-        UI_EXECUTOR.execute(() -> nodeDataDirty.set(snapshotData.isSaveable()));
+        nodeDataDirty.set(snapshotData.isSaveable());
         return new ArrayList<>(tableEntryItems.values());
     }
 
@@ -1110,12 +1107,10 @@ public class SnapshotController implements NodeChangedListener {
      * and disposes of those that have not been unmarked.
      */
     private void dispose() {
-        synchronized (snapshots) {
-            pvs.values().forEach(PV::dispose);
-            pvs.clear();
-            tableEntryItems.clear();
-            snapshots.clear();
-        }
+        pvs.values().forEach(PV::dispose);
+        pvs.clear();
+        tableEntryItems.clear();
+        snapshots.clear();
     }
 
     /**
