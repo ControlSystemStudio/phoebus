@@ -459,8 +459,8 @@ public class ElasticsearchDAO implements NodeDAO {
             Node compositeSnapshotReferencingTheSnapshot =
                     mayDeleteSnapshot(nodeToDelete);
             if(compositeSnapshotReferencingTheSnapshot != null){
-                throw new RuntimeException("Cannot delete snapshot " + nodeToDelete.getName() +
-                        " as it is referenced in composite snapshot " + compositeSnapshotReferencingTheSnapshot.getName());
+                throw new IllegalArgumentException("Cannot delete snapshot \"" + nodeToDelete.getName() +
+                        "\" as it is referenced in composite snapshot \"" + compositeSnapshotReferencingTheSnapshot.getName() + "\"");
             }
             snapshotDataRepository.deleteById(nodeToDelete.getUniqueId());
         }
