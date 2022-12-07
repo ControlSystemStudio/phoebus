@@ -433,18 +433,20 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     private void deleteTreeItems(ObservableList<TreeItem<Node>> items) {
         TreeItem<Node> parent = items.get(0).getParent();
-        Task<Void> task = new Task<>() {
-            @Override
-            protected Void call() throws Exception {
-                changesInProgress.set(true);
-                List<String> nodeIds =
-                        items.stream().map(item -> item.getValue().getUniqueId()).collect(Collectors.toList());
+        List<String> nodeIds =
+                items.stream().map(item -> item.getValue().getUniqueId()).collect(Collectors.toList());
+        JobManager.schedule("Delete nodes", monitor -> {
+            try{
                 saveAndRestoreService.deleteNodes(nodeIds);
-                return null;
+            }
+            catch (Exception e){
+                ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
+                        MessageFormat.format(Messages.errorDeleteNodeFailed, items.get(0).getValue().getName()),
+                        e);
+                return;
             }
 
-            @Override
-            public void succeeded() {
+            Platform.runLater(() -> {
                 List<Tab> tabsToRemove = new ArrayList<>();
                 List<Tab> visibleTabs = tabPane.getTabs();
                 for (Tab tab : visibleTabs) {
@@ -457,19 +459,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 }
                 tabPane.getTabs().removeAll(tabsToRemove);
                 parent.getChildren().removeAll(items);
-                changesInProgress.set(false);
-            }
-
-            @Override
-            public void failed() {
-                expandTreeNode(items.get(0).getParent());
-                ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
-                        MessageFormat.format(Messages.errorDeleteNodeFailed, items.get(0).getValue().getName()), null);
-                changesInProgress.set(false);
-            }
-        };
-
-        new Thread(task).start();
+            });
+        });
     }
 
     /**
