@@ -1238,4 +1238,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         locateNode(copiedStack);
         nodeDoubleClicked(node);
     }
+
+    public void findSnapshotReferences(){
+        // TODO: implement this as a search request and use search result UI to display result.
+    }
 }
