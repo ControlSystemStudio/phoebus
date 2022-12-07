@@ -563,7 +563,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      *
      * @param node The double click source
      */
-    private void nodeDoubleClicked(Node node) {
+    public void nodeDoubleClicked(Node node) {
 
         Tab tab;
 
@@ -577,7 +577,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 ((SnapshotTab) tab).loadSnapshot(node);
                 break;
             case COMPOSITE_SNAPSHOT:
-                tab = new CompositeSnapshotTab();
+                tab = new CompositeSnapshotTab(this);
                 ((CompositeSnapshotTab)tab).editCompositeSnapshot(node);
                 break;
             case FOLDER:
@@ -597,7 +597,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     private void launchTabForNewCompositeSnapshot(Node parentNode){
-        CompositeSnapshotTab tab = new CompositeSnapshotTab();
+        CompositeSnapshotTab tab = new CompositeSnapshotTab(this);
         tab.configureForNewCompositeSnapshot(parentNode);
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);

@@ -30,6 +30,7 @@ import javafx.scene.layout.HBox;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationController;
 import org.phoebus.framework.nls.NLS;
@@ -51,7 +52,10 @@ public class CompositeSnapshotTab extends Tab implements NodeChangedListener {
 
     private final SimpleStringProperty tabTitleProperty = new SimpleStringProperty(Messages.contextMenuNewCompositeSnapshot);
 
-    public CompositeSnapshotTab(){
+    private SaveAndRestoreController saveAndRestoreController;
+
+    public CompositeSnapshotTab(SaveAndRestoreController saveAndRestoreController){
+        this.saveAndRestoreController = saveAndRestoreController;
         configure();
     }
 
@@ -64,8 +68,8 @@ public class CompositeSnapshotTab extends Tab implements NodeChangedListener {
         loader.setControllerFactory(clazz -> {
             try {
                 if (clazz.isAssignableFrom(CompositeSnapshotController.class)) {
-                    return clazz.getConstructor(CompositeSnapshotTab.class)
-                            .newInstance(this);
+                    return clazz.getConstructor(CompositeSnapshotTab.class, SaveAndRestoreController.class)
+                            .newInstance(this, saveAndRestoreController);
                 }
             } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError("Error",
@@ -73,8 +77,6 @@ public class CompositeSnapshotTab extends Tab implements NodeChangedListener {
             }
             return null;
         });
-
-
 
         javafx.scene.Node rootNode;
         try {

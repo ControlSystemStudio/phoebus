@@ -35,34 +35,32 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
+import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.SnapshotData;
-import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
@@ -74,6 +72,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Stack;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -85,7 +84,8 @@ public class CompositeSnapshotController implements NodeChangedListener {
     @FXML
     private StackPane root;
 
-    @FXML BorderPane borderPane;
+    @FXML
+    BorderPane borderPane;
 
     @FXML
     private TableColumn<Node, Node> snapshotNameColumn;
@@ -134,11 +134,14 @@ public class CompositeSnapshotController implements NodeChangedListener {
 
     private final SimpleBooleanProperty disabledUi = new SimpleBooleanProperty(false);
 
+    private final SaveAndRestoreController saveAndRestoreController;
+
     @FXML
     private VBox progressIndicator;
 
-    public CompositeSnapshotController(CompositeSnapshotTab compositeSnapshotTab) {
+    public CompositeSnapshotController(CompositeSnapshotTab compositeSnapshotTab, SaveAndRestoreController saveAndRestoreController) {
         this.compositeSnapshotTab = compositeSnapshotTab;
+        this.saveAndRestoreController = saveAndRestoreController;
     }
 
     @FXML
@@ -150,8 +153,6 @@ public class CompositeSnapshotController implements NodeChangedListener {
         snapshotTable.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> selectionEmpty.set(nv == null));
 
         snapshotTable.getSelectionModel().getSelectedItems().addListener((ListChangeListener<Node>) c -> singelSelection.set(c.getList().size() == 1));
-
-        ContextMenu pvNameContextMenu = new ContextMenu();
 
         MenuItem deleteMenuItem = new MenuItem(Messages.menuItemDeleteSelectedPVs,
                 new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/delete.png")));
@@ -166,7 +167,7 @@ public class CompositeSnapshotController implements NodeChangedListener {
         snapshotDateColumn.setCellFactory(new Callback<>() {
             @Override
             public TableCell<Node, Date> call(TableColumn param) {
-                final TableCell<Node, Date> cell = new TableCell<>() {
+                return new TableCell<>() {
                     @Override
                     public void updateItem(Date item, boolean empty) {
                         super.updateItem(item, empty);
@@ -177,7 +178,6 @@ public class CompositeSnapshotController implements NodeChangedListener {
                         }
                     }
                 };
-                return cell;
             }
         });
 
@@ -197,11 +197,32 @@ public class CompositeSnapshotController implements NodeChangedListener {
             }
         });
 
+        snapshotTable.setRowFactory(tableView -> new TableRow<>() {
+            @Override
+            protected void updateItem(Node node, boolean empty) {
+                super.updateItem(node, empty);
+                if (node == null || empty) {
+                    setTooltip(null);
+                    setOnMouseClicked(null);
+                } else {
+                    setTooltip(new Tooltip(Messages.searchEntryToolTip));
+                    setOnMouseClicked(action -> {
+                        if (action.getClickCount() == 2) {
+                            Stack<Node> copiedStack = new Stack<>();
+                            DirectoryUtilities.CreateLocationStringAndNodeStack(node, false).getValue().forEach(copiedStack::push);
+                            saveAndRestoreController.locateNode(copiedStack);
+                            saveAndRestoreController.nodeDoubleClicked(node);
+                        }
+                    });
+                }
+            }
+        });
+
         snapshotNameColumn.setCellValueFactory(cell -> new SimpleObjectProperty<>(cell.getValue()));
         snapshotNameColumn.setCellFactory(new Callback<>() {
             @Override
             public TableCell<Node, Node> call(TableColumn param) {
-                final TableCell<Node, Node> cell = new TableCell<>() {
+                return new TableCell<>() {
                     @Override
                     public void updateItem(Node item, boolean empty) {
                         super.updateItem(item, empty);
@@ -224,8 +245,6 @@ public class CompositeSnapshotController implements NodeChangedListener {
                         }
                     }
                 };
-
-                return cell;
             }
         });
 
@@ -262,7 +281,6 @@ public class CompositeSnapshotController implements NodeChangedListener {
         });
 
         snapshotTable.setOnDragOver(event -> {
-            Dragboard db = event.getDragboard();
             if (event.getDragboard().hasContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT)) {
                 event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
             }
@@ -277,19 +295,18 @@ public class CompositeSnapshotController implements NodeChangedListener {
             disabledUi.set(true);
             checkForDuplicatePVs(sourceNodes, duplicates -> {
                 disabledUi.set(false);
-                if(duplicates.isEmpty()){
+                if (duplicates.isEmpty()) {
                     snapshotEntries.addAll(sourceNodes);
-                }
-                else {
+                } else {
                     int maxItems = 10;
                     StringBuilder stringBuilder = new StringBuilder();
-                    for(int i = 0; i < Math.min(duplicates.size(), maxItems); i++){
+                    for (int i = 0; i < Math.min(duplicates.size(), maxItems); i++) {
                         stringBuilder.append(duplicates.get(i)).append(System.lineSeparator());
                     }
-                    if(duplicates.size() > maxItems){
+                    if (duplicates.size() > maxItems) {
                         stringBuilder.append(".").append(System.lineSeparator())
-                                    .append(".").append(System.lineSeparator())
-                                    .append(".").append(System.lineSeparator());
+                                .append(".").append(System.lineSeparator())
+                                .append(".").append(System.lineSeparator());
                         stringBuilder.append(MessageFormat.format(Messages.duplicatePVNamesAdditionalItems, duplicates.size() - maxItems));
                     }
 
@@ -320,7 +337,7 @@ public class CompositeSnapshotController implements NodeChangedListener {
                 compositeSnapshot.setCompositeSnapshotNode(compositeSnapshotNode.get());
                 CompositeSnapshotData compositeSnapshotData = new CompositeSnapshotData();
                 compositeSnapshotData
-                        .setReferencedSnapshotNodes(snapshotEntries.stream().map(e -> e.getUniqueId()).collect(Collectors.toList()));
+                        .setReferencedSnapshotNodes(snapshotEntries.stream().map(Node::getUniqueId).collect(Collectors.toList()));
                 compositeSnapshot.setCompositeSnapshotData(compositeSnapshotData);
 
                 if (compositeSnapshotNode.get().getUniqueId() == null) { // New composite snapshot
@@ -429,6 +446,7 @@ public class CompositeSnapshotController implements NodeChangedListener {
     /**
      * Checks that dropped source {@link Node}s may be dropped. Only {@link Node}s of type
      * {@link NodeType#COMPOSITE_SNAPSHOT} and {@link NodeType#SNAPSHOT} may be dropped.
+     *
      * @param sourceNodes List of {@link Node}s, e.g. selected in UI from tree view.
      * @return <code>true</code> if the source {@link Node}s may be added.
      */
@@ -442,10 +460,11 @@ public class CompositeSnapshotController implements NodeChangedListener {
 
     /**
      * Calls service to determine if the list of PV names found in referenced snapshots contains duplicates.
+     *
      * @param droppedSnapshots The snapshot {@link Node}s dropped by user into the editor tab.
-     * @param completion Callback receiving a list of duplicate PV names.
+     * @param completion       Callback receiving a list of duplicate PV names.
      */
-    private void checkForDuplicatePVs(List<Node> droppedSnapshots, Consumer<List<String>> completion){
+    private void checkForDuplicatePVs(List<Node> droppedSnapshots, Consumer<List<String>> completion) {
         JobManager.schedule("Check snapshot PV duplicates", monitor -> {
             List<String> allSnapshotIds = snapshotEntries.stream().map(Node::getUniqueId).collect(Collectors.toList());
             allSnapshotIds.addAll(droppedSnapshots.stream().map(Node::getUniqueId).collect(Collectors.toList()));
