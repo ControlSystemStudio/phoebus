@@ -497,24 +497,22 @@ public class SnapshotController implements NodeChangedListener {
         snapshotTab.setId(snapshotNode.getUniqueId());
 
         if (!this.snapshotNode.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)) {
-            if(snapshotNode.getTags() != null && snapshotNode.getTags().stream().anyMatch(t -> t.getName().equals(Tag.GOLDEN))){
+            if (snapshotNode.getTags() != null && snapshotNode.getTags().stream().anyMatch(t -> t.getName().equals(Tag.GOLDEN))) {
                 snapshotTab.setGoldenImage();
             }
             loadSnapshotInternal();
         } else {
             takeSnapshotButton.setDisable(true);
             snapshotTab.setCompositeSnapshotImage();
-            loadCompositeSnapshotInternal(vSnapshot -> {
-                Platform.runLater(() -> {
-                    List<TableEntry> tableEntries = loadSnapshotInternal(vSnapshot);
+            loadCompositeSnapshotInternal(vSnapshot -> Platform.runLater(() -> {
+                List<TableEntry> tableEntries = loadSnapshotInternal(vSnapshot);
 
-                    snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
-                    if (isTreeTableViewEnabled) {
-                        snapshotTreeTable.updateTable(tableEntries, snapshots, false, false, false);
-                    }
-                    snapshotRestorableProperty.set(true);
-                });
-            });
+                snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
+                if (isTreeTableViewEnabled) {
+                    snapshotTreeTable.updateTable(tableEntries, snapshots, false, false, false);
+                }
+                snapshotRestorableProperty.set(true);
+            }));
         }
     }
 
@@ -552,22 +550,27 @@ public class SnapshotController implements NodeChangedListener {
      */
     public void newSnapshot(Node configurationNode) {
         this.configNode = configurationNode;
-        try {
-            ConfigurationData configuration = saveAndRestoreService.getConfiguration(configurationNode.getUniqueId());
+        JobManager.schedule("Get configuration", monitor -> {
+            ConfigurationData configuration;
+            try {
+                configuration = saveAndRestoreService.getConfiguration(configurationNode.getUniqueId());
+            } catch (Exception e) {
+                ExceptionDetailsErrorDialog.openError(snapshotTreeTable, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
+                LOGGER.log(Level.INFO, "Error loading configuration", e);
+                return;
+            }
             List<ConfigPv> configPvs = configuration.getPvList();
             snapshotNode = Node.builder().name(Messages.unnamedSnapshot).nodeType(NodeType.SNAPSHOT).build();
             VSnapshot vSnapshot =
                     new VSnapshot(snapshotNode, configurationToSnapshotEntries(configPvs));
             List<TableEntry> tableEntries = setSnapshotInternal(vSnapshot);
-            UI_EXECUTOR.execute(() -> {
+            Platform.runLater(() -> {
                 snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
                 if (isTreeTableViewEnabled) {
                     snapshotTreeTable.updateTable(tableEntries, snapshots, false, false, false);
                 }
             });
-        } catch (Exception e) {
-            LOGGER.log(Level.INFO, "Error loading configuration", e);
-        }
+        });
     }
 
     private void loadSnapshotInternal() {
@@ -575,13 +578,12 @@ public class SnapshotController implements NodeChangedListener {
         JobManager.schedule("Load snapshot items", monitor -> {
             SnapshotData snapshotData;
             try {
-               snapshotData = saveAndRestoreService.getSnapshot(snapshotNode.getUniqueId());
+                snapshotData = saveAndRestoreService.getSnapshot(snapshotNode.getUniqueId());
             } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError(snapshotTreeTable, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
                 LOGGER.log(Level.INFO, "Error loading snapshot", e);
                 return;
-            }
-            finally {
+            } finally {
                 disabledUi.set(false);
             }
             VSnapshot vSnapshot =
@@ -610,8 +612,7 @@ public class SnapshotController implements NodeChangedListener {
                 LOGGER.log(Level.INFO, "Error loading composite snapshot for restore", e);
                 ExceptionDetailsErrorDialog.openError(snapshotTreeTable, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
                 return;
-            }
-            finally {
+            } finally {
                 disabledUi.set(false);
             }
             VSnapshot vSnapshot =
@@ -674,20 +675,18 @@ public class SnapshotController implements NodeChangedListener {
     @FXML
     public void takeSnapshot() {
 
-        UI_EXECUTOR.execute(() -> {
-            snapshotNameProperty.set(null);
-            snapshotCommentProperty.set(null);
-            createdByTextProperty.set(null);
-            createdDateTextProperty.set(null);
-            snapshotTab.setId(null);
-            snapshotTab.updateTabTitle(Messages.unnamedSnapshot);
-            nodeDataDirty.set(true);
-            snapshotDataDirty.set(true);
-            disabledUi.set(true);
-        });
+        snapshotNameProperty.set(null);
+        snapshotCommentProperty.set(null);
+        createdByTextProperty.set(null);
+        createdDateTextProperty.set(null);
+        snapshotTab.setId(null);
+        snapshotTab.updateTabTitle(Messages.unnamedSnapshot);
+        nodeDataDirty.set(true);
+        snapshotDataDirty.set(true);
+        disabledUi.set(true);
 
         List<SnapshotEntry> entries = new ArrayList<>();
-        readAll(list -> UI_EXECUTOR.execute(() -> {
+        readAll(list -> Platform.runLater(() -> {
             disabledUi.set(false);
             entries.addAll(list);
             Node snapshot = Node.builder().name(Messages.unnamedSnapshot).nodeType(NodeType.SNAPSHOT).build();
@@ -849,12 +848,10 @@ public class SnapshotController implements NodeChangedListener {
                 snapshots.add(data);
             }
             connectPVs();
-            UI_EXECUTOR.execute(() -> {
-                if (!nodeDataDirty.get()) {
-                    nodeDataDirty.set(data.isSaveable());
-                }
-                snapshotRestorableProperty.set(true);
-            });
+            if (!nodeDataDirty.get()) {
+                nodeDataDirty.set(data.isSaveable());
+            }
+            snapshotRestorableProperty.set(true);
 
             return new ArrayList<>(tableEntryItems.values());
         }
