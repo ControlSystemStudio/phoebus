@@ -20,6 +20,8 @@
 package org.phoebus.applications.saveandrestore.ui.configuration;
 
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -239,8 +241,10 @@ public class ConfigurationController implements NodeChangedListener {
 
         readOnlyCheckBox.selectedProperty().bindBidirectional(readOnlyProperty);
 
-        configurationNode.addListener((observable, oldValue, newValue) -> {
-            if (newValue != null) {
+        configurationNode.addListener(observable -> {
+            if(observable != null){
+                SimpleObjectProperty<Node> simpleObjectProperty = (SimpleObjectProperty<Node>)observable;
+                Node newValue = simpleObjectProperty.get();
                 configurationNameProperty.set(newValue.getName());
                 configurationCreatedDateField.textProperty().set(newValue.getCreated() != null ?
                         TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(newValue.getCreated().getTime())) : null);
@@ -250,8 +254,6 @@ public class ConfigurationController implements NodeChangedListener {
                 configurationDescriptionProperty.set(configurationNode.get().getDescription());
             }
         });
-
-
 
         SaveAndRestoreService.getInstance().addNodeChangeListener(this);
     }

@@ -20,6 +20,8 @@
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -65,6 +67,7 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
 
+import java.awt.desktop.SystemEventListener;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -268,8 +271,11 @@ public class CompositeSnapshotController implements NodeChangedListener {
                         compositeSnapshotNameProperty.isEmpty().get(),
                 dirty, compositeSnapshotDescriptionProperty, compositeSnapshotNameProperty));
 
-        compositeSnapshotNode.addListener((observable, oldValue, newValue) -> {
-            if (newValue != null) {
+        // Update UI when the composite snapshot node has been set or updated.
+        compositeSnapshotNode.addListener(observable -> {
+            if(observable != null){
+                SimpleObjectProperty<Node> simpleObjectProperty = (SimpleObjectProperty<Node>)observable;
+                Node newValue = simpleObjectProperty.get();
                 compositeSnapshotNameProperty.set(newValue.getName());
                 compositeSnapshotCreatedDateField.textProperty().set(newValue.getCreated() != null ?
                         TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(newValue.getCreated().getTime())) : null);
@@ -279,6 +285,8 @@ public class CompositeSnapshotController implements NodeChangedListener {
                 compositeSnapshotDescriptionProperty.set(compositeSnapshotNode.get().getDescription());
             }
         });
+
+
 
         snapshotTable.setOnDragOver(event -> {
             if (event.getDragboard().hasContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT)) {
@@ -379,7 +387,7 @@ public class CompositeSnapshotController implements NodeChangedListener {
             return;
         }
         // Create a cloned Node object to avoid changes in the Node object contained in the tree view.
-        compositeSnapshotNode.set(Node.builder().uniqueId(node.getUniqueId())
+        compositeSnapshotNode.setValue(Node.builder().uniqueId(node.getUniqueId())
                 .name(node.getName())
                 .nodeType(NodeType.COMPOSITE_SNAPSHOT)
                 .description(node.getDescription())
@@ -435,7 +443,7 @@ public class CompositeSnapshotController implements NodeChangedListener {
      */
     public void newCompositeSnapshot(Node parentNode) {
         parentFolder = parentNode;
-        compositeSnapshotNode.set(Node.builder().nodeType(NodeType.COMPOSITE_SNAPSHOT).build());
+        compositeSnapshotNode.setValue(Node.builder().nodeType(NodeType.COMPOSITE_SNAPSHOT).build());
         snapshotEntries.clear();
         snapshotEntries.addAll(new ArrayList<>());
         snapshotTable.setItems(snapshotEntries);
