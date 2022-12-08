@@ -503,6 +503,8 @@ public class SnapshotController implements NodeChangedListener {
             loadSnapshotInternal();
         } else {
             takeSnapshotButton.setDisable(true);
+            snapshotName.setEditable(false);
+            snapshotComment.setEditable(false);
             snapshotTab.setCompositeSnapshotImage();
             loadCompositeSnapshotInternal(vSnapshot -> Platform.runLater(() -> {
                 List<TableEntry> tableEntries = loadSnapshotInternal(vSnapshot);
