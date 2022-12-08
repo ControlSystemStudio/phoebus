@@ -279,11 +279,6 @@ public class SnapshotController implements NodeChangedListener {
                         snapshotCommentProperty.isEmpty().get(),
                 nodeDataDirty, snapshotDataDirty, snapshotNameProperty, snapshotCommentProperty));
 
-        System.out.println(snapshotDataDirty.get());
-        snapshotDataDirty.addListener((a, b, c) -> {
-            System.out.println(b + " "+ c);
-        });
-
         showLiveReadbackButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/icons/show_live_readback_column.png"))));
         showLiveReadbackButton.setTooltip(new Tooltip(Messages.toolTipShowLiveReadback));
         showLiveReadbackProperty.bind(showLiveReadbackButton.selectedProperty());
@@ -638,6 +633,7 @@ public class SnapshotController implements NodeChangedListener {
             snapshotCommentProperty.set(null);
             createdByTextProperty.set(null);
             createdDateTextProperty.set(null);
+            lastModifiedDateTextProperty.set(null);
             snapshotTab.setId(null);
             snapshotTab.updateTabTitile(Messages.unnamedSnapshot, false);
             nodeDataDirty.set(true);
