@@ -19,6 +19,7 @@
 
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -32,7 +33,6 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
-import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationController;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
@@ -104,7 +104,7 @@ public class CompositeSnapshotTab extends Tab implements NodeChangedListener {
     }
 
     public void updateTabTitle(String name){
-        tabTitleProperty.set(name);
+        Platform.runLater(() -> tabTitleProperty.set(name));
     }
 
     private javafx.scene.Node getTabGraphic() {
@@ -138,7 +138,8 @@ public class CompositeSnapshotTab extends Tab implements NodeChangedListener {
     @Override
     public void nodeChanged(Node node) {
         if (node.getUniqueId().equals(getId())) {
-            tabTitleProperty.set(node.getName());
+            // May be called by non-UI thread
+            Platform.runLater(() -> tabTitleProperty.set(node.getName()));
         }
     }
 }

@@ -20,8 +20,6 @@
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
 import javafx.application.Platform;
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -59,7 +57,6 @@ import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.framework.jobs.JobManager;
@@ -67,7 +64,6 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
 
-import java.awt.desktop.SystemEventListener;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -76,13 +72,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Stack;
-import java.util.concurrent.Executor;
 import java.util.function.Consumer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class CompositeSnapshotController implements NodeChangedListener {
+public class CompositeSnapshotController {
 
     @FXML
     private StackPane root;
@@ -116,8 +110,6 @@ public class CompositeSnapshotController implements NodeChangedListener {
     private Label createdByField;
 
     private SaveAndRestoreService saveAndRestoreService;
-
-    private static final Executor UI_EXECUTOR = Platform::runLater;
 
     private final SimpleBooleanProperty dirty = new SimpleBooleanProperty(false);
 
@@ -273,8 +265,8 @@ public class CompositeSnapshotController implements NodeChangedListener {
 
         // Update UI when the composite snapshot node has been set or updated.
         compositeSnapshotNode.addListener(observable -> {
-            if(observable != null){
-                SimpleObjectProperty<Node> simpleObjectProperty = (SimpleObjectProperty<Node>)observable;
+            if (observable != null) {
+                SimpleObjectProperty<Node> simpleObjectProperty = (SimpleObjectProperty<Node>) observable;
                 Node newValue = simpleObjectProperty.get();
                 compositeSnapshotNameProperty.set(newValue.getName());
                 compositeSnapshotCreatedDateField.textProperty().set(newValue.getCreated() != null ?
@@ -285,7 +277,6 @@ public class CompositeSnapshotController implements NodeChangedListener {
                 compositeSnapshotDescriptionProperty.set(compositeSnapshotNode.get().getDescription());
             }
         });
-
 
 
         snapshotTable.setOnDragOver(event -> {
@@ -332,12 +323,18 @@ public class CompositeSnapshotController implements NodeChangedListener {
         progressIndicator.visibleProperty().bind(disabledUi);
         disabledUi.addListener((observable, oldValue, newValue) -> borderPane.setDisable(newValue));
 
-        SaveAndRestoreService.getInstance().addNodeChangeListener(this);
     }
 
     @FXML
     public void save() {
-        UI_EXECUTOR.execute(() -> {
+        doSave(compositeSnapshot -> {
+            loadCompositeSnapshot(compositeSnapshot.getCompositeSnapshotNode());
+        });
+    }
+
+    private void doSave(Consumer<CompositeSnapshot> completion) {
+        disabledUi.set(true);
+        JobManager.schedule("Save/update composite snapshot", monitor -> {
             try {
                 compositeSnapshotNode.get().setName(compositeSnapshotNameProperty.get());
                 compositeSnapshotNode.get().setDescription(compositeSnapshotDescriptionProperty.get());
@@ -358,54 +355,41 @@ public class CompositeSnapshotController implements NodeChangedListener {
                     compositeSnapshot = saveAndRestoreService.updateCompositeSnapshot(compositeSnapshot);
                 }
                 dirty.set(false);
-                loadCompositeSnapshot(compositeSnapshot.getCompositeSnapshotNode());
+                completion.accept(compositeSnapshot);
             } catch (Exception e1) {
                 ExceptionDetailsErrorDialog.openError(snapshotTable,
                         Messages.errorActionFailed,
                         Messages.errorCreateConfigurationFailed,
                         e1);
             }
+            finally {
+                disabledUi.set(false);
+            }
         });
-
-        progressIndicator.visibleProperty().bind(disabledUi);
-        disabledUi.addListener((observable, oldValue, newValue) -> borderPane.setDisable(newValue));
     }
 
 
     /**
-     * Loads an existing composite snapshot {@link Node}.
+     * Sets the (existing) composite snapshot {@link Node} and retrieves the referenced {@link Node}s to populate the
+     * table view with entries.
      *
      * @param node An existing {@link Node} of type {@link NodeType#COMPOSITE_SNAPSHOT}.
      */
     public void loadCompositeSnapshot(final Node node) {
-        try {
-            snapshotEntries.clear();
-            List<Node> referencedNodes = saveAndRestoreService.getCompositeSnapshotNodes(node.getUniqueId());
-            snapshotEntries.addAll(referencedNodes);
-        } catch (Exception e) {
-            ExceptionDetailsErrorDialog.openError(root, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
-            return;
-        }
-        // Create a cloned Node object to avoid changes in the Node object contained in the tree view.
-        compositeSnapshotNode.setValue(Node.builder().uniqueId(node.getUniqueId())
-                .name(node.getName())
-                .nodeType(NodeType.COMPOSITE_SNAPSHOT)
-                .description(node.getDescription())
-                .userName(node.getUserName())
-                .created(node.getCreated())
-                .lastModified(node.getLastModified())
-                .build());
-        loadCompositeSnapshotData();
-    }
-
-    private void loadCompositeSnapshotData() {
-        UI_EXECUTOR.execute(() -> {
+        Platform.runLater(() -> compositeSnapshotNode.setValue(node));
+        snapshotEntries.clear();
+        disabledUi.set(true);
+        JobManager.schedule("Load composite snapshot data", monitor -> {
             try {
+                List<Node> referencedNodes = saveAndRestoreService.getCompositeSnapshotNodes(node.getUniqueId());
+                snapshotEntries.addAll(referencedNodes);
                 Collections.sort(snapshotEntries);
                 snapshotTable.setItems(snapshotEntries);
-                dirty.set(false);
             } catch (Exception e) {
-                logger.log(Level.WARNING, "Unable to load existing configuration");
+                ExceptionDetailsErrorDialog.openError(root, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
+            }
+            finally {
+                disabledUi.set(false);
             }
         });
     }
@@ -421,20 +405,6 @@ public class CompositeSnapshotController implements NodeChangedListener {
         return true;
     }
 
-    @Override
-    public void nodeChanged(Node node) {
-        if (node.getUniqueId().equals(compositeSnapshotNode.get().getUniqueId())) {
-            compositeSnapshotNode.setValue(Node.builder().uniqueId(node.getUniqueId())
-                    .name(node.getName())
-                    .nodeType(NodeType.COMPOSITE_SNAPSHOT)
-                    .userName(node.getUserName())
-                    .description(node.getDescription())
-                    .created(node.getCreated())
-                    .lastModified(node.getLastModified())
-                    .build());
-        }
-    }
-
     /**
      * Configures the controller to create a new composite snapshot.
      *
@@ -447,7 +417,7 @@ public class CompositeSnapshotController implements NodeChangedListener {
         snapshotEntries.clear();
         snapshotEntries.addAll(new ArrayList<>());
         snapshotTable.setItems(snapshotEntries);
-        UI_EXECUTOR.execute(() -> compositeSnapshotNameField.requestFocus());
+        Platform.runLater(() -> compositeSnapshotNameField.requestFocus());
         dirty.set(false);
     }
 
