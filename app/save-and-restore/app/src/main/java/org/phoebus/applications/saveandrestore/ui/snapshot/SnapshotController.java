@@ -273,11 +273,16 @@ public class SnapshotController implements NodeChangedListener {
             });
         }
 
-        saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() -> (nodeDataDirty.not().get() &&
+        saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() -> (nodeDataDirty.not().get() ||
                         snapshotDataDirty.not().get()) ||
                         snapshotNameProperty.isEmpty().get() ||
                         snapshotCommentProperty.isEmpty().get(),
                 nodeDataDirty, snapshotDataDirty, snapshotNameProperty, snapshotCommentProperty));
+
+        System.out.println(snapshotDataDirty.get());
+        snapshotDataDirty.addListener((a, b, c) -> {
+            System.out.println(b + " "+ c);
+        });
 
         showLiveReadbackButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/icons/show_live_readback_column.png"))));
         showLiveReadbackButton.setTooltip(new Tooltip(Messages.toolTipShowLiveReadback));
