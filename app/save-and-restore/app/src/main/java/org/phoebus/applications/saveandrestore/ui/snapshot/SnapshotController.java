@@ -281,7 +281,7 @@ public class SnapshotController implements NodeChangedListener {
             });
         }
 
-        saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() -> (nodeDataDirty.not().get() &&
+        saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() -> (nodeDataDirty.not().get() ||
                         snapshotDataDirty.not().get()) ||
                         snapshotNameProperty.isEmpty().get() ||
                         snapshotCommentProperty.isEmpty().get(),
@@ -706,7 +706,6 @@ public class SnapshotController implements NodeChangedListener {
             }
             nodeDataDirty.set(true);
         }));
-
     }
 
 
