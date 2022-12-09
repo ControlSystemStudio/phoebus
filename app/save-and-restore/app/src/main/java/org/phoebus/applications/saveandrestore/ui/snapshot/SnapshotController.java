@@ -273,7 +273,7 @@ public class SnapshotController implements NodeChangedListener {
             });
         }
 
-        saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() -> (nodeDataDirty.not().get() &&
+        saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() -> (nodeDataDirty.not().get() ||
                         snapshotDataDirty.not().get()) ||
                         snapshotNameProperty.isEmpty().get() ||
                         snapshotCommentProperty.isEmpty().get(),
@@ -633,6 +633,7 @@ public class SnapshotController implements NodeChangedListener {
             snapshotCommentProperty.set(null);
             createdByTextProperty.set(null);
             createdDateTextProperty.set(null);
+            lastModifiedDateTextProperty.set(null);
             snapshotTab.setId(null);
             snapshotTab.updateTabTitile(Messages.unnamedSnapshot, false);
             nodeDataDirty.set(true);
