@@ -557,7 +557,6 @@ class SnapshotTable extends TableView<TableEntry> {
                         toggle.setOnAction(actionEvent -> {
                             item.readOnlyProperty().setValue(!item.readOnlyProperty().get());
                             item.selectedProperty().set(!item.readOnlyProperty().get());
-                            item.readonlyOverrideProperty().set(!item.readonlyOverrideProperty().get());
                         });
                         contextMenu.getItems().add(toggle);
                         contextMenu.show(this, event.getScreenX(), event.getScreenY());
