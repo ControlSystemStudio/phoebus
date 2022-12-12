@@ -903,7 +903,6 @@ class SnapshotTable extends TableView<TableEntry> {
         final ObservableList<TableEntry> items = getItems();
         final boolean notHide = !controller.isHideEqualItems();
         items.clear();
-        entries.sort(Comparator.comparing(tableEntry -> tableEntry.getConfigPv().getPvName()));
         entries.forEach(e -> {
             // there is no harm if this is executed more than once, because only one line is allowed for these
             // two properties (see SingleListenerBooleanProperty for more details)

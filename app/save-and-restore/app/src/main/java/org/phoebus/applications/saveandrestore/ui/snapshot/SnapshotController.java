@@ -101,6 +101,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -1137,10 +1138,9 @@ public class SnapshotController implements NodeChangedListener {
      */
     private void readAll(Consumer<List<SnapshotEntry>> completion) {
         ExecutorService executorService = Executors.newFixedThreadPool(10);
-        List<SnapshotEntry> snapshotEntries = new ArrayList<>();
-        CountDownLatch countDownLatch = new CountDownLatch(tableEntryItems.values().size());
+        SnapshotEntry[] snapshotEntries = new SnapshotEntry[tableEntryItems.values().size()];
         JobManager.schedule("Take snapshot", monitor -> {
-            monitor.beginTask("Take snapshot", tableEntryItems.values().size());
+            final CountDownLatch countDownLatch = new CountDownLatch(tableEntryItems.values().size());
             for (TableEntry t : tableEntryItems.values()) {
                 executorService.submit(() -> {
                     String name = t.pvNameProperty().get();
@@ -1168,16 +1168,14 @@ public class SnapshotController implements NodeChangedListener {
                             break;
                         }
                     }
-                    snapshotEntries.add(new SnapshotEntry(t.getConfigPv(), value, t.selectedProperty().get(), readbackName, readbackValue,
-                            delta, t.readOnlyProperty().get()));
-                    monitor.worked(1);
+                    snapshotEntries[t.idProperty().get() - 1] = new SnapshotEntry(t.getConfigPv(), value, t.selectedProperty().get(), readbackName, readbackValue,
+                            delta, t.readOnlyProperty().get());
                     countDownLatch.countDown();
                 });
             }
 
             countDownLatch.await();
-            monitor.done();
-            completion.accept(snapshotEntries);
+            completion.accept(Arrays.asList(snapshotEntries));
             executorService.shutdown();
         });
     }
