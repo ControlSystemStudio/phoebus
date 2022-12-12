@@ -39,6 +39,8 @@ public class Preferences {
     public static String regex_hierarchy_parser_regex_list;
     @Preference
     public static boolean enableCSVIO;
+    @Preference
+    public static int readTimeout;
 
     static
     {

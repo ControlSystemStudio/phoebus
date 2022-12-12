@@ -60,6 +60,7 @@ import org.epics.vtype.VString;
 import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.SafeMultiply;
 import org.phoebus.applications.saveandrestore.common.Threshold;
 import org.phoebus.applications.saveandrestore.common.Utilities;
@@ -241,12 +242,31 @@ public class SnapshotController implements NodeChangedListener {
      */
     private final SimpleBooleanProperty disabledUi = new SimpleBooleanProperty(false);
 
+    private static final int DEFAULT_READ_TIMEOUT = 5000;
+    private int readTimeout = DEFAULT_READ_TIMEOUT;
+
     @FXML
     public void initialize() {
 
         saveAndRestoreService = SaveAndRestoreService.getInstance();
 
-        isTreeTableViewEnabled = new PreferencesReader(getClass(), "/save_and_restore_preferences.properties").getBoolean("treeTableView.enable");
+        PreferencesReader preferencesReader =
+                new PreferencesReader(getClass(), "/save_and_restore_preferences.properties");
+
+        isTreeTableViewEnabled = preferencesReader.getBoolean("treeTableView.enable");
+
+        try {
+            readTimeout = Preferences.readTimeout;
+            if(readTimeout < 1){
+                LOGGER.log(Level.INFO, "Invalid read timeout: " + readTimeout+ ", using default " + DEFAULT_READ_TIMEOUT + " ms.");
+                readTimeout = DEFAULT_READ_TIMEOUT;
+            }
+            else {
+                LOGGER.log(Level.INFO, "Using EPICS read timeout: " + readTimeout + " ms.");
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.INFO, "Invalid read timeout, using default " + DEFAULT_READ_TIMEOUT + " ms.", e);
+        }
 
         snapshotName.textProperty().bindBidirectional(snapshotNameProperty);
         snapshotNameProperty.addListener(((observableValue, oldValue, newValue) -> nodeDataDirty.set(newValue != null && !newValue.equals(snapshotNode.getName()))));
@@ -1109,7 +1129,7 @@ public class SnapshotController implements NodeChangedListener {
     }
 
     /**
-     * Reads all PVs using a thread pool. All reads are asynchronous waiting at most the amount of time
+     * Reads all PVs using a thread pool. All reads are asynchronous, waiting at most the amount of time
      * configured through a preference setting.
      *
      * @param completion Callback receiving a list of {@link SnapshotEntry}s where values for PVs that could
@@ -1118,66 +1138,48 @@ public class SnapshotController implements NodeChangedListener {
     private void readAll(Consumer<List<SnapshotEntry>> completion) {
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         List<SnapshotEntry> snapshotEntries = new ArrayList<>();
-
         CountDownLatch countDownLatch = new CountDownLatch(tableEntryItems.values().size());
-
         JobManager.schedule("Take snapshot", monitor -> {
-            try {
-                monitor.beginTask("Take snapshot", tableEntryItems.values().size());
-                int i = 0;
-                for (TableEntry t : tableEntryItems.values()) {
-                    executorService.submit(() -> {
-                        int index = i;
-                        String name = t.pvNameProperty().get();
-                        PV pv = pvs.get(getPVKey(t.pvNameProperty().get(), t.readOnlyProperty().get()));
-                        VType value = VDisconnectedData.INSTANCE;
+            monitor.beginTask("Take snapshot", tableEntryItems.values().size());
+            for (TableEntry t : tableEntryItems.values()) {
+                executorService.submit(() -> {
+                    String name = t.pvNameProperty().get();
+                    PV pv = pvs.get(getPVKey(t.pvNameProperty().get(), t.readOnlyProperty().get()));
+                    VType value = VDisconnectedData.INSTANCE;
+                    try {
+                        value = pv.pv.asyncRead().get(readTimeout, TimeUnit.MILLISECONDS);
+                    } catch (Exception e) {
+                        LOGGER.log(Level.WARNING, "Failed to read PV " + pv.pvName);
+                    }
+                    String key = getPVKey(name, t.readOnlyProperty().get());
+                    String readbackName = readbacks.get(key);
+                    VType readbackValue = null;
+                    if (pv.readbackPv != null && !pv.readbackValue.equals(VDisconnectedData.INSTANCE)) {
                         try {
-                            value = pv.pv.asyncRead().get(5, TimeUnit.SECONDS);
+                            readbackValue = pv.readbackPv.asyncRead().get(readTimeout, TimeUnit.MILLISECONDS);
                         } catch (Exception e) {
-                            LOGGER.log(Level.WARNING, "Failed to read PV " + pv.pvName);
+                            LOGGER.log(Level.WARNING, "Failed to read read-back PV " + pv.readbackPvName);
+                            readbackValue = VDisconnectedData.INSTANCE;
                         }
-                        String key = getPVKey(name, t.readOnlyProperty().get());
-                        String readbackName = readbacks.get(key);
-                        VType readbackValue = null;
-                        if (pv.readbackPv != null && !pv.readbackValue.equals(VDisconnectedData.INSTANCE)) {
-                            try {
-                                readbackValue = pv.readbackPv.asyncRead().get(5, TimeUnit.SECONDS);
-                            } catch (Exception e) {
-                                LOGGER.log(Level.WARNING, "Failed to read read-back PV " + pv.readbackPvName);
-                                readbackValue = VDisconnectedData.INSTANCE;
-                            }
+                    }
+                    String delta = "";
+                    for (VSnapshot s : getAllSnapshots()) {
+                        delta = s.getDelta(name);
+                        if (delta != null) {
+                            break;
                         }
-                        String delta = "";
-                        for (VSnapshot s : getAllSnapshots()) {
-                            delta = s.getDelta(name);
-                            if (delta != null) {
-                                break;
-                            }
-                        }
-                        snapshotEntries.add(index, new SnapshotEntry(t.getConfigPv(), value, t.selectedProperty().get(), readbackName, readbackValue,
-                                delta, t.readOnlyProperty().get()));
-                        monitor.worked(1);
-                        countDownLatch.countDown();
-                        index++;
-                    });
-                }
-
-                countDownLatch.await();
-                monitor.done();
-                completion.accept(snapshotEntries);
-                executorService.shutdown();
-            } catch (Exception e) {
-                LOGGER.log(Level.SEVERE, "Take snapshot failed");
-                disabledUi.set(false);
-                Platform.runLater(() -> {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle(Messages.errorActionFailed);
-                    alert.setContentText(e.getMessage());
-                    alert.setHeaderText("Take snapshot failed");
-                    DialogHelper.positionDialog(alert, snapshotTab.getTabPane(), -150, -150);
-                    alert.showAndWait();
+                    }
+                    snapshotEntries.add(new SnapshotEntry(t.getConfigPv(), value, t.selectedProperty().get(), readbackName, readbackValue,
+                            delta, t.readOnlyProperty().get()));
+                    monitor.worked(1);
+                    countDownLatch.countDown();
                 });
             }
+
+            countDownLatch.await();
+            monitor.done();
+            completion.accept(snapshotEntries);
+            executorService.shutdown();
         });
     }
 }
