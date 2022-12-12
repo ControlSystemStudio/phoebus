@@ -610,7 +610,7 @@ public class SnapshotController implements NodeChangedListener {
             for (SnapshotEntry entry : entries) {
                 TableEntry e = tableEntryItems.get(getPVKey(entry.getPVName(), entry.isReadOnly()));
 
-                boolean restorable = e.selectedProperty().get() && !e.readOnlyProperty().get();
+                boolean restorable = e.selectedProperty().get() && !e.readOnlyProperty().get() && !entry.getValue().equals(VNoData.INSTANCE);
 
                 if (restorable) {
                     final PV pv = pvs.get(getPVKey(e.pvNameProperty().get(), e.readOnlyProperty().get()));
@@ -641,7 +641,7 @@ public class SnapshotController implements NodeChangedListener {
                 StringBuilder sb = new StringBuilder(restoreFailed.size() * 200);
                 restoreFailed.forEach(e -> sb.append(e).append('\n'));
                 LOGGER.log(Level.WARNING,
-                        "Not all PVs could be restored for {0}: {1}. The following errors occured:\n{2}",
+                        "Not all PVs could be restored for {0}: {1}. The following errors occurred:\n{2}",
                         new Object[]{s.getSnapshot().get().getName(), s.getSnapshot().get(), sb.toString()});
             }
             logSnapshotRestored(s.getSnapshot().get(), restoreFailed);
@@ -1145,7 +1145,7 @@ public class SnapshotController implements NodeChangedListener {
                 executorService.submit(() -> {
                     String name = t.pvNameProperty().get();
                     PV pv = pvs.get(getPVKey(t.pvNameProperty().get(), t.readOnlyProperty().get()));
-                    VType value = VDisconnectedData.INSTANCE;
+                    VType value = VNoData.INSTANCE;
                     try {
                         value = pv.pv.asyncRead().get(readTimeout, TimeUnit.MILLISECONDS);
                     } catch (Exception e) {
@@ -1153,13 +1153,12 @@ public class SnapshotController implements NodeChangedListener {
                     }
                     String key = getPVKey(name, t.readOnlyProperty().get());
                     String readbackName = readbacks.get(key);
-                    VType readbackValue = null;
+                    VType readbackValue = VNoData.INSTANCE;
                     if (pv.readbackPv != null && !pv.readbackValue.equals(VDisconnectedData.INSTANCE)) {
                         try {
                             readbackValue = pv.readbackPv.asyncRead().get(readTimeout, TimeUnit.MILLISECONDS);
                         } catch (Exception e) {
                             LOGGER.log(Level.WARNING, "Failed to read read-back PV " + pv.readbackPvName);
-                            readbackValue = VDisconnectedData.INSTANCE;
                         }
                     }
                     String delta = "";

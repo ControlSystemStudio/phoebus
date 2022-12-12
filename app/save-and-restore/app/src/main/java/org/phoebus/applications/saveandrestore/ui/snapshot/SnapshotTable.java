@@ -443,6 +443,9 @@ class SnapshotTable extends TableView<TableEntry> {
                     if (item.readOnlyProperty().get()) {
                         cell.getStyleClass().add("check-box-table-cell-disabled");
                     }
+                    else if(item.valueProperty().get().value.equals(VNoData.INSTANCE)){
+                        item.selectedProperty().set(false);
+                    }
                 }
             }
         }
