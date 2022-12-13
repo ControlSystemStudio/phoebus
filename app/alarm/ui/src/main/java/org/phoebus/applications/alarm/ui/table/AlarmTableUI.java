@@ -202,10 +202,7 @@ public class AlarmTableUI extends BorderPane
             if (empty  ||  item == null)
             {
                 setText("");
-                if (AlarmSystem.alarm_table_color_legacy_background)
-                    setBackground(null);
-                else
-                    setBackground(null);
+                setBackground(null);
                 setTextFill(Color.BLACK);
             }
             else
