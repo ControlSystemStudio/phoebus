@@ -25,9 +25,9 @@ kafka in `/opt/kafka`.
     cd examples
 
     # Use wget, 'curl -O', or web browser to fetch a recent version of kafka
-    wget https://dlcdn.apache.org/kafka/3.2.0/kafka_2.13-3.2.0.tgz
-    tar -vzxf kafka_2.13-3.2.0.tgz
-    ln -s kafka_2.13-3.2.0 kafka
+    wget https://downloads.apache.org/kafka/3.3.1/kafka_2.13-3.3.1.tgz
+    tar vzxf kafka_2.13-3.3.1.tgz
+    ln -s kafka_2.13-3.3.1 kafka
 
 Check `config/zookeeper.properties` and `config/server.properties`.
 By default these contain settings for keeping data in `/tmp/`, which works for initial tests,
