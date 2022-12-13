@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,6 +18,7 @@ import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.ByteMonitorWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.VType;
+import org.phoebus.ui.javafx.Brightness;
 
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -423,18 +424,18 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
             else
             {
                 final Color text_color = JFXUtil.convert(model_widget.propForegroundColor().getValue());
-                final double text_brightness = BaseLEDRepresentation.getBrightness(text_color);
+                final double text_brightness = Brightness.of(text_color);
                 for (int i = 0; i < N; i++)
                 {
                     leds[i].setFill(save_values[i]);
                     if (save_labels[i] != null)
                     {
                         // Compare brightness of LED with text.
-                        final double brightness = BaseLEDRepresentation.getBrightness(save_values[i]);
-                        if (Math.abs(text_brightness - brightness) < BaseLEDRepresentation.SIMILARITY_THRESHOLD)
+                        final double brightness = Brightness.of(save_values[i]);
+                        if (Math.abs(text_brightness - brightness) < Brightness.SIMILARITY_THRESHOLD)
                         {   // Colors of text and LED are very close in brightness.
                             // Make text visible by forcing black resp. white
-                            if (brightness > BaseLEDRepresentation.BRIGHT_THRESHOLD)
+                            if (brightness > Brightness.BRIGHT_THRESHOLD)
                                 save_labels[i].setTextFill(Color.BLACK);
                             else
                                 save_labels[i].setTextFill(Color.WHITE);
