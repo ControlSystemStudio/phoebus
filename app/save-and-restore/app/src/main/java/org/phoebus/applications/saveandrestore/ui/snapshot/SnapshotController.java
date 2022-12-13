@@ -81,7 +81,6 @@ import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.model.SnapshotEntry;
 import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.pv.PVPool;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockPane;
@@ -101,7 +100,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -195,13 +193,10 @@ public class SnapshotController implements NodeChangedListener {
 
     private final BooleanProperty showStoredReadbackProperty = new SimpleBooleanProperty(false);
 
-    // private final boolean showStoredReadbacks = false;
-
     private boolean showDeltaPercentage = false;
     private boolean hideEqualItems;
 
     private final SimpleBooleanProperty showTreeTable = new SimpleBooleanProperty(false);
-    private boolean isTreeTableViewEnabled;
 
     /**
      * Property used to indicate if snapshot node has changed with respect to name or comment, or both.
@@ -243,31 +238,10 @@ public class SnapshotController implements NodeChangedListener {
      */
     private final SimpleBooleanProperty disabledUi = new SimpleBooleanProperty(false);
 
-    private static final int DEFAULT_READ_TIMEOUT = 5000;
-    private int readTimeout = DEFAULT_READ_TIMEOUT;
-
     @FXML
     public void initialize() {
 
         saveAndRestoreService = SaveAndRestoreService.getInstance();
-
-        PreferencesReader preferencesReader =
-                new PreferencesReader(getClass(), "/save_and_restore_preferences.properties");
-
-        isTreeTableViewEnabled = preferencesReader.getBoolean("treeTableView.enable");
-
-        try {
-            readTimeout = Preferences.readTimeout;
-            if(readTimeout < 1){
-                LOGGER.log(Level.INFO, "Invalid read timeout: " + readTimeout+ ", using default " + DEFAULT_READ_TIMEOUT + " ms.");
-                readTimeout = DEFAULT_READ_TIMEOUT;
-            }
-            else {
-                LOGGER.log(Level.INFO, "Using EPICS read timeout: " + readTimeout + " ms.");
-            }
-        } catch (Exception e) {
-            LOGGER.log(Level.INFO, "Invalid read timeout, using default " + DEFAULT_READ_TIMEOUT + " ms.", e);
-        }
 
         snapshotName.textProperty().bindBidirectional(snapshotNameProperty);
         snapshotNameProperty.addListener(((observableValue, oldValue, newValue) -> nodeDataDirty.set(newValue != null && !newValue.equals(snapshotNode.getName()))));
@@ -283,7 +257,7 @@ public class SnapshotController implements NodeChangedListener {
 
         borderPane.setCenter(snapshotTable);
 
-        if (isTreeTableViewEnabled) {
+        if (Preferences.tree_tableview_enable) {
             snapshotTreeTable = new SnapshotTreeTable(this);
 
             showTreeTable.addListener((observableValue, aBoolean, on) -> {
@@ -310,7 +284,7 @@ public class SnapshotController implements NodeChangedListener {
         showLiveReadbackButton.selectedProperty().addListener((a, o, n) -> UI_EXECUTOR.execute(() -> {
             ArrayList<TableEntry> arrayList = new ArrayList<>(tableEntryItems.values());
             snapshotTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbackProperty.get(), showDeltaPercentage);
-            if (isTreeTableViewEnabled) {
+            if (Preferences.tree_tableview_enable) {
                 snapshotTreeTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbackProperty.get(), showDeltaPercentage);
             }
         }));
@@ -320,12 +294,12 @@ public class SnapshotController implements NodeChangedListener {
         showStoredReadbackButton.selectedProperty().addListener((a, o, n) -> UI_EXECUTOR.execute(() -> {
             ArrayList<TableEntry> arrayList = new ArrayList<>(tableEntryItems.values());
             snapshotTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbackProperty.get(), showDeltaPercentage);
-            if (isTreeTableViewEnabled) {
+            if (Preferences.tree_tableview_enable) {
                 snapshotTreeTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbackProperty.get(), showDeltaPercentage);
             }
         }));
 
-        if (isTreeTableViewEnabled) {
+        if (Preferences.tree_tableview_enable) {
             showTreeTableButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/icons/show_tree_table_view.png"))));
             showTreeTableButton.setTooltip(new Tooltip(Messages.toolTipShowTreeTable));
             showTreeTableButton.selectedProperty().bindBidirectional(showTreeTable);
@@ -379,7 +353,7 @@ public class SnapshotController implements NodeChangedListener {
                     UI_EXECUTOR.execute(() -> {
                         ArrayList<TableEntry> arrayList = new ArrayList<>(tableEntryItems.values());
                         snapshotTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbackProperty.get(), showDeltaPercentage);
-                        if (isTreeTableViewEnabled) {
+                        if (Preferences.tree_tableview_enable) {
                             snapshotTreeTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbackProperty.get(), showDeltaPercentage);
                         }
                     });
@@ -393,7 +367,7 @@ public class SnapshotController implements NodeChangedListener {
 
                     ArrayList<TableEntry> arrayList = new ArrayList<>(tableEntryItems.values());
                     UI_EXECUTOR.execute(() -> snapshotTable.updateTable(arrayList));
-                    if (isTreeTableViewEnabled) {
+                    if (Preferences.tree_tableview_enable) {
                         UI_EXECUTOR.execute(() -> snapshotTreeTable.updateTable(arrayList));
                     }
                 });
@@ -439,7 +413,7 @@ public class SnapshotController implements NodeChangedListener {
 
                 UI_EXECUTOR.execute(() -> {
                     snapshotTable.updateTable(arrayList);
-                    if (isTreeTableViewEnabled) {
+                    if (Preferences.tree_tableview_enable) {
                         snapshotTreeTable.updateTable(arrayList);
                     }
                 });
@@ -483,7 +457,7 @@ public class SnapshotController implements NodeChangedListener {
 
             UI_EXECUTOR.execute(() -> {
                 snapshotTable.updateTable(filteredEntries);
-                if (isTreeTableViewEnabled) {
+                if (Preferences.tree_tableview_enable) {
                     snapshotTreeTable.updateTable(filteredEntries);
                 }
             });
@@ -534,7 +508,7 @@ public class SnapshotController implements NodeChangedListener {
                     new VSnapshot(snapshot, snapshotItemsToSnapshotEntries(snapshotData.getSnapshotItems()));
             List<TableEntry> tableEntries = addSnapshot(vSnapshot);
             snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
-            if (isTreeTableViewEnabled) {
+            if (Preferences.tree_tableview_enable) {
                 snapshotTreeTable.updateTable(tableEntries, snapshots, false, false, false);
             }
         } catch (Exception e) {
@@ -559,7 +533,7 @@ public class SnapshotController implements NodeChangedListener {
             List<TableEntry> tableEntries = setSnapshotInternal(vSnapshot);
             UI_EXECUTOR.execute(() -> {
                 snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
-                if (isTreeTableViewEnabled) {
+                if (Preferences.tree_tableview_enable) {
                     snapshotTreeTable.updateTable(tableEntries, snapshots, false, false, false);
                 }
             });
@@ -588,7 +562,7 @@ public class SnapshotController implements NodeChangedListener {
                 List<TableEntry> tableEntries = loadSnapshotInternal(vSnapshot);
 
                 snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
-                if (isTreeTableViewEnabled) {
+                if (Preferences.tree_tableview_enable) {
                     snapshotTreeTable.updateTable(tableEntries, snapshots, false, false, false);
                 }
                 snapshotRestorableProperty.set(true);
@@ -611,7 +585,8 @@ public class SnapshotController implements NodeChangedListener {
             for (SnapshotEntry entry : entries) {
                 TableEntry e = tableEntryItems.get(getPVKey(entry.getPVName(), entry.isReadOnly()));
 
-                boolean restorable = e.selectedProperty().get() && !e.readOnlyProperty().get() && !entry.getValue().equals(VNoData.INSTANCE);
+                boolean restorable = e.selectedProperty().get() && !e.readOnlyProperty().get() &&
+                        !entry.getValue().equals(VNoData.INSTANCE);
 
                 if (restorable) {
                     final PV pv = pvs.get(getPVKey(e.pvNameProperty().get(), e.readOnlyProperty().get()));
@@ -663,21 +638,23 @@ public class SnapshotController implements NodeChangedListener {
         disabledUi.set(true);
 
         List<SnapshotEntry> entries = new ArrayList<>();
-        readAll(list -> Platform.runLater(() -> {
-            disabledUi.set(false);
-            entries.addAll(list);
-            Node snapshot = Node.builder().name(Messages.unnamedSnapshot).nodeType(NodeType.SNAPSHOT).build();
-            multiplierSpinner.getEditor().setText("1.0");
-            VSnapshot taken = new VSnapshot(snapshot, entries);
-            snapshots.clear();
-            snapshots.add(taken);
-            List<TableEntry> tableEntries = loadSnapshotInternal(taken);
-            snapshotTable.updateTable(tableEntries, snapshots, showLiveReadbackProperty.get(), false, showDeltaPercentage);
-            if (isTreeTableViewEnabled) {
-                snapshotTreeTable.updateTable(tableEntries, snapshots, showLiveReadbackProperty.get(), false, showDeltaPercentage);
-            }
-            nodeDataDirty.set(true);
-        }));
+        readAll(list ->
+                Platform.runLater(() -> {
+                    disabledUi.set(false);
+                    entries.addAll(list);
+                    Node snapshot = Node.builder().name(Messages.unnamedSnapshot).nodeType(NodeType.SNAPSHOT).build();
+                    multiplierSpinner.getEditor().setText("1.0");
+                    VSnapshot taken = new VSnapshot(snapshot, entries);
+                    snapshots.clear();
+                    snapshots.add(taken);
+                    List<TableEntry> tableEntries = loadSnapshotInternal(taken);
+                    snapshotTable.updateTable(tableEntries, snapshots, showLiveReadbackProperty.get(), false, showDeltaPercentage);
+                    if (Preferences.tree_tableview_enable) {
+                        snapshotTreeTable.updateTable(tableEntries, snapshots, showLiveReadbackProperty.get(), false, showDeltaPercentage);
+                    }
+                    nodeDataDirty.set(true);
+                })
+        );
     }
 
     @FXML
@@ -1142,21 +1119,22 @@ public class SnapshotController implements NodeChangedListener {
         JobManager.schedule("Take snapshot", monitor -> {
             final CountDownLatch countDownLatch = new CountDownLatch(tableEntryItems.values().size());
             for (TableEntry t : tableEntryItems.values()) {
+                // Submit read request only if job has not been cancelled
                 executorService.submit(() -> {
                     String name = t.pvNameProperty().get();
                     PV pv = pvs.get(getPVKey(t.pvNameProperty().get(), t.readOnlyProperty().get()));
                     VType value = VNoData.INSTANCE;
                     try {
-                        value = pv.pv.asyncRead().get(readTimeout, TimeUnit.MILLISECONDS);
+                        value = pv.pv.asyncRead().get(Preferences.readTimeout, TimeUnit.MILLISECONDS);
                     } catch (Exception e) {
                         LOGGER.log(Level.WARNING, "Failed to read PV " + pv.pvName);
                     }
                     String key = getPVKey(name, t.readOnlyProperty().get());
-                    String readbackName = readbacks.get(key);
-                    VType readbackValue = VNoData.INSTANCE;
+                    String readBackName = readbacks.get(key);
+                    VType readBackValue = VNoData.INSTANCE;
                     if (pv.readbackPv != null && !pv.readbackValue.equals(VDisconnectedData.INSTANCE)) {
                         try {
-                            readbackValue = pv.readbackPv.asyncRead().get(readTimeout, TimeUnit.MILLISECONDS);
+                            readBackValue = pv.readbackPv.asyncRead().get(Preferences.readTimeout, TimeUnit.MILLISECONDS);
                         } catch (Exception e) {
                             LOGGER.log(Level.WARNING, "Failed to read read-back PV " + pv.readbackPvName);
                         }
@@ -1168,12 +1146,11 @@ public class SnapshotController implements NodeChangedListener {
                             break;
                         }
                     }
-                    snapshotEntries[t.idProperty().get() - 1] = new SnapshotEntry(t.getConfigPv(), value, t.selectedProperty().get(), readbackName, readbackValue,
+                    snapshotEntries[t.idProperty().get() - 1] = new SnapshotEntry(t.getConfigPv(), value, t.selectedProperty().get(), readBackName, readBackValue,
                             delta, t.readOnlyProperty().get());
                     countDownLatch.countDown();
                 });
             }
-
             countDownLatch.await();
             completion.accept(Arrays.asList(snapshotEntries));
             executorService.shutdown();
