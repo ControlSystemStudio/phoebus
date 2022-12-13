@@ -1019,7 +1019,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * @param node The snapshot to which tag is added.
      */
     public void addTagToSnapshot(Node node) {
-        SnapshotNewTagDialog snapshotNewTagDialog = new SnapshotNewTagDialog(node.getTags() == null ? new ArrayList<>(): node.getTags());
+        SnapshotNewTagDialog snapshotNewTagDialog = new SnapshotNewTagDialog(node);
         snapshotNewTagDialog.initModality(Modality.APPLICATION_MODAL);
 
         String locationString = DirectoryUtilities.CreateLocationString(node, true);

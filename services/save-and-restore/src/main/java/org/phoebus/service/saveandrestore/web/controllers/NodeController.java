@@ -18,6 +18,8 @@
 package org.phoebus.service.saveandrestore.web.controllers;
 
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -70,6 +72,9 @@ public class NodeController extends BaseController {
         }
         if (node.getName() == null || node.getName().isEmpty()) {
             throw new IllegalArgumentException("Node name must be non-null and of non-zero length");
+        }
+        if(!areTagsValid(node)){
+            throw new IllegalArgumentException("Node may not contain golden tag");
         }
         return nodeDAO.createNode(parentsUniqueId, node);
     }
@@ -153,6 +158,27 @@ public class NodeController extends BaseController {
     @PostMapping(value = "/node", produces = JSON)
     public Node updateNode(@RequestParam(value = "customTimeForMigration", required = false, defaultValue = "false") String customTimeForMigration,
                            @RequestBody Node nodeToUpdate) {
+        if(!areTagsValid(nodeToUpdate)){
+            throw new IllegalArgumentException("Node may not contain golden tag");
+        }
         return nodeDAO.updateNode(nodeToUpdate, Boolean.valueOf(customTimeForMigration));
+    }
+
+    /**
+     * Checks if a {@link Node} has a tag named "golden". If so, it must be of type {@link NodeType#SNAPSHOT}.
+     * @param node A {@link Node} with potentially null or empty list of tags.
+     * @return <code>true</code> if the {@link Node} in question has a valid list of tags, otherwise <code>false</code>.
+     */
+    private boolean areTagsValid(Node node){
+        if(node.getTags() == null || node.getTags().isEmpty()){
+            return true;
+        }
+
+        if(!node.getNodeType().equals(NodeType.SNAPSHOT) &&
+                node.getTags().stream().filter(t -> t.getName().equalsIgnoreCase(Tag.GOLDEN)).findFirst().isPresent()){
+            return false;
+        }
+
+        return true;
     }
 }

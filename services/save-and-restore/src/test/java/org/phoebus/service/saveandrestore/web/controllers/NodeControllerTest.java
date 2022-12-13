@@ -29,6 +29,7 @@ import org.mockito.stubbing.Answer;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
@@ -432,5 +433,81 @@ public class NodeControllerTest {
 
         assertEquals("/a/b/c", result.getResponse().getContentAsString());
 
+    }
+
+    @Test
+    public void testCreateNodeWithInvalidTags() throws Exception {
+
+        Node compositeSnapshot = Node.builder().nodeType(NodeType.COMPOSITE_SNAPSHOT).name("composite snapshot").uniqueId("hhh")
+                .userName("user").build();
+        Tag tag1 = new Tag();
+        tag1.setName("a");
+
+        Tag tag2 = new Tag();
+        tag2.setName("goLDeN");
+        compositeSnapshot.setTags(Arrays.asList(tag1, tag2));
+
+        MockHttpServletRequestBuilder request = put("/node?parentNodeId=p").contentType(JSON).content(objectMapper.writeValueAsString(compositeSnapshot));
+
+        mockMvc.perform(request).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testUpdateNodeWithInvalidTags() throws Exception {
+
+        Node compositeSnapshot = Node.builder().nodeType(NodeType.COMPOSITE_SNAPSHOT).name("composite snapshot").uniqueId("hhh")
+                .userName("user").build();
+        Tag tag1 = new Tag();
+        tag1.setName("a");
+
+        Tag tag2 = new Tag();
+        tag2.setName("goLDeN");
+        compositeSnapshot.setTags(Arrays.asList(tag1, tag2));
+
+        MockHttpServletRequestBuilder request = post("/node").contentType(JSON).content(objectMapper.writeValueAsString(compositeSnapshot));
+
+        mockMvc.perform(request).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testCreateNodeWithValidTags1() throws Exception {
+
+        Node compositeSnapshot = Node.builder().nodeType(NodeType.COMPOSITE_SNAPSHOT).name("composite snapshot").uniqueId("hhh")
+                .userName("user").build();
+        Tag tag1 = new Tag();
+        tag1.setName("a");
+
+        Tag tag2 = new Tag();
+        tag2.setName("other");
+        compositeSnapshot.setTags(Arrays.asList(tag1, tag2));
+
+        when(nodeDAO.createNode(Mockito.any(String.class), Mockito.any(Node.class))).thenReturn(compositeSnapshot);
+
+        MockHttpServletRequestBuilder request = put("/node?parentNodeId=p").contentType(JSON).content(objectMapper.writeValueAsString(compositeSnapshot));
+
+        mockMvc.perform(request).andExpect(status().isOk());
+
+        reset(nodeDAO);
+    }
+
+    @Test
+    public void testCreateNodeWithValidTags2() throws Exception {
+
+        Node compositeSnapshot = Node.builder().nodeType(NodeType.SNAPSHOT).name("composite snapshot").uniqueId("hhh")
+                .userName("user").build();
+        Tag tag1 = new Tag();
+        tag1.setName("a");
+
+        Tag tag2 = new Tag();
+        tag2.setName("golden");
+        compositeSnapshot.setTags(Arrays.asList(tag1, tag2));
+
+        when(nodeDAO.createNode(Mockito.any(String.class), Mockito.any(Node.class))).thenReturn(compositeSnapshot);
+
+        MockHttpServletRequestBuilder request = put("/node?parentNodeId=p").contentType(JSON).content(objectMapper.writeValueAsString(compositeSnapshot));
+
+        mockMvc.perform(request).andExpect(status().isOk());
+
+        reset(nodeDAO);
     }
 }

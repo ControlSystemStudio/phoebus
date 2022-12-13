@@ -152,6 +152,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
         setEditable(false);
         switch (node.getNodeType()) {
             case SNAPSHOT:
+                setText(null); // Must be set to null since text is handled in custom layout.
                 HBox hBox = new HBox();
                 if (node.hasTag(Tag.GOLDEN)) {
                     hBox.getChildren().add(new ImageView(ImageCache.getImage(BrowserTreeCell.class, "/icons/save-and-restore/snapshot-golden.png")));

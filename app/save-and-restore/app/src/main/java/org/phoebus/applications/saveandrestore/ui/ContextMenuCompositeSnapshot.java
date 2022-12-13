@@ -19,10 +19,14 @@
 package org.phoebus.applications.saveandrestore.ui;
 
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.scene.control.CustomMenuItem;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
 import org.phoebus.ui.javafx.ImageCache;
 
 public class ContextMenuCompositeSnapshot extends ContextMenuBase {
@@ -31,6 +35,7 @@ public class ContextMenuCompositeSnapshot extends ContextMenuBase {
         super(saveAndRestoreController, multipleItemsSelected);
 
         Image editConfigurationIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/edit_saveset.png");
+        Image snapshotTagsWithCommentIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-tags.png");
 
         MenuItem openCompositeSnapshotMenuItem = new MenuItem(Messages.contextMenuOpenCompositeSnapshotForRestore, new ImageView(editConfigurationIcon));
         openCompositeSnapshotMenuItem.setOnAction(ae -> saveAndRestoreController.openCompositeSnapshotForRestore());
@@ -41,6 +46,29 @@ public class ContextMenuCompositeSnapshot extends ContextMenuBase {
             saveAndRestoreController.nodeDoubleClicked();
         });
 
-        getItems().addAll(openCompositeSnapshotMenuItem, editCompositeSnapshotMenuItem, renameNodeMenuItem, deleteNodesMenuItem, copyUniqueIdToClipboardMenuItem);
+        ImageView snapshotTagsWithCommentIconImage = new ImageView(snapshotTagsWithCommentIcon);
+        snapshotTagsWithCommentIconImage.setFitHeight(22);
+        snapshotTagsWithCommentIconImage.setFitWidth(22);
+
+        Menu tagWithComment = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
+        tagWithComment.disableProperty().bind(multipleItemsSelected);
+        tagWithComment.setOnShowing(event -> {
+            saveAndRestoreController.tagWithComment(tagWithComment.getItems());
+        });
+
+        CustomMenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
+        addTagWithCommentMenuItem.disableProperty().bind(multipleItemsSelected);
+        addTagWithCommentMenuItem.setOnAction(action -> {
+            saveAndRestoreController.addTagToSnapshot();
+        });
+
+        tagWithComment.getItems().addAll(addTagWithCommentMenuItem, new SeparatorMenuItem());
+
+        getItems().addAll(openCompositeSnapshotMenuItem,
+                editCompositeSnapshotMenuItem,
+                renameNodeMenuItem,
+                deleteNodesMenuItem,
+                copyUniqueIdToClipboardMenuItem,
+                tagWithComment);
     }
 }
