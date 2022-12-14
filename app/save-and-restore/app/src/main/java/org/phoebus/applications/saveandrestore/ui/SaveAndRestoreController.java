@@ -1236,4 +1236,14 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     public void findSnapshotReferences(){
         // TODO: implement this as a search request and use search result UI to display result.
     }
+
+    /**
+     *
+     * @param node A {@link Node} to be checked
+     * @return <code>true</code> if found in the list of {@link Node}s retrieved through a search request.
+     */
+    public boolean matchesFilter(Node node){
+        // TODO: check against a list of Nodes retrieved using the filter/search string.
+        return node.hasTag(Tag.GOLDEN);
+    }
 }
