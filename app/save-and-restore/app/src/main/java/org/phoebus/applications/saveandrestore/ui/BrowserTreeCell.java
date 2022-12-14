@@ -150,8 +150,10 @@ public class BrowserTreeCell extends TreeCell<Node> {
             setGraphic(null);
             return;
         }
+        // Use custom layout as this makes it easier to set opacity
         HBox hBox = new HBox();
         if (!saveAndRestoreController.matchesFilter(node)) {
+            // Item does not match current filter -> decrease opacity to indicate this in the tree view
             hBox.opacityProperty().set(0.4);
         }
         StringBuffer stringBuffer = new StringBuffer();
@@ -160,6 +162,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
             stringBuffer.append(comment).append(System.lineSeparator());
         }
         stringBuffer.append(TimestampFormats.SECONDS_FORMAT.format(node.getCreated().toInstant())).append(" (").append(node.getUserName()).append(")");
+        // Tooltip with at least date and user id is set on all tree items
         setTooltip(new Tooltip(stringBuffer.toString()));
         switch (node.getNodeType()) {
             case SNAPSHOT:
