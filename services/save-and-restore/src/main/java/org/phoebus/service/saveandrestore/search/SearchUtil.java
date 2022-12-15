@@ -1,8 +1,6 @@
 package org.phoebus.service.saveandrestore.search;
 
-import co.elastic.clients.elasticsearch._types.FieldSort;
-import co.elastic.clients.elasticsearch._types.NestedSortValue;
-import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery.Builder;
 import co.elastic.clients.elasticsearch._types.query_dsl.ChildScoreMode;
 import co.elastic.clients.elasticsearch._types.query_dsl.DisMaxQuery;
@@ -43,6 +41,7 @@ public class SearchUtil {
     @SuppressWarnings("unused")
     @Value("${elasticsearch.tree_node.index:saveandrestore_tree}")
     public String ES_TREE_INDEX;
+    @SuppressWarnings("unused")
     @Value("${elasticsearch.result.size.search.default:100}")
     private int defaultSearchSize;
     @SuppressWarnings("unused")
@@ -59,21 +58,17 @@ public class SearchUtil {
         List<String> nodeNameTerms = new ArrayList<>();
         List<String> nodeTypeTerms = new ArrayList<>();
         boolean temporalSearch = false;
-        boolean includeEvents = false;
         ZonedDateTime start = ZonedDateTime.ofInstant(Instant.EPOCH, ZoneId.systemDefault());
         ZonedDateTime end = ZonedDateTime.now();
         int searchResultSize = defaultSearchSize;
         int from = 0;
-
-        // Default sort order
-        SortOrder sortOrder = null;
 
         for (Entry<String, List<String>> parameter : searchParameters.entrySet()) {
             switch (parameter.getKey().strip().toLowerCase()) {
                 // Search for node name. List of names cannot be split on space char as it is allowed in a node name.
                 case "name":
                     for (String value : parameter.getValue()) {
-                        for (String pattern : value.split("[\\|,;]")) {
+                        for (String pattern : value.split("[|,;]")) {
                             nodeNameTerms.add(pattern.trim());
                         }
                     }
@@ -81,7 +76,7 @@ public class SearchUtil {
                 // Search for node type.
                 case "type":
                     for (String value : parameter.getValue()) {
-                        for (String pattern : value.split("[\\|,;]")) {
+                        for (String pattern : value.split("[|,;]")) {
                             // Convert to upper case as node type is stored using the NodeType enum string values.
                             nodeTypeTerms.add(pattern.trim().toUpperCase());
                         }
@@ -94,7 +89,7 @@ public class SearchUtil {
                     DisMaxQuery.Builder userQuery = new DisMaxQuery.Builder();
                     List<Query> userQueries = new ArrayList<>();
                     for (String value : parameter.getValue()) {
-                        for (String pattern : value.split("[\\|,;]")) {
+                        for (String pattern : value.split("[|,;]")) {
                             NestedQuery innerNestedQuery;
                             WildcardQuery matchQuery = WildcardQuery.of(m -> m.field("node.userName").value(pattern));
                             innerNestedQuery = NestedQuery.of(n1 -> n1.path("node").query(matchQuery._toQuery()));
@@ -103,18 +98,6 @@ public class SearchUtil {
                     }
                     userQuery.queries(userQueries);
                     boolQueryBuilder.must(userQuery.build()._toQuery());
-                    break;
-                case "tags":
-                    DisMaxQuery.Builder tagQuery = new DisMaxQuery.Builder();
-                    List<Query> tagsQueries = new ArrayList<>();
-                    for (String value : parameter.getValue()) {
-                        for (String pattern : value.split("[\\|,;]")) {
-                            tagsQueries.add(WildcardQuery.of(w -> w.field("tags.name").value(pattern.trim()))._toQuery());
-                        }
-                    }
-                    Query tagsQuery = tagQuery.queries(tagsQueries).build()._toQuery();
-                    NestedQuery nestedTagsQuery = NestedQuery.of(n -> n.path("tags").query(tagsQuery));
-                    boolQueryBuilder.must(nestedTagsQuery._toQuery());
                     break;
                 case "start":
                     // If there are multiple start times submitted select the earliest
@@ -136,52 +119,37 @@ public class SearchUtil {
                     temporalSearch = true;
                     end = latestEndTime;
                     break;
-                case "properties":
-                    DisMaxQuery.Builder propertyQuery = new DisMaxQuery.Builder();
+                case "tags":
+                    DisMaxQuery.Builder tagsQuery = new DisMaxQuery.Builder();
                     for (String value : parameter.getValue()) {
-                        for (String pattern : value.split("[\\|,;]")) {
-                            String[] propertySearchFields;
-                            propertySearchFields = Arrays.copyOf(pattern.split("\\."), 3);
-                            Builder bqb = new Builder();
-                            if (propertySearchFields[0] != null && !propertySearchFields[0].isEmpty()) {
-                                bqb.must(WildcardQuery.of(w -> w.field("properties.name").value(propertySearchFields[0].trim()))._toQuery());
+                        for (String pattern : value.split("[|,;]")) {
+                            String[] tagsSearchFields;
+                            tagsSearchFields = Arrays.copyOf(pattern.split("\\."), 2);
+                            BoolQuery.Builder bqb = new BoolQuery.Builder();
+                            // This handles a special case where search is done on name only, e.g. tags=golden
+                            if (tagsSearchFields[0] != null && !tagsSearchFields[0].isEmpty() && (tagsSearchFields[1] == null || tagsSearchFields[1].isEmpty())) {
+                                bqb.must(WildcardQuery.of(w -> w.field("node.tags.name").value(tagsSearchFields[0].trim()))._toQuery());
+                            } else {
+                                bqb.must(WildcardQuery.of(w -> w.field("node.tags." + tagsSearchFields[0]).value(tagsSearchFields[1].trim()))._toQuery());
                             }
-
-                            if (propertySearchFields[1] != null && !propertySearchFields[1].isEmpty()) {
-                                Builder bqb2 = new Builder();
-                                bqb2.must(WildcardQuery.of(w -> w.field("properties.attributes.name").value(propertySearchFields[1].trim()))._toQuery());
-                                if (propertySearchFields[2] != null && !propertySearchFields[2].isEmpty()) {
-                                    bqb2.must(WildcardQuery.of(w -> w.field("properties.attributes.value").value(propertySearchFields[2].trim()))._toQuery());
-                                }
-                                bqb.must(NestedQuery.of(n -> n.path("properties.attributes").query(bqb2.build()._toQuery()).scoreMode(ChildScoreMode.None))._toQuery());
-                            }
-                            propertyQuery.queries(q -> q.nested(NestedQuery.of(n -> n.path("properties").query(bqb.build()._toQuery()).scoreMode(ChildScoreMode.None))));
+                            NestedQuery innerNestedQuery;
+                            innerNestedQuery = NestedQuery.of(n1 -> n1.path("node.tags").query(bqb.build()._toQuery()));
+                            tagsQuery.queries(q -> q.nested(NestedQuery.of(n -> n.path("node").query(innerNestedQuery._toQuery()).scoreMode(ChildScoreMode.None))));
                         }
                     }
-                    boolQueryBuilder.must(propertyQuery.build()._toQuery());
+                    boolQueryBuilder.must(tagsQuery.build()._toQuery());
                     break;
                 case "size":
                 case "limit":
                     Optional<String> maxSize = parameter.getValue().stream().max(Comparator.comparing(Integer::valueOf));
                     if (maxSize.isPresent()) {
-                        searchResultSize = Integer.valueOf(maxSize.get());
+                        searchResultSize = Integer.parseInt(maxSize.get());
                     }
                     break;
                 case "from":
                     Optional<String> maxFrom = parameter.getValue().stream().max(Comparator.comparing(Integer::valueOf));
                     if (maxFrom.isPresent()) {
-                        from = Integer.valueOf(maxFrom.get());
-                    }
-                    break;
-                case "sort": // Honor sort order if client specifies it
-                    List<String> sortList = parameter.getValue();
-                    if (sortList != null && sortList.size() > 0) {
-                        String sort = sortList.get(0);
-                        if (sort.toUpperCase().startsWith("ASC") || sort.toUpperCase().startsWith("UP")) {
-                            sortOrder = SortOrder.Asc;
-                        } else if (sort.toUpperCase().startsWith("DESC") || sort.toUpperCase().startsWith("DOWN")) {
-                            sortOrder = SortOrder.Desc;
-                        }
+                        from = Integer.parseInt(maxFrom.get());
                     }
                     break;
                 default:
@@ -196,22 +164,12 @@ public class SearchUtil {
             if (start.isBefore(end) || start.equals(end)) {
                 DisMaxQuery.Builder temporalQuery = new DisMaxQuery.Builder();
                 RangeQuery.Builder rangeQuery = new RangeQuery.Builder();
-                // Add a query based on the create time
-                rangeQuery.field("createdDate").from(Long.toString(1000 * start.toEpochSecond()))
+                // Add a query based on the created time
+                rangeQuery.field("node.created").from(Long.toString(1000 * start.toEpochSecond()))
                         .to(Long.toString(1000 * end.toEpochSecond()));
-                if (includeEvents) {
-                    RangeQuery.Builder eventsRangeQuery = new RangeQuery.Builder();
-                    // Add a query based on the time of the associated events
-                    eventsRangeQuery.field("events.instant").from(Long.toString(1000 * start.toEpochSecond()))
-                            .to(Long.toString(1000 * end.toEpochSecond()));
-                    NestedQuery.Builder nestedQuery = new NestedQuery.Builder();
-                    nestedQuery.path("events").query(eventsRangeQuery.build()._toQuery());
-
-                    temporalQuery.queries(rangeQuery.build()._toQuery(), nestedQuery.build()._toQuery());
-                    boolQueryBuilder.must(temporalQuery.build()._toQuery());
-                } else {
-                    boolQueryBuilder.must(rangeQuery.build()._toQuery());
-                }
+                NestedQuery nestedQuery = NestedQuery.of(n1 -> n1.path("node").query(rangeQuery.build()._toQuery()));
+                temporalQuery.queries(nestedQuery._toQuery());
+                boolQueryBuilder.must(temporalQuery.build()._toQuery());
             } else {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "Failed to parse search parameters: " + searchParameters + ", CAUSE: Invalid start and end times");
@@ -223,14 +181,14 @@ public class SearchUtil {
             DisMaxQuery.Builder nodeNameQuery = new DisMaxQuery.Builder();
             List<Query> nodeNameQueries = new ArrayList<>();
             if (fuzzySearch) {
-                nodeNameTerms.stream().forEach(searchTerm -> {
+                nodeNameTerms.forEach(searchTerm -> {
                     NestedQuery innerNestedQuery;
                     FuzzyQuery matchQuery = FuzzyQuery.of(m -> m.field("node.name").value(searchTerm));
                     innerNestedQuery = NestedQuery.of(n1 -> n1.path("node").query(matchQuery._toQuery()));
                     nodeNameQueries.add(innerNestedQuery._toQuery());
                 });
             } else {
-                nodeNameTerms.stream().forEach(searchTerm -> {
+                nodeNameTerms.forEach(searchTerm -> {
                     NestedQuery innerNestedQuery;
                     WildcardQuery matchQuery = WildcardQuery.of(m -> m.field("node.name").value(searchTerm));
                     innerNestedQuery = NestedQuery.of(n1 -> n1.path("node").query(matchQuery._toQuery()));
@@ -245,7 +203,7 @@ public class SearchUtil {
         if (!nodeTypeTerms.isEmpty()) {
             DisMaxQuery.Builder nodeTypeQuery = new DisMaxQuery.Builder();
             List<Query> nodeTypeQueries = new ArrayList<>();
-            nodeTypeTerms.stream().forEach(searchTerm -> {
+            nodeTypeTerms.forEach(searchTerm -> {
                 NestedQuery innerNestedQuery;
                 WildcardQuery matchQuery = WildcardQuery.of(m -> m.field("node.nodeType").value(searchTerm));
                 innerNestedQuery = NestedQuery.of(n1 -> n1.path("node").query(matchQuery._toQuery()));
@@ -258,11 +216,12 @@ public class SearchUtil {
         int _searchResultSize = searchResultSize;
         int _from = from;
 
+        /*
         FieldSort.Builder fb = new FieldSort.Builder();
         fb.field("node.created");
         fb.nested(NestedSortValue.of(n -> n.path("node")));
         fb.order(SortOrder.Desc);
-
+         */
 
         return SearchRequest.of(s -> s.index(ES_TREE_INDEX)
                 .query(boolQueryBuilder.build()._toQuery())

@@ -284,7 +284,7 @@ public interface NodeDAO {
     List<SnapshotItem> getSnapshotItemsFromCompositeSnapshot(String compositeSnapshotNodeId);
 
     /**
-     * Checks if the referenced snapshot {@link Node}s in a {@link CompositeSnapshot} are all
+     * Checks if all the referenced snapshot {@link Node}s in a {@link CompositeSnapshot} are
      * of the supported type, i.e. {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
      * or {@link org.phoebus.applications.saveandrestore.model.NodeType#SNAPSHOT}
      * @param compositeSnapshot An existing {@link CompositeSnapshot}.
@@ -293,6 +293,11 @@ public interface NodeDAO {
      */
     boolean checkCompositeSnapshotReferencedNodeTypes(CompositeSnapshot compositeSnapshot);
 
-    List<Node> search(MultiValueMap<String, String> searchParameters);
+    /**
+     * Performs a search based on the provided search parameters.
+     * @param searchParameters Map of keyword/value pairs defining the search criteria.
+     * @return A {@link SearchResult} object with a potentially empty list of {@link Node}s.
+     */
+    SearchResult search(MultiValueMap<String, String> searchParameters);
 
 }

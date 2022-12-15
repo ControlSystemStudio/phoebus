@@ -19,9 +19,10 @@
 
 package org.phoebus.service.saveandrestore.web.controllers;
 
-import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
+import org.phoebus.service.saveandrestore.search.TimeParser;
+import org.phoebus.service.saveandrestore.search.TimestampFormats;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.MultiValueMap;
@@ -33,7 +34,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.Instant;
 import java.time.temporal.TemporalAmount;
 import java.time.temporal.UnsupportedTemporalTypeException;
-import java.util.List;
 import java.util.logging.Logger;
 
 @RestController
@@ -44,10 +44,26 @@ public class SearchController extends BaseController {
     @Autowired
     private NodeDAO nodeDAO;
 
-    private Logger logger = Logger.getLogger(SearchController.class.getName());
-
+    @SuppressWarnings("unused")
     @GetMapping("/search")
-    public List<Node> search(@RequestParam MultiValueMap<String, String> allRequestParams) {
+    public SearchResult search(@RequestParam MultiValueMap<String, String> allRequestParams) {
+        for (String key : allRequestParams.keySet()) {
+            if ("start".equalsIgnoreCase(key) || "end".equalsIgnoreCase(key)) {
+                String value = allRequestParams.get(key).get(0);
+                Object time = TimeParser.parseInstantOrTemporalAmount(value);
+                if (time instanceof Instant) {
+                    allRequestParams.get(key).clear();
+                    allRequestParams.get(key).add(TimestampFormats.MILLI_FORMAT.format((Instant) time));
+                } else if (time instanceof TemporalAmount) {
+                    allRequestParams.get(key).clear();
+                    try {
+                        allRequestParams.get(key).add(TimestampFormats.MILLI_FORMAT.format(Instant.now().minus((TemporalAmount) time)));
+                    } catch (UnsupportedTemporalTypeException e) { // E.g. if client sends "months" or "years"
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported date/time specified: " + value);
+                    }
+                }
+            }
+        }
         return nodeDAO.search(allRequestParams);
     }
 }

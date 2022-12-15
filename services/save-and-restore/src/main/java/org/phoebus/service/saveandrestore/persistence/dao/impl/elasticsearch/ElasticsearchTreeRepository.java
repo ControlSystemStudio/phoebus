@@ -45,6 +45,7 @@ import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.model.ESTreeNode;
 import org.phoebus.service.saveandrestore.search.SearchUtil;
@@ -319,32 +320,15 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
         }
     }
 
-    public List<ESTreeNode> getAllNodesByType(NodeType nodeType) {
-        BoolQuery.Builder boolQueryBuilder = new Builder();
-        NestedQuery innerNestedQuery;
-        MatchQuery matchQuery = MatchQuery.of(m -> m.field("node.nodeType").query(nodeType.toString()));
-        innerNestedQuery = NestedQuery.of(n1 -> n1.path("node").query(matchQuery._toQuery()));
-        boolQueryBuilder.must(innerNestedQuery._toQuery());
-        SearchRequest searchRequest = SearchRequest.of(s -> s.index(ES_TREE_INDEX)
-                .query(boolQueryBuilder.build()._toQuery())
-                .timeout("60s")
-                .size(1000));
-        try {
-            SearchResponse<ESTreeNode> esTreeNodeSearchResponse = client.search(searchRequest, ESTreeNode.class);
-            return esTreeNodeSearchResponse.hits().hits().stream().map(Hit::source).collect(Collectors.toList());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-
-
-    public List<ESTreeNode> search(MultiValueMap<String, String> searchParameters){
+    public SearchResult search(MultiValueMap<String, String> searchParameters){
 
         SearchRequest searchRequest = searchUtil.buildSearchRequest(searchParameters);
         try {
             SearchResponse<ESTreeNode> searchResponse = client.search(searchRequest, ESTreeNode.class);
-            return searchResponse.hits().hits().stream().map(Hit::source).collect(Collectors.toList());
+            SearchResult searchResult = new SearchResult();
+            searchResult.setHitCount(searchResponse.hits().total().value());
+            searchResult.setNodes(searchResponse.hits().hits().stream().map(e -> e.source().getNode()).collect(Collectors.toList()));
+            return searchResult;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

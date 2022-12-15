@@ -18,13 +18,8 @@
 
 package org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch;
 
-import co.elastic.clients.elasticsearch.core.SearchRequest;
-import co.elastic.clients.elasticsearch.core.SearchResponse;
-import co.elastic.clients.elasticsearch.core.search.Hit;
-import org.apache.commons.collections4.ListUtils;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
-import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -39,19 +34,15 @@ import org.phoebus.service.saveandrestore.model.ESTreeNode;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.search.SearchUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -110,7 +101,7 @@ public class ElasticsearchDAO implements NodeDAO {
     }
 
     @Override
-    public List<Node> getNodes(List<String> uniqueNodeIds){
+    public List<Node> getNodes(List<String> uniqueNodeIds) {
         List<Node> nodes = new ArrayList<>();
         elasticsearchTreeRepository.findAllById(uniqueNodeIds).forEach(n -> nodes.add(n.getNode()));
         return nodes;
@@ -161,10 +152,10 @@ public class ElasticsearchDAO implements NodeDAO {
         }
 
         // To facilitate migration, unique id and created date are set only if null.
-        if(node.getCreated() == null){
+        if (node.getCreated() == null) {
             node.setCreated(new Date());
         }
-        if(node.getUniqueId() == null){
+        if (node.getUniqueId() == null) {
             node.setUniqueId(UUID.randomUUID().toString());
         }
         ESTreeNode newNode = new ESTreeNode();
@@ -407,11 +398,10 @@ public class ElasticsearchDAO implements NodeDAO {
 
     @Override
     public List<Node> getAllSnapshots() {
-        //List<ESTreeNode> esTreeNodes = elasticsearchTreeRepository.getAllNodesByType(NodeType.SNAPSHOT);
         MultiValueMap<String, String> searchParams = new LinkedMultiValueMap<>();
         searchParams.add("type", NodeType.SNAPSHOT.toString());
-        List<ESTreeNode> esTreeNodes = elasticsearchTreeRepository.search(searchParams);
-        return esTreeNodes.stream().map(ESTreeNode::getNode).collect(Collectors.toList());
+        SearchResult searchResult = elasticsearchTreeRepository.search(searchParams);
+        return searchResult.getNodes();
     }
 
     @Override
@@ -474,10 +464,10 @@ public class ElasticsearchDAO implements NodeDAO {
             configurationDataRepository.deleteById(nodeToDelete.getUniqueId());
         } else if (nodeToDelete.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)) {
             compositeSnapshotDataRepository.deleteById(nodeToDelete.getUniqueId());
-        } else if(nodeToDelete.getNodeType().equals(NodeType.SNAPSHOT)){
+        } else if (nodeToDelete.getNodeType().equals(NodeType.SNAPSHOT)) {
             Node compositeSnapshotReferencingTheSnapshot =
                     mayDeleteSnapshot(nodeToDelete);
-            if(compositeSnapshotReferencingTheSnapshot != null){
+            if (compositeSnapshotReferencingTheSnapshot != null) {
                 throw new IllegalArgumentException("Cannot delete snapshot \"" + nodeToDelete.getName() +
                         "\" as it is referenced in composite snapshot \"" + compositeSnapshotReferencingTheSnapshot.getName() + "\"");
             }
@@ -657,7 +647,6 @@ public class ElasticsearchDAO implements NodeDAO {
         return snapshot.get();
     }
 
-    @Override
     /**
      * Finds the {@link Node} corresponding to the parent of last element in the split path. For instance, given a
      * path like /pathelement1/pathelement2/pathelement3/pathelement4, this method returns the {@link Node}
@@ -671,6 +660,8 @@ public class ElasticsearchDAO implements NodeDAO {
      * @param index      The index in the <code>splitPath</code> to match node names.
      * @return The {@link Node} corresponding to the last path element, or <code>null</code>.
      */
+    @Override
+
     public Node findParentFromPathElements(Node parentNode, String[] splitPath, int index) {
         if (index == splitPath.length - 1) {
             return parentNode;
@@ -708,12 +699,12 @@ public class ElasticsearchDAO implements NodeDAO {
     }
 
     @Override
-    public CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot){
-        if(!checkCompositeSnapshotReferencedNodeTypes(compositeSnapshot)){
+    public CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot) {
+        if (!checkCompositeSnapshotReferencedNodeTypes(compositeSnapshot)) {
             throw new IllegalArgumentException("Found unsupported node type in list of referenced nodes");
         }
         List<String> duplicatePVNames = checkForPVNameDuplicates(compositeSnapshot.getCompositeSnapshotData().getReferencedSnapshotNodes());
-        if(!duplicatePVNames.isEmpty()){
+        if (!duplicatePVNames.isEmpty()) {
             throw new IllegalArgumentException("Found duplicate PV names in referenced snapshots");
         }
         compositeSnapshot.getCompositeSnapshotNode().setNodeType(NodeType.COMPOSITE_SNAPSHOT); // Force node type
@@ -737,7 +728,7 @@ public class ElasticsearchDAO implements NodeDAO {
     }
 
     @Override
-    public CompositeSnapshotData getCompositeSnapshotData(String uniqueId){
+    public CompositeSnapshotData getCompositeSnapshotData(String uniqueId) {
         Optional<CompositeSnapshotData> snapshotData = compositeSnapshotDataRepository.findById(uniqueId);
         if (snapshotData.isEmpty()) {
             throw new NodeNotFoundException("CompositeSnapshotData with id " + uniqueId + " not found");
@@ -746,7 +737,7 @@ public class ElasticsearchDAO implements NodeDAO {
     }
 
     @Override
-    public List<CompositeSnapshotData> getAllCompositeSnapshotData(){
+    public List<CompositeSnapshotData> getAllCompositeSnapshotData() {
         List<CompositeSnapshotData> list = new ArrayList<>();
         Iterable<CompositeSnapshotData> iterable = compositeSnapshotDataRepository.findAll();
         iterable.forEach(list::add);
@@ -755,19 +746,20 @@ public class ElasticsearchDAO implements NodeDAO {
 
     /**
      * Checks if a snapshot is contained in any composite snapshot.
+     *
      * @param snapshotNode The {@link Node} subject to check.
      * @return A <code>non-null</code> {@link Node} object in which the checked node is referenced,
      * otherwise <code>null</code>. Note that this returns the first composite snapshot node where the checked snapshot is
      * encountered. References in other composite snapshots may exist.
      */
-    private Node mayDeleteSnapshot(Node snapshotNode){
+    private Node mayDeleteSnapshot(Node snapshotNode) {
         // This is needed to check if a snapshot node is referenced in a composite snapshot
         List<CompositeSnapshotData> allCompositeSnapshotData = getAllCompositeSnapshotData();
-        for(CompositeSnapshotData compositeSnapshotData : allCompositeSnapshotData){
+        for (CompositeSnapshotData compositeSnapshotData : allCompositeSnapshotData) {
             Iterable<ESTreeNode> treeNodes =
                     elasticsearchTreeRepository.findAllById(compositeSnapshotData.getReferencedSnapshotNodes());
-            for(ESTreeNode treeNode : treeNodes){
-                if(treeNode.getNode().getUniqueId().equals(snapshotNode.getUniqueId())){
+            for (ESTreeNode treeNode : treeNodes) {
+                if (treeNode.getNode().getUniqueId().equals(snapshotNode.getUniqueId())) {
                     return getNode(compositeSnapshotData.getUniqueId());
                 }
             }
@@ -778,7 +770,7 @@ public class ElasticsearchDAO implements NodeDAO {
     /**
      * This is mainly for testing purposes. It deletes all documents in all indices.
      */
-    public void deleteAllData(){
+    public void deleteAllData() {
         elasticsearchTreeRepository.deleteAll();
         compositeSnapshotDataRepository.deleteAll();
         configurationDataRepository.deleteAll();
@@ -786,49 +778,47 @@ public class ElasticsearchDAO implements NodeDAO {
     }
 
     @Override
-    public List<String> checkForPVNameDuplicates(List<String> snapshotIds){
+    public List<String> checkForPVNameDuplicates(List<String> snapshotIds) {
         // Collect list of all PV names
         List<String> allPVNames = new ArrayList<>();
-        for(String snapshotNodeId : snapshotIds){
+        for (String snapshotNodeId : snapshotIds) {
             nextSnapshotNode(snapshotNodeId, allPVNames);
         }
 
         return extractDuplicates(allPVNames);
     }
 
-    private void nextSnapshotNode(String snapshotNode, List<String> allPVNames){
+    private void nextSnapshotNode(String snapshotNode, List<String> allPVNames) {
         Node node = getNode(snapshotNode);
-        if(node == null){
+        if (node == null) {
             return;
         }
         NodeType nodeType = node.getNodeType();
-        if(nodeType.equals(NodeType.COMPOSITE_SNAPSHOT)) {
+        if (nodeType.equals(NodeType.COMPOSITE_SNAPSHOT)) {
             CompositeSnapshotData compositeSnapshotData = getCompositeSnapshotData(node.getUniqueId());
-            for(String referencedNode : compositeSnapshotData.getReferencedSnapshotNodes()){
+            for (String referencedNode : compositeSnapshotData.getReferencedSnapshotNodes()) {
                 nextSnapshotNode(referencedNode, allPVNames);
             }
-        }
-        else if(nodeType.equals(NodeType.SNAPSHOT)){
+        } else if (nodeType.equals(NodeType.SNAPSHOT)) {
             SnapshotData snapshotData = getSnapshotData(node.getUniqueId());
-            for(SnapshotItem snapshotItem : snapshotData.getSnapshotItems()){
+            for (SnapshotItem snapshotItem : snapshotData.getSnapshotItems()) {
                 allPVNames.add(snapshotItem.getConfigPv().getPvName());
             }
         }
     }
 
     /**
-     *
      * @param allPVNames A list of strings that may contain duplicates
      * @return A list of PV names found to occur more than once in the input array,or an empty list. If a
      * PV name occurs N (>1) times, it will still occur only once in the returned list. For instance, if the
      * input list is <code>Arrays.asList("a", "b", "c", "d", "D", "a", "B", "a", "b")</code>, the returned
      * list will contain <code>"a", "b"</code>.
      */
-    protected List<String> extractDuplicates(List<String> allPVNames){
+    protected List<String> extractDuplicates(List<String> allPVNames) {
         List<String> uniqueDuplicates = new ArrayList<>();
         // Collect PV names that occur only once
-        for(String pvName : allPVNames){
-            if(Collections.frequency(allPVNames, pvName) > 1 && !uniqueDuplicates.contains(pvName)){
+        for (String pvName : allPVNames) {
+            if (Collections.frequency(allPVNames, pvName) > 1 && !uniqueDuplicates.contains(pvName)) {
                 uniqueDuplicates.add(pvName);
             }
         }
@@ -836,12 +826,12 @@ public class ElasticsearchDAO implements NodeDAO {
     }
 
     @Override
-    public CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot){
-        if(!checkCompositeSnapshotReferencedNodeTypes(compositeSnapshot)){
+    public CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot) {
+        if (!checkCompositeSnapshotReferencedNodeTypes(compositeSnapshot)) {
             throw new IllegalArgumentException("Found unsupported node type in list of referenced nodes");
         }
         List<String> duplicatePVNames = checkForPVNameDuplicates(compositeSnapshot.getCompositeSnapshotData().getReferencedSnapshotNodes());
-        if(!duplicatePVNames.isEmpty()){
+        if (!duplicatePVNames.isEmpty()) {
             throw new IllegalArgumentException("Found duplicate PV names in referenced snapshots");
         }
         Node existingCompositeSnapshotNode = getNode(compositeSnapshot.getCompositeSnapshotNode().getUniqueId());
@@ -863,61 +853,58 @@ public class ElasticsearchDAO implements NodeDAO {
     }
 
     @Override
-    public List<SnapshotItem> getSnapshotItemsFromCompositeSnapshot(String compositeSnapshotNodeId){
+    public List<SnapshotItem> getSnapshotItemsFromCompositeSnapshot(String compositeSnapshotNodeId) {
         List<SnapshotItem> snapshotItems = new ArrayList<>();
         getSnapshotItemsFromNextNode(compositeSnapshotNodeId, snapshotItems);
         return snapshotItems;
     }
 
-    private void getSnapshotItemsFromNextNode(String snapshotNode, List<SnapshotItem> allSnapshotItems){
+    private void getSnapshotItemsFromNextNode(String snapshotNode, List<SnapshotItem> allSnapshotItems) {
         Node node = getNode(snapshotNode);
-        if(node == null){
+        if (node == null) {
             return;
         }
         NodeType nodeType = node.getNodeType();
-        if(nodeType.equals(NodeType.COMPOSITE_SNAPSHOT)) {
+        if (nodeType.equals(NodeType.COMPOSITE_SNAPSHOT)) {
             CompositeSnapshotData compositeSnapshotData = getCompositeSnapshotData(node.getUniqueId());
-            for(String referencedNode : compositeSnapshotData.getReferencedSnapshotNodes()){
+            for (String referencedNode : compositeSnapshotData.getReferencedSnapshotNodes()) {
                 getSnapshotItemsFromNextNode(referencedNode, allSnapshotItems);
             }
-        }
-        else if(nodeType.equals(NodeType.SNAPSHOT)){
+        } else if (nodeType.equals(NodeType.SNAPSHOT)) {
             SnapshotData snapshotData = getSnapshotData(node.getUniqueId());
             allSnapshotItems.addAll(snapshotData.getSnapshotItems());
         }
     }
 
     @Override
-    public boolean checkCompositeSnapshotReferencedNodeTypes(CompositeSnapshot compositeSnapshot){
-        for(String nodeId : compositeSnapshot.getCompositeSnapshotData().getReferencedSnapshotNodes()){
-            if(!checkCompositeSnapshotReferencedNodeType(nodeId)){
+    public boolean checkCompositeSnapshotReferencedNodeTypes(CompositeSnapshot compositeSnapshot) {
+        for (String nodeId : compositeSnapshot.getCompositeSnapshotData().getReferencedSnapshotNodes()) {
+            if (!checkCompositeSnapshotReferencedNodeType(nodeId)) {
                 return false;
             }
         }
         return true;
     }
 
-    private boolean checkCompositeSnapshotReferencedNodeType(String nodeId){
+    private boolean checkCompositeSnapshotReferencedNodeType(String nodeId) {
         Node node = getNode(nodeId);
-        if(node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)){
+        if (node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)) {
             CompositeSnapshotData compositeSnapshotData = getCompositeSnapshotData(node.getUniqueId());
-            for(String referencedNode : compositeSnapshotData.getReferencedSnapshotNodes()){
-                if(!checkCompositeSnapshotReferencedNodeType(referencedNode)){
+            for (String referencedNode : compositeSnapshotData.getReferencedSnapshotNodes()) {
+                if (!checkCompositeSnapshotReferencedNodeType(referencedNode)) {
                     return false;
                 }
             }
             return true;
-        }
-        else if(node.getNodeType().equals(NodeType.SNAPSHOT)){
+        } else if (node.getNodeType().equals(NodeType.SNAPSHOT)) {
             return true;
-        }
-        else{
+        } else {
             return false;
         }
     }
 
     @Override
-    public List<Node> search(MultiValueMap<String, String> searchParameters) {
-        return elasticsearchTreeRepository.search(searchParameters).stream().map(e -> e.getNode()).collect(Collectors.toList());
+    public SearchResult search(MultiValueMap<String, String> searchParameters) {
+        return elasticsearchTreeRepository.search(searchParameters);
     }
 }
