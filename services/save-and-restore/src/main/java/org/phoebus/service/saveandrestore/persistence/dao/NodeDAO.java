@@ -18,6 +18,9 @@
 
 package org.phoebus.service.saveandrestore.persistence.dao;
 
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.Hit;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Configuration;
@@ -27,8 +30,15 @@ import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.search.SearchResult;
+import org.springframework.http.HttpStatus;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 /**
  * @author georgweiss Created 11 Mar 2019
@@ -282,5 +292,7 @@ public interface NodeDAO {
      *      * of the supported type.
      */
     boolean checkCompositeSnapshotReferencedNodeTypes(CompositeSnapshot compositeSnapshot);
+
+    List<Node> search(MultiValueMap<String, String> searchParameters);
 
 }

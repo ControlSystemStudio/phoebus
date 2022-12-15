@@ -47,11 +47,13 @@ import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.model.ESTreeNode;
+import org.phoebus.service.saveandrestore.search.SearchUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.MultiValueMap;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -76,6 +78,10 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
     @Autowired
     @Qualifier("client")
     ElasticsearchClient client;
+
+    @SuppressWarnings("unused")
+    @Autowired
+    private SearchUtil searchUtil;
 
     /**
      * Saves an {@link ESTreeNode} object.
@@ -317,6 +323,37 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
         BoolQuery.Builder boolQueryBuilder = new Builder();
         NestedQuery innerNestedQuery;
         MatchQuery matchQuery = MatchQuery.of(m -> m.field("node.nodeType").query(nodeType.toString()));
+        innerNestedQuery = NestedQuery.of(n1 -> n1.path("node").query(matchQuery._toQuery()));
+        boolQueryBuilder.must(innerNestedQuery._toQuery());
+        SearchRequest searchRequest = SearchRequest.of(s -> s.index(ES_TREE_INDEX)
+                .query(boolQueryBuilder.build()._toQuery())
+                .timeout("60s")
+                .size(1000));
+        try {
+            SearchResponse<ESTreeNode> esTreeNodeSearchResponse = client.search(searchRequest, ESTreeNode.class);
+            return esTreeNodeSearchResponse.hits().hits().stream().map(Hit::source).collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+
+    public List<ESTreeNode> search(MultiValueMap<String, String> searchParameters){
+
+        SearchRequest searchRequest = searchUtil.buildSearchRequest(searchParameters);
+        try {
+            SearchResponse<ESTreeNode> searchResponse = client.search(searchRequest, ESTreeNode.class);
+            return searchResponse.hits().hits().stream().map(Hit::source).collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<ESTreeNode> getByNodeName(String nodeName) {
+        BoolQuery.Builder boolQueryBuilder = new Builder();
+        NestedQuery innerNestedQuery;
+        MatchQuery matchQuery = MatchQuery.of(m -> m.field("node.name").query(nodeName));
         innerNestedQuery = NestedQuery.of(n1 -> n1.path("node").query(matchQuery._toQuery()));
         boolQueryBuilder.must(innerNestedQuery._toQuery());
         SearchRequest searchRequest = SearchRequest.of(s -> s.index(ES_TREE_INDEX)

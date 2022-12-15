@@ -21,6 +21,7 @@ import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.json.VTypeDeserializer;
 import org.phoebus.applications.saveandrestore.model.json.VTypeSerializer;
 import org.phoebus.service.saveandrestore.model.ESTreeNode;
+import org.phoebus.service.saveandrestore.search.SearchUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -191,5 +192,10 @@ public class ElasticConfig {
         } catch (IOException e) {
             logger.log(Level.WARNING, "Failed to create root folder", e);
         }
+    }
+
+    @Bean
+    public SearchUtil searchUtil(){
+        return new SearchUtil();
     }
 }

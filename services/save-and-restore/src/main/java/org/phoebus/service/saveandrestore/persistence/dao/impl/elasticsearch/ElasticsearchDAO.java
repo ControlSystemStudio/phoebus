@@ -18,6 +18,9 @@
 
 package org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch;
 
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.Hit;
 import org.apache.commons.collections4.ListUtils;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
@@ -30,17 +33,25 @@ import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.model.ESTreeNode;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
+import org.phoebus.service.saveandrestore.search.SearchUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -60,8 +71,13 @@ public class ElasticsearchDAO implements NodeDAO {
     @Autowired
     private SnapshotDataRepository snapshotDataRepository;
 
+    @SuppressWarnings("unused")
     @Autowired
     private CompositeSnapshotDataRepository compositeSnapshotDataRepository;
+
+    @SuppressWarnings("unused")
+    @Autowired
+    private SearchUtil searchUtil;
 
     private static final Logger logger = Logger.getLogger(ElasticsearchDAO.class.getName());
 
@@ -391,7 +407,10 @@ public class ElasticsearchDAO implements NodeDAO {
 
     @Override
     public List<Node> getAllSnapshots() {
-        List<ESTreeNode> esTreeNodes = elasticsearchTreeRepository.getAllNodesByType(NodeType.SNAPSHOT);
+        //List<ESTreeNode> esTreeNodes = elasticsearchTreeRepository.getAllNodesByType(NodeType.SNAPSHOT);
+        MultiValueMap<String, String> searchParams = new LinkedMultiValueMap<>();
+        searchParams.add("type", NodeType.SNAPSHOT.toString());
+        List<ESTreeNode> esTreeNodes = elasticsearchTreeRepository.search(searchParams);
         return esTreeNodes.stream().map(ESTreeNode::getNode).collect(Collectors.toList());
     }
 
@@ -895,5 +914,10 @@ public class ElasticsearchDAO implements NodeDAO {
         else{
             return false;
         }
+    }
+
+    @Override
+    public List<Node> search(MultiValueMap<String, String> searchParameters) {
+        return elasticsearchTreeRepository.search(searchParameters).stream().map(e -> e.getNode()).collect(Collectors.toList());
     }
 }
