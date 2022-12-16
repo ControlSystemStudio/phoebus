@@ -10,6 +10,7 @@ package org.phoebus.applications.update;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -66,6 +67,22 @@ public class Update
     /** Path removals */
     public static final PathWrangler wrangler;
 
+    final URL distribution_url;
+
+    public Update()
+    {
+        URL tmp = null;
+        try
+        {
+            tmp = new URL(update_url);
+        }
+        catch (MalformedURLException e)
+        {
+           // handled later when distribution_url is null
+        }
+        distribution_url = tmp;
+    }
+
     static
     {
         final PreferencesReader prefs = AnnotatedPreferences.initialize(Update.class, "/update_preferences.properties");
@@ -83,11 +100,10 @@ public class Update
 
     /** Check version (i.e. date/time) of a distribution
      *  @param monitor {@link JobMonitor}
-     *  @param distribution_url URL for distribution (ZIP)
      *  @return Version of that distribution, or Instant of 0 when nothing found
      *  @throws Exception on error
      */
-    public static Instant getVersion(final JobMonitor monitor, final URL distribution_url) throws Exception
+    protected Instant getVersion(final JobMonitor monitor) throws Exception
     {
         if (distribution_url.getProtocol().equals("https"))
             ResourceParser.trustAnybody();
@@ -95,18 +111,29 @@ public class Update
                 distribution_url.openConnection().getLastModified());
     }
 
+    /** Return the size of the suggested download. */
+    protected Long getDownloadSize() throws Exception
+    {
+        return distribution_url.openConnection().getContentLengthLong();
+    }
+
+    /** Return a stream to access the download file. */
+    protected InputStream getDownloadStream() throws Exception
+    {
+        return distribution_url.openStream();
+    }
+
     /** @param monitor {@link JobMonitor}
-     *  @param distribution_url URL for distribution (ZIP)
      *  @return Downloaded file, needs to be deleted when done
      *  @throws Exception on error
      */
-    public static File download(final JobMonitor monitor, final URL distribution_url) throws Exception
+    protected File download(final JobMonitor monitor) throws Exception
     {
         // Determine size
         final AtomicLong full_size = new AtomicLong();
         try
         {
-            full_size.set(distribution_url.openConnection().getContentLengthLong());
+            full_size.set(getDownloadSize());
         }
         catch (Exception ex)
         {
@@ -132,10 +159,10 @@ public class Update
                     if (full > 0)
                     {
                         int percent = (int) ((size*100) / full);
-                        monitor.updateTaskName(String.format("Downloading %d %% (%.3f/%.3f MB) of %s", percent, size/1.0e6, full/1.0e6, distribution_url.toString()));
+                        monitor.updateTaskName(String.format("Downloading %d %% (%.3f/%.3f MB)", percent, size/1.0e6, full/1.0e6));
                     }
                     else
-                        monitor.updateTaskName(String.format("Downloading " + distribution_url + ": %.3f MB", size/1.0e6));
+                        monitor.updateTaskName(String.format("Downloading %.3f MB", size/1.0e6));
 
                     // Force the download thread to stop on 'cancel'.
                     // 'interrupt()' has no effect, and Files.copy is not
@@ -155,10 +182,10 @@ public class Update
 
         try
         (
-            final InputStream src = distribution_url.openStream();
+            final InputStream src = getDownloadStream();
         )
         {
-            logger.info("Download " + distribution_url + " into " + file);
+            logger.info("Download into " + file);
             Files.copy(src, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
             return file;
         }
@@ -179,7 +206,7 @@ public class Update
      *  @param update_zip ZIP file with distribution
      *  @throws Exception on error
      */
-    public static void update(final JobMonitor monitor, final File install_location, final File update_zip) throws Exception
+    protected static void update(final JobMonitor monitor, final File install_location, final File update_zip) throws Exception
     {
         if (monitor.isCanceled())
             return;
@@ -265,14 +292,17 @@ public class Update
      *  @return Time stamp of the new version, or <code>null</code> if there is no valid update
      *  @throws Exception on error
      */
-    public static Instant checkForUpdate(final JobMonitor monitor) throws Exception
+    public Instant checkForUpdate(final JobMonitor monitor) throws Exception
     {
+        // exit gracefully, if no update_url is defined
         if (update_url.isEmpty()  ||  current_version == null)
             return null;
+        // complain, if it is defined, but could not be parsed.
+        if (null == distribution_url)
+            throw new RuntimeException("Invalid distribution_url.");
         logger.info("Checking " + update_url);
         logger.info("Current version  : " + TimestampFormats.DATETIME_FORMAT.format(current_version));
-        final URL distribution_url = new URL(update_url);
-        final Instant update_version = Update.getVersion(monitor, distribution_url);
+        final Instant update_version = getVersion(monitor);
 
         logger.info("Available version: " + TimestampFormats.DATETIME_FORMAT.format(update_version));
         if (update_version.isAfter(current_version))
@@ -289,7 +319,7 @@ public class Update
      *  @param install_location Existing {@link Locations#install()}
      *  @throws Exception on error
      */
-    public static void downloadAndUpdate(final JobMonitor monitor, final File install_location) throws Exception
+    public void downloadAndUpdate(final JobMonitor monitor, final File install_location) throws Exception
     {
         monitor.beginTask("Update", 100);
         logger.info("Updating from current version " + TimestampFormats.DATETIME_FORMAT.format(current_version));
@@ -298,9 +328,8 @@ public class Update
             update(monitor, install_location, new File(update_url.substring(5)));
         else
         {   // Download
-            final URL distribution_url = new URL(update_url);
             monitor.updateTaskName("Download " + update_url);
-            final File distribution_zip = download(monitor, distribution_url);
+            final File distribution_zip = download(monitor);
             try
             {
                 update(monitor, install_location, distribution_zip);
@@ -311,6 +340,7 @@ public class Update
                 distribution_zip.delete();
             }
         }
+        adjustCurrentVersion();
     }
 
     /** Set the `current_version` to now
@@ -323,8 +353,9 @@ public class Update
      *  this is prevented.
      *  @throws Exception on error updating the preferences
      */
-    public static void adjustCurrentVersion() throws Exception
+    protected void adjustCurrentVersion() throws Exception
     {
+        // TODO: set to the remembered timestamp of the update file.
         final Preferences prefs = Preferences.userNodeForPackage(Update.class);
         // Add a minute in case we updated right now to a version that has the current HH:MM,
         // to prevent another update on restart where we're still within the same HH:MM
