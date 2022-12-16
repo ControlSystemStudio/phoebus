@@ -55,6 +55,7 @@ public class SearchUtil {
     public SearchRequest buildSearchRequest(MultiValueMap<String, String> searchParameters) {
         Builder boolQueryBuilder = new Builder();
         boolean fuzzySearch = false;
+        List<String> descriptionTerms = new ArrayList<>();
         List<String> nodeNameTerms = new ArrayList<>();
         List<String> nodeTypeTerms = new ArrayList<>();
         boolean temporalSearch = false;
@@ -70,6 +71,15 @@ public class SearchUtil {
                     for (String value : parameter.getValue()) {
                         for (String pattern : value.split("[|,;]")) {
                             nodeNameTerms.add(pattern.trim());
+                        }
+                    }
+                    break;
+                // Search in description/comment
+                case "description":
+                case "desc":
+                    for (String value : parameter.getValue()) {
+                        for (String pattern : value.split("[|,;]")) {
+                            descriptionTerms.add(pattern.trim().toLowerCase());
                         }
                     }
                     break;
@@ -174,6 +184,32 @@ public class SearchUtil {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "Failed to parse search parameters: " + searchParameters + ", CAUSE: Invalid start and end times");
             }
+        }
+
+        // Add the description query
+        if (!descriptionTerms.isEmpty()) {
+            DisMaxQuery.Builder descQuery = new DisMaxQuery.Builder();
+            List<Query> descQueries = new ArrayList<>();
+            if (fuzzySearch) {
+                descriptionTerms.stream().forEach(searchTerm -> {
+                    Query fuzzyQuery = FuzzyQuery.of(f -> f.field("node.description").value(searchTerm))._toQuery();
+                    NestedQuery nestedQuery =
+                            NestedQuery.of(n1 -> n1.path("node")
+                                    .query(fuzzyQuery));
+                    descQueries.add(nestedQuery._toQuery());
+                });
+            } else {
+                descriptionTerms.stream().forEach(searchTerm -> {
+                    Query wildcardQuery =
+                            WildcardQuery.of(w -> w.field("node.description").value(searchTerm))._toQuery();
+                    NestedQuery nestedQuery =
+                            NestedQuery.of(n1 -> n1.path("node")
+                                    .query(wildcardQuery));
+                    descQueries.add(nestedQuery._toQuery());
+                });
+            }
+            descQuery.queries(descQueries);
+            boolQueryBuilder.must(descQuery.build()._toQuery());
         }
 
         // Add the name query
