@@ -15,7 +15,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.format.DateTimeFormatter;
 import java.util.Enumeration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -60,6 +60,8 @@ public class Update
 
     /** Current version, or <code>null</code> if not set */
     public static final Instant current_version;
+    /** The latest timestamp found on the update site. */
+    protected Instant update_version;
 
     /** Update URL, or empty if not set */
     @Preference public static String update_url;
@@ -302,7 +304,7 @@ public class Update
             throw new RuntimeException("Invalid distribution_url.");
         logger.info("Checking " + update_url);
         logger.info("Current version  : " + TimestampFormats.DATETIME_FORMAT.format(current_version));
-        final Instant update_version = getVersion(monitor);
+        update_version = getVersion(monitor);
 
         logger.info("Available version: " + TimestampFormats.DATETIME_FORMAT.format(update_version));
         if (update_version.isAfter(current_version))
@@ -349,17 +351,14 @@ public class Update
      *  for the `current_version`, but if it doesn't,
      *  the result would be a continuous update loop.
      *
-     *  <p>By setting the `current_version` to now,
+     *  <p>By explicitly setting the `current_version` here,
      *  this is prevented.
      *  @throws Exception on error updating the preferences
      */
     protected void adjustCurrentVersion() throws Exception
     {
-        // TODO: set to the remembered timestamp of the update file.
         final Preferences prefs = Preferences.userNodeForPackage(Update.class);
-        // Add a minute in case we updated right now to a version that has the current HH:MM,
-        // to prevent another update on restart where we're still within the same HH:MM
-        final String updated = TimestampFormats.DATETIME_FORMAT.format(Instant.now().plus(1, ChronoUnit.MINUTES));
+        final String updated = DateTimeFormatter.ISO_INSTANT.format(update_version);
         prefs.put("current_version", updated);
         prefs.flush();
         logger.info("Updated 'current_version' preference to " + updated);
