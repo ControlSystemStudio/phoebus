@@ -59,6 +59,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.phoebus</groupId>
+			<artifactId>core-util</artifactId>
+			<version>4.7.2-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter</artifactId>
 		</dependency>

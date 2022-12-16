@@ -21,8 +21,8 @@ package org.phoebus.service.saveandrestore.web.controllers;
 
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
-import org.phoebus.service.saveandrestore.search.TimeParser;
-import org.phoebus.service.saveandrestore.search.TimestampFormats;
+import org.phoebus.util.time.TimeParser;
+import org.phoebus.util.time.TimestampFormats;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.MultiValueMap;
@@ -34,7 +34,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.Instant;
 import java.time.temporal.TemporalAmount;
 import java.time.temporal.UnsupportedTemporalTypeException;
-import java.util.logging.Logger;
 
 @RestController
 public class SearchController extends BaseController {

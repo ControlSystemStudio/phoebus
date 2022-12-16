@@ -70,7 +70,7 @@ public class SearchUtil {
                 case "name":
                     for (String value : parameter.getValue()) {
                         for (String pattern : value.split("[|,;]")) {
-                            nodeNameTerms.add(pattern.trim());
+                            nodeNameTerms.add(pattern.trim().toLowerCase());
                         }
                     }
                     break;
@@ -138,9 +138,11 @@ public class SearchUtil {
                             BoolQuery.Builder bqb = new BoolQuery.Builder();
                             // This handles a special case where search is done on name only, e.g. tags=golden
                             if (tagsSearchFields[0] != null && !tagsSearchFields[0].isEmpty() && (tagsSearchFields[1] == null || tagsSearchFields[1].isEmpty())) {
-                                bqb.must(WildcardQuery.of(w -> w.field("node.tags.name").value(tagsSearchFields[0].trim()))._toQuery());
-                            } else {
-                                bqb.must(WildcardQuery.of(w -> w.field("node.tags." + tagsSearchFields[0]).value(tagsSearchFields[1].trim()))._toQuery());
+                                bqb.must(WildcardQuery.of(w -> w.field("node.tags.name").value(tagsSearchFields[0].trim().toLowerCase()))._toQuery());
+                            }
+                            // This handles the "generic" case where user specifies a field of a tag, e.g. tags=comment.foo (where foo is the search term)
+                            else {
+                                bqb.must(WildcardQuery.of(w -> w.field("node.tags." + tagsSearchFields[0]).value(tagsSearchFields[1].trim().toLowerCase()))._toQuery());
                             }
                             NestedQuery innerNestedQuery;
                             innerNestedQuery = NestedQuery.of(n1 -> n1.path("node.tags").query(bqb.build()._toQuery()));
