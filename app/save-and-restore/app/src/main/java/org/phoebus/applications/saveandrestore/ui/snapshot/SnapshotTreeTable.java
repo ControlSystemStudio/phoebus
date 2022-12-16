@@ -602,7 +602,6 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                             toggle.setOnAction(actionEvent -> {
                                 item.tableEntry.readOnlyProperty().set(!item.tableEntry.readOnlyProperty().get());
                                 item.tableEntry.selectedProperty().set(!item.tableEntry.readOnlyProperty().get());
-                                item.tableEntry.readonlyOverrideProperty().set(!item.tableEntry.readonlyOverrideProperty().get());
                             });
 
                             contextMenu.getItems().add(new SeparatorMenuItem());
@@ -652,7 +651,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                     signal.initializeEqualPropertyChangeListener(controller);
                     signal.initializeChangeListenerForColumnHeaderCheckBox(selectAllCheckBox);
                     signal.initializeReadonlyChangeListenerForToggle();
-                    treeTableEntryItems.put(getPVKey(pvName, entry.readOnlyProperty().get() ^ entry.readonlyOverrideProperty().get()), signal);
+                    treeTableEntryItems.put(getPVKey(pvName, entry.readOnlyProperty().get()), signal);
                 }
             }
         }
@@ -1039,7 +1038,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
         final boolean notHide = !controller.isHideEqualItems();
 
         entries.forEach(tableEntry -> {
-            TreeTableEntry treeTableEntry = treeTableEntryItems.get(getPVKey(tableEntry.pvNameProperty().get(), tableEntry.readOnlyProperty().get() ^ tableEntry.readonlyOverrideProperty().get()));
+            TreeTableEntry treeTableEntry = treeTableEntryItems.get(getPVKey(tableEntry.pvNameProperty().get(), tableEntry.readOnlyProperty().get()));
             if (treeTableEntry != null) {
                 treeTableEntry.update(tableEntry);
                 if (notHide || !tableEntry.liveStoredEqualProperty().get()) {
