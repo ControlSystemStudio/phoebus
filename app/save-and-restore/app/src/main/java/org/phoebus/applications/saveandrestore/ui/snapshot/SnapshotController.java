@@ -580,6 +580,7 @@ public class SnapshotController implements NodeChangedListener {
         JobManager.schedule("Load snapshot items", monitor -> {
             SnapshotData snapshotData;
             try {
+                configNode = saveAndRestoreService.getParentNode(snapshotNode.getUniqueId());
                 snapshotData = saveAndRestoreService.getSnapshot(snapshotNode.getUniqueId());
             } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError(snapshotTreeTable, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
