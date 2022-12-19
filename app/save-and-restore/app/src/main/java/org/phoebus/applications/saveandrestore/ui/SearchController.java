@@ -37,6 +37,7 @@ import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.util.time.TimestampFormats;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -87,6 +88,9 @@ public class SearchController implements Initializable {
 
     @FXML
     private TableColumn<SearchEntry, String> commentColumn;
+
+    @FXML
+    private TableColumn<SearchEntry, String> tagsColumn;
 
     @FXML
     private TableColumn<SearchEntry, Date> createdColumn;
@@ -167,7 +171,9 @@ public class SearchController implements Initializable {
         nameColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getName()));
         nameColumn.setStyle("-fx-alignment: CENTER-LEFT;");
         commentColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getComment()));
-        createdColumn.setCellValueFactory(cell -> new ReadOnlyObjectWrapper(cell.getValue().getCreated()));
+        createdColumn.setCellValueFactory(cell ->
+                new ReadOnlyObjectWrapper(TimestampFormats.SECONDS_FORMAT.format(cell.getValue().getCreated().toInstant())));
+        //tagsColumn.setCellValueFactory(cell -> formatTags(cell.getValue().));
         createdColumn.setStyle("-fx-alignment: CENTER-RIGHT;");
         creatorColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getCreator()));
         creatorColumn.setStyle("-fx-alignment: CENTER-RIGHT;");

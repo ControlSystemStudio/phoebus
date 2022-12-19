@@ -22,6 +22,7 @@
             <TableColumn fx:id="typeColumn" editable="false" maxWidth="50.0" minWidth="50.0" prefWidth="50.0" text="%searchTableEntryTypeColumn" />
           <TableColumn fx:id="nameColumn" editable="false" minWidth="250.0" prefWidth="250.0" text="%searchTableNameColumn" />
           <TableColumn fx:id="commentColumn" editable="false" minWidth="300.0" prefWidth="300.0" text="%searchTableCommentColumn" />
+            <TableColumn fx:id="tagsColumn" editable="false" minWidth="300.0" prefWidth="300.0" text="%searchTableTagsColumn" />
             <TableColumn fx:id="createdColumn" editable="false" minWidth="250.0" prefWidth="250.0" text="%searchTableCreatedColumn" />
             <TableColumn fx:id="creatorColumn" editable="false" minWidth="150.0" prefWidth="150.0" text="%searchTableCreatorColumn" />
         </columns>
