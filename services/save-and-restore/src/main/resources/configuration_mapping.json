@@ -8,10 +8,10 @@
         "type" : "nested",
         "properties": {
           "pvName": {
-            "type": "text"
+            "type": "keyword"
           },
           "readbackPvName": {
-            "type": "text"
+            "type": "keyword"
           },
           "readOnly": {
             "type": "boolean"
