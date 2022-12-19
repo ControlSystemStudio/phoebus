@@ -20,6 +20,7 @@ import org.epics.vtype.VDouble;
 import org.epics.vtype.VStatistics;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
+import org.epics.vtype.VEnum;
 import org.phoebus.archive.vtype.VTypeHelper;
 import org.phoebus.pv.TimeHelper;
 
@@ -67,8 +68,13 @@ public class PlotSample implements PlotDataItem<Instant>
         {
             this.info = decodeAlarm(value);
             // For string PV add the text to info
-            if (value instanceof VString)
-                this.info = ((VString) value).getValue() + (" " + this.info).trim();
+            if (value instanceof VString) {
+                this.info = (((VString) value).getValue() + " " + this.info).trim();
+            }
+            else if (value instanceof VEnum) {
+                this.info = (((VEnum) value).getValue() + " " + this.info).trim();
+            }
+                
         }
         else
             this.info = info;

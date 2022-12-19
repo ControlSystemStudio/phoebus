@@ -10,7 +10,7 @@
           "configPv": {
             "properties": {
               "pvName" : {
-                "type": "keyword"
+                "type": "text"
               },
               "readOnly": {
                 "type" : "boolean"

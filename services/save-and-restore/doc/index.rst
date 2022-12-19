@@ -722,3 +722,30 @@ Body:
         }
       }
     ]
+
+Migration
+---------
+
+Commit ``48e17a380b660d59b79cec4d2bd908c0d78eeeae`` of the service code base is about changing the persistence
+component from a RDB engine to Elasticsearch. Sites using save-and-restore with an RDB engine may migrate
+data using the below procedure.
+
+Terminology: "source host" is the host running the legacy service instance using a RDB engine,
+while "target host" is the host that will be running the updated service.
+
+Make sure the source host is running the legacy save-and-restore service.
+
+Make sure the target host is running the Elasticsearch service, but **not** the save-and-restore service.
+
+On the target host, launch the save-and-restore service using the ``-migrate`` program argument:
+``java -jar /path/to/service-save-and-restore-<version>.jar -migrate http://<source host>:8080``
+
+Here it is assumed that the legacy save-and-restore service has been published on the (default) port 8080.
+
+If Elasticsearch is not running on localhost:9200, then add Java VM arguments like so:
+
+``-Delasticsearch.network.host=<hostname>``
+
+``-Delasticsearch.http.port=<port>``
+
+
