@@ -94,7 +94,7 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
 
         regularImage = ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/snapshot.png");
         goldenImage = ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/snapshot-golden.png");
-        compositeSnapshotImage = ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/composite-snapshot.png");
+        compositeSnapshotImage = ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/composite-snapshot.png.png");
 
         HBox container = new HBox();
         ImageView imageView = new ImageView();
