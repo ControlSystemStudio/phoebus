@@ -10,13 +10,12 @@ package org.phoebus.applications.update;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.Enumeration;
+import java.util.ServiceLoader;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -31,7 +30,6 @@ import org.phoebus.framework.jobs.SubJobMonitor;
 import org.phoebus.framework.preferences.AnnotatedPreferences;
 import org.phoebus.framework.preferences.Preference;
 import org.phoebus.framework.preferences.PreferencesReader;
-import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.framework.workbench.FileHelper;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.javafx.PlatformInfo;
@@ -51,7 +49,7 @@ import org.phoebus.util.time.TimestampFormats;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class Update
+abstract public class Update
 {
     public static final Logger logger = Logger.getLogger(Update.class.getPackageName());
 
@@ -60,69 +58,81 @@ public class Update
 
     /** Current version, or <code>null</code> if not set */
     public static final Instant current_version;
+
     /** The latest timestamp found on the update site. */
     protected Instant update_version;
-
-    /** Update URL, or empty if not set */
-    @Preference public static String update_url;
 
     /** Path removals */
     public static final PathWrangler wrangler;
 
-    final URL distribution_url;
-
-    public Update()
-    {
-        URL tmp = null;
-        try
-        {
-            tmp = new URL(update_url);
-        }
-        catch (MalformedURLException e)
-        {
-           // handled later when distribution_url is null
-        }
-        distribution_url = tmp;
-    }
-
-    static
-    {
-        final PreferencesReader prefs = AnnotatedPreferences.initialize(Update.class, "/update_preferences.properties");
-        current_version = TimestampFormats.parse(prefs.get("current_version"));
-
-        if (PlatformInfo.is_linux)
-        	update_url = update_url.replace("$(arch)", "linux");
-        else if (PlatformInfo.is_mac_os_x)
-        	update_url = update_url.replace("$(arch)", "mac");
-        else
-        	update_url = update_url.replace("$(arch)", "win");
-
-        wrangler = new PathWrangler(prefs.get("removals"));
-    }
+    protected JobMonitor monitor;
 
     /** Check version (i.e. date/time) of a distribution
      *  @param monitor {@link JobMonitor}
      *  @return Version of that distribution, or Instant of 0 when nothing found
      *  @throws Exception on error
      */
-    protected Instant getVersion(final JobMonitor monitor) throws Exception
-    {
-        if (distribution_url.getProtocol().equals("https"))
-            ResourceParser.trustAnybody();
-        return Instant.ofEpochMilli(
-                distribution_url.openConnection().getLastModified());
-    }
+    abstract protected Instant getVersion() throws Exception;
 
     /** Return the size of the suggested download. */
-    protected Long getDownloadSize() throws Exception
-    {
-        return distribution_url.openConnection().getContentLengthLong();
-    }
+    abstract protected Long getDownloadSize() throws Exception;
 
     /** Return a stream to access the download file. */
-    protected InputStream getDownloadStream() throws Exception
+    abstract protected InputStream getDownloadStream() throws Exception;
+
+    static
     {
-        return distribution_url.openStream();
+        final PreferencesReader prefs = AnnotatedPreferences.initialize(Update.class, "/update_preferences.properties");
+        current_version = TimestampFormats.parse(prefs.get("current_version"));
+
+        wrangler = new PathWrangler(prefs.get("removals"));
+    }
+
+    static UpdateProvider updaterFactory() {
+        if (null == current_version) {
+            // no point in spending any effort
+            // DummyUpdate just says "no update available."
+            // this way, no special case for "no provider found" is required in
+            // the caller.
+            return new DummyUpdate();
+        }
+        logger.log(Level.CONFIG, "Detecting Update Providers.");
+        UpdateProvider active_provider = null;
+
+        try
+        {
+            // find the one provider that is completely configured.
+            // this will be the one we use.
+            for (final var provider : ServiceLoader.load(UpdateProvider.class)) {
+                if (!provider.isEnabled()) {
+                    continue;
+                }
+                if (null != active_provider) {
+                    logger.warning("More than one update provider configured. Disabling updates.");
+                    return new DummyUpdate();
+                }
+                active_provider = provider;
+            }
+            if (null != active_provider) {
+                logger.fine("Update provider: " + active_provider.getClass().getName());
+                return active_provider;
+            }
+        }
+        catch (Throwable ex)
+        {
+            logger.log(Level.WARNING, "Cannot locate Update Providers", ex);
+        }
+        return new DummyUpdate();
+    }
+
+    static public String replace_arch(final String text)
+    {
+        if (PlatformInfo.is_linux)
+            return text.replace("$(arch)", "linux");
+        else if (PlatformInfo.is_mac_os_x)
+            return text.replace("$(arch)", "mac");
+        else
+            return text.replace("$(arch)", "win");
     }
 
     /** @param monitor {@link JobMonitor}
@@ -131,6 +141,7 @@ public class Update
      */
     protected File download(final JobMonitor monitor) throws Exception
     {
+        this.monitor = monitor;
         // Determine size
         final AtomicLong full_size = new AtomicLong();
         try
@@ -139,7 +150,7 @@ public class Update
         }
         catch (Exception ex)
         {
-            logger.log(Level.WARNING, "Cannot determine size of " + distribution_url, ex);
+            logger.log(Level.WARNING, "Cannot determine size of download.", ex);
         }
 
         // On success, caller will delete the file.
@@ -208,7 +219,7 @@ public class Update
      *  @param update_zip ZIP file with distribution
      *  @throws Exception on error
      */
-    protected static void update(final JobMonitor monitor, final File install_location, final File update_zip) throws Exception
+    protected void update(final File install_location, final File update_zip) throws Exception
     {
         if (monitor.isCanceled())
             return;
@@ -296,15 +307,9 @@ public class Update
      */
     public Instant checkForUpdate(final JobMonitor monitor) throws Exception
     {
-        // exit gracefully, if no update_url is defined
-        if (update_url.isEmpty()  ||  current_version == null)
-            return null;
-        // complain, if it is defined, but could not be parsed.
-        if (null == distribution_url)
-            throw new RuntimeException("Invalid distribution_url.");
-        logger.info("Checking " + update_url);
+        this.monitor = monitor;
         logger.info("Current version  : " + TimestampFormats.DATETIME_FORMAT.format(current_version));
-        update_version = getVersion(monitor);
+        update_version = getVersion();
 
         logger.info("Available version: " + TimestampFormats.DATETIME_FORMAT.format(update_version));
         if (update_version.isAfter(current_version))
@@ -315,7 +320,7 @@ public class Update
 
     /** Perform update
      *
-     *  <p>Get & unpack `update_url` into the current installation.
+     *  <p>Get & unpack the update file into the current installation.
      *
      *  @param monitor {@link JobMonitor}
      *  @param install_location Existing {@link Locations#install()}
@@ -323,24 +328,19 @@ public class Update
      */
     public void downloadAndUpdate(final JobMonitor monitor, final File install_location) throws Exception
     {
+        this.monitor = monitor;
         monitor.beginTask("Update", 100);
         logger.info("Updating from current version " + TimestampFormats.DATETIME_FORMAT.format(current_version));
-        // Local file?
-        if (update_url.startsWith("file:"))
-            update(monitor, install_location, new File(update_url.substring(5)));
-        else
-        {   // Download
-            monitor.updateTaskName("Download " + update_url);
-            final File distribution_zip = download(monitor);
-            try
-            {
-                update(monitor, install_location, distribution_zip);
-            }
-            finally
-            {
-                logger.info("Deleting " + distribution_zip);
-                distribution_zip.delete();
-            }
+        monitor.updateTaskName("Download update");
+        final File distribution_zip = download(monitor);
+        try
+        {
+            update(install_location, distribution_zip);
+        }
+        finally
+        {
+            logger.info("Deleting " + distribution_zip);
+            distribution_zip.delete();
         }
         adjustCurrentVersion();
     }

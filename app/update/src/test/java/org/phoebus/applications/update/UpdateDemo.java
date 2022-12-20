@@ -49,7 +49,7 @@ public class UpdateDemo
             }
         };
 
-        final var updater = new Update();
+        final var updater = new URLUpdate();
         final Instant new_version = updater.checkForUpdate(monitor);
         if (new_version != null)
             updater.downloadAndUpdate(monitor, install_location);
