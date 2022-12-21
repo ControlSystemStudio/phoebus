@@ -523,6 +523,9 @@ public class DockPane extends TabPane
     /** Accept a dropped tab */
     private void handleDrop(final DragEvent event)
     {
+        if (!event.getDragboard().hasContent(DockItem.DOCK_ITEM)){
+            return;
+        }
         final DockItem item = DockItem.dragged_item.getAndSet(null);
         if (item == null)
             logger.log(Level.SEVERE, "Empty drop, " + event);
