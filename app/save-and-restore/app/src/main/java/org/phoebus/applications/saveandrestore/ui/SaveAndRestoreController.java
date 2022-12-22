@@ -741,9 +741,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     public void locateNode(Stack<Node> nodeStack) {
         TreeItem<Node> parentTreeItem = treeView.getRoot();
 
-        // If this method is called in response to launching save&restore with a "resource", the
-        // tree view has not yet been initialized -> root node does not exist
-
         while (nodeStack.size() > 0) {
             Node currentNode = nodeStack.pop();
             TreeItem<Node> currentTreeItem = recursiveSearch(currentNode.getUniqueId(), parentTreeItem);
@@ -1187,12 +1184,13 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         if(uri == null){
             return;
         }
-        Node node = saveAndRestoreService.getNode(uri.getPath());
+        String nodeId = uri.getPath().substring(1);
+        Node node = saveAndRestoreService.getNode(nodeId);
         if(node == null){
             // Show error dialog.
             Alert alert = new Alert(AlertType.ERROR);
             alert.setTitle(Messages.openResourceFailedTitle);
-            alert.setHeaderText(MessageFormat.format(Messages.openResourceFailedHeader, uri.getPath()));
+            alert.setHeaderText(MessageFormat.format(Messages.openResourceFailedHeader, nodeId));
             DialogHelper.positionDialog(alert, treeView, -200, -200);
             alert.show();
             return;
