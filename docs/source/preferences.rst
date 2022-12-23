@@ -51,6 +51,13 @@ Start Phoebus like this to import the settings from your file::
 
   phoebus.sh -settings /path/to/settings.ini
 
+Start Phoebus like this to import the settings from a remote URL::
+
+  phoebus.sh -settings http://mysite.com/settings.ini
+
+Loading from URL assumes remote service does not respond with a redirect. Moreover, if using https, the remote URL
+must be backed by a trusted certificate.
+
 At runtime, you can view the currently effective preference settings
 from the menu ``Help``, ``About``. The ``Details`` pane includes a tab
 that lists all preference settings in the same format that is used by the
