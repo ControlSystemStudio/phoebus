@@ -62,6 +62,7 @@ import javafx.stage.Stage;
 import javafx.util.Pair;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVExporter;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVImporter;
@@ -78,8 +79,6 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
-import org.phoebus.framework.preferences.PreferencesReader;
-
 import org.phoebus.ui.autocomplete.AutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -152,8 +151,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     protected static final Logger LOG = Logger.getLogger(SaveAndRestoreService.class.getName());
 
-    protected PreferencesReader preferencesReader;
-
     public static final Image folderIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/folder.png");
     public static final Image snapshotIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot.png");
     public static final Image snapshotGoldenIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-golden.png");
@@ -166,10 +163,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     private final URI uri;
 
     /**
-     *
      * @param uri If non-null, this is used to load a configuration or snapshot into the view.
      */
-    public SaveAndRestoreController(URI uri){
+    public SaveAndRestoreController(URI uri) {
         this.uri = uri;
     }
 
@@ -180,8 +176,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         browserSelectionModel = treeView.getSelectionModel();
 
-        preferencesReader =
-                new PreferencesReader(SaveAndRestoreApplication.class, "/save_and_restore_preferences.properties");
         reconnectButton.setGraphic(ImageCache.getImageView(SaveAndRestoreApplication.class, "/icons/refresh.png"));
         reconnectButton.setTooltip(new Tooltip(Messages.buttonRefresh));
 
@@ -192,9 +186,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         searchButton.setGraphic(searchButtonImageView);
         searchButton.setTooltip(new Tooltip(Messages.buttonSearch));
 
-        folderContextMenu = new ContextMenuFolder(this, preferencesReader.getBoolean("enableCSVIO"), multipleItemsSelected);
+        folderContextMenu = new ContextMenuFolder(this, Preferences.enableCSVIO, multipleItemsSelected);
         folderContextMenu.setOnShowing(event -> multipleItemsSelected.set(browserSelectionModel.getSelectedItems().size() > 1));
-        configurationContextMenu = new ContextMenuConfiguration(this, preferencesReader.getBoolean("enableCSVIO"), multipleItemsSelected);
+        configurationContextMenu = new ContextMenuConfiguration(this, Preferences.enableCSVIO, multipleItemsSelected);
         configurationContextMenu.setOnShowing(event -> multipleItemsSelected.set(browserSelectionModel.getSelectedItems().size() > 1));
 
         rootFolderContextMenu = new ContextMenu();
@@ -202,7 +196,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         newRootFolderMenuItem.setOnAction(ae -> createNewFolder());
         rootFolderContextMenu.getItems().add(newRootFolderMenuItem);
 
-        snapshotContextMenu = new ContextMenuSnapshot(this, preferencesReader.getBoolean("enableCSVIO"),
+        snapshotContextMenu = new ContextMenuSnapshot(this, Preferences.enableCSVIO,
                 toggleGoldenMenuItemText, toggleGoldenImageViewProperty, multipleItemsSelected);
 
         treeView.setEditable(true);
@@ -214,7 +208,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             }
             if (item.getValue().getNodeType().equals(NodeType.SNAPSHOT)) {
                 toggleGoldenMenuItemText.set(item.getValue().hasTag(Tag.GOLDEN) ? Messages.contextMenuRemoveGoldenTag : Messages.contextMenuTagAsGolden);
-                toggleGoldenImageViewProperty.set(item.getValue().hasTag(Tag.GOLDEN)  ? snapshotImageView : snapshotGoldenImageView);
+                toggleGoldenImageViewProperty.set(item.getValue().hasTag(Tag.GOLDEN) ? snapshotImageView : snapshotGoldenImageView);
             }
             // Check if a tab has already been opened for this node.
             boolean highlighted = highlightTab(item.getValue().getUniqueId());
@@ -436,10 +430,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         List<String> nodeIds =
                 items.stream().map(item -> item.getValue().getUniqueId()).collect(Collectors.toList());
         JobManager.schedule("Delete nodes", monitor -> {
-            try{
+            try {
                 saveAndRestoreService.deleteNodes(nodeIds);
-            }
-            catch (Exception e){
+            } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
                         MessageFormat.format(Messages.errorDeleteNodeFailed, items.get(0).getValue().getName()),
                         e);
@@ -532,7 +525,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
     }
 
-    public void nodeDoubleClicked(){
+    public void nodeDoubleClicked() {
         nodeDoubleClicked(treeView.getSelectionModel().getSelectedItem().getValue());
     }
 
@@ -548,7 +541,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         switch (node.getNodeType()) {
             case CONFIGURATION:
                 tab = new ConfigurationTab();
-                ((ConfigurationTab)tab).editCOnfiguration(node);
+                ((ConfigurationTab) tab).editCOnfiguration(node);
                 break;
             case SNAPSHOT:
                 tab = new SnapshotTab(node, saveAndRestoreService);
@@ -563,14 +556,14 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         tabPane.getSelectionModel().select(tab);
     }
 
-    private void launchTabForNewConfiguration(Node parentNode){
+    private void launchTabForNewConfiguration(Node parentNode) {
         ConfigurationTab tab = new ConfigurationTab();
         tab.configureForNewConfiguration(parentNode);
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);
     }
 
-    private boolean highlightTab(String id){
+    private boolean highlightTab(String id) {
         for (Tab tab : tabPane.getTabs()) {
             if (tab.getId() != null && tab.getId().equals(id)) {
                 tabPane.getSelectionModel().select(tab);
@@ -774,8 +767,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     /**
      * Locates expanded nodes recursively and adds them to <code>expandedNodes</code>
+     *
      * @param expandedNodes The {@link List} holding expanded nodes.
-     * @param treeItem The {@link TreeItem} in which to look for expanded {@link TreeItem}s (nodes).
+     * @param treeItem      The {@link TreeItem} in which to look for expanded {@link TreeItem}s (nodes).
      */
     private void findExpandedNodes(List<String> expandedNodes, TreeItem<Node> treeItem) {
         if (treeItem.expandedProperty().get() && !treeItem.getChildren().isEmpty()) {
@@ -828,7 +822,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         @Override
         public int compare(TreeItem<Node> t1, TreeItem<Node> t2) {
             if (t1.getValue().getNodeType().equals(NodeType.SNAPSHOT) && t2.getValue().getNodeType().equals(NodeType.SNAPSHOT)) {
-                return (preferencesReader.getBoolean("sortSnapshotsTimeReversed") ? -1 : 1) * t1.getValue().getCreated().compareTo(t2.getValue().getCreated());
+                return (Preferences.sortSnapshotsTimeReversed ? -1 : 1) * t1.getValue().getCreated().compareTo(t2.getValue().getCreated());
             }
             return t1.getValue().compareTo(t2.getValue());
         }
@@ -986,7 +980,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * @param node The snapshot to which tag is added.
      */
     public void addTagToSnapshot(Node node) {
-        SnapshotNewTagDialog snapshotNewTagDialog = new SnapshotNewTagDialog(node.getTags() == null ? new ArrayList<>(): node.getTags());
+        SnapshotNewTagDialog snapshotNewTagDialog = new SnapshotNewTagDialog(node.getTags() == null ? new ArrayList<>() : node.getTags());
         snapshotNewTagDialog.initModality(Modality.APPLICATION_MODAL);
 
         String locationString = DirectoryUtilities.CreateLocationString(node, true);
@@ -1177,16 +1171,17 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     /**
      * Launches the save & restore app and highlights/loads the "resource" (configuration or snapshot) identified
      * by the {@link URI}. If the configuration/snapshot in question cannot be found, an error dialog is shown.
+     *
      * @param uri An {@link URI} on the form file:/unique-id?app=saveandrestore, where unique-id is the
      *            unique id of a configuration or snapshot.
      */
-    public void openResource(URI uri){
-        if(uri == null){
+    public void openResource(URI uri) {
+        if (uri == null) {
             return;
         }
         String nodeId = uri.getPath().substring(1);
         Node node = saveAndRestoreService.getNode(nodeId);
-        if(node == null){
+        if (node == null) {
             // Show error dialog.
             Alert alert = new Alert(AlertType.ERROR);
             alert.setTitle(Messages.openResourceFailedTitle);
