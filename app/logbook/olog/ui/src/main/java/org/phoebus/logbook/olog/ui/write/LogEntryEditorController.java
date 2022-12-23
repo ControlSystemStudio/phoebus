@@ -142,6 +142,8 @@ public class LogEntryEditorController {
     private TextField logbooksSelection;
     @FXML
     private TextField tagsSelection;
+    @FXML
+    private Label serviceURL;
 
     private final ContextMenu logbookDropDown = new ContextMenu();
     private final ContextMenu tagDropDown = new ContextMenu();
@@ -212,6 +214,8 @@ public class LogEntryEditorController {
 
     @FXML
     public void initialize() {
+
+        serviceURL.textProperty().set(logFactory.getLogClient().getServiceUrl());
 
         // This could be configured in the fxml, but then these UI components would not be visible
         // in Scene Builder.
