@@ -24,6 +24,7 @@ import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ConfigurationDataRepository;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchTreeRepository;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.SnapshotDataRepository;
+import org.phoebus.service.saveandrestore.search.SearchUtil;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -61,4 +62,15 @@ public class ControllersTestConfig {
         return Mockito.mock(ElasticsearchClient.class);
     }
 
+    @SuppressWarnings("unused")
+    @Bean
+    public AcceptHeaderResolver acceptHeaderResolver() {
+        return new AcceptHeaderResolver();
+    }
+
+    @SuppressWarnings("unused")
+    @Bean
+    public SearchUtil searchUtil() {
+        return new SearchUtil();
+    }
 }
