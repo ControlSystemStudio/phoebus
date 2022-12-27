@@ -315,5 +315,10 @@ public class SearchController implements Initializable {
             return tag;
         }
     }
+
+    @FXML
+    public void showHelp(){
+        new HelpViewer().show();
+    }
 }
 
