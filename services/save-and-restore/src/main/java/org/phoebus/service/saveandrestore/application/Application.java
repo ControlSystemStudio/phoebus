@@ -17,12 +17,14 @@
  */
 package org.phoebus.service.saveandrestore.application;
 
+import com.fasterxml.jackson.databind.annotation.JsonAppend.Prop;
 import org.phoebus.service.saveandrestore.migration.MigrateRdbToElastic;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchDAO;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.ArrayList;
@@ -65,6 +67,7 @@ public class Application {
                     if (!iterator.hasNext())
                         throw new Exception("Missing -migrate legacy.service.url");
                     runMigration = true;
+                    System.setProperty("migrationContext", "true");
                     iterator.remove();
                     properties.put("legacy.service.url", iterator.next());
                     iterator.remove();
@@ -82,6 +85,8 @@ public class Application {
             System.exit(-1);
             return;
         }
+
+
 
         context = SpringApplication.run(Application.class, args);
 

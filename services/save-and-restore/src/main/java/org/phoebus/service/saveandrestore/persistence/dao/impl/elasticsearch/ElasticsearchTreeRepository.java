@@ -47,6 +47,7 @@ import org.phoebus.service.saveandrestore.model.ESTreeNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -56,6 +57,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -70,9 +72,26 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
     @Value("${elasticsearch.tree_node.index:saveandrestore_tree}")
     public String ES_TREE_INDEX;
 
+    /**
+     * Used to determine if the {@link ESTreeNode} is saved or updated in connection to a migration
+     * operation. If so, the last modified date should be preserved.
+     */
+    private boolean migrationContext;
+
     @Autowired
     @Qualifier("client")
     ElasticsearchClient client;
+
+    public ElasticsearchTreeRepository(){
+        String isMigrationContext = System.getProperty("migrationContext");
+        if(isMigrationContext != null){
+            try {
+                migrationContext = Boolean.parseBoolean(isMigrationContext);
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Cannot parse migration context value " + isMigrationContext + " as boolean");
+            }
+        }
+    }
 
     /**
      * Saves an {@link ESTreeNode} object.
@@ -95,8 +114,10 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
                 elasticTreeNode.getNode().setUniqueId(UUID.randomUUID().toString());
             }
 
-            // Update last modified date
-            elasticTreeNode.getNode().setLastModified(now);
+            // Set last modified date
+            if(!migrationContext){
+                elasticTreeNode.getNode().setLastModified(now);
+            }
 
             IndexRequest<ESTreeNode> indexRequest =
                     IndexRequest.of(i ->
