@@ -177,7 +177,7 @@ public class SearchUtil {
                 DisMaxQuery.Builder temporalQuery = new DisMaxQuery.Builder();
                 RangeQuery.Builder rangeQuery = new RangeQuery.Builder();
                 // Add a query based on the created time
-                rangeQuery.field("node.created").from(Long.toString(1000 * start.toEpochSecond()))
+                rangeQuery.field("node.lastModified").from(Long.toString(1000 * start.toEpochSecond()))
                         .to(Long.toString(1000 * end.toEpochSecond()));
                 NestedQuery nestedQuery = NestedQuery.of(n1 -> n1.path("node").query(rangeQuery.build()._toQuery()));
                 temporalQuery.queries(nestedQuery._toQuery());
