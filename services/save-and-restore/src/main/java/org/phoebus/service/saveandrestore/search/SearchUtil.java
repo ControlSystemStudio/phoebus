@@ -79,7 +79,7 @@ public class SearchUtil {
                 case "desc":
                     for (String value : parameter.getValue()) {
                         for (String pattern : value.split("[|,;]")) {
-                            descriptionTerms.add(pattern.trim().toLowerCase());
+                            descriptionTerms.add(pattern.trim());
                         }
                     }
                     break;
@@ -87,8 +87,7 @@ public class SearchUtil {
                 case "type":
                     for (String value : parameter.getValue()) {
                         for (String pattern : value.split("[|,;]")) {
-                            // Convert to upper case as node type is stored using the NodeType enum string values.
-                            nodeTypeTerms.add(pattern.trim().toUpperCase());
+                            nodeTypeTerms.add(pattern.trim().toLowerCase());
                         }
                     }
                     break;
@@ -138,11 +137,11 @@ public class SearchUtil {
                             BoolQuery.Builder bqb = new BoolQuery.Builder();
                             // This handles a special case where search is done on name only, e.g. tags=golden
                             if (tagsSearchFields[0] != null && !tagsSearchFields[0].isEmpty() && (tagsSearchFields[1] == null || tagsSearchFields[1].isEmpty())) {
-                                bqb.must(WildcardQuery.of(w -> w.field("node.tags.name").value(tagsSearchFields[0].trim().toLowerCase()))._toQuery());
+                                bqb.must(WildcardQuery.of(w -> w.caseInsensitive(true).field("node.tags.name").value(tagsSearchFields[0].trim().toLowerCase()))._toQuery());
                             }
                             // This handles the "generic" case where user specifies a field of a tag, e.g. tags=comment.foo (where foo is the search term)
                             else {
-                                bqb.must(WildcardQuery.of(w -> w.field("node.tags." + tagsSearchFields[0]).value(tagsSearchFields[1].trim().toLowerCase()))._toQuery());
+                                bqb.must(WildcardQuery.of(w -> w.caseInsensitive(true).field("node.tags." + tagsSearchFields[0]).value(tagsSearchFields[1].trim().toLowerCase()))._toQuery());
                             }
                             NestedQuery innerNestedQuery;
                             innerNestedQuery = NestedQuery.of(n1 -> n1.path("node.tags").query(bqb.build()._toQuery()));
@@ -165,7 +164,7 @@ public class SearchUtil {
                     }
                     break;
                 default:
-                    // Unsupported search parameters are ignored
+                    // Unsupported search parameters ignored
                     break;
             }
         }
@@ -243,7 +242,7 @@ public class SearchUtil {
             List<Query> nodeTypeQueries = new ArrayList<>();
             nodeTypeTerms.forEach(searchTerm -> {
                 NestedQuery innerNestedQuery;
-                WildcardQuery matchQuery = WildcardQuery.of(m -> m.field("node.nodeType").value(searchTerm));
+                WildcardQuery matchQuery = WildcardQuery.of(m -> m.caseInsensitive(true).field("node.nodeType").value(searchTerm));
                 innerNestedQuery = NestedQuery.of(n1 -> n1.path("node").query(matchQuery._toQuery()));
                 nodeTypeQueries.add(innerNestedQuery._toQuery());
             });
