@@ -113,7 +113,7 @@ public class DockItem extends Tab
      *
      *  Custom format to prevent dropping a tab into e.g. a text editor
      */
-    private static final DataFormat DOCK_ITEM = new DataFormat("dock_item.custom");
+    protected static final DataFormat DOCK_ITEM = new DataFormat("dock_item.custom");
 
     /** Name of the tab */
     protected String name;
@@ -404,7 +404,7 @@ public class DockItem extends Tab
     /** Accept a dropped tab */
     private void handleDrop(final DragEvent event)
     {
-        if (getDockPane().isFixed())
+        if (getDockPane().isFixed() || !event.getDragboard().hasContent(DOCK_ITEM))
             return;
 
         final DockItem item = dragged_item.getAndSet(null);

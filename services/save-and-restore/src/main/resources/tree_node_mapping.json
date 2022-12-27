@@ -8,13 +8,13 @@
             "type": "keyword"
           },
           "name": {
-            "type": "keyword"
+            "type": "text"
           },
           "userName": {
-            "type": "keyword"
+            "type": "text"
           },
           "description" : {
-            "type": "keyword"
+            "type": "text"
           },
           "created" : {
             "type": "date",
@@ -31,13 +31,13 @@
             "type" : "nested",
             "properties": {
               "name": {
-                "type": "keyword"
+                "type": "text"
               },
               "comment": {
-                "type": "keyword"
+                "type": "text"
               },
               "userName": {
-                "type": "keyword"
+                "type": "text"
               },
               "created" : {
                 "type": "date",

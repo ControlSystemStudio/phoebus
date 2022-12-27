@@ -96,7 +96,8 @@ public class TimestampFormats
         TimestampFormats.MILLI_FORMAT,
         TimestampFormats.SECONDS_FORMAT,
         TimestampFormats.DATETIME_FORMAT,
-        TimestampFormats.DATE_FORMAT
+        TimestampFormats.DATE_FORMAT,
+        DateTimeFormatter.ISO_INSTANT
     };
 
     /** Try to parse text as absolute date, time

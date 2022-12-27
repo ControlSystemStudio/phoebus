@@ -2,10 +2,12 @@ package org.phoebus.archive.reader.appliance;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Comparator;
 
 import org.epics.archiverappliance.retrieval.client.DataRetrieval;
 import org.epics.archiverappliance.retrieval.client.EpicsMessage;
@@ -51,6 +53,7 @@ import gov.aps.jca.dbr.Status;
  */
 public abstract class ApplianceValueIterator implements ValueIterator {
 
+    protected EnumDisplay enumDisplay;
     protected Display display;
     protected GenMsgIterator mainStream;
     protected Iterator<EpicsMessage> mainIterator;
@@ -104,9 +107,12 @@ public abstract class ApplianceValueIterator implements ValueIterator {
         java.sql.Timestamp sqlStartTimestamp = TimestampHelper.toSQLTimestamp(start);
         java.sql.Timestamp sqlEndTimestamp = TimestampHelper.toSQLTimestamp(end);
 
+        HashMap<String, String> otherParms = new HashMap<String, String>();
+        otherParms.put("fetchLatestMetadata", "true");  // Include Metadata like EnumLabels in the headers
+
         DataRetrieval dataRetrieval = reader.createDataRetriveal(reader.getDataRetrievalURL());
         synchronized(lock){
-            mainStream = dataRetrieval.getDataForPV(pvName, sqlStartTimestamp, sqlEndTimestamp);
+            mainStream = dataRetrieval.getDataForPV(pvName, sqlStartTimestamp, sqlEndTimestamp, false, otherParms);
         }
         if (mainStream != null) {
             mainIterator = mainStream.iterator();
@@ -158,13 +164,13 @@ public abstract class ApplianceValueIterator implements ValueIterator {
             type == PayloadType.SCALAR_FLOAT ||
             type == PayloadType.SCALAR_INT ||
             type == PayloadType.SCALAR_SHORT) {
+            if (display==null) display = getDisplay(mainStream.getPayLoadInfo());
             return VNumber.of(dataMessage.getNumberValue(),
-                              alarm, time,
-                              display == null ? getDisplay(mainStream.getPayLoadInfo()) : display);
+                              alarm, time, display);
         } else if (type == PayloadType.SCALAR_ENUM) {
-            return VEnum.of(dataMessage.getNumberValue().intValue(),
-                            EnumDisplay.of(), //TODO get the labels from somewhere
-                            alarm, time);
+            if (enumDisplay==null) enumDisplay = getEnumDisplay(mainStream.getPayLoadInfo());
+
+            return VEnum.of(dataMessage.getNumberValue().intValue(), enumDisplay, alarm, time);
         } else if (type == PayloadType.SCALAR_STRING) {
             if (valDescriptor == null) {
                 valDescriptor = getValDescriptor(dataMessage);
@@ -189,9 +195,11 @@ public abstract class ApplianceValueIterator implements ValueIterator {
                     val[i++] = ((Float)d).doubleValue();
                 }
             }
+
+            if (display==null) display = getDisplay(mainStream.getPayLoadInfo());
             return VDoubleArray.of(ArrayDouble.of(val),
                                    alarm, time,
-                                   display == null ? getDisplay(mainStream.getPayLoadInfo()) : display);
+                                   display);
         } else if (type == PayloadType.WAVEFORM_INT
                 || type == PayloadType.WAVEFORM_SHORT) {
             if (valDescriptor == null) {
@@ -205,17 +213,19 @@ public abstract class ApplianceValueIterator implements ValueIterator {
                 val[i++] = ((Integer)d).intValue();
             }
 
+            if (display==null) display = getDisplay(mainStream.getPayLoadInfo());
             return VIntArray.of(ArrayInteger.of(val),
                                 alarm, time,
-                                display == null ? getDisplay(mainStream.getPayLoadInfo()) : display);
+                                display);
         } else if (type == PayloadType.WAVEFORM_BYTE) {
             if (valDescriptor == null) {
                 valDescriptor = getValDescriptor(dataMessage);
             }
+            if (display==null) display = getDisplay(mainStream.getPayLoadInfo());
             //we could load the data directly using result.getNumberAt(index), but this is faster
             return VByteArray.of(ArrayByte.of(((ByteString)dataMessage.getMessage().getField(valDescriptor)).toByteArray()),
                                  alarm, time,
-                                 display == null ? getDisplay(mainStream.getPayLoadInfo()) : display);
+                                 display);
         }
         throw new UnsupportedOperationException("PV type " + type + " is not supported.");
     }
@@ -294,6 +304,31 @@ public abstract class ApplianceValueIterator implements ValueIterator {
                                : NumberFormats.toStringFormat());
     }
 
+    /**
+     * Extract the labels from the given payloadinfo when processing Enum Values. 
+     * EnumLabels list empty if payloadinfo from request without "fetchLatestMetadata" set to true
+     *
+     * @param info the info to extract the labels
+     * @return the EnumDisplay containing the labels
+     */
+    protected EnumDisplay getEnumDisplay(PayloadInfo info) {
+        List<FieldValue> labelsTemp = new ArrayList<>();
+        List<String> labels = new ArrayList<>();
+
+        for (FieldValue fv : info.getHeadersList()) {
+            if (fv.getName().startsWith("ENUM_")) {
+                labelsTemp.add(fv);
+            }
+        }
+            // Sort by index in FieldValue Name because headers not sorted
+        labelsTemp.sort(Comparator.comparingInt(fv -> Integer.parseInt(fv.getName().substring(5))));
+
+        for (FieldValue fv : labelsTemp) {
+            labels.add(fv.getVal());
+        }
+
+        return EnumDisplay.of(labels);
+    }
 
     /**
      * Determines alarm severity from the given numerical representation.

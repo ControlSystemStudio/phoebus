@@ -76,9 +76,6 @@ public class TableEntry {
     private Optional<Threshold<?>> threshold = Optional.empty();
     private final BooleanProperty readOnly = new SimpleBooleanProperty(this, "readOnly", false);
 
-    private final BooleanProperty readonlyOverride = new SimpleBooleanProperty(false);
-
-    //private final ObjectProperty<ConfigPv> configPvObjectProperty = new SimpleObjectProperty<>(this, "configPv", null);
 
     private ConfigPv configPv;
 
@@ -212,13 +209,6 @@ public class TableEntry {
      */
     public BooleanProperty readOnlyProperty() {
         return readOnly;
-    }
-
-    /**
-     * @return the property indicating the the PV has read only setting overriden
-     */
-    public BooleanProperty readonlyOverrideProperty() {
-        return readonlyOverride;
     }
 
     /**
