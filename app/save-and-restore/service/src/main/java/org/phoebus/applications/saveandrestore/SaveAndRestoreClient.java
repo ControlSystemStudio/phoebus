@@ -27,7 +27,9 @@ import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.List;
 
 /**
@@ -166,5 +168,13 @@ public interface SaveAndRestoreClient {
      */
     List<String> checkCompositeSnapshotConsistency(List<String> snapshotNodeIds);
 
+    /**
+     * Updates a composite snapshot. Note that the list of referenced snapshots must be the full list of wanted
+     * snapshots, i.e. there is no way to only add new references, or only remove unwanted references.
+     * @param compositeSnapshot A {@link CompositeSnapshot} object hold data.
+     * @return The updates {@link CompositeSnapshot} object.
+     */
     CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot);
+
+    SearchResult search(MultivaluedMap<String, String> searchParams);
 }

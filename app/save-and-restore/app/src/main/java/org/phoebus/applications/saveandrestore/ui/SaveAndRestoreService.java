@@ -32,7 +32,9 @@ import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -346,5 +348,9 @@ public class SaveAndRestoreService {
      */
     public List<String> checkCompositeSnapshotConsistency(List<String> snapshotNodeIds) throws Exception{
         return saveAndRestoreClient.checkCompositeSnapshotConsistency(snapshotNodeIds);
+    }
+
+    public SearchResult search(MultivaluedMap<String, String> searchParams) throws Exception{
+        return saveAndRestoreClient.search(searchParams);
     }
 }

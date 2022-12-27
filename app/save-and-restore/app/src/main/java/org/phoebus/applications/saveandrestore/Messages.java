@@ -101,7 +101,7 @@ public class Messages {
     public static String saveSnapshotErrorContent;
     public static String saveTagButtonLabel;
     public static String searchEntryToolTip;
-
+    public static String searchErrorBody;
     public static String searchWindowLabel;
     public static String setpoint;
     public static String setpointPVWhen;

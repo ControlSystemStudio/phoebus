@@ -42,9 +42,11 @@ import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.service.Messages;
 import org.phoebus.framework.preferences.PreferencesReader;
 
+import javax.ws.rs.core.MultivaluedMap;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
@@ -400,7 +402,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
             throw new RuntimeException(e);
         }
         if (response.getStatus() != 200) {
-            String message = Messages.saveSnaphotFailed;
+            String message = Messages.searchFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
@@ -475,5 +477,23 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
             throw new RuntimeException(message);
         }
         return response.getEntity(CompositeSnapshot.class);
+    }
+
+    @Override
+    public SearchResult search(MultivaluedMap<String, String> searchParams){
+        WebResource webResource = client.resource(jmasarServiceUrl + "/search")
+                .queryParams(searchParams);
+        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
+                .get(ClientResponse.class);
+        if (response.getStatus() != 200) {
+            String message = Messages.searchFailed;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                // Ignore
+            }
+            throw new RuntimeException(message);
+        }
+        return response.getEntity(SearchResult.class);
     }
 }

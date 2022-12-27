@@ -23,26 +23,38 @@ package org.phoebus.applications.saveandrestore.ui;
 
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.TreeItem;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.search.SearchResult;
+import org.phoebus.applications.saveandrestore.ui.SearchQueryUtil.Keys;
+import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
 
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Stack;
 import java.util.logging.Logger;
@@ -57,99 +69,51 @@ import java.util.stream.Collectors;
 public class SearchController implements Initializable {
 
     private SaveAndRestoreController callerController;
-    private List<SearchEntry> tableEntries = new ArrayList<>();
+    private List<Node> tableEntries = new ArrayList<>();
 
     @FXML
     private TextField keywordTextField;
 
     @FXML
-    private CheckBox searchOptionSnapshotName;
+    private TableView<Node> resultTableView;
 
     @FXML
-    private CheckBox searchOptionSnapshotComment;
+    private TableColumn<Node, ImageView> typeColumn;
 
     @FXML
-    private CheckBox searchOptionTagName;
+    private TableColumn<Node, String> nameColumn;
 
     @FXML
-    private CheckBox searchOptionTagComment;
+    private TableColumn<Node, String> commentColumn;
 
     @FXML
-    private CheckBox searchOptionGoldenOnly;
+    private TableColumn<Node, String> tagsColumn;
 
     @FXML
-    private TableView<SearchEntry> resultTableView;
+    private TableColumn<Node, Date> createdColumn;
 
     @FXML
-    private TableColumn<SearchEntry, ImageView> typeColumn;
-
-    @FXML
-    private TableColumn<SearchEntry, String> nameColumn;
-
-    @FXML
-    private TableColumn<SearchEntry, String> commentColumn;
-
-    @FXML
-    private TableColumn<SearchEntry, String> tagsColumn;
-
-    @FXML
-    private TableColumn<SearchEntry, Date> createdColumn;
-
-    @FXML
-    private TableColumn<SearchEntry, String> creatorColumn;
+    private TableColumn<Node, String> creatorColumn;
 
     private SaveAndRestoreService saveAndRestoreService;
 
     private static final Logger LOG = Logger.getLogger(SaveAndRestoreService.class.getName());
 
-    private void refreshList() {
-        tableEntries.clear();
-        List<Node> snapshotList;
-        if (searchOptionSnapshotName.isSelected() || searchOptionSnapshotComment.isSelected()) {
-            try {
-                snapshotList = saveAndRestoreService.getAllSnapshots();
-                snapshotList.stream().map(SearchEntry::create).forEach(tableEntries::add);
-                if (searchOptionGoldenOnly.isSelected()) {
-                    tableEntries = tableEntries.stream().filter(se -> isSnapshotGolden(se.snapshot)).collect(Collectors.toList());
-                }
+    private Map<String, Keys> lookup = Arrays.stream(Keys.values()).collect(Collectors.toMap(Keys::getName, k -> {
+        return k;
+    }));
 
-            } catch (Exception e) {
-                LOG.warning("Unable to retrieve snapshot list from server. Please check if the latest version of service is running.");
-            }
-        }
-
-        List<Tag> tagList;
-        if (searchOptionTagName.isSelected() || searchOptionTagComment.isSelected()) {
-            try {
-                tagList = saveAndRestoreService.getAllTags();
-                tagList.stream().map(SearchEntry::create).forEach(tableEntries::add);
-            } catch (Exception e) {
-                LOG.warning("Unable to retrieve tag list from server. Please check if the latest version of service is running.");
-            }
-        }
-
-        resultTableView.getItems().addAll(tableEntries);
-    }
+    private ObservableMap<Keys, String> searchParameters = FXCollections.<Keys, String>observableHashMap();
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         saveAndRestoreService = SaveAndRestoreService.getInstance();
-        refreshList();
-        filterList(null);
-
-        keywordTextField.textProperty().addListener((observableValue, oldKeyword, newKeyword) -> filterList(newKeyword));
-
-        searchOptionSnapshotName.selectedProperty().addListener((observableValue, aBoolean, selected) -> filterList(keywordTextField.getText()));
-        searchOptionSnapshotComment.selectedProperty().addListener((observableValue, aBoolean, selected) -> filterList(keywordTextField.getText()));
-        searchOptionTagName.selectedProperty().addListener((observableValue, aBoolean, selected) -> filterList(keywordTextField.getText()));
-        searchOptionTagComment.selectedProperty().addListener((observableValue, aBoolean, selected) -> filterList(keywordTextField.getText()));
-        searchOptionGoldenOnly.selectedProperty().addListener((observableValue, aBoolean, selected) -> filterList(keywordTextField.getText()));
 
         resultTableView.setRowFactory(tableView -> new TableRow<>() {
             @Override
-            protected void updateItem(SearchEntry searchEntry, boolean empty) {
-                super.updateItem(searchEntry, empty);
-                if (searchEntry == null || empty) {
+            protected void updateItem(Node node, boolean empty) {
+                super.updateItem(node, empty);
+                if (node == null || empty) {
                     setTooltip(null);
                     setOnMouseClicked(null);
                 } else {
@@ -158,7 +122,7 @@ public class SearchController implements Initializable {
                     setOnMouseClicked(action -> {
                         if (action.getClickCount() == 2) {
                             Stack<Node> copiedStack = new Stack<>();
-                            DirectoryUtilities.CreateLocationStringAndNodeStack(searchEntry.getSnapshot(), false).getValue().forEach(copiedStack::push);
+                            DirectoryUtilities.CreateLocationStringAndNodeStack(node, false).getValue().forEach(copiedStack::push);
                             callerController.locateNode(copiedStack);
                         }
                     });
@@ -166,159 +130,96 @@ public class SearchController implements Initializable {
             }
         });
 
-        typeColumn.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(cell.getValue().getEntryImageView()));
-        typeColumn.setStyle("-fx-alignment: CENTER;");
+        typeColumn.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(getImageView(cell.getValue())));
+        typeColumn.setStyle("-fx-alignment: TOP-CENTER;");
         nameColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getName()));
-        nameColumn.setStyle("-fx-alignment: CENTER-LEFT;");
-        commentColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getComment()));
+        nameColumn.setStyle("-fx-alignment: TOP-LEFT;");
+        commentColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getDescription()));
         createdColumn.setCellValueFactory(cell ->
                 new ReadOnlyObjectWrapper(TimestampFormats.SECONDS_FORMAT.format(cell.getValue().getCreated().toInstant())));
-        //tagsColumn.setCellValueFactory(cell -> formatTags(cell.getValue().));
-        createdColumn.setStyle("-fx-alignment: CENTER-RIGHT;");
-        creatorColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getCreator()));
-        creatorColumn.setStyle("-fx-alignment: CENTER-RIGHT;");
+        createdColumn.setStyle("-fx-alignment: TOP-RIGHT;");
+        creatorColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getUserName()));
+        creatorColumn.setStyle("-fx-alignment: TOP-RIGHT;");
 
         typeColumn.setReorderable(false);
         nameColumn.setReorderable(false);
         commentColumn.setReorderable(false);
         createdColumn.setReorderable(false);
         creatorColumn.setReorderable(false);
-    }
 
-    private void filterList(String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
-            resultTableView.getItems().clear();
-            refreshList();
-
-            return;
-        }
-
-        List<SearchEntry> filteredList = tableEntries.parallelStream()
-                .filter(entry -> {
-                    boolean flag = false;
-
-                    if (entry.getType().equals(EntryType.SNAPSHOT)) {
-                        flag |= searchOptionSnapshotName.isSelected() & entry.getName().toLowerCase().contains(keyword.toLowerCase());
-                        flag |= searchOptionSnapshotComment.isSelected() & entry.getComment().toLowerCase().contains(keyword.toLowerCase());
-                        flag &= !searchOptionGoldenOnly.isSelected() | isSnapshotGolden(entry.snapshot);
-                    } else {
-                        flag |= searchOptionTagName.isSelected() & entry.getName().toLowerCase().contains(keyword.toLowerCase());
-                        // Tag comment may be null, e.g. golden tag
-                        if (entry.getComment() != null) {
-                            flag |= searchOptionTagComment.isSelected() & entry.getComment().toLowerCase().contains(keyword.toLowerCase());
-                        }
-                    }
-                    return flag;
-                }).collect(Collectors.toList());
-
-        resultTableView.getItems().clear();
-        resultTableView.getItems().addAll(filteredList);
+        keywordTextField.setOnKeyPressed(keyEvent -> {
+            if (keyEvent.getCode() == KeyCode.ENTER) {
+                search();
+            }
+        });
     }
 
     public void setCallerController(SaveAndRestoreController callerController) {
         this.callerController = callerController;
     }
 
-    private static boolean isSnapshotGolden(Node node) {
-        return node.hasTag(Tag.GOLDEN);
-    }
-
-    private enum EntryType {SNAPSHOT, TAG}
-
-    private static class SearchEntry {
-        private final EntryType type;
-        private Node snapshot = null;
-        private Tag tag = null;
-
-        private final String name;
-        private final String comment;
-        private final Date created;
-        private final String creator;
-
-        public static SearchEntry create(Object object) {
-            if (object instanceof Node) {
-                return new SearchEntry((Node) object, null);
-            } else if (object instanceof Tag) {
-                return new SearchEntry(null, (Tag) object);
-            } else {
-                return null;
-            }
-        }
-
-        private SearchEntry(Node snapshot, Tag tag) {
-            if (snapshot != null) {
-                type = EntryType.SNAPSHOT;
-
-                this.snapshot = snapshot;
-
-                name = snapshot.getName();
-                comment = snapshot.getDescription();
-                created = snapshot.getCreated();
-                creator = snapshot.getUserName();
-            } else {
-                type = EntryType.TAG;
-
-                this.tag = tag;
-
-                name = tag.getName();
-                comment = tag.getComment();
-                created = tag.getCreated();
-                creator = tag.getUserName();
-            }
-        }
-
-        public ImageView getEntryImageView() {
-            if (type.equals(EntryType.SNAPSHOT)) {
-                if (isSnapshotGolden(snapshot)) {
+    private ImageView getImageView(Node node) {
+        switch (node.getNodeType()) {
+            case SNAPSHOT:
+                if (node.hasTag(Tag.GOLDEN)) {
                     return new ImageView(ImageCache.getImage(SearchController.class, "/icons/save-and-restore/snapshot-golden.png"));
                 } else {
                     return new ImageView(ImageCache.getImage(SearchController.class, "/icons/save-and-restore/snapshot.png"));
                 }
-            } else {
-                ImageView imageView = new ImageView(ImageCache.getImage(SearchController.class, "/icons/save-and-restore/snapshot-tag.png"));
-                imageView.setPreserveRatio(true);
-                imageView.setFitHeight(22);
-
-                return imageView;
-            }
+            case COMPOSITE_SNAPSHOT:
+                return new ImageView(ImageCache.getImage(SearchController.class, "/icons/save-and-restore/composite-snapshot.png"));
+            case FOLDER:
+                return new ImageView(ImageCache.getImage(SearchController.class, "/icons/save-and-restore/folder.png"));
+            case CONFIGURATION:
+                return new ImageView(ImageCache.getImage(SearchController.class, "/icons/save-and-restore/configuration.png"));
         }
-
-        public EntryType getType() {
-            return type;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getComment() {
-            return comment;
-        }
-
-        public Date getCreated() {
-            return created;
-        }
-
-        public String getCreator() {
-            return creator;
-        }
-
-        public Node getSnapshot() {
-            return snapshot;
-        }
-
-        public void setSnapshot(Node snapshot) {
-            this.snapshot = snapshot;
-        }
-
-        public Tag getTag() {
-            return tag;
-        }
+        return null;
     }
 
     @FXML
-    public void showHelp(){
+    public void showHelp() {
         new HelpViewer().show();
+    }
+
+    @FXML
+    public void search() {
+        List<String> searchTerms = Arrays.asList(keywordTextField.getText().split("&"));
+        searchTerms.stream().forEach(s -> {
+            String key = s.split("=")[0];
+            String value = s.split("=")[1];
+            if (lookup.containsKey(key)) {
+                searchParameters.put(lookup.get(key), value);
+            }
+        });
+
+        JobManager.schedule("Save-and-restore Search", monitor -> {
+            MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
+            searchParameters.entrySet().forEach(e -> {
+                        map.add(e.getKey().getName(), e.getValue());
+                    }
+            );
+            try {
+                SearchResult searchResult = saveAndRestoreService.search(map);
+                if (searchResult.getHitCount() > 0) {
+                    tableEntries.clear();
+                    tableEntries.addAll(searchResult.getNodes());
+                    tableEntries = tableEntries.stream().sorted(nodeComparator()).collect(Collectors.toList());
+                    resultTableView.getItems().setAll(tableEntries);
+                }
+            } catch (Exception e) {
+                ExceptionDetailsErrorDialog.openError(
+                        resultTableView,
+                        Messages.errorGeneric,
+                        Messages.searchErrorBody,
+                        e
+                );
+            }
+        });
+    }
+
+    private Comparator<Node> nodeComparator(){
+        return Comparator.comparing((Node n) -> n.getNodeType())
+                .thenComparing((Node n) -> n.getName().toLowerCase());
     }
 }
 

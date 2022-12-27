@@ -28,7 +28,8 @@ public class Messages {
     public static String createConfigurationFailed;
     public static String updateConfigurationFailed;
     public static String updateCompositeSnapshotFailed;
-    public static String saveSnaphotFailed;
+    public static String searchFailed;
+    public static String saveSnapshotFailed;
     public static String updateNodeFailed;
 
     static
