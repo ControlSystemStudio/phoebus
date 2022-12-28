@@ -109,3 +109,11 @@
 .custom-menu-item:focused #trashcan {
     visibility: visible;
 }
+
+.timestamp-column.table-cell{
+    -fx-font-family: "Liberation Mono";
+}
+
+.timestamp-column.tree-table-cell{
+    -fx-font-family: "Liberation Mono";
+}

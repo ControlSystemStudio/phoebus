@@ -107,6 +107,8 @@ public class SearchController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         saveAndRestoreService = SaveAndRestoreService.getInstance();
 
+        resultTableView.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+
         resultTableView.setRowFactory(tableView -> new TableRow<>() {
             @Override
             protected void updateItem(Node node, boolean empty) {
@@ -136,6 +138,8 @@ public class SearchController implements Initializable {
         createdColumn.setCellValueFactory(cell ->
                 new ReadOnlyObjectWrapper(TimestampFormats.SECONDS_FORMAT.format(cell.getValue().getCreated().toInstant())));
         createdColumn.setStyle("-fx-alignment: TOP-RIGHT;");
+        createdColumn.getStyleClass().add("timestamp-column");
+
         creatorColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getUserName()));
         creatorColumn.setStyle("-fx-alignment: TOP-RIGHT;");
 

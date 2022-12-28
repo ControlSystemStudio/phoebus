@@ -714,6 +714,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                 Messages.toolTipTableColumnTimestamp, width, width, true);
         timestampColumn.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(cell.getValue().getValue()));
         timestampColumn.setCellFactory(c -> new TimestampTreeTableCell());
+        timestampColumn.getStyleClass().add("timestamp-column");
         timestampColumn.setPrefWidth(width);
         snapshotTreeTableColumns.add(timestampColumn);
 
