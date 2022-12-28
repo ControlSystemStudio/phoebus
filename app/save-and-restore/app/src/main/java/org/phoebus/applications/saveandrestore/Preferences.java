@@ -43,6 +43,8 @@ public class Preferences {
     public static int readTimeout;
     @Preference
     public static int search_result_page_size;
+    @Preference
+    public static String default_search_query;
 
     static
     {

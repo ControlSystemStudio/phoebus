@@ -206,6 +206,9 @@ public class SearchController implements Initializable {
                 hitCountProperty, pagination.pageCountProperty()));
         pagination.pageCountProperty().bind(pageCountProperty);
         pagination.maxPageIndicatorCountProperty().bind(pageCountProperty);
+
+        keywordTextField.textProperty().set(Preferences.default_search_query);
+        search();
     }
 
     public void setCallerController(SaveAndRestoreController callerController) {
