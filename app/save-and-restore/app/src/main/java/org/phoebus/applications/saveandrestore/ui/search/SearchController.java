@@ -167,7 +167,9 @@ public class SearchController implements Initializable {
         creatorColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getUserName()));
         creatorColumn.setStyle("-fx-alignment: TOP-RIGHT;");
 
-        tagsColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(formatTags(cell.getValue())));
+        tagsColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getTags() == null ?
+                "":
+                cell.getValue().getTags().stream().map(t -> t.getName()).collect(Collectors.joining(System.lineSeparator()))));
 
         typeColumn.setReorderable(false);
         nameColumn.setReorderable(false);
@@ -294,13 +296,6 @@ public class SearchController implements Initializable {
     private Comparator<Node> nodeComparator() {
         return Comparator.comparing((Node n) -> n.getNodeType())
                 .thenComparing((Node n) -> n.getName().toLowerCase());
-    }
-
-    private String formatTags(Node node){
-        if(node.getTags() == null){
-            return "";
-        }
-        return node.getTags().stream().map(t -> t.getName()).collect(Collectors.joining(System.lineSeparator()));
     }
 }
 
