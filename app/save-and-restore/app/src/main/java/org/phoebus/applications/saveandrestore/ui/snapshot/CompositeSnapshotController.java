@@ -57,6 +57,7 @@ import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.framework.jobs.JobManager;
@@ -232,10 +233,10 @@ public class CompositeSnapshotController {
                                     getItem().getTags().stream().filter(t -> t.getName().equals(Tag.GOLDEN)).findFirst().isPresent();
                             if (nodeType.equals(NodeType.SNAPSHOT)) {
                                 setGraphic(new ImageView(golden ?
-                                        ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/snapshot-golden.png") :
-                                        ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/snapshot.png")));
+                                        ImageRepository.GOLDEN_SNAPSHOT :
+                                        ImageRepository.SNAPSHOT));
                             } else {
-                                setGraphic(new ImageView(ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/composite-snapshot.png")));
+                                setGraphic(new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
                             }
                         }
                     }

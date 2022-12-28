@@ -25,17 +25,16 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
-import org.phoebus.ui.javafx.ImageCache;
 
 import java.io.IOException;
 import java.util.ResourceBundle;
@@ -54,12 +53,12 @@ public class CompositeSnapshotTab extends Tab implements NodeChangedListener {
 
     private SaveAndRestoreController saveAndRestoreController;
 
-    public CompositeSnapshotTab(SaveAndRestoreController saveAndRestoreController){
+    public CompositeSnapshotTab(SaveAndRestoreController saveAndRestoreController) {
         this.saveAndRestoreController = saveAndRestoreController;
         configure();
     }
 
-    private void configure(){
+    private void configure() {
         ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
         FXMLLoader loader = new FXMLLoader();
         loader.setResources(resourceBundle);
@@ -103,14 +102,13 @@ public class CompositeSnapshotTab extends Tab implements NodeChangedListener {
         SaveAndRestoreService.getInstance().addNodeChangeListener(this);
     }
 
-    public void updateTabTitle(String name){
+    public void updateTabTitle(String name) {
         Platform.runLater(() -> tabTitleProperty.set(name));
     }
 
     private javafx.scene.Node getTabGraphic() {
         HBox container = new HBox();
-        Image icon = ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/composite-snapshot.png");
-        ImageView imageView = new ImageView(icon);
+        ImageView imageView = new ImageView(ImageRepository.COMPOSITE_SNAPSHOT);
         Label label = new Label("");
         label.textProperty().bindBidirectional(tabTitleProperty);
         HBox.setMargin(label, new Insets(1, 5, 0, 3));

@@ -49,7 +49,6 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
@@ -80,7 +79,6 @@ import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.framework.preferences.PreferencesReader;
-
 import org.phoebus.ui.autocomplete.AutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -147,18 +145,14 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     private final SimpleBooleanProperty multipleItemsSelected = new SimpleBooleanProperty(false);
     protected MultipleSelectionModel<TreeItem<Node>> browserSelectionModel;
 
-    protected ImageView snapshotImageView = new ImageView(snapshotIcon);
-    protected ImageView snapshotGoldenImageView = new ImageView(snapshotGoldenIcon);
+    protected ImageView snapshotImageView = new ImageView(ImageRepository.SNAPSHOT);
+    protected ImageView snapshotGoldenImageView = new ImageView(ImageRepository.GOLDEN_SNAPSHOT);
 
     private static final String TREE_STATE = "tree_state";
 
     protected static final Logger LOG = Logger.getLogger(SaveAndRestoreService.class.getName());
 
     protected PreferencesReader preferencesReader;
-
-    public static final Image folderIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/folder.png");
-    public static final Image snapshotIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot.png");
-    public static final Image snapshotGoldenIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-golden.png");
 
     protected Stage searchWindow;
     protected TreeNodeComparator treeNodeComparator = new TreeNodeComparator();
@@ -168,10 +162,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     private final URI uri;
 
     /**
-     *
      * @param uri If non-null, this is used to load a configuration or snapshot into the view.
      */
-    public SaveAndRestoreController(URI uri){
+    public SaveAndRestoreController(URI uri) {
         this.uri = uri;
     }
 
@@ -200,7 +193,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         configurationContextMenu.setOnShowing(event -> multipleItemsSelected.set(browserSelectionModel.getSelectedItems().size() > 1));
 
         rootFolderContextMenu = new ContextMenu();
-        MenuItem newRootFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(folderIcon));
+        MenuItem newRootFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(ImageRepository.FOLDER));
         newRootFolderMenuItem.setOnAction(ae -> createNewFolder());
         rootFolderContextMenu.getItems().add(newRootFolderMenuItem);
 
@@ -218,7 +211,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             }
             if (item.getValue().getNodeType().equals(NodeType.SNAPSHOT)) {
                 toggleGoldenMenuItemText.set(item.getValue().hasTag(Tag.GOLDEN) ? Messages.contextMenuRemoveGoldenTag : Messages.contextMenuTagAsGolden);
-                toggleGoldenImageViewProperty.set(item.getValue().hasTag(Tag.GOLDEN)  ? snapshotImageView : snapshotGoldenImageView);
+                toggleGoldenImageViewProperty.set(item.getValue().hasTag(Tag.GOLDEN) ? snapshotImageView : snapshotGoldenImageView);
             }
             // Check if a tab has already been opened for this node.
             boolean highlighted = highlightTab(item.getValue().getUniqueId());
@@ -441,10 +434,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         List<String> nodeIds =
                 items.stream().map(item -> item.getValue().getUniqueId()).collect(Collectors.toList());
         JobManager.schedule("Delete nodes", monitor -> {
-            try{
+            try {
                 saveAndRestoreService.deleteNodes(nodeIds);
-            }
-            catch (Exception e){
+            } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
                         MessageFormat.format(Messages.errorDeleteNodeFailed, items.get(0).getValue().getName()),
                         e);
@@ -482,7 +474,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         tabPane.getSelectionModel().select(tab);
     }
 
-    protected void openCompositeSnapshotForRestore(){
+    protected void openCompositeSnapshotForRestore() {
         TreeItem<Node> treeItem = browserSelectionModel.getSelectedItems().get(0);
         SnapshotTab tab = new SnapshotTab(treeItem.getValue(), saveAndRestoreService);
         tab.loadSnapshot(treeItem.getValue());
@@ -548,7 +540,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
     }
 
-    public void nodeDoubleClicked(){
+    public void nodeDoubleClicked() {
         nodeDoubleClicked(treeView.getSelectionModel().getSelectedItem().getValue());
     }
 
@@ -564,7 +556,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         switch (node.getNodeType()) {
             case CONFIGURATION:
                 tab = new ConfigurationTab();
-                ((ConfigurationTab)tab).editConfiguration(node);
+                ((ConfigurationTab) tab).editConfiguration(node);
                 break;
             case SNAPSHOT:
                 tab = new SnapshotTab(node, saveAndRestoreService);
@@ -572,7 +564,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 break;
             case COMPOSITE_SNAPSHOT:
                 tab = new CompositeSnapshotTab(this);
-                ((CompositeSnapshotTab)tab).editCompositeSnapshot(node);
+                ((CompositeSnapshotTab) tab).editCompositeSnapshot(node);
                 break;
             case FOLDER:
             default:
@@ -583,21 +575,21 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         tabPane.getSelectionModel().select(tab);
     }
 
-    private void launchTabForNewConfiguration(Node parentNode){
+    private void launchTabForNewConfiguration(Node parentNode) {
         ConfigurationTab tab = new ConfigurationTab();
         tab.configureForNewConfiguration(parentNode);
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);
     }
 
-    private void launchTabForNewCompositeSnapshot(Node parentNode){
+    private void launchTabForNewCompositeSnapshot(Node parentNode) {
         CompositeSnapshotTab tab = new CompositeSnapshotTab(this);
         tab.configureForNewCompositeSnapshot(parentNode);
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);
     }
 
-    private boolean highlightTab(String id){
+    private boolean highlightTab(String id) {
         for (Tab tab : tabPane.getTabs()) {
             if (tab.getId() != null && tab.getId().equals(id)) {
                 tabPane.getSelectionModel().select(tab);
@@ -614,7 +606,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         launchTabForNewConfiguration(browserSelectionModel.getSelectedItems().get(0).getValue());
     }
 
-    protected void createNewCompositeSnapshot(){
+    protected void createNewCompositeSnapshot() {
         launchTabForNewCompositeSnapshot(browserSelectionModel.getSelectedItems().get(0).getValue());
     }
 
@@ -807,8 +799,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     /**
      * Locates expanded nodes recursively and adds them to <code>expandedNodes</code>
+     *
      * @param expandedNodes The {@link List} holding expanded nodes.
-     * @param treeItem The {@link TreeItem} in which to look for expanded {@link TreeItem}s (nodes).
+     * @param treeItem      The {@link TreeItem} in which to look for expanded {@link TreeItem}s (nodes).
      */
     private void findExpandedNodes(List<String> expandedNodes, TreeItem<Node> treeItem) {
         if (treeItem.expandedProperty().get() && !treeItem.getChildren().isEmpty()) {
@@ -1210,15 +1203,16 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     /**
      * Launches the save & restore app and highlights/loads the "resource" (configuration or snapshot) identified
      * by the {@link URI}. If the configuration/snapshot in question cannot be found, an error dialog is shown.
+     *
      * @param uri An {@link URI} on the form file:/unique-id?app=saveandrestore, where unique-id is the
      *            unique id of a configuration or snapshot.
      */
-    public void openResource(URI uri){
-        if(uri == null){
+    public void openResource(URI uri) {
+        if (uri == null) {
             return;
         }
         Node node = saveAndRestoreService.getNode(uri.getPath());
-        if(node == null){
+        if (node == null) {
             // Show error dialog.
             Alert alert = new Alert(AlertType.ERROR);
             alert.setTitle(Messages.openResourceFailedTitle);
@@ -1233,16 +1227,15 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         nodeDoubleClicked(node);
     }
 
-    public void findSnapshotReferences(){
+    public void findSnapshotReferences() {
         // TODO: implement this as a search request and use search result UI to display result.
     }
 
     /**
-     *
      * @param node A {@link Node} to be checked
      * @return <code>true</code> if found in the list of {@link Node}s retrieved through a search request.
      */
-    public boolean matchesFilter(Node node){
+    public boolean matchesFilter(Node node) {
         // TODO: check against a list of Nodes retrieved using the filter/search string.
         return node.hasTag(Tag.GOLDEN);
     }

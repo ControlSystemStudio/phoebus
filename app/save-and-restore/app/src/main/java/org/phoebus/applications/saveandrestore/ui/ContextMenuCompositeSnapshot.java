@@ -34,13 +34,12 @@ public class ContextMenuCompositeSnapshot extends ContextMenuBase {
     public ContextMenuCompositeSnapshot(SaveAndRestoreController saveAndRestoreController, SimpleBooleanProperty multipleItemsSelected) {
         super(saveAndRestoreController, multipleItemsSelected);
 
-        Image editConfigurationIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/edit_saveset.png");
         Image snapshotTagsWithCommentIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-tags.png");
 
-        MenuItem openCompositeSnapshotMenuItem = new MenuItem(Messages.contextMenuOpenCompositeSnapshotForRestore, new ImageView(editConfigurationIcon));
+        MenuItem openCompositeSnapshotMenuItem = new MenuItem(Messages.contextMenuOpenCompositeSnapshotForRestore, new ImageView(ImageRepository.EDIT_CONFIGURATION));
         openCompositeSnapshotMenuItem.setOnAction(ae -> saveAndRestoreController.openCompositeSnapshotForRestore());
 
-        MenuItem editCompositeSnapshotMenuItem = new MenuItem(Messages.contextMenuEdit, new ImageView(editConfigurationIcon));
+        MenuItem editCompositeSnapshotMenuItem = new MenuItem(Messages.contextMenuEdit, new ImageView(ImageRepository.EDIT_CONFIGURATION));
         editCompositeSnapshotMenuItem.disableProperty().bind(multipleItemsSelected);
         editCompositeSnapshotMenuItem.setOnAction(ae -> {
             saveAndRestoreController.nodeDoubleClicked();

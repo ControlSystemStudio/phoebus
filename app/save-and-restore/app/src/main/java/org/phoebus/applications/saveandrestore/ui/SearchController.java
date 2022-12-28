@@ -32,7 +32,6 @@ import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.control.TreeItem;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
@@ -43,7 +42,6 @@ import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.ui.SearchQueryUtil.Keys;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
-import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
 
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -162,16 +160,16 @@ public class SearchController implements Initializable {
         switch (node.getNodeType()) {
             case SNAPSHOT:
                 if (node.hasTag(Tag.GOLDEN)) {
-                    return new ImageView(ImageCache.getImage(SearchController.class, "/icons/save-and-restore/snapshot-golden.png"));
+                    return new ImageView(ImageRepository.GOLDEN_SNAPSHOT);
                 } else {
-                    return new ImageView(ImageCache.getImage(SearchController.class, "/icons/save-and-restore/snapshot.png"));
+                    return new ImageView(ImageRepository.SNAPSHOT);
                 }
             case COMPOSITE_SNAPSHOT:
-                return new ImageView(ImageCache.getImage(SearchController.class, "/icons/save-and-restore/composite-snapshot.png"));
+                return new ImageView(ImageRepository.COMPOSITE_SNAPSHOT);
             case FOLDER:
-                return new ImageView(ImageCache.getImage(SearchController.class, "/icons/save-and-restore/folder.png"));
+                return new ImageView(ImageRepository.FOLDER);
             case CONFIGURATION:
-                return new ImageView(ImageCache.getImage(SearchController.class, "/icons/save-and-restore/configuration.png"));
+                return new ImageView(ImageRepository.CONFIGURATION);
         }
         return null;
     }
@@ -183,6 +181,7 @@ public class SearchController implements Initializable {
 
     @FXML
     public void search() {
+        searchParameters.clear();
         List<String> searchTerms = Arrays.asList(keywordTextField.getText().split("&"));
         searchTerms.stream().forEach(s -> {
             String key = s.split("=")[0];

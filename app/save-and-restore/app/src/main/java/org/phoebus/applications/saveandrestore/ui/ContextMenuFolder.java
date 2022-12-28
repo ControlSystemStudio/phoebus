@@ -27,19 +27,19 @@ public class ContextMenuFolder extends ContextMenuBase {
 
     public ContextMenuFolder(SaveAndRestoreController saveAndRestoreController, boolean csvImportEnabled, SimpleBooleanProperty multipleItemsSelected) {
         super(saveAndRestoreController, multipleItemsSelected);
-        MenuItem newFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(folderIcon));
+        MenuItem newFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(ImageRepository.FOLDER));
         newFolderMenuItem.disableProperty().bind(multipleItemsSelected);
         newFolderMenuItem.setOnAction(ae -> {
             saveAndRestoreController.createNewFolder();
         });
 
-        MenuItem newConfigurationMenuItem = new MenuItem(Messages.contextMenuNewConfiguration, new ImageView(configurationIcon));
+        MenuItem newConfigurationMenuItem = new MenuItem(Messages.contextMenuNewConfiguration, new ImageView(ImageRepository.CONFIGURATION));
         newConfigurationMenuItem.disableProperty().bind(multipleItemsSelected);
         newConfigurationMenuItem.setOnAction(ae -> {
             saveAndRestoreController.createNewConfiguration();
         });
 
-        MenuItem newCompositeSnapshotMenuItem = new MenuItem(Messages.contextMenuNewCompositeSnapshot, new ImageView(compositeSnapshotIcon));
+        MenuItem newCompositeSnapshotMenuItem = new MenuItem(Messages.contextMenuNewCompositeSnapshot, new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
         newCompositeSnapshotMenuItem.setOnAction(ae -> {
             saveAndRestoreController.createNewCompositeSnapshot();
         });

@@ -30,6 +30,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationFromSelectionController;
 import org.phoebus.core.types.ProcessVariable;
@@ -57,8 +58,6 @@ public class ContextMenuCreateSaveset implements ContextMenuEntry
 
     private static final Class<?> supportedTypes = ProcessVariable.class;
 
-    private static final Image icon = ImageCache.getImage(ImageCache.class, "/icons/save-and-restore/configuration.png");
-
     private static final DateTimeFormatter savesetTimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
 
     private SaveAndRestoreService saveAndRestoreService = null;
@@ -72,7 +71,7 @@ public class ContextMenuCreateSaveset implements ContextMenuEntry
     @Override
     public Image getIcon()
     {
-        return icon;
+        return ImageRepository.CONFIGURATION;
     }
 
     @Override

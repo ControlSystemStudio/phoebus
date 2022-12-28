@@ -23,16 +23,14 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
-import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.framework.nls.NLS;
-import org.phoebus.ui.javafx.ImageCache;
 
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -103,8 +101,7 @@ public class ConfigurationTab extends Tab implements NodeChangedListener {
 
     private javafx.scene.Node getTabGraphic() {
         HBox container = new HBox();
-        Image icon = ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/configuration.png");
-        ImageView imageView = new ImageView(icon);
+        ImageView imageView = new ImageView(ImageRepository.CONFIGURATION);
         Label label = new Label("");
         label.textProperty().bindBidirectional(tabTitleProperty);
         HBox.setMargin(label, new Insets(1, 5, 0, 3));
@@ -123,9 +120,10 @@ public class ConfigurationTab extends Tab implements NodeChangedListener {
 
     /**
      * Updates tab title, e.g. if user has renamed the configuration.
+     *
      * @param tabTitle The wanted tab title.
      */
-    public void updateTabTitle(String tabTitle){
+    public void updateTabTitle(String tabTitle) {
         tabTitleProperty.set(tabTitle);
     }
 }

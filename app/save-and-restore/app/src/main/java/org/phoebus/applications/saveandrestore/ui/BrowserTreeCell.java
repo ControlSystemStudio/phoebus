@@ -169,9 +169,9 @@ public class BrowserTreeCell extends TreeCell<Node> {
         switch (node.getNodeType()) {
             case SNAPSHOT:
                 if (node.hasTag(Tag.GOLDEN)) {
-                    hBox.getChildren().add(new ImageView(ImageCache.getImage(BrowserTreeCell.class, "/icons/save-and-restore/snapshot-golden.png")));
+                    hBox.getChildren().add(new ImageView(ImageRepository.GOLDEN_SNAPSHOT));
                 } else {
-                    hBox.getChildren().add(new ImageView(ImageCache.getImage(BrowserTreeCell.class, "/icons/save-and-restore/snapshot.png")));
+                    hBox.getChildren().add(new ImageView(ImageRepository.SNAPSHOT));
                 }
                 hBox.getChildren().add(new Label(node.getName()));
                 if (node.getTags() != null && !node.getTags().isEmpty()) {
@@ -183,12 +183,12 @@ public class BrowserTreeCell extends TreeCell<Node> {
                 setContextMenu(snapshotContextMenu);
                 break;
             case COMPOSITE_SNAPSHOT:
-                hBox.getChildren().add(new ImageView(ImageCache.getImage(BrowserTreeCell.class, "/icons/save-and-restore/composite-snapshot.png")));
+                hBox.getChildren().add(new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
                 hBox.getChildren().add(new Label(node.getName()));
                 setContextMenu(compositeSnapshotContextMenu);
                 break;
             case CONFIGURATION:
-                hBox.getChildren().add(new ImageView(ImageCache.getImage(BrowserTreeCell.class, "/icons/save-and-restore/configuration.png")));
+                hBox.getChildren().add(new ImageView(ImageRepository.CONFIGURATION));
                 hBox.getChildren().add(new Label(node.getName()));
                 setContextMenu(configurationContextMenu);
                 break;
@@ -198,7 +198,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
                 } else {
                     setContextMenu(folderContextMenu);
                 }
-                hBox.getChildren().add(new ImageView(ImageCache.getImage(BrowserTreeCell.class, "/icons/save-and-restore/folder.png")));
+                hBox.getChildren().add(new ImageView(ImageRepository.FOLDER));
                 hBox.getChildren().add(new Label(node.getName()));
                 break;
         }
