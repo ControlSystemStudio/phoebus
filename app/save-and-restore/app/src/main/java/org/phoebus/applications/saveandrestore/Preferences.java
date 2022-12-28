@@ -41,6 +41,8 @@ public class Preferences {
     public static boolean enableCSVIO;
     @Preference
     public static int readTimeout;
+    @Preference
+    public static int search_result_page_size;
 
     static
     {

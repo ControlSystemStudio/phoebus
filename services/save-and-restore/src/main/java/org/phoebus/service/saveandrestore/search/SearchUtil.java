@@ -253,13 +253,6 @@ public class SearchUtil {
         int _searchResultSize = searchResultSize;
         int _from = from;
 
-        /*
-        FieldSort.Builder fb = new FieldSort.Builder();
-        fb.field("node.created");
-        fb.nested(NestedSortValue.of(n -> n.path("node")));
-        fb.order(SortOrder.Desc);
-         */
-
         return SearchRequest.of(s -> s.index(ES_TREE_INDEX)
                 .query(boolQueryBuilder.build()._toQuery())
                 .timeout("60s")

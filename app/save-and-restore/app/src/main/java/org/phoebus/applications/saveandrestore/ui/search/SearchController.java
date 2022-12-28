@@ -19,14 +19,17 @@
 package org.phoebus.applications.saveandrestore.ui.search;
 
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Pagination;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
@@ -34,9 +37,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
-import org.checkerframework.checker.units.qual.A;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
@@ -63,6 +66,7 @@ import java.util.ResourceBundle;
 import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -100,13 +104,25 @@ public class SearchController implements Initializable {
     @FXML
     private TableColumn<Node, String> creatorColumn;
 
+    @FXML
+    private Pagination pagination;
+
+    @FXML
+    private TextField pageSizeTextField;
+
     private SaveAndRestoreService saveAndRestoreService;
+
+    private final SimpleIntegerProperty pageSizeProperty =
+            new SimpleIntegerProperty(Preferences.search_result_page_size);
 
     private static final Logger LOG = Logger.getLogger(SearchController.class.getName());
 
     private Map<String, Keys> lookup = Arrays.stream(Keys.values()).collect(Collectors.toMap(Keys::getName, k -> {
         return k;
     }));
+
+    private final SimpleIntegerProperty hitCountProperty = new SimpleIntegerProperty(0);
+    private final SimpleIntegerProperty pageCountProperty = new SimpleIntegerProperty(0);
 
     private ObservableMap<Keys, String> searchParameters = FXCollections.<Keys, String>observableHashMap();
 
@@ -115,6 +131,7 @@ public class SearchController implements Initializable {
         saveAndRestoreService = SaveAndRestoreService.getInstance();
 
         resultTableView.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        pagination.getStylesheets().add(this.getClass().getResource("/pagination.css").toExternalForm());
 
         resultTableView.setRowFactory(tableView -> new TableRow<>() {
             @Override
@@ -150,6 +167,8 @@ public class SearchController implements Initializable {
         creatorColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getUserName()));
         creatorColumn.setStyle("-fx-alignment: TOP-RIGHT;");
 
+        tagsColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(formatTags(cell.getValue())));
+
         typeColumn.setReorderable(false);
         nameColumn.setReorderable(false);
         commentColumn.setReorderable(false);
@@ -161,6 +180,30 @@ public class SearchController implements Initializable {
                 search();
             }
         });
+
+        pageSizeTextField.setText(Integer.toString(pageSizeProperty.get()));
+        Pattern DIGIT_PATTERN = Pattern.compile("\\d*");
+        // This is to accept numerical input only, and at most 3 digits (maximizing search to 999 hits).
+        pageSizeTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (DIGIT_PATTERN.matcher(newValue).matches()) {
+                if ("".equals(newValue)) {
+                    pageSizeProperty.set(Preferences.search_result_page_size);
+                } else if (newValue.length() > 3) {
+                    pageSizeTextField.setText(oldValue);
+                } else {
+                    pageSizeProperty.set(Integer.parseInt(newValue));
+                }
+            } else {
+                pageSizeTextField.setText(oldValue);
+            }
+        });
+
+        pagination.currentPageIndexProperty().addListener((a, b, c) -> search());
+        // Hide the pagination widget if hit count == 0 or page count < 2
+        pagination.visibleProperty().bind(Bindings.createBooleanBinding(() -> hitCountProperty.get() > 0 && pagination.pageCountProperty().get() > 1,
+                hitCountProperty, pagination.pageCountProperty()));
+        pagination.pageCountProperty().bind(pageCountProperty);
+        pagination.maxPageIndicatorCountProperty().bind(pageCountProperty);
     }
 
     public void setCallerController(SaveAndRestoreController callerController) {
@@ -193,6 +236,10 @@ public class SearchController implements Initializable {
     @FXML
     public void search() {
         searchParameters.clear();
+
+        searchParameters.put(Keys.FROM, Integer.toString(pagination.getCurrentPageIndex() * pageSizeProperty.get()));
+        searchParameters.put(Keys.SIZE, Integer.toString(pageSizeProperty.get()));
+
         String searchQuery = keywordTextField.getText();
         List<String> searchTerms = Arrays.asList(searchQuery.split("&"));
         searchTerms.stream().forEach(s -> {
@@ -202,8 +249,8 @@ public class SearchController implements Initializable {
                 if (lookup.containsKey(key)) {
                     searchParameters.put(lookup.get(key), value);
                 }
-            } catch (Exception e) { // User has typed something that cannot be parsed as key/value pair(s)
-                LOG.log(Level.WARNING, "Invalid query string \"" + searchQuery + "\"");
+            } catch (Exception e) { // User has typed something that cannot be parsed as key/value pairs
+                LOG.log(Level.WARNING, "Empty or invalid query string: \"" + searchQuery + "\"");
             }
         });
 
@@ -216,12 +263,15 @@ public class SearchController implements Initializable {
             try {
                 SearchResult searchResult = saveAndRestoreService.search(map);
                 if (searchResult.getHitCount() > 0) {
-                    tableEntries.clear();
-                    tableEntries.addAll(searchResult.getNodes());
-                    tableEntries = tableEntries.stream().sorted(nodeComparator()).collect(Collectors.toList());
-                    resultTableView.getItems().setAll(tableEntries);
-                }
-                else{
+                    Platform.runLater(() -> {
+                        hitCountProperty.set(searchResult.getHitCount());
+                        pageCountProperty.set(1 + (hitCountProperty.get() / pageSizeProperty.get()));
+                        tableEntries.clear();
+                        tableEntries.addAll(searchResult.getNodes());
+                        tableEntries = tableEntries.stream().sorted(nodeComparator()).collect(Collectors.toList());
+                        resultTableView.getItems().setAll(tableEntries);
+                    });
+                } else {
                     Platform.runLater(() -> {
                         Alert alert = new Alert(AlertType.INFORMATION);
                         alert.setTitle(Messages.searchNoResultsTitle);
@@ -241,9 +291,16 @@ public class SearchController implements Initializable {
         });
     }
 
-    private Comparator<Node> nodeComparator(){
+    private Comparator<Node> nodeComparator() {
         return Comparator.comparing((Node n) -> n.getNodeType())
                 .thenComparing((Node n) -> n.getName().toLowerCase());
+    }
+
+    private String formatTags(Node node){
+        if(node.getTags() == null){
+            return "";
+        }
+        return node.getTags().stream().map(t -> t.getName()).collect(Collectors.joining(System.lineSeparator()));
     }
 }
 

@@ -326,7 +326,7 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
         try {
             SearchResponse<ESTreeNode> searchResponse = client.search(searchRequest, ESTreeNode.class);
             SearchResult searchResult = new SearchResult();
-            searchResult.setHitCount(searchResponse.hits().total().value());
+            searchResult.setHitCount((int)searchResponse.hits().total().value());
             searchResult.setNodes(searchResponse.hits().hits().stream().map(e -> e.source().getNode()).collect(Collectors.toList()));
             return searchResult;
         } catch (IOException e) {

@@ -29,7 +29,7 @@ public class SearchResult {
      * the same as the size of {@link #nodes}, e.g. in a pagination search where search can
      * specify "from" and "size".
      */
-    private long hitCount;
+    private int hitCount;
 
     /**
      * The list of {@link Node}s matching a search query, taking into account potential "pagination"
@@ -41,16 +41,16 @@ public class SearchResult {
 
     }
 
-    public SearchResult(long hitCount, List<Node> nodes){
+    public SearchResult(int hitCount, List<Node> nodes){
         this.hitCount = hitCount;
         this.nodes = nodes;
     }
 
-    public long getHitCount() {
+    public int getHitCount() {
         return hitCount;
     }
 
-    public void setHitCount(long hitCount) {
+    public void setHitCount(int hitCount) {
         this.hitCount = hitCount;
     }
 

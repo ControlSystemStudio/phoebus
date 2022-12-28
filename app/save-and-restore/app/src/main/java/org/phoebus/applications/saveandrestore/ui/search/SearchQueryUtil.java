@@ -29,7 +29,9 @@ public class SearchQueryUtil {
         TAGS("tags"),
         TYPE("type"),
         STARTTIME("start"),
-        ENDTIME("end");
+        ENDTIME("end"),
+        FROM("from"),
+        SIZE("size");
 
         private final String name;
 
