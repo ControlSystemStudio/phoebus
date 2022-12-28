@@ -33,7 +33,11 @@
     <RowConstraints maxHeight="1.7976931348623157E308" vgrow="ALWAYS" />
   </rowConstraints>
    <children>
-      <TextField fx:id="keywordTextField" GridPane.hgrow="ALWAYS" />
+      <TextField fx:id="keywordTextField" GridPane.hgrow="ALWAYS">
+            <tooltip>
+                <Tooltip text="%searchFieldToolTip"/>
+            </tooltip>
+      </TextField>
       <Button mnemonicParsing="false" onAction="#showHelp" text="%help" GridPane.columnIndex="1">
          <GridPane.margin>
             <Insets left="5.0" />

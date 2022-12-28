@@ -18,12 +18,15 @@
  */
 package org.phoebus.applications.saveandrestore.ui.search;
 
+import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
@@ -31,6 +34,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import org.checkerframework.checker.units.qual.A;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -42,6 +46,7 @@ import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.search.SearchQueryUtil.Keys;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -56,6 +61,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Stack;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -96,7 +102,7 @@ public class SearchController implements Initializable {
 
     private SaveAndRestoreService saveAndRestoreService;
 
-    private static final Logger LOG = Logger.getLogger(SaveAndRestoreService.class.getName());
+    private static final Logger LOG = Logger.getLogger(SearchController.class.getName());
 
     private Map<String, Keys> lookup = Arrays.stream(Keys.values()).collect(Collectors.toMap(Keys::getName, k -> {
         return k;
@@ -187,12 +193,17 @@ public class SearchController implements Initializable {
     @FXML
     public void search() {
         searchParameters.clear();
-        List<String> searchTerms = Arrays.asList(keywordTextField.getText().split("&"));
+        String searchQuery = keywordTextField.getText();
+        List<String> searchTerms = Arrays.asList(searchQuery.split("&"));
         searchTerms.stream().forEach(s -> {
-            String key = s.split("=")[0];
-            String value = s.split("=")[1];
-            if (lookup.containsKey(key)) {
-                searchParameters.put(lookup.get(key), value);
+            try {
+                String key = s.split("=")[0];
+                String value = s.split("=")[1];
+                if (lookup.containsKey(key)) {
+                    searchParameters.put(lookup.get(key), value);
+                }
+            } catch (Exception e) { // User has typed something that cannot be parsed as key/value pair(s)
+                LOG.log(Level.WARNING, "Invalid query string \"" + searchQuery + "\"");
             }
         });
 
@@ -209,6 +220,15 @@ public class SearchController implements Initializable {
                     tableEntries.addAll(searchResult.getNodes());
                     tableEntries = tableEntries.stream().sorted(nodeComparator()).collect(Collectors.toList());
                     resultTableView.getItems().setAll(tableEntries);
+                }
+                else{
+                    Platform.runLater(() -> {
+                        Alert alert = new Alert(AlertType.INFORMATION);
+                        alert.setTitle(Messages.searchNoResultsTitle);
+                        alert.setHeaderText(Messages.searchNoResult);
+                        DialogHelper.positionDialog(alert, resultTableView, -300, -200);
+                        alert.show();
+                    });
                 }
             } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError(
