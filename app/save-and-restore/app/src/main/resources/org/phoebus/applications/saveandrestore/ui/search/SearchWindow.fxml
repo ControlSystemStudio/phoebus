@@ -4,7 +4,26 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<GridPane alignment="CENTER" hgap="5.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1000.0" prefWidth="1300.0" vgap="5.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.search.SearchController">
+<!--
+  ~ Copyright (C) 2020 European Spallation Source ERIC.
+  ~
+  ~  This program is free software; you can redistribute it and/or
+  ~  modify it under the terms of the GNU General Public License
+  ~  as published by the Free Software Foundation; either version 2
+  ~  of the License, or (at your option) any later version.
+  ~
+  ~  This program is distributed in the hope that it will be useful,
+  ~  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~  GNU General Public License for more details.
+  ~
+  ~  You should have received a copy of the GNU General Public License
+  ~  along with this program; if not, write to the Free Software
+  ~  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+  ~
+  -->
+
+<GridPane alignment="CENTER" hgap="5.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" style="-fx-background-color: #f4f4f4;" vgap="5.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.search.SearchController">
   <columnConstraints>
     <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" />
     <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" />
@@ -14,7 +33,7 @@
     <RowConstraints maxHeight="1.7976931348623157E308" vgrow="ALWAYS" />
   </rowConstraints>
    <children>
-      <TextField fx:id="keywordTextField" GridPane.hgrow="ALWAYS"/>
+      <TextField fx:id="keywordTextField" GridPane.hgrow="ALWAYS" />
       <Button mnemonicParsing="false" onAction="#showHelp" text="%help" GridPane.columnIndex="1">
          <GridPane.margin>
             <Insets left="5.0" />
@@ -22,7 +41,7 @@
       </Button>
       <TableView fx:id="resultTableView" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="1">
         <columns>
-            <TableColumn fx:id="typeColumn" editable="false" maxWidth="50.0" minWidth="50.0" prefWidth="50.0" text="%searchTableEntryTypeColumn"/>
+            <TableColumn fx:id="typeColumn" editable="false" maxWidth="50.0" minWidth="50.0" prefWidth="50.0" text="%searchTableEntryTypeColumn" />
           <TableColumn fx:id="nameColumn" editable="false" minWidth="250.0" prefWidth="250.0" text="%searchTableNameColumn" />
           <TableColumn fx:id="commentColumn" editable="false" minWidth="300.0" prefWidth="300.0" text="%searchTableCommentColumn" />
             <TableColumn fx:id="tagsColumn" editable="false" minWidth="300.0" prefWidth="300.0" text="%searchTableTagsColumn" />

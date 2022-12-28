@@ -69,6 +69,7 @@ import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationTab;
 import org.phoebus.applications.saveandrestore.ui.search.SearchController;
+import org.phoebus.applications.saveandrestore.ui.search.SearchTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.CompositeSnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotNewTagDialog;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
@@ -484,6 +485,19 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         tabPane.getSelectionModel().select(tab);
     }
 
+    @FXML
+    protected void openSearchWindow(){
+        Optional<Tab> searchTabOptional = tabPane.getTabs().stream().filter(t -> t.getId().equals(SearchTab.SEARCH_TAB_ID)).findFirst();
+        if(searchTabOptional.isPresent()){
+            tabPane.getSelectionModel().select(searchTabOptional.get());
+        }
+        else{
+            SearchTab searchTab = new SearchTab(this);
+            tabPane.getTabs().add(0, searchTab);
+            tabPane.getSelectionModel().select(searchTab);
+        }
+    }
+
     /**
      * Creates a new folder {@link Node}.
      */
@@ -874,8 +888,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     /**
      * Self explanatory
      */
-    @FXML
-    protected void openSearchWindow() {
+    protected void legacyOpenSearchWindow() {
         try {
             if (searchWindow == null) {
                 final ResourceBundle bundle = NLS.getMessages(SaveAndRestoreApplication.class);
