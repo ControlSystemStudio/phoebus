@@ -20,6 +20,7 @@
 package org.phoebus.applications.saveandrestore.ui;
 
 import javafx.scene.image.Image;
+import org.phoebus.applications.saveandrestore.ui.search.SearchController;
 import org.phoebus.ui.javafx.ImageCache;
 
 /**

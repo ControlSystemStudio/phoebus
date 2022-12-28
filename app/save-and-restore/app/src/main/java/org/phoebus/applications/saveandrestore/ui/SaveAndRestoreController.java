@@ -68,6 +68,7 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationTab;
+import org.phoebus.applications.saveandrestore.ui.search.SearchController;
 import org.phoebus.applications.saveandrestore.ui.snapshot.CompositeSnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotNewTagDialog;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
@@ -880,7 +881,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 final ResourceBundle bundle = NLS.getMessages(SaveAndRestoreApplication.class);
 
                 FXMLLoader loader = new FXMLLoader();
-                loader.setLocation(SaveAndRestoreController.class.getResource("SearchWindow.fxml"));
+                loader.setLocation(SaveAndRestoreController.class.getResource("search/SearchWindow.fxml"));
                 loader.setResources(bundle);
                 searchWindow = new Stage();
                 searchWindow.getIcons().add(ImageCache.getImage(ImageCache.class, "/icons/logo.png"));
