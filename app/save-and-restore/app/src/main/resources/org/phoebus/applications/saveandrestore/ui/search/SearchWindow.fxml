@@ -34,11 +34,11 @@
       <RowConstraints />
     </rowConstraints>
     <children>
-        <TextField fx:id="keywordTextField" GridPane.hgrow="ALWAYS">
+        <ComboBox fx:id="queryComboBox" editable="true" maxWidth="1.7976931348623157E308" GridPane.hgrow="ALWAYS">
             <tooltip>
                 <Tooltip text="%searchFieldToolTip" />
             </tooltip>
-        </TextField>
+        </ComboBox>
         <Button mnemonicParsing="false" onAction="#showHelp" text="%help" GridPane.columnIndex="1">
             <GridPane.margin>
                 <Insets left="5.0" />

@@ -69,6 +69,7 @@ import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationTab;
 import org.phoebus.applications.saveandrestore.ui.search.SearchController;
+import org.phoebus.applications.saveandrestore.ui.search.SearchQueryManager;
 import org.phoebus.applications.saveandrestore.ui.search.SearchTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.CompositeSnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotNewTagDialog;
@@ -763,6 +764,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      */
     public void save(final Memento memento) {
         saveTreeState();
+        SearchQueryManager.getInstance().save();
         memento.setNumber("POS", splitPane.getDividers().get(0).getPosition());
     }
 

@@ -24,19 +24,7 @@ import org.phoebus.framework.preferences.Preference;
 public class Preferences {
 
     @Preference
-    public static String jmasar_service_url;
-    @Preference
-    public static int http_client_readTimeout;
-    @Preference
-    public static int http_client_connectTimeout;
-    @Preference
-    public static boolean sort_snapshots_time_reversed;
-    @Preference
     public static boolean tree_tableview_enable;
-    @Preference
-    public static String tree_table_view_hierarchy_parser;
-    @Preference
-    public static String regex_hierarchy_parser_regex_list;
     @Preference
     public static boolean enableCSVIO;
     @Preference

@@ -23,12 +23,16 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -37,6 +41,10 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.util.Callback;
+import javafx.util.StringConverter;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.Preferences;
@@ -57,14 +65,12 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Stack;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -81,7 +87,7 @@ public class SearchController implements Initializable {
     private List<Node> tableEntries = new ArrayList<>();
 
     @FXML
-    private TextField keywordTextField;
+    private ComboBox<SearchQuery> queryComboBox;
 
     @FXML
     private TableView<Node> resultTableView;
@@ -117,18 +123,21 @@ public class SearchController implements Initializable {
 
     private static final Logger LOG = Logger.getLogger(SearchController.class.getName());
 
-    private Map<String, Keys> lookup = Arrays.stream(Keys.values()).collect(Collectors.toMap(Keys::getName, k -> {
-        return k;
-    }));
-
     private final SimpleIntegerProperty hitCountProperty = new SimpleIntegerProperty(0);
     private final SimpleIntegerProperty pageCountProperty = new SimpleIntegerProperty(0);
 
-    private ObservableMap<Keys, String> searchParameters = FXCollections.<Keys, String>observableHashMap();
+    //private final MultivaluedMap<String, String> searchParameters = new MultivaluedHashMap<>();
+
+    private SearchQueryManager searchQueryManager;
+
+    private final ObservableList<SearchQuery> searchQueries = FXCollections.observableArrayList();
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         saveAndRestoreService = SaveAndRestoreService.getInstance();
+        searchQueryManager = SearchQueryManager.getInstance();
+
+        configureComboBox();
 
         resultTableView.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         pagination.getStylesheets().add(this.getClass().getResource("/pagination.css").toExternalForm());
@@ -168,20 +177,8 @@ public class SearchController implements Initializable {
         creatorColumn.setStyle("-fx-alignment: TOP-RIGHT;");
 
         tagsColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getTags() == null ?
-                "":
-                cell.getValue().getTags().stream().map(t -> t.getName()).collect(Collectors.joining(System.lineSeparator()))));
-
-        typeColumn.setReorderable(false);
-        nameColumn.setReorderable(false);
-        commentColumn.setReorderable(false);
-        createdColumn.setReorderable(false);
-        creatorColumn.setReorderable(false);
-
-        keywordTextField.setOnKeyPressed(keyEvent -> {
-            if (keyEvent.getCode() == KeyCode.ENTER) {
-                search();
-            }
-        });
+                "" :
+                cell.getValue().getTags().stream().map(Tag::getName).collect(Collectors.joining(System.lineSeparator()))));
 
         pageSizeTextField.setText(Integer.toString(pageSizeProperty.get()));
         Pattern DIGIT_PATTERN = Pattern.compile("\\d*");
@@ -207,7 +204,16 @@ public class SearchController implements Initializable {
         pagination.pageCountProperty().bind(pageCountProperty);
         pagination.maxPageIndicatorCountProperty().bind(pageCountProperty);
 
-        keywordTextField.textProperty().set(Preferences.default_search_query);
+        queryComboBox.setOnKeyPressed(keyEvent -> {
+            if (keyEvent.getCode() == KeyCode.ENTER) {
+                search();
+            }
+        });
+
+        searchQueries.setAll(searchQueryManager.getQueries());
+        queryComboBox.itemsProperty().bind(new SimpleObjectProperty<>(searchQueries));
+        queryComboBox.getSelectionModel().select(searchQueries.get(0));
+        queryComboBox.getEditor().setText(searchQueries.get(0).getQuery());
         search();
     }
 
@@ -240,31 +246,18 @@ public class SearchController implements Initializable {
 
     @FXML
     public void search() {
-        searchParameters.clear();
 
-        searchParameters.put(Keys.FROM, Integer.toString(pagination.getCurrentPageIndex() * pageSizeProperty.get()));
-        searchParameters.put(Keys.SIZE, Integer.toString(pageSizeProperty.get()));
+        String searchQuery = queryComboBox.getEditor().getText();
 
-        String searchQuery = keywordTextField.getText();
-        List<String> searchTerms = Arrays.asList(searchQuery.split("&"));
-        searchTerms.stream().forEach(s -> {
-            try {
-                String key = s.split("=")[0];
-                String value = s.split("=")[1];
-                if (lookup.containsKey(key)) {
-                    searchParameters.put(lookup.get(key), value);
-                }
-            } catch (Exception e) { // User has typed something that cannot be parsed as key/value pairs
-                LOG.log(Level.WARNING, "Empty or invalid query string: \"" + searchQuery + "\"");
-            }
-        });
+        Map<String, String> params =
+                SearchQueryUtil.parseHumanReadableQueryString(searchQueryManager.getOrAddQuery(searchQuery).getQuery());
+
+        params.put(Keys.FROM.getName(), Integer.toString(pagination.getCurrentPageIndex() * pageSizeProperty.get()));
+        params.put(Keys.SIZE.getName(), Integer.toString(pageSizeProperty.get()));
 
         JobManager.schedule("Save-and-restore Search", monitor -> {
             MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
-            searchParameters.entrySet().forEach(e -> {
-                        map.add(e.getKey().getName(), e.getValue());
-                    }
-            );
+            params.forEach(map::add);
             try {
                 SearchResult searchResult = saveAndRestoreService.search(map);
                 if (searchResult.getHitCount() > 0) {
@@ -275,6 +268,9 @@ public class SearchController implements Initializable {
                         tableEntries.addAll(searchResult.getNodes());
                         tableEntries = tableEntries.stream().sorted(nodeComparator()).collect(Collectors.toList());
                         resultTableView.getItems().setAll(tableEntries);
+                        List<SearchQuery> queries = searchQueryManager.getQueries();
+                        searchQueries.setAll(queries);
+                        queryComboBox.getSelectionModel().select(searchQueries.get(0));
                     });
                 } else {
                     Platform.runLater(() -> {
@@ -297,8 +293,55 @@ public class SearchController implements Initializable {
     }
 
     private Comparator<Node> nodeComparator() {
-        return Comparator.comparing((Node n) -> n.getNodeType())
+        return Comparator.comparing(Node::getNodeType)
                 .thenComparing((Node n) -> n.getName().toLowerCase());
+    }
+
+    private void configureComboBox() {
+        Font defaultQueryFont = Font.font("Liberation Sans", FontWeight.BOLD, 12);
+        Font defaultQueryFontRegular = Font.font("Liberation Sans", FontWeight.NORMAL, 12);
+        queryComboBox.setVisibleRowCount(SearchQueryManager.getInstance().getQueryListSize());
+        // Needed to customize item rendering, e.g. default query rendered in bold.
+        queryComboBox.setCellFactory(
+                new Callback<>() {
+                    @Override
+                    public ListCell<SearchQuery> call(ListView<SearchQuery> param) {
+                        return new ListCell<>() {
+                            @Override
+                            public void updateItem(SearchQuery item,
+                                                   boolean empty) {
+                                super.updateItem(item, empty);
+                                if (item != null) {
+                                    setText(item.getQuery().isEmpty() ? "<empty>" : item.getQuery());
+                                    if (item.isDefaultQuery()) {
+                                        setFont(defaultQueryFont);
+                                    } else {
+                                        setFont(defaultQueryFontRegular);
+                                    }
+                                }
+                            }
+                        };
+                    }
+                });
+
+        // This is needed for the "editor" part of the ComboBox
+        queryComboBox.setConverter(
+                new StringConverter<>() {
+                    @Override
+                    public String toString(SearchQuery query) {
+                        if (query == null) {
+                            return "";
+                        } else {
+                            return query.getQuery();
+                        }
+                    }
+
+                    @Override
+                    public SearchQuery fromString(String s) {
+                        return new SearchQuery(s);
+                    }
+                });
+
     }
 }
 
