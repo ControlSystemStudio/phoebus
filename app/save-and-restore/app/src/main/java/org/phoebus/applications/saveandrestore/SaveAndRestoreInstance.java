@@ -20,6 +20,7 @@ package org.phoebus.applications.saveandrestore;
 
 import javafx.fxml.FXMLLoader;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
+import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
@@ -27,6 +28,7 @@ import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
 import java.net.URI;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,7 +44,8 @@ public class SaveAndRestoreInstance implements AppInstance {
 
         FXMLLoader loader = new FXMLLoader();
         try {
-
+            ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
+            loader.setResources(resourceBundle);
             loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/SaveAndRestoreUI.fxml"));
             loader.setControllerFactory(clazz -> {
                 try {

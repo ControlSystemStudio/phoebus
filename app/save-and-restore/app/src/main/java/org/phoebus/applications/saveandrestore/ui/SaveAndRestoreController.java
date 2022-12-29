@@ -118,12 +118,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     protected TabPane tabPane;
 
     @FXML
-    private Label jmasarServiceTitle;
-
-    @FXML
-    private Button reconnectButton;
-
-    @FXML
     private Button searchButton;
 
     @FXML
@@ -131,6 +125,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     @FXML
     private ProgressIndicator progressIndicator;
+
+    @FXML
+    private Label noConnectionLabel;
 
     protected SaveAndRestoreService saveAndRestoreService;
 
@@ -143,7 +140,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     protected ContextMenu compositeSnapshotContextMenu;
 
     protected SimpleStringProperty toggleGoldenMenuItemText = new SimpleStringProperty();
-    protected SimpleStringProperty jmasarServiceTitleProperty = new SimpleStringProperty();
     protected SimpleObjectProperty<ImageView> toggleGoldenImageViewProperty = new SimpleObjectProperty<>();
     private final SimpleBooleanProperty multipleItemsSelected = new SimpleBooleanProperty(false);
     protected MultipleSelectionModel<TreeItem<Node>> browserSelectionModel;
@@ -180,13 +176,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         preferencesReader =
                 new PreferencesReader(SaveAndRestoreApplication.class, "/save_and_restore_preferences.properties");
-        reconnectButton.setGraphic(ImageCache.getImageView(SaveAndRestoreApplication.class, "/icons/refresh.png"));
-        reconnectButton.setTooltip(new Tooltip(Messages.buttonRefresh));
-
         ImageView searchButtonImageView = ImageCache.getImageView(SaveAndRestoreApplication.class, "/icons/sar-search.png");
         searchButtonImageView.setFitWidth(16);
         searchButtonImageView.setFitHeight(16);
-
         searchButton.setGraphic(searchButtonImageView);
         searchButton.setTooltip(new Tooltip(Messages.buttonSearch));
 
@@ -225,7 +217,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         treeView.setShowRoot(true);
 
-        jmasarServiceTitle.textProperty().bind(jmasarServiceTitleProperty);
         saveAndRestoreService.addNodeChangeListener(this);
         saveAndRestoreService.addNodeAddedListener(this);
 
@@ -276,8 +267,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
             @Override
             public void succeeded() {
+                noConnectionLabel.visibleProperty().set(false);
                 TreeItem<Node> rootItem = getValue();
-                jmasarServiceTitleProperty.set(saveAndRestoreService.getServiceIdentifier());
                 treeView.setRoot(rootItem);
                 restoreTreeState();
                 openResource(uri);
@@ -285,7 +276,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
             @Override
             public void failed() {
-                jmasarServiceTitleProperty.set(MessageFormat.format(Messages.jmasarServiceUnavailable, saveAndRestoreService.getServiceIdentifier()));
+                noConnectionLabel.visibleProperty().set(true);
             }
         };
 
@@ -487,12 +478,11 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     @FXML
-    protected void openSearchWindow(){
+    protected void openSearchWindow() {
         Optional<Tab> searchTabOptional = tabPane.getTabs().stream().filter(t -> t.getId().equals(SearchTab.SEARCH_TAB_ID)).findFirst();
-        if(searchTabOptional.isPresent()){
+        if (searchTabOptional.isPresent()) {
             tabPane.getSelectionModel().select(searchTabOptional.get());
-        }
-        else{
+        } else {
             SearchTab searchTab = new SearchTab(this);
             tabPane.getTabs().add(0, searchTab);
             tabPane.getSelectionModel().select(searchTab);

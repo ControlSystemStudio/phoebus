@@ -193,13 +193,15 @@ public class BrowserTreeCell extends TreeCell<Node> {
                 setContextMenu(configurationContextMenu);
                 break;
             case FOLDER:
+                String name = node.getName();
                 if (node.getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)) {
                     setContextMenu(rootFolderContextMenu);
+                    name += " (" + SaveAndRestoreService.getInstance().getServiceIdentifier() +")";
                 } else {
                     setContextMenu(folderContextMenu);
                 }
                 hBox.getChildren().add(new ImageView(ImageRepository.FOLDER));
-                hBox.getChildren().add(new Label(node.getName()));
+                hBox.getChildren().add(new Label(name));
                 break;
         }
         setGraphic(hBox);
