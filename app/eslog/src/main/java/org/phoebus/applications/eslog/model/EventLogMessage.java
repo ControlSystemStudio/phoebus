@@ -1,6 +1,5 @@
 package org.phoebus.applications.eslog.model;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -14,11 +13,8 @@ import javax.jms.MapMessage;
 import org.phoebus.applications.eslog.archivedjmslog.LogMessage;
 import org.phoebus.util.time.SecondsParser;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.node.TextNode;
+import co.elastic.clients.elasticsearch.core.search.Hit;
 
-@JsonDeserialize(using = CustomEventDeserializer.class)
 public class EventLogMessage extends LogMessage
 {
     /** Property for message ID in RDB */
@@ -28,6 +24,8 @@ public class EventLogMessage extends LogMessage
     public static final String DATE = "CREATETIME"; //$NON-NLS-1$
 
     public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS"; //$NON-NLS-1$
+    public static final DateTimeFormatter date_formatter = DateTimeFormatter
+            .ofPattern(DATE_FORMAT).withZone(ZoneId.systemDefault());
 
     public static final String HOST = "HOST"; //$NON-NLS-1$
 
@@ -43,21 +41,24 @@ public class EventLogMessage extends LogMessage
     /** Map of property names and values */
     private final Map<String, String> properties = new HashMap<>();
     private String delta = null;
+    private Instant date;
 
     @SuppressWarnings("nls")
-    static final String[] PROPERTY_NAMES = { "CREATETIME", "TEXT", "NAME",
-            "CLASS", "USER", "HOST", "APPLICATION-ID", "SEVERITY" };
+    static final public String[] PROPERTY_NAMES = { "TEXT", "NAME", "CLASS",
+            "USER", "HOST", "APPLICATION-ID", "SEVERITY" };
 
     @SuppressWarnings("nls")
-    public static EventLogMessage fromElasticsearch(JsonParser parser)
-            throws IOException
+    public static EventLogMessage fromElasticsearch(Hit<EventLogMessage> hit)
     {
-        final var node = parser.getCodec().readTree(parser);
-        EventLogMessage msg = new EventLogMessage();
+        final var msg = new EventLogMessage();
+        msg.date = Instant.ofEpochMilli(
+                Long.valueOf(hit.fields().get(EventLogMessage.DATE).toJson()
+                        .asJsonArray().getString(0)));
         for (String name : EventLogMessage.PROPERTY_NAMES)
         {
-            final var val = (TextNode) node.get(name);
-            if (null != val) msg.properties.put(name, val.textValue());
+            final var val = hit.fields().get(name).toJson().asJsonArray()
+                    .getString(0);
+            if (null != val) msg.properties.put(name, val);
         }
         msg.verify();
         return msg;
@@ -92,8 +93,7 @@ public class EventLogMessage extends LogMessage
         EventLogMessage o = (EventLogMessage) other;
 
         // first compare by date
-        int r = this.getPropertyValue(EventLogMessage.DATE)
-                .compareTo(o.getPropertyValue(EventLogMessage.DATE));
+        int r = this.date.compareTo(o.date);
         if (0 != r)
         {
             return r;
@@ -146,25 +146,18 @@ public class EventLogMessage extends LogMessage
         {
             return this.delta;
         }
+        if (EventLogMessage.DATE.equals(id))
+        {
+            return EventLogMessage.date_formatter.format(date);
+        }
+
         return this.properties.get(id);
     }
 
     @Override
     public Instant getTime()
     {
-        try
-        {
-            final var formatter = DateTimeFormatter.ofPattern(DATE_FORMAT)
-                    .withZone(ZoneId.systemDefault());
-            return Instant.from(
-                    formatter.parse(getPropertyValue(EventLogMessage.DATE)));
-        }
-        catch (NumberFormatException e)
-        {
-            System.err.println(getPropertyValue(EventLogMessage.DATE));
-            e.printStackTrace();
-            return Instant.ofEpochMilli(0);
-        }
+        return date;
     }
 
     @Override
@@ -209,8 +202,7 @@ public class EventLogMessage extends LogMessage
     public void verify() throws IllegalArgumentException
     {
         // this is the absolute minimum a message should have.
-        if (!this.properties.containsKey(EventLogMessage.DATE)
-                || !this.properties.containsKey(EventLogMessage.SEVERITY)
+        if (!this.properties.containsKey(EventLogMessage.SEVERITY)
                 || !this.properties.containsKey(EventLogMessage.TEXT))
         {
             throw new IllegalArgumentException("Invalid log message."); //$NON-NLS-1$

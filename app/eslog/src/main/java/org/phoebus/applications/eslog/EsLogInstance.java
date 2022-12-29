@@ -1,7 +1,6 @@
 package org.phoebus.applications.eslog;
 
 import java.net.MalformedURLException;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 
@@ -15,9 +14,6 @@ import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
-import co.elastic.clients.elasticsearch._types.query_dsl.Query;
-import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
-import co.elastic.clients.json.JsonData;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -246,22 +242,8 @@ class EsLogInstance implements AppInstance
             {
                 archive = new ElasticsearchModel<EventLogMessage>(
                         EsLogPreferences.es_url, EsLogPreferences.es_index,
-                        "CREATETIME") //$NON-NLS-1$
+                        "CREATETIME", EventLogMessage::fromElasticsearch) //$NON-NLS-1$
                 {
-                    @Override
-                    protected Query getTimeQuery(Instant from, Instant to)
-                    {
-                        var df = new SimpleDateFormat(
-                                EventLogMessage.DATE_FORMAT);
-                        return RangeQuery
-                                .of(r -> r.field(this.dateField)
-                                        .gte(JsonData.of(
-                                                df.format(from.toEpochMilli())))
-                                        .lte(JsonData.of(
-                                                df.format(to.toEpochMilli()))))
-                                ._toQuery();
-                    }
-
                     @Override
                     public EventLogMessage[] getMessages()
                     {

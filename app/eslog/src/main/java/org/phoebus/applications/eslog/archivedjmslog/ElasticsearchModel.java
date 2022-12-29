@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -52,13 +53,14 @@ public class ElasticsearchModel<T extends LogMessage> extends ArchiveModel<T>
     protected final String protocol;
 
     protected Job queryJob;
+    protected final Function<Hit<T>, T> converter;
     protected Class<T> parameterType;
 
     protected List<T> messages;
 
     @SuppressWarnings("unchecked")
-    public ElasticsearchModel(String es_url, String index, String dateField)
-            throws MalformedURLException
+    public ElasticsearchModel(String es_url, String index, String dateField,
+            Function<Hit<T>, T> converter) throws MalformedURLException
     {
         Activator.checkParameterString(dateField, "dateField"); //$NON-NLS-1$
         Activator.checkParameterString(index, "index"); //$NON-NLS-1$
@@ -70,6 +72,7 @@ public class ElasticsearchModel<T extends LogMessage> extends ArchiveModel<T>
         final var port = url.getPort();
         this.port = (port != -1) ? port : 9200;
         this.protocol = url.getProtocol();
+        this.converter = converter;
         this.parameterType = ((Class<T>) ((ParameterizedType) getClass()
                 .getGenericSuperclass()).getActualTypeArguments()[0]);
     }
@@ -206,13 +209,18 @@ public class ElasticsearchModel<T extends LogMessage> extends ArchiveModel<T>
                             {
                                 final var request = SearchRequest.of(r -> r
                                         .query(query)
+                                        .source(sc -> sc.fetch(false))
                                         .pit(p -> p.id(pitId)
                                                 .keepAlive(keepAlive))
-                                        .size(PAGE_SIZE).from(result.size()));
+                                        .size(PAGE_SIZE).from(result.size())
+                                        .fields(ff -> ff.field("*"))
+                                        .fields(ff -> ff.field(dateField)
+                                                .format("epoch_millis")));
+
                                 final var search = client.search(request,
                                         parameterType);
                                 result.addAll(search.hits().hits().stream()
-                                        .map(Hit::source)
+                                        .map(ElasticsearchModel.this.converter)
                                         .collect(Collectors.toList()));
                                 done = search.hits().total().value() == result
                                         .size();
