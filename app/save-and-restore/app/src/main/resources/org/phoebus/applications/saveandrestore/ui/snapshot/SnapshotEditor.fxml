@@ -78,7 +78,7 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                             </Label>
                             <TextArea fx:id="snapshotComment" promptText="Enter a comment (mandatory)" GridPane.columnIndex="3" GridPane.rowSpan="4" GridPane.valignment="CENTER">
                                 <GridPane.margin>
-                                    <Insets bottom="5.0" right="3.0" top="4.0" />
+                                    <Insets bottom="2.0" right="3.0" top="4.0" />
                                 </GridPane.margin>
                             </TextArea>
                             <Button fx:id="restoreButton" onAction="#restore" prefWidth="120.0" text="%restore" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="CENTER">
@@ -102,6 +102,14 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                                 </GridPane.margin>
                             </Label>
                             <Label fx:id="snapshotLastModifiedLabel" text="Last Modified Date" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                            <Button fx:id="createLogEntryButton" onAction="#createLogEntry" prefWidth="120.0" text="%createLogEntry" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.valignment="CENTER">
+                                <GridPane.margin>
+                                    <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                </GridPane.margin>
+                                <tooltip>
+                                    <Tooltip text="%createLogEntryToolTip"/>
+                                </tooltip>
+                            </Button>
 
                         </children>
                         <VBox.margin>
@@ -122,8 +130,8 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                 </VBox>
             </top>
         </BorderPane>
-        <VBox alignment="CENTER" focusTraversable="true" fx:id="progressIndicator">
-            <ProgressIndicator/>
+        <VBox fx:id="progressIndicator" alignment="CENTER" focusTraversable="true">
+            <ProgressIndicator />
         </VBox>
     </children>
 </StackPane>
