@@ -3,6 +3,7 @@ package org.phoebus.applications.eslog.model;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -74,6 +75,16 @@ public class EventLogMessage extends LogMessage
                 msg.properties.put(name, message.getString(name));
             }
             msg.properties.put("ID", message.getJMSMessageID()); //$NON-NLS-1$
+            final var DATE = message.getString(EventLogMessage.DATE);
+            System.out.println(DATE);
+            try
+            {
+                msg.date = Instant.parse(DATE);
+            }
+            catch (DateTimeParseException e)
+            {
+                msg.date = Instant.from(date_formatter.parse(DATE));
+            }
             msg.verify();
             return msg;
         }
@@ -157,7 +168,7 @@ public class EventLogMessage extends LogMessage
     @Override
     public Instant getTime()
     {
-        return date;
+        return this.date;
     }
 
     @Override
