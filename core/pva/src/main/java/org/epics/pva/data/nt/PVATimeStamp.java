@@ -13,12 +13,21 @@ import org.epics.pva.data.PVAInt;
 import org.epics.pva.data.PVALong;
 import org.epics.pva.data.PVAStructure;
 
-/** Normative timestamp type
- *  @author Kay Kasemir
+/**
+ * Normative timestamp type
+ * 
+ * structure
+ *   long secondsPastEpoch
+ *   int nanoseconds
+ *   int userTag
+ * 
+ * @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class PVATimeStamp extends PVAStructure
 {
+    public static final Instant NO_TIME = Instant.ofEpochSecond(0, 0);
+
     private final PVALong secs;
     private final PVAInt nano;
 
@@ -74,5 +83,12 @@ public class PVATimeStamp extends PVAStructure
         PVAInt nano = ts.get(2);
         secs.set(time.getEpochSecond());
         nano.set(time.getNano());
+    }
+
+    public Instant instant() {
+        if (secs == null || nano == null)
+                return NO_TIME;
+        else
+            return Instant.ofEpochSecond(secs.get(), nano.get());
     }
 }
