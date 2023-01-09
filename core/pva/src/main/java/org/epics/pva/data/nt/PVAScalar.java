@@ -136,7 +136,7 @@ public class PVAScalar<S extends PVAData> extends PVAStructure {
             if (!value.getName().equals(VALUE_NAME_STRING)) {
                 throw new PVAScalarValueNameException(value.getName());
             }
-            if (!description.getName().equals(DESCRIPTION_NAME_STRING)) {
+            if (this.description != null && !description.getName().equals(DESCRIPTION_NAME_STRING)) {
                 throw new PVAScalarDescriptionNameException(description.getName());
             }
             return new PVAScalar<>(this);
