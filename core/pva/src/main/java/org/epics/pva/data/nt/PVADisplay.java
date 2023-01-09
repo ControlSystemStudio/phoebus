@@ -58,8 +58,7 @@ public class PVADisplay extends PVAStructure {
      */
     public PVADisplay(double limitLow, double limitHigh, String description, String units, int precision,
             Form form) {
-        super(DISPLAY_NAME_STRING, DISPLAY_T,
-                new PVADouble("limitLow", limitLow),
+        this(new PVADouble("limitLow", limitLow),
                 new PVADouble("limitHigh", limitHigh),
                 new PVAString("description", description),
                 new PVAString("units", units),
@@ -98,14 +97,15 @@ public class PVADisplay extends PVAStructure {
      * @return PVADisplay or <code>null</code>
      */
     public static PVADisplay fromStructure(PVAStructure structure) {
-        if (structure.getStructureName().equals(DISPLAY_T)) {
+        // Epics Iocs do not always use the DISPLAY_T type name
+        if (structure != null && structure.getName().equals(DISPLAY_NAME_STRING)) {
             return new PVADisplay(
-                    structure.get("limitLow"),
-                    structure.get("limitHigh"),
-                    structure.get("description"),
-                    structure.get("units"),
-                    structure.get("precision"),
-                    PVAEnum.fromStructure(structure.get("form")));
+                structure.get("limitLow"),
+                structure.get("limitHigh"),
+                structure.get("description"),
+                structure.get("units"),
+                structure.get("precision"),
+                PVAEnum.fromStructure(structure.get("form")));
         }
         return null;
     }

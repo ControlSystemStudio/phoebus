@@ -116,7 +116,7 @@ public class PVATimeStamp extends PVAStructure
      *  @return PVATimeStamp or <code>null</code>
      */
     public static PVATimeStamp fromStructure(PVAStructure structure) {
-        if (structure.getStructureName().equals(TIME_T))
+        if (structure != null && structure.getName().equals(TIMESTAMP_NAME_STRING))
         {
             final PVALong secs = structure.get(SECONDS_PAST_EPOCH);
             final PVAInt nano = structure.get(NANOSECONDS);

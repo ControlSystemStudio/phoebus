@@ -53,7 +53,7 @@ public class PVAControl extends PVAStructure {
      * @return PVAControl or <code>null</code>
      */
     public static PVAControl fromStructure(PVAStructure structure) {
-        if (structure.getStructureName().equals(CONTROL_T)) {
+        if (structure !=null && structure.getStructureName().equals(CONTROL_T)) {
             final PVADouble limitLow = structure.get("limitLow");
             final PVADouble limitHigh = structure.get("limitHigh");
             final PVADouble minStep = structure.get("minStep");

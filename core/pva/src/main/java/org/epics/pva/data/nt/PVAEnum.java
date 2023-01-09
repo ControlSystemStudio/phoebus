@@ -33,19 +33,16 @@ public class PVAEnum extends PVAStructure {
 
     public String enumString() {
 
-        if (this.index != null  && this.choices != null)
-        {
+        if (this.index != null && this.choices != null) {
             final int i = this.index.get();
             final String[] labels = this.choices.get();
-            return i>=0 && i<labels.length ? labels[i] : "Invalid enum <" + i + ">";
+            return i >= 0 && i < labels.length ? labels[i] : "Invalid enum <" + i + ">";
         }
         return null;
     }
 
     public static PVAEnum fromStructure(PVAStructure structure) {
-
-        if (structure.getStructureName().equals(ENUM_T))
-        {
+        if (structure != null && structure.getStructureName().equals(ENUM_T)) {
             final PVAInt index = structure.get("index");
             final PVAStringArray choices = structure.get("choices");
             return new PVAEnum(structure.getName(), index, choices);
