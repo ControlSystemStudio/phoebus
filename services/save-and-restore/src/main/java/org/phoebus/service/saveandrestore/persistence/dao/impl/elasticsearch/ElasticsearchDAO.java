@@ -28,6 +28,7 @@ import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.model.ESTreeNode;
@@ -61,6 +62,9 @@ public class ElasticsearchDAO implements NodeDAO {
     @SuppressWarnings("unused")
     @Autowired
     private SnapshotDataRepository snapshotDataRepository;
+
+    @Autowired
+    private FilterRepository filterRepository;
 
     @SuppressWarnings("unused")
     @Autowired
@@ -906,5 +910,28 @@ public class ElasticsearchDAO implements NodeDAO {
     @Override
     public SearchResult search(MultiValueMap<String, String> searchParameters) {
         return elasticsearchTreeRepository.search(searchParameters);
+    }
+
+    @Override
+    public Filter saveFilter(Filter filter){
+        return filterRepository.save(filter);
+    }
+
+    @Override
+    public List<Filter> getAllFilters(){
+        Iterable<Filter> filtersIterable = filterRepository.findAll();
+        List<Filter> filters = new ArrayList<>();
+        filtersIterable.forEach(element -> filters.add(element));
+        return filters;
+    }
+
+    @Override
+    public void deleteFilter(String name){
+        filterRepository.deleteById(name);
+    }
+
+    @Override
+    public void deleteAllFilters(){
+        filterRepository.deleteAll();
     }
 }

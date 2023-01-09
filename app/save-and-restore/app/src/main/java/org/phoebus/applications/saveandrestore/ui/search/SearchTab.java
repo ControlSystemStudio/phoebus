@@ -28,6 +28,7 @@ import javafx.scene.layout.HBox;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -71,6 +72,10 @@ public class SearchTab extends Tab {
 
         setGraphic(container);
 
-        ((SearchController)loader.getController()).setCallerController(saveAndRestoreController);
+        ((SearchWindowController)loader.getController()).setCallerController(saveAndRestoreController);
+
+        setOnCloseRequest(event -> {
+           System.out.println();
+        });
     }
 }

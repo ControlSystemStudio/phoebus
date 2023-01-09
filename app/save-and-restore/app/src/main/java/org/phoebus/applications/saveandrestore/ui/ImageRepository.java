@@ -20,7 +20,7 @@
 package org.phoebus.applications.saveandrestore.ui;
 
 import javafx.scene.image.Image;
-import org.phoebus.applications.saveandrestore.ui.search.SearchController;
+import org.phoebus.applications.saveandrestore.ui.search.SearchWindowController;
 import org.phoebus.ui.javafx.ImageCache;
 
 /**
@@ -39,7 +39,7 @@ public class ImageRepository {
     public static final Image GOLDEN_SNAPSHOT =
             ImageCache.getImage(ImageRepository.class, "/icons/save-and-restore/snapshot-golden.png");
     public static final Image COMPOSITE_SNAPSHOT =
-            ImageCache.getImage(SearchController.class, "/icons/save-and-restore/composite-snapshot.png");
+            ImageCache.getImage(SearchWindowController.class, "/icons/save-and-restore/composite-snapshot.png");
     public static final Image EDIT_CONFIGURATION =
-            ImageCache.getImage(SearchController.class, "/icons/save-and-restore/edit-configuration.png");
+            ImageCache.getImage(SearchWindowController.class, "/icons/save-and-restore/edit-configuration.png");
 }

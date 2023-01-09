@@ -23,16 +23,10 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -41,10 +35,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-import javafx.util.Callback;
-import javafx.util.StringConverter;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.Preferences;
@@ -76,18 +66,18 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * {@link SearchController} class provides the controller for SearchWindow.fxml
+ * {@link SearchWindowController} class provides the controller for SearchWindow.fxml
  *
  * @author <a href="mailto:changj@frib.msu.edu">Genie Jhang</a>
  */
 
-public class SearchController implements Initializable {
+public class SearchWindowController implements Initializable {
 
     private SaveAndRestoreController callerController;
     private List<Node> tableEntries = new ArrayList<>();
 
     @FXML
-    private ComboBox<SearchQuery> queryComboBox;
+    private TextField queryTextField;
 
     @FXML
     private TableView<Node> resultTableView;
@@ -121,23 +111,14 @@ public class SearchController implements Initializable {
     private final SimpleIntegerProperty pageSizeProperty =
             new SimpleIntegerProperty(Preferences.search_result_page_size);
 
-    private static final Logger LOG = Logger.getLogger(SearchController.class.getName());
+    private static final Logger LOG = Logger.getLogger(SearchWindowController.class.getName());
 
     private final SimpleIntegerProperty hitCountProperty = new SimpleIntegerProperty(0);
     private final SimpleIntegerProperty pageCountProperty = new SimpleIntegerProperty(0);
 
-    //private final MultivaluedMap<String, String> searchParameters = new MultivaluedHashMap<>();
-
-    private SearchQueryManager searchQueryManager;
-
-    private final ObservableList<SearchQuery> searchQueries = FXCollections.observableArrayList();
-
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         saveAndRestoreService = SaveAndRestoreService.getInstance();
-        searchQueryManager = SearchQueryManager.getInstance();
-
-        configureComboBox();
 
         resultTableView.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         pagination.getStylesheets().add(this.getClass().getResource("/pagination.css").toExternalForm());
@@ -204,17 +185,11 @@ public class SearchController implements Initializable {
         pagination.pageCountProperty().bind(pageCountProperty);
         pagination.maxPageIndicatorCountProperty().bind(pageCountProperty);
 
-        queryComboBox.setOnKeyPressed(keyEvent -> {
+        queryTextField.setOnKeyPressed(keyEvent -> {
             if (keyEvent.getCode() == KeyCode.ENTER) {
                 search();
             }
         });
-
-        searchQueries.setAll(searchQueryManager.getQueries());
-        queryComboBox.itemsProperty().bind(new SimpleObjectProperty<>(searchQueries));
-        queryComboBox.getSelectionModel().select(searchQueries.get(0));
-        queryComboBox.getEditor().setText(searchQueries.get(0).getQuery());
-        search();
     }
 
     public void setCallerController(SaveAndRestoreController callerController) {
@@ -247,10 +222,10 @@ public class SearchController implements Initializable {
     @FXML
     public void search() {
 
-        String searchQuery = queryComboBox.getEditor().getText();
+        String searchQuery = queryTextField.getText();
 
         Map<String, String> params =
-                SearchQueryUtil.parseHumanReadableQueryString(searchQueryManager.getOrAddQuery(searchQuery).getQuery());
+                SearchQueryUtil.parseHumanReadableQueryString(searchQuery);
 
         params.put(Keys.FROM.getName(), Integer.toString(pagination.getCurrentPageIndex() * pageSizeProperty.get()));
         params.put(Keys.SIZE.getName(), Integer.toString(pageSizeProperty.get()));
@@ -268,9 +243,6 @@ public class SearchController implements Initializable {
                         tableEntries.addAll(searchResult.getNodes());
                         tableEntries = tableEntries.stream().sorted(nodeComparator()).collect(Collectors.toList());
                         resultTableView.getItems().setAll(tableEntries);
-                        List<SearchQuery> queries = searchQueryManager.getQueries();
-                        searchQueries.setAll(queries);
-                        queryComboBox.getSelectionModel().select(searchQueries.get(0));
                     });
                 } else {
                     Platform.runLater(() -> {
@@ -297,51 +269,18 @@ public class SearchController implements Initializable {
                 .thenComparing((Node n) -> n.getName().toLowerCase());
     }
 
-    private void configureComboBox() {
-        Font defaultQueryFont = Font.font("Liberation Sans", FontWeight.BOLD, 12);
-        Font defaultQueryFontRegular = Font.font("Liberation Sans", FontWeight.NORMAL, 12);
-        queryComboBox.setVisibleRowCount(SearchQueryManager.getInstance().getQueryListSize());
-        // Needed to customize item rendering, e.g. default query rendered in bold.
-        queryComboBox.setCellFactory(
-                new Callback<>() {
-                    @Override
-                    public ListCell<SearchQuery> call(ListView<SearchQuery> param) {
-                        return new ListCell<>() {
-                            @Override
-                            public void updateItem(SearchQuery item,
-                                                   boolean empty) {
-                                super.updateItem(item, empty);
-                                if (item != null) {
-                                    setText(item.getQuery().isEmpty() ? "<empty>" : item.getQuery());
-                                    if (item.isDefaultQuery()) {
-                                        setFont(defaultQueryFont);
-                                    } else {
-                                        setFont(defaultQueryFontRegular);
-                                    }
-                                }
-                            }
-                        };
-                    }
-                });
+    public String getQuery(){
+        return queryTextField.getText();
+    }
 
-        // This is needed for the "editor" part of the ComboBox
-        queryComboBox.setConverter(
-                new StringConverter<>() {
-                    @Override
-                    public String toString(SearchQuery query) {
-                        if (query == null) {
-                            return "";
-                        } else {
-                            return query.getQuery();
-                        }
-                    }
+    public void setQuery(String query){
+        queryTextField.setText(query);
+        search();
+    }
 
-                    @Override
-                    public SearchQuery fromString(String s) {
-                        return new SearchQuery(s);
-                    }
-                });
-
+    @FXML
+    public void saveAsFilter(){
+        String query = queryTextField.getText();
     }
 }
 

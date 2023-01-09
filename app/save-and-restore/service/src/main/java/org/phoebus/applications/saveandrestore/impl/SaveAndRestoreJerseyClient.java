@@ -42,12 +42,14 @@ import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.service.Messages;
 import org.phoebus.framework.preferences.PreferencesReader;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.IOException;
+import java.lang.reflect.GenericArrayType;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -495,5 +497,57 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
             throw new RuntimeException(message);
         }
         return response.getEntity(SearchResult.class);
+    }
+
+    @Override
+    public Filter saveFilter(Filter filter){
+        WebResource webResource = client.resource(jmasarServiceUrl + "/filter");
+
+        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
+                .entity(filter, CONTENT_TYPE_JSON)
+                .put(ClientResponse.class);
+        if (response.getStatus() != 200) {
+            String message = Messages.saveFilterFailed;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                // Ignore
+            }
+            throw new RuntimeException(message);
+        }
+        return response.getEntity(Filter.class);
+    }
+
+    @Override
+    public List<Filter> getAllFilters(){
+        WebResource webResource = client.resource(jmasarServiceUrl + "/filters");
+        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
+                .get(ClientResponse.class);
+        if (response.getStatus() != 200) {
+            String message = Messages.searchFailed;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                // Ignore
+            }
+            throw new RuntimeException(message);
+        }
+        return response.getEntity(new GenericType<List<Filter>>(){});
+    }
+
+    @Override
+    public void deleteFilter(String name){
+        WebResource webResource = client.resource(jmasarServiceUrl + "/filter/" + name);
+        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
+                .put(ClientResponse.class);
+        if (response.getStatus() != 200) {
+            String message = Messages.deleteFilterFailed;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                // Ignore
+            }
+            throw new RuntimeException(message);
+        }
     }
 }

@@ -23,7 +23,8 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<GridPane alignment="CENTER" hgap="5.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" style="-fx-background-color: #f4f4f4;" vgap="5.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.search.SearchController">
+<GridPane alignment="CENTER" hgap="5.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" style="-fx-background-color: #f4f4f4;" vgap="5.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="org.phoebus.applications.saveandrestore.ui.search.SearchWindowController">
     <columnConstraints>
         <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" />
         <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" />
@@ -34,12 +35,17 @@
       <RowConstraints />
     </rowConstraints>
     <children>
-        <ComboBox fx:id="queryComboBox" editable="true" maxWidth="1.7976931348623157E308" GridPane.hgrow="ALWAYS">
+        <TextField fx:id="queryTextField" editable="true" maxWidth="1.7976931348623157E308" GridPane.hgrow="ALWAYS">
             <tooltip>
                 <Tooltip text="%searchFieldToolTip" />
             </tooltip>
-        </ComboBox>
-        <Button mnemonicParsing="false" onAction="#showHelp" text="%help" GridPane.columnIndex="1">
+        </TextField>
+        <Button mnemonicParsing="false" onAction="#saveAsFilter" text="%saveAsFilter" GridPane.columnIndex="1">
+            <GridPane.margin>
+                <Insets left="5.0" />
+            </GridPane.margin>
+        </Button>
+        <Button mnemonicParsing="false" onAction="#showHelp" text="%help" GridPane.columnIndex="2">
             <GridPane.margin>
                 <Insets left="5.0" />
             </GridPane.margin>

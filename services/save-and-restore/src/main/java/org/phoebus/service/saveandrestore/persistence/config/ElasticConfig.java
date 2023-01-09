@@ -56,6 +56,9 @@ public class ElasticConfig {
     @Value("${elasticsearch.composite_snapshot_node.index:saveandrestore_composite_snapshot}")
     public String ES_COMPOSITE_SNAPSHOT_INDEX;
 
+    @Value("${elasticsearch.filter.index:saveandrestore_filter}")
+    public String ES_FILTER_INDEX;
+
     @Value("${elasticsearch.network.host:localhost}")
     private String host;
     @Value("${elasticsearch.http.port:9200}")

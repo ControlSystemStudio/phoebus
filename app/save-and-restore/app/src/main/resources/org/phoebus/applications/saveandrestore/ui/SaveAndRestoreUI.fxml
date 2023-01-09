@@ -1,48 +1,66 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ProgressIndicator?>
-<?import javafx.scene.control.SplitPane?>
-<?import javafx.scene.control.TabPane?>
-<?import javafx.scene.control.ToolBar?>
-<?import javafx.scene.control.TreeView?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
 <BorderPane xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController">
-    <top>
-        <ToolBar>
-            <items>
-                <Button fx:id="searchButton" mnemonicParsing="false" onAction="#openSearchWindow"/>
-            </items>
-        </ToolBar>
-    </top>
     <center>
         <SplitPane fx:id="splitPane" dividerPositions="0.2">
             <items>
-                <StackPane maxWidth="500.0" minWidth="300.0">
+                <StackPane maxWidth="550.0" minWidth="350.0">
                     <children>
                         <VBox alignment="CENTER">
-                            <ProgressIndicator fx:id="progressIndicator"/>
+                            <ProgressIndicator fx:id="progressIndicator" />
                         </VBox>
-                        <TreeView fx:id="treeView" prefHeight="347.0" prefWidth="195.0" BorderPane.alignment="CENTER"
-                                  VBox.vgrow="ALWAYS">
+                        <VBox>
+                            <ToolBar>
+                                <items>
+                                    <Label text="%filter" />
+                                    <ComboBox fx:id="filtersComboBox" prefWidth="200.0"/>
+                                    <Button onAction="#manageFilters">
+                                        <graphic>
+                                            <ImageView fitHeight="15.0" fitWidth="15.0">
+                                                <image>
+                                                    <Image url="/icons/save-and-restore/manage-filters.png" />
+                                                </image>
+                                            </ImageView>
+                                        </graphic>
+                                        <tooltip>
+                                            <Tooltip text="%manageFilters"/>
+                                        </tooltip>
+                                    </Button>
+                                    <Button fx:id="searchButton" onAction="#openSearchWindow">
+                                        <graphic>
+                                            <ImageView fitHeight="15.0" fitWidth="15.0">
+                                                <image>
+                                                    <Image url="/icons/sar-search.png" />
+                                                </image>
+                                            </ImageView>
+                                        </graphic>
+                                        <tooltip>
+                                            <Tooltip text="%openSearchView"/>
+                                        </tooltip>
+                                    </Button>
+                                </items>
+                            </ToolBar>
+                        <TreeView fx:id="treeView" prefHeight="347.0" prefWidth="195.0" BorderPane.alignment="CENTER" VBox.vgrow="ALWAYS">
                             <StackPane.margin>
-                                <Insets/>
+                                <Insets />
                             </StackPane.margin>
                             <padding>
-                                <Insets top="5.0"/>
+                                <Insets top="5.0" />
                             </padding>
                         </TreeView>
-                        <Label fx:id="noConnectionLabel" text="%jmasarServiceUnavailable" visible="true"/>
+                        <Label fx:id="noConnectionLabel" text="%jmasarServiceUnavailable" visible="true" />
+                        </VBox>
                     </children>
                 </StackPane>
 
-                <TabPane fx:id="tabPane" prefHeight="1872.0" prefWidth="398.0"
-                         style="-fx-padding: 1; -fx-background-color: grey, -fx-control-inner-background; -fx-background-insets: 0, 1;">
+                <TabPane fx:id="tabPane" prefHeight="1872.0" prefWidth="398.0" style="-fx-padding: 1; -fx-background-color: grey, -fx-control-inner-background; -fx-background-insets: 0, 1;">
                 </TabPane>
             </items>
         </SplitPane>

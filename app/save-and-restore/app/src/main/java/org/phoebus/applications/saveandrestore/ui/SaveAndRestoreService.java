@@ -32,6 +32,7 @@ import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -350,7 +351,40 @@ public class SaveAndRestoreService {
         return saveAndRestoreClient.checkCompositeSnapshotConsistency(snapshotNodeIds);
     }
 
+    /**
+     * Search for {@link Node}s based on the specified search parameters.
+     * @param searchParams {@link MultivaluedMap} holding search parameters.
+     * @return A {@link SearchResult} with potentially empty list of matching {@link Node}s
+     */
     public SearchResult search(MultivaluedMap<String, String> searchParams) throws Exception{
         return saveAndRestoreClient.search(searchParams);
+    }
+
+    /**
+     * Save a new or updated {@link Filter}
+     * @param filter The {@link Filter} to save
+     * @return The saved {@link Filter}
+     */
+    public Filter saveFilter(Filter filter) throws Exception{
+        Future<Filter> future =
+                executor.submit(() -> saveAndRestoreClient.saveFilter(filter));
+        return future.get();
+    }
+
+    /**
+     * @return All persisted {@link Filter}s.
+     */
+    public List<Filter> getAllFilters() throws Exception{
+        Future<List<Filter>> future =
+                executor.submit(() -> saveAndRestoreClient.getAllFilters());
+        return future.get();
+    }
+
+    /**
+     * Deletes a {@link Filter} based on its name.
+     * @param name
+     */
+    public void deleteFilter(String name) throws Exception{
+        executor.submit(() -> saveAndRestoreClient.deleteFilter(name)).get();
     }
 }

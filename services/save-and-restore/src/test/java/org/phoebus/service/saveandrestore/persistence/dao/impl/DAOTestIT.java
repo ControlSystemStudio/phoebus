@@ -22,8 +22,7 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.indices.DeleteIndexRequest;
 import co.elastic.clients.elasticsearch.indices.ExistsRequest;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
-import org.elasticsearch.search.aggregations.metrics.InternalHDRPercentiles.Iter;
-import org.epics.util.array.ArrayShort;
+import org.elasticsearch.common.recycler.Recycler.C;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
@@ -34,7 +33,6 @@ import org.epics.vtype.VInt;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -50,9 +48,10 @@ import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.persistence.config.ElasticConfig;
-import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.CompositeSnapshotDataRepository;
+import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ConfigurationDataRepository;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchDAO;
 
@@ -65,6 +64,7 @@ import org.springframework.test.context.TestPropertySource;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -106,6 +106,9 @@ public class DAOTestIT {
 
     @Value("${elasticsearch.tree_node.index:test_saveandrestore_tree}")
     private String ES_TREE_INDEX;
+
+    @Value("${elasticsearch.filter.index:test_saveandrestore_filter}")
+    private String ES_FILTER_INDEX;
 
     private static Alarm alarm;
     private static Time time;
@@ -302,7 +305,10 @@ public class DAOTestIT {
 
         Node snapshotNode = Node.builder().nodeType(NodeType.SNAPSHOT).name("snapshot").build();
         Snapshot snapshot = new Snapshot();
-        snapshot.setSnapshotData(new SnapshotData());
+        SnapshotData snapshotData = new SnapshotData();
+        snapshotData.setSnasphotItems(List.of(SnapshotItem.builder().configPv(ConfigPv.builder().pvName("pv1").build())
+                .build()));
+        snapshot.setSnapshotData(snapshotData);
         snapshot.setSnapshotNode(snapshotNode);
 
         snapshot = nodeDAO.saveSnapshot(configNode.getUniqueId(), snapshot);
@@ -326,34 +332,6 @@ public class DAOTestIT {
     }
 
     @Test
-    public void testSaveCompositeSnapshot(){
-        Node rootNode = nodeDAO.getRootNode();
-        Node folderNode =
-                Node.builder().name("folder").build();
-
-        folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
-
-        Node compositeSnapshotNode = Node.builder().name("My composite snapshot").nodeType(NodeType.COMPOSITE_SNAPSHOT).build();
-
-        CompositeSnapshot compositeSnapshot = new CompositeSnapshot();
-        compositeSnapshot.setCompositeSnapshotNode(compositeSnapshotNode);
-
-        CompositeSnapshotData compositeSnapshotData = new CompositeSnapshotData();
-        compositeSnapshotData.setUniqueId(compositeSnapshotNode.getUniqueId());
-
-        compositeSnapshotData.setReferencedSnapshotNodes(List.of(UUID.randomUUID().toString()));
-
-        compositeSnapshot.setCompositeSnapshotData(compositeSnapshotData);
-
-        compositeSnapshot = nodeDAO.createCompositeSnapshot(folderNode.getUniqueId(), compositeSnapshot);
-
-        assertEquals(compositeSnapshotNode.getUniqueId(), compositeSnapshot.getCompositeSnapshotNode().getUniqueId());
-        assertEquals(1, compositeSnapshot.getCompositeSnapshotData().getReferencedSnapshotNodes().size());
-
-        clearAllData();
-    }
-
-    @Test
     public void testUpdateCompositeSnapshot(){
         Node rootNode = nodeDAO.getRootNode();
         Node folderNode =
@@ -363,13 +341,31 @@ public class DAOTestIT {
 
         Node compositeSnapshotNode = Node.builder().name("My composite snapshot").nodeType(NodeType.COMPOSITE_SNAPSHOT).build();
 
+        Node configNode = Node.builder().nodeType(NodeType.CONFIGURATION).name("config").build();
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(configNode);
+        ConfigurationData configurationData = new ConfigurationData();
+        configurationData.setPvList(List.of(ConfigPv.builder().pvName("pv1").build()));
+        configuration.setConfigurationData(configurationData);
+
+        configuration = nodeDAO.createConfiguration(folderNode.getUniqueId(), configuration);
+
+        Node snapshotNode = Node.builder().nodeType(NodeType.SNAPSHOT).name("snapshot1").build();
+        Snapshot snapshot = new Snapshot();
+        snapshot.setSnapshotNode(snapshotNode);
+        SnapshotData snapshotData = new SnapshotData();
+        snapshotData.setSnasphotItems(List.of(SnapshotItem.builder().configPv(ConfigPv.builder().pvName("pv1").build()).build()));
+        snapshot.setSnapshotData(snapshotData);
+
+        snapshot = nodeDAO.saveSnapshot(configuration.getConfigurationNode().getUniqueId(), snapshot);
+
         CompositeSnapshot compositeSnapshot = new CompositeSnapshot();
         compositeSnapshot.setCompositeSnapshotNode(compositeSnapshotNode);
 
         CompositeSnapshotData compositeSnapshotData = new CompositeSnapshotData();
         compositeSnapshotData.setUniqueId(compositeSnapshotNode.getUniqueId());
 
-        compositeSnapshotData.setReferencedSnapshotNodes(List.of(UUID.randomUUID().toString()));
+        compositeSnapshotData.setReferencedSnapshotNodes(List.of(snapshot.getSnapshotNode().getUniqueId()));
 
         compositeSnapshot.setCompositeSnapshotData(compositeSnapshotData);
 
@@ -380,10 +376,27 @@ public class DAOTestIT {
         compositeSnapshotNode.setName("Updated name");
         compositeSnapshotNode.setDescription("Updated description");
 
-        String referencedNode1 = UUID.randomUUID().toString();
-        String referencedNode2 = UUID.randomUUID().toString();
+        Node configNode2 = Node.builder().nodeType(NodeType.CONFIGURATION).name("config2").build();
+        Configuration configuration2 = new Configuration();
+        configuration2.setConfigurationNode(configNode2);
+        ConfigurationData configurationData2 = new ConfigurationData();
+        configurationData2.setPvList(List.of(ConfigPv.builder().pvName("pv2").build()));
+        configuration2.setConfigurationData(configurationData2);
+
+        configuration2 = nodeDAO.createConfiguration(folderNode.getUniqueId(), configuration2);
+
+        Node snapshotNode2 = Node.builder().nodeType(NodeType.SNAPSHOT).name("snapshot2").build();
+        Snapshot snapshot2 = new Snapshot();
+        snapshot2.setSnapshotNode(snapshotNode2);
+        SnapshotData snapshotData2 = new SnapshotData();
+        snapshotData2.setSnasphotItems(List.of(SnapshotItem.builder().configPv(ConfigPv.builder().pvName("pv2").build()).build()));
+        snapshot2.setSnapshotData(snapshotData2);
+
+        snapshot2 = nodeDAO.saveSnapshot(configuration2.getConfigurationNode().getUniqueId(), snapshot2);
+
         compositeSnapshotData = compositeSnapshot.getCompositeSnapshotData();
-        compositeSnapshotData.setReferencedSnapshotNodes(Arrays.asList(referencedNode1, referencedNode2));
+        compositeSnapshotData.setReferencedSnapshotNodes(Arrays.asList(snapshot.getSnapshotNode().getUniqueId(),
+                snapshot2.getSnapshotNode().getUniqueId()));
 
         compositeSnapshot.setCompositeSnapshotNode(compositeSnapshotNode);
         compositeSnapshot.setCompositeSnapshotData(compositeSnapshotData);
@@ -394,6 +407,8 @@ public class DAOTestIT {
         assertEquals("Updated name", compositeSnapshot.getCompositeSnapshotNode().getName());
         assertEquals("Updated description", compositeSnapshot.getCompositeSnapshotNode().getDescription());
         assertEquals(2, compositeSnapshot.getCompositeSnapshotData().getReferencedSnapshotNodes().size());
+
+        nodeDAO.deleteNode(compositeSnapshot.getCompositeSnapshotNode().getUniqueId());
 
         clearAllData();
     }
@@ -406,6 +421,13 @@ public class DAOTestIT {
 
         folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
 
+        Node configNode =
+                Node.builder().nodeType(NodeType.CONFIGURATION).name("config").build();
+
+        configNode = nodeDAO.createNode(folderNode.getUniqueId(), configNode);
+
+        List<String> compositeSnapshotNodeIds = new ArrayList<>();
+
         for(int i = 0; i < 20; i++){
             Node compositeSnapshotNode = Node.builder().name("My composite snapshot " + i).nodeType(NodeType.COMPOSITE_SNAPSHOT).build();
 
@@ -415,16 +437,32 @@ public class DAOTestIT {
             CompositeSnapshotData compositeSnapshotData = new CompositeSnapshotData();
             compositeSnapshotData.setUniqueId(compositeSnapshotNode.getUniqueId());
 
-            compositeSnapshotData.setReferencedSnapshotNodes(List.of(UUID.randomUUID().toString()));
+            Node snapshotNode = Node.builder().nodeType(NodeType.SNAPSHOT).name(i + "_").build();
+            SnapshotData snapshotData = new SnapshotData();
+            snapshotData.setUniqueId(snapshotNode.getUniqueId());
+            snapshotData.setSnasphotItems(List.of(
+                    SnapshotItem.builder()
+                            .configPv(ConfigPv.builder().pvName("pvName" + i).build())
+                            .value(VInt.of(Integer.valueOf(i), Alarm.none(), Time.now(), Display.none()))
+                            .build()));
+            Snapshot snapshot = new Snapshot();
+            snapshot.setSnapshotNode(snapshotNode);
+            snapshot.setSnapshotData(snapshotData);
+            nodeDAO.saveSnapshot(configNode.getUniqueId(), snapshot);
 
+            compositeSnapshotData.setReferencedSnapshotNodes(List.of(snapshotNode.getUniqueId()));
             compositeSnapshot.setCompositeSnapshotData(compositeSnapshotData);
 
-            nodeDAO.createCompositeSnapshot(folderNode.getUniqueId(), compositeSnapshot);
+            compositeSnapshot = nodeDAO.createCompositeSnapshot(folderNode.getUniqueId(), compositeSnapshot);
+
+            compositeSnapshotNodeIds.add(compositeSnapshot.getCompositeSnapshotNode().getUniqueId());
         }
 
         List<CompositeSnapshotData> all = nodeDAO.getAllCompositeSnapshotData();
 
         assertEquals(20, all.size());
+
+        compositeSnapshotNodeIds.forEach(id -> nodeDAO.deleteNode(id));
 
         clearAllData();
 
@@ -1861,6 +1899,7 @@ public class DAOTestIT {
     private void clearAllData() {
         List<Node> childNodes = nodeDAO.getChildNodes(Node.ROOT_FOLDER_UNIQUE_ID);
         childNodes.forEach(node -> nodeDAO.deleteNode(node.getUniqueId()));
+        nodeDAO.deleteAllFilters();
     }
 
 
@@ -1959,15 +1998,12 @@ public class DAOTestIT {
         Configuration configuration3 = new Configuration();
         configuration3.setConfigurationNode(config3);
         ConfigurationData configurationData3 = new ConfigurationData();
-        configurationData3.setPvList(Arrays.asList(ConfigPv.builder().pvName("pv1").build(),
-                ConfigPv.builder().pvName("pv4").build()));
+        configurationData3.setPvList(Arrays.asList(ConfigPv.builder().pvName("pv4").build()));
         configuration3.setConfigurationData(configurationData3);
 
         configuration3 = nodeDAO.createConfiguration(folderNode.getUniqueId(), configuration3);
 
         SnapshotItem item13 = SnapshotItem.builder().configPv(configuration3.getConfigurationData().getPvList().get(0))
-                .value(VDouble.of(7.7, alarm, time, display)).build();
-        SnapshotItem item23 = SnapshotItem.builder().configPv(configuration3.getConfigurationData().getPvList().get(1))
                 .value(VDouble.of(7.7, alarm, time, display)).build();
 
         Snapshot snapshot3 = new Snapshot();
@@ -1975,7 +2011,7 @@ public class DAOTestIT {
                 .description("comment")
                 .userName("user").build());
         SnapshotData snapshotData3 = new SnapshotData();
-        snapshotData3.setSnasphotItems(Arrays.asList(item13, item23));
+        snapshotData3.setSnasphotItems(Arrays.asList(item13));
         snapshot3.setSnapshotData(snapshotData3);
         Node newSnapshot3 = nodeDAO.saveSnapshot(configuration3.getConfigurationNode().getUniqueId(), snapshot3).getSnapshotNode();
         /************  End create snapshot3 ************/
@@ -2180,6 +2216,51 @@ public class DAOTestIT {
         assertEquals(4, snapshotItems.size());
 
         nodeDAO.deleteNode(compositeSnapshotNode.getUniqueId());
+
+        clearAllData();
+    }
+
+    @Test
+    public void testFilters(){
+        Filter filter = new Filter();
+        filter.setName("name");
+        filter.setQueryString("query");
+        filter.setUserName("user");
+
+        filter = nodeDAO.saveFilter(filter);
+        assertEquals("name", filter.getName());
+        assertEquals("query", filter.getQueryString());
+        assertEquals("user", filter.getUserName());
+        assertNotNull(filter.getLastUpdated());
+
+        filter.setQueryString("query2");
+        filter = nodeDAO.saveFilter(filter);
+        assertEquals("query2", filter.getQueryString());
+
+        assertEquals(1, nodeDAO.getAllFilters().size());
+
+        nodeDAO.deleteFilter("name");
+
+        assertEquals(0, nodeDAO.getAllFilters().size());
+
+        Filter filter2 = new Filter();
+        filter2.setName("name");
+        filter2.setQueryString("query2");
+
+        nodeDAO.saveFilter(filter);
+        nodeDAO.saveFilter(filter2);
+
+        assertEquals(1, nodeDAO.getAllFilters().size());
+
+        filter2.setName("name2");
+
+        nodeDAO.saveFilter(filter2);
+
+        assertEquals(2, nodeDAO.getAllFilters().size());
+
+        nodeDAO.deleteAllFilters();
+
+        assertEquals(0, nodeDAO.getAllFilters().size());
 
         clearAllData();
     }

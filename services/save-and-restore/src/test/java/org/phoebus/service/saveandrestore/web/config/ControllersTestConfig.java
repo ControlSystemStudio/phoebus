@@ -23,6 +23,7 @@ import org.mockito.Mockito;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ConfigurationDataRepository;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchTreeRepository;
+import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.FilterRepository;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.SnapshotDataRepository;
 import org.phoebus.service.saveandrestore.search.SearchUtil;
 import org.springframework.boot.SpringBootConfiguration;
@@ -50,6 +51,11 @@ public class ControllersTestConfig {
     @Bean
     public ConfigurationDataRepository configurationRepository() {
         return Mockito.mock(ConfigurationDataRepository.class);
+    }
+
+    @Bean
+    public FilterRepository filterRepository() {
+        return Mockito.mock(FilterRepository.class);
     }
 
     @Bean

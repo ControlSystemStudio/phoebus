@@ -30,6 +30,7 @@ import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.MultiValueMap;
@@ -299,5 +300,28 @@ public interface NodeDAO {
      * @return A {@link SearchResult} object with a potentially empty list of {@link Node}s.
      */
     SearchResult search(MultiValueMap<String, String> searchParameters);
+
+    /**
+     * Save a new or updated {@link Filter}
+     * @param filter The {@link Filter} to save
+     * @return The saved {@link Filter}
+     */
+    Filter saveFilter(Filter filter);
+
+    /**
+     * @return All persisted {@link Filter}s.
+     */
+    List<Filter> getAllFilters();
+
+    /**
+     * Deletes a {@link Filter} based on its name.
+     * @param name
+     */
+    void deleteFilter(String name);
+
+    /**
+     * Deletes all {@link Filter}s.
+     */
+    void deleteAllFilters();
 
 }

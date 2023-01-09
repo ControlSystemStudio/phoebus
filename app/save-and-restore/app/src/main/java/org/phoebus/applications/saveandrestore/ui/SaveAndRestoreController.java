@@ -33,11 +33,13 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.ProgressIndicator;
@@ -46,7 +48,6 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextInputDialog;
-import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.image.ImageView;
@@ -58,7 +59,9 @@ import javafx.scene.input.TransferMode;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import javafx.util.Pair;
+import javafx.util.StringConverter;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
@@ -67,10 +70,11 @@ import org.phoebus.applications.saveandrestore.filehandler.csv.CSVImporter;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationTab;
-import org.phoebus.applications.saveandrestore.ui.search.SearchController;
 import org.phoebus.applications.saveandrestore.ui.search.SearchQueryManager;
 import org.phoebus.applications.saveandrestore.ui.search.SearchTab;
+import org.phoebus.applications.saveandrestore.ui.search.SearchWindowController;
 import org.phoebus.applications.saveandrestore.ui.snapshot.CompositeSnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotNewTagDialog;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
@@ -118,9 +122,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     protected TabPane tabPane;
 
     @FXML
-    private Button searchButton;
-
-    @FXML
     protected SplitPane splitPane;
 
     @FXML
@@ -128,6 +129,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     @FXML
     private Label noConnectionLabel;
+
+    @FXML
+    private ComboBox<Filter> filtersComboBox;
 
     protected SaveAndRestoreService saveAndRestoreService;
 
@@ -160,6 +164,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     private final URI uri;
 
+    private Filter noFilter;
+
     /**
      * @param uri If non-null, this is used to load a configuration or snapshot into the view.
      */
@@ -176,11 +182,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         preferencesReader =
                 new PreferencesReader(SaveAndRestoreApplication.class, "/save_and_restore_preferences.properties");
-        ImageView searchButtonImageView = ImageCache.getImageView(SaveAndRestoreApplication.class, "/icons/sar-search.png");
-        searchButtonImageView.setFitWidth(16);
-        searchButtonImageView.setFitHeight(16);
-        searchButton.setGraphic(searchButtonImageView);
-        searchButton.setTooltip(new Tooltip(Messages.buttonSearch));
 
         folderContextMenu = new ContextMenuFolder(this, preferencesReader.getBoolean("enableCSVIO"), multipleItemsSelected);
         folderContextMenu.setOnShowing(event -> multipleItemsSelected.set(browserSelectionModel.getSelectedItems().size() > 1));
@@ -227,6 +228,43 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         progressIndicator.visibleProperty().bind(disabledUi);
         disabledUi.addListener((observable, oldValue, newValue) -> treeView.setDisable(newValue));
 
+        noFilter = new Filter();
+        noFilter.setName(Messages.noFilter);
+        noFilter.setQueryString("");
+        filtersComboBox.setCellFactory(new Callback<>() {
+            @Override
+            public ListCell<org.phoebus.applications.saveandrestore.model.search.Filter> call(ListView<org.phoebus.applications.saveandrestore.model.search.Filter> param) {
+                return new ListCell<>() {
+                    @Override
+                    public void updateItem(org.phoebus.applications.saveandrestore.model.search.Filter item,
+                                           boolean empty) {
+                        super.updateItem(item, empty);
+                        if (!empty && item != null) {
+                            setText(item.getName());
+                        }
+                    }
+                };
+            }
+        });
+
+        filtersComboBox.setConverter(
+                new StringConverter<>() {
+                    @Override
+                    public String toString(Filter filter) {
+                        if (filter == null) {
+                            return "";
+                        } else {
+                            return filter.getName();
+                        }
+                    }
+
+                    @Override
+                    public Filter fromString(String s) {
+                        return null;
+                    }
+                });
+
+        loadFilters();
         loadTreeData();
     }
 
@@ -477,8 +515,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         tabPane.getSelectionModel().select(tab);
     }
 
-    @FXML
-    protected void openSearchWindow() {
+    public void openSearchWindow() {
         Optional<Tab> searchTabOptional = tabPane.getTabs().stream().filter(t -> t.getId().equals(SearchTab.SEARCH_TAB_ID)).findFirst();
         if (searchTabOptional.isPresent()) {
             tabPane.getSelectionModel().select(searchTabOptional.get());
@@ -893,7 +930,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 searchWindow.setTitle(Messages.searchWindowLabel);
                 searchWindow.initModality(Modality.WINDOW_MODAL);
                 searchWindow.setScene(new Scene(loader.load()));
-                ((SearchController) loader.getController()).setCallerController(this);
+                ((SearchWindowController) loader.getController()).setCallerController(this);
                 searchWindow.setOnCloseRequest(action -> searchWindow = null);
                 searchWindow.show();
             } else {
@@ -1244,5 +1281,21 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     public boolean matchesFilter(Node node) {
         // TODO: check against a list of Nodes retrieved using the filter/search string.
         return node.hasTag(Tag.GOLDEN);
+    }
+
+    @FXML
+    public void manageFilters() {
+
+    }
+
+    private void loadFilters() {
+        try {
+            List<Filter> filters = saveAndRestoreService.getAllFilters();
+            filters.add(noFilter);
+            filtersComboBox.getItems().setAll(filters);
+            filtersComboBox.getSelectionModel().select(noFilter);
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Failed to load filters", e);
+        }
     }
 }

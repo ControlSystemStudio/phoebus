@@ -27,6 +27,7 @@ import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -176,5 +177,28 @@ public interface SaveAndRestoreClient {
      */
     CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot);
 
+    /**
+     * Search for {@link Node}s based on the specified search parameters.
+     * @param searchParams {@link MultivaluedMap} holding search parameters.
+     * @return A {@link SearchResult} with potentially empty list of matching {@link Node}s
+     */
     SearchResult search(MultivaluedMap<String, String> searchParams);
+
+    /**
+     * Save a new or updated {@link Filter}
+     * @param filter The {@link Filter} to save
+     * @return The saved {@link Filter}
+     */
+    Filter saveFilter(Filter filter);
+
+    /**
+     * @return All persisted {@link Filter}s.
+     */
+    List<Filter> getAllFilters();
+
+    /**
+     * Deletes a {@link Filter} based on its name.
+     * @param name
+     */
+    void deleteFilter(String name);
 }
