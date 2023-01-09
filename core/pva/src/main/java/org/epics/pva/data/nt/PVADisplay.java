@@ -27,6 +27,7 @@ import org.epics.pva.data.PVAStructure;
  */
 public class PVADisplay extends PVAStructure {
     public static final String DISPLAY_NAME_STRING = "display";
+    public static final String DISPLAY_T = "display_t";
 
     public enum Form {
         DEFAULT,
@@ -57,7 +58,7 @@ public class PVADisplay extends PVAStructure {
      */
     public PVADisplay(double limitLow, double limitHigh, String description, String units, int precision,
             Form form) {
-        super(DISPLAY_NAME_STRING, "display_t",
+        super(DISPLAY_NAME_STRING, DISPLAY_T,
                 new PVADouble("limitLow", limitLow),
                 new PVADouble("limitHigh", limitHigh),
                 new PVAString("description", description),
@@ -68,4 +69,44 @@ public class PVADisplay extends PVAStructure {
 
     }
 
+    /**
+     * Construct a display_t normative type PVAStructure
+     * 
+     * @param limitLow
+     * @param limitHigh
+     * @param description
+     * @param units
+     * @param precision
+     * @param form
+     */
+    public PVADisplay(PVADouble limitLow, PVADouble limitHigh, PVAString description, PVAString units, PVAInt precision,
+            PVAEnum form) {
+        super(DISPLAY_NAME_STRING, DISPLAY_T,
+                limitLow,
+                limitHigh,
+                description,
+                units,
+                precision,
+                form);
+
+    }
+
+    /**
+     * Conversion from structure to PVADisplay
+     * 
+     * @param structure Potential "display_t" structure
+     * @return PVADisplay or <code>null</code>
+     */
+    public static PVADisplay fromStructure(PVAStructure structure) {
+        if (structure.getStructureName().equals(DISPLAY_T)) {
+            return new PVADisplay(
+                    structure.get("limitLow"),
+                    structure.get("limitHigh"),
+                    structure.get("description"),
+                    structure.get("units"),
+                    structure.get("precision"),
+                    PVAEnum.fromStructure(structure.get("form")));
+        }
+        return null;
+    }
 }

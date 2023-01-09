@@ -106,9 +106,9 @@ public class PVAAlarm extends PVAStructure {
     }
 
     /**
-     * Conversion from structure to PVATime
+     * Conversion from structure to PVAAlarm
      * 
-     * @param structure Potential "time_t" structure
+     * @param structure Potential "alarm_t" structure
      * @return PVAAlarm or <code>null</code>
      */
     public static PVAAlarm fromStructure(PVAStructure structure) {

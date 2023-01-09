@@ -110,7 +110,8 @@ public class PVATimeStamp extends PVAStructure
     }
 
     /** 
-     * Conversion from structure to PVATime
+     * Conversion from structure to PVATimeStamp
+     * 
      * @param structure Potential "time_t" structure
      *  @return PVATimeStamp or <code>null</code>
      */
