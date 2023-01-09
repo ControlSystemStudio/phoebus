@@ -99,14 +99,15 @@ public class Launcher
                     if (! iter.hasNext())
                         throw new Exception("Missing -settings file name");
                     iter.remove();
-                    final String filename = iter.next();
+                    final String location = iter.next();
                     iter.remove();
 
-                    logger.info("Loading settings from " + filename);
-                    if (filename.endsWith(".xml"))
-                        Preferences.importPreferences(new FileInputStream(filename));
+                    logger.info("Loading settings from " + location);
+                    if (location.endsWith(".xml"))
+                        Preferences.importPreferences(new FileInputStream(location));
                     else
-                        PropertyPreferenceLoader.load(new FileInputStream(filename));
+                        PropertyPreferenceLoader.load(location);
+                  
                 }
                 else if (cmd.equals("-export_settings"))
                 {
