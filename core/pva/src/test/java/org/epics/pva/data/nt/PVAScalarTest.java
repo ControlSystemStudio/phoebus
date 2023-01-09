@@ -1,14 +1,14 @@
 package org.epics.pva.data.nt;
 
-import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 
 import org.epics.pva.data.PVADouble;
 import org.epics.pva.data.PVAString;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class PVAScalarTest {
         @Test
