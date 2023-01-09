@@ -25,9 +25,19 @@ import org.epics.pva.data.PVAStructure;
  */
 public class PVAAlarm extends PVAStructure {
     public static final String ALARM_NAME_STRING = "alarm";
+    /** Type name for alarm info */
+    public static final String ALARM_T = "alarm_t";
     private PVAString message;
     private PVAInt status;
     private PVAInt severity;
+
+    public enum AlarmSeverity {
+        NO_ALARM,
+        MINOR,
+        MAJOR,
+        INVALID,
+        UNDEFINED,
+    }
 
     /** No alarm */
     public PVAAlarm() {
@@ -51,13 +61,26 @@ public class PVAAlarm extends PVAStructure {
      * @param message
      */
     public PVAAlarm(int severity, int status, String message) {
-        super(ALARM_NAME_STRING, "alarm_t",
-                new PVAInt("severity", severity),
+        this(new PVAInt("severity", severity),
                 new PVAInt("status", status),
                 new PVAString("message", message));
-        this.severity = get(1);
-        this.status = get(2);
-        this.message = get(3);
+    }
+
+    /**
+     * Set all parameters in constructor
+     * 
+     * @param severity
+     * @param status
+     * @param message
+     */
+    public PVAAlarm(PVAInt severity, PVAInt status, PVAString message) {
+        super(ALARM_NAME_STRING, ALARM_T,
+                severity,
+                status,
+                message);
+        this.severity = severity;
+        this.status = status;
+        this.message = message;
     }
 
     /**
@@ -71,5 +94,30 @@ public class PVAAlarm extends PVAStructure {
         this.severity.set(severity);
         this.status.set(status);
         this.message.set(message);
+    }
+
+    public AlarmSeverity alarmSeverity() {
+        var values = AlarmSeverity.values();
+        var index = this.severity.get();
+        if (index > values.length) {
+            return null;
+        }
+        return values[index];
+    }
+
+    /**
+     * Conversion from structure to PVATime
+     * 
+     * @param structure Potential "time_t" structure
+     * @return PVAAlarm or <code>null</code>
+     */
+    public static PVAAlarm fromStructure(PVAStructure structure) {
+        if (structure.getStructureName().equals(ALARM_T)) {
+            final PVAInt severity = structure.get("severity");
+            final PVAInt status = structure.get("status");
+            final PVAString message = structure.get("message");
+            return new PVAAlarm(severity, status, message);
+        }
+        return null;
     }
 }

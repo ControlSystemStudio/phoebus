@@ -28,6 +28,10 @@ public class PVATimeStamp extends PVAStructure
 {
     public static final Instant NO_TIME = Instant.ofEpochSecond(0, 0);
     public static final String TIMESTAMP_NAME_STRING = "timeStamp";
+    public static final String SECONDS_PAST_EPOCH = "secondsPastEpoch";
+    public static final String NANOSECONDS = "nanoseconds";
+    /** Type name for time stamp */
+    public static final String TIME_T = "time_t";
 
     private final PVALong secs;
     private final PVAInt nano;
@@ -55,12 +59,24 @@ public class PVATimeStamp extends PVAStructure
      */
     public PVATimeStamp(final String name, final Instant time)
     {
-        super(name, "time_t",
-              new PVALong("secondsPastEpoch", false, time.getEpochSecond()),
-              new PVAInt("nanoseconds", false, time.getNano()),
+        this(name,
+             new PVALong(SECONDS_PAST_EPOCH, false, time.getEpochSecond()),
+             new PVAInt(NANOSECONDS, false, time.getNano()));
+    }
+
+    /** 
+     * Constructor with PVAData
+     * @param secs secondsPastEpoch
+     *  @param nanos nanoseconds
+     */
+    public PVATimeStamp(final String name, final PVALong secs, final PVAInt nanos)
+    {
+        super(name, TIME_T,
+              secs,
+              nanos,
               new PVAInt("userTag", 0));
-        secs = get(1);
-        nano = get(2);
+        this.secs = secs;
+        this.nano = nanos;
     }
 
     /** @param time Desired time (seconds, nanoseconds) */
@@ -91,5 +107,20 @@ public class PVATimeStamp extends PVAStructure
                 return NO_TIME;
         else
             return Instant.ofEpochSecond(secs.get(), nano.get());
+    }
+
+    /** 
+     * Conversion from structure to PVATime
+     * @param structure Potential "time_t" structure
+     *  @return PVATimeStamp or <code>null</code>
+     */
+    public static PVATimeStamp fromStructure(PVAStructure structure) {
+        if (structure.getStructureName().equals(TIME_T))
+        {
+            final PVALong secs = structure.get(SECONDS_PAST_EPOCH);
+            final PVAInt nano = structure.get(NANOSECONDS);
+            return new PVATimeStamp(TIMESTAMP_NAME_STRING, secs, nano);
+        }
+        return null;
     }
 }
