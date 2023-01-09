@@ -26,6 +26,7 @@ import org.epics.pva.data.PVAStructure;
  * "Exponential", "Engineering"]
  */
 public class PVADisplay extends PVAStructure {
+    public static final String DISPLAY_NAME_STRING = "display";
 
     public enum Form {
         DEFAULT,
@@ -47,7 +48,6 @@ public class PVADisplay extends PVAStructure {
     /**
      * Construct a display_t normative type PVAStructure
      * 
-     * @param name
      * @param limitLow
      * @param limitHigh
      * @param description
@@ -55,9 +55,9 @@ public class PVADisplay extends PVAStructure {
      * @param precision
      * @param form
      */
-    public PVADisplay(String name, double limitLow, double limitHigh, String description, String units, int precision,
+    public PVADisplay(double limitLow, double limitHigh, String description, String units, int precision,
             Form form) {
-        super(name, "display_t",
+        super(DISPLAY_NAME_STRING, "display_t",
                 new PVADouble("limitLow", limitLow),
                 new PVADouble("limitHigh", limitHigh),
                 new PVAString("description", description),

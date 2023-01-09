@@ -24,6 +24,7 @@ import org.epics.pva.data.PVAStructure;
  * 
  */
 public class PVAAlarm extends PVAStructure {
+    public static final String ALARM_NAME_STRING = "alarm";
     private PVAString message;
     private PVAInt status;
     private PVAInt severity;
@@ -39,19 +40,18 @@ public class PVAAlarm extends PVAStructure {
      * @param message String message
      */
     public PVAAlarm(String message) {
-        this("alarm", 0, 0, message);
+        this(0, 0, message);
     }
 
     /**
      * Set all parameters in constructor
      * 
-     * @param name
      * @param severity
      * @param status
      * @param message
      */
-    public PVAAlarm(String name, int severity, int status, String message) {
-        super(name, "alarm_t",
+    public PVAAlarm(int severity, int status, String message) {
+        super(ALARM_NAME_STRING, "alarm_t",
                 new PVAInt("severity", severity),
                 new PVAInt("status", status),
                 new PVAString("message", message));
@@ -62,6 +62,7 @@ public class PVAAlarm extends PVAStructure {
 
     /**
      * Set the value of the alarm
+     * 
      * @param severity
      * @param status
      * @param message

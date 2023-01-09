@@ -61,6 +61,7 @@ import org.epics.pva.data.PVAStructure;
 public class PVAScalar<S extends PVAData> extends PVAStructure {
     public static final String STRUCT_NAME_STRING = "epics:nt/NTScalar:1.0";
     public static final String VALUE_NAME_STRING = "value";
+    public static final String DESCRIPTION_NAME_STRING = "description";
 
     public static class Builder<S extends PVAData> {
 
@@ -121,7 +122,7 @@ public class PVAScalar<S extends PVAData> extends PVAStructure {
             return Builder.this;
         }
 
-        public PVAScalar<S> build() throws PVAScalarValueNameException {
+        public PVAScalar<S> build() throws PVAScalarValueNameException, PVAScalarDescriptionNameException {
             if (this.name == null) {
                 throw new NullPointerException("The property \"name\" is null. "
                         + "Please set the value by \"name()\". "
@@ -134,6 +135,9 @@ public class PVAScalar<S extends PVAData> extends PVAStructure {
             }
             if (!value.getName().equals(VALUE_NAME_STRING)) {
                 throw new PVAScalarValueNameException(value.getName());
+            }
+            if (!description.getName().equals(DESCRIPTION_NAME_STRING)) {
+                throw new PVAScalarDescriptionNameException(description.getName());
             }
             return new PVAScalar<>(this);
         }

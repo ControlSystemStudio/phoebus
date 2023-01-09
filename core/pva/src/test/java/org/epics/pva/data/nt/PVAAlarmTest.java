@@ -12,7 +12,7 @@ public class PVAAlarmTest {
 
     @Test
     void testConstructor() {
-        PVAAlarm alarm = new PVAAlarm("alarm", 5, 1, "alarmMessage");
+        PVAAlarm alarm = new PVAAlarm(5, 1, "alarmMessage");
         assertEquals(new PVAInt("severity", 5), alarm.get("severity"));
         assertEquals(new PVAInt("status",  1), alarm.get("status"));
         assertEquals(new PVAString("message", "alarmMessage"), alarm.get("message"));
@@ -20,7 +20,7 @@ public class PVAAlarmTest {
 
     @Test
     public void testSet() {
-        PVAAlarm alarm = new PVAAlarm("testName", 1, 2, "test message");
+        PVAAlarm alarm = new PVAAlarm(1, 2, "test message");
 
         PVAStructure clone = alarm.cloneData();
 

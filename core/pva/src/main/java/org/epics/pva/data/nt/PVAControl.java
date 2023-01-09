@@ -16,17 +16,17 @@ import org.epics.pva.data.PVAStructure;
  * 
  */
 public class PVAControl extends PVAStructure {
+    public static final String CONTROL_NAME_STRING = "control";
 
     /**
      * Setting all parameters
      * 
-     * @param name
      * @param limitLow
      * @param limitHigh
      * @param minStep
      */
-    public PVAControl(String name, double limitLow, double limitHigh, double minStep) {
-        super(name, "control_t",
+    public PVAControl(double limitLow, double limitHigh, double minStep) {
+        super(CONTROL_NAME_STRING, "control_t",
                 new PVADouble("limitLow", limitLow),
                 new PVADouble("limitHigh", limitHigh),
                 new PVADouble("minStep", minStep));

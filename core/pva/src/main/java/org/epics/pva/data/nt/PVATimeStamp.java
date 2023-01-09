@@ -27,6 +27,7 @@ import org.epics.pva.data.PVAStructure;
 public class PVATimeStamp extends PVAStructure
 {
     public static final Instant NO_TIME = Instant.ofEpochSecond(0, 0);
+    public static final String TIMESTAMP_NAME_STRING = "timeStamp";
 
     private final PVALong secs;
     private final PVAInt nano;
@@ -40,7 +41,7 @@ public class PVATimeStamp extends PVAStructure
     /** @param time Instant */
     public PVATimeStamp(final Instant time)
     {
-        this("timeStamp", time);
+        this(TIMESTAMP_NAME_STRING, time);
     }
 
     /** @param name Name for 'now' */
@@ -75,7 +76,7 @@ public class PVATimeStamp extends PVAStructure
      */
     public static void set(final PVAStructure value, final Instant time)
     {
-        final PVAStructure ts = value.get("timeStamp");
+        final PVAStructure ts = value.get(TIMESTAMP_NAME_STRING);
         if (ts == null)
             throw new IllegalArgumentException("Cannot locate timeStamp in " + value);
         // Assume a structure "timeStamp" starts with seconds, nano
