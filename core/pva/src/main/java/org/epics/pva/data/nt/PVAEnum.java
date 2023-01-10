@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2023 European Spallation Source ERIC.
+ *
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License
+ *  as published by the Free Software Foundation; either version 2
+ *  of the License, or (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ */
 package org.epics.pva.data.nt;
 
 import org.epics.pva.data.PVAInt;
@@ -31,6 +49,11 @@ public class PVAEnum extends PVAStructure {
         this.choices = choices;
     }
 
+    /**
+     * String of the enum output
+     * 
+     * @return
+     */
     public String enumString() {
 
         if (this.index != null && this.choices != null) {
@@ -41,6 +64,12 @@ public class PVAEnum extends PVAStructure {
         return null;
     }
 
+    /**
+     * Converts from a generic PVAStruture to PVAEnum
+     * 
+     * @param structure
+     * @return
+     */
     public static PVAEnum fromStructure(PVAStructure structure) {
         if (structure != null && structure.getStructureName().equals(ENUM_T)) {
             final PVAInt index = structure.get("index");
@@ -49,4 +78,5 @@ public class PVAEnum extends PVAStructure {
         }
         return null;
     }
+
 }

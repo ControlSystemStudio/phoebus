@@ -1,10 +1,21 @@
-/*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- ******************************************************************************/
+/*
+ * Copyright (C) 2023 European Spallation Source ERIC.
+ *
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License
+ *  as published by the Free Software Foundation; either version 2
+ *  of the License, or (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ */
 package org.epics.pva.data.nt;
 
 import org.epics.pva.data.PVAInt;
@@ -17,10 +28,12 @@ import org.epics.pva.data.PVAStructure;
  * An alarm_t describes a diagnostic of the value of a control system process
  * variable.
  * 
- * structure
- *   int severity
- *   int status
- *   string message
+ * <ul>
+ * <li>structure
+ * <ul>
+ * <li>int severity
+ * <li>int status
+ * <li>string message
  * 
  */
 public class PVAAlarm extends PVAStructure {
@@ -39,7 +52,7 @@ public class PVAAlarm extends PVAStructure {
         UNDEFINED,
     }
 
-    /** No alarm */
+    /** Default no alarm */
     public PVAAlarm() {
         this("");
     }
@@ -96,6 +109,11 @@ public class PVAAlarm extends PVAStructure {
         this.message.set(message);
     }
 
+    /**
+     * Returns the enum representing the severity
+     * 
+     * @return
+     */
     public AlarmSeverity alarmSeverity() {
         var values = AlarmSeverity.values();
         var index = this.severity.get();
@@ -120,4 +138,19 @@ public class PVAAlarm extends PVAStructure {
         }
         return null;
     }
+
+    /**
+     * Get Alarm from a PVAStructure
+     * 
+     * @param structure Structure containing alarm
+     * @return PVAAlarm or <code>null</code>
+     */
+    public static PVAAlarm getAlarm(PVAStructure structure) {
+        var alarmStructure = structure.get(ALARM_NAME_STRING);
+        if (alarmStructure != null) {
+            return fromStructure((PVAStructure) alarmStructure);
+        }
+        return null;
+    }
+
 }

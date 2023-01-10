@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2023 European Spallation Source ERIC.
+ *
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License
+ *  as published by the Free Software Foundation; either version 2
+ *  of the License, or (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ */
 package org.epics.pva.data.nt;
 
 import java.util.stream.Stream;
@@ -100,12 +118,26 @@ public class PVADisplay extends PVAStructure {
         // Epics Iocs do not always use the DISPLAY_T type name
         if (structure != null && structure.getName().equals(DISPLAY_NAME_STRING)) {
             return new PVADisplay(
-                structure.get("limitLow"),
-                structure.get("limitHigh"),
-                structure.get("description"),
-                structure.get("units"),
-                structure.get("precision"),
-                PVAEnum.fromStructure(structure.get("form")));
+                    structure.get("limitLow"),
+                    structure.get("limitHigh"),
+                    structure.get("description"),
+                    structure.get("units"),
+                    structure.get("precision"),
+                    PVAEnum.fromStructure(structure.get("form")));
+        }
+        return null;
+    }
+
+    /**
+     * Get Display from a PVAStructure
+     * 
+     * @param structure Structure containing Display
+     * @return PVADisplay or <code>null</code>
+     */
+    public static PVADisplay getDisplay(PVAStructure structure) {
+        var displayStructure = structure.get(DISPLAY_NAME_STRING);
+        if (displayStructure != null) {
+            return fromStructure((PVAStructure) displayStructure);
         }
         return null;
     }

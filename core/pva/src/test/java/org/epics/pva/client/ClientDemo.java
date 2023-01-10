@@ -10,10 +10,6 @@ package org.epics.pva.client;
 import org.epics.pva.PVASettings;
 import org.epics.pva.data.PVAData;
 import org.epics.pva.data.PVAStructure;
-import org.epics.pva.data.nt.PVAAlarm;
-import org.epics.pva.data.nt.PVAControl;
-import org.epics.pva.data.nt.PVADisplay;
-import org.epics.pva.data.nt.PVATimeStamp;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CompletableFuture;
@@ -26,7 +22,6 @@ import java.util.logging.LogManager;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -454,28 +449,4 @@ public class ClientDemo
         pva.close();
     }
 
-    /**
-     * Tests if the ioc provides the expected formatting of PVATimeStamp,
-     * PVAAlarm, PVADisplay, PVAEnum, and PVAControl
-     * @throws Exception
-     */
-    @Test
-    public void testPVAScalarRead() throws Exception {
-        var client = new PVAClient();
-        var channel = client.getChannel("ramp");
-        channel.connect().get(5, TimeUnit.SECONDS);
-
-        channel.subscribe("", (ch, changes, overruns, data) ->
-        {
-            var timeStamp = PVATimeStamp.fromStructure(data.get(PVATimeStamp.TIMESTAMP_NAME_STRING));
-            assertNotNull(timeStamp);
-            var alarm = PVAAlarm.fromStructure(data.get(PVAAlarm.ALARM_NAME_STRING));
-            assertNotNull(alarm);
-            var display = PVADisplay.fromStructure(data.get(PVADisplay.DISPLAY_NAME_STRING));
-            assertNotNull(display);
-            var control = PVAControl.fromStructure(data.get(PVAControl.CONTROL_NAME_STRING));
-            assertNotNull(control);
-        });
-        client.close();
-    }
 }

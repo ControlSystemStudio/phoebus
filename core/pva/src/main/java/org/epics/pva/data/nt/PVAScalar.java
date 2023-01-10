@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2023 European Spallation Source ERIC.
+ *
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License
+ *  as published by the Free Software Foundation; either version 2
+ *  of the License, or (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ */
 package org.epics.pva.data.nt;
 
 import java.util.Arrays;
@@ -63,6 +81,14 @@ public class PVAScalar<S extends PVAData> extends PVAStructure {
     public static final String VALUE_NAME_STRING = "value";
     public static final String DESCRIPTION_NAME_STRING = "description";
 
+    /**
+     * Builder for the PVAScalar class
+     * 
+     * The description element must be named description
+     * otherwise a PVAScalarDescriptionNameException will be thrown
+     * The value element must be named value
+     * otherwise a PVAScalarValueNameException will be thrown
+     */
     public static class Builder<S extends PVAData> {
 
         private String name;
@@ -211,5 +237,25 @@ public class PVAScalar<S extends PVAData> extends PVAStructure {
 
     public static Builder<PVAStringArray> stringArrayScalarBuilder(String... value) {
         return new Builder<PVAStringArray>().value(new PVAStringArray(VALUE_NAME_STRING, value));
+    }
+
+    /**
+     * Converts from generic PVAStructure to PVAScalar
+     * 
+     * @param structure
+     * @return
+     * @throws PVAScalarValueNameException
+     * @throws PVAScalarDescriptionNameException
+     */
+    public static <S extends PVAData> PVAScalar<S> fromStructure(PVAStructure structure)
+            throws PVAScalarValueNameException, PVAScalarDescriptionNameException {
+        var builder = new Builder<S>();
+        var value = (S) structure.get(VALUE_NAME_STRING);
+        return builder.name(structure.getName()).value(value)
+                .alarm(PVAAlarm.getAlarm(structure)).control(PVAControl.getControl(structure))
+                .description(structure.get(DESCRIPTION_NAME_STRING))
+                .timeStamp(PVATimeStamp.getTimeStamp(structure))
+                .display(PVADisplay.getDisplay(structure))
+                .build();
     }
 }
