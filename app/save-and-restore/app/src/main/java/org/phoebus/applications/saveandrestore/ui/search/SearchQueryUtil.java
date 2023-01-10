@@ -59,6 +59,7 @@ public class SearchQueryUtil {
         private static Map<String, Keys> lookupTable = new HashMap<String, Keys>();
 
         static {
+            lookupTable.put("name", Keys.NAME);
             lookupTable.put("desc", Keys.DESC);
             lookupTable.put("tags", Keys.TAGS);
             lookupTable.put("start", Keys.STARTTIME);

@@ -25,6 +25,7 @@ import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -71,8 +72,11 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
+import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationTab;
 import org.phoebus.applications.saveandrestore.ui.search.SearchQueryManager;
+import org.phoebus.applications.saveandrestore.ui.search.SearchQueryUtil;
+import org.phoebus.applications.saveandrestore.ui.search.SearchQueryUtil.Keys;
 import org.phoebus.applications.saveandrestore.ui.search.SearchTab;
 import org.phoebus.applications.saveandrestore.ui.search.SearchWindowController;
 import org.phoebus.applications.saveandrestore.ui.snapshot.CompositeSnapshotTab;
@@ -91,6 +95,8 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -102,6 +108,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Stack;
@@ -164,7 +171,12 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     private final URI uri;
 
+    /**
+     * A {@link Filter} matching all {@link Node}s.
+     */
     private Filter noFilter;
+
+    private ObservableList<Node> searchResultNodes = FXCollections.observableArrayList();
 
     /**
      * @param uri If non-null, this is used to load a configuration or snapshot into the view.
@@ -263,6 +275,13 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                         return null;
                     }
                 });
+
+        filtersComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if(newValue != null && newValue.equals(oldValue)){
+                return;
+            }
+            applyFilter(newValue);
+        });
 
         loadFilters();
         loadTreeData();
@@ -793,6 +812,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         saveTreeState();
         SearchQueryManager.getInstance().save();
         memento.setNumber("POS", splitPane.getDividers().get(0).getPosition());
+        memento.setString("filter", filtersComboBox.getSelectionModel().getSelectedItem().getName());
     }
 
     /**
@@ -802,6 +822,12 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      */
     public void restore(final Memento memento) {
         memento.getNumber("POS").ifPresent(pos -> splitPane.setDividerPositions(pos.doubleValue()));
+        memento.getString("filter").ifPresent(name -> {
+            Optional<Filter> f = filtersComboBox.getItems().stream().filter(filter -> filter.getName().equals(name)).findFirst();
+            if(f.isPresent()){
+                filtersComboBox.getSelectionModel().select(f.get());
+            }
+        });
     }
 
     public void locateNode(Stack<Node> nodeStack) {
@@ -1279,8 +1305,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * @return <code>true</code> if found in the list of {@link Node}s retrieved through a search request.
      */
     public boolean matchesFilter(Node node) {
-        // TODO: check against a list of Nodes retrieved using the filter/search string.
-        return node.hasTag(Tag.GOLDEN);
+        return searchResultNodes.contains(node);
     }
 
     @FXML
@@ -1293,9 +1318,28 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             List<Filter> filters = saveAndRestoreService.getAllFilters();
             filters.add(noFilter);
             filtersComboBox.getItems().setAll(filters);
-            filtersComboBox.getSelectionModel().select(noFilter);
+            //filtersComboBox.getSelectionModel().select(noFilter);
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Failed to load filters", e);
         }
+    }
+
+    private void applyFilter(Filter filter){
+        Map<String, String> searchParams =
+                SearchQueryUtil.parseHumanReadableQueryString(filter.getQueryString());
+        // In this case we want to hit all matching, i.e. no pagination.
+        searchParams.put(Keys.FROM.getName(), "0");
+        searchParams.put(Keys.SIZE.getName(), "10000");
+        MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
+        searchParams.forEach(map::add);
+        JobManager.schedule("Apply Filter", monitor -> {
+            try {
+                SearchResult searchResult = saveAndRestoreService.search(map);
+                searchResultNodes.setAll(searchResult.getNodes());
+                Platform.runLater(() -> treeView.refresh());
+            } catch(Exception e) {
+                LOG.log(Level.SEVERE, "Failed to perform search when applying filter", e);
+            }
+        });
     }
 }

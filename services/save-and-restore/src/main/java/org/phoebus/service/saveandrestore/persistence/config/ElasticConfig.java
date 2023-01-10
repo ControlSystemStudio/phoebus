@@ -163,6 +163,19 @@ public class ElasticConfig {
         } catch (IOException e) {
             logger.log(Level.WARNING, "Failed to create index " + ES_COMPOSITE_SNAPSHOT_INDEX, e);
         }
+
+        // Filter index
+        try (InputStream is = ElasticConfig.class.getResourceAsStream("/filter_mapping.json")) {
+            BooleanResponse exits = client.indices().exists(ExistsRequest.of(e -> e.index(ES_FILTER_INDEX)));
+            if (!exits.value()) {
+                CreateIndexResponse result = client.indices().create(
+                        CreateIndexRequest.of(
+                                c -> c.index(ES_FILTER_INDEX).withJson(is)));
+                logger.info("Created index: " + ES_FILTER_INDEX + " : acknowledged " + result.acknowledged());
+            }
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "Failed to create index " + ES_FILTER_INDEX, e);
+        }
     }
 
     /**

@@ -152,12 +152,9 @@ public class BrowserTreeCell extends TreeCell<Node> {
         }
         // Use custom layout as this makes it easier to set opacity
         HBox hBox = new HBox();
-        /*
         if (!saveAndRestoreController.matchesFilter(node)) {
             hBox.opacityProperty().set(0.4);
         }
-
-         */
         StringBuffer stringBuffer = new StringBuffer();
         String comment = node.getDescription();
         if (comment != null && !comment.isEmpty()) {

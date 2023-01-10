@@ -40,6 +40,7 @@ import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.ui.HelpViewer;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
@@ -61,6 +62,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Stack;
+import java.util.UUID;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -281,6 +283,14 @@ public class SearchWindowController implements Initializable {
     @FXML
     public void saveAsFilter(){
         String query = queryTextField.getText();
+        Filter filter = new Filter();
+        filter.setName(UUID.randomUUID().toString());
+        filter.setQueryString(query);
+        try {
+            saveAndRestoreService.saveFilter(filter);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
 

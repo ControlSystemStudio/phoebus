@@ -501,6 +501,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
     @Override
     public Filter saveFilter(Filter filter){
+        filter.setUserName(getCurrentUsersName());
         WebResource webResource = client.resource(jmasarServiceUrl + "/filter");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
