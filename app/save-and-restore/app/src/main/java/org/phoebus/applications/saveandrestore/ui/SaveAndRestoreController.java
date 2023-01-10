@@ -176,7 +176,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      */
     private Filter noFilter;
 
-    private ObservableList<Node> searchResultNodes = FXCollections.observableArrayList();
+    private final ObservableList<Node> searchResultNodes = FXCollections.observableArrayList();
 
     /**
      * @param uri If non-null, this is used to load a configuration or snapshot into the view.
@@ -277,10 +277,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 });
 
         filtersComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
-            if(newValue != null && newValue.equals(oldValue)){
-                return;
+            if (newValue != null && !newValue.equals(oldValue)) {
+                applyFilter(newValue);
             }
-            applyFilter(newValue);
         });
 
         loadFilters();
@@ -804,7 +803,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     /**
-     * Saves the tree state.
+     * Saves the tree state and currently selected filter.
      *
      * @param memento The {@link Memento} in which to save the state.
      */
@@ -816,7 +815,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     /**
-     * Restores the divider position from {@link Memento}, if found.
+     * Restores the divider position from {@link Memento}, applies saved filter.
      *
      * @param memento The persisted (or empty) {@link Memento}.
      */
@@ -824,9 +823,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         memento.getNumber("POS").ifPresent(pos -> splitPane.setDividerPositions(pos.doubleValue()));
         memento.getString("filter").ifPresent(name -> {
             Optional<Filter> f = filtersComboBox.getItems().stream().filter(filter -> filter.getName().equals(name)).findFirst();
-            if(f.isPresent()){
-                filtersComboBox.getSelectionModel().select(f.get());
-            }
+            f.ifPresent(filter -> filtersComboBox.getSelectionModel().select(filter));
         });
     }
 
@@ -1313,18 +1310,20 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     }
 
+    /**
+     * Retrieves all {@link Filter}s from service and populates the filter combo box.
+     */
     private void loadFilters() {
         try {
             List<Filter> filters = saveAndRestoreService.getAllFilters();
             filters.add(noFilter);
             filtersComboBox.getItems().setAll(filters);
-            //filtersComboBox.getSelectionModel().select(noFilter);
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Failed to load filters", e);
         }
     }
 
-    private void applyFilter(Filter filter){
+    private void applyFilter(Filter filter) {
         Map<String, String> searchParams =
                 SearchQueryUtil.parseHumanReadableQueryString(filter.getQueryString());
         // In this case we want to hit all matching, i.e. no pagination.
@@ -1337,7 +1336,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 SearchResult searchResult = saveAndRestoreService.search(map);
                 searchResultNodes.setAll(searchResult.getNodes());
                 Platform.runLater(() -> treeView.refresh());
-            } catch(Exception e) {
+            } catch (Exception e) {
                 LOG.log(Level.SEVERE, "Failed to perform search when applying filter", e);
             }
         });
