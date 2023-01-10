@@ -82,6 +82,7 @@ public class Messages {
     public static String loggingFailedCauseUnknown;
     public static String makeRestorable;
     public static String makeReadOnly;
+    public static String manageFilters;
     public static String menuItemDeleteSelectedPVs;
     public static String noFilter;
     public static String openResourceFailedTitle;

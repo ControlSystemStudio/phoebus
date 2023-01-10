@@ -74,6 +74,7 @@ import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationTab;
+import org.phoebus.applications.saveandrestore.ui.search.FilterManagementTab;
 import org.phoebus.applications.saveandrestore.ui.search.SearchQueryManager;
 import org.phoebus.applications.saveandrestore.ui.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.ui.search.SearchQueryUtil.Keys;
@@ -1307,7 +1308,15 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     @FXML
     public void manageFilters() {
-
+        Optional<Tab> filterManagementTabOptional =
+                tabPane.getTabs().stream().filter(t -> t.getId().equals(FilterManagementTab.FILTER_MANAGEMENT_TAB)).findFirst();
+        if (filterManagementTabOptional.isPresent()) {
+            tabPane.getSelectionModel().select(filterManagementTabOptional.get());
+        } else {
+            FilterManagementTab filterManagementTab = new FilterManagementTab(this);
+            tabPane.getTabs().add(0, filterManagementTab);
+            tabPane.getSelectionModel().select(filterManagementTab);
+        }
     }
 
     /**

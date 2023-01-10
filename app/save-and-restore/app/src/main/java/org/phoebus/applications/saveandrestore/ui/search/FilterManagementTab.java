@@ -36,38 +36,39 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SearchTab extends Tab {
+public class FilterManagementTab extends Tab {
 
-    public static final String SEARCH_TAB_ID = "SaveAndRestoreSearchTab";
+    public static final String FILTER_MANAGEMENT_TAB = "FilterManagementTab";
 
-    public SearchTab(SaveAndRestoreController saveAndRestoreController) {
+    public FilterManagementTab(SaveAndRestoreController saveAndRestoreController){
 
-        setId(SEARCH_TAB_ID);
+        setId(FILTER_MANAGEMENT_TAB);
 
         final ResourceBundle bundle = NLS.getMessages(SaveAndRestoreApplication.class);
 
         FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(SaveAndRestoreController.class.getResource("search/SearchWindow.fxml"));
+        loader.setLocation(SaveAndRestoreController.class.getResource("search/FilterManagement.fxml"));
         loader.setResources(bundle);
 
         try {
             setContent(loader.load());
         } catch (IOException e) {
-            Logger.getLogger(SearchTab.class.getName())
+            Logger.getLogger(FilterManagementTab.class.getName())
                     .log(Level.SEVERE, "Unable to load search tab content fxml", e);
             return;
         }
 
         HBox container = new HBox();
-        ImageView imageView = new ImageView(ImageCache.getImage(ImageCache.class, "/icons/sar-search.png"));
+        ImageView imageView = new ImageView(ImageCache.getImage(ImageCache.class, "/icons/save-and-restore/manage-filters.png"));
         imageView.setFitWidth(18);
         imageView.setFitHeight(18);
-        Label label = new Label(Messages.search);
+        Label label = new Label(Messages.manageFilters);
         HBox.setMargin(label, new Insets(1, 0, 0, 5));
         container.getChildren().addAll(imageView, label);
 
         setGraphic(container);
 
-        ((SearchWindowController) loader.getController()).setCallerController(saveAndRestoreController);
+        ((SearchWindowController)loader.getController()).setCallerController(saveAndRestoreController);
+
     }
 }
