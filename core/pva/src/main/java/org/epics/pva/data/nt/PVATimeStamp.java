@@ -120,7 +120,9 @@ public class PVATimeStamp extends PVAStructure
         {
             final PVALong secs = structure.get(SECONDS_PAST_EPOCH);
             final PVAInt nano = structure.get(NANOSECONDS);
-            return new PVATimeStamp(TIMESTAMP_NAME_STRING, secs, nano);
+            if (secs != null && nano != null) {
+                return new PVATimeStamp(TIMESTAMP_NAME_STRING, secs, nano);
+            }
         }
         return null;
     }

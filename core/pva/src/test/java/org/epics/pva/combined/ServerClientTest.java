@@ -19,6 +19,7 @@
 package org.epics.pva.combined;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.time.Instant;
@@ -28,7 +29,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.epics.pva.client.MonitorListener;
@@ -79,6 +82,14 @@ public class ServerClientTest {
     public void tearDown() throws Exception {
         server.close();
         client.close();
+
+        // Wait for closes to finish
+        try {
+            TimeUnit.MILLISECONDS.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
     }
 
     /**
@@ -185,6 +196,12 @@ public class ServerClientTest {
         return null;
     }
 
+    /**
+     * Test for setting up a pv in a server with all data structures.
+     * Then sending some fake data.
+     * Then in a client receiving the data.
+     * Then assert sent and received data is the same.
+     */
     @ParameterizedTest
     @MethodSource("data")
     public <S extends PVAData> void testSinglePV(List<S> inputData) {
@@ -199,42 +216,67 @@ public class ServerClientTest {
         PVAStructure testPV = buildPVAStructure(pvName, Instant.now(), fakeData, pvDescription);
         ServerPV serverPV = server.createPV(pvName, testPV);
 
+        var ref = new AtomicReference<HashMap<Instant, PVAData>>();
+        ref.set(new HashMap<>());
+        MonitorListener listener = (ch, changes, overruns, data) -> {
+            System.out.println("Got data " + data.get(PVAScalar.VALUE_NAME_STRING));
+            ref.getAndUpdate((l) -> {
+                Instant recInstant = PVAStructures.getTime(data.get(PVATimeStamp.TIMESTAMP_NAME_STRING));
+                PVAData recData = data.get(PVAScalar.VALUE_NAME_STRING);
+                l.put(recInstant, recData);
+                return l;
+            });
+        };
+
+        var channel = client.getChannel(pvName);
         try {
-            var ref = new AtomicReference<HashMap<Instant, PVAData>>();
-            ref.set(new HashMap<>());
-            MonitorListener listener = (ch, changes, overruns, data) -> {
-                System.out.println("Got data " + data.get(PVAScalar.VALUE_NAME_STRING));
-                ref.getAndUpdate((l) -> {
-                    Instant recInstant = PVAStructures.getTime(data.get(PVATimeStamp.TIMESTAMP_NAME_STRING));
-                    PVAData recData = data.get(PVAScalar.VALUE_NAME_STRING);
-                    l.put(recInstant, recData);
-                    return l;
-                });
-            };
-            var channel = client.getChannel(pvName);
             channel.connect().get(5, TimeUnit.SECONDS);
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+        try {
             channel.subscribe(pvDescription, listener);
-
-            var sentData = new HashMap<Instant, PVAData>();
-            for (S input : inputData) {
-                S newValue = testPV.get(PVAScalar.VALUE_NAME_STRING);
-                newValue.setValue(input);
-                PVATimeStamp timeStamp = testPV.get(PVATimeStamp.TIMESTAMP_NAME_STRING);
-                instant = Instant.now();
-                instants.add(instant);
-                timeStamp.set(instant);
-                sentData.put(instant, newValue);
-                serverPV.update(testPV);
-                TimeUnit.MILLISECONDS.sleep(10);
-                System.out.println("Sent data " + testPV.get(PVAScalar.VALUE_NAME_STRING));
-            }
-
-            assertEquals(inputData.size(), ref.get().size());
-            assertEquals(sentData, ref.get());
         } catch (Exception e) {
             e.printStackTrace();
-            fail();
+            fail(e.getMessage());
         }
+
+        var sentData = new HashMap<Instant, PVAData>();
+        for (S input : inputData) {
+            S newValue = testPV.get(PVAScalar.VALUE_NAME_STRING);
+            try {
+                newValue.setValue(input);
+            } catch (Exception e) {
+                e.printStackTrace();
+                fail(e.getMessage());
+            }
+            PVATimeStamp timeStamp = testPV.get(PVATimeStamp.TIMESTAMP_NAME_STRING);
+            instant = Instant.now();
+            instants.add(instant);
+            timeStamp.set(instant);
+            sentData.put(instant, newValue);
+            try {
+                serverPV.update(testPV);
+            } catch (Exception e) {
+                e.printStackTrace();
+                fail(e.getMessage());
+            }
+            try {
+                // Sleep to allow time for client to receive requests
+                TimeUnit.MILLISECONDS.sleep(50);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                fail(e.getMessage());
+            }
+            System.out.println("Sent data " + testPV.get(PVAScalar.VALUE_NAME_STRING));
+        }
+
+        serverPV.close();
+        channel.close();
+
+        assertEquals(inputData.size(), ref.get().size());
+        assertEquals(sentData, ref.get());
     }
 
 }
