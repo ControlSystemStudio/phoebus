@@ -12,6 +12,7 @@ import java.time.Instant;
 import org.epics.pva.data.nt.PVAAlarm;
 import org.epics.pva.data.nt.PVAEnum;
 import org.epics.pva.data.nt.PVATimeStamp;
+import org.epics.pva.data.nt.PVAAlarm.AlarmSeverity;
 
 /** Helper to decode certain structures
  *  @author Kay Kasemir
@@ -25,7 +26,7 @@ public class PVAStructures
      */
     public static Instant getTime(final PVAStructure structure)
     {
-        var timeStamp = PVATimeStamp.fromStructure(structure);
+        PVATimeStamp timeStamp = PVATimeStamp.fromStructure(structure);
         if (timeStamp != null) 
         {
             return timeStamp.instant();
@@ -39,7 +40,7 @@ public class PVAStructures
      */
     public static String getEnum(final PVAStructure structure)
     {
-        var pvaEnum = PVAEnum.fromStructure(structure);
+        PVAEnum pvaEnum = PVAEnum.fromStructure(structure);
         if (pvaEnum != null)
         {
             return pvaEnum.enumString();
@@ -53,11 +54,11 @@ public class PVAStructures
      */
     public static String getAlarm(final PVAStructure structure)
     {
-        var alarm = PVAAlarm.fromStructure(structure);
+        PVAAlarm alarm = PVAAlarm.fromStructure(structure);
 
         if (alarm != null)
         {
-            var severity = alarm.alarmSeverity();
+            AlarmSeverity severity = alarm.alarmSeverity();
             if (severity != null) {
                 return severity.toString();
             } else {

@@ -135,9 +135,9 @@ public class PVADisplay extends PVAStructure {
      * @return PVADisplay or <code>null</code>
      */
     public static PVADisplay getDisplay(PVAStructure structure) {
-        var displayStructure = structure.get(DISPLAY_NAME_STRING);
+        PVAStructure displayStructure = structure.get(DISPLAY_NAME_STRING);
         if (displayStructure != null) {
-            return fromStructure((PVAStructure) displayStructure);
+            return fromStructure(displayStructure);
         }
         return null;
     }

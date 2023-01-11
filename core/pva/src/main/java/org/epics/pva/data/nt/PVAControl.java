@@ -87,9 +87,9 @@ public class PVAControl extends PVAStructure {
      * @return PVAControl or <code>null</code>
      */
     public static PVAControl getControl(PVAStructure structure) {
-        var controlStructure = structure.get(CONTROL_NAME_STRING);
+        PVAStructure controlStructure = structure.get(CONTROL_NAME_STRING);
         if (controlStructure != null) {
-            return fromStructure((PVAStructure) controlStructure);
+            return fromStructure(controlStructure);
         }
         return null;
     }

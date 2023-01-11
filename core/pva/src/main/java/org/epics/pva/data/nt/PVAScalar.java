@@ -249,8 +249,8 @@ public class PVAScalar<S extends PVAData> extends PVAStructure {
      */
     public static <S extends PVAData> PVAScalar<S> fromStructure(PVAStructure structure)
             throws PVAScalarValueNameException, PVAScalarDescriptionNameException {
-        var builder = new Builder<S>();
-        var value = (S) structure.get(VALUE_NAME_STRING);
+        Builder<S> builder = new Builder<>();
+        S value = structure.get(VALUE_NAME_STRING);
         return builder.name(structure.getName()).value(value)
                 .alarm(PVAAlarm.getAlarm(structure)).control(PVAControl.getControl(structure))
                 .description(structure.get(DESCRIPTION_NAME_STRING))

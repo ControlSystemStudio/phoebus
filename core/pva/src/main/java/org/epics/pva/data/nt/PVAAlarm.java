@@ -115,8 +115,8 @@ public class PVAAlarm extends PVAStructure {
      * @return
      */
     public AlarmSeverity alarmSeverity() {
-        var values = AlarmSeverity.values();
-        var index = this.severity.get();
+        AlarmSeverity[] values = AlarmSeverity.values();
+        int index = this.severity.get();
         if (index > values.length) {
             return null;
         }
@@ -146,9 +146,9 @@ public class PVAAlarm extends PVAStructure {
      * @return PVAAlarm or <code>null</code>
      */
     public static PVAAlarm getAlarm(PVAStructure structure) {
-        var alarmStructure = structure.get(ALARM_NAME_STRING);
+        PVAStructure alarmStructure = structure.get(ALARM_NAME_STRING);
         if (alarmStructure != null) {
-            return fromStructure((PVAStructure) alarmStructure);
+            return fromStructure(alarmStructure);
         }
         return null;
     }

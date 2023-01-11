@@ -134,9 +134,9 @@ public class PVATimeStamp extends PVAStructure
      * @return PVATimeStamp or <code>null</code>
      */
     public static PVATimeStamp getTimeStamp(PVAStructure structure) {
-        var timestampStructure = structure.get(TIMESTAMP_NAME_STRING);
+        PVAStructure timestampStructure = structure.get(TIMESTAMP_NAME_STRING);
         if (timestampStructure != null) {
-            return fromStructure((PVAStructure) timestampStructure);
+            return fromStructure(timestampStructure);
         }
         return null;
     }
