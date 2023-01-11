@@ -164,7 +164,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     protected static final Logger LOG = Logger.getLogger(SaveAndRestoreService.class.getName());
 
     protected Stage searchWindow;
-    protected TreeNodeComparator treeNodeComparator = new TreeNodeComparator();
+    protected Comparator<TreeItem<Node>> treeNodeComparator;
 
     protected SimpleBooleanProperty disabledUi = new SimpleBooleanProperty(false);
 
@@ -187,6 +187,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+
+        // Tree items are first compared on type, then on name (case insensitive).
+        treeNodeComparator = Comparator.comparing((TreeItem<Node> ti) -> ti.getValue());
 
         saveAndRestoreService = SaveAndRestoreService.getInstance();
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -907,21 +910,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         if (!parentNode.getChildren().isEmpty()) {
             parentNode.setExpanded(true);
             parentNode.getChildren().forEach(this::expandNodes);
-        }
-    }
-
-    /**
-     * Utility class for the purpose of sorting {@link TreeItem}s. For snapshot {@link Node}s the created date
-     * is used for comparison, while folder and configuration {@link Node}s are compared by name.
-     * See {@link Node#compareTo(Node)}.
-     */
-    protected static class TreeNodeComparator implements Comparator<TreeItem<Node>> {
-        @Override
-        public int compare(TreeItem<Node> t1, TreeItem<Node> t2) {
-            if (t1.getValue().getNodeType().equals(NodeType.SNAPSHOT) && t2.getValue().getNodeType().equals(NodeType.SNAPSHOT)) {
-                return (Preferences.sortSnapshotsTimeReversed ? -1 : 1) * t1.getValue().getCreated().compareTo(t2.getValue().getCreated());
-            }
-            return t1.getValue().compareTo(t2.getValue());
         }
     }
 
