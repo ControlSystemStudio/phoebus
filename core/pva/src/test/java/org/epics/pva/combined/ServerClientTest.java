@@ -179,7 +179,7 @@ public class ServerClientTest {
         builder.value(value);
         builder.description(new PVAString("description",
                 pvDescription));
-        builder.alarm(new PVAAlarm(1, 2,
+        builder.alarm(new PVAAlarm(PVAAlarm.AlarmSeverity.MINOR, PVAAlarm.AlarmStatus.DEVICE,
                 pvDescription + "alarm message"));
         builder.timeStamp(new PVATimeStamp(instant));
         builder.display(new PVADisplay(0, 1, pvDescription + "display", "units", 4, Form.STRING));

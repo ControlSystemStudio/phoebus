@@ -53,28 +53,33 @@ import org.epics.pva.data.PVAStructure;
  * <li>time_t timeStamp :opt
  * <li>display_t display :opt
  * <li>control_t control :opt
+ * </ul>
+ * </ul>
  * 
- * where scalar_t can be:
- * <ul>
- * <li>{@link PVABool}
- * <li>{@link PVAByte}
- * <li>{@link PVAShort}
- * <li>{@link PVAInt}
- * <li>{@link PVALong}
- * <li>{@link PVAFloat}
- * <li>{@link PVADouble}
- * <li>{@link PVAString}
+ * @param <S> can be from scalar_t or scalar_t[] as specified by:
+ *            where scalar_t can be:
+ *            <ul>
+ *            <li>{@link PVABool}
+ *            <li>{@link PVAByte}
+ *            <li>{@link PVAShort}
+ *            <li>{@link PVAInt}
+ *            <li>{@link PVALong}
+ *            <li>{@link PVAFloat}
+ *            <li>{@link PVADouble}
+ *            <li>{@link PVAString}
+ *            </ul>
  * 
- * and scalar_t[] can be:
- * <ul>
- * <li>{@link PVABoolArray}
- * <li>{@link PVAByteArray}
- * <li>{@link PVAShortArray}
- * <li>{@link PVAIntArray}
- * <li>{@link PVALongArray}
- * <li>{@link PVAFloatArray}
- * <li>{@link PVADoubleArray}
- * <li>{@link PVAStringArray}
+ *            and scalar_t[] can be:
+ *            <ul>
+ *            <li>{@link PVABoolArray}
+ *            <li>{@link PVAByteArray}
+ *            <li>{@link PVAShortArray}
+ *            <li>{@link PVAIntArray}
+ *            <li>{@link PVALongArray}
+ *            <li>{@link PVAFloatArray}
+ *            <li>{@link PVADoubleArray}
+ *            <li>{@link PVAStringArray}
+ *            </ul>
  */
 public class PVAScalar<S extends PVAData> extends PVAStructure {
     public static final String STRUCT_NAME_STRING = "epics:nt/NTScalar:1.0";
@@ -84,10 +89,12 @@ public class PVAScalar<S extends PVAData> extends PVAStructure {
     /**
      * Builder for the PVAScalar class
      * 
-     * The description element must be named description
-     * otherwise a PVAScalarDescriptionNameException will be thrown
-     * The value element must be named value
-     * otherwise a PVAScalarValueNameException will be thrown
+     * @param <S> is in the {@link PVAScalar} list
+     * 
+     *            The description element must be named description
+     *            otherwise a PVAScalarDescriptionNameException will be thrown
+     *            The value element must be named value
+     *            otherwise a PVAScalarValueNameException will be thrown
      */
     public static class Builder<S extends PVAData> {
 

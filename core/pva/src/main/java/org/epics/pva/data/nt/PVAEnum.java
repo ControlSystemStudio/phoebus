@@ -25,6 +25,9 @@ import org.epics.pva.data.PVAStructure;
 /**
  * Normative enum type
  * 
+ * An enum_t describes an enumeration. The field is a structure describing a
+ * value drawn from a given set of valid values also given.
+ * 
  * enum_t :=
  * 
  * <ul>
@@ -32,17 +35,31 @@ import org.epics.pva.data.PVAStructure;
  * <ul>
  * <li>int index
  * <li>string[] choices
+ * </ul>
+ * </ul>
  */
 public class PVAEnum extends PVAStructure {
     /** Type name for enum */
-    public static final String ENUM_T = "enum_t";
+    private static final String ENUM_T = "enum_t";
     private PVAInt index;
     private PVAStringArray choices;
 
+    /**
+     * Constructor 
+     * @param name Name of the enum
+     * @param index The index of the current value of the enumeration in the array choices below.
+     * @param choices An array of strings specifying the set of labels for the valid values of the enumeration.
+     */
     public PVAEnum(String name, int index, String[] choices) {
         this(name, new PVAInt("index", index), new PVAStringArray("choices", choices));
     }
 
+    /**
+     * Constructor 
+     * @param name Name of the enum
+     * @param index The index of the current value of the enumeration in the array choices below.
+     * @param choices An array of strings specifying the set of labels for the valid values of the enumeration.
+     */
     public PVAEnum(String name, PVAInt index, PVAStringArray choices) {
         super(name, ENUM_T, index, choices);
         this.index = index;
@@ -52,7 +69,7 @@ public class PVAEnum extends PVAStructure {
     /**
      * String of the enum output
      * 
-     * @return
+     * @return The resulting string of the enum_t
      */
     public String enumString() {
 
@@ -67,8 +84,8 @@ public class PVAEnum extends PVAStructure {
     /**
      * Converts from a generic PVAStruture to PVAEnum
      * 
-     * @param structure
-     * @return
+     * @param structure Input structure
+     * @return Representative Enum
      */
     public static PVAEnum fromStructure(PVAStructure structure) {
         if (structure != null && structure.getStructureName().equals(ENUM_T)) {

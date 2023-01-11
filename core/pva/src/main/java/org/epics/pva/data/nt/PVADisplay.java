@@ -27,6 +27,11 @@ import org.epics.pva.data.PVAStructure;
 
 /**
  * Normative Display type
+ * 
+ * A display_t is a structure that describes some typical attributes of a
+ * numerical value that are of interest when displaying the value on a computer
+ * screen or similar medium.
+ * 
  * <p>
  * display_t :=
  * <ul>
@@ -42,22 +47,51 @@ import org.epics.pva.data.PVAStructure;
  * <li>int index
  * <li>string[] choices ["Default", "String", "Binary", "Decimal", "Hex",
  * "Exponential", "Engineering"]
+ * </ul>
+ * </ul>
+ * </ul>
  */
 public class PVADisplay extends PVAStructure {
-    public static final String DISPLAY_NAME_STRING = "display";
-    public static final String DISPLAY_T = "display_t";
+    private static final String DISPLAY_NAME_STRING = "display";
+    private static final String DISPLAY_T = "display_t";
 
+    /**
+     * An enumeration to specify formatting a value to be displayed. By default, a
+     * floating point number is formatted with the number of decimal points defined
+     * in the precision field.
+     */
     public enum Form {
+        /** 
+         * Default Formatting
+         */
         DEFAULT,
+        /** 
+         * String Format
+         */
         STRING,
+        /** 
+         * Binary Format
+         */
         BINARY,
+        /** 
+         * Decimal Format
+         */
         DECIMAL,
+        /** 
+         * Hex Format
+         */
         HEX,
+        /** 
+         * Exponential Format
+         */
         EXPONENTIAL,
+        /** 
+         * Engineering Format
+         */
         ENGINEERING
     }
 
-    public static String capitalizeFirstLetter(String original) {
+    private static String capitalizeFirstLetter(String original) {
         if (original == null || original.length() == 0) {
             return original;
         }
@@ -67,12 +101,17 @@ public class PVADisplay extends PVAStructure {
     /**
      * Construct a display_t normative type PVAStructure
      * 
-     * @param limitLow
-     * @param limitHigh
-     * @param description
-     * @param units
-     * @param precision
-     * @param form
+     * @param limitLow    The lower bound of range within which the value must be
+     *                    set, to be presented to a user.
+     * @param limitHigh   The upper bound of range within which the value must be
+     *                    set, to be presented to a user.
+     * @param description A textual summary of the variable that the value
+     *                    quantifies.
+     * @param units       The units for the value field.
+     * @param precision   Number of decimal points that are displayed when
+     *                    formatting a floating point number.
+     * @param form        An enumeration to specify formatting a value to be
+     *                    displayed.
      */
     public PVADisplay(double limitLow, double limitHigh, String description, String units, int precision,
             Form form) {
@@ -89,12 +128,17 @@ public class PVADisplay extends PVAStructure {
     /**
      * Construct a display_t normative type PVAStructure
      * 
-     * @param limitLow
-     * @param limitHigh
-     * @param description
-     * @param units
-     * @param precision
-     * @param form
+     * @param limitLow    The lower bound of range within which the value must be
+     *                    set, to be presented to a user.
+     * @param limitHigh   The upper bound of range within which the value must be
+     *                    set, to be presented to a user.
+     * @param description A textual summary of the variable that the value
+     *                    quantifies.
+     * @param units       The units for the value field.
+     * @param precision   Number of decimal points that are displayed when
+     *                    formatting a floating point number.
+     * @param form        An enumeration to specify formatting a value to be
+     *                    displayed.
      */
     public PVADisplay(PVADouble limitLow, PVADouble limitHigh, PVAString description, PVAString units, PVAInt precision,
             PVAEnum form) {

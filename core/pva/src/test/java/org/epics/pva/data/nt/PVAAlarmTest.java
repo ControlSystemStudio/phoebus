@@ -30,21 +30,21 @@ public class PVAAlarmTest {
 
     @Test
     void testConstructor() {
-        PVAAlarm alarm = new PVAAlarm(5, 1, "alarmMessage");
-        assertEquals(new PVAInt("severity", 5), alarm.get("severity"));
-        assertEquals(new PVAInt("status",  1), alarm.get("status"));
+        PVAAlarm alarm = new PVAAlarm(PVAAlarm.AlarmSeverity.MAJOR, PVAAlarm.AlarmStatus.DRIVER, "alarmMessage");
+        assertEquals(new PVAInt("severity", 2), alarm.get("severity"));
+        assertEquals(new PVAInt("status", 2), alarm.get("status"));
         assertEquals(new PVAString("message", "alarmMessage"), alarm.get("message"));
     }
 
     @Test
     public void testSet() {
-        PVAAlarm alarm = new PVAAlarm(1, 2, "test message");
+        PVAAlarm alarm = new PVAAlarm(PVAAlarm.AlarmSeverity.MAJOR, PVAAlarm.AlarmStatus.DRIVER, "test message");
 
         PVAStructure clone = alarm.cloneData();
 
         assertEquals(alarm, clone);
 
-        alarm.set(0, 0, "test message 2");
+        alarm.set(PVAAlarm.AlarmSeverity.NO_ALARM, PVAAlarm.AlarmStatus.NO_STATUS, "test message 2");
         assertNotEquals(alarm, clone);
     }
 }

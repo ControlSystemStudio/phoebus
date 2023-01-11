@@ -34,22 +34,81 @@ import org.epics.pva.data.PVAStructure;
  * <li>int severity
  * <li>int status
  * <li>string message
+ * </ul>
+ * </ul>
  * 
  */
 public class PVAAlarm extends PVAStructure {
-    public static final String ALARM_NAME_STRING = "alarm";
+    private static final String ALARM_NAME_STRING = "alarm";
     /** Type name for alarm info */
-    public static final String ALARM_T = "alarm_t";
+    private static final String ALARM_T = "alarm_t";
     private PVAString message;
     private PVAInt status;
     private PVAInt severity;
 
+    /**
+     * Represents how severe an Alarm
+     */
     public enum AlarmSeverity {
+        /**
+         * No alarm
+         */
         NO_ALARM,
+        /**
+         * Minor alarm
+         */
         MINOR,
+        /**
+         * Major alarm
+         */
         MAJOR,
+        /**
+         * Invalid alarm
+         */
         INVALID,
+        /**
+         * Undefined alarm
+         */
         UNDEFINED,
+    }
+
+    /**
+     * Represents type of alarm.
+     */
+    // Defining the possible values for the status field of the alarm.
+    public enum AlarmStatus {
+        /**
+         * No Status
+         */
+        NO_STATUS,
+        /**
+         * Device Status
+         */
+        DEVICE,
+        /**
+         * Driver Status
+         */
+        DRIVER,
+        /**
+         * Record Status
+         */
+        RECORD,
+        /**
+         * Database Status
+         */
+        DB,
+        /**
+         * Configuration Status
+         */
+        CONF,
+        /**
+         * Undefined Status
+         */
+        UNDEFINED,
+        /**
+         * Client Status
+         */
+        CLIENT
     }
 
     /** Default no alarm */
@@ -63,28 +122,32 @@ public class PVAAlarm extends PVAStructure {
      * @param message String message
      */
     public PVAAlarm(String message) {
-        this(0, 0, message);
+        this(AlarmSeverity.NO_ALARM, AlarmStatus.NO_STATUS, message);
     }
 
     /**
      * Set all parameters in constructor
      * 
-     * @param severity
-     * @param status
-     * @param message
+     * @param severity severity of alarm
+     * @param status   what status is in alarm
+     * @param message  a message string
      */
-    public PVAAlarm(int severity, int status, String message) {
-        this(new PVAInt("severity", severity),
-                new PVAInt("status", status),
+    public PVAAlarm(AlarmSeverity severity, AlarmStatus status, String message) {
+        this(new PVAInt("severity", severity.ordinal()),
+                new PVAInt("status", status.ordinal()),
                 new PVAString("message", message));
     }
 
     /**
      * Set all parameters in constructor
      * 
-     * @param severity
-     * @param status
-     * @param message
+     * @param severity defined as an int (not an enum_t), but MUST be
+     *                 functionally interpreted as the enumeration
+     *                 {@link AlarmSeverity}
+     * @param status   defined as an int (not an enum_t), but MUST be
+     *                 functionally interpreted as the enumeration
+     *                 {@link AlarmStatus}
+     * @param message  a message string
      */
     public PVAAlarm(PVAInt severity, PVAInt status, PVAString message) {
         super(ALARM_NAME_STRING, ALARM_T,
@@ -99,20 +162,20 @@ public class PVAAlarm extends PVAStructure {
     /**
      * Set the value of the alarm
      * 
-     * @param severity
-     * @param status
-     * @param message
+     * @param severity severity of alarm
+     * @param status   what status is in alarm
+     * @param message  a message string
      */
-    public void set(int severity, int status, String message) {
-        this.severity.set(severity);
-        this.status.set(status);
+    public void set(AlarmSeverity severity, AlarmStatus status, String message) {
+        this.severity.set(severity.ordinal());
+        this.status.set(status.ordinal());
         this.message.set(message);
     }
 
     /**
      * Returns the enum representing the severity
      * 
-     * @return
+     * @return alarm severity
      */
     public AlarmSeverity alarmSeverity() {
         AlarmSeverity[] values = AlarmSeverity.values();

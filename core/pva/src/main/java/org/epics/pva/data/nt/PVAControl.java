@@ -24,6 +24,11 @@ import org.epics.pva.data.PVAStructure;
 /**
  * Normative control type
  * 
+ * A control_t is a structure that describes a range, given by the interval
+ * (limitLow,limitHigh), within which it is expected some control software or
+ * hardware shall bind the control PV to which this Normative Type instance’s
+ * value field refers as well as a minimum step change of the control PV.
+ * 
  * control_t :=
  * <ul>
  * <li>structure
@@ -31,18 +36,20 @@ import org.epics.pva.data.PVAStructure;
  * <li>double limitLow
  * <li>double limitHigh
  * <li>double minStep
+ * </ul>
+ * </ul>
  * 
  */
 public class PVAControl extends PVAStructure {
-    public static final String CONTROL_NAME_STRING = "control";
-    public static final String CONTROL_T = "control_t";
+    private static final String CONTROL_NAME_STRING = "control";
+    private static final String CONTROL_T = "control_t";
 
     /**
      * Setting all parameters
      * 
-     * @param limitLow
-     * @param limitHigh
-     * @param minStep
+     * @param limitLow The control low limit for the value field.
+     * @param limitHigh The control high limit for the value field.
+     * @param minStep The minimum step change for the value field.
      */
     public PVAControl(double limitLow, double limitHigh, double minStep) {
         this(new PVADouble("limitLow", limitLow),
@@ -53,9 +60,9 @@ public class PVAControl extends PVAStructure {
     /**
      * Setting all parameters
      * 
-     * @param limitLow
-     * @param limitHigh
-     * @param minStep
+     * @param limitLow The control low limit for the value field.
+     * @param limitHigh The control high limit for the value field.
+     * @param minStep The minimum step change for the value field.
      */
     public PVAControl(PVADouble limitLow, PVADouble limitHigh, PVADouble minStep) {
         super(CONTROL_NAME_STRING, CONTROL_T,
