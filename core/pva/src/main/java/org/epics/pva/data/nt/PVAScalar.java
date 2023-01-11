@@ -21,6 +21,7 @@ package org.epics.pva.data.nt;
 import java.util.Arrays;
 import java.util.Objects;
 
+import org.epics.pva.data.PVAArray;
 import org.epics.pva.data.PVABool;
 import org.epics.pva.data.PVABoolArray;
 import org.epics.pva.data.PVAByte;
@@ -82,7 +83,8 @@ import org.epics.pva.data.PVAStructure;
  *            </ul>
  */
 public class PVAScalar<S extends PVAData> extends PVAStructure {
-    public static final String STRUCT_NAME_STRING = "epics:nt/NTScalar:1.0";
+    public static final String SCALAR_STRUCT_NAME_STRING = "epics:nt/NTScalar:1.0";
+    public static final String ARRAY_STRUCT_NAME_STRING = "epics:nt/NTScalarArray:1.0";
     public static final String VALUE_NAME_STRING = "value";
     public static final String DESCRIPTION_NAME_STRING = "description";
 
@@ -105,8 +107,16 @@ public class PVAScalar<S extends PVAData> extends PVAStructure {
         private PVATimeStamp timeStamp;
         private PVADisplay display;
         private PVAControl control;
+        private String structName;
 
         public Builder() {
+        }
+
+        String determineStructName(S value) {
+            if (value instanceof PVAArray) {
+                return ARRAY_STRUCT_NAME_STRING;
+            }
+            return SCALAR_STRUCT_NAME_STRING;
         }
 
         Builder(String name, S value, PVAString description, PVAAlarm alarm, PVATimeStamp timeStamp, PVADisplay display,
@@ -118,6 +128,7 @@ public class PVAScalar<S extends PVAData> extends PVAStructure {
             this.timeStamp = timeStamp;
             this.display = display;
             this.control = control;
+            this.structName = determineStructName(value);
         }
 
         public Builder<S> name(String name) {
@@ -166,6 +177,7 @@ public class PVAScalar<S extends PVAData> extends PVAStructure {
                         + "Please set the value by \"value()\". "
                         + "The properties \"name\", \"value\" are required.");
             }
+            this.structName = determineStructName(value);
             if (!value.getName().equals(VALUE_NAME_STRING)) {
                 throw new PVAScalarValueNameException(value.getName());
             }
@@ -177,7 +189,7 @@ public class PVAScalar<S extends PVAData> extends PVAStructure {
     }
 
     private PVAScalar(Builder<S> builder) {
-        super(builder.name, STRUCT_NAME_STRING,
+        super(builder.name, builder.structName,
                 Arrays.stream(new PVAData[] { builder.value, builder.alarm, builder.control, builder.description,
                         builder.display, builder.timeStamp }).filter(Objects::nonNull).toArray(PVAData[]::new));
     }
