@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.epics.pva.data.PVADouble;
 import org.epics.pva.data.PVAString;
@@ -80,7 +81,7 @@ public class PVAScalarTest {
                                         }
                                         return null;
                                 })
-                                .toList();
+                                .collect(Collectors.toList());
                 fakeData.get(0).stream().map(Double::shortValue)
                                 .map((s) -> {
                                         try {
@@ -91,7 +92,7 @@ public class PVAScalarTest {
                                         }
                                         return null;
                                 })
-                                .toList();
+                                .collect(Collectors.toList());
                 fakeData.get(0).stream().map(Double::floatValue)
                                 .map((f) -> {
                                         try {
@@ -101,7 +102,7 @@ public class PVAScalarTest {
                                                 fail();
                                         }
                                         return null;
-                                }).toList();
+                                }).collect(Collectors.toList());
                 fakeData.get(0).stream().map(Double::byteValue)
                                 .map((b) -> {
                                         try {
@@ -112,7 +113,7 @@ public class PVAScalarTest {
                                         }
                                         return null;
                                 })
-                                .toList();
+                                .collect(Collectors.toList());
                 fakeData.get(0).stream().map(Double::intValue)
                                 .map((i) -> {
                                         try {
@@ -122,7 +123,7 @@ public class PVAScalarTest {
                                                 fail();
                                         }
                                         return null;
-                                }).toList();
+                                }).collect(Collectors.toList());
                 fakeData.get(0).stream().map(Double::doubleValue)
                                 .map((d) -> {
                                         try {
@@ -132,7 +133,7 @@ public class PVAScalarTest {
                                                 fail();
                                         }
                                         return null;
-                                }).toList();
+                                }).collect(Collectors.toList());
                 fakeData.stream()
                                 .map((dArray) -> {
                                         try {
@@ -145,7 +146,7 @@ public class PVAScalarTest {
                                         }
                                         return null;
                                 })
-                                .toList();
+                                .collect(Collectors.toList());
                 fakeData.stream()
                                 .map((dArray) -> {
                                         short[] array = new short[dArray.size()];
@@ -162,7 +163,7 @@ public class PVAScalarTest {
                                                 fail();
                                         }
                                         return null;
-                                }).toList();
+                                }).collect(Collectors.toList());
                 fakeData.stream()
                                 .map((dArray) -> {
                                         float[] array = new float[dArray.size()];
@@ -178,7 +179,7 @@ public class PVAScalarTest {
                                                 fail();
                                         }
                                         return null;
-                                }).toList();
+                                }).collect(Collectors.toList());
                 fakeData.stream()
                                 .map((dArray) -> {
                                         byte[] array = new byte[dArray.size()];
@@ -195,7 +196,7 @@ public class PVAScalarTest {
                                                 fail();
                                         }
                                         return null;
-                                }).toList();
+                                }).collect(Collectors.toList());
                 fakeData.stream()
                                 .map((dArray) -> {
                                         try {
@@ -208,7 +209,7 @@ public class PVAScalarTest {
                                         }
                                         return null;
                                 })
-                                .toList();
+                                .collect(Collectors.toList());
                 fakeData.stream().map((dArray) -> {
                         try {
                                 return PVAScalar.doubleArrayScalarBuilder(
@@ -220,7 +221,7 @@ public class PVAScalarTest {
                         }
                         return null;
                 })
-                                .toList();
+                                .collect(Collectors.toList());
 
         }
 

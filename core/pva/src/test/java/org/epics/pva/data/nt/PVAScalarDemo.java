@@ -23,7 +23,9 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.concurrent.TimeUnit;
 
+import org.epics.pva.client.PVAChannel;
 import org.epics.pva.client.PVAClient;
+import org.epics.pva.data.PVAInt;
 import org.junit.jupiter.api.Test;
 
 
@@ -39,22 +41,23 @@ public class PVAScalarDemo {
      */
     @Test
     public void testPVAScalarRead() throws Exception {
-        var client = new PVAClient();
-        var channel = client.getChannel("ramp");
+        PVAClient client = new PVAClient();
+        PVAChannel channel = client.getChannel("ramp");
         channel.connect().get(5, TimeUnit.SECONDS);
 
         channel.subscribe("", (ch, changes, overruns, data) ->
         {
-            var timeStamp = PVATimeStamp.getTimeStamp(data);
+            PVATimeStamp timeStamp = PVATimeStamp.getTimeStamp(data);
             assertNotNull(timeStamp);
-            var alarm = PVAAlarm.getAlarm(data);
+            PVAAlarm alarm = PVAAlarm.getAlarm(data);
             assertNotNull(alarm);
-            var display = PVADisplay.getDisplay(data);
+            PVADisplay display = PVADisplay.getDisplay(data);
             assertNotNull(display);
-            var control = PVAControl.getControl(data);
+            PVAControl control = PVAControl.getControl(data);
             assertNotNull(control);
             try {
-				var scalar = PVAScalar.fromStructure(data);
+				PVAScalar<PVAInt> scalar = PVAScalar.fromStructure(data);
+                assertNotNull(scalar);
 			} catch (PVAScalarValueNameException | PVAScalarDescriptionNameException e) {
 				e.printStackTrace();
                 fail();

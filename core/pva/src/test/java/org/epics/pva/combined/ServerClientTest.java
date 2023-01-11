@@ -19,7 +19,6 @@
 package org.epics.pva.combined;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.time.Instant;
@@ -33,8 +32,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import org.epics.pva.client.MonitorListener;
+import org.epics.pva.client.PVAChannel;
 import org.epics.pva.client.PVAClient;
 import org.epics.pva.data.PVAByte;
 import org.epics.pva.data.PVAByteArray;
@@ -107,27 +108,27 @@ public class ServerClientTest {
         return Arrays.asList(new Object[][] {
                 {
                         fakeData.get(0).stream().map((d) -> new PVAString(PVAScalar.VALUE_NAME_STRING, d.toString()))
-                                .toList() },
+                                .collect(Collectors.toList()) },
                 {
                         fakeData.get(0).stream().map(Double::shortValue)
-                                .map((s) -> new PVAShort(PVAScalar.VALUE_NAME_STRING, false, s)).toList() },
+                                .map((s) -> new PVAShort(PVAScalar.VALUE_NAME_STRING, false, s)).collect(Collectors.toList()) },
                 {
                         fakeData.get(0).stream().map(Double::floatValue)
-                                .map((f) -> new PVAFloat(PVAScalar.VALUE_NAME_STRING, f)).toList() },
+                                .map((f) -> new PVAFloat(PVAScalar.VALUE_NAME_STRING, f)).collect(Collectors.toList()) },
                 {
                         fakeData.get(0).stream().map(Double::byteValue)
-                                .map((b) -> new PVAByte(PVAScalar.VALUE_NAME_STRING, false, b)).toList() },
+                                .map((b) -> new PVAByte(PVAScalar.VALUE_NAME_STRING, false, b)).collect(Collectors.toList()) },
                 {
                         fakeData.get(0).stream().map(Double::intValue)
-                                .map((i) -> new PVAInt(PVAScalar.VALUE_NAME_STRING, false, i)).toList() },
+                                .map((i) -> new PVAInt(PVAScalar.VALUE_NAME_STRING, false, i)).collect(Collectors.toList()) },
                 {
                         fakeData.get(0).stream().map(Double::doubleValue)
-                                .map((d) -> new PVADouble(PVAScalar.VALUE_NAME_STRING, d)).toList() },
+                                .map((d) -> new PVADouble(PVAScalar.VALUE_NAME_STRING, d)).collect(Collectors.toList()) },
                 {
                         fakeData.stream()
                                 .map((dArray) -> new PVAStringArray(PVAScalar.VALUE_NAME_STRING,
                                         dArray.stream().map((d) -> d.toString()).toArray(String[]::new)))
-                                .toList() },
+                                .collect(Collectors.toList()) },
                 {
                         fakeData.stream()
                                 .map((dArray) -> {
@@ -138,7 +139,7 @@ public class ServerClientTest {
                                         count++;
                                     }
                                     return new PVAShortArray(PVAScalar.VALUE_NAME_STRING, false, array);
-                                }).toList() },
+                                }).collect(Collectors.toList()) },
                 {
                         fakeData.stream()
                                 .map((dArray) -> {
@@ -149,7 +150,7 @@ public class ServerClientTest {
                                         count++;
                                     }
                                     return new PVAFloatArray(PVAScalar.VALUE_NAME_STRING, array);
-                                }).toList() },
+                                }).collect(Collectors.toList()) },
                 {
                         fakeData.stream()
                                 .map((dArray) -> {
@@ -160,16 +161,16 @@ public class ServerClientTest {
                                         count++;
                                     }
                                     return new PVAByteArray(PVAScalar.VALUE_NAME_STRING, false, array);
-                                }).toList() },
+                                }).collect(Collectors.toList()) },
                 {
                         fakeData.stream()
                                 .map((dArray) -> new PVAIntArray(PVAScalar.VALUE_NAME_STRING, false,
                                         dArray.stream().mapToInt((d) -> d.intValue()).toArray()))
-                                .toList() },
+                                .collect(Collectors.toList()) },
                 {
                         fakeData.stream().map((dArray) -> new PVADoubleArray(PVAScalar.VALUE_NAME_STRING,
                                 dArray.stream().mapToDouble((d) -> d.doubleValue()).toArray()))
-                                .toList() },
+                                .collect(Collectors.toList()) },
         });
     }
 
@@ -207,16 +208,16 @@ public class ServerClientTest {
     public <S extends PVAData> void testSinglePV(List<S> inputData) {
         String pvName = "PV:" + inputData.get(0).getClass().getSimpleName() + ":" + UUID.randomUUID().toString();
 
-        var fakeData = inputData.get(0);
+        S fakeData = inputData.get(0);
         String pvDescription = fakeData.getClass().getSimpleName() + ServerClientTest.class.getName() + " test on "
                 + pvName;
         Instant instant = Instant.now();
-        var instants = new ArrayList<>();
+        ArrayList<Instant> instants = new ArrayList<>();
         instants.add(instant);
         PVAStructure testPV = buildPVAStructure(pvName, Instant.now(), fakeData, pvDescription);
         ServerPV serverPV = server.createPV(pvName, testPV);
 
-        var ref = new AtomicReference<HashMap<Instant, PVAData>>();
+        AtomicReference<HashMap<Instant, PVAData>> ref = new AtomicReference<>();
         ref.set(new HashMap<>());
         MonitorListener listener = (ch, changes, overruns, data) -> {
             System.out.println("Got data " + data.get(PVAScalar.VALUE_NAME_STRING));
@@ -228,7 +229,7 @@ public class ServerClientTest {
             });
         };
 
-        var channel = client.getChannel(pvName);
+        PVAChannel channel = client.getChannel(pvName);
         try {
             channel.connect().get(5, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
@@ -242,7 +243,7 @@ public class ServerClientTest {
             fail(e.getMessage());
         }
 
-        var sentData = new HashMap<Instant, PVAData>();
+        HashMap<Instant, PVAData> sentData = new HashMap<>();
         for (S input : inputData) {
             S newValue = testPV.get(PVAScalar.VALUE_NAME_STRING);
             try {
