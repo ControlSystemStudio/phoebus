@@ -109,7 +109,7 @@ public class PVAStringArray extends PVAData implements PVAArray
     @Override
     protected int update(final int index, final PVAData new_value, final BitSet changes) throws Exception
     {
-        if (new_value instanceof PVALongArray)
+        if (new_value instanceof PVAStringArray)
         {
             final PVAStringArray other = (PVAStringArray) new_value;
             if (! Arrays.equals(other.value, value))

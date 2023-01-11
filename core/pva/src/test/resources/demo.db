@@ -11,6 +11,7 @@ record(calc, "ramp$(N)")
   field(LSV,  "MINOR")
   field(HSV,  "MINOR")
   field(FLNK, "waveform$(N)")
+  field(DESC, "ramp going up")
 }
 
 record(calc, "saw$(N)")
