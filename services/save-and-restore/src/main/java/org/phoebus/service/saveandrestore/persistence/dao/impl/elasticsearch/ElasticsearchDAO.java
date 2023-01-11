@@ -20,6 +20,7 @@ package org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch;
 
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
+import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -41,7 +42,9 @@ import org.springframework.util.MultiValueMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -63,6 +66,7 @@ public class ElasticsearchDAO implements NodeDAO {
     @Autowired
     private SnapshotDataRepository snapshotDataRepository;
 
+    @SuppressWarnings("unused")
     @Autowired
     private FilterRepository filterRepository;
 
@@ -242,7 +246,7 @@ public class ElasticsearchDAO implements NodeDAO {
             throw new RuntimeException("Parent node of source node " + sourceNodes.get(0).getUniqueId() + " not found. Should not happen.");
         }
         parentNode.getChildNodes().removeAll(sourceNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
-        parentNode = elasticsearchTreeRepository.save(parentNode);
+        elasticsearchTreeRepository.save(parentNode);
 
         // Update the target node to include the source nodes in its list of child nodes
         if (targetNode.get().getChildNodes() == null) {
@@ -491,11 +495,14 @@ public class ElasticsearchDAO implements NodeDAO {
     @Override
     public Configuration createConfiguration(String parentNodeId, Configuration configuration) {
 
+        ConfigurationData sanitizedConfigurationData = removeDuplicatePVNames(configuration.getConfigurationData());
+        configuration.setConfigurationData(sanitizedConfigurationData);
+
         configuration.getConfigurationNode().setNodeType(NodeType.CONFIGURATION); // Force node type
         Node newConfigurationNode = createNode(parentNodeId, configuration.getConfigurationNode());
         configuration.getConfigurationData().setUniqueId(newConfigurationNode.getUniqueId());
 
-        ConfigurationData newConfigurationData = null;
+        ConfigurationData newConfigurationData;
         try {
             newConfigurationData = configurationDataRepository.save(configuration.getConfigurationData());
         } catch (Exception e) {
@@ -512,7 +519,10 @@ public class ElasticsearchDAO implements NodeDAO {
     }
 
     @Override
-    public Configuration updateConfiguration(final Configuration configuration) {
+    public Configuration updateConfiguration(Configuration configuration) {
+
+        ConfigurationData sanitizedConfigurationData = removeDuplicatePVNames(configuration.getConfigurationData());
+        configuration.setConfigurationData(sanitizedConfigurationData);
 
         Node existingConfigurationNode = getNode(configuration.getConfigurationNode().getUniqueId());
 
@@ -614,19 +624,23 @@ public class ElasticsearchDAO implements NodeDAO {
 
     @Override
     public ConfigurationData getConfigurationData(String uniqueId) {
-        Optional<ConfigurationData> configuration = configurationDataRepository.findById(uniqueId);
-        if (configuration.isEmpty()) {
+        Optional<ConfigurationData> configurationData = configurationDataRepository.findById(uniqueId);
+        if (configurationData.isEmpty()) {
             throw new NodeNotFoundException("Configuration with id " + uniqueId + " not found");
         }
-        return configuration.get();
+        return removeDuplicatePVNames(configurationData.get());
     }
 
     @Override
     public Snapshot saveSnapshot(String parentNodeId, Snapshot snapshot) {
+
+        SnapshotData sanitizedSnapshotData = removeDuplicateSnapshotItems(snapshot.getSnapshotData());
+        snapshot.setSnapshotData(sanitizedSnapshotData);
+
         snapshot.getSnapshotNode().setNodeType(NodeType.SNAPSHOT); // Force node type
         Node newSnapshotNode = createNode(parentNodeId, snapshot.getSnapshotNode());
         snapshot.getSnapshotData().setUniqueId(newSnapshotNode.getUniqueId());
-        SnapshotData newSnapshotData = null;
+        SnapshotData newSnapshotData;
         try {
             newSnapshotData = snapshotDataRepository.save(snapshot.getSnapshotData());
         } catch (Exception e) {
@@ -644,11 +658,11 @@ public class ElasticsearchDAO implements NodeDAO {
 
     @Override
     public SnapshotData getSnapshotData(String uniqueId) {
-        Optional<SnapshotData> snapshot = snapshotDataRepository.findById(uniqueId);
-        if (snapshot.isEmpty()) {
+        Optional<SnapshotData> snapshotData = snapshotDataRepository.findById(uniqueId);
+        if (snapshotData.isEmpty()) {
             throw new NodeNotFoundException("SnapshotData with id " + uniqueId + " not found");
         }
-        return snapshot.get();
+        return removeDuplicateSnapshotItems(snapshotData.get());
     }
 
     /**
@@ -665,7 +679,6 @@ public class ElasticsearchDAO implements NodeDAO {
      * @return The {@link Node} corresponding to the last path element, or <code>null</code>.
      */
     @Override
-
     public Node findParentFromPathElements(Node parentNode, String[] splitPath, int index) {
         if (index == splitPath.length - 1) {
             return parentNode;
@@ -702,6 +715,52 @@ public class ElasticsearchDAO implements NodeDAO {
         return isContainedInSubTree;
     }
 
+    /**
+     * Removes duplicate PV names if found in the {@link ConfigurationData}. While user and client should
+     * take measures to not add duplicates, this is to safeguard that only sanitized data is persisted.
+     * @param configurationData The {@link ConfigurationData} subject to sanitation.
+     * @return The sanitized {@link ConfigurationData} object.
+     */
+    protected ConfigurationData removeDuplicatePVNames(ConfigurationData configurationData){
+        if(configurationData == null){
+            return null;
+        }
+        Map<String, ConfigPv> sanitizedMap = new HashMap<>();
+        for (ConfigPv configPv : configurationData.getPvList()){
+            if(sanitizedMap.containsKey(configPv.getPvName())){
+                continue;
+            }
+            sanitizedMap.put(configPv.getPvName(), configPv);
+        }
+        ConfigurationData sanitizedConfigurationData = new ConfigurationData();
+        List<ConfigPv> sanitizedList = new ArrayList<>(sanitizedMap.values());
+        sanitizedConfigurationData.setPvList(sanitizedList);
+        return sanitizedConfigurationData;
+    }
+
+    /**
+     * Removes duplicate PV names if found in the {@link SnapshotData}. While user and client should
+     * take measures to not add duplicates, this is to safeguard that only sanitized data is persisted.
+     * @param snapshotData The {@link SnapshotData} subject to sanitation.
+     * @return The sanitized {@link SnapshotData} object.
+     */
+    protected SnapshotData removeDuplicateSnapshotItems(SnapshotData snapshotData) {
+        if (snapshotData == null) {
+            return null;
+        }
+        Map<String, SnapshotItem> sanitizedMap = new HashMap<>();
+        for (SnapshotItem snapshotItem : snapshotData.getSnapshotItems()) {
+            if (sanitizedMap.containsKey(snapshotItem.getConfigPv().getPvName())) {
+                continue;
+            }
+            sanitizedMap.put(snapshotItem.getConfigPv().getPvName(), snapshotItem);
+        }
+        SnapshotData sanitizedSnapshotData = new SnapshotData();
+        List<SnapshotItem> sanitizedList = new ArrayList<>(sanitizedMap.values());
+        sanitizedSnapshotData.setSnasphotItems(sanitizedList);
+        return sanitizedSnapshotData;
+    }
+
     @Override
     public CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot) {
         if (!checkCompositeSnapshotReferencedNodeTypes(compositeSnapshot)) {
@@ -715,7 +774,7 @@ public class ElasticsearchDAO implements NodeDAO {
         Node newCompositeSnapshotNode = createNode(parentNodeId, compositeSnapshot.getCompositeSnapshotNode());
         compositeSnapshot.getCompositeSnapshotData().setUniqueId(newCompositeSnapshotNode.getUniqueId());
 
-        CompositeSnapshotData newCompositeSnapshotData = null;
+        CompositeSnapshotData newCompositeSnapshotData;
         try {
             newCompositeSnapshotData = compositeSnapshotDataRepository.save(compositeSnapshot.getCompositeSnapshotData());
         } catch (Exception e) {
@@ -769,16 +828,6 @@ public class ElasticsearchDAO implements NodeDAO {
             }
         }
         return null;
-    }
-
-    /**
-     * This is mainly for testing purposes. It deletes all documents in all indices.
-     */
-    public void deleteAllData() {
-        elasticsearchTreeRepository.deleteAll();
-        compositeSnapshotDataRepository.deleteAll();
-        configurationDataRepository.deleteAll();
-        snapshotDataRepository.deleteAll();
     }
 
     @Override
@@ -921,7 +970,7 @@ public class ElasticsearchDAO implements NodeDAO {
     public List<Filter> getAllFilters(){
         Iterable<Filter> filtersIterable = filterRepository.findAll();
         List<Filter> filters = new ArrayList<>();
-        filtersIterable.forEach(element -> filters.add(element));
+        filtersIterable.forEach(element ->  filters.add(element));
         return filters;
     }
 

@@ -169,6 +169,9 @@ public class SnapshotController implements NodeChangedListener {
     @FXML
     private CheckBox preserveSelectionCheckBox;
 
+    @FXML
+    private Button createLogEntryButton;
+
     private SnapshotTable snapshotTable;
 
     private SnapshotTreeTable snapshotTreeTable;
@@ -231,6 +234,17 @@ public class SnapshotController implements NodeChangedListener {
      * A {@link Node} of type {@link NodeType#SNAPSHOT} or {@link NodeType#COMPOSITE_SNAPSHOT}.
      */
     private Node snapshotNode;
+
+    /**
+     * Property used to determine whether the create log entry button should be enabled.
+     */
+    private SimpleBooleanProperty saveActionDone = new SimpleBooleanProperty(false);
+    /**
+     * Property used to determine whether the create log entry button should be enabled.
+     */
+    private SimpleBooleanProperty restoreActionDone = new SimpleBooleanProperty(false);
+
+    private List<String> restoreFailedPVNames = new ArrayList<>();
 
     public SnapshotController(SnapshotTab snapshotTab) {
         this.snapshotTab = snapshotTab;
@@ -475,6 +489,13 @@ public class SnapshotController implements NodeChangedListener {
 
         progressIndicator.visibleProperty().bind(disabledUi);
         disabledUi.addListener((observable, oldValue, newValue) -> borderPane.setDisable(newValue));
+
+        // Do not show the create log entry button if no event receivers have been registered
+        createLogEntryButton.visibleProperty().set(eventReceivers.iterator().hasNext());
+        // Enable/disable create log entry button based on what actions user has taken
+        createLogEntryButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                saveActionDone.get() || restoreActionDone.get(),
+                saveActionDone, restoreActionDone).not());
     }
 
     /**
@@ -580,6 +601,7 @@ public class SnapshotController implements NodeChangedListener {
         JobManager.schedule("Load snapshot items", monitor -> {
             SnapshotData snapshotData;
             try {
+                configNode = saveAndRestoreService.getParentNode(snapshotNode.getUniqueId());
                 snapshotData = saveAndRestoreService.getSnapshot(snapshotNode.getUniqueId());
             } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError(snapshotTreeTable, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
@@ -627,11 +649,11 @@ public class SnapshotController implements NodeChangedListener {
     @FXML
     public void restore() {
         new Thread(() -> {
+            restoreFailedPVNames.clear();
             VSnapshot s = snapshots.get(0);
             CountDownLatch countDownLatch = new CountDownLatch(s.getEntries().size());
             s.getEntries().forEach(e -> pvs.get(getPVKey(e.getPVName(), e.isReadOnly())).setCountDownLatch(countDownLatch));
 
-            List<String> restoreFailed = new ArrayList<>();
             List<SnapshotEntry> entries = s.getEntries();
             for (SnapshotEntry entry : entries) {
                 TableEntry e = tableEntryItems.get(getPVKey(entry.getPVName(), entry.isReadOnly()));
@@ -645,7 +667,7 @@ public class SnapshotController implements NodeChangedListener {
                         try {
                             pv.pv.write(Utilities.toRawValue(entry.getValue()));
                         } catch (Exception writeException) {
-                            restoreFailed.add(entry.getPVName());
+                            restoreFailedPVNames.add(entry.getPVName());
                         } finally {
                             pv.countDown();
                         }
@@ -661,30 +683,30 @@ public class SnapshotController implements NodeChangedListener {
                 LOGGER.log(Level.INFO, "Encountered InterruptedException", e);
             }
 
-            if (restoreFailed.isEmpty()) {
+            if (restoreFailedPVNames.isEmpty()) {
                 LOGGER.log(Level.FINE, "Restored snapshot {0}", s.getSnapshot().get().getName());
             } else {
-                Collections.sort(restoreFailed);
-                StringBuilder sb = new StringBuilder(restoreFailed.size() * 200);
-                restoreFailed.forEach(e -> sb.append(e).append('\n'));
+                Collections.sort(restoreFailedPVNames);
+                StringBuilder sb = new StringBuilder(restoreFailedPVNames.size() * 200);
+                restoreFailedPVNames.forEach(e -> sb.append(e).append('\n'));
                 LOGGER.log(Level.WARNING,
                         "Not all PVs could be restored for {0}: {1}. The following errors occurred:\n{2}",
                         new Object[]{s.getSnapshot().get().getName(), s.getSnapshot().get(), sb.toString()});
             }
-            logSnapshotRestored(s.getSnapshot().get(), restoreFailed);
+            restoreActionDone.set(true);
         }).start();
     }
 
     @FXML
     public void takeSnapshot() {
-
+        restoreActionDone.set(false);
+        saveActionDone.set(false);
         snapshotNameProperty.set(null);
         snapshotCommentProperty.set(null);
         createdByTextProperty.set(null);
         createdDateTextProperty.set(null);
         snapshotTab.setId(null);
         snapshotTab.updateTabTitle(Messages.unnamedSnapshot);
-
         nodeDataDirty.set(true);
         snapshotDataDirty.set(true);
         disabledUi.set(true);
@@ -732,7 +754,7 @@ public class SnapshotController implements NodeChangedListener {
                     snapshotDataDirty.set(false);
                     snapshotNode = snapshot.getSnapshotNode();
                     loadSnapshotInternal();
-                    logNewSnapshotSaved();
+                    saveActionDone.set(true);
                 } catch (Exception e) {
                     LOGGER.log(Level.SEVERE, "Failed to save snapshot", e);
                     Platform.runLater(() -> {
@@ -1132,13 +1154,19 @@ public class SnapshotController implements NodeChangedListener {
     }
 
     private void logNewSnapshotSaved() {
-        JobManager.schedule("Log new snapshot saved", monitor -> eventReceivers
-                .forEach(r -> r.snapshotSaved(snapshotNode, this::showLoggingError)));
+        saveActionDone.set(false);
+        JobManager.schedule("Log new snapshot saved", monitor -> {
+            eventReceivers
+                    .forEach(r -> r.snapshotSaved(snapshotNode, this::showLoggingError));
+        });
     }
 
-    private void logSnapshotRestored(Node node, List<String> failedPVs) {
-        JobManager.schedule("Log snapshot restored", monitor -> eventReceivers
-                .forEach(r -> r.snapshotRestored(node, failedPVs, this::showLoggingError)));
+    private void logSnapshotRestored() {
+        restoreActionDone.set(false);
+        JobManager.schedule("Log snapshot restored", monitor -> {
+            eventReceivers
+                    .forEach(r -> r.snapshotRestored(snapshotNode, restoreFailedPVNames, this::showLoggingError));
+        });
     }
 
     private void showLoggingError(String cause) {
@@ -1201,5 +1229,15 @@ public class SnapshotController implements NodeChangedListener {
             completion.accept(Arrays.asList(snapshotEntries));
             executorService.shutdown();
         });
+    }
+
+    @FXML
+    public void createLogEntry(){
+        if(saveActionDone.get()){
+            logNewSnapshotSaved();
+        }
+        else if(restoreActionDone.get()){
+            logSnapshotRestored();
+        }
     }
 }

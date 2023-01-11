@@ -43,7 +43,6 @@ import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
-import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
@@ -76,6 +75,12 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
     @Value("${elasticsearch.tree_node.index:saveandrestore_tree}")
     public String ES_TREE_INDEX;
 
+    /**
+     * Used to determine if the {@link ESTreeNode} is saved or updated in connection to a migration
+     * operation. If so, the last modified date should be preserved.
+     */
+    private boolean migrationContext;
+
     @Autowired
     @Qualifier("client")
     ElasticsearchClient client;
@@ -83,6 +88,17 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
     @SuppressWarnings("unused")
     @Autowired
     private SearchUtil searchUtil;
+
+    public ElasticsearchTreeRepository() {
+        String isMigrationContext = System.getProperty("migrationContext");
+        if (isMigrationContext != null) {
+            try {
+                migrationContext = Boolean.parseBoolean(isMigrationContext);
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Cannot parse migration context value " + isMigrationContext + " as boolean");
+            }
+        }
+    }
 
     /**
      * Saves an {@link ESTreeNode} object.
@@ -105,8 +121,10 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
                 elasticTreeNode.getNode().setUniqueId(UUID.randomUUID().toString());
             }
 
-            // Update last modified date
-            elasticTreeNode.getNode().setLastModified(now);
+            // Set last modified date
+            if (!migrationContext) {
+                elasticTreeNode.getNode().setLastModified(now);
+            }
 
             IndexRequest<ESTreeNode> indexRequest =
                     IndexRequest.of(i ->
@@ -320,13 +338,13 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
         }
     }
 
-    public SearchResult search(MultiValueMap<String, String> searchParameters){
+    public SearchResult search(MultiValueMap<String, String> searchParameters) {
 
         SearchRequest searchRequest = searchUtil.buildSearchRequest(searchParameters);
         try {
             SearchResponse<ESTreeNode> searchResponse = client.search(searchRequest, ESTreeNode.class);
             SearchResult searchResult = new SearchResult();
-            searchResult.setHitCount((int)searchResponse.hits().total().value());
+            searchResult.setHitCount((int) searchResponse.hits().total().value());
             searchResult.setNodes(searchResponse.hits().hits().stream().map(e -> e.source().getNode()).collect(Collectors.toList()));
             return searchResult;
         } catch (IOException e) {

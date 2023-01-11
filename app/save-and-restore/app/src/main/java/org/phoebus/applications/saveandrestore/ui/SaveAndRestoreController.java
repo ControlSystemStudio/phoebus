@@ -65,6 +65,7 @@ import javafx.util.Pair;
 import javafx.util.StringConverter;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVExporter;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVImporter;
@@ -90,7 +91,6 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
-import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.ui.autocomplete.AutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -163,8 +163,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     protected static final Logger LOG = Logger.getLogger(SaveAndRestoreService.class.getName());
 
-    protected PreferencesReader preferencesReader;
-
     protected Stage searchWindow;
     protected TreeNodeComparator treeNodeComparator = new TreeNodeComparator();
 
@@ -173,6 +171,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     private final URI uri;
 
     /**
+     * <<<<<<< HEAD
      * A {@link Filter} matching all {@link Node}s.
      */
     private Filter noFilter;
@@ -193,12 +192,13 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         browserSelectionModel = treeView.getSelectionModel();
 
-        preferencesReader =
-                new PreferencesReader(SaveAndRestoreApplication.class, "/save_and_restore_preferences.properties");
+        ImageView searchButtonImageView = ImageCache.getImageView(SaveAndRestoreApplication.class, "/icons/sar-search.png");
+        searchButtonImageView.setFitWidth(16);
+        searchButtonImageView.setFitHeight(16);
 
-        folderContextMenu = new ContextMenuFolder(this, preferencesReader.getBoolean("enableCSVIO"), multipleItemsSelected);
+        folderContextMenu = new ContextMenuFolder(this, Preferences.enableCSVIO, multipleItemsSelected);
         folderContextMenu.setOnShowing(event -> multipleItemsSelected.set(browserSelectionModel.getSelectedItems().size() > 1));
-        configurationContextMenu = new ContextMenuConfiguration(this, preferencesReader.getBoolean("enableCSVIO"), multipleItemsSelected);
+        configurationContextMenu = new ContextMenuConfiguration(this, Preferences.enableCSVIO, multipleItemsSelected);
         configurationContextMenu.setOnShowing(event -> multipleItemsSelected.set(browserSelectionModel.getSelectedItems().size() > 1));
 
         rootFolderContextMenu = new ContextMenu();
@@ -206,7 +206,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         newRootFolderMenuItem.setOnAction(ae -> createNewFolder());
         rootFolderContextMenu.getItems().add(newRootFolderMenuItem);
 
-        snapshotContextMenu = new ContextMenuSnapshot(this, preferencesReader.getBoolean("enableCSVIO"),
+        snapshotContextMenu = new ContextMenuSnapshot(this, Preferences.enableCSVIO,
                 toggleGoldenMenuItemText, toggleGoldenImageViewProperty, multipleItemsSelected);
 
         compositeSnapshotContextMenu = new ContextMenuCompositeSnapshot(this, multipleItemsSelected);
@@ -831,9 +831,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     public void locateNode(Stack<Node> nodeStack) {
         TreeItem<Node> parentTreeItem = treeView.getRoot();
 
-        // If this method is called in response to launching save&restore with a "resource", the
-        // tree view has not yet been initialized -> root node does not exist
-
         while (nodeStack.size() > 0) {
             Node currentNode = nodeStack.pop();
             TreeItem<Node> currentTreeItem = recursiveSearch(currentNode.getUniqueId(), parentTreeItem);
@@ -918,11 +915,11 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * is used for comparison, while folder and configuration {@link Node}s are compared by name.
      * See {@link Node#compareTo(Node)}.
      */
-    protected class TreeNodeComparator implements Comparator<TreeItem<Node>> {
+    protected static class TreeNodeComparator implements Comparator<TreeItem<Node>> {
         @Override
         public int compare(TreeItem<Node> t1, TreeItem<Node> t2) {
             if (t1.getValue().getNodeType().equals(NodeType.SNAPSHOT) && t2.getValue().getNodeType().equals(NodeType.SNAPSHOT)) {
-                return (preferencesReader.getBoolean("sortSnapshotsTimeReversed") ? -1 : 1) * t1.getValue().getCreated().compareTo(t2.getValue().getCreated());
+                return (Preferences.sortSnapshotsTimeReversed ? -1 : 1) * t1.getValue().getCreated().compareTo(t2.getValue().getCreated());
             }
             return t1.getValue().compareTo(t2.getValue());
         }
@@ -1278,12 +1275,13 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         if (uri == null) {
             return;
         }
-        Node node = saveAndRestoreService.getNode(uri.getPath());
+        String nodeId = uri.getPath().substring(1);
+        Node node = saveAndRestoreService.getNode(nodeId);
         if (node == null) {
             // Show error dialog.
             Alert alert = new Alert(AlertType.ERROR);
             alert.setTitle(Messages.openResourceFailedTitle);
-            alert.setHeaderText(MessageFormat.format(Messages.openResourceFailedHeader, uri.getPath()));
+            alert.setHeaderText(MessageFormat.format(Messages.openResourceFailedHeader, nodeId));
             DialogHelper.positionDialog(alert, treeView, -200, -200);
             alert.show();
             return;

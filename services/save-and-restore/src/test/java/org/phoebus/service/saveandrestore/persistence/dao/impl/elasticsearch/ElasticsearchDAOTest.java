@@ -19,11 +19,17 @@
 
 package org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch;
 
+import org.elasticsearch.common.recycler.Recycler.C;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.SnapshotData;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.service.saveandrestore.persistence.config.ElasticConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -89,8 +95,64 @@ public class ElasticsearchDAOTest {
     }
 
     @Test
-    public void testNodeNameAndUniqueIdNull(){
+    public void testNodeNameAndUniqueIdNull() {
         Node newNode = Node.builder().name("node1").uniqueId(null).nodeType(NodeType.CONFIGURATION).build();
         assertFalse(elasticsearchDAO.isNodeNameValid(newNode, Arrays.asList(node1, configNode2, folderNode1)));
+    }
+
+    @Test
+    public void testRemoveDuplicateConfigPvs(){
+        ConfigPv configPv1 = ConfigPv.builder().pvName("a").build();
+        ConfigPv configPv2 = ConfigPv.builder().pvName("a").build();
+        ConfigPv configPv3 = ConfigPv.builder().pvName("b").build();
+        ConfigPv configPv4 = ConfigPv.builder().pvName("c").build();
+
+        ConfigurationData configurationData = new ConfigurationData();
+        configurationData.setPvList(Arrays.asList(configPv1, configPv2, configPv3));
+
+        configurationData = elasticsearchDAO.removeDuplicatePVNames(configurationData);
+
+        assertEquals(2, configurationData.getPvList().size());
+        assertEquals("a", configurationData.getPvList().get(0).getPvName());
+        assertEquals("b", configurationData.getPvList().get(1).getPvName());
+
+        configurationData.setPvList(Arrays.asList(configPv1, configPv3, configPv4));
+
+        configurationData = elasticsearchDAO.removeDuplicatePVNames(configurationData);
+
+        assertEquals(3, configurationData.getPvList().size());
+
+        //This should not throw a NPE
+        assertNull(elasticsearchDAO.removeDuplicatePVNames(null));
+    }
+
+    @Test
+    public void testRemoveDuplicateConfigSnapshotItems(){
+        ConfigPv configPv1 = ConfigPv.builder().pvName("a").build();
+        ConfigPv configPv2 = ConfigPv.builder().pvName("a").build();
+        ConfigPv configPv3 = ConfigPv.builder().pvName("b").build();
+        ConfigPv configPv4 = ConfigPv.builder().pvName("c").build();
+
+        SnapshotData snapshotData = new SnapshotData();
+        snapshotData.setSnasphotItems(Arrays.asList(SnapshotItem.builder().configPv(configPv1).build(),
+                SnapshotItem.builder().configPv(configPv2).build(),
+                SnapshotItem.builder().configPv(configPv3).build()));
+
+        snapshotData = elasticsearchDAO.removeDuplicateSnapshotItems(snapshotData);
+
+        assertEquals(2, snapshotData.getSnapshotItems().size());
+        assertEquals("a", snapshotData.getSnapshotItems().get(0).getConfigPv().getPvName());
+        assertEquals("b", snapshotData.getSnapshotItems().get(1).getConfigPv().getPvName());
+
+        snapshotData.setSnasphotItems(Arrays.asList(SnapshotItem.builder().configPv(configPv1).build(),
+                SnapshotItem.builder().configPv(configPv3).build(),
+                SnapshotItem.builder().configPv(configPv4).build()));
+
+        snapshotData = elasticsearchDAO.removeDuplicateSnapshotItems(snapshotData);
+
+        assertEquals(3, snapshotData.getSnapshotItems().size());
+
+        //This should not throw a NPE
+        assertNull(elasticsearchDAO.removeDuplicateSnapshotItems(null));
     }
 }

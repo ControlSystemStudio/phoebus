@@ -24,6 +24,8 @@ import org.phoebus.framework.preferences.Preference;
 public class Preferences {
 
     @Preference
+    public static boolean sortSnapshotsTimeReversed;
+    @Preference
     public static boolean tree_tableview_enable;
     @Preference
     public static boolean enableCSVIO;

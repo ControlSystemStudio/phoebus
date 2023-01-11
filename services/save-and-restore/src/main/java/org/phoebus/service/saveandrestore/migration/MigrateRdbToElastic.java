@@ -70,6 +70,7 @@ public class MigrateRdbToElastic {
         this.legacyServiceUrl = legacyServiceUrl;
         this.dryRun = dryRun;
         this.elasticsearchDAO = elasticsearchDAO;
+
     }
 
     public void runMigration() {
