@@ -22,6 +22,8 @@ import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.common.VNoData;
 import org.phoebus.applications.saveandrestore.impl.SaveAndRestoreJerseyClient;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -260,7 +262,7 @@ public class SaveAndRestoreService {
     }
 
     public ConfigurationData getConfiguration(String nodeId) {
-        Future<ConfigurationData> future = executor.submit(() -> saveAndRestoreClient.getConfiguration(nodeId));
+        Future<ConfigurationData> future = executor.submit(() -> saveAndRestoreClient.getConfigurationData(nodeId));
         try {
             return future.get();
         } catch (Exception e) {
@@ -296,5 +298,53 @@ public class SaveAndRestoreService {
         // Notify listeners as the configuration node has a new child node.
         notifyNodeChangeListeners(configurationNode);
         return updatedSnapshot;
+    }
+
+
+    public CompositeSnapshotData getCompositeSnapshot(String compositeSnapshotNodeUniqueId) throws Exception{
+        Future<CompositeSnapshotData> future =
+                executor.submit(() -> saveAndRestoreClient.getCompositeSnapshotData(compositeSnapshotNodeUniqueId));
+       return future.get();
+    }
+
+    public List<Node> getCompositeSnapshotNodes(String compositeSnapshotNodeUniqueId) throws Exception{
+        Future<List<Node>> future =
+                executor.submit(() -> saveAndRestoreClient.getCompositeSnapshotReferencedNodes(compositeSnapshotNodeUniqueId));
+        return future.get();
+    }
+
+    public List<SnapshotItem> getCompositeSnapshotItems(String compositeSnapshotNodeUniqueId) throws Exception{
+        Future<List<SnapshotItem>> future =
+                executor.submit(() -> saveAndRestoreClient.getCompositeSnapshotItems(compositeSnapshotNodeUniqueId));
+        return future.get();
+    }
+
+    public CompositeSnapshot saveCompositeSnapshot(Node parentNode, CompositeSnapshot compositeSnapshot) throws Exception{
+        Future<CompositeSnapshot> future =
+                executor.submit(() -> saveAndRestoreClient.createCompositeSnapshot(parentNode.getUniqueId(), compositeSnapshot));
+        CompositeSnapshot newCompositeSnapshot = future.get();
+        notifyNodeChangeListeners(parentNode);
+        return newCompositeSnapshot;
+    }
+
+    public CompositeSnapshot updateCompositeSnapshot(final CompositeSnapshot compositeSnapshot) throws Exception{
+        Future<CompositeSnapshot> future = executor.submit(() -> saveAndRestoreClient.updateCompositeSnapshot(compositeSnapshot));
+        CompositeSnapshot updatedCompositeSnapshot = future.get();
+        // Associated composite snapshot Node may have a new name
+        notifyNodeChangeListeners(updatedCompositeSnapshot.getCompositeSnapshotNode());
+        return updatedCompositeSnapshot;
+    }
+
+    /**
+     * Utility for the purpose of checking whether a set of snapshots contain duplicate PV names.
+     * The input snapshot ids may refer to {@link Node}s of types {@link org.phoebus.applications.saveandrestore.model.NodeType#SNAPSHOT}
+     * and {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
+     * @param snapshotNodeIds List of {@link Node} ids corresponding to {@link Node}s of types {@link org.phoebus.applications.saveandrestore.model.NodeType#SNAPSHOT}
+     *      and {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
+     * @return A list of PV names that occur more than once across the list of {@link Node}s corresponding
+     * to the input. Empty if no duplicates are found.
+     */
+    public List<String> checkCompositeSnapshotConsistency(List<String> snapshotNodeIds) throws Exception{
+        return saveAndRestoreClient.checkCompositeSnapshotConsistency(snapshotNodeIds);
     }
 }

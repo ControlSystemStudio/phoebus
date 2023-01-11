@@ -1,0 +1,12 @@
+{
+  "mappings": {
+    "properties": {
+      "uniqueId" : {
+        "type" : "keyword"
+      },
+      "referencedSnapshotNodes": {
+        "type" : "keyword"
+      }
+    }
+  }
+}

@@ -54,4 +54,16 @@
 		</children>
 	</HBox>
 
+	<HBox fx:id="compositeSnapshot">
+		<children>
+			<ImageView fx:id="compositeSnapshotIcon" pickOnBounds="true" preserveRatio="true">
+				<image>
+					<Image url="/icons/save-and-restore/composite-snapshot.png" />
+				</image>
+			</ImageView>
+			<Label fx:id="compositeSnapshotLabel" text="Label">
+			</Label>
+		</children>
+	</HBox>
+
 </FlowPane>

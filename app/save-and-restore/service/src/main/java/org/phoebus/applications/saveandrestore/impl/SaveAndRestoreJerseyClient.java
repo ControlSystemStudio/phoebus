@@ -32,12 +32,15 @@ import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.service.Messages;
 import org.phoebus.framework.preferences.PreferencesReader;
@@ -106,6 +109,44 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     @Override
     public Node getNode(String uniqueNodeId) {
         return getCall("/node/" + uniqueNodeId, Node.class);
+    }
+
+    @Override
+    public List<Node> getCompositeSnapshotReferencedNodes(String uniqueNodeId){
+        WebResource webResource = client.resource(jmasarServiceUrl + "/composite-snapshot/" + uniqueNodeId + "/nodes");
+
+        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).get(ClientResponse.class);
+        if (response.getStatus() != 200) {
+            String message;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                message = "N/A";
+            }
+            throw new SaveAndRestoreClientException("Failed : HTTP error code : " + response.getStatus() + ", error message: " + message);
+        }
+
+        return response.getEntity(new GenericType<List<Node>>() {
+        });
+    }
+
+    @Override
+    public List<SnapshotItem> getCompositeSnapshotItems(String uniqueNodeId){
+        WebResource webResource = client.resource(jmasarServiceUrl + "/composite-snapshot/" + uniqueNodeId + "/items");
+
+        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).get(ClientResponse.class);
+        if (response.getStatus() != 200) {
+            String message;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                message = "N/A";
+            }
+            throw new SaveAndRestoreClientException("Failed : HTTP error code : " + response.getStatus() + ", error message: " + message);
+        }
+
+        return response.getEntity(new GenericType<List<SnapshotItem>>() {
+        });
     }
 
     @Override
@@ -291,7 +332,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     @Override
-    public ConfigurationData getConfiguration(String nodeId) {
+    public ConfigurationData getConfigurationData(String nodeId) {
         ClientResponse clientResponse = getCall("/config/" + nodeId);
         return clientResponse.getEntity(ConfigurationData.class);
     }
@@ -368,5 +409,71 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
             throw new SaveAndRestoreClientException(message);
         }
         return response.getEntity(Snapshot.class);
+    }
+
+    @Override
+    public CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot){
+        compositeSnapshot.getCompositeSnapshotNode().setUserName(getCurrentUsersName());
+        WebResource webResource =
+                client.resource(jmasarServiceUrl + "/composite-snapshot")
+                        .queryParam("parentNodeId", parentNodeId);
+        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
+                .entity(compositeSnapshot, CONTENT_TYPE_JSON)
+                .put(ClientResponse.class);
+        if (response.getStatus() != 200) {
+            String message = Messages.createConfigurationFailed;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                // Ignore
+            }
+            throw new SaveAndRestoreClientException(message);
+        }
+        return response.getEntity(CompositeSnapshot.class);
+    }
+
+    @Override
+    public CompositeSnapshotData getCompositeSnapshotData(String uniqueId){
+        ClientResponse clientResponse = getCall("/composite-snapshot/" + uniqueId);
+        return clientResponse.getEntity(CompositeSnapshotData.class);
+    }
+
+    @Override
+    public List<String> checkCompositeSnapshotConsistency(List<String> snapshotNodeIds){
+        WebResource webResource =
+                client.resource(jmasarServiceUrl + "/composite-snapshot-consistency-check");
+        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
+                .entity(snapshotNodeIds, CONTENT_TYPE_JSON)
+                .post(ClientResponse.class);
+        if (response.getStatus() != 200) {
+            String message = Messages.compositeSnapshotConsistencyCheckFailed;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                // Ignore
+            }
+            throw new SaveAndRestoreClientException(message);
+        }
+        return response.getEntity(new GenericType<List<String>>() {
+        });
+    }
+
+    @Override
+    public CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot){
+        WebResource webResource = client.resource(jmasarServiceUrl + "/composite-snapshot");
+
+        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
+                .entity(compositeSnapshot, CONTENT_TYPE_JSON)
+                .post(ClientResponse.class);
+        if (response.getStatus() != 200) {
+            String message = Messages.updateConfigurationFailed;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                // Ignore
+            }
+            throw new RuntimeException(message);
+        }
+        return response.getEntity(CompositeSnapshot.class);
     }
 }

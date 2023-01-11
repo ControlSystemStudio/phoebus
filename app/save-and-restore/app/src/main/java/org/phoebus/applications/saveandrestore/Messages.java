@@ -26,18 +26,24 @@ public class Messages {
     public static String baseSetpoint;
     public static String buttonRefresh;
     public static String buttonSearch;
+    public static String closeConfigurationWarning;
+    public static String closeCompositeSnapshotWarning;
+    public static String closeTabPrompt;
     public static String contextMenuAddTagWithComment;
     public static String contextMenuCreateSnapshot;
     public static String contextMenuCompareSnapshots;
     public static String contextMenuDelete;
     public static String contextMenuEdit;
     public static String contextMenuNewFolder;
+    public static String contextMenuNewCompositeSnapshot;
     public static String contextMenuNewConfiguration;
+
     public static String contextMenuNoTagWithComment;
     public static String contextMenuRename;
     public static String contextMenuRemoveGoldenTag;
     public static String contextMenuTagAsGolden;
     public static String contextMenuTagsWithComment;
+    public static String contextMenuOpenCompositeSnapshotForRestore;
     public static String copyOrMoveNotAllowedBody;
     public static String copyOrMoveNotAllowedHeader;
     public static String copyUniqueIdToClipboard;
@@ -47,14 +53,21 @@ public class Messages {
     public static String createNewTagDialogTitle;
     public static String deletionNotAllowed;
     public static String deletionNotAllowedHeader;
+
+    public static String duplicatePVNamesAdditionalItems;
+    public static String duplicatePVNamesCheckFailed;
+    public static String duplicatePVNamesFoundInSelection;
     public static String errorActionFailed;
     public static String errorCreateFolderFailed;
     public static String errorCreateConfigurationFailed;
     public static String errorDeleteNodeFailed;
     public static String errorGeneric;
+    public static String errorTakeSnapshot;
+    public static String errorUnableToRetrieveData;
     public static String exportConfigurationLabel;
     public static String exportSnapshotLabel;
     public static String exportSnapshotFailed;
+    public static String findSnapshotReferences;
     public static String importConfigurationLabel;
     public static String importSnapshotLabel;
     public static String includeThisPV;
@@ -72,7 +85,6 @@ public class Messages {
     public static String menuItemDeleteSelectedPVs;
     public static String openResourceFailedTitle;
     public static String openResourceFailedHeader;
-    public static String promptCloseSnapshotTabTitle;
     public static String promptCloseSnapshotTabContent;
     public static String promptDeleteSelectedTitle;
     public static String promptDeleteSelectedHeader;

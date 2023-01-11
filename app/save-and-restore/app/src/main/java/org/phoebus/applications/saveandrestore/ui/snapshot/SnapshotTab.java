@@ -25,9 +25,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.Tag;
@@ -55,6 +53,7 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
 
     private Image regularImage;
     private Image goldenImage;
+    private Image compositeSnapshotImage;
 
 
     public SnapshotTab(org.phoebus.applications.saveandrestore.model.Node node, SaveAndRestoreService saveAndRestoreService){
@@ -95,6 +94,7 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
 
         regularImage = ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/snapshot.png");
         goldenImage = ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/snapshot-golden.png");
+        compositeSnapshotImage = ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/composite-snapshot.png.png");
 
         HBox container = new HBox();
         ImageView imageView = new ImageView();
@@ -125,9 +125,16 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
         SaveAndRestoreService.getInstance().addNodeChangeListener(this);
     }
 
-    public void updateTabTitile(String name, boolean golden){
-        tabGraphicImageProperty.set(golden ? goldenImage : regularImage);
+    public void updateTabTitle(String name){
         tabTitleProperty.set(name);
+    }
+
+    public void setGoldenImage(){
+        tabGraphicImageProperty.set(goldenImage);
+    }
+
+    public void setCompositeSnapshotImage(){
+        tabGraphicImageProperty.set(compositeSnapshotImage);
     }
 
     public void newSnapshot(org.phoebus.applications.saveandrestore.model.Node configurationNode){

@@ -18,11 +18,14 @@
 
 package org.phoebus.applications.saveandrestore;
 
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 
 import java.util.List;
@@ -50,6 +53,10 @@ public interface SaveAndRestoreClient {
      * @return The {@link Node} object, if it exists.
      */
     Node getNode(String uniqueNodeId);
+
+    List<Node> getCompositeSnapshotReferencedNodes(String uniqueNodeId);
+
+    List<SnapshotItem> getCompositeSnapshotItems(String uniqueNodeId);
 
     /**
      * @param unqiueNodeId Unique id of a {@link Node}
@@ -133,7 +140,7 @@ public interface SaveAndRestoreClient {
 
     List<Node> getFromPath(String path);
 
-    ConfigurationData getConfiguration(String nodeId);
+    ConfigurationData getConfigurationData(String nodeId);
 
     Configuration createConfiguration(String parentNodeId, Configuration configuration);
 
@@ -143,4 +150,21 @@ public interface SaveAndRestoreClient {
     SnapshotData getSnapshotData(String uniqueId);
 
     Snapshot saveSnapshot(String parentNodeId, Snapshot snapshot);
+
+    CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot);
+
+    CompositeSnapshotData getCompositeSnapshotData(String uniqueId);
+
+    /**
+     * Utility for the purpose of checking whether a set of snapshots contain duplicate PV names.
+     * The input snapshot ids may refer to {@link Node}s of types {@link org.phoebus.applications.saveandrestore.model.NodeType#SNAPSHOT}
+     * and {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
+     * @param snapshotNodeIds List of {@link Node} ids corresponding to {@link Node}s of types {@link org.phoebus.applications.saveandrestore.model.NodeType#SNAPSHOT}
+     *      and {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
+     * @return A list of PV names that occur more than once across the list of {@link Node}s corresponding
+     * to the input. Empty if no duplicates are found.
+     */
+    List<String> checkCompositeSnapshotConsistency(List<String> snapshotNodeIds);
+
+    CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot);
 }

@@ -24,9 +24,12 @@ import co.elastic.clients.elasticsearch._types.Result;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery.Builder;
 import co.elastic.clients.elasticsearch._types.query_dsl.ExistsQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.MatchAllQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.NestedQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.TermQuery;
+import co.elastic.clients.elasticsearch.core.DeleteByQueryRequest;
+import co.elastic.clients.elasticsearch.core.DeleteByQueryResponse;
 import co.elastic.clients.elasticsearch.core.DeleteRequest;
 import co.elastic.clients.elasticsearch.core.DeleteResponse;
 import co.elastic.clients.elasticsearch.core.ExistsRequest;
@@ -257,7 +260,15 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
 
     @Override
     public void deleteAll() {
-
+        try {
+            DeleteByQueryRequest deleteRequest = DeleteByQueryRequest.of(d ->
+                    d.index(ES_TREE_INDEX).query(new MatchAllQuery.Builder().build()._toQuery()).refresh(true));
+            DeleteByQueryResponse deleteResponse = client.deleteByQuery(deleteRequest);
+            logger.log(Level.INFO, "Deleted " + deleteResponse.deleted() + " ESTreeNode objects");
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Failed to delete all ESTreeNode objects", e);
+            throw new RuntimeException(e);
+        }
     }
 
     /**

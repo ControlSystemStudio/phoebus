@@ -20,6 +20,8 @@
 package org.phoebus.applications.saveandrestore.ui.configuration;
 
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -138,8 +140,6 @@ public class ConfigurationController implements NodeChangedListener {
 
     private final ConfigurationTab configurationTab;
 
-    //private Configuration configuration;
-
     private ConfigurationData configurationData;
 
     private final Logger logger = Logger.getLogger(ConfigurationController.class.getName());
@@ -241,8 +241,10 @@ public class ConfigurationController implements NodeChangedListener {
 
         readOnlyCheckBox.selectedProperty().bindBidirectional(readOnlyProperty);
 
-        configurationNode.addListener((observable, oldValue, newValue) -> {
-            if (newValue != null) {
+        configurationNode.addListener(observable -> {
+            if(observable != null){
+                SimpleObjectProperty<Node> simpleObjectProperty = (SimpleObjectProperty<Node>)observable;
+                Node newValue = simpleObjectProperty.get();
                 configurationNameProperty.set(newValue.getName());
                 configurationCreatedDateField.textProperty().set(newValue.getCreated() != null ?
                         TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(newValue.getCreated().getTime())) : null);
@@ -346,7 +348,7 @@ public class ConfigurationController implements NodeChangedListener {
         try {
             configurationData = saveAndRestoreService.getConfiguration(node.getUniqueId());
         } catch (Exception e) {
-            ExceptionDetailsErrorDialog.openError(root, "Error", "Unable to retrieve configuration data", e);
+            ExceptionDetailsErrorDialog.openError(root, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
             return;
         }
         // Create a cloned Node object to avoid changes in the Node object contained in the tree view.
@@ -377,8 +379,8 @@ public class ConfigurationController implements NodeChangedListener {
     public boolean handleConfigurationTabClosed() {
         if (dirty.get()) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle("Close tab?");
-            alert.setContentText("Configuration has been modified but is not saved. Do you wish to continue?");
+            alert.setTitle(Messages.closeTabPrompt);
+            alert.setContentText(Messages.closeConfigurationWarning);
             Optional<ButtonType> result = alert.showAndWait();
             return result.isPresent() && result.get().equals(ButtonType.OK);
         }

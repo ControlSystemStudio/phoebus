@@ -38,6 +38,7 @@ public class ContextMenuSnapshot extends ContextMenuBase {
     protected Image snapshotTagsWithCommentIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-tags.png");
     protected Image csvExportIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_export.png");
 
+
     public ContextMenuSnapshot(SaveAndRestoreController saveAndRestoreController,
                                boolean csvEnabled,
                                SimpleStringProperty toggleGoldenMenuItemText,
@@ -86,7 +87,19 @@ public class ContextMenuSnapshot extends ContextMenuBase {
 
         tagWithComment.getItems().addAll(addTagWithCommentMenuItem, new SeparatorMenuItem());
 
-        getItems().addAll(renameSnapshotItem, deleteSnapshotMenuItem, compareConfigurationMenuItem, tagAsGolden, tagWithComment, copyUniqueIdToClipboardMenuItem);
+        MenuItem findReferencesMenuItem = new MenuItem(Messages.findSnapshotReferences, new ImageView(compositeSnapshotIcon));
+        findReferencesMenuItem.setOnAction(ae -> {
+            saveAndRestoreController.findSnapshotReferences();
+        });
+
+        getItems().addAll(renameSnapshotItem,
+                deleteSnapshotMenuItem,
+                compareConfigurationMenuItem,
+                tagAsGolden,
+                tagWithComment,
+                copyUniqueIdToClipboardMenuItem/*,
+                findReferencesMenuItem*/);
+
 
         if (csvEnabled) {
             ImageView exportSnapshotIconImageView = new ImageView(csvExportIcon);
