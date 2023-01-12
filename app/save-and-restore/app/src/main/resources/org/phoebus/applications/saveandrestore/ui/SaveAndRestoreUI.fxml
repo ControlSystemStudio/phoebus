@@ -20,7 +20,11 @@
                             <ToolBar>
                                 <items>
                                     <Label text="%filter" />
-                                    <ComboBox fx:id="filtersComboBox" prefWidth="230.0" prefHeight="25.0"/>
+                                    <ComboBox fx:id="filtersComboBox" prefWidth="230.0" prefHeight="25.0">
+                                        <tooltip>
+                                            <Tooltip fx:id="filterToolTip"/>
+                                        </tooltip>
+                                    </ComboBox>
                                     <Button onAction="#manageFilters">
                                         <graphic>
                                             <ImageView fitHeight="15.0" fitWidth="15.0">

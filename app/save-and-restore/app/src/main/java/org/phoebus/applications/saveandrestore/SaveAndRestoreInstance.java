@@ -68,7 +68,7 @@ public class SaveAndRestoreInstance implements AppInstance {
 
         controller = loader.getController();
 
-        tab.setOnCloseRequest(event -> controller.closeTagSearchWindow());
+        tab.setOnCloseRequest(event -> controller.saveLocalState());
 
         DockPane.getActiveDockPane().addTab(tab);
     }
@@ -81,6 +81,7 @@ public class SaveAndRestoreInstance implements AppInstance {
     @Override
     public void save(Memento memento) {
         controller.save(memento);
+        controller.saveLocalState();
     }
 
     @Override

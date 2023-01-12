@@ -29,9 +29,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
@@ -49,6 +47,7 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.image.ImageView;
@@ -59,7 +58,6 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.TransferMode;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
-import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.Pair;
 import javafx.util.StringConverter;
@@ -80,7 +78,6 @@ import org.phoebus.applications.saveandrestore.ui.search.SearchQueryManager;
 import org.phoebus.applications.saveandrestore.ui.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.ui.search.SearchQueryUtil.Keys;
 import org.phoebus.applications.saveandrestore.ui.search.SearchTab;
-import org.phoebus.applications.saveandrestore.ui.search.SearchWindowController;
 import org.phoebus.applications.saveandrestore.ui.snapshot.CompositeSnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotNewTagDialog;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
@@ -88,7 +85,6 @@ import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
 import org.phoebus.framework.autocomplete.ProposalService;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.ui.autocomplete.AutocompleteMenu;
@@ -161,17 +157,20 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     private static final String TREE_STATE = "tree_state";
 
+    private static final String FILTER_NAME = "filter_name";
+
     protected static final Logger LOG = Logger.getLogger(SaveAndRestoreService.class.getName());
 
-    protected Stage searchWindow;
     protected Comparator<TreeItem<Node>> treeNodeComparator;
 
     protected SimpleBooleanProperty disabledUi = new SimpleBooleanProperty(false);
 
     private final URI uri;
 
+    @FXML
+    private Tooltip filterToolTip;
+
     /**
-     * <<<<<<< HEAD
      * A {@link Filter} matching all {@link Node}s.
      */
     private Filter noFilter;
@@ -281,12 +280,18 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 });
 
         filtersComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue != null && !newValue.equals(oldValue)) {
-                applyFilter(newValue);
+            if (newValue != null) {
+                if(newValue.getName().equals(noFilter.getName())){
+                    filterToolTip.textProperty().set("---");
+                }
+                else{
+                    filterToolTip.textProperty().set(newValue.getQueryString());
+                }
+                if(!newValue.equals(oldValue)){
+                    applyFilter(newValue);
+                }
             }
         });
-
-        loadFilters();
         loadTreeData();
     }
 
@@ -294,7 +299,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * Loads the data for the tree root as provided (persisted) by the current
      * {@link org.phoebus.applications.saveandrestore.SaveAndRestoreClient}.
      */
-    @FXML
     public void loadTreeData() {
 
         Task<TreeItem<Node>> loadRootNode = new Task<>() {
@@ -325,13 +329,36 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 return rootItem;
             }
 
+            /**
+             * Performs additional configuration/initialization when data has been loaded from
+             * the service.
+             */
             @Override
             public void succeeded() {
                 noConnectionLabel.visibleProperty().set(false);
                 TreeItem<Node> rootItem = getValue();
                 treeView.setRoot(rootItem);
-                restoreTreeState();
+                expandNodes(treeView.getRoot());
+                // Open a resource (e.g. a snapshot node) if one is specified.
                 openResource(uri);
+                // Event handler for expanding nodes
+                treeView.getRoot().addEventHandler(TreeItem.<Node>branchExpandedEvent(), e -> expandTreeNode(e.getTreeItem()));
+                // Load all filters from service
+                loadFilters();
+                // Get saved filter and apply it if non-null, otherwise select "no filter"
+                String savedFilterName = getSavedFilterName();
+                if(savedFilterName != null){
+                    Optional<Filter> f = filtersComboBox.getItems().stream().filter(filter -> filter.getName().equals(savedFilterName)).findFirst();
+                    if(f.isPresent()){
+                        filtersComboBox.getSelectionModel().select(f.get());
+                    }
+                    else{
+                        filtersComboBox.getSelectionModel().select(noFilter);
+                    }
+                }
+                else{
+                    filtersComboBox.getSelectionModel().select(noFilter);
+                }
             }
 
             @Override
@@ -352,7 +379,20 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             return objectMapper.readValue(savedTreeState, new TypeReference<>() {
             });
         } catch (IOException e) {
-            LOG.log(Level.WARNING, "Unable to obtain tree node data from service", e);
+            LOG.log(Level.WARNING, "Unable to parse saved tree state", e);
+            return null;
+        }
+    }
+
+    private String getSavedFilterName(){
+        String savedFilterName = PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).get(FILTER_NAME, null);
+        if(savedFilterName == null){
+            return null;
+        }
+        try {
+            return objectMapper.readValue(savedFilterName, String.class);
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "Unable to parse saved filter name", e);
             return null;
         }
     }
@@ -812,23 +852,31 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * @param memento The {@link Memento} in which to save the state.
      */
     public void save(final Memento memento) {
-        saveTreeState();
-        SearchQueryManager.getInstance().save();
+        //saveTreeState();
+        //SearchQueryManager.getInstance().save();
+        /*
         memento.setNumber("POS", splitPane.getDividers().get(0).getPosition());
-        memento.setString("filter", filtersComboBox.getSelectionModel().getSelectedItem().getName());
+        if (filtersComboBox.getSelectionModel().getSelectedItem() != null) {
+            memento.setString("filter", filtersComboBox.getSelectionModel().getSelectedItem().getName());
+        }
+
+         */
     }
 
     /**
-     * Restores the divider position from {@link Memento}, applies saved filter.
+     * Restores the tree view and applies saved filter, if any.
      *
      * @param memento The persisted (or empty) {@link Memento}.
      */
     public void restore(final Memento memento) {
+        /*
         memento.getNumber("POS").ifPresent(pos -> splitPane.setDividerPositions(pos.doubleValue()));
         memento.getString("filter").ifPresent(name -> {
             Optional<Filter> f = filtersComboBox.getItems().stream().filter(filter -> filter.getName().equals(name)).findFirst();
             f.ifPresent(filter -> filtersComboBox.getSelectionModel().select(filter));
         });
+
+         */
     }
 
     public void locateNode(Stack<Node> nodeStack) {
@@ -850,9 +898,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * Persists the tree view state
      */
     private void saveTreeState() {
-        if (treeView.getRoot() == null) {
-            return;
-        }
         List<String> expandedNodes = new ArrayList<>();
         findExpandedNodes(expandedNodes, treeView.getRoot());
         if (expandedNodes.isEmpty()) {
@@ -879,7 +924,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     /**
-     * Loops through the the tree view model and expands all nodes that have a non-empty children
+     * Loops through the tree view model and expands all nodes that have a non-empty children
      * list. The tree view at this point has already been updated with data from the backend.
      */
     protected void restoreTreeState() {
@@ -887,7 +932,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         // Must be added here, after nodes have been expanded. Adding the event handler
         // before expansion of nodes will break the expected behavior when restoring the tree state.
-        treeView.getRoot().addEventHandler(TreeItem.<Node>branchExpandedEvent(), e -> expandTreeNode(e.getTreeItem()));
+        //treeView.getRoot().addEventHandler(TreeItem.<Node>branchExpandedEvent(), e -> expandTreeNode(e.getTreeItem()));
     }
 
     private void setChildItems(HashMap<String, List<TreeItem<Node>>> allItems, TreeItem<Node> parentItem) {
@@ -926,36 +971,14 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     /**
      * Self explanatory
      */
-    protected void legacyOpenSearchWindow() {
+    public void saveLocalState() {
+        List<String> expandedNodes = new ArrayList<>();
+        findExpandedNodes(expandedNodes, treeView.getRoot());
         try {
-            if (searchWindow == null) {
-                final ResourceBundle bundle = NLS.getMessages(SaveAndRestoreApplication.class);
-
-                FXMLLoader loader = new FXMLLoader();
-                loader.setLocation(SaveAndRestoreController.class.getResource("search/SearchWindow.fxml"));
-                loader.setResources(bundle);
-                searchWindow = new Stage();
-                searchWindow.getIcons().add(ImageCache.getImage(ImageCache.class, "/icons/logo.png"));
-                searchWindow.setTitle(Messages.searchWindowLabel);
-                searchWindow.initModality(Modality.WINDOW_MODAL);
-                searchWindow.setScene(new Scene(loader.load()));
-                ((SearchWindowController) loader.getController()).setCallerController(this);
-                searchWindow.setOnCloseRequest(action -> searchWindow = null);
-                searchWindow.show();
-            } else {
-                searchWindow.requestFocus();
-            }
-        } catch (Exception e) {
-            LOG.log(Level.WARNING, "Failed to load fxml for search window", e);
-        }
-    }
-
-    /**
-     * Self explanatory
-     */
-    public void closeTagSearchWindow() {
-        if (searchWindow != null) {
-            searchWindow.close();
+            PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).put(TREE_STATE, objectMapper.writeValueAsString(expandedNodes));
+            PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).put(FILTER_NAME, objectMapper.writeValueAsString(filtersComboBox.getSelectionModel().getSelectedItem().getName()));
+        } catch (JsonProcessingException e) {
+            LOG.log(Level.WARNING, "Failed to persist tree state");
         }
     }
 
@@ -1313,6 +1336,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             List<Filter> filters = saveAndRestoreService.getAllFilters();
             filters.add(noFilter);
             filtersComboBox.getItems().setAll(filters);
+            //filtersComboBox.getSelectionModel().select(noFilter);
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Failed to load filters", e);
         }
