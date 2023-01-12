@@ -8,12 +8,14 @@
 package org.csstudio.display.builder.editor.properties;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.editor.undo.SetWidgetPropertyAction;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.RulesWidgetProperty;
 import org.csstudio.display.builder.model.rules.RuleInfo;
@@ -51,7 +53,31 @@ extends WidgetPropertyBinding<Button, RulesWidgetProperty>
                 for (Widget w : other)
                 {
                     final RulesWidgetProperty other_prop = (RulesWidgetProperty) w.getProperty(path);
-                    undo.execute(new SetWidgetPropertyAction<>(other_prop, result.get()));
+
+                    List<RuleInfo> newRuleInfos = new ArrayList<>();
+                    for (RuleInfo ruleInfo : result.get())
+                    {
+                        List<RuleInfo.ExpressionInfo<?>> newExprs = new ArrayList<>();
+                        for (RuleInfo.ExpressionInfo expr : ruleInfo.getExpressions())
+                        {
+                            if (expr instanceof RuleInfo.ExprInfoValue)
+                            {
+                                RuleInfo.ExprInfoValue newExpr = new RuleInfo.ExprInfoValue(expr.getBoolExp(), ((WidgetProperty<?>)expr.getPropVal()).clone());
+                                newExprs.add(newExpr);
+                            }
+                            else if (expr instanceof RuleInfo.ExprInfoString)
+                            {
+                                newExprs.add(expr);
+                            }
+                        }
+                        RuleInfo newRuleInfo = new RuleInfo(ruleInfo.getName(),
+                                                            ruleInfo.getPropID(),
+                                                            ruleInfo.getPropAsExprFlag(),
+                                                            newExprs,
+                                                            ruleInfo.getPVs());
+                        newRuleInfos.add(newRuleInfo);
+                    }
+                    undo.execute(new SetWidgetPropertyAction<>(other_prop, newRuleInfos));
                 }
             }
         }
