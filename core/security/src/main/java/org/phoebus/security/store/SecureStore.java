@@ -50,7 +50,8 @@ public class SecureStore
                 store = MemoryBasedStore.getInstance();
                 break;
             default:
-                throw new IllegalStateException("secure_store_target is unset");
+                // default to FILE if not set explicitly
+                store = new FileBasedStore();
         }
     }
 
