@@ -51,6 +51,7 @@ public class Messages {
     public static String currentReadbackValue;
     public static String currentSetpointValue;
     public static String createNewTagDialogTitle;
+    public static String deleteFilter;
     public static String deletionNotAllowed;
     public static String deletionNotAllowedHeader;
 
@@ -67,6 +68,8 @@ public class Messages {
     public static String exportConfigurationLabel;
     public static String exportSnapshotLabel;
     public static String exportSnapshotFailed;
+    public static String faildDeleteFilter;
+    public static String failedSaveFilter;
     public static String findSnapshotReferences;
     public static String importConfigurationLabel;
     public static String importSnapshotLabel;
@@ -99,6 +102,7 @@ public class Messages {
     public static String pvName;
     public static String noValueAvailable;
     public static String readbackPVName;
+    public static String saveFilter;
 
     public static String saveSnapshotErrorContent;
     public static String saveTagButtonLabel;

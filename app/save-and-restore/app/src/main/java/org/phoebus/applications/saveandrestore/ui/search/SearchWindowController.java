@@ -97,10 +97,10 @@ public class SearchWindowController implements Initializable {
     private TableColumn<Node, String> tagsColumn;
 
     @FXML
-    private TableColumn<Node, Date> createdColumn;
+    private TableColumn<Node, Date> lastUpdatedColumn;
 
     @FXML
-    private TableColumn<Node, String> creatorColumn;
+    private TableColumn<Node, String> userColumn;
 
     @FXML
     private Pagination pagination;
@@ -147,17 +147,11 @@ public class SearchWindowController implements Initializable {
         });
 
         typeColumn.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(getImageView(cell.getValue())));
-        typeColumn.setStyle("-fx-alignment: TOP-CENTER;");
         nameColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getName()));
-        nameColumn.setStyle("-fx-alignment: TOP-LEFT;");
         commentColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getDescription()));
-        createdColumn.setCellValueFactory(cell ->
+        lastUpdatedColumn.setCellValueFactory(cell ->
                 new ReadOnlyObjectWrapper(TimestampFormats.SECONDS_FORMAT.format(cell.getValue().getCreated().toInstant())));
-        createdColumn.setStyle("-fx-alignment: TOP-RIGHT;");
-        createdColumn.getStyleClass().add("timestamp-column");
-
-        creatorColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getUserName()));
-        creatorColumn.setStyle("-fx-alignment: TOP-RIGHT;");
+        userColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getUserName()));
 
         tagsColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getTags() == null ?
                 "" :

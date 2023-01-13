@@ -540,7 +540,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     public void deleteFilter(String name){
         WebResource webResource = client.resource(jmasarServiceUrl + "/filter/" + name);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
-                .put(ClientResponse.class);
+                .delete(ClientResponse.class);
         if (response.getStatus() != 200) {
             String message = Messages.deleteFilterFailed;
             try {

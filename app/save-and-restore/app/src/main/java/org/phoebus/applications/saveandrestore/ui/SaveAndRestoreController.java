@@ -177,6 +177,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     private final ObservableList<Node> searchResultNodes = FXCollections.observableArrayList();
 
+    private final ObservableList<Filter> filtersList = FXCollections.observableArrayList();
+
     /**
      * @param uri If non-null, this is used to load a configuration or snapshot into the view.
      */
@@ -292,6 +294,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 }
             }
         });
+
+        filtersComboBox.itemsProperty().bind(new SimpleObjectProperty<>(filtersList));
+
         loadTreeData();
     }
 
@@ -1335,8 +1340,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         try {
             List<Filter> filters = saveAndRestoreService.getAllFilters();
             filters.add(noFilter);
-            filtersComboBox.getItems().setAll(filters);
-            //filtersComboBox.getSelectionModel().select(noFilter);
+            //filtersComboBox.getItems().setAll(filters);
+            filtersList.setAll(filters);
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Failed to load filters", e);
         }
@@ -1359,5 +1364,17 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 LOG.log(Level.SEVERE, "Failed to perform search when applying filter", e);
             }
         });
+    }
+
+    /**
+     * Takes action to update the view when a {@link Filter} has been deleted, i.e. remove
+     * from drop-down list and - if currently selected - select the "no filter" {@link Filter}.
+     * @param filter The deleted {@link Filter}.
+     */
+    public void filterDeleted(Filter filter){
+        if(filtersComboBox.getSelectionModel().getSelectedItem().getName().equals(filter.getName())){
+            filtersComboBox.getSelectionModel().select(noFilter);
+        }
+        filtersList.remove(filter);
     }
 }

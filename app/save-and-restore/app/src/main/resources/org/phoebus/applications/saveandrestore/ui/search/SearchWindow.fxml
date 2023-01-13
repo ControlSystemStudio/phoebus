@@ -52,12 +52,12 @@
         </Button>
         <TableView fx:id="resultTableView" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="3" GridPane.rowIndex="1">
             <columns>
-                <TableColumn fx:id="typeColumn" editable="false" maxWidth="50.0" minWidth="50.0" prefWidth="50.0" text="%searchTableEntryTypeColumn" />
-                <TableColumn fx:id="nameColumn" editable="false" minWidth="250.0" prefWidth="250.0" text="%searchTableNameColumn" />
+                <TableColumn fx:id="typeColumn" editable="false" maxWidth="50.0" minWidth="50.0" prefWidth="50.0" style="-fx-alignment: TOP-CENTER;" text="%searchTableEntryTypeColumn" />
+                <TableColumn fx:id="nameColumn" editable="false" minWidth="250.0" prefWidth="250.0" style="-fx-alignment: TOP-LEFT;" text="%searchTableNameColumn" />
                 <TableColumn fx:id="commentColumn" editable="false" minWidth="300.0" prefWidth="300.0" text="%searchTableCommentColumn" />
                 <TableColumn fx:id="tagsColumn" editable="false" minWidth="300.0" prefWidth="300.0" text="%searchTableTagsColumn" />
-                <TableColumn fx:id="createdColumn" editable="false" minWidth="250.0" prefWidth="250.0" text="%searchTableCreatedColumn" />
-                <TableColumn fx:id="creatorColumn" editable="false" minWidth="150.0" prefWidth="150.0" text="%searchTableCreatorColumn" />
+                <TableColumn fx:id="lastUpdatedColumn" editable="false" minWidth="250.0" prefWidth="250.0" style="-fx-alignment: TOP-RIGHT;" styleClass="timestamp-column" text="%searchLastUpdatedColumn" />
+                <TableColumn fx:id="userColumn" editable="false" minWidth="150.0" prefWidth="150.0" style="-fx-alignment: TOP-RIGHT;" text="%searchUserColumn" />
             </columns>
             <columnResizePolicy>
                 <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

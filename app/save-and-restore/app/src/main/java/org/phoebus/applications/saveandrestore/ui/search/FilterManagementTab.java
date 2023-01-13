@@ -36,11 +36,14 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Tab for the filter management view.
+ */
 public class FilterManagementTab extends Tab {
 
     public static final String FILTER_MANAGEMENT_TAB = "FilterManagementTab";
 
-    public FilterManagementTab(SaveAndRestoreController saveAndRestoreController){
+    public FilterManagementTab(SaveAndRestoreController saveAndRestoreController) {
 
         setId(FILTER_MANAGEMENT_TAB);
 
@@ -68,7 +71,7 @@ public class FilterManagementTab extends Tab {
 
         setGraphic(container);
 
-        ((SearchWindowController)loader.getController()).setCallerController(saveAndRestoreController);
+        ((FilterManagementController) loader.getController()).setCallerController(saveAndRestoreController);
 
     }
 }
