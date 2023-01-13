@@ -16,10 +16,11 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.security;
+package org.phoebus.security.store;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.phoebus.security.store.FileBasedStore;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
@@ -32,6 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
+/**
+ * Exercises the SecureStore via a FileBased underlying store implementation.
+ */
 public class SecureStoreTest {
 
     private static SecureStore secureStore;
@@ -43,7 +47,8 @@ public class SecureStoreTest {
         secureStoreFile.deleteOnExit();
 
         String password = "forTestPurposesOnly";
-        secureStore = new SecureStore(secureStoreFile, password.toCharArray());
+        FileBasedStore fileBasedStore = new FileBasedStore(secureStoreFile, password.toCharArray());
+        secureStore = new SecureStore(fileBasedStore);
     }
 
     @Test
