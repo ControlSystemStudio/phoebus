@@ -90,6 +90,8 @@ public class Messages {
     public static String noFilter;
     public static String openResourceFailedTitle;
     public static String openResourceFailedHeader;
+
+    public static String overwrite;
     public static String promptCloseSnapshotTabContent;
     public static String promptDeleteSelectedTitle;
     public static String promptDeleteSelectedHeader;
@@ -104,6 +106,11 @@ public class Messages {
     public static String readbackPVName;
     public static String saveFilter;
 
+    public static String saveFilterFailed;
+
+    public static String saveFilterConfirmOverwrite;
+
+    public static String saveFilterSelectName;
     public static String saveSnapshotErrorContent;
     public static String saveTagButtonLabel;
     public static String search;

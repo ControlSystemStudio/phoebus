@@ -74,7 +74,6 @@ import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationTab;
 import org.phoebus.applications.saveandrestore.ui.search.FilterManagementTab;
-import org.phoebus.applications.saveandrestore.ui.search.SearchQueryManager;
 import org.phoebus.applications.saveandrestore.ui.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.ui.search.SearchQueryUtil.Keys;
 import org.phoebus.applications.saveandrestore.ui.search.SearchTab;
@@ -190,7 +189,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
         // Tree items are first compared on type, then on name (case insensitive).
-        treeNodeComparator = Comparator.comparing((TreeItem<Node> ti) -> ti.getValue());
+        treeNodeComparator = Comparator.comparing(TreeItem::getValue);
 
         saveAndRestoreService = SaveAndRestoreService.getInstance();
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -283,13 +282,12 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         filtersComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
-                if(newValue.getName().equals(noFilter.getName())){
+                if (newValue.getName().equals(noFilter.getName())) {
                     filterToolTip.textProperty().set("---");
-                }
-                else{
+                } else {
                     filterToolTip.textProperty().set(newValue.getQueryString());
                 }
-                if(!newValue.equals(oldValue)){
+                if (!newValue.equals(oldValue)) {
                     applyFilter(newValue);
                 }
             }
@@ -352,16 +350,14 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 loadFilters();
                 // Get saved filter and apply it if non-null, otherwise select "no filter"
                 String savedFilterName = getSavedFilterName();
-                if(savedFilterName != null){
+                if (savedFilterName != null) {
                     Optional<Filter> f = filtersComboBox.getItems().stream().filter(filter -> filter.getName().equals(savedFilterName)).findFirst();
-                    if(f.isPresent()){
+                    if (f.isPresent()) {
                         filtersComboBox.getSelectionModel().select(f.get());
-                    }
-                    else{
+                    } else {
                         filtersComboBox.getSelectionModel().select(noFilter);
                     }
-                }
-                else{
+                } else {
                     filtersComboBox.getSelectionModel().select(noFilter);
                 }
             }
@@ -389,9 +385,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
     }
 
-    private String getSavedFilterName(){
+    private String getSavedFilterName() {
         String savedFilterName = PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).get(FILTER_NAME, null);
-        if(savedFilterName == null){
+        if (savedFilterName == null) {
             return null;
         }
         try {
@@ -851,39 +847,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         return result;
     }
 
-    /**
-     * Saves the tree state and currently selected filter.
-     *
-     * @param memento The {@link Memento} in which to save the state.
-     */
-    public void save(final Memento memento) {
-        //saveTreeState();
-        //SearchQueryManager.getInstance().save();
-        /*
-        memento.setNumber("POS", splitPane.getDividers().get(0).getPosition());
-        if (filtersComboBox.getSelectionModel().getSelectedItem() != null) {
-            memento.setString("filter", filtersComboBox.getSelectionModel().getSelectedItem().getName());
-        }
-
-         */
-    }
-
-    /**
-     * Restores the tree view and applies saved filter, if any.
-     *
-     * @param memento The persisted (or empty) {@link Memento}.
-     */
-    public void restore(final Memento memento) {
-        /*
-        memento.getNumber("POS").ifPresent(pos -> splitPane.setDividerPositions(pos.doubleValue()));
-        memento.getString("filter").ifPresent(name -> {
-            Optional<Filter> f = filtersComboBox.getItems().stream().filter(filter -> filter.getName().equals(name)).findFirst();
-            f.ifPresent(filter -> filtersComboBox.getSelectionModel().select(filter));
-        });
-
-         */
-    }
-
     public void locateNode(Stack<Node> nodeStack) {
         TreeItem<Node> parentTreeItem = treeView.getRoot();
 
@@ -977,6 +940,10 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * Self explanatory
      */
     public void saveLocalState() {
+        // If root item is null, then there is no data in the TreeView
+        if (treeView.getRoot() == null) {
+            return;
+        }
         List<String> expandedNodes = new ArrayList<>();
         findExpandedNodes(expandedNodes, treeView.getRoot());
         try {
@@ -1369,12 +1336,17 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     /**
      * Takes action to update the view when a {@link Filter} has been deleted, i.e. remove
      * from drop-down list and - if currently selected - select the "no filter" {@link Filter}.
+     *
      * @param filter The deleted {@link Filter}.
      */
-    public void filterDeleted(Filter filter){
-        if(filtersComboBox.getSelectionModel().getSelectedItem().getName().equals(filter.getName())){
+    public void filterDeleted(Filter filter) {
+        if (filtersComboBox.getSelectionModel().getSelectedItem().getName().equals(filter.getName())) {
             filtersComboBox.getSelectionModel().select(noFilter);
         }
         filtersList.remove(filter);
+    }
+
+    public void filterAdded(Filter filter) {
+        filtersList.add(filter);
     }
 }

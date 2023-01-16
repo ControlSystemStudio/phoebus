@@ -40,7 +40,7 @@
                 <Tooltip text="%searchFieldToolTip" />
             </tooltip>
         </TextField>
-        <Button mnemonicParsing="false" onAction="#saveAsFilter" text="%saveAsFilter" GridPane.columnIndex="1">
+        <Button fx:id="saveAsFilterButton" mnemonicParsing="false" onAction="#saveAsFilter" text="%saveAsFilter" GridPane.columnIndex="1">
             <GridPane.margin>
                 <Insets left="5.0" />
             </GridPane.margin>

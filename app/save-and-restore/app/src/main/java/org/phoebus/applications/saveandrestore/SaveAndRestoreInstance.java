@@ -80,13 +80,7 @@ public class SaveAndRestoreInstance implements AppInstance {
 
     @Override
     public void save(Memento memento) {
-        controller.save(memento);
         controller.saveLocalState();
-    }
-
-    @Override
-    public void restore(final Memento memento) {
-        controller.restore(memento);
     }
 
     public void openResource(URI uri) {

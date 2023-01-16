@@ -27,11 +27,15 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -55,14 +59,16 @@ import org.phoebus.util.time.TimestampFormats;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import java.net.URL;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Stack;
-import java.util.UUID;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -107,6 +113,9 @@ public class SearchWindowController implements Initializable {
 
     @FXML
     private TextField pageSizeTextField;
+
+    @FXML
+    private Button saveAsFilterButton;
 
     private SaveAndRestoreService saveAndRestoreService;
 
@@ -186,6 +195,8 @@ public class SearchWindowController implements Initializable {
                 search();
             }
         });
+
+        saveAsFilterButton.disableProperty().bind(queryTextField.textProperty().isEmpty());
     }
 
     public void setCallerController(SaveAndRestoreController callerController) {
@@ -265,10 +276,6 @@ public class SearchWindowController implements Initializable {
                 .thenComparing((Node n) -> n.getName().toLowerCase());
     }
 
-    public String getQuery(){
-        return queryTextField.getText();
-    }
-
     public void setQuery(String query){
         queryTextField.setText(query);
         search();
@@ -276,14 +283,52 @@ public class SearchWindowController implements Initializable {
 
     @FXML
     public void saveAsFilter(){
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle(Messages.saveFilter);
+        dialog.setHeaderText(null);
+        dialog.setContentText(Messages.saveFilterSelectName);
+        dialog.getDialogPane().lookupButton(ButtonType.OK).disableProperty().bind(dialog.getEditor().textProperty().isEmpty());
+
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent()){
+            // Check if the filter name is already used.
+            JobManager.schedule("Get All Filters", monitor -> {
+               List<Filter> allFilters = saveAndRestoreService.getAllFilters();
+               if(allFilters.stream().anyMatch(f -> f.getName().equals(result.get()))){
+                   Platform.runLater(() -> {
+                       Alert alert = new Alert(AlertType.CONFIRMATION);
+                       alert.setTitle(Messages.saveFilter);
+                       alert.setHeaderText(null);
+                       alert.setContentText(MessageFormat.format(Messages.saveFilterConfirmOverwrite, result.get()));
+                       ButtonType buttonTypeOverwrite = new ButtonType(Messages.overwrite);
+                       ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
+                       alert.getButtonTypes().setAll(buttonTypeOverwrite, buttonTypeCancel);
+                       Optional<ButtonType> overwrite = alert.showAndWait();
+                       if (overwrite.get() == buttonTypeOverwrite){
+                           saveFilter(result.get());
+                       }
+                   });
+               }
+               else{
+                   saveFilter(result.get());
+               }
+            });
+        }
+    }
+
+    private void saveFilter(String name){
         String query = queryTextField.getText();
         Filter filter = new Filter();
-        filter.setName(UUID.randomUUID().toString());
+        filter.setName(name);
         filter.setQueryString(query);
         try {
-            saveAndRestoreService.saveFilter(filter);
+            JobManager.schedule("Save Filter", monitor -> {
+                saveAndRestoreService.saveFilter(filter);
+                callerController.filterAdded(filter);
+            });
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.log(Level.WARNING, "Failed to save filter." + (e.getMessage() !=  null ? ("Cause: " + e.getMessage()) : ""));
+            Platform.runLater(() -> ExceptionDetailsErrorDialog.openError(Messages.errorGeneric, Messages.failedSaveFilter, e));
         }
     }
 }

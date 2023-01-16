@@ -26,13 +26,9 @@
 <GridPane alignment="CENTER" hgap="5.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" style="-fx-background-color: #f4f4f4;" vgap="5.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.search.FilterManagementController">
     <columnConstraints>
         <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" />
-        <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" />
-      <ColumnConstraints />
     </columnConstraints>
     <rowConstraints>
         <RowConstraints vgrow="SOMETIMES" />
-        <RowConstraints maxHeight="1.7976931348623157E308" vgrow="ALWAYS" />
-      <RowConstraints />
     </rowConstraints>
     <children>
         <TableView fx:id="resultTableView" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS">
