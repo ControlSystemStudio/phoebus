@@ -126,10 +126,9 @@ public class PVABoolArray extends PVAData implements PVAArray
     }
 
     @Override
-    protected void formatType(final int level, final StringBuilder buffer)
+    public String getType()
     {
-        indent(level, buffer);
-        buffer.append("boolean[] ").append(name);
+        return "boolean[]";
     }
 
     @Override

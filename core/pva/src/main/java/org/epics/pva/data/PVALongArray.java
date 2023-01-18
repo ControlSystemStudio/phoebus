@@ -142,12 +142,11 @@ public class PVALongArray extends PVAData implements PVAArray
     }
 
     @Override
-    protected void formatType(final int level, final StringBuilder buffer)
+    public String getType()
     {
-        indent(level, buffer);
         if (unsigned)
-            buffer.append('u');
-        buffer.append("long[] ").append(name);
+            return "ulong[]";
+        return "long[]";
     }
 
     @Override
