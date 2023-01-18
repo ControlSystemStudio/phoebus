@@ -1,5 +1,7 @@
 package org.phoebus.security.store;
 
+import org.phoebus.security.tokens.ScopedAuthenticationToken;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +24,9 @@ public class MemoryBasedStore implements Store<String, String> {
 
     @Override
     public String get(String key) {
+        if(!store.containsKey(key)){
+            throw new NullPointerException("Key " + key + " not found");
+        }
         return store.get(key);
     }
 
@@ -37,7 +42,9 @@ public class MemoryBasedStore implements Store<String, String> {
 
     @Override
     public void delete(String key) {
+        if(!store.containsKey(key)){
+            throw new NullPointerException("Key " + key + " not found");
+        }
         store.remove(key);
     }
-
 }

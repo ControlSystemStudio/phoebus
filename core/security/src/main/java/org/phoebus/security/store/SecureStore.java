@@ -92,7 +92,7 @@ public class SecureStore
         store.delete(tag);
     }
 
-    /** @param scope Scope
+    /** @param scope Scope identifier, will be converted to lower case, see {@link ScopedAuthenticationToken}
      *  @return Token for that scope
      *  @throws Exception on error
      */
@@ -104,6 +104,7 @@ public class SecureStore
             password = get(PASSWORD_TAG);
         }
         else{
+            scope = scope.toLowerCase();
             username = get(scope + "." + USERNAME_TAG);
             password = get(scope + "." + PASSWORD_TAG);
         }
@@ -113,7 +114,7 @@ public class SecureStore
         return new ScopedAuthenticationToken(scope, username, password);
     }
 
-    /** @param scope Scope
+    /** @param scope Scope identifier, will be converted to lower case, see {@link ScopedAuthenticationToken}
      *  @throws Exception on error
      */
     public void deleteScopedAuthenticationToken(String scope) throws Exception{

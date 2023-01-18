@@ -20,8 +20,6 @@ package org.phoebus.security.store;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.phoebus.security.store.FileBasedStore;
-import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
 import java.io.File;
@@ -40,20 +38,30 @@ public class SecureStoreTest {
 
     private static SecureStore secureStore;
 
+    private static MemoryBasedStore memorySecureStore;
+
     @BeforeAll
     public static void setup() throws Exception {
         File secureStoreFile;
         secureStoreFile = new File(System.getProperty("user.home"), "TestOnlySecureStore.dat");
+        if(secureStoreFile.exists()){
+            secureStoreFile.delete();
+        }
         secureStoreFile.deleteOnExit();
 
         String password = "forTestPurposesOnly";
         FileBasedStore fileBasedStore = new FileBasedStore(secureStoreFile, password.toCharArray());
         secureStore = new SecureStore(fileBasedStore);
+
+        memorySecureStore = MemoryBasedStore.getInstance();
     }
 
     @Test
     public void testGetFromEmpty() throws Exception {
         String value = secureStore.get("some_tag");
+        assertNull(value);
+
+        value = memorySecureStore.get("some_tag");
         assertNull(value);
     }
 
@@ -63,6 +71,11 @@ public class SecureStoreTest {
         String value = secureStore.get("some_tag");
         assertEquals(value, "some_value");
         secureStore.delete("some_tag");
+
+        memorySecureStore.set("some_tag", "some_value");
+        value = memorySecureStore.get("some_tag");
+        assertEquals(value, "some_value");
+        memorySecureStore.delete("some_tag");
     }
 
     @Test
@@ -76,23 +89,37 @@ public class SecureStoreTest {
         assertEquals(value, "some_value2");
 
         secureStore.delete("some_tag");
+
+        memorySecureStore.set("some_tag", "some_value");
+        value = memorySecureStore.get("some_tag");
+        assertEquals(value, "some_value");
+
+        memorySecureStore.set("some_tag", "some_value2");
+        value = memorySecureStore.get("some_tag");
+        assertEquals(value, "some_value2");
+
+        memorySecureStore.delete("some_tag");
     }
 
     @Test
     public void testGetNullTag() throws Exception {
         assertThrows(NullPointerException.class, () -> secureStore.get(null));
-        ;
+        assertThrows(NullPointerException.class, () -> memorySecureStore.get(null));
+
     }
 
     @Test
     public void testDeleteNonExisting() throws Exception {
         secureStore.delete("nonExisting");
+        memorySecureStore.delete("nonExisting");
     }
 
     @Test
     public void testDeleteNull() throws Exception {
         assertThrows(NullPointerException.class,
                 () -> secureStore.delete(null));
+        assertThrows(NullPointerException.class,
+                () -> memorySecureStore.delete(null));
     }
 
     @Test
@@ -107,6 +134,21 @@ public class SecureStoreTest {
         secureStore.set("scope3." + SecureStore.USERNAME_TAG, "username3");
 
         List<ScopedAuthenticationToken> tokens = secureStore.getAuthenticationTokens();
+        assertEquals(3, tokens.size());
+        assertEquals("username", tokens.get(0).getUsername());
+        assertEquals("password", tokens.get(0).getPassword());
+
+        secureStore.deleteAllScopedAuthenticationTokens();
+
+        memorySecureStore.set(SecureStore.USERNAME_TAG, "username");
+        memorySecureStore.set(SecureStore.PASSWORD_TAG, "password");
+        memorySecureStore.set("scope1." + SecureStore.USERNAME_TAG, "username1");
+        memorySecureStore.set("scope1." + SecureStore.PASSWORD_TAG, "password1");
+        memorySecureStore.set("scope2." + SecureStore.USERNAME_TAG, "username2");
+        memorySecureStore.set("scope2." + SecureStore.PASSWORD_TAG, "password2");
+        memorySecureStore.set("scope3." + SecureStore.USERNAME_TAG, "username3");
+
+        tokens = memorySecureStore.getAuthenticationTokens();
         assertEquals(3, tokens.size());
         assertEquals("username", tokens.get(0).getUsername());
         assertEquals("password", tokens.get(0).getPassword());
