@@ -37,6 +37,7 @@
                 <TableColumn fx:id="queryColumn" editable="false" minWidth="300.0" prefWidth="300.0" style="-fx-alignment: CENTER-LEFT;" text="%filterQueryColumn" />
                 <TableColumn fx:id="lastUpdatedColumn" editable="false" minWidth="150.0" prefWidth="150.0" style="-fx-alignment: CENTER-RIGHT;" styleClass="timestamp-column" text="%filterLastUpdatedColumn" />
                 <TableColumn fx:id="userColumn" editable="false" minWidth="100.0" prefWidth="100.0" text="%filterUserColumn" style="-fx-alignment: CENTER-RIGHT;" />
+                <TableColumn fx:id="editColumn" editable="false" maxWidth="50.0" minWidth="50.0" prefWidth="50.0" style="-fx-alignment: CENTER;"/>
                 <TableColumn fx:id="saveColumn" editable="false" maxWidth="50.0" minWidth="50.0" prefWidth="50.0" style="-fx-alignment: CENTER;"/>
                 <TableColumn fx:id="deleteColumn" editable="false" maxWidth="50.0" minWidth="50.0" prefWidth="50.0" style="-fx-alignment: CENTER;" />
             </columns>

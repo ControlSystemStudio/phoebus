@@ -32,7 +32,9 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
@@ -73,10 +75,9 @@ import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationTab;
-import org.phoebus.applications.saveandrestore.ui.search.FilterManagementTab;
+import org.phoebus.applications.saveandrestore.ui.search.SearchAndFilterTab;
 import org.phoebus.applications.saveandrestore.ui.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.ui.search.SearchQueryUtil.Keys;
-import org.phoebus.applications.saveandrestore.ui.search.SearchTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.CompositeSnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotNewTagDialog;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
@@ -84,7 +85,6 @@ import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
 import org.phoebus.framework.autocomplete.ProposalService;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.ui.autocomplete.AutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -136,6 +136,12 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     @FXML
     private ComboBox<Filter> filtersComboBox;
 
+    @FXML
+    private Button searchButton;
+
+    @FXML
+    private CheckBox enableFilterCheckBox;
+
     protected SaveAndRestoreService saveAndRestoreService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -163,6 +169,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     protected Comparator<TreeItem<Node>> treeNodeComparator;
 
     protected SimpleBooleanProperty disabledUi = new SimpleBooleanProperty(false);
+
+    private SimpleBooleanProperty filterEnabledProperty = new SimpleBooleanProperty(false);
 
     private final URI uri;
 
@@ -196,8 +204,16 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         browserSelectionModel = treeView.getSelectionModel();
 
         ImageView searchButtonImageView = ImageCache.getImageView(SaveAndRestoreApplication.class, "/icons/sar-search.png");
-        searchButtonImageView.setFitWidth(16);
-        searchButtonImageView.setFitHeight(16);
+        searchButtonImageView.setFitWidth(20);
+        searchButtonImageView.setFitHeight(20);
+        searchButton.setGraphic(searchButtonImageView);
+
+        enableFilterCheckBox.selectedProperty().bindBidirectional(filterEnabledProperty);
+        filtersComboBox.disableProperty().bind(filterEnabledProperty.not());
+        filterEnabledProperty.addListener((observable, oldValue, newValue) -> {
+            filterEnabledChanged(newValue);
+        });
+
 
         folderContextMenu = new ContextMenuFolder(this, Preferences.enableCSVIO, multipleItemsSelected);
         folderContextMenu.setOnShowing(event -> multipleItemsSelected.set(browserSelectionModel.getSelectedItems().size() > 1));
@@ -579,13 +595,14 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     public void openSearchWindow() {
-        Optional<Tab> searchTabOptional = tabPane.getTabs().stream().filter(t -> t.getId().equals(SearchTab.SEARCH_TAB_ID)).findFirst();
+        Optional<Tab> searchTabOptional = tabPane.getTabs().stream().filter(t -> t.getId().equals(SearchAndFilterTab.SEARCH_AND_FILTER_TAB_ID)).findFirst();
         if (searchTabOptional.isPresent()) {
             tabPane.getSelectionModel().select(searchTabOptional.get());
         } else {
-            SearchTab searchTab = new SearchTab(this);
-            tabPane.getTabs().add(0, searchTab);
-            tabPane.getSelectionModel().select(searchTab);
+            //SearchTab searchTab = new SearchTab(this);
+            SearchAndFilterTab searchAndFilterTab = new SearchAndFilterTab(this);
+            tabPane.getTabs().add(0, searchAndFilterTab);
+            tabPane.getSelectionModel().select(searchAndFilterTab);
         }
     }
 
@@ -863,22 +880,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     /**
-     * Persists the tree view state
-     */
-    private void saveTreeState() {
-        List<String> expandedNodes = new ArrayList<>();
-        findExpandedNodes(expandedNodes, treeView.getRoot());
-        if (expandedNodes.isEmpty()) {
-            return;
-        }
-        try {
-            PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).put(TREE_STATE, objectMapper.writeValueAsString(expandedNodes));
-        } catch (JsonProcessingException e) {
-            LOG.log(Level.WARNING, "Failed to persist tree state");
-        }
-    }
-
-    /**
      * Locates expanded nodes recursively and adds them to <code>expandedNodes</code>
      *
      * @param expandedNodes The {@link List} holding expanded nodes.
@@ -889,18 +890,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             expandedNodes.add(treeItem.getValue().getUniqueId());
             treeItem.getChildren().forEach(ti -> findExpandedNodes(expandedNodes, ti));
         }
-    }
-
-    /**
-     * Loops through the tree view model and expands all nodes that have a non-empty children
-     * list. The tree view at this point has already been updated with data from the backend.
-     */
-    protected void restoreTreeState() {
-        expandNodes(treeView.getRoot());
-
-        // Must be added here, after nodes have been expanded. Adding the event handler
-        // before expansion of nodes will break the expected behavior when restoring the tree state.
-        //treeView.getRoot().addEventHandler(TreeItem.<Node>branchExpandedEvent(), e -> expandTreeNode(e.getTreeItem()));
     }
 
     private void setChildItems(HashMap<String, List<TreeItem<Node>>> allItems, TreeItem<Node> parentItem) {
@@ -948,7 +937,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         findExpandedNodes(expandedNodes, treeView.getRoot());
         try {
             PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).put(TREE_STATE, objectMapper.writeValueAsString(expandedNodes));
-            PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).put(FILTER_NAME, objectMapper.writeValueAsString(filtersComboBox.getSelectionModel().getSelectedItem().getName()));
+            if(filterEnabledProperty.get()){
+                PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).put(FILTER_NAME, objectMapper.writeValueAsString(filtersComboBox.getSelectionModel().getSelectedItem().getName()));
+            }
         } catch (JsonProcessingException e) {
             LOG.log(Level.WARNING, "Failed to persist tree state");
         }
@@ -1284,19 +1275,13 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * @return <code>true</code> if found in the list of {@link Node}s retrieved through a search request.
      */
     public boolean matchesFilter(Node node) {
-        return searchResultNodes.contains(node);
-    }
-
-    @FXML
-    public void manageFilters() {
-        Optional<Tab> filterManagementTabOptional =
-                tabPane.getTabs().stream().filter(t -> t.getId().equals(FilterManagementTab.FILTER_MANAGEMENT_TAB)).findFirst();
-        if (filterManagementTabOptional.isPresent()) {
-            tabPane.getSelectionModel().select(filterManagementTabOptional.get());
-        } else {
-            FilterManagementTab filterManagementTab = new FilterManagementTab(this);
-            tabPane.getTabs().add(0, filterManagementTab);
-            tabPane.getSelectionModel().select(filterManagementTab);
+        TreeItem<Node> selectedItem = treeView.getSelectionModel().getSelectedItem();
+        if(selectedItem == null){
+            return searchResultNodes.contains(node);
+        }
+        else {
+            return searchResultNodes.contains(node) &&
+                    !selectedItem.getValue().getUniqueId().equals(node.getUniqueId());
         }
     }
 
@@ -1348,5 +1333,17 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     public void filterAdded(Filter filter) {
         filtersList.add(filter);
+    }
+
+    private void filterEnabledChanged(boolean enabled){
+        if(!enabled){
+            applyFilter(noFilter);
+        }
+        else{
+            Filter filter = filtersComboBox.getSelectionModel().getSelectedItem();
+            if(filter != null){
+                applyFilter(filtersComboBox.getSelectionModel().getSelectedItem());
+            }
+        }
     }
 }

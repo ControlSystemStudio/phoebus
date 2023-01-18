@@ -117,3 +117,7 @@
 .timestamp-column.tree-table-cell{
     -fx-font-family: "Liberation Mono";
 }
+
+.tree-cell:selected {
+  -fx-background-color: red;
+}

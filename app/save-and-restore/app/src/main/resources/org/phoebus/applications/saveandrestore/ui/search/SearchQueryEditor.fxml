@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (C) 2020 European Spallation Source ERIC.
+  ~
+  ~  This program is free software; you can redistribute it and/or
+  ~  modify it under the terms of the GNU General Public License
+  ~  as published by the Free Software Foundation; either version 2
+  ~  of the License, or (at your option) any later version.
+  ~
+  ~  This program is distributed in the hope that it will be useful,
+  ~  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~  GNU General Public License for more details.
+  ~
+  ~  You should have received a copy of the GNU General Public License
+  ~  along with this program; if not, write to the Free Software
+  ~  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+  -->
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<GridPane fx:id="advancedSearchPane" prefWidth="250.0" style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.search.SearchQueryEditorController">
+
+
+    <columnConstraints>
+        <ColumnConstraints />
+      <ColumnConstraints />
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+      <RowConstraints />
+    </rowConstraints>
+    <children>
+        <Label text="%filterEditorNodeName" GridPane.rowIndex="0" />
+        <TextField fx:id="nodeName" GridPane.rowIndex="1" />
+        <CheckBox fx:id="filterEditorNodeTypeFolder" text="%filterEditorNodeTypeFolder" GridPane.rowIndex="2" />
+        <CheckBox fx:id="filterEditorNodeTypeConfiguration" text="%filterEditorNodeTypeConfiguration" GridPane.rowIndex="3" />
+        <CheckBox fx:id="filterEditorNodeTypeSnapshot" text="%filterEditorNodeTypeSnapshot" GridPane.rowIndex="4" />
+        <CheckBox fx:id="filterEditorNodeTypeCompositeSnapshot" text="%filterEditorNodeTypeCompositeSnapshot" GridPane.rowIndex="5" />
+        <Label text="%filterEditorTags" GridPane.rowIndex="6" />
+        <TextField fx:id="filterEditorTags" GridPane.rowIndex="7" />
+        <Label text="%filterEditorUser" GridPane.rowIndex="8" />
+        <TextField fx:id="filterEditorUser" GridPane.rowIndex="9" />
+        <Label text="%Time" GridPane.columnSpan="2" GridPane.rowIndex="10">
+            <GridPane.margin>
+                <Insets top="5.0" />
+            </GridPane.margin>
+        </Label>
+
+        <GridPane fx:id="timePane" GridPane.rowIndex="11">
+            <children>
+                <Label text="%StartTime" GridPane.rowIndex="0">
+                    <GridPane.margin>
+                        <Insets />
+                    </GridPane.margin>
+                </Label>
+                <TextField fx:id="startTime" GridPane.columnIndex="1"  GridPane.rowIndex="0">
+                    <GridPane.margin>
+                        <Insets />
+                    </GridPane.margin>
+                </TextField>
+                <Label text="%EndTime" GridPane.rowIndex="1" />
+                <TextField fx:id="endTime" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                    <GridPane.margin>
+                        <Insets />
+                    </GridPane.margin>
+                </TextField>
+            </children>
+        </GridPane>
+    </children>
+   <padding>
+      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+   </padding>
+</GridPane>

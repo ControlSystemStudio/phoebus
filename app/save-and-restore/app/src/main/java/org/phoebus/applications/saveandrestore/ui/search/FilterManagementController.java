@@ -82,6 +82,9 @@ public class FilterManagementController implements Initializable {
     @FXML
     private TableColumn<Filter, Filter> deleteColumn;
 
+    @FXML
+    private TableColumn<Filter, Filter> editColumn;
+
     private SaveAndRestoreService saveAndRestoreService;
 
     private static final Logger LOG = Logger.getLogger(FilterManagementController.class.getName());
@@ -102,6 +105,8 @@ public class FilterManagementController implements Initializable {
         saveColumn.setCellFactory(column -> new SaveTableCell());
         deleteColumn.setCellValueFactory(cellValue -> new SimpleObjectProperty<>(cellValue.getValue()));
         deleteColumn.setCellFactory(column -> new DeleteTableCell());
+        editColumn.setCellValueFactory(cellValue -> new SimpleObjectProperty<>(cellValue.getValue()));
+        editColumn.setCellFactory(column -> new EditTableCell());
 
         loadFilters();
     }
@@ -146,6 +151,31 @@ public class FilterManagementController implements Initializable {
                 Button button = new Button();
                 button.setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
                 button.setTooltip(new Tooltip(Messages.deleteFilter));
+                button.setOnAction(event -> {
+                    try {
+                        saveAndRestoreService.deleteFilter(filter.getName());
+                        loadFilters();
+                        callerController.filterDeleted(filter);
+                    } catch (Exception e) {
+                        LOG.log(Level.SEVERE, "Failed to delete filter", e);
+                        ExceptionDetailsErrorDialog.openError(Messages.errorGeneric, Messages.faildDeleteFilter, e);
+                    }
+                });
+                setGraphic(button);
+            }
+        }
+    }
+
+    private class EditTableCell extends TableCell<Filter, Filter> {
+        @Override
+        protected void updateItem(final Filter filter, final boolean empty) {
+            super.updateItem(filter, empty);
+            if (empty) {
+                setGraphic(null);
+            } else {
+                Button button = new Button();
+                button.setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/save-and-restore/edit_filter.png"));
+                button.setTooltip(new Tooltip(Messages.editFilter));
                 button.setOnAction(event -> {
                     try {
                         saveAndRestoreService.deleteFilter(filter.getName());
