@@ -44,14 +44,12 @@ public class SecureStore
     {
         switch(PhoebusSecurity.secure_store_target) {
             case FILE:
+            default:
                 store = new FileBasedStore();
                 break;
             case IN_MEMORY:
                 store = MemoryBasedStore.getInstance();
                 break;
-            default:
-                // default to FILE if not set explicitly
-                store = new FileBasedStore();
         }
     }
 
@@ -84,7 +82,7 @@ public class SecureStore
     }
 
     /** Deletes an entry in the secure store.
-     *  @param tag The tag to delete, must not be <code>null</code>.
+     *  @param tag The tag to delete.
      *  @throws Exception on error
      */
     public void delete(String tag) throws Exception{
@@ -159,7 +157,7 @@ public class SecureStore
             set(scope + "." + USERNAME_TAG, username);
             set(scope + "." + PASSWORD_TAG, password);
         }
-        LOGGER.log(Level.INFO, "Storing scoped authentication token " + scopedAuthenticationToken.toString());
+        LOGGER.log(Level.INFO, "Storing scoped authentication token " + scopedAuthenticationToken);
     }
 
     /**
@@ -183,7 +181,7 @@ public class SecureStore
      * {@link #PASSWORD_TAG} item can be found.
      * @param aliases All aliases in the secure store.
      * @return List of {@link ScopedAuthenticationToken}s.
-     * @throws Exception
+     * @throws Exception If interaction with the underlying store implementation fails.
      */
     private List<ScopedAuthenticationToken> matchEntries(List<String> aliases) throws Exception{
         List<ScopedAuthenticationToken> allScopedAuthenticationTokens
