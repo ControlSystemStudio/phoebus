@@ -63,24 +63,35 @@ import org.epics.pva.data.nt.PVATimeStamp;
 import org.epics.pva.data.nt.PVADisplay.Form;
 import org.epics.pva.server.PVAServer;
 import org.epics.pva.server.ServerPV;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 public class ServerClientTest {
 
-    private PVAServer server;
-    private PVAClient client;
+    private static final PVAServer server = testServer();
+    private static final PVAClient client = testClient();
 
-    @BeforeEach
-    public void setUp() throws Exception {
-        server = new PVAServer();
-        client = new PVAClient();
+    private static PVAServer testServer() {
+        try {
+            return new PVAServer();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
-    @AfterEach
-    public void tearDown() throws Exception {
+    private static PVAClient testClient() {
+        try {
+            return new PVAClient();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @AfterAll
+    public static void tearDown() throws Exception {
         server.close();
         client.close();
 
@@ -111,19 +122,24 @@ public class ServerClientTest {
                                 .collect(Collectors.toList()) },
                 {
                         fakeData.get(0).stream().map(Double::shortValue)
-                                .map((s) -> new PVAShort(PVAScalar.VALUE_NAME_STRING, false, s)).collect(Collectors.toList()) },
+                                .map((s) -> new PVAShort(PVAScalar.VALUE_NAME_STRING, false, s))
+                                .collect(Collectors.toList()) },
                 {
                         fakeData.get(0).stream().map(Double::floatValue)
-                                .map((f) -> new PVAFloat(PVAScalar.VALUE_NAME_STRING, f)).collect(Collectors.toList()) },
+                                .map((f) -> new PVAFloat(PVAScalar.VALUE_NAME_STRING, f))
+                                .collect(Collectors.toList()) },
                 {
                         fakeData.get(0).stream().map(Double::byteValue)
-                                .map((b) -> new PVAByte(PVAScalar.VALUE_NAME_STRING, false, b)).collect(Collectors.toList()) },
+                                .map((b) -> new PVAByte(PVAScalar.VALUE_NAME_STRING, false, b))
+                                .collect(Collectors.toList()) },
                 {
                         fakeData.get(0).stream().map(Double::intValue)
-                                .map((i) -> new PVAInt(PVAScalar.VALUE_NAME_STRING, false, i)).collect(Collectors.toList()) },
+                                .map((i) -> new PVAInt(PVAScalar.VALUE_NAME_STRING, false, i))
+                                .collect(Collectors.toList()) },
                 {
                         fakeData.get(0).stream().map(Double::doubleValue)
-                                .map((d) -> new PVADouble(PVAScalar.VALUE_NAME_STRING, d)).collect(Collectors.toList()) },
+                                .map((d) -> new PVADouble(PVAScalar.VALUE_NAME_STRING, d))
+                                .collect(Collectors.toList()) },
                 {
                         fakeData.stream()
                                 .map((dArray) -> new PVAStringArray(PVAScalar.VALUE_NAME_STRING,
