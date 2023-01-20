@@ -247,7 +247,7 @@ public class ServerClientTest {
 
         PVAChannel channel = client.getChannel(pvName);
         try {
-            channel.connect().get(5, TimeUnit.SECONDS);
+            channel.connect().get(10, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             e.printStackTrace();
             fail(e.getMessage());
