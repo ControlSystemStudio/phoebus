@@ -289,11 +289,20 @@ public class ServerClientTest {
             System.out.println("Sent data " + testPV.get(PVAScalar.VALUE_NAME_STRING));
         }
 
+        // Wait for messages to clear
+        try {
+            TimeUnit.MILLISECONDS.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+
         serverPV.close();
         channel.close();
 
-        assertEquals(sentData.size(), receivedData.get().size());
-        assertEquals(sentData, receivedData.get());
+        HashMap<Instant, PVAData> receivedDataCopy = receivedData.get();
+        assertEquals(sentData.size(), receivedDataCopy.size());
+        assertEquals(sentData, receivedDataCopy);
     }
 
 }
