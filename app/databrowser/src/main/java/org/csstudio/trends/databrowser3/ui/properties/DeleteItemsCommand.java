@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.csstudio.trends.databrowser3.Messages;
+import org.csstudio.trends.databrowser3.model.AnnotationInfo;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -49,6 +50,18 @@ public class DeleteItemsCommand extends UndoableAction
     @Override
     public void run()
     {
+        // Check for annotations to remove because their item is deleted
+        final List<AnnotationInfo> annotations = new ArrayList<>(model.getAnnotations());
+        for (ModelItem item : items)
+        {
+            final int item_index = model.getItems().indexOf(item);
+            annotations.removeIf(anno -> anno.getItemIndex() == item_index);
+        }
+
+        // Any changes?
+        if (! annotations.equals(model.getAnnotations()))
+            model.setAnnotations(annotations);
+
         for (ModelItem item : items)
             model.removeItem(item);
     }
@@ -71,5 +84,6 @@ public class DeleteItemsCommand extends UndoableAction
                         ex);
             }
         }
+        // Note that we do not restore removed annotations at this time...
     }
 }
