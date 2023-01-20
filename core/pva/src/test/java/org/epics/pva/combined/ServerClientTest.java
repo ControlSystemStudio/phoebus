@@ -233,11 +233,11 @@ public class ServerClientTest {
         PVAStructure testPV = buildPVAStructure(pvName, Instant.now(), fakeData, pvDescription);
         ServerPV serverPV = server.createPV(pvName, testPV);
 
-        AtomicReference<HashMap<Instant, PVAData>> ref = new AtomicReference<>();
-        ref.set(new HashMap<>());
+        AtomicReference<HashMap<Instant, PVAData>> receivedData = new AtomicReference<>();
+        receivedData.set(new HashMap<>());
         MonitorListener listener = (ch, changes, overruns, data) -> {
             System.out.println("Got data " + data.get(PVAScalar.VALUE_NAME_STRING));
-            ref.getAndUpdate((l) -> {
+            receivedData.getAndUpdate((l) -> {
                 Instant recInstant = PVAStructures.getTime(data.get(PVATimeStamp.TIMESTAMP_NAME_STRING));
                 PVAData recData = data.get(PVAScalar.VALUE_NAME_STRING);
                 l.put(recInstant, recData);
@@ -281,7 +281,7 @@ public class ServerClientTest {
             }
             try {
                 // Sleep to allow time for client to receive requests
-                TimeUnit.MILLISECONDS.sleep(50);
+                TimeUnit.MILLISECONDS.sleep(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
                 fail(e.getMessage());
@@ -292,8 +292,8 @@ public class ServerClientTest {
         serverPV.close();
         channel.close();
 
-        assertEquals(inputData.size(), ref.get().size());
-        assertEquals(sentData, ref.get());
+        assertEquals(sentData.size(), receivedData.get().size());
+        assertEquals(sentData, receivedData.get());
     }
 
 }
