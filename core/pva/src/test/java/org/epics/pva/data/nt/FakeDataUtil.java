@@ -25,20 +25,17 @@ import java.util.stream.IntStream;
 public class FakeDataUtil {
     
     /**
-     * Generates a sequence of arrays of numbers up to maxInputNumber
+     * Generates a sequence of arrays of numbers up to groupSize * nOfArrayGroups
      * 
-     * For example with maxInputNumber: 10, multiplier: 2, nOfArrayGroups: 2
-     * returns {{2, 4, 6, 8, 10}, {12, 14, 16, 18, 20}}
-     * 
-     * @param maxInputNumber
-     * @param multiplier
-     * @param nOfArrayGroups
-     * @return List of list of fake data
+     * @param groupSize Size of each group
+     * @param multiplier To provide a float value
+     * @param nOfArrayGroups How many groups to make
+     * @return List of lists of fake data
      */
-    public static List<List<Double>> fakeData(int maxInputNumber, double multiplier, int nOfArrayGroups) {
+    public static List<List<Double>> fakeData(int groupSize, double multiplier, int nOfArrayGroups) {
+        int maxInputNumber = groupSize * nOfArrayGroups;
         List<Double> listNumbers = IntStream.range(1, maxInputNumber).mapToDouble(i -> multiplier * i).boxed()
                 .collect(Collectors.toList());
-        int groupSize = maxInputNumber / nOfArrayGroups;
         return IntStream.range(0, nOfArrayGroups - 1)
                 .mapToObj(i -> listNumbers.subList(i * groupSize, (i + 1) * groupSize))
                 .collect(Collectors.toList());

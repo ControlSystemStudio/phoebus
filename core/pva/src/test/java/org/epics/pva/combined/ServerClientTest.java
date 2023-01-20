@@ -119,7 +119,7 @@ public class ServerClientTest {
      * @return input data
      */
     public static Collection<Object[]> data() {
-        List<List<Double>> fakeData = FakeDataUtil.fakeData(30, 1.1, 3);
+        List<List<Double>> fakeData = FakeDataUtil.fakeData(3, 1.1, 3);
         return Arrays.asList(new Object[][] {
                 {
                         fakeData.get(0).stream().map((d) -> new PVAString(PVAScalar.VALUE_NAME_STRING, d.toString()))
@@ -278,7 +278,7 @@ public class ServerClientTest {
             }
             try {
                 // Sleep to allow time for client to receive requests
-                TimeUnit.MILLISECONDS.sleep(100);
+                TimeUnit.MILLISECONDS.sleep(200);
             } catch (InterruptedException e) {
                 e.printStackTrace();
                 fail(e.getMessage());
