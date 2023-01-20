@@ -48,8 +48,15 @@ import org.phoebus.applications.saveandrestore.service.Messages;
 import org.phoebus.framework.preferences.PreferencesReader;
 
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.GenericArrayType;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -538,7 +545,9 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
     @Override
     public void deleteFilter(String name){
-        WebResource webResource = client.resource(jmasarServiceUrl + "/filter/" + name);
+        // Filter name may contain space chars, need to URL encode these.
+        String filterName = name.replace(" ", "%20");
+        WebResource  webResource = client.resource(jmasarServiceUrl + "/filter/" + filterName);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .delete(ClientResponse.class);
         if (response.getStatus() != 200) {

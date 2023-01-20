@@ -25,6 +25,8 @@ import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -58,6 +60,7 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.util.Callback;
@@ -113,8 +116,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
- * Main controller for the save & restore UI. In particular, it handles the tree view and operations on it, e.g.
- * creating folders, configurations and launching the snapshot view.
+ * Main controller for the save & restore UI.
  */
 public class SaveAndRestoreController implements Initializable, NodeChangedListener, NodeAddedListener {
 
@@ -129,9 +131,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     @FXML
     private ProgressIndicator progressIndicator;
-
-    @FXML
-    private Label noConnectionLabel;
 
     @FXML
     private ComboBox<Filter> filtersComboBox;
@@ -177,10 +176,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     @FXML
     private Tooltip filterToolTip;
 
-    /**
-     * A {@link Filter} matching all {@link Node}s.
-     */
-    private Filter noFilter;
+    @SuppressWarnings("unused")
+    @FXML
+    private VBox errorPane;
 
     private final ObservableList<Node> searchResultNodes = FXCollections.observableArrayList();
 
@@ -201,7 +199,16 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         saveAndRestoreService = SaveAndRestoreService.getInstance();
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        treeView.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         browserSelectionModel = treeView.getSelectionModel();
+        browserSelectionModel.selectedItemProperty().addListener(new ChangeListener<TreeItem<Node>>() {
+            @Override
+            public void changed(ObservableValue<? extends TreeItem<Node>> observable, TreeItem<Node> oldValue, TreeItem<Node> newValue) {
+                if (newValue != null) {
+
+                }
+            }
+        });
 
         ImageView searchButtonImageView = ImageCache.getImageView(SaveAndRestoreApplication.class, "/icons/sar-search.png");
         searchButtonImageView.setFitWidth(20);
@@ -260,9 +267,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         progressIndicator.visibleProperty().bind(disabledUi);
         disabledUi.addListener((observable, oldValue, newValue) -> treeView.setDisable(newValue));
 
-        noFilter = new Filter();
-        noFilter.setName(Messages.noFilter);
-        noFilter.setQueryString("");
         filtersComboBox.setCellFactory(new Callback<>() {
             @Override
             public ListCell<org.phoebus.applications.saveandrestore.model.search.Filter> call(ListView<org.phoebus.applications.saveandrestore.model.search.Filter> param) {
@@ -298,11 +302,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         filtersComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
-                if (newValue.getName().equals(noFilter.getName())) {
-                    filterToolTip.textProperty().set("---");
-                } else {
-                    filterToolTip.textProperty().set(newValue.getQueryString());
-                }
+                filterToolTip.textProperty().set(newValue.getQueryString());
                 if (!newValue.equals(oldValue)) {
                     applyFilter(newValue);
                 }
@@ -354,7 +354,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
              */
             @Override
             public void succeeded() {
-                noConnectionLabel.visibleProperty().set(false);
                 TreeItem<Node> rootItem = getValue();
                 treeView.setRoot(rootItem);
                 expandNodes(treeView.getRoot());
@@ -370,17 +369,13 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                     Optional<Filter> f = filtersComboBox.getItems().stream().filter(filter -> filter.getName().equals(savedFilterName)).findFirst();
                     if (f.isPresent()) {
                         filtersComboBox.getSelectionModel().select(f.get());
-                    } else {
-                        filtersComboBox.getSelectionModel().select(noFilter);
                     }
-                } else {
-                    filtersComboBox.getSelectionModel().select(noFilter);
                 }
             }
 
             @Override
             public void failed() {
-                noConnectionLabel.visibleProperty().set(true);
+                errorPane.visibleProperty().set(true);
             }
         };
 
@@ -422,7 +417,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * @param targetItem {@link TreeItem<Node>} on which the operation is performed.
      */
     protected void expandTreeNode(TreeItem<Node> targetItem) {
-        targetItem.getChildren().clear();
         List<Node> childNodes = saveAndRestoreService.getChildNodes(targetItem.getValue());
         Collections.sort(childNodes);
         targetItem.getChildren().addAll(childNodes.stream().map(this::createTreeItem).collect(Collectors.toList()));
@@ -937,7 +931,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         findExpandedNodes(expandedNodes, treeView.getRoot());
         try {
             PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).put(TREE_STATE, objectMapper.writeValueAsString(expandedNodes));
-            if(filterEnabledProperty.get()){
+            if (filterEnabledProperty.get()) {
                 PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).put(FILTER_NAME, objectMapper.writeValueAsString(filtersComboBox.getSelectionModel().getSelectedItem().getName()));
             }
         } catch (JsonProcessingException e) {
@@ -1272,14 +1266,17 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     /**
      * @param node A {@link Node} to be checked
-     * @return <code>true</code> if found in the list of {@link Node}s retrieved through a search request.
+     * @return <code>true</code> if a {@link Filter} is enabled/selected and if the {@link Node} is
+     * contained in the search result associated with that {@link Filter}.
      */
     public boolean matchesFilter(Node node) {
-        TreeItem<Node> selectedItem = treeView.getSelectionModel().getSelectedItem();
-        if(selectedItem == null){
-            return searchResultNodes.contains(node);
+        if (!filterEnabledProperty.get()) {
+            return false;
         }
-        else {
+        TreeItem<Node> selectedItem = treeView.getSelectionModel().getSelectedItem();
+        if (selectedItem == null) {
+            return searchResultNodes.contains(node);
+        } else {
             return searchResultNodes.contains(node) &&
                     !selectedItem.getValue().getUniqueId().equals(node.getUniqueId());
         }
@@ -1291,8 +1288,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     private void loadFilters() {
         try {
             List<Filter> filters = saveAndRestoreService.getAllFilters();
-            filters.add(noFilter);
-            //filtersComboBox.getItems().setAll(filters);
             filtersList.setAll(filters);
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Failed to load filters", e);
@@ -1300,6 +1295,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     private void applyFilter(Filter filter) {
+        treeView.getSelectionModel().clearSelection();
         Map<String, String> searchParams =
                 SearchQueryUtil.parseHumanReadableQueryString(filter.getQueryString());
         // In this case we want to hit all matching, i.e. no pagination.
@@ -1325,9 +1321,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * @param filter The deleted {@link Filter}.
      */
     public void filterDeleted(Filter filter) {
-        if (filtersComboBox.getSelectionModel().getSelectedItem().getName().equals(filter.getName())) {
-            filtersComboBox.getSelectionModel().select(noFilter);
-        }
         filtersList.remove(filter);
     }
 
@@ -1335,14 +1328,14 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         filtersList.add(filter);
     }
 
-    private void filterEnabledChanged(boolean enabled){
-        if(!enabled){
-            applyFilter(noFilter);
-        }
-        else{
+    private void filterEnabledChanged(boolean enabled) {
+        if (!enabled) {
+            searchResultNodes.clear();
+            treeView.refresh();
+        } else {
             Filter filter = filtersComboBox.getSelectionModel().getSelectedItem();
-            if(filter != null){
-                applyFilter(filtersComboBox.getSelectionModel().getSelectedItem());
+            if (filter != null) {
+                applyFilter(filter);
             }
         }
     }

@@ -36,6 +36,8 @@ import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 
 import javax.ws.rs.core.MultivaluedMap;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -384,7 +386,7 @@ public class SaveAndRestoreService {
      * Deletes a {@link Filter} based on its name.
      * @param name
      */
-    public void deleteFilter(String name) throws Exception{
+    public void deleteFilter(final String name) throws Exception{
         executor.submit(() -> saveAndRestoreClient.deleteFilter(name)).get();
     }
 }

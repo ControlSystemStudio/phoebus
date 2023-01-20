@@ -18,6 +18,7 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -160,8 +161,12 @@ public class BrowserTreeCell extends TreeCell<Node> {
         // Use custom layout as this makes it easier to set opacity
         HBox hBox = new HBox();
         if (saveAndRestoreController.matchesFilter(node)) {
-            //hBox.opacityProperty().set(0.4);
-            hBox.setBackground(HIGHLIGHT_BACKGROUND);
+            //hBox.setOpacity(0.4);
+            //hBox.setBackground(HIGHLIGHT_BACKGROUND);
+            getStyleClass().add("filter-match");
+        }
+        else{
+            getStyleClass().remove("filter-match");
         }
         StringBuffer stringBuffer = new StringBuffer();
         String comment = node.getDescription();

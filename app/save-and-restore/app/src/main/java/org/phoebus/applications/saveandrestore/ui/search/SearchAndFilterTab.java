@@ -28,6 +28,8 @@ import javafx.scene.layout.HBox;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
+import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationController;
+import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationTab;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -46,8 +48,25 @@ public class SearchAndFilterTab extends Tab {
         final ResourceBundle bundle = NLS.getMessages(SaveAndRestoreApplication.class);
 
         FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(SaveAndRestoreController.class.getResource("search/SearchAndFilterView.fxml"));
+        loader.setLocation(SearchAndFilterTab.class.getResource("SearchAndFilterView.fxml"));
         loader.setResources(bundle);
+        loader.setControllerFactory(clazz -> {
+            try {
+                if (clazz.isAssignableFrom(SearchAndFilterViewController.class)) {
+                    return clazz.getConstructor(SaveAndRestoreController.class)
+                            .newInstance(saveAndRestoreController);
+                }
+                else if(clazz.isAssignableFrom(SearchWindowController.class)){
+                    return clazz.getConstructor().newInstance();
+                }
+                else if(clazz.isAssignableFrom(FilterManagementController.class)){
+                    return clazz.getConstructor().newInstance();
+                }
+            } catch (Exception e) {
+                Logger.getLogger(SearchAndFilterTab.class.getName()).log(Level.SEVERE, "Failed to instantiate SearchAndFilterViewController", e);
+            }
+            return null;
+        });
 
         try {
             setContent(loader.load());
@@ -66,7 +85,5 @@ public class SearchAndFilterTab extends Tab {
         container.getChildren().addAll(imageView, label);
 
         setGraphic(container);
-
-        //((SearchWindowController) loader.getController()).setCallerController(saveAndRestoreController);
     }
 }

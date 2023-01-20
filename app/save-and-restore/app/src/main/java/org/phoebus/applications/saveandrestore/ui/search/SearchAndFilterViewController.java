@@ -19,5 +19,28 @@
 
 package org.phoebus.applications.saveandrestore.ui.search;
 
+import javafx.fxml.FXML;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
+
+import java.net.URL;
+import java.util.ResourceBundle;
+
 public class SearchAndFilterViewController {
+
+    private SaveAndRestoreController saveAndRestoreController;
+
+    @FXML
+    private SearchWindowController searchWindowController;
+
+    @FXML
+    private FilterManagementController filterManagementController;
+
+    public SearchAndFilterViewController(SaveAndRestoreController saveAndRestoreController){
+        this.saveAndRestoreController = saveAndRestoreController;
+    }
+    @FXML
+    public void initialize(URL url, ResourceBundle resourceBundle){
+        searchWindowController.setCallerController(saveAndRestoreController);
+        filterManagementController.setCallerController(saveAndRestoreController);
+    }
 }
