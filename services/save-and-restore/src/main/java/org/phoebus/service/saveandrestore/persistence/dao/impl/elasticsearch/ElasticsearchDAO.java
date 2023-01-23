@@ -698,6 +698,7 @@ public class ElasticsearchDAO implements NodeDAO {
             sanitizedMap.put(configPv.getPvName(), configPv);
         }
         ConfigurationData sanitizedConfigurationData = new ConfigurationData();
+        sanitizedConfigurationData.setUniqueId(configurationData.getUniqueId());
         List<ConfigPv> sanitizedList = new ArrayList<>();
         sanitizedList.addAll(sanitizedMap.values());
         sanitizedConfigurationData.setPvList(sanitizedList);

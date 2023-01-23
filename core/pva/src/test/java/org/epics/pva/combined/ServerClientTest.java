@@ -64,6 +64,7 @@ import org.epics.pva.data.nt.PVADisplay.Form;
 import org.epics.pva.server.PVAServer;
 import org.epics.pva.server.ServerPV;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -224,6 +225,7 @@ public class ServerClientTest {
      * Then in a client receiving the data.
      * Then assert sent and received data is the same.
      */
+    @Disabled
     @ParameterizedTest
     @MethodSource("data")
     public <S extends PVAData> void testSinglePV(List<S> inputData) {

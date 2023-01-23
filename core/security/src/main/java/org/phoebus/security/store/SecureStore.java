@@ -44,14 +44,12 @@ public class SecureStore
     {
         switch(PhoebusSecurity.secure_store_target) {
             case FILE:
+            default:
                 store = new FileBasedStore();
                 break;
             case IN_MEMORY:
                 store = MemoryBasedStore.getInstance();
                 break;
-            default:
-                // default to FILE if not set explicitly
-                store = new FileBasedStore();
         }
     }
 
@@ -84,7 +82,7 @@ public class SecureStore
     }
 
     /** Deletes an entry in the secure store.
-     *  @param tag The tag to delete, must not be <code>null</code>.
+     *  @param tag The tag to delete.
      *  @throws Exception on error
      */
     public void delete(String tag) throws Exception{
@@ -92,7 +90,7 @@ public class SecureStore
         store.delete(tag);
     }
 
-    /** @param scope Scope
+    /** @param scope Scope identifier, will be converted to lower case, see {@link ScopedAuthenticationToken}
      *  @return Token for that scope
      *  @throws Exception on error
      */
@@ -104,6 +102,7 @@ public class SecureStore
             password = get(PASSWORD_TAG);
         }
         else{
+            scope = scope.toLowerCase();
             username = get(scope + "." + USERNAME_TAG);
             password = get(scope + "." + PASSWORD_TAG);
         }
@@ -113,7 +112,7 @@ public class SecureStore
         return new ScopedAuthenticationToken(scope, username, password);
     }
 
-    /** @param scope Scope
+    /** @param scope Scope identifier, will be converted to lower case, see {@link ScopedAuthenticationToken}
      *  @throws Exception on error
      */
     public void deleteScopedAuthenticationToken(String scope) throws Exception{
@@ -158,7 +157,7 @@ public class SecureStore
             set(scope + "." + USERNAME_TAG, username);
             set(scope + "." + PASSWORD_TAG, password);
         }
-        LOGGER.log(Level.INFO, "Storing scoped authentication token " + scopedAuthenticationToken.toString());
+        LOGGER.log(Level.INFO, "Storing scoped authentication token " + scopedAuthenticationToken);
     }
 
     /**
@@ -182,7 +181,7 @@ public class SecureStore
      * {@link #PASSWORD_TAG} item can be found.
      * @param aliases All aliases in the secure store.
      * @return List of {@link ScopedAuthenticationToken}s.
-     * @throws Exception
+     * @throws Exception If interaction with the underlying store implementation fails.
      */
     private List<ScopedAuthenticationToken> matchEntries(List<String> aliases) throws Exception{
         List<ScopedAuthenticationToken> allScopedAuthenticationTokens
