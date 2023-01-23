@@ -154,8 +154,10 @@ public class LogPropertiesEditorController {
                         treeItem.setExpanded(true);
                         return treeItem;
                     }).collect(Collectors.toSet()));
-            selectedPropertiesTree.setRoot(root);
-            selectedPropertiesTree.setShowRoot(false);
+            Platform.runLater(() -> {
+                selectedPropertiesTree.setRoot(root);
+                selectedPropertiesTree.setShowRoot(false);
+            });
         }
     }
 
