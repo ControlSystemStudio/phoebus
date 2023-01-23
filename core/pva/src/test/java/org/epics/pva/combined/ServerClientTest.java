@@ -72,6 +72,10 @@ public class ServerClientTest {
     private static final PVAServer server = testServer();
     private static final PVAClient client = testClient();
 
+    private static final long tearDownTimeOut = 200;
+    private static final long betweenEventTimeOut = 200;
+    private static final long afterLastEventTimeOut = 1000;
+
     private static PVAServer testServer() {
         try {
             return new PVAServer();
@@ -101,7 +105,7 @@ public class ServerClientTest {
 
         // Wait for closes to finish
         try {
-            TimeUnit.MILLISECONDS.sleep(100);
+            TimeUnit.MILLISECONDS.sleep(tearDownTimeOut);
         } catch (InterruptedException e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -228,7 +232,12 @@ public class ServerClientTest {
         S fakeData = inputData.get(0);
         String pvDescription = fakeData.getClass().getSimpleName() + ServerClientTest.class.getName() + " test on "
                 + pvName;
-        PVAStructure testPV = buildPVAStructure(pvName, Instant.now(), fakeData, pvDescription);
+        Instant instant = Instant.now();
+        PVAStructure testPV = buildPVAStructure(pvName, instant, fakeData, pvDescription);
+
+        HashMap<Instant, PVAData> sentData = new HashMap<>();
+        sentData.put(instant, testPV.get(PVAScalar.VALUE_NAME_STRING));
+
         assert server != null;
         ServerPV serverPV = server.createPV(pvName, testPV);
 
@@ -256,8 +265,14 @@ public class ServerClientTest {
             fail(e.getMessage());
         }
 
-        HashMap<Instant, PVAData> sentData = new HashMap<>();
-        for (S input : inputData) {
+        // Wait for subscribe to get the setup of the pv as an event.
+        try {
+            TimeUnit.MILLISECONDS.sleep(betweenEventTimeOut);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    
+        for (S input : inputData) { // TODO Sometimes receiving the setup of the pv as an event and sometimes not.
             assert testPV != null;
             S newValue = testPV.get(PVAScalar.VALUE_NAME_STRING);
             try {
@@ -267,7 +282,7 @@ public class ServerClientTest {
                 fail(e.getMessage());
             }
             PVATimeStamp timeStamp = testPV.get(PVATimeStamp.TIMESTAMP_NAME_STRING);
-            Instant instant = Instant.now();
+            instant = Instant.now();
             timeStamp.set(instant);
             sentData.put(instant, newValue);
             try {
@@ -278,7 +293,7 @@ public class ServerClientTest {
             }
             try {
                 // Sleep to allow time for client to receive requests
-                TimeUnit.MILLISECONDS.sleep(200);
+                TimeUnit.MILLISECONDS.sleep(betweenEventTimeOut);
             } catch (InterruptedException e) {
                 e.printStackTrace();
                 fail(e.getMessage());
@@ -287,7 +302,7 @@ public class ServerClientTest {
 
         // Wait for messages to clear
         try {
-            TimeUnit.MILLISECONDS.sleep(1000);
+            TimeUnit.MILLISECONDS.sleep(afterLastEventTimeOut);
         } catch (InterruptedException e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -300,7 +315,7 @@ public class ServerClientTest {
 
         System.out.println("Data out " + sentData);
         System.out.println("Data in  " + receivedDataCopy);
-        assertThat(sentData, equalTo(receivedDataCopy));
+        assertThat(receivedDataCopy, equalTo(sentData));
     }
 
 }
