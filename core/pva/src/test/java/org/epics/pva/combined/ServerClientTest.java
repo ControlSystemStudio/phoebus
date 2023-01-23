@@ -18,11 +18,11 @@
  */
 package org.epics.pva.combined;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -64,7 +64,6 @@ import org.epics.pva.data.nt.PVADisplay.Form;
 import org.epics.pva.server.PVAServer;
 import org.epics.pva.server.ServerPV;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -72,6 +71,10 @@ public class ServerClientTest {
 
     private static final PVAServer server = testServer();
     private static final PVAClient client = testClient();
+
+    private static final long tearDownTimeOut = 200;
+    private static final long betweenEventTimeOut = 200;
+    private static final long afterLastEventTimeOut = 1000;
 
     private static PVAServer testServer() {
         try {
@@ -92,13 +95,17 @@ public class ServerClientTest {
     }
 
     @AfterAll
-    public static void tearDown() throws Exception {
-        server.close();
-        client.close();
+    public static void tearDown() {
+        if (server != null) {
+            server.close();
+        }
+        if (client != null) {
+            client.close();
+        }
 
         // Wait for closes to finish
         try {
-            TimeUnit.MILLISECONDS.sleep(100);
+            TimeUnit.MILLISECONDS.sleep(tearDownTimeOut);
         } catch (InterruptedException e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -107,16 +114,16 @@ public class ServerClientTest {
 
     /**
      * Provides the input data for the test cases.
-     * 
+     * <p>
      * First goes over every scalar type, converting the first array of the
      * generated fake data to the PVAccess type.
-     * Seconds goes over every waveform type, converting each array of the
+     * Second go over every waveform type, converting each array of the
      * generated fake data to the PVAccess type.
      * 
      * @return input data
      */
     public static Collection<Object[]> data() {
-        List<List<Double>> fakeData = FakeDataUtil.fakeData(100, 1.1, 10);
+        List<List<Double>> fakeData = FakeDataUtil.fakeData(3, 1.1, 3);
         return Arrays.asList(new Object[][] {
                 {
                         fakeData.get(0).stream().map((d) -> new PVAString(PVAScalar.VALUE_NAME_STRING, d.toString()))
@@ -138,13 +145,13 @@ public class ServerClientTest {
                                 .map((i) -> new PVAInt(PVAScalar.VALUE_NAME_STRING, false, i))
                                 .collect(Collectors.toList()) },
                 {
-                        fakeData.get(0).stream().map(Double::doubleValue)
+                        fakeData.get(0).stream()
                                 .map((d) -> new PVADouble(PVAScalar.VALUE_NAME_STRING, d))
                                 .collect(Collectors.toList()) },
                 {
                         fakeData.stream()
                                 .map((dArray) -> new PVAStringArray(PVAScalar.VALUE_NAME_STRING,
-                                        dArray.stream().map((d) -> d.toString()).toArray(String[]::new)))
+                                        dArray.stream().map(Object::toString).toArray(String[]::new)))
                                 .collect(Collectors.toList()) },
                 {
                         fakeData.stream()
@@ -182,11 +189,11 @@ public class ServerClientTest {
                 {
                         fakeData.stream()
                                 .map((dArray) -> new PVAIntArray(PVAScalar.VALUE_NAME_STRING, false,
-                                        dArray.stream().mapToInt((d) -> d.intValue()).toArray()))
+                                        dArray.stream().mapToInt(Double::intValue).toArray()))
                                 .collect(Collectors.toList()) },
                 {
                         fakeData.stream().map((dArray) -> new PVADoubleArray(PVAScalar.VALUE_NAME_STRING,
-                                dArray.stream().mapToDouble((d) -> d.doubleValue()).toArray()))
+                                dArray.stream().mapToDouble((d) -> d).toArray()))
                                 .collect(Collectors.toList()) },
         });
     }
@@ -204,10 +211,7 @@ public class ServerClientTest {
         builder.control(new PVAControl(0, 1, 1));
         try {
             return builder.build();
-        } catch (PVAScalarValueNameException e) {
-            e.printStackTrace();
-            fail();
-        } catch (PVAScalarDescriptionNameException e) {
+        } catch (PVAScalarValueNameException | PVAScalarDescriptionNameException e) {
             e.printStackTrace();
             fail();
         }
@@ -220,36 +224,36 @@ public class ServerClientTest {
      * Then in a client receiving the data.
      * Then assert sent and received data is the same.
      */
-    @Disabled
     @ParameterizedTest
     @MethodSource("data")
     public <S extends PVAData> void testSinglePV(List<S> inputData) {
-        String pvName = "PV:" + inputData.get(0).getClass().getSimpleName() + ":" + UUID.randomUUID().toString();
+        String pvName = "PV:" + inputData.get(0).getClass().getSimpleName() + ":" + UUID.randomUUID();
 
         S fakeData = inputData.get(0);
         String pvDescription = fakeData.getClass().getSimpleName() + ServerClientTest.class.getName() + " test on "
                 + pvName;
         Instant instant = Instant.now();
-        ArrayList<Instant> instants = new ArrayList<>();
-        instants.add(instant);
-        PVAStructure testPV = buildPVAStructure(pvName, Instant.now(), fakeData, pvDescription);
+        PVAStructure testPV = buildPVAStructure(pvName, instant, fakeData, pvDescription);
+
+        HashMap<Instant, PVAData> sentData = new HashMap<>();
+        sentData.put(instant, testPV.get(PVAScalar.VALUE_NAME_STRING));
+
+        assert server != null;
         ServerPV serverPV = server.createPV(pvName, testPV);
 
-        AtomicReference<HashMap<Instant, PVAData>> ref = new AtomicReference<>();
-        ref.set(new HashMap<>());
-        MonitorListener listener = (ch, changes, overruns, data) -> {
-            System.out.println("Got data " + data.get(PVAScalar.VALUE_NAME_STRING));
-            ref.getAndUpdate((l) -> {
-                Instant recInstant = PVAStructures.getTime(data.get(PVATimeStamp.TIMESTAMP_NAME_STRING));
-                PVAData recData = data.get(PVAScalar.VALUE_NAME_STRING);
-                l.put(recInstant, recData);
-                return l;
-            });
-        };
+        AtomicReference<HashMap<Instant, PVAData>> receivedData = new AtomicReference<>();
+        receivedData.set(new HashMap<>());
+        MonitorListener listener = (ch, changes, overruns, data) -> receivedData.getAndUpdate((l) -> {
+            Instant recInstant = PVAStructures.getTime(data.get(PVATimeStamp.TIMESTAMP_NAME_STRING));
+            PVAData recData = data.get(PVAScalar.VALUE_NAME_STRING);
+            l.put(recInstant, recData);
+            return l;
+        });
 
+        assert client != null;
         PVAChannel channel = client.getChannel(pvName);
         try {
-            channel.connect().get(5, TimeUnit.SECONDS);
+            channel.connect().get(10, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -261,8 +265,15 @@ public class ServerClientTest {
             fail(e.getMessage());
         }
 
-        HashMap<Instant, PVAData> sentData = new HashMap<>();
-        for (S input : inputData) {
+        // Wait for subscribe to get the setup of the pv as an event.
+        try {
+            TimeUnit.MILLISECONDS.sleep(betweenEventTimeOut);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    
+        for (S input : inputData) { // TODO Sometimes receiving the setup of the pv as an event and sometimes not.
+            assert testPV != null;
             S newValue = testPV.get(PVAScalar.VALUE_NAME_STRING);
             try {
                 newValue.setValue(input);
@@ -272,7 +283,6 @@ public class ServerClientTest {
             }
             PVATimeStamp timeStamp = testPV.get(PVATimeStamp.TIMESTAMP_NAME_STRING);
             instant = Instant.now();
-            instants.add(instant);
             timeStamp.set(instant);
             sentData.put(instant, newValue);
             try {
@@ -283,19 +293,29 @@ public class ServerClientTest {
             }
             try {
                 // Sleep to allow time for client to receive requests
-                TimeUnit.MILLISECONDS.sleep(50);
+                TimeUnit.MILLISECONDS.sleep(betweenEventTimeOut);
             } catch (InterruptedException e) {
                 e.printStackTrace();
                 fail(e.getMessage());
             }
-            System.out.println("Sent data " + testPV.get(PVAScalar.VALUE_NAME_STRING));
+        }
+
+        // Wait for messages to clear
+        try {
+            TimeUnit.MILLISECONDS.sleep(afterLastEventTimeOut);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            fail(e.getMessage());
         }
 
         serverPV.close();
         channel.close();
 
-        assertEquals(inputData.size(), ref.get().size());
-        assertEquals(sentData, ref.get());
+        HashMap<Instant, PVAData> receivedDataCopy = receivedData.get();
+
+        System.out.println("Data out " + sentData);
+        System.out.println("Data in  " + receivedDataCopy);
+        assertThat(receivedDataCopy, equalTo(sentData));
     }
 
 }
