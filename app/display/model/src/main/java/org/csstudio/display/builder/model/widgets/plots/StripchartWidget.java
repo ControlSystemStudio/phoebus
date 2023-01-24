@@ -339,6 +339,13 @@ public class StripchartWidget extends VisibleWidget
 
                 handleLegacyAxes(model_reader, strip, xml, pv_macro);
 
+		// Map BOY 'plot_area_background_color' to 'background_color'
+		final Element plotAreaColor = XMLUtil.getChildElement(xml, "plot_area_background_color");
+		if (plotAreaColor != null)
+		    strip.propBackground().readFromXML(model_reader, plotAreaColor);
+		else
+                    strip.propBackground().setValue(WidgetColorService.getColor(NamedWidgetColors.BACKGROUND));
+
                 // Turn 'transparent' flag into transparent background color
                 if (XMLUtil.getChildBoolean(xml, "transparent").orElse(false))
                     strip.propBackground().setValue(NamedWidgetColors.TRANSPARENT);
