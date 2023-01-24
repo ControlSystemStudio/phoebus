@@ -84,7 +84,9 @@ public class LogEntryCellController {
         logbookIcon.setImage(logbook);
         tagIcon.setImage(tag);
         attachmentIcon.setImage(null);
-        conversationIcon.setImage(null);
+        // hide/show using CSS pseudo-selector "grouped"
+        // that is defined in LogEntryTableViewController
+        conversationIcon.setImage(conversation);
     }
 
     @FXML

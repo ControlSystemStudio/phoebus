@@ -19,30 +19,37 @@
 package org.phoebus.security.tokens;
 
 /**
- * Extension of  {@link SimpleAuthenticationToken}
+ * Extension of  {@link SimpleAuthenticationToken}.
+ *
+ * Note that the unique identity of a {@link ScopedAuthenticationToken} instance as defined in the
+ * <code>scope</code> field is maintained as a lower case string, effectively rendering the identity as
+ * case-insensitive. Reason is that if a Java native secure store file is used to maintain the tokens,
+ * the identity key is saved in lower case in the secure store.
  */
 public class ScopedAuthenticationToken extends SimpleAuthenticationToken{
 
     private String scope;
 
     /** @param username Username
-     *  @param password Passworf
+     *  @param password Password
      */
     public ScopedAuthenticationToken(String username, String password){
         super(username, password);
     }
 
-    /** @param scope Scope
+    /** @param scope Scope identity, will be converted to lower case.
      *  @param username Username
-     *  @param password Passworf
+     *  @param password Password
      */
     public ScopedAuthenticationToken(String scope, String username, String password){
         this(username, password);
-        if(scope != null && scope.trim().isEmpty()){
-            this.scope = null;
-        }
-        else{
-            this.scope = scope;
+        if(scope != null){
+            if(scope.trim().isEmpty()){
+                this.scope = null;
+            }
+            else{
+                this.scope = scope.toLowerCase();
+            }
         }
     }
 
