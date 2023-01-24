@@ -7,7 +7,7 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.server;
 
-import static org.phoebus.applications.alarm.AlarmSystem.logger;
+import static org.phoebus.applications.alarm.AlarmSystemConstants.logger;
 
 import java.io.FileInputStream;
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.prefs.Preferences;
 
-import org.phoebus.applications.alarm.AlarmSystem;
+import org.phoebus.applications.alarm.AlarmSystemConstants;
 import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
@@ -652,8 +652,8 @@ public class AlarmServerMain implements ServerModelListener
             if (parsed_args.containsKey(create_topics_arg)){
                 logger.info("Discovering and creating any missing topics at " + server);
                 CreateTopics.discoverAndCreateTopics(server, true, List.of(config,
-                                                     config + AlarmSystem.COMMAND_TOPIC_SUFFIX,
-                                                     config + AlarmSystem.TALK_TOPIC_SUFFIX),
+                                                     config + AlarmSystemConstants.COMMAND_TOPIC_SUFFIX,
+                                                     config + AlarmSystemConstants.TALK_TOPIC_SUFFIX),
                                                      kafka_properties);
             }
             if (parsed_args.containsKey(export_arg)){
