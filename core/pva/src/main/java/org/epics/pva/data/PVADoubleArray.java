@@ -18,7 +18,7 @@ import org.epics.pva.PVASettings;
  *   @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVADoubleArray extends PVAData implements PVAArray
+public class PVADoubleArray extends PVAData implements PVAArray, PVAValue
 {
     private volatile double[] value;
 
@@ -159,6 +159,11 @@ public class PVADoubleArray extends PVAData implements PVAArray
                 buffer.append(", ...");
         }
         buffer.append("]");
+    }
+
+    @Override
+    public String formatValue() {
+        return Arrays.toString(get());
     }
 
     @Override

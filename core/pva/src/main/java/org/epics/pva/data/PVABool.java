@@ -14,7 +14,7 @@ import java.util.BitSet;
  *   @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVABool extends PVAData
+public class PVABool extends PVAData implements PVAValue
 {
     /** Type descriptor */
     public static final byte FIELD_DESC_TYPE = (byte)0b00000000;
@@ -154,6 +154,11 @@ public class PVABool extends PVAData
     {
         formatType(level, buffer);
         buffer.append(" ").append(value);
+    }
+
+    @Override
+    public String formatValue() {
+        return Boolean.toString(get());
     }
 
     @Override

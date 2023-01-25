@@ -15,7 +15,7 @@ import java.util.Objects;
  *   @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVAString extends PVAData
+public class PVAString extends PVAData implements PVAValue
 {
     /** Type descriptor */
     public static final byte FIELD_DESC_TYPE = (byte)0b01100000;
@@ -168,6 +168,11 @@ public class PVAString extends PVAData
     {
         formatType(level, buffer);
         buffer.append(" ").append(value);
+    }
+
+    @Override
+    public String formatValue() {
+        return get();
     }
 
     @Override
