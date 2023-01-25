@@ -1,5 +1,7 @@
 package org.phoebus.security.store;
 
+import org.phoebus.security.tokens.ScopedAuthenticationToken;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,5 +41,4 @@ public class MemoryBasedStore implements Store<String, String> {
     public void delete(String key) {
         store.remove(key);
     }
-
 }
