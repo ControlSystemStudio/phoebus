@@ -62,6 +62,9 @@ public class SearchAndFilterTab extends Tab {
                 else if(clazz.isAssignableFrom(FilterManagementController.class)){
                     return clazz.getConstructor().newInstance();
                 }
+                else if(clazz.isAssignableFrom(SearchQueryEditorController.class)){
+                    return clazz.getConstructor().newInstance();
+                }
             } catch (Exception e) {
                 Logger.getLogger(SearchAndFilterTab.class.getName()).log(Level.SEVERE, "Failed to instantiate SearchAndFilterViewController", e);
             }

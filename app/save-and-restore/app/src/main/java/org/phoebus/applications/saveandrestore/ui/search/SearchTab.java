@@ -68,6 +68,6 @@ public class SearchTab extends Tab {
 
         setGraphic(container);
 
-        ((SearchWindowController) loader.getController()).setCallerController(saveAndRestoreController);
+        //((SearchWindowController) loader.getController()).setCallerController(saveAndRestoreController);
     }
 }

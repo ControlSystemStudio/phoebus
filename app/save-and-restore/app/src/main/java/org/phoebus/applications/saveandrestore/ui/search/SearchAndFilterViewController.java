@@ -20,12 +20,17 @@
 package org.phoebus.applications.saveandrestore.ui.search;
 
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.Stack;
 
-public class SearchAndFilterViewController {
+public class SearchAndFilterViewController implements Initializable {
 
     private SaveAndRestoreController saveAndRestoreController;
 
@@ -35,12 +40,43 @@ public class SearchAndFilterViewController {
     @FXML
     private FilterManagementController filterManagementController;
 
+    @FXML
+    private SearchQueryEditorController searchQueryEditorController;
+
     public SearchAndFilterViewController(SaveAndRestoreController saveAndRestoreController){
         this.saveAndRestoreController = saveAndRestoreController;
     }
     @FXML
     public void initialize(URL url, ResourceBundle resourceBundle){
-        searchWindowController.setCallerController(saveAndRestoreController);
-        filterManagementController.setCallerController(saveAndRestoreController);
+        searchWindowController.setSearchAndFilterViewController(this);
+        filterManagementController.setSearchAndFilterViewController(this);
+        searchQueryEditorController.setSearchAndFilterViewController(this);
+    }
+
+    public void setFilter(Filter filter){
+        searchQueryEditorController.setFilter(filter);
+        searchWindowController.setFilter(filter);
+        search(filter.getQueryString());
+    }
+
+    public void search(String queryString){
+        searchWindowController.search(queryString);
+    }
+
+    public void filterDeleted(Filter filter){
+        saveAndRestoreController.filterDeleted(filter);
+    }
+
+    public void locateNode(Stack<Node> stack){
+        saveAndRestoreController.locateNode(stack);
+    }
+
+    public void saveFilter(Filter filter){
+        try {
+            SaveAndRestoreService.getInstance().saveFilter(filter);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 }

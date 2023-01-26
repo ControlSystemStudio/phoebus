@@ -21,27 +21,21 @@ package org.phoebus.applications.saveandrestore.ui.search;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import org.phoebus.applications.saveandrestore.Messages;
-import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
-import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -55,14 +49,10 @@ import java.util.logging.Logger;
 
 public class FilterManagementController implements Initializable {
 
-    private SaveAndRestoreController callerController;
-    private List<Node> tableEntries = new ArrayList<>();
 
+    private SearchAndFilterViewController searchAndFilterViewController;
     @FXML
-    private TextField queryTextField;
-
-    @FXML
-    private TableView<Filter> resultTableView;
+    private TableView<Filter> tableView;
 
     @FXML
     private TableColumn<Filter, String> nameColumn;
@@ -75,9 +65,6 @@ public class FilterManagementController implements Initializable {
 
     @FXML
     private TableColumn<Filter, String> userColumn;
-
-    @FXML
-    private TableColumn<Filter, Filter> saveColumn;
 
     @FXML
     private TableColumn<Filter, Filter> deleteColumn;
@@ -94,19 +81,20 @@ public class FilterManagementController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         saveAndRestoreService = SaveAndRestoreService.getInstance();
 
-        resultTableView.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        tableView.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
 
         nameColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getName()));
         queryColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getQueryString()));
         lastUpdatedColumn.setCellValueFactory(cell ->
                 new ReadOnlyObjectWrapper(TimestampFormats.SECONDS_FORMAT.format(cell.getValue().getLastUpdated().toInstant())));
-        userColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getUserName()));
+        userColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getUser()));
 
-        saveColumn.setCellFactory(column -> new SaveTableCell());
         deleteColumn.setCellValueFactory(cellValue -> new SimpleObjectProperty<>(cellValue.getValue()));
         deleteColumn.setCellFactory(column -> new DeleteTableCell());
         editColumn.setCellValueFactory(cellValue -> new SimpleObjectProperty<>(cellValue.getValue()));
         editColumn.setCellFactory(column -> new EditTableCell());
+
+        tableView.setSelectionModel(null);
 
         loadFilters();
     }
@@ -114,30 +102,9 @@ public class FilterManagementController implements Initializable {
     private void loadFilters() {
         try {
             List<Filter> filters = saveAndRestoreService.getAllFilters();
-            resultTableView.getItems().setAll(filters);
+            tableView.getItems().setAll(filters);
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Failed to load filters", e);
-        }
-    }
-
-    private class SaveTableCell extends TableCell<Filter, Filter> {
-        @Override
-        protected void updateItem(final Filter item, final boolean empty) {
-            super.updateItem(item, empty);
-            if (empty) {
-                setGraphic(null);
-            } else {
-                Button button = new Button();
-                button.setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/save_edit.png"));
-                button.setTooltip(new Tooltip(Messages.saveFilter));
-                button.setOnAction(new EventHandler<ActionEvent>() {
-                    @Override
-                    public void handle(ActionEvent event) {
-
-                    }
-                });
-                setGraphic(button);
-            }
         }
     }
 
@@ -155,7 +122,7 @@ public class FilterManagementController implements Initializable {
                     try {
                         saveAndRestoreService.deleteFilter(filter.getName());
                         loadFilters();
-                        callerController.filterDeleted(filter);
+                        searchAndFilterViewController.filterDeleted(filter);
                     } catch (Exception e) {
                         LOG.log(Level.SEVERE, "Failed to delete filter", e);
                         ExceptionDetailsErrorDialog.openError(Messages.errorGeneric, Messages.faildDeleteFilter, e);
@@ -178,9 +145,7 @@ public class FilterManagementController implements Initializable {
                 button.setTooltip(new Tooltip(Messages.editFilter));
                 button.setOnAction(event -> {
                     try {
-                        saveAndRestoreService.deleteFilter(filter.getName());
-                        loadFilters();
-                        callerController.filterDeleted(filter);
+                        searchAndFilterViewController.setFilter(filter);
                     } catch (Exception e) {
                         LOG.log(Level.SEVERE, "Failed to delete filter", e);
                         ExceptionDetailsErrorDialog.openError(Messages.errorGeneric, Messages.faildDeleteFilter, e);
@@ -191,9 +156,8 @@ public class FilterManagementController implements Initializable {
         }
     }
 
-    public void setCallerController(SaveAndRestoreController callerController) {
-        this.callerController = callerController;
+    public void setSearchAndFilterViewController(SearchAndFilterViewController searchAndFilterViewController){
+        this.searchAndFilterViewController = searchAndFilterViewController;
     }
-
 }
 

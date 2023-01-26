@@ -24,10 +24,10 @@
 
 <BorderPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.search.SearchAndFilterViewController">
     <left>
-        <fx:include source="SearchQueryEditor.fxml" />
+        <fx:include fx:id="searchQueryEditor" source="SearchQueryEditor.fxml" />
     </left>
     <center>
-        <SplitPane dividerPositions="0.5" orientation="VERTICAL">
+        <SplitPane dividerPositions="0.6" orientation="VERTICAL">
             <items>
                 <fx:include fx:id="searchWindow" source="SearchWindow.fxml" />
                 <fx:include fx:id="filterManagement" source="FilterManagement.fxml" />

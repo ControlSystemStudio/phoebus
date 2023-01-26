@@ -18,70 +18,83 @@
   ~  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
   -->
 
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.*?>
+<BorderPane fx:id="advancedSearchPane" prefWidth="250.0" style="-fx-background-color: #f4f4f4;"
+            xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.phoebus.applications.saveandrestore.ui.search.SearchQueryEditorController">
+    <center>
 
-<GridPane fx:id="advancedSearchPane" prefWidth="250.0" style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.search.SearchQueryEditorController">
-
-
-    <columnConstraints>
-        <ColumnConstraints />
-      <ColumnConstraints />
-    </columnConstraints>
-    <rowConstraints>
-        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
-        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
-        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
-        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
-        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
-        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
-        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
-        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
-        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
-        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
-        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
-      <RowConstraints />
-    </rowConstraints>
-    <children>
-        <Label text="%filterEditorNodeName" GridPane.rowIndex="0" />
-        <TextField fx:id="nodeName" GridPane.rowIndex="1" />
-        <CheckBox fx:id="filterEditorNodeTypeFolder" text="%filterEditorNodeTypeFolder" GridPane.rowIndex="2" />
-        <CheckBox fx:id="filterEditorNodeTypeConfiguration" text="%filterEditorNodeTypeConfiguration" GridPane.rowIndex="3" />
-        <CheckBox fx:id="filterEditorNodeTypeSnapshot" text="%filterEditorNodeTypeSnapshot" GridPane.rowIndex="4" />
-        <CheckBox fx:id="filterEditorNodeTypeCompositeSnapshot" text="%filterEditorNodeTypeCompositeSnapshot" GridPane.rowIndex="5" />
-        <Label text="%filterEditorTags" GridPane.rowIndex="6" />
-        <TextField fx:id="filterEditorTags" GridPane.rowIndex="7" />
-        <Label text="%filterEditorUser" GridPane.rowIndex="8" />
-        <TextField fx:id="filterEditorUser" GridPane.rowIndex="9" />
-        <Label text="%Time" GridPane.columnSpan="2" GridPane.rowIndex="10">
-            <GridPane.margin>
-                <Insets top="5.0" />
-            </GridPane.margin>
-        </Label>
-
-        <GridPane fx:id="timePane" GridPane.rowIndex="11">
+        <GridPane>
+            <columnConstraints>
+                <ColumnConstraints/>
+                <ColumnConstraints/>
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
+                <RowConstraints/>
+                <RowConstraints/>
+                <RowConstraints/>
+            </rowConstraints>
             <children>
-                <Label text="%StartTime" GridPane.rowIndex="0">
+                <Label text="%filterEditorNodeName" GridPane.columnSpan="2" GridPane.rowIndex="0"/>
+                <TextField fx:id="nodeNameTextField" GridPane.columnSpan="2" GridPane.rowIndex="1"/>
+                <CheckBox fx:id="nodeTypeFolderCheckBox" text="%filterEditorNodeTypeFolder" GridPane.columnSpan="2"
+                          GridPane.rowIndex="2"/>
+                <CheckBox fx:id="nodeTypeConfigurationCheckBox" text="%filterEditorNodeTypeConfiguration"
+                          GridPane.columnSpan="2" GridPane.rowIndex="3"/>
+                <CheckBox fx:id="nodeTypeSnapshotCheckBox" text="%filterEditorNodeTypeSnapshot"
+                          GridPane.columnSpan="2" GridPane.rowIndex="4"/>
+                <CheckBox fx:id="nodeTypeCompositeSnapshotCheckBox" text="%filterEditorNodeTypeCompositeSnapshot"
+                          GridPane.columnSpan="2" GridPane.rowIndex="5"/>
+                <Label text="%filterEditorDescriptionOrComment" GridPane.rowIndex="6" GridPane.columnSpan="2"/>
+                <TextField fx:id="descTextField" GridPane.columnSpan="2" GridPane.rowIndex="7"/>
+                <Label text="%filterEditorTags" GridPane.columnSpan="2" GridPane.rowIndex="8"/>
+                <TextField fx:id="tagsTextField" GridPane.columnSpan="2" GridPane.rowIndex="9"/>
+                <Label text="%filterEditorUser" GridPane.columnSpan="2" GridPane.rowIndex="10"/>
+                <TextField fx:id="userTextField" GridPane.columnSpan="2" GridPane.rowIndex="11"/>
+                <Label text="%Time" GridPane.columnSpan="2" GridPane.rowIndex="12">
                     <GridPane.margin>
-                        <Insets />
+                        <Insets top="5.0"/>
                     </GridPane.margin>
                 </Label>
-                <TextField fx:id="startTime" GridPane.columnIndex="1"  GridPane.rowIndex="0">
+
+                <Label text="%StartTime" GridPane.rowIndex="13">
                     <GridPane.margin>
-                        <Insets />
+                        <Insets/>
+                    </GridPane.margin>
+                </Label>
+                <TextField fx:id="startTime" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS"
+                           GridPane.rowIndex="13">
+                    <GridPane.margin>
+                        <Insets bottom="3.0" left="3.0" top="3.0"/>
                     </GridPane.margin>
                 </TextField>
-                <Label text="%EndTime" GridPane.rowIndex="1" />
-                <TextField fx:id="endTime" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                <Label text="%EndTime" GridPane.rowIndex="14"/>
+                <TextField fx:id="endTime" GridPane.columnIndex="1" GridPane.rowIndex="14">
                     <GridPane.margin>
-                        <Insets />
+                        <Insets bottom="3.0" left="3.0" top="3.0"/>
                     </GridPane.margin>
                 </TextField>
             </children>
+            <BorderPane.margin>
+                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+            </BorderPane.margin>
         </GridPane>
-    </children>
-   <padding>
-      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-   </padding>
-</GridPane>
+    </center>
+</BorderPane>

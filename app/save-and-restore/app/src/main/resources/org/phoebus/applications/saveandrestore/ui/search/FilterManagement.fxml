@@ -23,7 +23,8 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<GridPane alignment="CENTER" hgap="5.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" style="-fx-background-color: #f4f4f4;" vgap="5.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.search.FilterManagementController">
+<GridPane alignment="CENTER" hgap="5.0" style="-fx-background-color: #f4f4f4;" vgap="5.0"
+          xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.search.FilterManagementController">
     <columnConstraints>
         <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" />
     </columnConstraints>
@@ -31,14 +32,13 @@
         <RowConstraints vgrow="SOMETIMES" />
     </rowConstraints>
     <children>
-        <TableView fx:id="resultTableView" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS">
+        <TableView fx:id="tableView" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS">
             <columns>
-                <TableColumn fx:id="nameColumn" editable="false" minWidth="200.0" prefWidth="250.0" style="-fx-alignment: CENTER-LEFT;" text="%filterNameColumn" />
+                <TableColumn fx:id="nameColumn" editable="false" minWidth="200.0" prefWidth="250.0" style="-fx-alignment: CENTER-LEFT;" text="%filterName" />
                 <TableColumn fx:id="queryColumn" editable="false" minWidth="300.0" prefWidth="300.0" style="-fx-alignment: CENTER-LEFT;" text="%filterQueryColumn" />
                 <TableColumn fx:id="lastUpdatedColumn" editable="false" minWidth="150.0" prefWidth="150.0" style="-fx-alignment: CENTER-RIGHT;" styleClass="timestamp-column" text="%filterLastUpdatedColumn" />
                 <TableColumn fx:id="userColumn" editable="false" minWidth="100.0" prefWidth="100.0" text="%filterUserColumn" style="-fx-alignment: CENTER-RIGHT;" />
                 <TableColumn fx:id="editColumn" editable="false" maxWidth="50.0" minWidth="50.0" prefWidth="50.0" style="-fx-alignment: CENTER;"/>
-                <TableColumn fx:id="saveColumn" editable="false" maxWidth="50.0" minWidth="50.0" prefWidth="50.0" style="-fx-alignment: CENTER;"/>
                 <TableColumn fx:id="deleteColumn" editable="false" maxWidth="50.0" minWidth="50.0" prefWidth="50.0" style="-fx-alignment: CENTER;" />
             </columns>
             <columnResizePolicy>

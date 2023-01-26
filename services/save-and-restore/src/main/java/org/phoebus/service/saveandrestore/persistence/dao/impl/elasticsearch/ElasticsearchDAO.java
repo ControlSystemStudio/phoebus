@@ -30,6 +30,7 @@ import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
+import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.model.ESTreeNode;
@@ -40,6 +41,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -963,10 +965,24 @@ public class ElasticsearchDAO implements NodeDAO {
         return elasticsearchTreeRepository.search(searchParameters);
     }
 
+    /**
+     * Saves a {@link Filter}. The query string is analyzed and sanitized to make sure that:
+     * <ul>
+     *     <li>Only valid keys are saved.</li>
+     *     <li>Values (search terms) with multiple elements are formatted correctly.</li>
+     * </ul>
+     * @param filter The {@link Filter} to save
+     * @return
+     */
     @Override
     public Filter saveFilter(Filter filter){
+        // Parse the search query to make sure only supported keys are accepted
+        Map<String, String> queryParams = SearchQueryUtil.parseHumanReadableQueryString(filter.getQueryString());
+        // Format query again before saving it
+        filter.setQueryString(SearchQueryUtil.toQueryString(queryParams));
         return filterRepository.save(filter);
     }
+
 
     @Override
     public List<Filter> getAllFilters(){

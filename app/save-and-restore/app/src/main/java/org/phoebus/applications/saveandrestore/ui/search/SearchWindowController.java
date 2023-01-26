@@ -23,6 +23,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
@@ -30,27 +31,26 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
+import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
+import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.ui.HelpViewer;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
-import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
-import org.phoebus.applications.saveandrestore.ui.search.SearchQueryUtil.Keys;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -61,6 +61,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -81,11 +82,11 @@ import java.util.stream.Collectors;
 
 public class SearchWindowController implements Initializable {
 
-    private SaveAndRestoreController callerController;
+    private SearchAndFilterViewController searchAndFilterViewController;
     private List<Node> tableEntries = new ArrayList<>();
 
     @FXML
-    private TextField queryTextField;
+    private TextField filterNameTextField;
 
     @FXML
     private TableView<Node> resultTableView;
@@ -115,7 +116,10 @@ public class SearchWindowController implements Initializable {
     private TextField pageSizeTextField;
 
     @FXML
-    private Button saveAsFilterButton;
+    private Label queryLabel;
+
+    @FXML
+    private Button saveFilterButton;
 
     private SaveAndRestoreService saveAndRestoreService;
 
@@ -127,9 +131,18 @@ public class SearchWindowController implements Initializable {
     private final SimpleIntegerProperty hitCountProperty = new SimpleIntegerProperty(0);
     private final SimpleIntegerProperty pageCountProperty = new SimpleIntegerProperty(0);
 
+    private final SimpleStringProperty query = new SimpleStringProperty();
+
+    private final SimpleStringProperty filterNameProperty = new SimpleStringProperty();
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         saveAndRestoreService = SaveAndRestoreService.getInstance();
+        queryLabel.textProperty().bind(query);
+
+        filterNameTextField.textProperty().bindBidirectional(filterNameProperty);
+        saveFilterButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                filterNameProperty.get() == null || filterNameProperty.get().isEmpty(), filterNameProperty));
 
         resultTableView.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         pagination.getStylesheets().add(this.getClass().getResource("/pagination.css").toExternalForm());
@@ -148,7 +161,7 @@ public class SearchWindowController implements Initializable {
                         if (action.getClickCount() == 2) {
                             Stack<Node> copiedStack = new Stack<>();
                             DirectoryUtilities.CreateLocationStringAndNodeStack(node, false).getValue().forEach(copiedStack::push);
-                            callerController.locateNode(copiedStack);
+                            searchAndFilterViewController.locateNode(copiedStack);
                         }
                     });
                 }
@@ -190,6 +203,7 @@ public class SearchWindowController implements Initializable {
         pagination.pageCountProperty().bind(pageCountProperty);
         pagination.maxPageIndicatorCountProperty().bind(pageCountProperty);
 
+        /*
         queryTextField.setOnKeyPressed(keyEvent -> {
             if (keyEvent.getCode() == KeyCode.ENTER) {
                 search();
@@ -197,10 +211,18 @@ public class SearchWindowController implements Initializable {
         });
 
         saveAsFilterButton.disableProperty().bind(queryTextField.textProperty().isEmpty());
+        */
+
+
+        query.addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                search();
+            }
+        });
     }
 
-    public void setCallerController(SaveAndRestoreController callerController) {
-        this.callerController = callerController;
+    public void setSearchAndFilterViewController(SearchAndFilterViewController searchAndFilterViewController) {
+        this.searchAndFilterViewController = searchAndFilterViewController;
     }
 
     private ImageView getImageView(Node node) {
@@ -226,13 +248,30 @@ public class SearchWindowController implements Initializable {
         new HelpViewer().show();
     }
 
-    @FXML
+    public void search(String queryString) {
+        if (queryString == null || queryString.isEmpty()) {
+            clearSearchResult();
+            query.set(null);
+        } else {
+            query.setValue(queryString);
+            //search();
+        }
+    }
+
+    private void clearSearchResult() {
+        resultTableView.getItems().setAll(Collections.emptyList());
+        hitCountProperty.set(0);
+        pageCountProperty.set(0);
+    }
+
     public void search() {
 
-        String searchQuery = queryTextField.getText();
+        if (query.get() == null) {
+            return;
+        }
 
         Map<String, String> params =
-                SearchQueryUtil.parseHumanReadableQueryString(searchQuery);
+                SearchQueryUtil.parseHumanReadableQueryString(query.get());
 
         params.put(Keys.FROM.getName(), Integer.toString(pagination.getCurrentPageIndex() * pageSizeProperty.get()));
         params.put(Keys.SIZE.getName(), Integer.toString(pageSizeProperty.get()));
@@ -258,6 +297,7 @@ public class SearchWindowController implements Initializable {
                         alert.setHeaderText(Messages.searchNoResult);
                         DialogHelper.positionDialog(alert, resultTableView, -300, -200);
                         alert.show();
+                        clearSearchResult();
                     });
                 }
             } catch (Exception e) {
@@ -267,6 +307,7 @@ public class SearchWindowController implements Initializable {
                         Messages.searchErrorBody,
                         e
                 );
+                clearSearchResult();
             }
         });
     }
@@ -276,60 +317,51 @@ public class SearchWindowController implements Initializable {
                 .thenComparing((Node n) -> n.getName().toLowerCase());
     }
 
-    public void setQuery(String query){
-        queryTextField.setText(query);
-        search();
-    }
 
     @FXML
-    public void saveAsFilter(){
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle(Messages.saveFilter);
-        dialog.setHeaderText(null);
-        dialog.setContentText(Messages.saveFilterSelectName);
-        dialog.getDialogPane().lookupButton(ButtonType.OK).disableProperty().bind(dialog.getEditor().textProperty().isEmpty());
+    public void saveFilter() {
 
-        Optional<String> result = dialog.showAndWait();
-        if (result.isPresent()){
-            // Check if the filter name is already used.
-            JobManager.schedule("Get All Filters", monitor -> {
-               List<Filter> allFilters = saveAndRestoreService.getAllFilters();
-               if(allFilters.stream().anyMatch(f -> f.getName().equals(result.get()))){
-                   Platform.runLater(() -> {
-                       Alert alert = new Alert(AlertType.CONFIRMATION);
-                       alert.setTitle(Messages.saveFilter);
-                       alert.setHeaderText(null);
-                       alert.setContentText(MessageFormat.format(Messages.saveFilterConfirmOverwrite, result.get()));
-                       ButtonType buttonTypeOverwrite = new ButtonType(Messages.overwrite);
-                       ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
-                       alert.getButtonTypes().setAll(buttonTypeOverwrite, buttonTypeCancel);
-                       Optional<ButtonType> overwrite = alert.showAndWait();
-                       if (overwrite.get() == buttonTypeOverwrite){
-                           saveFilter(result.get());
-                       }
-                   });
-               }
-               else{
-                   saveFilter(result.get());
-               }
-            });
-        }
+        // Check if the filter name is already used.
+        JobManager.schedule("Get All Filters", monitor -> {
+            List<Filter> allFilters = saveAndRestoreService.getAllFilters();
+            if (allFilters.stream().anyMatch(f -> filterNameProperty.get().equalsIgnoreCase(f.getName()))) {
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(AlertType.CONFIRMATION);
+                    alert.setTitle(Messages.saveFilter);
+                    alert.setHeaderText(null);
+                    alert.setContentText(MessageFormat.format(Messages.saveFilterConfirmOverwrite, filterNameProperty.get()));
+                    ButtonType buttonTypeOverwrite = new ButtonType(Messages.overwrite);
+                    ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
+                    alert.getButtonTypes().setAll(buttonTypeOverwrite, buttonTypeCancel);
+                    Optional<ButtonType> overwrite = alert.showAndWait();
+                    if (overwrite.get() == buttonTypeOverwrite) {
+                        saveFilter(filterNameProperty.get());
+                    }
+                });
+            } else {
+                saveFilter(filterNameProperty.get());
+            }
+        });
     }
 
-    private void saveFilter(String name){
-        String query = queryTextField.getText();
+    private void saveFilter(String name) {
+        String query = filterNameTextField.getText();
         Filter filter = new Filter();
         filter.setName(name);
         filter.setQueryString(query);
         try {
             JobManager.schedule("Save Filter", monitor -> {
                 saveAndRestoreService.saveFilter(filter);
-                callerController.filterAdded(filter);
             });
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Failed to save filter." + (e.getMessage() !=  null ? ("Cause: " + e.getMessage()) : ""));
+            LOG.log(Level.WARNING, "Failed to save filter." + (e.getMessage() != null ? ("Cause: " + e.getMessage()) : ""));
             Platform.runLater(() -> ExceptionDetailsErrorDialog.openError(Messages.errorGeneric, Messages.failedSaveFilter, e));
         }
+    }
+
+    public void setFilter(Filter filter){
+        query.set(filter.getQueryString());
+        filterNameProperty.set(filter.getName());
     }
 }
 

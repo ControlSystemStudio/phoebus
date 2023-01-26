@@ -7,8 +7,8 @@
       "queryString" : {
         "type": "keyword"
       },
-      "userName": {
-        "type": "text"
+      "user": {
+        "type": "keyword"
       },
       "lastUpdated": {
         "type": "date",

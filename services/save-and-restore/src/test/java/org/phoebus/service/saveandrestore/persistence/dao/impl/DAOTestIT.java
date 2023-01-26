@@ -22,7 +22,6 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.indices.DeleteIndexRequest;
 import co.elastic.clients.elasticsearch.indices.ExistsRequest;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
-import org.elasticsearch.common.recycler.Recycler.C;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
@@ -51,7 +50,6 @@ import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.persistence.config.ElasticConfig;
-import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ConfigurationDataRepository;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchDAO;
 
@@ -2224,18 +2222,18 @@ public class DAOTestIT {
     public void testFilters(){
         Filter filter = new Filter();
         filter.setName("name");
-        filter.setQueryString("query");
-        filter.setUserName("user");
+        filter.setQueryString("name=aName");
+        filter.setUser("user");
 
         filter = nodeDAO.saveFilter(filter);
         assertEquals("name", filter.getName());
-        assertEquals("query", filter.getQueryString());
-        assertEquals("user", filter.getUserName());
+        assertEquals("name=aName", filter.getQueryString());
+        assertEquals("user", filter.getUser());
         assertNotNull(filter.getLastUpdated());
 
-        filter.setQueryString("query2");
+        filter.setQueryString("type=Snapshot");
         filter = nodeDAO.saveFilter(filter);
-        assertEquals("query2", filter.getQueryString());
+        assertEquals("type=Snapshot", filter.getQueryString());
 
         assertEquals(1, nodeDAO.getAllFilters().size());
 
@@ -2245,7 +2243,7 @@ public class DAOTestIT {
 
         Filter filter2 = new Filter();
         filter2.setName("name");
-        filter2.setQueryString("query2");
+        filter2.setQueryString("user=John");
 
         nodeDAO.saveFilter(filter);
         nodeDAO.saveFilter(filter2);
@@ -2261,6 +2259,15 @@ public class DAOTestIT {
         nodeDAO.deleteAllFilters();
 
         assertEquals(0, nodeDAO.getAllFilters().size());
+
+        Filter unformattedQueryStringFilter = new Filter();
+        unformattedQueryStringFilter.setName("name");
+        unformattedQueryStringFilter.setUser("user");
+        unformattedQueryStringFilter.setQueryString("type=Folder, Configuration&unsupported=value");
+
+        unformattedQueryStringFilter = nodeDAO.saveFilter(unformattedQueryStringFilter);
+        assertTrue(unformattedQueryStringFilter.getQueryString().contains("type=Folder,Configuration"));
+        assertFalse(unformattedQueryStringFilter.getQueryString().contains("unsupoorted"));
 
         clearAllData();
     }

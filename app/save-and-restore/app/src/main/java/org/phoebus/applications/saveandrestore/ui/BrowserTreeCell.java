@@ -156,13 +156,12 @@ public class BrowserTreeCell extends TreeCell<Node> {
         super.updateItem(node, empty);
         if (empty) {
             setGraphic(null);
+            getStyleClass().remove("filter-match");
             return;
         }
         // Use custom layout as this makes it easier to set opacity
         HBox hBox = new HBox();
         if (saveAndRestoreController.matchesFilter(node)) {
-            //hBox.setOpacity(0.4);
-            //hBox.setBackground(HIGHLIGHT_BACKGROUND);
             getStyleClass().add("filter-match");
         }
         else{

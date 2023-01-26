@@ -71,7 +71,7 @@ public class FilterManagementTab extends Tab {
 
         setGraphic(container);
 
-        ((FilterManagementController) loader.getController()).setCallerController(saveAndRestoreController);
+        //((FilterManagementController) loader.getController()).setSearchAndFilterViewController(saveAndRestoreController);
 
     }
 }
