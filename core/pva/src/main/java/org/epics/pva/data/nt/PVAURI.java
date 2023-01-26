@@ -20,8 +20,10 @@ package org.epics.pva.data.nt;
 
 import org.epics.pva.data.*;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -68,7 +70,7 @@ public class PVAURI extends PVAStructure {
 
 
     private PVAURI(String name, PVAString scheme, PVAString authority, PVAString path, PVAStructure query) {
-        super(name, STRUCT_NAME, scheme, path, authority, query);
+        super(name, STRUCT_NAME, Arrays.stream(new PVAData[] {scheme, path, authority, query}).filter(Objects::nonNull).toArray(PVAData[]::new));
         this.scheme = scheme;
         this.authority = authority;
         this.path = path;
@@ -121,7 +123,7 @@ public class PVAURI extends PVAStructure {
         if (query == null) {
             return new PVAStructure(QUERY_NAME, "structure");
         }
-        return new PVAStructure(QUERY_NAME, "structure", query.entrySet().stream().map((e) -> new PVAString(e.getKey(), e.getValue())).collect(Collectors.toList()));
+        return new PVAStructure(QUERY_NAME, "structure", query.entrySet().stream().map(e -> new PVAString(e.getKey(), e.getValue())).collect(Collectors.toList()));
     }
 
     public String getScheme() {
@@ -136,21 +138,28 @@ public class PVAURI extends PVAStructure {
         return path.get();
     }
 
+    /**
+     * Gets the query in a map format
+     *
+     * @return Returns the query in a Map<String, String>
+     * @throws NotValueException If a query in the queries structure
+     *                           does not implement {@link PVAValue}
+     */
     public Map<String, String> getQuery() throws NotValueException {
         Map<String, String> queries = new HashMap<>();
-        for (PVAData query: this.query.get()) {
-            if (query instanceof PVAValue) {
-                PVAValue queryString = (PVAString) query;
-                queries.put(query.getName(), queryString.formatValue());
+        for (PVAData q: this.query.get()) {
+            if (q instanceof PVAValue) {
+                PVAValue queryString = (PVAString) q;
+                queries.put(q.getName(), queryString.formatValue());
             } else {
-                throw new NotValueException("query input " + query + " does not implement PVAValue");
+                throw new NotValueException("query input " + q + " does not implement PVAValue");
             }
         }
         return queries;
     }
 
     /**
-     * Converts from a generic PVAStruture to PVAURI
+     * Converts from a generic PVAStructure to PVAURI
      *
      * @param structure Input structure
      * @return Representative URI
