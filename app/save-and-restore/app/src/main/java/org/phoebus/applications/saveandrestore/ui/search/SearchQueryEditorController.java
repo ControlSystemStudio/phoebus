@@ -84,6 +84,12 @@ public class SearchQueryEditorController implements Initializable {
 
     private boolean searchDisabled = false;
 
+    /**
+     * Reference to a {@link Filter} if explicitly set when user
+     * wants to edit it.
+     */
+    private Filter currentFilter;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         nodeNameTextField.textProperty().bindBidirectional(nodeNameProperty);
@@ -139,6 +145,7 @@ public class SearchQueryEditorController implements Initializable {
     public void setFilter(Filter filter) {
         // Temporarily disable search as setting the types options would otherwise trigger
         // a search for each selection.
+        this.currentFilter = filter;
         searchDisabled = true;
         Map<String, String> searchParams = SearchQueryUtil.parseHumanReadableQueryString(filter.getQueryString());
         nodeNameProperty.set(searchParams.get(Keys.NAME.getName()));
@@ -217,12 +224,5 @@ public class SearchQueryEditorController implements Initializable {
             map.put(Keys.TYPE.getName(), types.stream().collect(Collectors.joining(",")));
         }
         return SearchQueryUtil.toQueryString(map);
-    }
-
-    public void clear(){
-        searchDisabled = true;
-        nodeNameProperty.set(null);
-        descProperty.set(null);
-        searchDisabled = false;
     }
 }

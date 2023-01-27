@@ -363,5 +363,11 @@ public class SearchWindowController implements Initializable {
         query.set(filter.getQueryString());
         filterNameProperty.set(filter.getName());
     }
+
+    public void clearFilter(Filter filter){
+        if(filterNameProperty.get() != null && filterNameProperty.get().equals(filter.getName())){
+            filterNameProperty.set(null);
+        }
+    }
 }
 

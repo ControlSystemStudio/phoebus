@@ -310,7 +310,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         });
 
         filtersComboBox.itemsProperty().bind(new SimpleObjectProperty<>(filtersList));
+
         enableFilterCheckBox.disableProperty().bind(Bindings.createBooleanBinding(() -> filtersList.isEmpty(), filtersList));
+
         loadTreeData();
     }
 
@@ -1289,7 +1291,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     private void loadFilters() {
         try {
             List<Filter> filters = saveAndRestoreService.getAllFilters();
-            filtersList.setAll(filters);
+            Platform.runLater(() -> filtersList.setAll(filters));
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Failed to load filters", e);
         }
@@ -1331,8 +1333,10 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     public void filterAddedOrUpdated(Filter filter) {
+        Filter selectedFilter =  filtersComboBox.getSelectionModel().getSelectedItem();
         boolean selectFilterAfterRefresh =
-                filtersComboBox.getSelectionModel().getSelectedItem().getName().equals(filter.getName());
+                selectedFilter != null &&
+                selectedFilter.getName().equals(filter.getName());
         loadFilters();
         if(selectFilterAfterRefresh){
             filtersComboBox.getSelectionModel().select(filter);
