@@ -345,13 +345,13 @@ public class SearchWindowController implements Initializable {
     }
 
     private void saveFilter(String name) {
-        String query = filterNameTextField.getText();
         Filter filter = new Filter();
         filter.setName(name);
-        filter.setQueryString(query);
+        filter.setQueryString(queryLabel.getText());
         try {
             JobManager.schedule("Save Filter", monitor -> {
                 saveAndRestoreService.saveFilter(filter);
+                searchAndFilterViewController.filterAddedOrUpdated(filter);
             });
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Failed to save filter." + (e.getMessage() != null ? ("Cause: " + e.getMessage()) : ""));

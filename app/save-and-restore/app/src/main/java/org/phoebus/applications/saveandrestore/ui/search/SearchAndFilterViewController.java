@@ -65,6 +65,12 @@ public class SearchAndFilterViewController implements Initializable {
 
     public void filterDeleted(Filter filter){
         saveAndRestoreController.filterDeleted(filter);
+        searchQueryEditorController.clear();
+    }
+
+    public void filterAddedOrUpdated(Filter filter){
+        saveAndRestoreController.filterAddedOrUpdated(filter);
+        filterManagementController.loadFilters();
     }
 
     public void locateNode(Stack<Node> stack){

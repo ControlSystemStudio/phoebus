@@ -218,4 +218,11 @@ public class SearchQueryEditorController implements Initializable {
         }
         return SearchQueryUtil.toQueryString(map);
     }
+
+    public void clear(){
+        searchDisabled = true;
+        nodeNameProperty.set(null);
+        descProperty.set(null);
+        searchDisabled = false;
+    }
 }

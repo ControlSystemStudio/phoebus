@@ -99,7 +99,7 @@ public class FilterManagementController implements Initializable {
         loadFilters();
     }
 
-    private void loadFilters() {
+    public void loadFilters() {
         try {
             List<Filter> filters = saveAndRestoreService.getAllFilters();
             tableView.getItems().setAll(filters);

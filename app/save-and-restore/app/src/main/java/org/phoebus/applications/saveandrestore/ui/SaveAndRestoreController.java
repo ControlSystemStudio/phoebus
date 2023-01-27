@@ -1317,16 +1317,26 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     /**
      * Takes action to update the view when a {@link Filter} has been deleted, i.e. remove
-     * from drop-down list and - if currently selected - select the "no filter" {@link Filter}.
+     * from drop-down list and clear highlighted nodes.
      *
      * @param filter The deleted {@link Filter}.
      */
     public void filterDeleted(Filter filter) {
         filtersList.remove(filter);
+        searchResultNodes.clear();
+        treeView.refresh();
+        if(filtersList.isEmpty()){
+            filterEnabledProperty.set(false);
+        }
     }
 
-    public void filterAdded(Filter filter) {
-        filtersList.add(filter);
+    public void filterAddedOrUpdated(Filter filter) {
+        boolean selectFilterAfterRefresh =
+                filtersComboBox.getSelectionModel().getSelectedItem().getName().equals(filter.getName());
+        loadFilters();
+        if(selectFilterAfterRefresh){
+            filtersComboBox.getSelectionModel().select(filter);
+        }
     }
 
     private void filterEnabledChanged(boolean enabled) {
