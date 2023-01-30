@@ -39,7 +39,7 @@ import org.epics.pva.data.PVAStructure;
  * 
  */
 public class PVAAlarm extends PVAStructure {
-    private static final String ALARM_NAME_STRING = "alarm";
+    public static final String ALARM_NAME_STRING = "alarm";
     /** Type name for alarm info */
     private static final String ALARM_T = "alarm_t";
     private PVAString message;

@@ -18,7 +18,7 @@ import org.epics.pva.PVASettings;
  *   @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVAByteArray extends PVAData implements PVAArray
+public class PVAByteArray extends PVAData implements PVAArray, PVAValue
 {
     private final boolean unsigned;
     private volatile byte[] value;
@@ -176,6 +176,11 @@ public class PVAByteArray extends PVAData implements PVAArray
                 buffer.append(", ...");
         }
         buffer.append("]");
+    }
+
+    @Override
+    public String formatValue() {
+        return Arrays.toString(get());
     }
 
     @Override
