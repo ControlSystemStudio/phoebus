@@ -107,7 +107,7 @@ public abstract class PVAData
     protected abstract void format(int level, StringBuilder buffer);
 
     /**
-     * Retrieve the first level of the type.
+     * Retrieve the type of the pvData.
      */
     public abstract String getType();
 

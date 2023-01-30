@@ -244,16 +244,14 @@ public class PVAUnion extends PVADataWithID
     @Override
     public String getType()
     {
-        if (getUnionName().isEmpty())
-            return "union ";
-        return getUnionName();
+        return "union";
     }
 
     @Override
     public void formatType(int level, StringBuilder buffer)
     {
         indent(level, buffer);
-        buffer.append(getType()).append(" ");
+        buffer.append(getUnionName().isEmpty() ? getType() : getUnionName()).append(" ");
         buffer.append(name);
         if (type_id > 0)
             buffer.append(" [#").append(type_id).append("]");
