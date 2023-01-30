@@ -19,7 +19,7 @@ import org.epics.pva.PVASettings;
  *   @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVAStringArray extends PVAData implements PVAArray
+public class PVAStringArray extends PVAData implements PVAArray, PVAValue
 {
     private volatile String[] value = new String[0];
 
@@ -147,6 +147,11 @@ public class PVAStringArray extends PVAData implements PVAArray
                 buffer.append(", ...");
         }
         buffer.append("]");
+    }
+
+    @Override
+    public String formatValue() {
+        return Arrays.toString(get());
     }
 
     @Override
