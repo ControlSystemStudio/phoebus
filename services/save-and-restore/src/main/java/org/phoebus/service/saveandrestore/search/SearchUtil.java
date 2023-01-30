@@ -5,11 +5,13 @@ import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery.Builder;
 import co.elastic.clients.elasticsearch._types.query_dsl.ChildScoreMode;
 import co.elastic.clients.elasticsearch._types.query_dsl.DisMaxQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.FuzzyQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.NestedQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.WildcardQuery;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
+import org.phoebus.applications.saveandrestore.model.Tag;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.MultiValueMap;
@@ -21,6 +23,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -130,6 +133,7 @@ public class SearchUtil {
                     break;
                 case "tags":
                     DisMaxQuery.Builder tagsQuery = new DisMaxQuery.Builder();
+                    tagsQuery.queries(Collections.emptyList());
                     for (String value : parameter.getValue()) {
                         for (String pattern : value.split("[|,;]")) {
                             String[] tagsSearchFields;
@@ -137,7 +141,16 @@ public class SearchUtil {
                             BoolQuery.Builder bqb = new BoolQuery.Builder();
                             // This handles a special case where search is done on name only, e.g. tags=golden
                             if (tagsSearchFields[0] != null && !tagsSearchFields[0].isEmpty() && (tagsSearchFields[1] == null || tagsSearchFields[1].isEmpty())) {
-                                bqb.must(WildcardQuery.of(w -> w.caseInsensitive(true).field("node.tags.name").value(tagsSearchFields[0].trim().toLowerCase()))._toQuery());
+                                if(!tagsSearchFields[0].equalsIgnoreCase(Tag.GOLDEN)){
+                                    bqb.must(WildcardQuery.of(w -> w.caseInsensitive(true).field("node.tags.name").value(tagsSearchFields[0].trim().toLowerCase()))._toQuery());
+                                }
+                                else{
+                                    MatchQuery matchQuery = MatchQuery.of(m -> m.field("node.tags.name").query(Tag.GOLDEN));
+                                    NestedQuery innerNestedQuery = NestedQuery.of(n1 -> n1.path("node.tags").query(matchQuery._toQuery()));
+                                    NestedQuery outerNestedQuery = NestedQuery.of(n2 -> n2.path("node").query(innerNestedQuery._toQuery()));
+                                    boolQueryBuilder.must(outerNestedQuery._toQuery());
+                                    continue;
+                                }
                             }
                             // This handles the "generic" case where user specifies a field of a tag, e.g. tags=comment.foo (where foo is the search term)
                             else {

@@ -19,26 +19,31 @@
 
 package org.phoebus.applications.saveandrestore.ui.search;
 
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.ui.dialog.ListSelectionPopOver;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class SearchQueryEditorController implements Initializable {
@@ -69,26 +74,24 @@ public class SearchQueryEditorController implements Initializable {
     @FXML
     private TextField descTextField;
 
-    private SimpleStringProperty nodeNameProperty = new SimpleStringProperty();
+    private final SimpleStringProperty nodeNameProperty = new SimpleStringProperty();
 
-    private SimpleBooleanProperty nodeTypeFolderProperty = new SimpleBooleanProperty();
-    private SimpleBooleanProperty nodeTypeConfigurationProperty = new SimpleBooleanProperty();
+    private final SimpleBooleanProperty nodeTypeFolderProperty = new SimpleBooleanProperty();
+    private final SimpleBooleanProperty nodeTypeConfigurationProperty = new SimpleBooleanProperty();
 
-    private SimpleBooleanProperty nodeTypeSnapshotProperty = new SimpleBooleanProperty();
-    private SimpleBooleanProperty nodeTypeCompositeSnapshotProperty = new SimpleBooleanProperty();
+    private final SimpleBooleanProperty nodeTypeSnapshotProperty = new SimpleBooleanProperty();
+    private final SimpleBooleanProperty nodeTypeCompositeSnapshotProperty = new SimpleBooleanProperty();
 
-    private SimpleStringProperty tagsProperty = new SimpleStringProperty();
-    private SimpleStringProperty userProperty = new SimpleStringProperty();
+    private final SimpleStringProperty tagsProperty = new SimpleStringProperty();
+    private final SimpleStringProperty userProperty = new SimpleStringProperty();
 
-    private SimpleStringProperty descProperty = new SimpleStringProperty();
+    private final SimpleStringProperty descProperty = new SimpleStringProperty();
 
     private boolean searchDisabled = false;
 
-    /**
-     * Reference to a {@link Filter} if explicitly set when user
-     * wants to edit it.
-     */
-    private Filter currentFilter;
+    private ListSelectionPopOver tagSearchPopover;
+
+    private static final Logger LOGGER = Logger.getLogger(SearchWindowController.class.getName());
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -122,6 +125,7 @@ public class SearchQueryEditorController implements Initializable {
                 updateParametersAndSearch();
             }
         });
+
         descTextField.textProperty().bindBidirectional(descProperty);
         descTextField.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) {
@@ -137,15 +141,31 @@ public class SearchQueryEditorController implements Initializable {
         tagsTextField.textProperty().bindBidirectional(tagsProperty);
         tagsTextField.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) {
+                tagSearchPopover.hide();
                 updateParametersAndSearch();
             }
         });
+
+        tagSearchPopover = ListSelectionPopOver.create(
+                (tags, popover) -> {
+                    String tagsValue = String.join(",", tags);
+                    tagsProperty.setValue(tagsValue);
+                    if (popover.isShowing()) {
+                        popover.hide();
+                        updateParametersAndSearch();
+                    }
+                },
+                (tags, popover) -> {
+                    if (popover.isShowing()) {
+                        popover.hide();
+                    }
+                }
+        );
     }
 
     public void setFilter(Filter filter) {
         // Temporarily disable search as setting the types options would otherwise trigger
         // a search for each selection.
-        this.currentFilter = filter;
         searchDisabled = true;
         Map<String, String> searchParams = SearchQueryUtil.parseHumanReadableQueryString(filter.getQueryString());
         nodeNameProperty.set(searchParams.get(Keys.NAME.getName()));
@@ -186,9 +206,10 @@ public class SearchQueryEditorController implements Initializable {
     }
 
     private void updateParametersAndSearch() {
-        if(searchDisabled){
+        if (searchDisabled) {
             return;
         }
+
         String queryString = buildQueryString();
         searchAndFilterViewController.search(queryString);
     }
@@ -221,8 +242,38 @@ public class SearchQueryEditorController implements Initializable {
             types.add(NodeType.COMPOSITE_SNAPSHOT.name().toLowerCase());
         }
         if (!types.isEmpty()) {
-            map.put(Keys.TYPE.getName(), types.stream().collect(Collectors.joining(",")));
+            map.put(Keys.TYPE.getName(), String.join(",", types));
         }
         return SearchQueryUtil.toQueryString(map);
+    }
+
+    @FXML
+    public void showPopOver() {
+        if (tagSearchPopover.isShowing()) {
+            tagSearchPopover.hide();
+        } else {
+            List<String> selectedTags = Arrays.stream(tagsProperty.getValueSafe().split(","))
+                    .map(String::trim)
+                    .filter(it -> !it.isEmpty())
+                    .collect(Collectors.toList());
+            List<String> availableTags = new ArrayList<>();
+            try {
+                List<String> tagNames = new ArrayList<>();
+                SaveAndRestoreService.getInstance().getAllTags().forEach(tag -> {
+                    if (!tagNames.contains(tag.getName())) {
+                        tagNames.add(tag.getName());
+                    }
+                });
+                availableTags = tagNames
+                        .stream()
+                        .sorted(Comparator.comparing(String::toLowerCase))
+                        .collect(Collectors.toList());
+            } catch (Exception e) {
+                LOGGER.log(Level.SEVERE, "Unable to retrieve all tags from service");
+            }
+            tagSearchPopover.setAvailable(availableTags, selectedTags);
+            tagSearchPopover.setSelected(selectedTags);
+            tagSearchPopover.show(tagsTextField);
+        }
     }
 }

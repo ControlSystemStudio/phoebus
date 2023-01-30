@@ -203,17 +203,6 @@ public class SearchWindowController implements Initializable {
         pagination.pageCountProperty().bind(pageCountProperty);
         pagination.maxPageIndicatorCountProperty().bind(pageCountProperty);
 
-        /*
-        queryTextField.setOnKeyPressed(keyEvent -> {
-            if (keyEvent.getCode() == KeyCode.ENTER) {
-                search();
-            }
-        });
-
-        saveAsFilterButton.disableProperty().bind(queryTextField.textProperty().isEmpty());
-        */
-
-
         query.addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
                 search();
@@ -249,19 +238,21 @@ public class SearchWindowController implements Initializable {
     }
 
     public void search(String queryString) {
+        clearSearchResult();
         if (queryString == null || queryString.isEmpty()) {
-            clearSearchResult();
+
             query.set(null);
         } else {
             query.setValue(queryString);
-            //search();
         }
     }
 
     private void clearSearchResult() {
         resultTableView.getItems().setAll(Collections.emptyList());
-        hitCountProperty.set(0);
-        pageCountProperty.set(0);
+        Platform.runLater(() -> {
+            hitCountProperty.set(0);
+            pageCountProperty.set(0);
+        });
     }
 
     public void search() {
@@ -359,13 +350,13 @@ public class SearchWindowController implements Initializable {
         }
     }
 
-    public void setFilter(Filter filter){
+    public void setFilter(Filter filter) {
         query.set(filter.getQueryString());
         filterNameProperty.set(filter.getName());
     }
 
-    public void clearFilter(Filter filter){
-        if(filterNameProperty.get() != null && filterNameProperty.get().equals(filter.getName())){
+    public void clearFilter(Filter filter) {
+        if (filterNameProperty.get() != null && filterNameProperty.get().equals(filter.getName())) {
             filterNameProperty.set(null);
         }
     }
