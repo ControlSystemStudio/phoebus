@@ -124,7 +124,7 @@ public class PVAStringArray extends PVAData implements PVAArray, PVAValue
     @Override
     public String getType()
     {
-        return "string";
+        return "string[]";
     }
 
     @Override
