@@ -24,6 +24,7 @@ package org.phoebus.applications.saveandrestore.ui.snapshot;
 import javafx.application.Platform;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
@@ -33,9 +34,12 @@ import javafx.scene.control.TextInputControl;
 import javafx.scene.layout.GridPane;
 import javafx.util.Pair;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.ui.autocomplete.AutocompleteMenu;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -49,8 +53,10 @@ public class SnapshotNewTagDialog extends Dialog<Pair<String, String>> {
 
     private final TextInputControl tagNameTextField;
 
-    public SnapshotNewTagDialog(List<Tag> tagList) {
+    public SnapshotNewTagDialog(Node node) {
         super();
+
+        List<Tag> tagList = node.getTags() == null ? new ArrayList<>(): node.getTags();
 
         setTitle(Messages.createNewTagDialogTitle);
 
@@ -89,7 +95,9 @@ public class SnapshotNewTagDialog extends Dialog<Pair<String, String>> {
         tagNameTextField.textProperty().addListener((observableValue, oldString, newString) -> {
             if (!newString.isEmpty()) {
                 tagList.stream()
-                        .filter(tag -> tag.getName().equals(newString))
+                        .filter(tag -> tag.getName().equals(newString) ||
+                                // Composite snapshots may be tagged as golden
+                                (node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT) && newString.equalsIgnoreCase(Tag.GOLDEN)))
                         .findFirst()
                         .ifPresentOrElse(tag ->
                                 getDialogPane().lookupButton(saveTagButton).setDisable(true), () -> getDialogPane().lookupButton(saveTagButton).setDisable(false));
@@ -106,6 +114,8 @@ public class SnapshotNewTagDialog extends Dialog<Pair<String, String>> {
 
             return null;
         });
+
+
     }
 
     /**

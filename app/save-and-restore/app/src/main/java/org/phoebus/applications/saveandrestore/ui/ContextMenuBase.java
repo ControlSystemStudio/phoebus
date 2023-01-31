@@ -28,10 +28,8 @@ import org.phoebus.ui.javafx.ImageCache;
 
 public abstract class ContextMenuBase extends ContextMenu {
 
-    protected Image folderIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/folder.png");
     protected Image renameIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/rename_col.png");
     protected Image deleteIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/delete.png");
-    protected Image configurationIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/configuration.png");
     protected Image csvImportIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_import.png");
 
     protected MenuItem deleteNodesMenuItem;

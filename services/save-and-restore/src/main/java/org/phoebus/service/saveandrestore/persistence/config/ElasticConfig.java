@@ -21,6 +21,7 @@ import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.json.VTypeDeserializer;
 import org.phoebus.applications.saveandrestore.model.json.VTypeSerializer;
 import org.phoebus.service.saveandrestore.model.ESTreeNode;
+import org.phoebus.service.saveandrestore.search.SearchUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -51,6 +52,12 @@ public class ElasticConfig {
 
     @Value("${elasticsearch.snapshot_node.index:saveandrestore_snapshot}")
     public String ES_SNAPSHOT_INDEX;
+
+    @Value("${elasticsearch.composite_snapshot_node.index:saveandrestore_composite_snapshot}")
+    public String ES_COMPOSITE_SNAPSHOT_INDEX;
+
+    @Value("${elasticsearch.filter.index:saveandrestore_filter}")
+    public String ES_FILTER_INDEX;
 
     @Value("${elasticsearch.network.host:localhost}")
     private String host;
@@ -143,6 +150,32 @@ public class ElasticConfig {
         } catch (IOException e) {
             logger.log(Level.WARNING, "Failed to create index " + ES_SNAPSHOT_INDEX, e);
         }
+
+        // Composite snapshot index
+        try (InputStream is = ElasticConfig.class.getResourceAsStream("/composite_snapshot_mapping.json")) {
+            BooleanResponse exits = client.indices().exists(ExistsRequest.of(e -> e.index(ES_COMPOSITE_SNAPSHOT_INDEX)));
+            if (!exits.value()) {
+                CreateIndexResponse result = client.indices().create(
+                        CreateIndexRequest.of(
+                                c -> c.index(ES_COMPOSITE_SNAPSHOT_INDEX).withJson(is)));
+                logger.info("Created index: " + ES_COMPOSITE_SNAPSHOT_INDEX + " : acknowledged " + result.acknowledged());
+            }
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "Failed to create index " + ES_COMPOSITE_SNAPSHOT_INDEX, e);
+        }
+
+        // Filter index
+        try (InputStream is = ElasticConfig.class.getResourceAsStream("/filter_mapping.json")) {
+            BooleanResponse exits = client.indices().exists(ExistsRequest.of(e -> e.index(ES_FILTER_INDEX)));
+            if (!exits.value()) {
+                CreateIndexResponse result = client.indices().create(
+                        CreateIndexRequest.of(
+                                c -> c.index(ES_FILTER_INDEX).withJson(is)));
+                logger.info("Created index: " + ES_FILTER_INDEX + " : acknowledged " + result.acknowledged());
+            }
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "Failed to create index " + ES_FILTER_INDEX, e);
+        }
     }
 
     /**
@@ -175,5 +208,10 @@ public class ElasticConfig {
         } catch (IOException e) {
             logger.log(Level.WARNING, "Failed to create root folder", e);
         }
+    }
+
+    @Bean
+    public SearchUtil searchUtil(){
+        return new SearchUtil();
     }
 }

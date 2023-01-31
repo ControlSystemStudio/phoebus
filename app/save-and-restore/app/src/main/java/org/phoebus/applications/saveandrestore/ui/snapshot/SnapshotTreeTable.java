@@ -55,6 +55,7 @@ import org.phoebus.applications.saveandrestore.common.Utilities;
 import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.common.VNoData;
 import org.phoebus.applications.saveandrestore.common.VTypePair;
+import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.MultitypeTreeTableCell;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
@@ -85,8 +86,6 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
     private IHierarchyParser hierarchyParser = null;
 
     public static final Logger LOGGER = Logger.getLogger(SnapshotController.class.getName());
-
-    public static final Image folderIcon = ImageCache.getImage(SnapshotTreeTable.class, "/icons/save-and-restore/folder.png");
 
     private static boolean resizePolicyNotInitialized = true;
     private static final PrivilegedAction<Object> resizePolicyAction = () -> {
@@ -308,8 +307,8 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
      */
     private static class VDeltaTreeCellEditor<T> extends VTypeTreeCellEditor<T> {
 
-        private static final Image WARNING_IMAGE =  ImageCache.getImage(SnapshotController.class, "/icons/hprio_tsk.png");
-        private static final Image DISCONNECTED_IMAGE = ImageCache.getImage(SnapshotTreeTable.class,"/icons/showerr_tsk.png");
+        private static final Image WARNING_IMAGE = ImageCache.getImage(SnapshotController.class, "/icons/hprio_tsk.png");
+        private static final Image DISCONNECTED_IMAGE = ImageCache.getImage(SnapshotTreeTable.class, "/icons/showerr_tsk.png");
         private final Tooltip tooltip = new Tooltip();
 
         private boolean showDeltaPercentage = false;
@@ -715,6 +714,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                 Messages.toolTipTableColumnTimestamp, width, width, true);
         timestampColumn.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(cell.getValue().getValue()));
         timestampColumn.setCellFactory(c -> new TimestampTreeTableCell());
+        timestampColumn.getStyleClass().add("timestamp-column");
         timestampColumn.setPrefWidth(width);
         snapshotTreeTableColumns.add(timestampColumn);
 
@@ -1133,7 +1133,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
         private final HBox box;
         private final CheckBox checkBox;
-        private final ImageView folderIconImageView = new ImageView(folderIcon);
+        private final ImageView folderIconImageView = new ImageView(ImageRepository.FOLDER);
 
         private ObservableValue<Boolean> booleanProperty;
 

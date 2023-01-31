@@ -68,6 +68,14 @@ public class NodeTest {
         assertTrue(folder1.compareTo(config) < 0);
         assertTrue(config.compareTo(folder1) > 0);
         assertTrue(config.compareTo(config2) < 0);
+
+
+        Node snapshot = Node.builder().nodeType(NodeType.SNAPSHOT).name("b").build();
+        Node snapshot2 = Node.builder().nodeType(NodeType.SNAPSHOT).name("b").build();
+        Node compositeSnapshot = Node.builder().nodeType(NodeType.COMPOSITE_SNAPSHOT).name("c").build();
+
+        assertTrue(snapshot.compareTo(compositeSnapshot) < 0);
+        assertTrue(snapshot.compareTo(snapshot2) == 0);
     }
 
     @Test

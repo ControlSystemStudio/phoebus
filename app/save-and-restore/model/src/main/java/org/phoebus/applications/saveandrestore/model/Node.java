@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -154,8 +155,8 @@ public class Node implements Comparable<Node>, Serializable {
     }
 
     /**
-     * Implements strategy where folders are sorted before configurations (configurations), and
-     * equal node types are sorted alphabetically.
+     * Implements strategy where the node type ordinal is considered first, then
+     * name in lower case.
      *
      * @param other The tree item to compare to
      * @return -1 if this item is a folder and the other item is a configuration,
@@ -163,14 +164,8 @@ public class Node implements Comparable<Node>, Serializable {
      */
     @Override
     public int compareTo(Node other) {
-
-        if (nodeType.equals(NodeType.FOLDER) && other.getNodeType().equals(NodeType.CONFIGURATION)) {
-            return -1;
-        } else if (getNodeType().equals(NodeType.CONFIGURATION) && other.getNodeType().equals(NodeType.FOLDER)) {
-            return 1;
-        } else {
-            return getName().compareTo(other.getName());
-        }
+        return Comparator.comparing(Node::getNodeType)
+                .thenComparing((Node n) -> n.getName().toLowerCase()).compare(this, other);
     }
 
     @Override

@@ -24,9 +24,12 @@ import co.elastic.clients.elasticsearch._types.Result;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery.Builder;
 import co.elastic.clients.elasticsearch._types.query_dsl.ExistsQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.MatchAllQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.NestedQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.TermQuery;
+import co.elastic.clients.elasticsearch.core.DeleteByQueryRequest;
+import co.elastic.clients.elasticsearch.core.DeleteByQueryResponse;
 import co.elastic.clients.elasticsearch.core.DeleteRequest;
 import co.elastic.clients.elasticsearch.core.DeleteResponse;
 import co.elastic.clients.elasticsearch.core.ExistsRequest;
@@ -40,16 +43,17 @@ import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
-import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.model.ESTreeNode;
+import org.phoebus.service.saveandrestore.search.SearchUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.MultiValueMap;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -57,7 +61,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -82,9 +85,13 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
     @Qualifier("client")
     ElasticsearchClient client;
 
-    public ElasticsearchTreeRepository(){
+    @SuppressWarnings("unused")
+    @Autowired
+    private SearchUtil searchUtil;
+
+    public ElasticsearchTreeRepository() {
         String isMigrationContext = System.getProperty("migrationContext");
-        if(isMigrationContext != null){
+        if (isMigrationContext != null) {
             try {
                 migrationContext = Boolean.parseBoolean(isMigrationContext);
             } catch (Exception e) {
@@ -115,7 +122,7 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
             }
 
             // Set last modified date
-            if(!migrationContext){
+            if (!migrationContext) {
                 elasticTreeNode.getNode().setLastModified(now);
             }
 
@@ -257,7 +264,15 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
 
     @Override
     public void deleteAll() {
-
+        try {
+            DeleteByQueryRequest deleteRequest = DeleteByQueryRequest.of(d ->
+                    d.index(ES_TREE_INDEX).query(new MatchAllQuery.Builder().build()._toQuery()).refresh(true));
+            DeleteByQueryResponse deleteResponse = client.deleteByQuery(deleteRequest);
+            logger.log(Level.INFO, "Deleted " + deleteResponse.deleted() + " ESTreeNode objects");
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Failed to delete all ESTreeNode objects", e);
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -323,10 +338,24 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
         }
     }
 
-    public List<ESTreeNode> getAllNodesByType(NodeType nodeType) {
+    public SearchResult search(MultiValueMap<String, String> searchParameters) {
+
+        SearchRequest searchRequest = searchUtil.buildSearchRequest(searchParameters);
+        try {
+            SearchResponse<ESTreeNode> searchResponse = client.search(searchRequest, ESTreeNode.class);
+            SearchResult searchResult = new SearchResult();
+            searchResult.setHitCount((int) searchResponse.hits().total().value());
+            searchResult.setNodes(searchResponse.hits().hits().stream().map(e -> e.source().getNode()).collect(Collectors.toList()));
+            return searchResult;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<ESTreeNode> getByNodeName(String nodeName) {
         BoolQuery.Builder boolQueryBuilder = new Builder();
         NestedQuery innerNestedQuery;
-        MatchQuery matchQuery = MatchQuery.of(m -> m.field("node.nodeType").query(nodeType.toString()));
+        MatchQuery matchQuery = MatchQuery.of(m -> m.field("node.name").query(nodeName));
         innerNestedQuery = NestedQuery.of(n1 -> n1.path("node").query(matchQuery._toQuery()));
         boolQueryBuilder.must(innerNestedQuery._toQuery());
         SearchRequest searchRequest = SearchRequest.of(s -> s.index(ES_TREE_INDEX)

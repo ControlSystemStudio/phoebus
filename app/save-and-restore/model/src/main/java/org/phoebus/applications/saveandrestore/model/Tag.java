@@ -27,10 +27,11 @@ package org.phoebus.applications.saveandrestore.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.io.Serializable;
 import java.util.Date;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Tag implements Comparable<Tag> {
+public class Tag implements Comparable<Tag>, Serializable {
 
     public static final String GOLDEN = "golden";
 

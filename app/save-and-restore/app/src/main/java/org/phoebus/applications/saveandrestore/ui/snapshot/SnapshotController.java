@@ -83,6 +83,7 @@ import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.pv.PVPool;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -125,6 +126,9 @@ public class SnapshotController implements NodeChangedListener {
 
     @FXML
     private TextField snapshotName;
+
+    @FXML
+    private Button takeSnapshotButton;
 
     @FXML
     private Button restoreButton;
@@ -226,6 +230,9 @@ public class SnapshotController implements NodeChangedListener {
 
     private ServiceLoader<SaveAndRestoreEventReceiver> eventReceivers;
 
+    /**
+     * A {@link Node} of type {@link NodeType#SNAPSHOT} or {@link NodeType#COMPOSITE_SNAPSHOT}.
+     */
     private Node snapshotNode;
 
     /**
@@ -491,24 +498,45 @@ public class SnapshotController implements NodeChangedListener {
                 saveActionDone, restoreActionDone).not());
     }
 
+    /**
+     * Loads a snapshot {@link Node} for restore, or to take new snapshot.
+     *
+     * @param snapshotNode An existing {@link Node} of type {@link NodeType#SNAPSHOT}
+     */
     public void loadSnapshot(Node snapshotNode) {
         if (snapshotNode == null) {
             return;
         }
         this.snapshotNode = snapshotNode;
-        try {
-            this.configNode = saveAndRestoreService.getParentNode(snapshotNode.getUniqueId());
-            snapshotNameProperty.set(snapshotNode.getName());
-            snapshotUniqueIdProperty.set(snapshotNode.getUniqueId());
+        snapshotNameProperty.set(snapshotNode.getName());
+        snapshotUniqueIdProperty.set(snapshotNode.getUniqueId());
+        snapshotCommentProperty.set(snapshotNode.getDescription());
+        createdDateTextProperty.set(TimestampFormats.SECONDS_FORMAT.format(snapshotNode.getCreated().toInstant()));
+        lastModifiedDateTextProperty.set(TimestampFormats.SECONDS_FORMAT.format(snapshotNode.getLastModified().toInstant()));
+        createdByTextProperty.set(snapshotNode.getUserName());
+        snapshotTab.updateTabTitle(snapshotNode.getName());
+        snapshotTab.setId(snapshotNode.getUniqueId());
 
-            boolean isGolden = snapshotNode.getTags() != null && snapshotNode.getTags().stream().anyMatch(t -> t.getName().equals(Tag.GOLDEN));
+        if (!this.snapshotNode.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)) {
+            if (snapshotNode.getTags() != null && snapshotNode.getTags().stream().anyMatch(t -> t.getName().equals(Tag.GOLDEN))) {
+                snapshotTab.setGoldenImage();
+            }
+            loadSnapshotInternal();
+        } else {
+            takeSnapshotButton.setDisable(true);
+            snapshotName.setEditable(false);
+            snapshotComment.setEditable(false);
+            snapshotTab.setCompositeSnapshotImage();
+            loadCompositeSnapshotInternal(vSnapshot -> Platform.runLater(() -> {
+                List<TableEntry> tableEntries = loadSnapshotInternal(vSnapshot);
 
-            snapshotTab.updateTabTitile(snapshotNode.getName(), isGolden);
-            snapshotTab.setId(snapshotNode.getUniqueId());
-        } catch (Exception e) {
-            LOGGER.log(Level.INFO, "Error loading snapshot", e);
+                snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
+                if (Preferences.tree_tableview_enable) {
+                    snapshotTreeTable.updateTable(tableEntries, snapshots, false, false, false);
+                }
+                snapshotRestorableProperty.set(true);
+            }));
         }
-        loadSnapshotInternal();
     }
 
     public void addSnapshot(Node treeNode) {
@@ -545,41 +573,46 @@ public class SnapshotController implements NodeChangedListener {
      */
     public void newSnapshot(Node configurationNode) {
         this.configNode = configurationNode;
-        try {
-            ConfigurationData configuration = saveAndRestoreService.getConfiguration(configurationNode.getUniqueId());
+        JobManager.schedule("Get configuration", monitor -> {
+            ConfigurationData configuration;
+            try {
+                configuration = saveAndRestoreService.getConfiguration(configurationNode.getUniqueId());
+            } catch (Exception e) {
+                ExceptionDetailsErrorDialog.openError(snapshotTreeTable, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
+                LOGGER.log(Level.INFO, "Error loading configuration", e);
+                return;
+            }
             List<ConfigPv> configPvs = configuration.getPvList();
             snapshotNode = Node.builder().name(Messages.unnamedSnapshot).nodeType(NodeType.SNAPSHOT).build();
             VSnapshot vSnapshot =
                     new VSnapshot(snapshotNode, configurationToSnapshotEntries(configPvs));
             List<TableEntry> tableEntries = setSnapshotInternal(vSnapshot);
-            UI_EXECUTOR.execute(() -> {
+            Platform.runLater(() -> {
                 snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
                 if (Preferences.tree_tableview_enable) {
                     snapshotTreeTable.updateTable(tableEntries, snapshots, false, false, false);
                 }
             });
-        } catch (Exception e) {
-            LOGGER.log(Level.INFO, "Error loading configuration", e);
-        }
+        });
     }
 
     private void loadSnapshotInternal() {
-
-        UI_EXECUTOR.execute(() -> {
+        disabledUi.set(true);
+        JobManager.schedule("Load snapshot items", monitor -> {
+            SnapshotData snapshotData;
             try {
-                SnapshotData snapshotData = saveAndRestoreService.getSnapshot(snapshotNode.getUniqueId());
-
-                snapshotCommentProperty.set(snapshotNode.getDescription());
-                createdDateTextProperty.set(TimestampFormats.SECONDS_FORMAT.format(snapshotNode.getCreated().toInstant()));
-                lastModifiedDateTextProperty.set(TimestampFormats.SECONDS_FORMAT.format(snapshotNode.getLastModified().toInstant()));
-                createdByTextProperty.set(snapshotNode.getUserName());
-                snapshotNameProperty.set(snapshotNode.getName());
-
-                snapshotTab.setId(snapshotNode.getUniqueId());
-                snapshotTab.updateTabTitile(snapshotNode.getName(), snapshotNode.hasTag(Tag.GOLDEN));
-
-                VSnapshot vSnapshot =
-                        new VSnapshot(snapshotNode, snapshotItemsToSnapshotEntries(snapshotData.getSnapshotItems()));
+                configNode = saveAndRestoreService.getParentNode(snapshotNode.getUniqueId());
+                snapshotData = saveAndRestoreService.getSnapshot(snapshotNode.getUniqueId());
+            } catch (Exception e) {
+                ExceptionDetailsErrorDialog.openError(snapshotTreeTable, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
+                LOGGER.log(Level.INFO, "Error loading snapshot", e);
+                return;
+            } finally {
+                disabledUi.set(false);
+            }
+            VSnapshot vSnapshot =
+                    new VSnapshot(snapshotNode, snapshotItemsToSnapshotEntries(snapshotData.getSnapshotItems()));
+            Platform.runLater(() -> {
                 List<TableEntry> tableEntries = loadSnapshotInternal(vSnapshot);
 
                 snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
@@ -587,10 +620,29 @@ public class SnapshotController implements NodeChangedListener {
                     snapshotTreeTable.updateTable(tableEntries, snapshots, false, false, false);
                 }
                 snapshotRestorableProperty.set(true);
+                disabledUi.set(false);
+            });
+        });
+    }
 
+    private void loadCompositeSnapshotInternal(Consumer<VSnapshot> completion) {
+
+        JobManager.schedule("Load composite snapshot items", items -> {
+            disabledUi.set(true);
+            List<SnapshotItem> snapshotItems;
+            try {
+                snapshotItems = saveAndRestoreService.getCompositeSnapshotItems(snapshotNode.getUniqueId());
             } catch (Exception e) {
-                LOGGER.log(Level.INFO, "Error loading snapshot", e);
+                LOGGER.log(Level.INFO, "Error loading composite snapshot for restore", e);
+                ExceptionDetailsErrorDialog.openError(snapshotTreeTable, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
+                return;
+            } finally {
+                disabledUi.set(false);
             }
+            VSnapshot vSnapshot =
+                    new VSnapshot(snapshotNode, snapshotItemsToSnapshotEntries(snapshotItems));
+            disabledUi.set(false);
+            completion.accept(vSnapshot);
         });
     }
 
@@ -654,7 +706,7 @@ public class SnapshotController implements NodeChangedListener {
         createdByTextProperty.set(null);
         createdDateTextProperty.set(null);
         snapshotTab.setId(null);
-        snapshotTab.updateTabTitile(Messages.unnamedSnapshot, false);
+        snapshotTab.updateTabTitle(Messages.unnamedSnapshot);
         nodeDataDirty.set(true);
         snapshotDataDirty.set(true);
         disabledUi.set(true);
@@ -678,6 +730,7 @@ public class SnapshotController implements NodeChangedListener {
                 })
         );
     }
+
 
     @FXML
     public void saveSnapshot() {
@@ -754,16 +807,13 @@ public class SnapshotController implements NodeChangedListener {
     }
 
     private List<TableEntry> setSnapshotInternal(VSnapshot snapshotData) {
-        List<SnapshotEntry> entries = snapshotData.getEntries();
-        synchronized (snapshots) {
-            snapshots.add(snapshotData);
-        }
-        UI_EXECUTOR.execute(() -> snapshotRestorableProperty.set(snapshotData.getSnapshot().isPresent()));
+        snapshots.add(snapshotData);
+        snapshotRestorableProperty.set(snapshotData.getSnapshot().isPresent());
         String name;
         TableEntry e;
         SnapshotEntry entry;
-        for (int i = 0; i < entries.size(); i++) {
-            entry = entries.get(i);
+        for (int i = 0; i < snapshotData.getEntries().size(); i++) {
+            entry = snapshotData.getEntries().get(i);
             e = new TableEntry();
             name = entry.getPVName();
             e.idProperty().setValue(i + 1);
@@ -783,7 +833,7 @@ public class SnapshotController implements NodeChangedListener {
             }
         }
         connectPVs();
-        UI_EXECUTOR.execute(() -> nodeDataDirty.set(snapshotData.isSaveable()));
+        nodeDataDirty.set(snapshotData.isSaveable());
         return new ArrayList<>(tableEntryItems.values());
     }
 
@@ -825,12 +875,10 @@ public class SnapshotController implements NodeChangedListener {
                 snapshots.add(data);
             }
             connectPVs();
-            UI_EXECUTOR.execute(() -> {
-                if (!nodeDataDirty.get()) {
-                    nodeDataDirty.set(data.isSaveable());
-                }
-                snapshotRestorableProperty.set(true);
-            });
+            if (!nodeDataDirty.get()) {
+                nodeDataDirty.set(data.isSaveable());
+            }
+            snapshotRestorableProperty.set(true);
 
             return new ArrayList<>(tableEntryItems.values());
         }
@@ -1059,7 +1107,7 @@ public class SnapshotController implements NodeChangedListener {
     public boolean handleSnapshotTabClosed() {
         if (nodeDataDirty.get()) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle(Messages.promptCloseSnapshotTabTitle);
+            alert.setTitle(Messages.closeTabPrompt);
             alert.setContentText(Messages.promptCloseSnapshotTabContent);
             DialogHelper.positionDialog(alert, snapshotTab.getTabPane(), -150, -150);
             Optional<ButtonType> result = alert.showAndWait();
@@ -1078,12 +1126,10 @@ public class SnapshotController implements NodeChangedListener {
      * and disposes of those that have not been unmarked.
      */
     private void dispose() {
-        synchronized (snapshots) {
-            pvs.values().forEach(PV::dispose);
-            pvs.clear();
-            tableEntryItems.clear();
-            snapshots.clear();
-        }
+        pvs.values().forEach(PV::dispose);
+        pvs.clear();
+        tableEntryItems.clear();
+        snapshots.clear();
     }
 
     /**

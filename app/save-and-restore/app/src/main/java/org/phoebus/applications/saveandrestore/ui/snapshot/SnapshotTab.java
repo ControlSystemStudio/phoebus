@@ -1,16 +1,16 @@
 /**
  * Copyright (C) 2019 European Spallation Source ERIC.
- *
+ * <p>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -25,18 +25,16 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
-import org.phoebus.ui.javafx.ImageCache;
-import org.phoebus.applications.saveandrestore.model.NodeType;
 
 import java.io.IOException;
 import java.util.ResourceBundle;
@@ -53,15 +51,12 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
 
     private final SimpleObjectProperty<Image> tabGraphicImageProperty = new SimpleObjectProperty<>();
 
-    private Image regularImage;
-    private Image goldenImage;
 
-
-    public SnapshotTab(org.phoebus.applications.saveandrestore.model.Node node, SaveAndRestoreService saveAndRestoreService){
+    public SnapshotTab(org.phoebus.applications.saveandrestore.model.Node node, SaveAndRestoreService saveAndRestoreService) {
 
         this.saveAndRestoreService = saveAndRestoreService;
 
-        if(node.getNodeType().equals(NodeType.SNAPSHOT)) {
+        if (node.getNodeType().equals(NodeType.SNAPSHOT)) {
             setId(node.getUniqueId());
         }
 
@@ -93,15 +88,12 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
         }
         setContent(rootNode);
 
-        regularImage = ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/snapshot.png");
-        goldenImage = ImageCache.getImage(SnapshotTab.class, "/icons/save-and-restore/snapshot-golden.png");
-
         HBox container = new HBox();
         ImageView imageView = new ImageView();
         imageView.imageProperty().bind(tabGraphicImageProperty);
         Label label = new Label("");
         label.textProperty().bind(tabTitleProperty);
-        HBox.setMargin(label, new Insets(1, 0, 0,5));
+        HBox.setMargin(label, new Insets(1, 0, 0, 5));
         container.getChildren().addAll(imageView, label);
 
         setGraphic(container);
@@ -111,13 +103,12 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
 
         boolean isGolden = node.getTags() != null && node.getTags().stream().anyMatch(t -> t.getName().equals(Tag.GOLDEN));
 
-        tabGraphicImageProperty.set(isGolden ? goldenImage : regularImage);
+        tabGraphicImageProperty.set(isGolden ? ImageRepository.GOLDEN_SNAPSHOT : ImageRepository.SNAPSHOT);
 
         setOnCloseRequest(event -> {
-            if(!snapshotController.handleSnapshotTabClosed()){
+            if (!snapshotController.handleSnapshotTabClosed()) {
                 event.consume();
-            }
-            else{
+            } else {
                 SaveAndRestoreService.getInstance().removeNodeChangeListener(this);
             }
         });
@@ -125,20 +116,27 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
         SaveAndRestoreService.getInstance().addNodeChangeListener(this);
     }
 
-    public void updateTabTitile(String name, boolean golden){
-        tabGraphicImageProperty.set(golden ? goldenImage : regularImage);
+    public void updateTabTitle(String name) {
         tabTitleProperty.set(name);
     }
 
-    public void newSnapshot(org.phoebus.applications.saveandrestore.model.Node configurationNode){
+    public void setGoldenImage() {
+        tabGraphicImageProperty.set(ImageRepository.GOLDEN_SNAPSHOT);
+    }
+
+    public void setCompositeSnapshotImage() {
+        tabGraphicImageProperty.set(ImageRepository.COMPOSITE_SNAPSHOT);
+    }
+
+    public void newSnapshot(org.phoebus.applications.saveandrestore.model.Node configurationNode) {
         snapshotController.newSnapshot(configurationNode);
     }
 
-    public void loadSnapshot(Node snapshotNode){
+    public void loadSnapshot(Node snapshotNode) {
         snapshotController.loadSnapshot(snapshotNode);
     }
 
-    public void addSnapshot(org.phoebus.applications.saveandrestore.model.Node node){
+    public void addSnapshot(org.phoebus.applications.saveandrestore.model.Node node) {
         snapshotController.addSnapshot(node);
     }
 

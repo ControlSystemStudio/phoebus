@@ -18,14 +18,28 @@
 
 package org.phoebus.service.saveandrestore.persistence.dao;
 
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.Hit;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.search.Filter;
+import org.phoebus.applications.saveandrestore.model.search.SearchResult;
+import org.springframework.http.HttpStatus;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 /**
  * @author georgweiss Created 11 Mar 2019
@@ -47,6 +61,13 @@ public interface NodeDAO {
      * @return A {@link Node} object
      */
     Node getNode(String uniqueNodeId);
+
+    /**
+     * Retrieve the nodes identified by the list of unique node ids
+     * @param uniqueNodeIds List of unique node ids
+     * @return List of matching nodes
+     */
+    List<Node> getNodes(List<String> uniqueNodeIds);
 
     /**
      * Deletes a {@link Node}, folder or configuration. If the node is a folder, the
@@ -216,5 +237,91 @@ public interface NodeDAO {
      * @return The {@link Node} corresponding to the last path element, or <code>null</code>.
      */
     Node findParentFromPathElements(Node parentNode, String[] splitPath, int index);
+
+    /**
+     * Saves the {@link org.phoebus.applications.saveandrestore.model.CompositeSnapshot} to the persistence layer.
+     * @param parentNodeId The unique id of the parent {@link Node} for the new {@link CompositeSnapshot}.
+     * @param compositeSnapshot The {@link CompositeSnapshot} data.
+     * @return The persisted {@link CompositeSnapshot} data.
+     */
+    CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot);
+
+    /**
+     * @param uniqueId Unique id of a {@link Node} of type {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
+     * @return A {@link CompositeSnapshotData} object.
+     */
+    CompositeSnapshotData getCompositeSnapshotData(String uniqueId);
+
+    /**
+     * @return List of persisted {@link CompositeSnapshotData} objects.
+     */
+    List<CompositeSnapshotData> getAllCompositeSnapshotData();
+
+    /**
+     * Checks for duplicate PV names in the specified list of snapshot or composite snapshot {@link Node}s.
+     * @param snapshotIds list of snapshot or composite snapshot {@link Node}s
+     * @return A list if PV names that occur multiple times in the specified snapshot nodes or snapshot nodes
+     * referenced in composite snapshots. If no duplicates are found, an empty list is returned.
+     */
+    List<String> checkForPVNameDuplicates(List<String> snapshotIds);
+
+    /**
+     * Updates an existing {@link CompositeSnapshotData}. In practice an overwrite operation as for instance
+     * the {@link CompositeSnapshotData#getReferencedSnapshotNodes()} may contain both added and removed elements compared to
+     * the persisted object.
+     *
+     * @param compositeSnapshot The object to be updated
+     * @return The updated {@link ConfigurationData}
+     */
+    CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot);
+
+    /**
+     * Aggregates a list of {@link SnapshotItem}s from a composite snapshot node. Note that since a
+     * composite snapshot may reference other composite snapshots, the implementation may need to recursively
+     * locate all referenced single snapshots.
+     * @param compositeSnapshotNodeId The if of an existing composite snapshot {@link Node}
+     * @return A list of {@link SnapshotItem}s.
+     */
+    List<SnapshotItem> getSnapshotItemsFromCompositeSnapshot(String compositeSnapshotNodeId);
+
+    /**
+     * Checks if all the referenced snapshot {@link Node}s in a {@link CompositeSnapshot} are
+     * of the supported type, i.e. {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
+     * or {@link org.phoebus.applications.saveandrestore.model.NodeType#SNAPSHOT}
+     * @param compositeSnapshot An existing {@link CompositeSnapshot}.
+     * @return <code>true</code> if all referenced snapshot {@link Node}s in a {@link CompositeSnapshot} are all
+     *      * of the supported type.
+     */
+    boolean checkCompositeSnapshotReferencedNodeTypes(CompositeSnapshot compositeSnapshot);
+
+    /**
+     * Performs a search based on the provided search parameters.
+     * @param searchParameters Map of keyword/value pairs defining the search criteria.
+     * @return A {@link SearchResult} object with a potentially empty list of {@link Node}s.
+     */
+    SearchResult search(MultiValueMap<String, String> searchParameters);
+
+    /**
+     * Save a new or updated {@link Filter}
+     * @param filter The {@link Filter} to save
+     * @return The saved {@link Filter}
+     */
+    Filter saveFilter(Filter filter);
+
+    /**
+     * @return All persisted {@link Filter}s.
+     */
+    List<Filter> getAllFilters();
+
+    /**
+     * Deletes a {@link Filter} based on its name.
+     * @param name
+     */
+    void deleteFilter(String name);
+
+    /**
+     * Deletes all {@link Filter}s.
+     */
+    void deleteAllFilters();
 
 }

@@ -30,15 +30,14 @@ public class ContextMenuConfiguration extends ContextMenuBase {
     public ContextMenuConfiguration(SaveAndRestoreController saveAndRestoreController, boolean csvEnabled, SimpleBooleanProperty multipleItemsSelected) {
         super(saveAndRestoreController, multipleItemsSelected);
 
-        Image editConfigurationIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/edit_saveset.png");
         Image csvExportIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_export.png");
 
-        MenuItem openConfigurationMenuItem = new MenuItem(Messages.contextMenuCreateSnapshot, new ImageView(configurationIcon));
+        MenuItem openConfigurationMenuItem = new MenuItem(Messages.contextMenuCreateSnapshot, new ImageView(ImageRepository.CONFIGURATION));
         openConfigurationMenuItem.setOnAction(ae -> {
             saveAndRestoreController.openConfigurationForSnapshot();
         });
 
-        MenuItem editConfigurationMenuItem = new MenuItem(Messages.contextMenuEdit, new ImageView(editConfigurationIcon));
+        MenuItem editConfigurationMenuItem = new MenuItem(Messages.contextMenuEdit, new ImageView(ImageRepository.EDIT_CONFIGURATION));
         editConfigurationMenuItem.disableProperty().bind(multipleItemsSelected);
         editConfigurationMenuItem.setOnAction(ae -> {
             saveAndRestoreController.nodeDoubleClicked();

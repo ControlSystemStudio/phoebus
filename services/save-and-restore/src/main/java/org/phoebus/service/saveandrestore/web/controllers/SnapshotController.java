@@ -17,6 +17,8 @@
  */
 package org.phoebus.service.saveandrestore.web.controllers;
 
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
@@ -25,6 +27,7 @@ import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -32,26 +35,23 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@SuppressWarnings("unused")
 @RestController
 public class SnapshotController extends BaseController {
 
-    @SuppressWarnings("unused")
     @Autowired
     private NodeDAO nodeDAO;
 
-    @SuppressWarnings("unused")
     @GetMapping(value = "/snapshot/{uniqueId}", produces = JSON)
     public SnapshotData getSnapshotData(@PathVariable String uniqueId) {
         return nodeDAO.getSnapshotData(uniqueId);
     }
 
-    @SuppressWarnings("unused")
     @GetMapping(value = "/snapshots", produces = JSON)
     public List<Node> getAllSnapshots() {
         return nodeDAO.getAllSnapshots();
     }
 
-    @SuppressWarnings("unused")
     @PutMapping(value = "/snapshot", produces = JSON)
     public Snapshot saveSnapshot(@RequestParam(value = "parentNodeId") String parentNodeId,
                                  @RequestBody Snapshot snapshot) {

@@ -1,0 +1,19 @@
+{
+  "mappings": {
+    "properties": {
+      "name" : {
+        "type" : "keyword"
+      },
+      "queryString" : {
+        "type": "keyword"
+      },
+      "user": {
+        "type": "keyword"
+      },
+      "lastUpdated": {
+        "type": "date",
+        "format": "epoch_millis||yyyy-MM-dd HH:mm:ss.SSS"
+      }
+    }
+  }
+}

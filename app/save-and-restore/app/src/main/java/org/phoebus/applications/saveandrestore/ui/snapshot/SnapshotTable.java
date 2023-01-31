@@ -626,6 +626,7 @@ class SnapshotTable extends TableView<TableEntry> {
                 Messages.toolTipTableColumnTimestamp, width, width, true);
         timestampColumn.setCellValueFactory(new PropertyValueFactory<TableEntry, Instant>("timestamp"));
         timestampColumn.setCellFactory(c -> new TimestampTableCell());
+        timestampColumn.getStyleClass().add("timestamp-column");
         timestampColumn.setPrefWidth(width);
         snapshotTableEntries.add(timestampColumn);
 
