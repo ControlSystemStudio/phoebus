@@ -122,10 +122,9 @@ public class PVAStringArray extends PVAData implements PVAArray, PVAValue
     }
 
     @Override
-    protected void formatType(final int level, final StringBuilder buffer)
+    public String getType()
     {
-        indent(level, buffer);
-        buffer.append("string[] ").append(name);
+        return "string[]";
     }
 
     @Override

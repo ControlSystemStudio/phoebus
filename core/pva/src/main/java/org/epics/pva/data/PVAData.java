@@ -94,13 +94,22 @@ public abstract class PVAData
      *  @param level Indentation level
      *  @param buffer Buffer to which to add this type
      */
-    protected abstract void formatType(int level, StringBuilder buffer);
+    protected void formatType(final int level, final StringBuilder buffer)
+    {
+        indent(level, buffer);
+        buffer.append(getType()).append(" ").append(name);
+    }
 
     /** Format the type and data with indentation
      *  @param level Indentation level
      *  @param buffer Buffer to which to add this value
      */
     protected abstract void format(int level, StringBuilder buffer);
+
+    /**
+     * Retrieve the type of the pvData.
+     */
+    public abstract String getType();
 
     /** Add indentation
      *  @param level Indentation level

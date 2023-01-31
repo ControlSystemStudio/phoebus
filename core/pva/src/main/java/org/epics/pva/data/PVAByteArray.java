@@ -144,12 +144,11 @@ public class PVAByteArray extends PVAData implements PVAArray, PVAValue
     }
 
     @Override
-    protected void formatType(final int level, final StringBuilder buffer)
+    public String getType()
     {
-        indent(level, buffer);
         if (unsigned)
-            buffer.append('u');
-        buffer.append("byte[] ").append(name);
+            return "ubyte[]";
+        return "byte[]";
     }
 
     @Override

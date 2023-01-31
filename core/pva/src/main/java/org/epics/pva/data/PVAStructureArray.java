@@ -191,13 +191,16 @@ public class PVAStructureArray extends PVADataWithID implements PVAArray
     }
 
     @Override
+    public String getType()
+    {
+        return "structure[]";
+    }
+
+    @Override
     public void formatType(int level, StringBuilder buffer)
     {
         indent(level, buffer);
-        if (getStructureName().isEmpty())
-            buffer.append("structure[]");
-        else
-            buffer.append(getStructureName()).append("[] ");
+        buffer.append(getStructureName().isEmpty() ? getType() : getStructureName() + "[]").append(" ");
         buffer.append(name);
         if (type_id > 0)
             buffer.append(" [#").append(type_id).append("]");
