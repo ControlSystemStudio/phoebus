@@ -31,15 +31,15 @@
     </ToolBar>
     <TableView fx:id="tracesTable" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" VBox.vgrow="ALWAYS">
       <columns>
-        <TableColumn fx:id="indicatorColumn" prefWidth="22.0" />
-        <TableColumn fx:id="displayNameColumn" prefWidth="130.0" text="Display Name"/>
-        <TableColumn fx:id="countColumn" prefWidth="100.0" text="Sample Count" />
-        <TableColumn fx:id="meanColumn" prefWidth="100.0" text="Mean" />
-        <TableColumn fx:id="medianColumn" prefWidth="100.0" text="Median" />
-        <TableColumn fx:id="stdDevColumn" prefWidth="100.0" text="Standard Deviation" />
-        <TableColumn fx:id="minColumn" prefWidth="100.0" text="Min Value" />
-        <TableColumn fx:id="maxColumn" prefWidth="100.0" text="Max Value" />
-        <TableColumn fx:id="sumColumn" prefWidth="100.0" text="Sum" />
+        <TableColumn fx:id="indicatorColumn" minWidth="22.0" maxWidth="22.0" prefWidth="22.0" />
+        <TableColumn fx:id="displayNameColumn" minWidth="130.0" prefWidth="260.0" text="Display Name"/>
+        <TableColumn fx:id="countColumn" minWidth="130" prefWidth="130.0" text="Sample Count" />
+        <TableColumn fx:id="meanColumn" minWidth="200.0" prefWidth="200.0" text="Mean" />
+        <TableColumn fx:id="medianColumn" minWidth="200.0" prefWidth="200.0" text="Median" />
+        <TableColumn fx:id="stdDevColumn" minWidth="200.0" prefWidth="200.0" text="Standard Deviation" />
+        <TableColumn fx:id="minColumn" minWidth="200.0" prefWidth="200.0" text="Min Value" />
+        <TableColumn fx:id="maxColumn" minWidth="200.0" prefWidth="200.0" text="Max Value" />
+        <TableColumn fx:id="sumColumn" minWidth="200.0" prefWidth="200.0" text="Sum" />
       </columns>
     </TableView>
    </children>
