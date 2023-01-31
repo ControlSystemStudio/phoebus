@@ -206,12 +206,12 @@ public class StatisticsTabController implements ModelListener{
      */
     private class ModelItemStatistics {
         private SimpleLongProperty count = new SimpleLongProperty();
-        private SimpleDoubleProperty mean = new SimpleDoubleProperty();
-        private SimpleDoubleProperty median = new SimpleDoubleProperty();
-        private SimpleDoubleProperty stdDev = new SimpleDoubleProperty();
-        private SimpleDoubleProperty min = new SimpleDoubleProperty();
-        private SimpleDoubleProperty max = new SimpleDoubleProperty();
-        private SimpleDoubleProperty sum = new SimpleDoubleProperty();
+        private SimpleDoubleProperty mean = new SimpleDoubleProperty(Double.NaN);
+        private SimpleDoubleProperty median = new SimpleDoubleProperty(Double.NaN);
+        private SimpleDoubleProperty stdDev = new SimpleDoubleProperty(Double.NaN);
+        private SimpleDoubleProperty min = new SimpleDoubleProperty(Double.NaN);
+        private SimpleDoubleProperty max = new SimpleDoubleProperty(Double.NaN);
+        private SimpleDoubleProperty sum = new SimpleDoubleProperty(Double.NaN);
         private SimpleObjectProperty colorIndicator = new SimpleObjectProperty();
         private SimpleStringProperty traceName = new SimpleStringProperty();
 
@@ -230,12 +230,12 @@ public class StatisticsTabController implements ModelListener{
         private void clear(){
             Platform.runLater(() -> {
                 count.set(0);
-                mean.set(0.0);
-                median.set(0.0);
-                stdDev.set(0.0);
-                min.set(0.0);
-                max.set(0.0);
-                sum.set(0.0);
+                mean.set(Double.NaN);
+                median.set(Double.NaN);
+                stdDev.set(Double.NaN);
+                min.set(Double.NaN);
+                max.set(Double.NaN);
+                sum.set(Double.NaN);
             });
         }
 
