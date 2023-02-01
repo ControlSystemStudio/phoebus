@@ -124,12 +124,11 @@ public class PVAShort extends PVANumber
     }
 
     @Override
-    protected void formatType(final int level, final StringBuilder buffer)
+    public String getType()
     {
-        indent(level, buffer);
         if (unsigned)
-            buffer.append('u');
-        buffer.append("short ").append(name);
+            return "ushort";
+        return "short";
     }
 
     @Override

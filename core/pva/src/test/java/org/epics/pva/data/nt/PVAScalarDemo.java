@@ -25,7 +25,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.epics.pva.client.PVAChannel;
 import org.epics.pva.client.PVAClient;
+import org.epics.pva.data.PVADoubleArray;
 import org.epics.pva.data.PVAInt;
+import org.epics.pva.data.PVAIntArray;
 import org.junit.jupiter.api.Test;
 
 
@@ -57,6 +59,37 @@ public class PVAScalarDemo {
             assertNotNull(control);
             try {
 				PVAScalar<PVAInt> scalar = PVAScalar.fromStructure(data);
+                assertNotNull(scalar);
+			} catch (PVAScalarValueNameException | PVAScalarDescriptionNameException e) {
+				e.printStackTrace();
+                fail();
+			}
+        });
+        client.close();
+    }
+    /**
+     * Tests if the ioc provides the expected formatting of PVATimeStamp,
+     * PVAAlarm, PVADisplay, PVAEnum, PVAControl and PVAScalar
+     * @throws Exception
+     */
+    @Test
+    public void testPVAScalarArrayRead() throws Exception {
+        PVAClient client = new PVAClient();
+        PVAChannel channel = client.getChannel("waveform");
+        channel.connect().get(5, TimeUnit.SECONDS);
+
+        channel.subscribe("", (ch, changes, overruns, data) ->
+        {
+            PVATimeStamp timeStamp = PVATimeStamp.getTimeStamp(data);
+            assertNotNull(timeStamp);
+            PVAAlarm alarm = PVAAlarm.getAlarm(data);
+            assertNotNull(alarm);
+            PVADisplay display = PVADisplay.getDisplay(data);
+            assertNotNull(display);
+            PVAControl control = PVAControl.getControl(data);
+            assertNotNull(control);
+            try {
+				PVAScalar<PVADoubleArray> scalar = PVAScalar.fromStructure(data);
                 assertNotNull(scalar);
 			} catch (PVAScalarValueNameException | PVAScalarDescriptionNameException e) {
 				e.printStackTrace();

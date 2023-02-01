@@ -124,12 +124,11 @@ public class PVAByte extends PVANumber
     }
 
     @Override
-    protected void formatType(final int level, final StringBuilder buffer)
+    public String getType()
     {
-        indent(level, buffer);
         if (unsigned)
-            buffer.append('u');
-        buffer.append("byte ").append(name);
+            return "ubyte";
+        return "byte";
     }
 
     @Override
