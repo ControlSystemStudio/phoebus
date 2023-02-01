@@ -1453,10 +1453,6 @@ File ../../core/security/src/main/resources/phoebus_security_preferences.propert
    # Use authorization.conf in the install location
    #authorization_file=authorization.conf
    
-   # Secure store underlying implementation.
-   # Can be 'FILE' or 'IN_MEMORY'
-   secure_store_target=FILE
-   
 
 
 trends.databrowser3
