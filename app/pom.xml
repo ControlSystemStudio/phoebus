@@ -34,5 +34,6 @@
     <module>utility</module>
     <module>imageviewer</module>
     <module>credentials-management</module>
+    <module>eslog</module>
   </modules>
 </project>
