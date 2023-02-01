@@ -592,11 +592,11 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     public void openSearchWindow() {
-        Optional<Tab> searchTabOptional = tabPane.getTabs().stream().filter(t -> t.getId().equals(SearchAndFilterTab.SEARCH_AND_FILTER_TAB_ID)).findFirst();
+        Optional<Tab> searchTabOptional = tabPane.getTabs().stream().filter(t -> t.getId() != null &&
+                t.getId().equals(SearchAndFilterTab.SEARCH_AND_FILTER_TAB_ID)).findFirst();
         if (searchTabOptional.isPresent()) {
             tabPane.getSelectionModel().select(searchTabOptional.get());
         } else {
-            //SearchTab searchTab = new SearchTab(this);
             SearchAndFilterTab searchAndFilterTab = new SearchAndFilterTab(this);
             tabPane.getTabs().add(0, searchAndFilterTab);
             tabPane.getSelectionModel().select(searchAndFilterTab);
