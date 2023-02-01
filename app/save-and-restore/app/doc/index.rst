@@ -24,10 +24,15 @@ Additionally a composite snapshot node may reference an arbitrary number of snap
 
 There are thus four node types managed in the application:
 
-- **Folder**: container for folders and configurations.
-- **Configuration**: a list of PV names and associated meta-data.
-- **Snapshot**: PV values read from PVs listed in a configuration.
-- **Composite Snapshot**: aggregation of snapshots or other composite snapshots, or both.
+- |folder| **Folder**: container for folders and configurations.
+- |configuration| **Configuration**: a list of PV names and associated meta-data.
+- |snapshot| |golden|  **Snapshot**: PV values read from PVs listed in a configuration.
+- |composite-snapshot| **Composite Snapshot**: aggregation of snapshots or other composite snapshots, or both.
+
+.. |folder| image:: images/folder.png
+.. |configuration| image:: images/configuration.png
+.. |snapshot| image:: images/snapshot.png
+.. |composite-snapshot| image:: images/composite-snapshot.png
 
 *NOTE*: If a folder or configuration node is deleted, all child nodes are unconditionally and recursively deleted. The user
 is prompted to confirm delete actions as they are irreversible.
@@ -182,6 +187,35 @@ for the same configuration must be unique. User may choose to take a new snapsho
 Note that for a configuration with a large number of PVs the save operation may take some time, during which the UI is
 disabled.
 
+Create Composite Snapshot
+-------------------------
+
+A composite snapshot is an aggregation of existing snapshots or other composite snapshots, or both. Composite snapshots
+are **not** associated with a configuration. Instead the "configuration" - i.e. list of PVs - is implied by the list of
+referenced snapshots.
+
+To create a composite snapshot user must select the New Composite Snapshot context menu option of a folder node into
+which the composite snapshot will be saved:
+
+.. image:: images/context-menu-folder-new-composite-snapshot.png
+
+This launches the composite snapshot editor:
+
+.. image:: images/composite-snapshot-editor.png
+   :width: 80%
+
+Snapshot or composite snapshot items can be added to the list view in the editor by dragging wanted objects from the tree view
+and dropping them in the list.
+
+The composite snapshot can be saved when a case sensitive name and a description has been specified.
+
+**NOTE:** There are a few business rules to consider when managing composite snapshots:
+
+* The combined list of PV names in the referenced snapshots must not contain duplicates. This is checked for each item dropped into the list when editing a composite snapshot. If duplicates are detected, an error dialog is shown.
+
+* Snapshots and composite snapshots cannot be deleted if referenced in a composite snapshot.
+
+
 Restore Snapshot View
 ---------------------
 
@@ -232,6 +266,25 @@ Prior to restore user has the option to:
 .. image:: images/restore-with-scale.png
    :width: 80%
 
+Restoring from a composite snapshot works in the same manner as the restore operation from a single-snapshot.
+
+Comparing Snapshots
+-------------------
+
+To compare two (or more) snapshots, user must first open an existing snapshot (double click in tree view). Using the
+Compare Snapshots context menu item for a snapshot node user may choose a snapshot to load for comparison:
+
+.. image:: images/context-menu-snapshot-compare.png
+
+Once the additional snapshot has been loaded, the snapshot view will show stored values from both snapshots. In this view
+the :math:`{\Delta}` Base Snapshot column will show the difference to the reference snapshot values:
+
+.. image:: images/compare-snapshots.png
+   :width: 80%
+
+
+
+
 Search And Filters
 ------------------
 
@@ -264,3 +317,31 @@ Nodes in the tree view matching a filter will be highlighted, i.e. non-matching 
 **NOTE:** When selecting a filter in the tree view, only matching items already present in the view will be highlighted.
 There may be additional nodes matching the current filter, but these will be rendered and highlighted only when their parent nodes
 are expanded. To easily find *all* matching items user will need to use the search tool.
+
+Tagging
+-------
+
+Tagging of snapshots can be used to facilitate search and filtering. The Tags with comment context menu option of the
+snapshot node is used to launch the tagging dialog:
+
+.. image:: images/context-menu-snapshot-add-tag.png
+
+In the dialog user may specify a case sensitive tag name and optionally a comment. When typing in the Tag name field,
+a list of existing tag names that may match the typed text is shown. User may hence determine if a tag already exists
+and could be reused:
+
+.. image:: images/tag-hints.png
+
+**NOTE:** The concept of "golden" tags can be used to annotate snapshots considered to be of particular value. Such
+snapshots are rendered using a golden snapshot icon: |golden|
+
+.. |golden| image:: images/snapshot-golden.png
+
+User may delete a tag through the tagging sub-menu:
+
+.. image:: images/delete-tag.png
+
+
+
+
+
