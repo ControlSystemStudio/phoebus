@@ -42,6 +42,8 @@ public class PVAAlarm extends PVAStructure {
     public static final String ALARM_NAME_STRING = "alarm";
     /** Type name for alarm info */
     private static final String ALARM_T = "alarm_t";
+    /** Type name for alarm info */
+    private static final String MESSAGE = "message";
     private PVAString message;
     private PVAInt status;
     private PVAInt severity;
@@ -135,7 +137,7 @@ public class PVAAlarm extends PVAStructure {
     public PVAAlarm(AlarmSeverity severity, AlarmStatus status, String message) {
         this(new PVAInt("severity", severity.ordinal()),
                 new PVAInt("status", status.ordinal()),
-                new PVAString("message", message));
+                new PVAString(MESSAGE, message));
     }
 
     /**
@@ -153,7 +155,7 @@ public class PVAAlarm extends PVAStructure {
         super(ALARM_NAME_STRING, ALARM_T,
                 severity,
                 status,
-                message);
+                message == null ? new PVAString(MESSAGE, ""): message);
         this.severity = severity;
         this.status = status;
         this.message = message;
@@ -193,10 +195,10 @@ public class PVAAlarm extends PVAStructure {
      * @return PVAAlarm or <code>null</code>
      */
     public static PVAAlarm fromStructure(PVAStructure structure) {
-        if (structure.getStructureName().equals(ALARM_T)) {
+        if (structure != null && structure.getStructureName().equals(ALARM_T)) {
             final PVAInt severity = structure.get("severity");
             final PVAInt status = structure.get("status");
-            final PVAString message = structure.get("message");
+            final PVAString message = structure.get(MESSAGE);
             return new PVAAlarm(severity, status, message);
         }
         return null;
