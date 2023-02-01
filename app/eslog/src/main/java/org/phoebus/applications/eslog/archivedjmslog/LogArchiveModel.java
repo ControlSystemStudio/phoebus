@@ -3,7 +3,6 @@ package org.phoebus.applications.eslog.archivedjmslog;
 import java.time.Instant;
 
 import org.phoebus.applications.eslog.model.EventLogMessage;
-import org.phoebus.util.time.TimeParser;
 
 import javafx.collections.ObservableList;
 
@@ -24,7 +23,7 @@ public class LogArchiveModel extends MergedModel<EventLogMessage>
     public void newMessage(EventLogMessage msg)
     {
         // ignore the message if we are not in "NOW" mode.
-        if (!TimeParser.NOW.equals(this.endSpec))
+        if (!isNowMode())
         {
             return;
         }
@@ -32,11 +31,17 @@ public class LogArchiveModel extends MergedModel<EventLogMessage>
         {
             if (!this.messages.isEmpty())
             {
-                Instant lastTime = this.messages.get(0).getTime();
+                // we cannot rely on the sort order of messages. Sorting the
+                // table will sort this list!
+                final var lastTime = this.messages.parallelStream()
+                        .map(EventLogMessage::getTime)
+                        // reverse the sort order
+                        .sorted((a, b) -> b.compareTo(a)).findFirst().get();
                 Instant thisTime = msg.getTime();
-                msg.setDelta(lastTime.toEpochMilli() - thisTime.toEpochMilli());
+                msg.setDelta(thisTime.toEpochMilli() - lastTime.toEpochMilli());
             }
-            this.messages.add(0, msg);
+            this.messages.add(msg);
         }
+        notifyListeners();
     }
 }

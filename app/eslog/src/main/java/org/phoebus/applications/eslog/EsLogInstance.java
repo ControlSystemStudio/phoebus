@@ -24,6 +24,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.util.Callback;
@@ -91,11 +92,14 @@ class EsLogInstance implements AppInstance
                         // TODO: selection, … in other words, make it usable
 
                         this.setText(item);
+                        this.setTooltip(new Tooltip(
+                                this.getTableRow().getItem().toString()));
                     }
                     else
                     {
                         this.setText(null);
                         this.setStyle(null);
+                        this.setTooltip(null);
                     }
                 }
             };
@@ -128,16 +132,23 @@ class EsLogInstance implements AppInstance
         this.app = app;
         model = createModel();
 
+        final var timeRange = model.getTimerangeText();
         // controls
-        final var startBox = new TextField(model.getStartSpec());
+        final var startBox = new TextField(timeRange[0]);
         final var startLabel = new Label("_Start:");
         startLabel.setMnemonicParsing(true);
         startLabel.setLabelFor(startBox);
 
-        final var endBox = new TextField(model.getEndSpec());
+        final var endBox = new TextField(timeRange[1]);
         final var endLabel = new Label("_End:");
         endLabel.setMnemonicParsing(true);
         endLabel.setLabelFor(endBox);
+
+        this.model.addTimeChangeListener(range -> {
+            final var t = model.getTimerangeText();
+            startBox.setText(t[0]);
+            endBox.setText(t[1]);
+        });
 
         startBox.setOnAction(e -> {
             try
@@ -162,8 +173,9 @@ class EsLogInstance implements AppInstance
             }
         });
 
-        // final var timesBtn = new Button("_Times");
-        // timesBtn.setMnemonicParsing(true);
+        final var timesBtn = new Button("_Times");
+        timesBtn.setMnemonicParsing(true);
+        timesBtn.setOnAction(this::openTimesDialog);
 
         final var filterBtn = new Button("_Filter");
         filterBtn.setMnemonicParsing(true);
@@ -205,7 +217,9 @@ class EsLogInstance implements AppInstance
         msgList.getColumns().add(colDelta);
 
         msgList.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        msgList.getSortOrder().add(colDate);
 
+        model.addChangeListener(msgList::sort);
         model.updateFromArchive();
 
         // geometry
@@ -216,7 +230,7 @@ class EsLogInstance implements AppInstance
         layout.add(endLabel, 2, 0);
         layout.add(endBox, 3, 0);
         GridPane.setHgrow(endBox, Priority.SOMETIMES);
-        // layout.add(timesBtn, 4, 0);
+        layout.add(timesBtn, 4, 0);
         layout.add(filterBtn, 5, 0);
 
         layout.add(msgList, 0, 1, 6, 1);
@@ -234,15 +248,14 @@ class EsLogInstance implements AppInstance
     @SuppressWarnings("nls")
     public LogArchiveModel createModel()
     {
-
         ElasticsearchModel<EventLogMessage> archive = null;
-        if (null != EsLogPreferences.es_url)
+        if (!EsLogPreferences.es_url.isEmpty())
         {
             try
             {
-                archive = new ElasticsearchModel<EventLogMessage>(
-                        EsLogPreferences.es_url, EsLogPreferences.es_index,
-                        "CREATETIME", EventLogMessage::fromElasticsearch) //$NON-NLS-1$
+                archive = new ElasticsearchModel<>(EsLogPreferences.es_url,
+                        EsLogPreferences.es_index, EventLogMessage.DATE,
+                        EventLogMessage::fromElasticsearch)
                 {
                     @Override
                     public EventLogMessage[] getMessages()
@@ -280,7 +293,7 @@ class EsLogInstance implements AppInstance
                     EsLogPreferences.jms_user, EsLogPreferences.jms_password,
                     EsLogPreferences.jms_topic);
             live = new LiveModel<>(receiver, EsLogPreferences.jms_topic,
-                    "CREATETIME", EventLogMessage::fromJMS);
+                    EventLogMessage.DATE, EventLogMessage::fromJMS);
         }
         else
         {
@@ -299,9 +312,16 @@ class EsLogInstance implements AppInstance
     private Object openFilterDialog(ActionEvent e)
     {
         var dialog = new FilterDialog(model.getFilters());
-
         var result = dialog.showAndWait();
         result.ifPresent(model::setFilters);
+        return null;
+    }
+
+    private Object openTimesDialog(ActionEvent e)
+    {
+        final var dialog = new TimeSelectDialog(model.getTimerange());
+        final var result = dialog.showAndWait();
+        result.ifPresent(model::setTimerange);
         return null;
     }
 
