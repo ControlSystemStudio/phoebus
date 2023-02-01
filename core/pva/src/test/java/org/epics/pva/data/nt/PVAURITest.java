@@ -71,4 +71,9 @@ class PVAURITest {
         assertThrows(NotValueException.class, uri::getQuery);
     }
 
+    @Test
+    void testNullQuery() throws NotValueException {
+        PVAURI uri = new PVAURI("name", "path");
+        assertEquals(new HashMap<String, String>(), uri.getQuery());
+    }
 }

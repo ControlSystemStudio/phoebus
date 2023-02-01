@@ -141,12 +141,16 @@ public class PVAURI extends PVAStructure {
     /**
      * Gets the query in a map format
      *
-     * @return Returns the query in a Map<String, String>
+     * @return Returns the query in a Map<String, String>, returns empty
+     *         an empty map if the query is null.
      * @throws NotValueException If a query in the queries structure
      *                           does not implement {@link PVAValue}
      */
     public Map<String, String> getQuery() throws NotValueException {
         Map<String, String> queries = new HashMap<>();
+        if (this.query == null) {
+            return queries;
+        }
         for (PVAData q: this.query.get()) {
             if (q instanceof PVAValue) {
                 PVAValue queryString = (PVAString) q;
