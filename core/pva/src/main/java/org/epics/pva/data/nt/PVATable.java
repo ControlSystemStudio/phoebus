@@ -250,14 +250,13 @@ public class PVATable extends PVAStructure {
      * @return Representative Table
      */
     public static PVATable fromStructure(PVAStructure structure) {
-        if (structure != null && structure.getStructureName().equals(STRUCT_NAME)) {
-            final PVAStringArray labels = structure.get(LABELS_NAME);
-            final PVAStructure value = structure.get(VALUE_NAME);
-            final PVAAlarm alarm = PVAAlarm.fromStructure(structure.get(PVAAlarm.ALARM_NAME_STRING));
-            final PVATimeStamp timeStamp = PVATimeStamp.fromStructure(structure.get(PVATimeStamp.TIMESTAMP_NAME_STRING));
-            final PVAString descriptor = structure.get(DESCRIPTOR_NAME);
-            return new PVATable(structure.getName(), labels, value, alarm, timeStamp, descriptor);
-        }
-        return null;
+        if (structure == null || !structure.getStructureName().equals(STRUCT_NAME))
+            return null;
+        final PVAStringArray labels = structure.get(LABELS_NAME);
+        final PVAStructure value = structure.get(VALUE_NAME);
+        final PVAAlarm alarm = PVAAlarm.getAlarm(structure);
+        final PVATimeStamp timeStamp = PVATimeStamp.getTimeStamp(structure);
+        final PVAString descriptor = structure.get(DESCRIPTOR_NAME);
+        return new PVATable(structure.getName(), labels, value, alarm, timeStamp, descriptor);
     }
 }

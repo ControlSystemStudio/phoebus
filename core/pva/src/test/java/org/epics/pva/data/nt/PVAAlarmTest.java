@@ -47,4 +47,16 @@ public class PVAAlarmTest {
         alarm.set(PVAAlarm.AlarmSeverity.NO_ALARM, PVAAlarm.AlarmStatus.NO_STATUS, "test message 2");
         assertNotEquals(alarm, clone);
     }
+
+    @Test
+    public void testFromStructure() {
+        PVAStructure structure = new PVAStructure("alarm", "structure",
+                new PVAInt("severity", 0), new PVAInt("status", 0));
+
+        PVAStructure alarm = new PVAAlarm(PVAAlarm.AlarmSeverity.NO_ALARM, PVAAlarm.AlarmStatus.NO_STATUS, "");
+
+        assertEquals(alarm, PVAAlarm.fromStructure(alarm));
+    }
+
+
 }
