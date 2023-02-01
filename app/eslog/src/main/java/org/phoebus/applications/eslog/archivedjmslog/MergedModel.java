@@ -7,12 +7,17 @@ import java.time.Instant;
 import java.time.temporal.TemporalAmount;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import org.phoebus.applications.eslog.Activator;
 import org.phoebus.util.time.TimeParser;
+import org.phoebus.util.time.TimeRelativeInterval;
+import org.phoebus.util.time.TimestampFormats;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -24,8 +29,10 @@ public class MergedModel<T extends LogMessage>
     protected ArchiveModel<T> archive;
     protected LiveModel<T> live;
     protected ObservableList<T> messages = FXCollections.observableArrayList();
-    protected String startSpec = "-8 hour"; //$NON-NLS-1$
-    protected String endSpec = TimeParser.NOW;
+    protected List<Runnable> messagesChangedListeners = new LinkedList<>();
+    protected List<Consumer<TimeRelativeInterval>> timeChangedListeners = new LinkedList<>();
+    protected TimeRelativeInterval time_range = TimeRelativeInterval
+            .startsAt(Duration.ofHours(8));
 
     protected ScheduledExecutorService expireService;
 
@@ -55,12 +62,28 @@ public class MergedModel<T extends LogMessage>
                 .getGenericSuperclass()).getActualTypeArguments()[0]);
     }
 
+    public void addChangeListener(final Runnable r)
+    {
+        synchronized (this.messagesChangedListeners)
+        {
+            this.messagesChangedListeners.add(r);
+        }
+    }
+
+    public void addTimeChangeListener(final Consumer<TimeRelativeInterval> c)
+    {
+        synchronized (this.timeChangedListeners)
+        {
+            this.timeChangedListeners.add(c);
+        }
+    }
+
     protected void expireMessages()
     {
         Instant cutoff;
         try
         {
-            cutoff = timeSpecToInstant(this.startSpec);
+            cutoff = this.time_range.toAbsoluteInterval().getStart();
         }
         catch (IllegalArgumentException e)
         {
@@ -69,7 +92,7 @@ public class MergedModel<T extends LogMessage>
             return;
         }
         Activator.logger
-                .fine(String.format("Expiring from %s", cutoff.toString())); //$NON-NLS-1$
+                .finer(String.format("Expiring from %s", cutoff.toString())); //$NON-NLS-1$
 
         long expired = 0L;
         synchronized (this.messages)
@@ -88,12 +111,11 @@ public class MergedModel<T extends LogMessage>
                 ++expired;
             }
         }
-        Activator.logger.fine(String.format("%d messages expired.", expired)); //$NON-NLS-1$
-    }
-
-    public String getEndSpec()
-    {
-        return this.endSpec;
+        if (expired > 0)
+        {
+            Activator.logger
+                    .fine(String.format("%d messages expired.", expired)); //$NON-NLS-1$
+        }
     }
 
     public PropertyFilter[] getFilters()
@@ -116,28 +138,65 @@ public class MergedModel<T extends LogMessage>
         }
     }
 
-    public String getStartSpec()
+    public TimeRelativeInterval getTimerange()
     {
-        return this.startSpec;
+        return this.time_range;
+    }
+
+    public String[] getTimerangeText()
+    {
+        final var start = this.time_range.isStartAbsolute()
+                ? TimestampFormats.MILLI_FORMAT
+                        .format(this.time_range.getAbsoluteStart().get())
+                : TimeParser.format(this.time_range.getRelativeStart().get());
+        final var end = this.time_range.isEndAbsolute()
+                ? TimestampFormats.MILLI_FORMAT
+                        .format(this.time_range.getAbsoluteEnd().get())
+                : TimeParser.format(this.time_range.getRelativeEnd().get());
+        return new String[] { start, end };
+    }
+
+    public boolean isNowMode()
+    {
+        return (!this.time_range.isEndAbsolute())
+                && Duration.ZERO.equals(this.time_range.getRelativeEnd().get());
     }
 
     @Override
     public void messagesRetrieved(ArchiveModel<T> model)
     {
         this.messages.addAll(Arrays.asList(model.getMessages()));
+        notifyListeners();
     }
 
     @Override
     public void newMessage(T msg)
     {
         // ignore the message if we are not in "NOW" mode.
-        if (!TimeParser.NOW.equals(this.endSpec))
+        if (!isNowMode())
         {
             return;
         }
         synchronized (this.messages)
         {
             this.messages.add(msg);
+        }
+        notifyListeners();
+    }
+
+    protected void notifyListeners()
+    {
+        synchronized (this.messagesChangedListeners)
+        {
+            this.messagesChangedListeners.forEach(Runnable::run);
+        }
+    }
+
+    protected void notifyTimeChangedListeners()
+    {
+        synchronized (this.timeChangedListeners)
+        {
+            this.timeChangedListeners.forEach(l -> l.accept(this.time_range));
         }
     }
 
@@ -178,37 +237,44 @@ public class MergedModel<T extends LogMessage>
         Activator.checkParameterString(start_spec, "start_spec"); //$NON-NLS-1$
         Activator.checkParameterString(end_spec, "end_spec"); //$NON-NLS-1$
 
-        // parse to detect invalid strings.
-        timeSpecToInstant(start_spec);
-        timeSpecToInstant(end_spec);
+        // Instant, or Duration/Period (both derived from TemporalAmount)
+        final var start = TimeParser.parseInstantOrTemporalAmount(start_spec);
+        Instant start_instant = null;
+        TemporalAmount start_amount = null;
+        if (start instanceof Instant)
+            start_instant = (Instant) start;
+        else
+            start_amount = (TemporalAmount) start;
 
-        // only then assign to our local variable.
-        this.startSpec = start_spec;
-        this.endSpec = end_spec;
+        final var end = TimeParser.parseInstantOrTemporalAmount(end_spec);
+        Instant end_instant = null;
+        TemporalAmount end_amount = null;
+        if (end instanceof Instant)
+            end_instant = (Instant) end;
+        else
+            end_amount = (TemporalAmount) end;
+
+        if ((null != start_instant) && (null != end_instant))
+            this.time_range = TimeRelativeInterval.of(start_instant,
+                    end_instant);
+        if ((null != start_instant) && (null == end_instant))
+            this.time_range = TimeRelativeInterval.of(start_instant,
+                    end_amount);
+        if ((null == start_instant) && (null != end_instant))
+            this.time_range = TimeRelativeInterval.of(start_amount,
+                    end_instant);
+        if ((null == start_instant) && (null == end_instant))
+            this.time_range = TimeRelativeInterval.of(start_amount, end_amount);
+        notifyTimeChangedListeners();
         updateFromArchive();
     }
 
-    static Instant timeSpecToInstant(final String spec)
-            throws IllegalArgumentException
+    public void setTimerange(final TimeRelativeInterval interval)
     {
-        var parsed = TimeParser.parseInstantOrTemporalAmount(spec);
-        if ((null == parsed) || (parsed.equals(Duration.ZERO)
-                && !TimeParser.NOW.equals(spec)))
-        {
-            var errorText = String.format(
-                    "Time specification cannot be parsed: %s", //$NON-NLS-1$
-                    spec);
-            Activator.logger.info(errorText);
-            throw new IllegalArgumentException(errorText);
-        }
-
-        if (parsed instanceof Instant) return (Instant) parsed;
-
-        // TODO: why does the "-" get lost in the first place?
-        if (spec.startsWith("-")) //$NON-NLS-1$
-            return Instant.now().minus((TemporalAmount) parsed);
-        else
-            return Instant.now().plus((TemporalAmount) parsed);
+        Activator.checkParameter(interval, "interval"); //$NON-NLS-1$
+        this.time_range = interval;
+        notifyTimeChangedListeners();
+        updateFromArchive();
     }
 
     /**
@@ -219,15 +285,18 @@ public class MergedModel<T extends LogMessage>
         this.messages.clear();
         if (null != this.live)
         {
-            if (TimeParser.NOW.equals(this.endSpec))
+            if (isNowMode())
+            {
                 this.live.start();
+            }
             else
+            {
                 this.live.stop();
+            }
         }
         if (null != this.archive)
         {
-            this.archive.refresh(timeSpecToInstant(this.startSpec),
-                    timeSpecToInstant(this.endSpec));
+            this.archive.refresh(this.time_range.toAbsoluteInterval());
         }
     }
 }

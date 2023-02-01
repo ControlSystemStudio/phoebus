@@ -53,5 +53,6 @@
     <classpathentry combineaccessrules="false" kind="src" path="/app-pace"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-diag"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-credentials-management"/>
+    <classpathentry combineaccessrules="false" kind="src" path="/app-eslog"/>
     <classpathentry kind="output" path="target/classes"/>
 </classpath>

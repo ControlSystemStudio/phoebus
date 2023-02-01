@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 import org.phoebus.applications.eslog.Activator;
+import org.phoebus.util.time.TimeInterval;
 
 /** Model representing data in an archive, typically some sort of database. */
 public abstract class ArchiveModel<T extends LogMessage> extends Model
@@ -36,6 +37,10 @@ public abstract class ArchiveModel<T extends LogMessage> extends Model
      *            The end time.
      */
     public abstract void refresh(Instant from, Instant to);
+
+    void refresh(TimeInterval interval) {
+        refresh(interval.getStart(), interval.getEnd());
+    }
 
     public void removeListener(ArchiveModelListener<T> listener)
     {

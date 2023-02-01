@@ -5,8 +5,10 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import javax.jms.JMSException;
 import javax.jms.MapMessage;
@@ -18,9 +20,6 @@ import co.elastic.clients.elasticsearch.core.search.Hit;
 
 public class EventLogMessage extends LogMessage
 {
-    /** Property for message ID in RDB */
-    public static final String ID = "ID"; //$NON-NLS-1$
-
     /** Property for Time when message was added to log */
     public static final String DATE = "CREATETIME"; //$NON-NLS-1$
 
@@ -76,7 +75,6 @@ public class EventLogMessage extends LogMessage
             }
             msg.properties.put("ID", message.getJMSMessageID()); //$NON-NLS-1$
             final var DATE = message.getString(EventLogMessage.DATE);
-            System.out.println(DATE);
             try
             {
                 msg.date = Instant.parse(DATE);
@@ -134,6 +132,10 @@ public class EventLogMessage extends LogMessage
             return false;
         }
         EventLogMessage msg = (EventLogMessage) other;
+        if (this.date != msg.date)
+        {
+            return false;
+        }
         for (String s : EventLogMessage.PROPERTY_NAMES)
         {
             if (!this.getPropertyValue(s).equals(msg.getPropertyValue(s)))
@@ -147,7 +149,10 @@ public class EventLogMessage extends LogMessage
     /** @return Iterator over all properties in this message */
     public Iterator<String> getProperties()
     {
-        return this.properties.keySet().iterator();
+        Set<String> keys = new HashSet<>();
+        keys.addAll(this.properties.keySet());
+        keys.add(EventLogMessage.DATE);
+        return keys.iterator();
     }
 
     @Override
@@ -174,7 +179,7 @@ public class EventLogMessage extends LogMessage
     @Override
     public int hashCode()
     {
-        return this.properties.hashCode();
+        return this.properties.hashCode() ^ this.date.hashCode();
     }
 
     /**
@@ -193,16 +198,11 @@ public class EventLogMessage extends LogMessage
     public String toString()
     {
         StringBuilder buf = new StringBuilder();
-        buf.append("Message ").append(this.getPropertyValue(EventLogMessage.ID))
-                .append(":");
+        buf.append("Message:");
         Iterator<String> props = getProperties();
         while (props.hasNext())
         {
             String prop = props.next();
-            if (EventLogMessage.ID.equals(prop))
-            {
-                continue;
-            }
             buf.append("\n  ").append(prop).append(": ")
                     .append(getPropertyValue(prop));
         }
