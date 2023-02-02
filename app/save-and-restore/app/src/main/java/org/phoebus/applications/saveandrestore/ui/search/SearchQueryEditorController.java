@@ -27,7 +27,6 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
@@ -74,6 +73,12 @@ public class SearchQueryEditorController implements Initializable {
     @FXML
     private TextField descTextField;
 
+    @FXML
+    private TextField startTime;
+
+    @FXML
+    private TextField endTime;
+
     private final SimpleStringProperty nodeNameProperty = new SimpleStringProperty();
 
     private final SimpleBooleanProperty nodeTypeFolderProperty = new SimpleBooleanProperty();
@@ -84,6 +89,9 @@ public class SearchQueryEditorController implements Initializable {
 
     private final SimpleStringProperty tagsProperty = new SimpleStringProperty();
     private final SimpleStringProperty userProperty = new SimpleStringProperty();
+
+    private final SimpleStringProperty startTimeProperty = new SimpleStringProperty();
+    private final SimpleStringProperty endTimeProperty = new SimpleStringProperty();
 
     private final SimpleStringProperty descProperty = new SimpleStringProperty();
 
@@ -141,7 +149,20 @@ public class SearchQueryEditorController implements Initializable {
         tagsTextField.textProperty().bindBidirectional(tagsProperty);
         tagsTextField.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) {
-                tagSearchPopover.hide();
+                updateParametersAndSearch();
+            }
+        });
+
+        startTime.textProperty().bindBidirectional(startTimeProperty);
+        startTime.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ENTER) {
+                updateParametersAndSearch();
+            }
+        });
+
+        endTime.textProperty().bindBidirectional(endTimeProperty);
+        endTime.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ENTER) {
                 updateParametersAndSearch();
             }
         });
@@ -161,6 +182,8 @@ public class SearchQueryEditorController implements Initializable {
                     }
                 }
         );
+
+        startTime.textProperty().bindBidirectional(startTimeProperty);
     }
 
     public void setFilter(Filter filter) {
@@ -172,6 +195,8 @@ public class SearchQueryEditorController implements Initializable {
         userProperty.set(searchParams.get(Keys.USER.getName()));
         descProperty.set(searchParams.get(Keys.DESC.getName()));
         tagsProperty.set(searchParams.get(Keys.TAGS.getName()));
+        startTimeProperty.set(searchParams.get(Keys.STARTTIME.getName()));
+        endTimeProperty.set(searchParams.get(Keys.ENDTIME.getName()));
 
         String typeValue = searchParams.get(Keys.TYPE.getName());
         nodeTypeFolderProperty.set(false);
@@ -244,11 +269,17 @@ public class SearchQueryEditorController implements Initializable {
         if (!types.isEmpty()) {
             map.put(Keys.TYPE.getName(), String.join(",", types));
         }
+        if (startTimeProperty.get() != null && !startTimeProperty.get().isEmpty()) {
+            map.put(Keys.STARTTIME.getName(), startTimeProperty.get());
+        }
+        if (endTimeProperty.get() != null && !endTimeProperty.get().isEmpty()) {
+            map.put(Keys.ENDTIME.getName(), endTimeProperty.get());
+        }
         return SearchQueryUtil.toQueryString(map);
     }
 
     @FXML
-    public void showPopOver() {
+    public void showTagsSelectionPopover() {
         if (tagSearchPopover.isShowing()) {
             tagSearchPopover.hide();
         } else {

@@ -22,10 +22,10 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane fx:id="advancedSearchPane" prefWidth="250.0" style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.search.SearchQueryEditorController">
+<BorderPane  prefWidth="250.0" style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.search.SearchQueryEditorController">
     <center>
 
-        <GridPane>
+        <GridPane fx:id="advancedSearchPane">
             <columnConstraints>
                 <ColumnConstraints />
                 <ColumnConstraints />
@@ -62,7 +62,7 @@
                             <Insets bottom="3.0" right="3.0" top="3.0" />
                         </HBox.margin>
                     </TextField>
-                    <Button onAction="#showPopOver" text="...">
+                    <Button onAction="#showTagsSelectionPopover" text="...">
                         <HBox.margin>
                             <Insets bottom="3.0" left="3.0" top="3.0" />
                         </HBox.margin>
