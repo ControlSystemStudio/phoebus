@@ -25,11 +25,14 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
+import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.ui.dialog.ListSelectionPopOver;
 
@@ -79,6 +82,24 @@ public class SearchQueryEditorController implements Initializable {
     @FXML
     private TextField endTime;
 
+    @FXML
+    private CheckBox goldenOnlyCheckbox;
+
+    @FXML
+    private ImageView goldenImageView;
+
+    @FXML
+    private ImageView folderImageView;
+
+    @FXML
+    private ImageView configurationImageView;
+
+    @FXML
+    private ImageView snapshotImageView;
+
+    @FXML
+    private ImageView compositeSnapshotImageView;
+
     private final SimpleStringProperty nodeNameProperty = new SimpleStringProperty();
 
     private final SimpleBooleanProperty nodeTypeFolderProperty = new SimpleBooleanProperty();
@@ -95,6 +116,8 @@ public class SearchQueryEditorController implements Initializable {
 
     private final SimpleStringProperty descProperty = new SimpleStringProperty();
 
+    private final SimpleBooleanProperty goldenOnlyProperty = new SimpleBooleanProperty();
+
     private boolean searchDisabled = false;
 
     private ListSelectionPopOver tagSearchPopover;
@@ -110,29 +133,35 @@ public class SearchQueryEditorController implements Initializable {
             }
         });
         nodeTypeFolderCheckBox.selectedProperty().bindBidirectional(nodeTypeFolderProperty);
+        folderImageView.imageProperty().set(ImageRepository.FOLDER);
         nodeTypeFolderCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null && !newValue.equals(oldValue)) {
                 updateParametersAndSearch();
             }
         });
         nodeTypeConfigurationCheckBox.selectedProperty().bindBidirectional(nodeTypeConfigurationProperty);
+        configurationImageView.imageProperty().set(ImageRepository.CONFIGURATION);
         nodeTypeConfigurationCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null && !newValue.equals(oldValue)) {
                 updateParametersAndSearch();
             }
         });
         nodeTypeSnapshotCheckBox.selectedProperty().bindBidirectional(nodeTypeSnapshotProperty);
+        snapshotImageView.imageProperty().set(ImageRepository.SNAPSHOT);
         nodeTypeSnapshotCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null && !newValue.equals(oldValue)) {
                 updateParametersAndSearch();
             }
         });
         nodeTypeCompositeSnapshotCheckBox.selectedProperty().bindBidirectional(nodeTypeCompositeSnapshotProperty);
+        compositeSnapshotImageView.imageProperty().set(ImageRepository.COMPOSITE_SNAPSHOT);
         nodeTypeCompositeSnapshotCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null && !newValue.equals(oldValue)) {
                 updateParametersAndSearch();
             }
         });
+
+        goldenImageView.imageProperty().set(ImageRepository.GOLDEN_SNAPSHOT);
 
         descTextField.textProperty().bindBidirectional(descProperty);
         descTextField.setOnKeyPressed(e -> {
@@ -275,6 +304,14 @@ public class SearchQueryEditorController implements Initializable {
         if (endTimeProperty.get() != null && !endTimeProperty.get().isEmpty()) {
             map.put(Keys.ENDTIME.getName(), endTimeProperty.get());
         }
+        if (goldenOnlyProperty.get()) {
+            String tags = map.get(Keys.TAGS.getName());
+            if (tags == null) {
+                map.put(Keys.TAGS.getName(), Tag.GOLDEN);
+            } else if(!tags.toLowerCase().contains(Tag.GOLDEN.toLowerCase())){
+                map.put(Keys.TAGS.getName(), tags + "," + Tag.GOLDEN);
+            }
+        }
         return SearchQueryUtil.toQueryString(map);
     }
 
@@ -291,7 +328,7 @@ public class SearchQueryEditorController implements Initializable {
             try {
                 List<String> tagNames = new ArrayList<>();
                 SaveAndRestoreService.getInstance().getAllTags().forEach(tag -> {
-                    if (!tagNames.contains(tag.getName())) {
+                    if (!tagNames.contains(tag.getName()) && !tag.getName().equalsIgnoreCase(Tag.GOLDEN)) {
                         tagNames.add(tag.getName());
                     }
                 });
@@ -306,5 +343,11 @@ public class SearchQueryEditorController implements Initializable {
             tagSearchPopover.setSelected(selectedTags);
             tagSearchPopover.show(tagsTextField);
         }
+    }
+
+    @FXML
+    public void goldenClicked() {
+        goldenOnlyProperty.set(goldenOnlyCheckbox.isSelected());
+        updateParametersAndSearch();
     }
 }
