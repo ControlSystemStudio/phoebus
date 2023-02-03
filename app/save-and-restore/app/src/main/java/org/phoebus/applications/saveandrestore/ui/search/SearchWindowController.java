@@ -243,7 +243,7 @@ public class SearchWindowController implements Initializable {
 
             query.set(null);
         } else {
-            query.setValue(queryString);
+            query.set(queryString);
         }
     }
 
@@ -325,7 +325,7 @@ public class SearchWindowController implements Initializable {
                     ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
                     alert.getButtonTypes().setAll(buttonTypeOverwrite, buttonTypeCancel);
                     Optional<ButtonType> overwrite = alert.showAndWait();
-                    if (overwrite.get() == buttonTypeOverwrite) {
+                    if (overwrite.isPresent() && overwrite.get() == buttonTypeOverwrite) {
                         saveFilter(filterNameProperty.get());
                     }
                 });

@@ -134,6 +134,7 @@ public class SearchUtil {
                 case "tags":
                     DisMaxQuery.Builder tagsQuery = new DisMaxQuery.Builder();
                     tagsQuery.queries(Collections.emptyList());
+
                     for (String value : parameter.getValue()) {
                         for (String pattern : value.split("[|,;]")) {
                             String[] tagsSearchFields;
@@ -156,12 +157,14 @@ public class SearchUtil {
                             else {
                                 bqb.must(WildcardQuery.of(w -> w.caseInsensitive(true).field("node.tags." + tagsSearchFields[0]).value(tagsSearchFields[1].trim().toLowerCase()))._toQuery());
                             }
-                            NestedQuery innerNestedQuery;
-                            innerNestedQuery = NestedQuery.of(n1 -> n1.path("node.tags").query(bqb.build()._toQuery()));
+                            NestedQuery innerNestedQuery = NestedQuery.of(n1 -> n1.path("node.tags").query(bqb.build()._toQuery()));
                             tagsQuery.queries(q -> q.nested(NestedQuery.of(n -> n.path("node").query(innerNestedQuery._toQuery()).scoreMode(ChildScoreMode.None))));
                         }
                     }
-                    boolQueryBuilder.must(tagsQuery.build()._toQuery());
+                    DisMaxQuery disMaxQuery = tagsQuery.build();
+                    if(!disMaxQuery.queries().isEmpty()){
+                        boolQueryBuilder.must(disMaxQuery._toQuery());
+                    }
                     break;
                 case "size":
                 case "limit":
