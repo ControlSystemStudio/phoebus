@@ -81,6 +81,10 @@ External image resources may be edited manually, e.g.:
 ``![alt-text](https://foo.com/bar.jpg)``. 
 File URLs are not supported.
 
+Links
+-----
+Links contained in a log entry will be opened in the default browser rather than in the view showing the log entry.
+
 Properties
 ----------
 Properties are edited by expanding the Properties editor. The below screen shot shows that one single property
