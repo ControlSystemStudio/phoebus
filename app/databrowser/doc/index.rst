@@ -443,7 +443,6 @@ indirectly for determining the subset of data-points to calculate the statistica
 individual data-points are part of the calculation.
 
 E.g., the statistical mean will be skewed towards more recent data-points if the sample frequency of recent data-points
-is higher than the sample frequency of less recent data-points. This may, e.g., occur in the case where a PV broadcasts
-measurement values more frequently than the archiver archives them: if the Data Browser has obtained more recent
-data-points directly from the PV itself while less recent data-points have been obtained from the archiver, then the
-calculated statistical mean will be skewed towards the more recent values that were broadcast by the PV.
+is higher than the sample frequency of less recent data-points. This may, e.g., occur when the Data Browser displays
+historic data-points obtained from the archiver together with more recent data-points obtained from the PV itself
+(broadcast at a higher sample frequency than the archiver archives at).
