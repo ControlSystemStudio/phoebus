@@ -442,7 +442,5 @@ and the total number of data-points are taken into account, while neither the ti
 indirectly for determining the subset of data-points to calculate the statistical measures for), nor the timestamps of
 individual data-points are part of the calculation.
 
-E.g., the statistical mean will be skewed towards more recent data-points if the sample frequency of recent data-points
-is higher than the sample frequency of less recent data-points. For instance, in a plot based on both archived and live
-samples, the mean value will be skewed towards the live data portion if live data is sampled at a higher frequency than
-archived data.
+For instance, in a plot based on both archived and live samples, the mean value will be skewed towards the live data
+portion if live data is sampled at a higher frequency than archived data.
