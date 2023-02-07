@@ -1,9 +1,8 @@
 package org.phoebus.ui.docking;
-import java.util.Iterator;
 import java.util.Set;
 
 import org.assertj.core.api.Assertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit.ApplicationTest;
 

@@ -22,7 +22,7 @@
 package org.phoebus.service.saveandrestore.web.controllers;
 
 import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.service.saveandrestore.services.IServices;
+import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,15 +40,10 @@ import java.util.List;
 public class TagController extends BaseController {
 
     @Autowired
-    private IServices services;
+    private NodeDAO nodeDAO;
 
     @GetMapping("/tags")
     public List<Tag> getTags() {
-        return services.getAllTags();
-    }
-
-    @GetMapping("/tag/{snapshotUniqueId}")
-    public List<Tag> getTag(@PathVariable String snapshotUniqueId) {
-        return services.getTags(snapshotUniqueId);
+        return nodeDAO.getAllTags();
     }
 }

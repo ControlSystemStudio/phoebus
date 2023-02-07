@@ -27,33 +27,38 @@ public class ContextMenuFolder extends ContextMenuBase {
 
     public ContextMenuFolder(SaveAndRestoreController saveAndRestoreController, boolean csvImportEnabled, SimpleBooleanProperty multipleItemsSelected) {
         super(saveAndRestoreController, multipleItemsSelected);
-        MenuItem newFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(folderIcon));
+        MenuItem newFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(ImageRepository.FOLDER));
         newFolderMenuItem.disableProperty().bind(multipleItemsSelected);
         newFolderMenuItem.setOnAction(ae -> {
             saveAndRestoreController.createNewFolder();
         });
 
-        MenuItem newSaveSetMenuItem = new MenuItem(Messages.contextMenuNewSaveSet, new ImageView(saveSetIcon));
-        newSaveSetMenuItem.disableProperty().bind(multipleItemsSelected);
-        newSaveSetMenuItem.setOnAction(ae -> {
-            saveAndRestoreController.createNewSaveSet();
+        MenuItem newConfigurationMenuItem = new MenuItem(Messages.contextMenuNewConfiguration, new ImageView(ImageRepository.CONFIGURATION));
+        newConfigurationMenuItem.disableProperty().bind(multipleItemsSelected);
+        newConfigurationMenuItem.setOnAction(ae -> {
+            saveAndRestoreController.createNewConfiguration();
         });
 
-        getItems().addAll(newFolderMenuItem, renameNodeMenuItem, deleteNodesMenuItem, newSaveSetMenuItem, copyUniqueIdToClipboardMenuItem);
+        MenuItem newCompositeSnapshotMenuItem = new MenuItem(Messages.contextMenuNewCompositeSnapshot, new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
+        newCompositeSnapshotMenuItem.setOnAction(ae -> {
+            saveAndRestoreController.createNewCompositeSnapshot();
+        });
+
+        getItems().addAll(newFolderMenuItem, renameNodeMenuItem, deleteNodesMenuItem, newConfigurationMenuItem, newCompositeSnapshotMenuItem, copyUniqueIdToClipboardMenuItem);
 
         if (csvImportEnabled) {
 
-            ImageView importSaveSetIconImageView = new ImageView(csvImportIcon);
-            importSaveSetIconImageView.setFitWidth(18);
-            importSaveSetIconImageView.setFitHeight(18);
+            ImageView importConfigurationIconImageView = new ImageView(csvImportIcon);
+            importConfigurationIconImageView.setFitWidth(18);
+            importConfigurationIconImageView.setFitHeight(18);
 
-            MenuItem importSaveSetMenuItem = new MenuItem(Messages.importSaveSetLabel, importSaveSetIconImageView);
-            importSaveSetMenuItem.disableProperty().bind(multipleItemsSelected);
-            importSaveSetMenuItem.setOnAction(ae -> {
-                saveAndRestoreController.importSaveSet();
+            MenuItem importConfigurationMenuItem = new MenuItem(Messages.importConfigurationLabel, importConfigurationIconImageView);
+            importConfigurationMenuItem.disableProperty().bind(multipleItemsSelected);
+            importConfigurationMenuItem.setOnAction(ae -> {
+                saveAndRestoreController.importConfiguration();
             });
 
-            getItems().add(importSaveSetMenuItem);
+            getItems().add(importConfigurationMenuItem);
         }
     }
 }

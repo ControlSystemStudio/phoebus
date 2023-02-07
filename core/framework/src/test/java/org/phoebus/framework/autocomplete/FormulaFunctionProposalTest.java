@@ -7,14 +7,14 @@
  *******************************************************************************/
 package org.phoebus.framework.autocomplete;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.csstudio.apputil.formula.math.Sin;
+import org.csstudio.apputil.formula.string.StringConcatFunction;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import org.csstudio.apputil.formula.math.Sin;
-import org.csstudio.apputil.formula.string.StringFunction;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test of {@link FormulaFunctionProposal}
  *  @author Kay Kasemir
@@ -52,7 +52,7 @@ public class FormulaFunctionProposalTest
     @Test
     public void testVarArg()
     {
-        Proposal proposal = new FormulaFunctionProposal(new StringFunction());
+        Proposal proposal = new FormulaFunctionProposal(new StringConcatFunction());
 
         List<MatchSegment> match = proposal.getMatch("=concat(a, b) + 2");
         assertThat(match, equalTo(List.of(MatchSegment.normal("="),

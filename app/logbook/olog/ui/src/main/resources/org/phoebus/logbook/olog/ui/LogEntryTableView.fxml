@@ -37,7 +37,7 @@
                                 </Button>
                                 <ComboBox fx:id="query" editable="true" maxWidth="1.7976931348623157E308" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.vgrow="NEVER">
                                     <tooltip>
-                                        <Tooltip text="%SearchToolTip"/>
+                                        <Tooltip text="%SearchToolTip" />
                                     </tooltip>
                                     <GridPane.margin>
                                         <Insets bottom="10.0" top="10.0" />

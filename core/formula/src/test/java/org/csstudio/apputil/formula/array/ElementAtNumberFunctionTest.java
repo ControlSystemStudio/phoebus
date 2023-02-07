@@ -29,11 +29,13 @@ import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VString;
 import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ElementAtNumberFunctionTest {
 
@@ -76,25 +78,27 @@ public class ElementAtNumberFunctionTest {
         assertEquals("", vString.getValue());
     }
 
-    @Test(expected = Exception.class)
-    public void invalidArguments1() throws Exception{
+    @Test
+    public void invalidArguments1() {
         ElementAtNumberFunction elementAtNumberFunction =
                 new ElementAtNumberFunction();
 
         VType index = VDouble.of(8.0, Alarm.none(), Time.now(), Display.none());
         VType array = VNumberArray.of(ArrayDouble.of(1.0, 2.0, 3.0), Alarm.none(), Time.now(), Display.none());
 
-        elementAtNumberFunction.compute(array, index);
+        assertThrows(Exception.class, () ->
+                elementAtNumberFunction.compute(array, index));
     }
 
-    @Test(expected = Exception.class)
-    public void invalidArguments2() throws Exception{
+    @Test
+    public void invalidArguments2() {
         ElementAtNumberFunction elementAtNumberFunction =
                 new ElementAtNumberFunction();
 
         VType index = VDouble.of(-1.0, Alarm.none(), Time.now(), Display.none());
         VType array = VNumberArray.of(ArrayDouble.of(1.0, 2.0, 3.0), Alarm.none(), Time.now(), Display.none());
 
-        elementAtNumberFunction.compute(array, index);
+        assertThrows(Exception.class,
+                () -> elementAtNumberFunction.compute(array, index));
     }
 }

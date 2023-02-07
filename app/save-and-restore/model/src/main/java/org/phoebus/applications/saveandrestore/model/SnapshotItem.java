@@ -18,6 +18,8 @@
 
 package org.phoebus.applications.saveandrestore.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import org.epics.vtype.VType;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -28,22 +30,21 @@ import org.phoebus.applications.saveandrestore.model.json.VTypeSerializer;
 
 
 /**
- * Class encapsulating a {@link VType} holding the PV data. 
- * @author georgweiss
- * Created 28 Nov 2018
+ * Class encapsulating data associated with a single "item" in a save-n-restore snapshot. Such an item
+ * contains at least a PV value and a read-only flag, plus optionally a read-back PV value.
  */
 public class SnapshotItem {
-	private int snapshotId;
 
 	/**
 	 * The {@link ConfigPv} associated with this {@link SnapshotItem}. The PV name
 	 * and provider identity are determined from this.
 	 */
 	private ConfigPv configPv;
-	
+
 	/**
 	 * The actual PV data, including alarms and time stamps.
 	 */
+
 	@JsonSerialize(using = VTypeSerializer.class)
 	@JsonDeserialize(using = VTypeDeserializer.class)
 	private VType value;
@@ -53,15 +54,8 @@ public class SnapshotItem {
 	 */
 	@JsonSerialize(using = VTypeSerializer.class)
 	@JsonDeserialize(using = VTypeDeserializer.class)
+	@JsonInclude(Include.NON_NULL)
 	private VType readbackValue;
-
-	public int getSnapshotId() {
-		return snapshotId;
-	}
-
-	public void setSnapshotId(int snapshotId) {
-		this.snapshotId = snapshotId;
-	}
 
 	public ConfigPv getConfigPv() {
 		return configPv;
@@ -90,10 +84,9 @@ public class SnapshotItem {
 	@Override
 	public String toString() {
 		return new StringBuffer()
-				.append("value=")
-				.append(value != null ? value.toString() : "READ FAILED")
 				.append(", config pv=").append(configPv.toString())
-				.append(readbackValue != null ? (", readback pv=" + readbackValue.toString()) : (", readback pv=READ_FAILED"))
+				.append("value=").append(value != null ? value.toString() : "null")
+				.append(readbackValue != null ? (", readback pv=" + readbackValue) : (", readback pv=null"))
 				.toString();
 	}
 
@@ -109,10 +102,6 @@ public class SnapshotItem {
 			snapshotItem = new SnapshotItem();
 		}
 
-		public Builder snapshotId(int snapshotId){
-			snapshotItem.setSnapshotId(snapshotId);
-			return this;
-		}
 
 		public Builder configPv(ConfigPv configPv){
 			snapshotItem.setConfigPv(configPv);

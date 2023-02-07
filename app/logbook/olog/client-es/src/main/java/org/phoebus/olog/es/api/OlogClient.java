@@ -514,4 +514,10 @@ public class OlogClient implements LogClient {
             throw e;
         }
     }
+
+    @Override
+    public String serviceInfo(){
+        ClientResponse clientResponse = service.path("").get(ClientResponse.class);
+        return clientResponse.getEntity(String.class);
+    }
 }

@@ -7,17 +7,17 @@
  ******************************************************************************/
 package org.epics.pva.data;
 
+import org.junit.jupiter.api.Test;
+
+import java.util.BitSet;
+
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.CoreMatchers.sameInstance;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-
-import java.util.BitSet;
-
-import org.junit.Test;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @SuppressWarnings("nls")
 public class StructureTest
@@ -119,7 +119,7 @@ public class StructureTest
 
     /** Check structure errors */
     @Test
-    public void testError() throws Exception
+    public void testError()
     {
         // OK for structure to be empty, not named
         new PVAStructure("", "");

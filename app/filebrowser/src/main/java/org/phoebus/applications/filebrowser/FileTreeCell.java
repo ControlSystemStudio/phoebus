@@ -1,25 +1,5 @@
 package org.phoebus.applications.filebrowser;
 
-import static org.phoebus.applications.filebrowser.FileBrowser.logger;
-
-import java.io.File;
-import java.net.URI;
-import java.net.URL;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.stream.Collectors;
-
-import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.framework.spi.AppDescriptor;
-import org.phoebus.framework.util.ResourceParser;
-import org.phoebus.framework.workbench.FileHelper;
-import org.phoebus.ui.application.ApplicationLauncherService;
-import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
-import org.phoebus.ui.javafx.ImageCache;
-import org.phoebus.ui.javafx.PlatformInfo;
-
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
@@ -36,15 +16,38 @@ import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
+import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.spi.AppDescriptor;
+import org.phoebus.framework.util.ResourceParser;
+import org.phoebus.framework.workbench.FileHelper;
+import org.phoebus.ui.application.ApplicationLauncherService;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.PlatformInfo;
+
+import java.io.File;
+import java.net.URI;
+import java.net.URL;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
+
+import static org.phoebus.applications.filebrowser.FileBrowser.logger;
 
 @SuppressWarnings("nls")
 final class FileTreeCell extends TreeTableCell<FileInfo, File> {
     static final Image file_icon = ImageCache.getImage(ImageCache.class, "/icons/file_obj.png");
     static final Image folder_icon = ImageCache.getImage(ImageCache.class, "/icons/fldr_obj.png");
-    static final Image newDisplayIcon = ImageCache.getImage(ImageCache.class, "/icons/display.png");
 
     private static final Border BORDER = new Border(new BorderStroke(Color.GREEN, BorderStrokeStyle.SOLID,
                                                     new CornerRadii(5.0), BorderStroke.THIN));
+
+    /**
+     * Used to determine if the user has dropped a selection onto the area below the tree view
+     */
+    private boolean dropOnRoot;
 
     public FileTreeCell()
     {
@@ -84,7 +87,6 @@ final class FileTreeCell extends TreeTableCell<FileInfo, File> {
         setOnDragDone(event ->
         {
             final File file = getItem();
-
             if (event.getTransferMode() == TransferMode.MOVE  &&
                 file != null)
             {
@@ -92,7 +94,7 @@ final class FileTreeCell extends TreeTableCell<FileInfo, File> {
                 // Might want to check if file.exists() in case move failed,
                 // but actual move is performed in background, so right now file
                 // might still be present...
-                final TreeItem<FileInfo> deleted_item = getTreeTableRow().getTreeItem();
+                final TreeItem<FileInfo> deleted_item = getTableRow().getTreeItem();
                 deleted_item.getParent().getChildren().remove(deleted_item);
             }
             else
@@ -106,10 +108,17 @@ final class FileTreeCell extends TreeTableCell<FileInfo, File> {
         setOnDragOver(event ->
         {
             final File file = getItem();
-            if (file != null && event.getDragboard().hasFiles() && !event.getDragboard().getFiles().contains(file))
+            // If user drags to the "empty" area below the tree view, file is null.
+            // This suggests the intention to move/copy items to the root of the view.
+            dropOnRoot = file == null;
+            if (event.getDragboard().hasFiles() && !event.getDragboard().getFiles().contains(file))
             {
                 event.acceptTransferModes(event.getTransferMode());
-                setBorder(BORDER);
+                // Do not set border on TreeView items that "exist" in the TreeView model, but are invisible.
+                // Because it looks weird rendering a border around an empty space...
+                if(!dropOnRoot){
+                    setBorder(BORDER);
+                }
             }
             event.consume();
         });
@@ -123,7 +132,19 @@ final class FileTreeCell extends TreeTableCell<FileInfo, File> {
         // A file has been dropped into this dir, or this file's directory
         setOnDragDropped(event ->
         {
-            TreeItem<FileInfo> target_item = getTreeTableRow().getTreeItem();
+            TreeItem<FileInfo> target_item;
+            if(dropOnRoot){
+                // User dropped on area below the tree view
+                target_item = getTreeTableView().getRoot();
+                // If selection is contained in the root target, abort.
+                if(isSelectionInTarget(target_item, event.getDragboard())){
+                    event.consume();
+                    return;
+                }
+            }
+            else{
+                target_item = getTableRow().getTreeItem();
+            }
 
             if (target_item.getValue() != null && !target_item.getValue().file.isDirectory())
                 target_item = target_item.getParent();
@@ -187,11 +208,11 @@ final class FileTreeCell extends TreeTableCell<FileInfo, File> {
     protected void updateItem(final File file, final boolean empty) {
         super.updateItem(file, empty);
 
-        if (empty || file == null || getTreeTableRow() == null || getTreeTableRow().getTreeItem() == null) {
+        if (empty || file == null || getTableRow() == null || getTableRow().getTreeItem() == null) {
             setText(null);
             setGraphic(null);
         } else {
-            if (getTreeTableRow().getTreeItem().getParent() == null) {
+            if (getTableRow().getTreeItem().getParent() == null) {
                 // Root (actually hidden, so this is never called)
                 setText(file.getAbsolutePath());
             } else {
@@ -236,5 +257,28 @@ final class FileTreeCell extends TreeTableCell<FileInfo, File> {
             return TransferMode.COPY;
         }
         return TransferMode.MOVE;
+    }
+
+    /**
+     * Checks if the dragboard files - if any - are present in the target.
+     * @param target {@link TreeItem} representing the target file onto which user has dropped a selection.
+     * @param dragboard The {@link Dragboard} containing a selection, if any.
+     * @return <code>true</code> if any of the {@link Dragboard} files is found in the target.
+     */
+    private boolean isSelectionInTarget(TreeItem<FileInfo> target, Dragboard dragboard){
+        if(!dragboard.hasFiles()){
+            return false;
+        }
+        List<File> filesInRoot =
+                target.getChildren().stream().map(item -> item.getValue().file.getAbsoluteFile()).collect(Collectors.toList());
+        for(File fileSelection : dragboard.getFiles()){
+            for(File fileInRoot : filesInRoot){
+                if(fileInRoot.getAbsoluteFile().equals(fileSelection.getAbsoluteFile())){
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

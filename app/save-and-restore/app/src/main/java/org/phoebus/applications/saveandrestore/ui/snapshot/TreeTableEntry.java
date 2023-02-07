@@ -38,7 +38,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * {@link TableEntry} wrapper for supporting {@link TreeTableView} for Snapshot PVs
+ * {@link TableEntry} wrapper for supporting {@link TreeTableView} for SnapshotData PVs
  *
  * @author <a href="mailto:changj@frib.msu.edu">Genie Jhang</a>
  */

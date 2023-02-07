@@ -7,8 +7,8 @@
  *******************************************************************************/
 package org.phoebus.util.indexname;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -16,8 +16,9 @@ import java.time.ZoneId;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 
 /**
  * Unit test for the IndexNameHelper class.
@@ -26,7 +27,7 @@ import org.junit.Test;
 @SuppressWarnings("nls")
 public class IndexNameHelperTest
 {
-    @BeforeClass
+    @BeforeAll
     public static void setup()
     {
         // Perform test in known timezone and Locale

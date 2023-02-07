@@ -39,6 +39,8 @@ public class Messages
                          AddJavaScriptFile,
                          AddPythonFile,
                          Alpha,
+                         BoolButtonError_Body,
+                         BoolButtonError_Title,
                          Blue,
                          ColorDialog_Current,
                          ColorDialog_Custom,

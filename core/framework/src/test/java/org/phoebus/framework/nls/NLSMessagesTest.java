@@ -7,14 +7,15 @@
  ******************************************************************************/
 package org.phoebus.framework.nls;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.Locale;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+
 
 /** JUnit test of the {@link NLS} message initialization
  *  @author Kay Kasemir
@@ -28,7 +29,7 @@ public class NLSMessagesTest
     public static String HowAreYou;
     public static String MissingMessage;
 
-    private Locale original;
+    private static Locale original;
 
     // They are initialized from a "messages*.properties" file in the same package,
     // typically using 'static' code like this:
@@ -41,8 +42,8 @@ public class NLSMessagesTest
     // For the test, we call NLS.initializeMessages with various locates
     // in a non-static way
 
-    @Before
-    public void saveLocale()
+    @BeforeAll
+    public static void saveLocale()
     {
         original = Locale.getDefault();
     }
@@ -100,8 +101,8 @@ public class NLSMessagesTest
         assertThat(MissingMessage, equalTo("<MissingMessage>"));
     }
 
-    @After
-    public void restoreLocale()
+    @AfterAll
+    public static void restoreLocale()
     {
         Locale.setDefault(original);
     }

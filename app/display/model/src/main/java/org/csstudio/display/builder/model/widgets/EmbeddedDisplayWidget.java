@@ -160,6 +160,9 @@ public class EmbeddedDisplayWidget extends MacroWidget
                         widget.setPropertyValue(propFile, opi_file.get());
                 }
 
+		// BOY linking containers are transparent by default
+		widget.setPropertyValue(propTransparent, true);
+
                 // Transition legacy "resize_behaviour"
                 Element element = XMLUtil.getChildElement(xml, "resize_behaviour");
                 if (element != null)

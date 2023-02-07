@@ -13,8 +13,12 @@
     -fx-background-color: #c9e0f4;
 }
 
-.table-column:grouped{
-    -fx-background-color: #e8edee;
+/* Show/Hide grouped entry icons */
+#conversationIcon {
+    visibility: hidden;
+}
+.table-column:grouped #conversationIcon {
+    visibility: visible;
 }
 
 /* Make empty cells appear as removed */

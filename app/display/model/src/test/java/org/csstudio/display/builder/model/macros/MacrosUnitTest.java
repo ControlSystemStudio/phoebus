@@ -7,12 +7,12 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.macros;
 
+import org.junit.jupiter.api.Test;
+import org.phoebus.framework.macros.Macros;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.MatcherAssert.assertThat;
-
-import org.junit.Test;
-import org.phoebus.framework.macros.Macros;
 
 /** JUnit test of macro handling
  *  @author Kay Kasemir

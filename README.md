@@ -248,12 +248,13 @@ Create a sonatype account and update the maven settings.xml file with your sonat
 
 **Prepare the release**  
 `mvn release:prepare`  
-In this step will ensure there are no uncommitted changes, ensure the versions number are correct, tag the scm, etc..
-A full list of checks is documented [here](https://maven.apache.org/maven-release/maven-release-plugin/examples/prepare-release.html):
+In this step will ensure there are no uncommitted changes, ensure the versions number are correct, tag the scm, etc.
+A full list of checks is documented [here](https://maven.apache.org/maven-release/maven-release-plugin/examples/prepare-release.html).
 
 **Perform the release**  
-`mvn release:perform`  
-Checkout the release tag, build, sign and push the build binaries to sonatype.
+`mvn -Pdocs release:perform`  
+Checkout the release tag, build, sign and push the build binaries to sonatype. The `docs` profile is needed in order
+to create required javadocs jars.
 
 **Publish**  
 Open the staging repository in [sonatype](https://s01.oss.sonatype.org/#stagingRepositories) and hit the *publish* button
@@ -261,4 +262,4 @@ Open the staging repository in [sonatype](https://s01.oss.sonatype.org/#stagingR
 **Note:**
 In order to keep the ant and maven builds in sync, before the prepare:release update the `version` in the 
 dependencies\ant_settings.xml to match the release version number. After the release is completed the `version` should 
-updated to match the next development snapshot version.
+updated to match the next development snapshotData version.

@@ -1,17 +1,17 @@
 package org.phoebus.app.diag.ui;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
 import javafx.scene.control.TreeItem;
 import org.csstudio.apputil.formula.spi.FormulaFunction;
 import org.epics.vtype.VType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FormulaTreeRootNodeTest {
 
@@ -38,7 +38,7 @@ public class FormulaTreeRootNodeTest {
             }
 
             @Override
-            public VType compute(VType... args) throws Exception {
+            public VType compute(VType... args)  {
                 return null;
             }
         };
@@ -46,8 +46,8 @@ public class FormulaTreeRootNodeTest {
 
     public List<String> getFormulaSignaturesFromCategory(TreeItem<FormulaTreeByCategoryNode> category) {
         return category.getChildren().stream()
-                .map(child -> child.getValue())
-                .map(form -> form.getSignature())
+                .map(TreeItem::getValue)
+                .map(FormulaTreeByCategoryNode::getSignature)
                 .collect(Collectors.toList());
     }
 

@@ -32,10 +32,10 @@ public class FileReaderHelper {
 
     public static List<ConfigPv> readSaveSet(InputStream file) throws Exception{
 
-        SaveSetContent saveSetContent = FileUtilities.readFromSaveSet(file);
-        List<SaveSetEntry> entries = saveSetContent.getEntries();
+        ConfigurationContent saveSetContent = FileUtilities.readFromConfiguration(file);
+        List<ConfigurationEntry> entries = saveSetContent.getEntries();
         List<ConfigPv> configPVs = new ArrayList<>();
-        for(SaveSetEntry entry : entries){
+        for(ConfigurationEntry entry : entries){
             ConfigPv configPv = ConfigPv.builder()
                     .pvName(entry.getPVName())
                     .readbackPvName((entry.getReadback() == null || entry.getReadback().isEmpty()) ? null : (entry.getReadback()))

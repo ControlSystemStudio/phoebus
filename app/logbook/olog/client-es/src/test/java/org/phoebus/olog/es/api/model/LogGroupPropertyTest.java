@@ -18,19 +18,21 @@
 
 package org.phoebus.olog.es.api.model;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.phoebus.logbook.LogbookException;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.PropertyImpl;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class LogGroupPropertyTest {
 
@@ -57,7 +59,7 @@ public class LogGroupPropertyTest {
         Property property1 = PropertyImpl.of(LogGroupProperty.NAME, attributes1);
 
         OlogLog logEntry = new OlogLog();
-        logEntry.setProperties(Arrays.asList(property1));
+        logEntry.setProperties(List.of(property1));
 
         assertTrue(LogGroupProperty.getLogGroupProperty(logEntry).isEmpty());
     }
@@ -98,14 +100,14 @@ public class LogGroupPropertyTest {
         Property property1 = PropertyImpl.of(LogGroupProperty.NAME, attributes1);
 
         OlogLog logEntry = new OlogLog();
-        logEntry.setProperties(Arrays.asList(property1));
+        logEntry.setProperties(List.of(property1));
 
         Map<String, String> attributes2 = new HashMap<>();
         attributes1.put("another attr", "value");
         Property property2 = PropertyImpl.of("another name", attributes2);
 
         OlogLog logEntry2 = new OlogLog();
-        logEntry2.setProperties(Arrays.asList(property2));
+        logEntry2.setProperties(List.of(property2));
 
         try {
             Property property = LogGroupProperty.getLogEntryGroupProperty(Arrays.asList(logEntry, logEntry2));
@@ -123,14 +125,14 @@ public class LogGroupPropertyTest {
         Property property1 = PropertyImpl.of("some name", attributes1);
 
         OlogLog logEntry = new OlogLog();
-        logEntry.setProperties(Arrays.asList(property1));
+        logEntry.setProperties(List.of(property1));
 
         Map<String, String> attributes2 = new HashMap<>();
         attributes1.put("another attr", "value");
         Property property2 = PropertyImpl.of("another name", attributes2);
 
         OlogLog logEntry2 = new OlogLog();
-        logEntry2.setProperties(Arrays.asList(property2));
+        logEntry2.setProperties(List.of(property2));
 
         try {
             Property property = LogGroupProperty.getLogEntryGroupProperty(Arrays.asList(logEntry, logEntry2));
@@ -141,15 +143,16 @@ public class LogGroupPropertyTest {
         }
     }
 
-    @Test(expected = LogbookException.class)
-    public void testCheckLogEntryGroupPropertyMultipleLogEntryGroups() throws LogbookException{
+    @Test
+    public void testCheckLogEntryGroupPropertyMultipleLogEntryGroups(){
 
         OlogLog logEntry = new OlogLog();
-        logEntry.setProperties(Arrays.asList(LogGroupProperty.create()));
+        logEntry.setProperties(List.of(LogGroupProperty.create()));
 
         OlogLog logEntry2 = new OlogLog();
-        logEntry2.setProperties(Arrays.asList(LogGroupProperty.create()));
+        logEntry2.setProperties(List.of(LogGroupProperty.create()));
 
-        LogGroupProperty.getLogEntryGroupProperty(Arrays.asList(logEntry, logEntry2));
+        assertThrows(LogbookException.class,
+                () -> LogGroupProperty.getLogEntryGroupProperty(Arrays.asList(logEntry, logEntry2)));
     }
 }

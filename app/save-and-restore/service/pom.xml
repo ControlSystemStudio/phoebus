@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.phoebus</groupId>
 		<artifactId>app-save-and-restore</artifactId>
-		<version>4.7.1-SNAPSHOT</version>
+		<version>4.7.2-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>save-and-restore-service</artifactId>
@@ -15,19 +15,19 @@
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>save-and-restore-model</artifactId>
-			<version>4.7.1-SNAPSHOT</version>
+			<version>4.7.2-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>save-and-restore-common</artifactId>
-			<version>4.7.1-SNAPSHOT</version>
+			<version>4.7.2-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>core-pv</artifactId>
-			<version>4.7.1-SNAPSHOT</version>
+			<version>4.7.2-SNAPSHOT</version>
 		</dependency>
 	
 		<dependency>
@@ -56,6 +56,18 @@
 		</dependency>
 
 		<dependency>
+			<groupId>com.fasterxml.jackson.jaxrs</groupId>
+			<artifactId>jackson-jaxrs-json-provider</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+
+		<dependency>
 			<groupId>com.sun.jersey</groupId>
 			<artifactId>jersey-core</artifactId>
 			<version>1.19</version>
@@ -69,8 +81,8 @@
 	
 		<!-- https://mvnrepository.com/artifact/junit/junit -->
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
 			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>

@@ -21,6 +21,9 @@ File ../../app/alarm/model/src/main/resources/alarm_preferences.properties::
    # Kafka Server host:port
    server=localhost:9092
    
+   # A file to configure the properites of kafka clients
+   kafka_properties=
+   
    # Name of alarm tree root
    config_name=Accelerator
    
@@ -58,12 +61,32 @@ File ../../app/alarm/model/src/main/resources/alarm_preferences.properties::
    # 'display' and 'command' menu entries.
    alarm_menu_max_items=10
    
+   # Initial Alarm Tree UI update delay [ms]
+   #
+   # The initial flurry of alarm tree updates can be slow
+   # to render. By allowing the alarm client to accumulate
+   # alarm tree information for a little time and then
+   # performing an initial bulk representation, the overall
+   # alarm tree startup can be faster, especially when
+   # the UI is viewed via a remote desktop
+   #
+   # Set to 0 for original implementation where
+   # all alarm tree items are added to the model
+   # as they are received in initial flurry of updates.
+   alarm_tree_startup_ms=2000
+   
    # Order of columns in alarm table
    # Allows re-ordering as well as omitting columns
    alarm_table_columns=Icon, PV, Description, Alarm Severity, Alarm Status, Alarm Time, Alarm Value, PV Severity, PV Status
    
-   # Use background color to indicate alarm severity? Default: Text color
-   alarm_table_color_background=false
+   # By default, the alarm table uses the common alarm severity colors
+   # for both the text color and the background of cells in the "Severity" column.
+   #
+   # Older implementations always used the background to indicate alarm severity,
+   # and this options emulates that by using the alarm severity text(!) color
+   # for the background, automatically using black or white for the text
+   # based on brightness.
+   alarm_table_color_legacy_background=true
    
    # Alarm table row limit
    # If there are more rows, they're suppressed
@@ -108,6 +131,14 @@ File ../../app/alarm/model/src/main/resources/alarm_preferences.properties::
    # Set to 0 to disable
    nag_period=00:15:00
    
+   # Connection validation period in seconds
+   #
+   # Server will check the Kafka connection at this period.
+   # After re-establishing the connection, it will
+   # re-send the state of every alarm tree item.
+   # Set to 0 to disable.
+   connection_check_secs=5
+   
    # To turn on disable notifications feature, set the value to true
    disable_notify_visible=false
    
@@ -116,6 +147,11 @@ File ../../app/alarm/model/src/main/resources/alarm_preferences.properties::
    # Comma separated, each option needs to comply with TimeParser.parseTemporalAmount():
    # 30 seconds, 5 minutes, 1 hour, 6 hours, 1 day, 30 days, ...
    shelving_options=1 hour, 6 hours, 12 hours, 1 day, 7 days, 30 days
+   
+   # Macros for UI display, command or web links
+   #
+   # Format: M1=Value1, M2=Value2
+   macros=TOP=/home/controls/displays,WEBROOT=http://localhost/controls/displays
 
 
 alarm.logging.ui
@@ -127,12 +163,8 @@ File ../../app/alarm/logging-ui/src/main/resources/alarm_logging_preferences.pro
    # Package org.phoebus.applications.alarm.logging.ui
    # -------------------------------------------------
    
-   # location of elastic node/s
-   es_host=130.199.219.152
-   es_port=9200
-   es_index=accelerator_alarms
-   es_max_size=1000
-   es_sniff=false
+   service_uri = http://localhost:9000
+   results_max_size = 10000
 
 
 archive
@@ -194,6 +226,61 @@ File ../../services/archive-engine/src/main/resources/archive_preferences.proper
    
    # Use postgres copy instead of insert
    use_postgres_copy=false
+   
+   # Channel names use a prefix ca://, pva://, loc://, ...
+   # to select the type of PV or network protocol.
+   # The preference setting
+   #
+   #  org.phoebus.pv/default=ca
+   #
+   # determines the default type when no prefix is provided.
+   #
+   # With EPICS IOCs from release 7 on, the PVs
+   # "xxx", "ca://xxx" and "pva://xxx" all refer
+   # to the same record "xxx" on the IOC.
+   #
+   # The archive configuration stores the PV name as given.
+   # It is used as such when connecting to the live data source,
+   # resulting in "ca://.." or "pva://.." connections as requested.
+   # Samples are written to the archive under that channel name.
+   #
+   # This archive engine preference setting establishes one or more prefixes
+   # as equal when importing an engine configuration.
+   # For example, assume
+   #
+   #  equivalent_pv_prefixes=ca, pva
+   #
+   # When adding a PV "pva://xxx" to the configuration,
+   # we check if the archive already contains a channel "xxx", "ca://xxx" or "pva://xxx".
+   # If any of them are found, the `-import` will consider "pva://xxx" as a duplicate.
+   #
+   # When importing a PV "pva://xxx" into a sample engine configuration that already
+   # contains the channel "ca://xxx" or "xxx", the channel will be renamed,
+   # so that engine will from now on use "pva://xxx".
+   #
+   # When importing a PV "pva://xxx" into a configuration that already
+   # contains a different engine setup with the channel "ca://xxx" or "xxx",
+   # the channel will by default rename unchanged, so "ca://xxx" or "xxx"
+   # will remain in their original engine setup, "pva://xxx" will be skipped.
+   #
+   # When using `-import` with the additional `-steal_channels` option,
+   # the existing "...xxx" channel will be renamed to "pva://xxx" and moved
+   # to the imported engine configuration.
+   #
+   # When `equivalent_pv_prefixes` is empty,
+   # any PV name is used as is without looking for equivalent names.
+   # So "xxx", "ca://xxx" and "pva://xxx" can then all be imported
+   # as separate channels, which is likely wrong because it would simply
+   # store data from the same underlying record more than once.
+   #
+   # This default should be the most practical setting when adding
+   # EPICS 7 IOCs and starting to transition towards "pva://..".
+   # Existing "xxx" or "ca://xxx" channels can thus be renamed
+   # to "pva://xxx" while retaining their sample history.
+   #
+   # Note that the data browser has a similar `equivalent_pv_prefixes`
+   # setting to search for a channel name in several variants.
+   equivalent_pv_prefixes=ca, pva
    
    # Seconds between log messages for Not-a-Number, futuristic, back-in-time values, buffer overruns
    # 24h = 24*60*60 = 86400
@@ -312,6 +399,35 @@ File ../../app/databrowser/src/main/resources/archive_reader_rdb_preferences.pro
    fetch_size=1000
 
 
+archive.ts
+----------
+
+File ../../app/databrowser-timescale/src/main/resources/archive_ts_preferences.properties::
+
+   --------------------------------
+   # Package org.csstudio.archive.ts
+   # -------------------------------
+   
+   # User and password for reading archived data
+   user=report
+   password=$report
+   
+   # Timeout [seconds] for certain SQL queries, 0 to disable timeout.
+   # Fundamentally, the SQL queries for data take as long as they take
+   # and any artificial timeout just breaks queries that would otherwise
+   # have returned OK a few seconds after the timeout.
+   # A timeout is used for operations other than getting the actual data,
+   # for example the channel id-by-name query which _should_ return within
+   # a short time.
+   timeout_secs=120
+   
+   # JDBC Statement 'fetch size':
+   # Number of samples to read in one network transfer.
+   # Speed tends to increase with fetch size.
+   # On the other hand, bigger numbers can result in java.lang.OutOfMemoryError.
+   fetch_size=10000
+
+
 channel.views.ui
 ----------------
 
@@ -337,6 +453,8 @@ File ../../app/channel/channelfinder/src/main/resources/channelfinder_preference
    serviceURL=http://localhost:8080/ChannelFinder
    username=admin
    password=adminPass
+   
+   rawFiltering=false
 
 
 console
@@ -650,6 +768,20 @@ File ../../app/display/convert-edm/src/main/resources/edm_converter_preferences.
    # When left empty, the auto-converter is disabled.
    auto_converter_dir=
    
+   # Path (prefix) that will be stripped from the original
+   # EDM file name before converting.
+   # When empty, the complete path will be stripped.
+   #
+   # For example, assume we need to convert
+   #  /path/to/original/vacuum/segment1/vac1.edl
+   #
+   # With an empty auto_converter_strip,
+   # this will be converted into {auto_converter_dir}/vac1.edl
+   #
+   # With auto_converter_strip=/path/to/original,
+   # it will be converted into {auto_converter_dir}/vacuum/segment1/vac1.edl
+   auto_converter_strip=
+   
    # EDM colors.list file
    # Must be defined to use converter.
    # May be a file system path or http:/.. link
@@ -863,6 +995,10 @@ File ../../core/logbook/src/main/resources/logbook_preferences.properties::
    # Determines if a log entry created from context menu (e.g. display or data browser)
    # should auto generate a title (e.g. "Display Screenshot...").
    auto_title=true
+   
+   # Determines if a log entry created from context menu (e.g. display or data browser)
+   # should auto generate properties (e.g. "resources.file").
+   auto_property=false
 
 
 logbook.olog.ui
@@ -890,8 +1026,8 @@ File ../../app/logbook/olog/ui/src/main/resources/log_olog_ui_preferences.proper
    # its wording and its implied purpose.
    level_field_name=Level:
    
-   # Name of markup help file. It must be relative to the Olog ES service root URL
-   markup_help=CommonmarkCheatsheet.html
+   # Name of markup help. Language resolution and file extension is handled on service.
+   markup_help=CommonmarkCheatsheet
    
    # Root URL of the Olog web client, if one exists. Set this to the empty string
    # to suppress rendering of the "Copy URL" button for a log entry.
@@ -912,11 +1048,23 @@ File ../../app/logbook/olog/ui/src/main/resources/log_olog_ui_preferences.proper
    # Log Entry Calendar display name. If non-empty it overrides default "Log Entry Calendar"
    log_entry_calendar_display_name=
    
+   # Log Entry property attribute types.
+   # The preference should be a URL pointing to an attribute_type.properties file.
+   # e.g. log_attribute_desc=file:///C:/phoebus/app/logbook/olog/ui/src/main/resources/org/phoebus/logbook/olog/ui/log_property_attributes.properties
+   # Classpath resource is supported if specified like log_attribute_desc=classpath:my_attr.properties. In this
+   # example the my_attr.properties file must be bundled as a classpath resource in the package org.phoebus.logbook.olog.ui.
+   # This optional file describing special types associated with some property attributes.
+   #
+   log_attribute_desc=
+   
    # Limit used in "paginated" search, i.e. the number of search results per page
    search_result_page_size=30
    
    # Number of queries maintained by the OlogQueryManager. To make sense: must be >= 5 and <=30.
    query_list_size=15
+   
+   # Name of the search help content.  Language resolution and file extension is handled on service.
+   search_help=SearchHelp
 
 
 logbook.ui
@@ -1129,6 +1277,14 @@ File ../../core/pv/src/main/resources/pv_pva_preferences.properties::
    
    # TCP buffer size for sending data
    epics_pva_send_buffer_size
+   
+   # Timeout used by plain "put" type of write
+   # when checking success or failure.
+   # Note this is not used with asyncWrite,
+   # the "put-callback" which returns a Future
+   # for awaiting the completion,
+   # but only with the plain "put" that returns ASAP
+   epics_pva_write_reply_timeout_ms=1000
 
 
 pvtable
@@ -1201,8 +1357,26 @@ File ../../app/pvtree/src/main/resources/pv_tree_preferences.properties::
 saveandrestore
 --------------
 
-File ../../app/save-and-restore/app/src/main/resources/save_and_restore_preferences.properties::
+File ../../app/save-and-restore/service/src/main/resources/client_preferences.properties::
 
+   #
+   # Copyright (C) 2020 European Spallation Source ERIC.
+   #
+   #  This program is free software; you can redistribute it and/or
+   #  modify it under the terms of the GNU General Public License
+   #  as published by the Free Software Foundation; either version 2
+   #  of the License, or (at your option) any later version.
+   #
+   #  This program is distributed in the hope that it will be useful,
+   #  but WITHOUT ANY WARRANTY; without even the implied warranty of
+   #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   #  GNU General Public License for more details.
+   #
+   #  You should have received a copy of the GNU General Public License
+   #  along with this program; if not, write to the Free Software
+   #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+   #
+   
    # -----------------------------------------------
    # Package org.phoebus.applications.saveandrestore
    # -----------------------------------------------
@@ -1215,27 +1389,6 @@ File ../../app/save-and-restore/app/src/main/resources/save_and_restore_preferen
    
    # Connect timeout in (ms) used by the Jersey client
    httpClient.connectTimeout=1000
-   
-   # Extract snapshots from TreeView to ListView
-   splitSnapshot=true
-   
-   
-   # Sort snapshots in reverse order of created time. Last item comes first.
-   sortSnapshotsTimeReversed=false
-   
-   # In "Create/Add to a saveset" dialog, split savesets from folder and show them in ListView
-   splitSaveset=false
-   
-   # Specify hierarchy parser class to enable TreeTableView in snapshot
-   # Hierarchy parser class should be in ui/snapshot/hierarchyparser
-   # RegexHierarchyParser is provided for convenience. Use , as separator for each regex pattern.
-   # First matched pattern is used to create its hierarchy.
-   treeTableView.enable=false
-   treeTableView.hierarchyParser=RegexHierarchyParser
-   regexHierarchyParser.regexList=(\\w+)_(\\w+):(\\w+)_(\\w+):(.*),(\\w+)_(\\w+):(\\w+)_(.*),(\\w+)_(\\w+):(.*),(\\w+):(.*)
-   
-   # Importing/exporting saveset/snapshot to/from CSV (Git SNP/BMS compatible)
-   enableCSVIO=false
 
 
 scan.client
@@ -1401,6 +1554,27 @@ File ../../app/databrowser/src/main/resources/databrowser_preferences.properties
    # return an error (cannot connect, ...) should be queried again for the given channel.
    drop_failed_archives=true
    
+   # With EPICS IOCs from release 7 on, the PVs
+   # "xxx", "ca://xxx" and "pva://xxx" all refer
+   # to the same record "xxx" on the IOC.
+   #
+   # When the plot requests "pva://xxx", the archive might still
+   # trace that channel as "ca://xxx" or "xxx".
+   # Alternatively, the archive might already track the channel
+   # as "pva://xxx" while data browser plots still use "ca://xxx"
+   # or just "xxx".
+   # This preference setting instructs the data browser
+   # to try all equivalent variants. If any types are listed,
+   # just "xxx" without any prefix will also be checked in addition
+   # to the listed types.
+   #
+   # The default of setting of "ca, pva" supports the seamless
+   # transition between the key protocols.
+   #
+   # When `equivalent_pv_prefixes` is empty,
+   # the PV name is used as is without looking for any equivalent names.
+   equivalent_pv_prefixes=ca, pva
+   
    # Re-scale behavior when archived data arrives: NONE, STAGGER
    archive_rescale=STAGGER
    
@@ -1435,6 +1609,10 @@ File ../../app/databrowser/src/main/resources/databrowser_preferences.properties
    # Format:
    # Text for shortcut,start_spec|Another shortcut,start_spec
    time_span_shortcuts=30 Minutes,-30 min|1 Hour,-1 hour|12 Hours,-12 hour|1 Day,-1 days|7 Days,-7 days
+   
+   # Determines if the plot runtime config dialog is supported. Defaults to false as the Data Browser
+   # offers the same functionality through its configuration tabs.
+   config_dialog_supported=false
 
 
 ui
@@ -1503,6 +1681,35 @@ File ../../core/ui/src/main/resources/phoebus_ui_preferences.properties::
    
    # Set the path to a folder with default layouts
    layout_dir=
+   
+   # Compute print scaling in 'landscape' mode?
+   # Landscape mode is generally most suited for printouts
+   # of displays or plots, because the monitor tends to be 'wide'.
+   # At least on Mac OS X, however, the printing always appears to use
+   # portrait mode, so print layouts computed in landscape mode
+   # get cropped.
+   # Details can also depend on the printer driver.
+   print_landscape=true
+   
+   # Color for text and the background for 'OK' alarm severity (R,G,B or R,G,B,A values in range 0..255)
+   ok_severity_text_color=0,255,0
+   ok_severity_background_color=255,255,255
+   
+   # Color for text and the background for 'MINOR' alarm severity
+   minor_severity_text_color=255,128,0
+   minor_severity_background_color=255,255,255
+   
+   # Color for text and the background for 'MAJOR' alarm severity
+   major_severity_text_color=255,0,0
+   major_severity_background_color=255,255,255
+   
+   # Color for text and the background for 'INVALID' alarm severity
+   invalid_severity_text_color=255,0,255
+   invalid_severity_background_color=255,255,255
+   
+   # Color for text and the background for 'UNDEFINED' alarm severity
+   undefined_severity_text_color=200,0,200,200
+   undefined_severity_background_color=255,255,255
 
 
 update

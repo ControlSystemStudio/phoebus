@@ -9,128 +9,129 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane fx:id="borderPane" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotController">
-<top>
-<VBox fx:id="vBox" maxHeight="1.7976931348623157E308" prefWidth="1188.0">
+<StackPane xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotController">
+    <children>
 
-    <ToolBar prefHeight="40.0">
-        <items>
-            <ToggleButton fx:id="showLiveReadbackButton" mnemonicParsing="false" />
-            <ToggleButton fx:id="showStoredReadbackButton" mnemonicParsing="false" />
-            <ToggleButton fx:id="showTreeTableButton" mnemonicParsing="false" />
-            <Pane HBox.hgrow="ALWAYS" />
-         <ToggleButton fx:id="showHideDeltaPercentageButton" mnemonicParsing="false" />
-            <ToggleButton fx:id="hideShowEqualItemsButton" mnemonicParsing="false" />
-        </items>
-    </ToolBar>
-    <GridPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
-      <columnConstraints>
-        <ColumnConstraints hgrow="NEVER" maxWidth="151.0" minWidth="10.0" prefWidth="130.0" />
-        <ColumnConstraints hgrow="ALWAYS" maxWidth="311.0" minWidth="10.0" prefWidth="265.0" />
-          <ColumnConstraints hgrow="NEVER" />
-          <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="159.0" prefWidth="288.0" />
-          <ColumnConstraints maxWidth="103.0" minWidth="32.0" prefWidth="80.0" />
-          <ColumnConstraints />
-          <ColumnConstraints />
-          <ColumnConstraints />
-      </columnConstraints>
-      <rowConstraints>
-        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-          <RowConstraints />
-      </rowConstraints>
-       <children>
+        <BorderPane fx:id="borderPane" style="-fx-background-color: #f4f4f4;">
+            <top>
+                <VBox fx:id="vBox" maxHeight="1.7976931348623157E308" prefWidth="1188.0">
+                    <ToolBar prefHeight="40.0">
+                        <items>
+                            <ToggleButton fx:id="showLiveReadbackButton" mnemonicParsing="false" />
+                            <ToggleButton fx:id="showStoredReadbackButton" mnemonicParsing="false" />
+                            <ToggleButton fx:id="showTreeTableButton" mnemonicParsing="false" />
+                            <Pane HBox.hgrow="ALWAYS" />
+                            <ToggleButton fx:id="showHideDeltaPercentageButton" mnemonicParsing="false" />
+                            <ToggleButton fx:id="hideShowEqualItemsButton" mnemonicParsing="false" />
+                        </items>
+                    </ToolBar>
+                    <GridPane hgap="5.0">
+                        <columnConstraints>
+                            <ColumnConstraints />
+                            <ColumnConstraints minWidth="120.0" />
+                            <ColumnConstraints />
+                            <ColumnConstraints />
+                            <ColumnConstraints minWidth="120.0" />
+                        </columnConstraints>
+                        <rowConstraints>
+                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        </rowConstraints>
+                        <children>
 
-          <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" style="-fx-font-weight: 900;" text="Created by:" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.hgrow="NEVER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
-             <GridPane.margin>
-                <Insets right="5.0" />
-             </GridPane.margin>
-         </Label>
-          <TextField fx:id="createdBy" editable="false" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="CENTER">
-               <GridPane.margin>
-                   <Insets right="5.0" />
-               </GridPane.margin>
-         </TextField>
-          <Label text="Snapshot date:" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.hgrow="NEVER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
-             <GridPane.margin>
-                <Insets right="5.0" />
-             </GridPane.margin>
-         </Label>
-          <TextField fx:id="createdDate" editable="false" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.valignment="CENTER">
-             <GridPane.margin>
-                <Insets right="5.0" />
-             </GridPane.margin>
-         </TextField>
-          <Label fx:id="snapshotNameLabel" text="Snapshot name:" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="0" GridPane.valignment="CENTER">
-               <GridPane.margin>
-                   <Insets right="5.0" />
-               </GridPane.margin>
-          </Label>
-          <TextField fx:id="snapshotName" maxWidth="1.7976931348623157E308" promptText="Enter a name (mandatory)" GridPane.columnIndex="1" GridPane.rowIndex="0">
-               <GridPane.margin>
-                   <Insets right="5.0" />
-               </GridPane.margin>
-          </TextField>
-          <Label fx:id="snapshotCommentLabel" alignment="CENTER_RIGHT" contentDisplay="RIGHT" text="Comment:" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.hgrow="NEVER" GridPane.valignment="CENTER">
-               <GridPane.margin>
-                   <Insets left="20.0" right="5.0" top="5.0" />
-               </GridPane.margin>
-         </Label>
-          <TextArea fx:id="snapshotComment" maxWidth="1.7976931348623157E308" promptText="Enter a comment (mandatory)" GridPane.columnIndex="3" GridPane.hgrow="ALWAYS" GridPane.rowSpan="3">
-               <GridPane.margin>
-                   <Insets bottom="5.0" right="5.0" top="5.0" />
-               </GridPane.margin>
-         </TextArea>
-          <Button fx:id="restoreButton" maxHeight="1.7976931348623157E308" onAction="#restore" prefHeight="82.0" prefWidth="78.0" text="Restore" GridPane.columnIndex="4" GridPane.rowSpan="3">
-             <GridPane.margin>
-                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-             </GridPane.margin>
-         </Button>
-          <Button fx:id="takeSnapshotButton" maxHeight="1.7976931348623157E308" onAction="#takeSnapshot" GridPane.columnIndex="6" GridPane.rowIndex="0" GridPane.rowSpan="3">
-             <graphic>
-                <VBox alignment="CENTER" maxHeight="Infinity">
-                   <children>
-                      <Label alignment="CENTER" contentDisplay="CENTER" text="Take" />
-                      <Label text="Snapshot">
-                         <VBox.margin>
-                            <Insets top="5.0" />
-                         </VBox.margin>
-                     </Label>
-                   </children>
+                            <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" style="-fx-font-weight: 900;" text="%createdBy" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="3" GridPane.valignment="CENTER">
+                                <GridPane.margin>
+                                    <Insets left="8.0" />
+                                </GridPane.margin>
+                            </Label>
+                            <Label fx:id="createdBy" text="Created By" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                                <GridPane.margin>
+                                    <Insets />
+                                </GridPane.margin>
+                            </Label>
+                            <Label text="%createdDate" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+                                <GridPane.margin>
+                                    <Insets left="8.0" />
+                                </GridPane.margin>
+                            </Label>
+                            <Label fx:id="createdDate" text="Created Date" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                <GridPane.margin>
+                                    <Insets />
+                                </GridPane.margin>
+                            </Label>
+                            <Label fx:id="snapshotNameLabel" text="%snapshotName" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="0" GridPane.valignment="CENTER">
+                                <GridPane.margin>
+                                    <Insets left="8.0" />
+                                </GridPane.margin>
+                            </Label>
+                            <TextField fx:id="snapshotName" promptText="%snapshotNameFieldHint" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                <GridPane.margin>
+                                    <Insets />
+                                </GridPane.margin>
+                            </TextField>
+                            <Label fx:id="snapshotCommentLabel" alignment="CENTER_RIGHT" contentDisplay="RIGHT" text="%comment" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.valignment="CENTER">
+                                <GridPane.margin>
+                                    <Insets left="8.0" />
+                                </GridPane.margin>
+                            </Label>
+                            <TextArea fx:id="snapshotComment" promptText="Enter a comment (mandatory)" GridPane.columnIndex="3" GridPane.rowSpan="4" GridPane.valignment="CENTER">
+                                <GridPane.margin>
+                                    <Insets bottom="2.0" right="3.0" top="4.0" />
+                                </GridPane.margin>
+                            </TextArea>
+                            <Button fx:id="restoreButton" onAction="#restore" prefWidth="120.0" text="%restore" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="CENTER">
+                                <GridPane.margin>
+                                    <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                </GridPane.margin>
+                            </Button>
+                            <Button fx:id="takeSnapshotButton" onAction="#takeSnapshot" prefWidth="120.0" text="%takeSnapshot" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0" GridPane.valignment="CENTER">
+                                <GridPane.margin>
+                                    <Insets bottom="5.0" left="5.0" right="5.0" top="6.0" />
+                                </GridPane.margin>
+                            </Button>
+                            <Button fx:id="saveSnapshotButton" onAction="#saveSnapshot" prefWidth="120.0" text="%saveSnapshot" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+                                <GridPane.margin>
+                                    <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                </GridPane.margin>
+                            </Button>
+                            <Label text="%lastModifiedDate" GridPane.halignment="RIGHT" GridPane.rowIndex="2" GridPane.valignment="CENTER">
+                                <GridPane.margin>
+                                    <Insets left="8.0" />
+                                </GridPane.margin>
+                            </Label>
+                            <Label fx:id="snapshotLastModifiedLabel" text="Last Modified Date" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                            <Button fx:id="createLogEntryButton" onAction="#createLogEntry" prefWidth="120.0" text="%createLogEntry" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.valignment="CENTER">
+                                <GridPane.margin>
+                                    <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                </GridPane.margin>
+                                <tooltip>
+                                    <Tooltip text="%createLogEntryToolTip"/>
+                                </tooltip>
+                            </Button>
+
+                        </children>
+                        <VBox.margin>
+                            <Insets right="2.0" top="3.0" />
+                        </VBox.margin>
+                    </GridPane>
+                    <ToolBar maxWidth="1.7976931348623157E308" nodeOrientation="LEFT_TO_RIGHT" prefHeight="40.0" prefWidth="1188.0">
+                        <items>
+                            <CheckBox fx:id="preserveSelectionCheckBox" mnemonicParsing="false" text="%preserveSelection" />
+                            <Label text="%filter" />
+                            <TextField fx:id="filterTextField" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="26.0" HBox.hgrow="ALWAYS" />
+                            <Label fx:id="thresholdLabel" text="%threashold" />
+                            <Spinner fx:id="thresholdSpinner" editable="true" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" />
+                            <Label fx:id="multiplierLabel" text="%restoreWithScale" />
+                            <Spinner fx:id="multiplierSpinner" editable="true" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" />
+                        </items>
+                    </ToolBar>
                 </VBox>
-             </graphic>
-             <GridPane.margin>
-                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-             </GridPane.margin>
-         </Button>
-          <Button fx:id="saveSnapshotButton" maxHeight="1.7976931348623157E308" onAction="#saveSnapshot" GridPane.columnIndex="7" GridPane.rowIndex="0" GridPane.rowSpan="3">
-             <graphic>
-                <VBox alignment="CENTER">
-                   <children>
-                      <Label text="Save" />
-                      <Label text="Snapshot" />
-                   </children>
-                </VBox>
-             </graphic>
-             <GridPane.margin>
-                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-             </GridPane.margin>
-          </Button>
-
-       </children>
-    </GridPane>
-   <ToolBar maxWidth="1.7976931348623157E308" nodeOrientation="LEFT_TO_RIGHT" prefHeight="40.0" prefWidth="1188.0">
-      <items>
-         <CheckBox fx:id="preserveSelectionCheckBox" mnemonicParsing="false" text="Preserve selection after" />
-         <Label text="Filter:" />
-         <TextField fx:id="filterTextField" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="26.0" HBox.hgrow="ALWAYS" />
-         <Label fx:id="thresholdLabel" text="Δ Threshold (%)" />
-         <Spinner fx:id="thresholdSpinner" editable="true" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" />
-         <Label fx:id="multiplierLabel" text="Restore with scale" />
-         <Spinner fx:id="multiplierSpinner" editable="true" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" />
-      </items>
-   </ToolBar>
-</VBox>
-</top>
-</BorderPane>
+            </top>
+        </BorderPane>
+        <VBox fx:id="progressIndicator" alignment="CENTER" focusTraversable="true">
+            <ProgressIndicator />
+        </VBox>
+    </children>
+</StackPane>

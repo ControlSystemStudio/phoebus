@@ -20,6 +20,7 @@ import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
+import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.EnumWidgetProperty;
@@ -88,7 +89,7 @@ public class PlotWidgetProperties
 
     /** 'grid_color' */
     public static final WidgetPropertyDescriptor<WidgetColor> propGridColor =
-        CommonWidgetProperties.newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "grid_color", Messages.PlotWidget_GridColor);
+        CommonWidgetProperties.newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "grid_color", Messages.PlotWidget_Color);
 
     /** 'x_axis' */
     public final static StructuredWidgetProperty.Descriptor propXAxis =
@@ -144,6 +145,7 @@ public class PlotWidgetProperties
         public WidgetProperty<WidgetFont> scaleFont()   { return getElement(7); }
         /** @return Is axis visible? */
         public WidgetProperty<Boolean> visible()        { return getElement(8); }
+
     };
 
     /** 'on_right' property: Should axis be on the right? */
@@ -170,7 +172,10 @@ public class PlotWidgetProperties
                                 propTitleFont.createProperty(widget, WidgetFontService.get(NamedWidgetFonts.DEFAULT_BOLD)),
                                 propScaleFont.createProperty(widget, WidgetFontService.get(NamedWidgetFonts.DEFAULT)),
                                 propOnRight.createProperty(widget, false),
-                                CommonWidgetProperties.propVisible.createProperty(widget, true)));
+                                CommonWidgetProperties.propVisible.createProperty(widget, true),
+                                CommonWidgetProperties.propColor.createProperty(widget, WidgetColorService.getColor(NamedWidgetColors.TEXT))
+                  )
+            );
         }
 
         protected YAxisWidgetProperty(final StructuredWidgetProperty.Descriptor axis_descriptor,
@@ -185,6 +190,9 @@ public class PlotWidgetProperties
         // Element shifted from 8 in basic axis to 9 in Y axis
         @Override
         public WidgetProperty<Boolean> visible()        { return getElement(9); }
+
+        /** @return Axis/Grid color */
+        public WidgetProperty<WidgetColor> color()  { return getElement(10); }
     };
 
 

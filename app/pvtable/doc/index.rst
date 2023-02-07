@@ -3,8 +3,8 @@ PV Table
 
 The PV Table provides a tabular view of PV names and their current value with time stamp and alarm state.
 
-You can take a "snapshot" of current values and dates, and the table will now highlight rows
-where the current value differs from the snapshot.
+You can take a "snapshotData" of current values and dates, and the table will now highlight rows
+where the current value differs from the snapshotData.
 
 The configuration (PV names, saved value, saved date) can be saved and later re-loaded,
 see details on the file format described below.
@@ -41,13 +41,13 @@ Checking PVs for Snapshot/Restore
 ---------------------------------
 
 By default, the check mark at the start of each table row is set.
-When taking a snapshot of current values or restoring PVs to the snapshot,
+When taking a snapshotData of current values or restoring PVs to the snapshotData,
 this typically applies to rows where the check mark is set.
 
 You can un-check table rows if they should be excluded.
 The context menu of the table offers shortcuts to select or de-select the whole table.
 
-In addition, the context menu also allows taking a snapshot or restoring the
+In addition, the context menu also allows taking a snapshotData or restoring the
 row on which the context menu was invoked, which can be useful to operate on just
 one PV and not the whole table.
 
@@ -78,7 +78,7 @@ uses completion. It defaults to 60 seconds and can be changed via the
 Tolerance
 ---------
 
-Values are highlighted when they differ from the saved snapshot value by a certain amount.
+Values are highlighted when they differ from the saved snapshotData value by a certain amount.
 The currently used tolerance is displayed in the tool-tip of a table row.
 This 'tolerance' value can be configured via the context menu of selected table rows.
 

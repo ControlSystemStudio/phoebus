@@ -7,11 +7,11 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model;
 
+import org.csstudio.display.builder.model.properties.RotationStep;
+import org.junit.jupiter.api.Test;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-
-import org.csstudio.display.builder.model.properties.RotationStep;
-import org.junit.Test;
 
 /** JUnit test of {@link RotationStep}
  *

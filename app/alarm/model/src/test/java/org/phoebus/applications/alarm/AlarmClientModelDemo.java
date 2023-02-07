@@ -7,13 +7,13 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm;
 
-import java.util.concurrent.TimeUnit;
-
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.print.ModelPrinter;
+
+import java.util.concurrent.TimeUnit;
 
 /** Demo of the {@link AlarmClient}
  *  @author Kay Kasemir

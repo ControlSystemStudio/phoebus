@@ -10,6 +10,8 @@ package org.phoebus.applications.pvtree.ui;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import org.epics.vtype.AlarmSeverity;
 import org.phoebus.applications.pvtree.model.TreeModelItem;
 import org.phoebus.ui.Preferences;
@@ -27,7 +29,7 @@ import javafx.scene.paint.Color;
 @SuppressWarnings("nls")
 class TreeModelItemCell extends TreeCell<TreeModelItem>
 {
-    /** @param color Color of icon
+    /** @param rgba Color of icon
      *  @return Icon
      */
     private static Image createAlarmIcon(final int[] rgba)
@@ -78,6 +80,7 @@ class TreeModelItemCell extends TreeCell<TreeModelItem>
         {
             setText(null);
             setGraphic(null);
+            setBackground(Background.EMPTY);
         }
         else
         {
@@ -87,12 +90,14 @@ class TreeModelItemCell extends TreeCell<TreeModelItem>
             {
                 setGraphic(new ImageView(NO_ICON));
                 setTextFill(Color.BLACK);
+                setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
             }
             else
             {
                 final int ordinal = severity.ordinal();
                 setGraphic(new ImageView(ALARM_ICONS[ordinal]));
                 setTextFill(SeverityColors.getTextColor(severity));
+                setBackground(new Background(new BackgroundFill(SeverityColors.getBackgroundColor(severity), null, null)));
             }
         }
     }

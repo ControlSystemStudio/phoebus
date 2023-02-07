@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,6 +26,9 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
 {
     private final PVAChannel channel;
 
+    /** Perform a processing/blocking "put"? */
+    private final boolean completion;
+
     /** Request "field(value)" or "field(struct.sub.value)" */
     private final String request;
 
@@ -43,14 +46,16 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
 
     /** Request to write channel's value
      *  @param channel {@link PVAChannel}
+     *  @param completion Perform a write that triggers processing and only returns on completion?
      *  @param request Request for element to write, e.g. "field(value)"
      *  @param new_value Value to write.
      *                   Must be accepted by {@link PVAData#setValue(Object)}
      *                   for the requested field.
      */
-    public PutRequest(final PVAChannel channel, final String request, final Object new_value)
+    public PutRequest(final PVAChannel channel, final boolean completion, final String request, final Object new_value)
     {
         this.channel = channel;
+        this.completion = completion;
         this.request = request;
         if (request.startsWith("field(")  &&  request.endsWith(")"))
             request_path = request.substring(6, request.length()-1);
@@ -89,7 +94,7 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
             buffer.putInt(request_id);
             buffer.put(PVAHeader.CMD_SUB_INIT);
 
-            final FieldRequest field_request = new FieldRequest(request);
+            final FieldRequest field_request = new FieldRequest(completion, request);
             field_request.encodeType(buffer);
             field_request.encode(buffer);
             buffer.putInt(size_offset, buffer.position() - payload_start);
@@ -108,11 +113,24 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
             buffer.putInt(request_id);
             buffer.put(PVAHeader.CMD_SUB_DESTROY);
 
-            // Locate the 'value' field
+            // Locate the field to write
             PVAData field = null;
             try
-            {
-                field = data.locate(request_path);
+            {   // Default to "value"
+                if (request_path.isEmpty())
+                    field = data.locate("value");
+                else
+                {   // Start with the addressed element
+                    field = data.locate(request_path);
+                    // Check if there is a ".value" below
+                    if (field instanceof PVAStructure)
+                    {
+                        final PVAStructure struct = (PVAStructure) field;
+                        final PVAData value_sub = struct.get("value");
+                        if (value_sub != null)
+                            field = value_sub;
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -151,9 +169,17 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
             fail(new Exception("Incomplete Put Response"));
         final int request_id = buffer.getInt();
         final byte subcmd = buffer.get();
-        PVAStatus status = PVAStatus.decode(buffer);
+        final PVAStatus status = PVAStatus.decode(buffer);
         if (! status.isSuccess())
-            throw new Exception(channel + " Put Response for " + request + ": " + status);
+        {
+            // Server reported an error with text like "Put not permitted"
+            // for EPICS 7.0.6 QSRV.
+            // Channel access similarly provided an Exception with text
+            // "No write access rights granted."
+            // Not trying to parse the message; passing it up with added
+            // channel name and request info.
+            fail(new Exception(channel + " Write for '" + channel.getName() + "' " + request + " failed with " + status));
+        }
 
         if (subcmd == PVAHeader.CMD_SUB_INIT)
         {
@@ -186,9 +212,15 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
             complete(null);
         }
         else
-            throw new Exception("Cannot decode Put " + subcmd + " Reply #" + request_id);
+            fail(new Exception("Cannot decode Put " + subcmd + " Reply #" + request_id));
     }
 
+    /** Handle failure by both notifying whoever waits for this request to complete
+     *  and by throwing exception
+     *
+     *  @param ex Error description
+     *  @throws Exception
+     */
     private void fail(final Exception ex) throws Exception
     {
         completeExceptionally(ex);

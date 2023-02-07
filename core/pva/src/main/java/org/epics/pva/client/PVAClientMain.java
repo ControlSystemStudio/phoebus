@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
@@ -32,6 +33,7 @@ import org.epics.pva.data.PVAData;
 public class PVAClientMain
 {
     private static double seconds = 5.0;
+    private static boolean completion = false;
     private static String request = "";
 
     private static void help()
@@ -40,6 +42,7 @@ public class PVAClientMain
         System.out.println();
         System.out.println("Options:");
         System.out.println("  -h             Help");
+        System.out.println("  -c             Perform a 'put-callback' that processes and blocks until completion?");
         System.out.println("  -w <seconds>   Wait time, default is 5.0 seconds");
         System.out.println("  -r <fields>    Field request. For 'info' command, optional field name");
         System.out.println("                 Default 'value' for 'put', empty for other operations");
@@ -215,7 +218,14 @@ public class PVAClientMain
             {
                 new_value = value;
             }
-            pv.write(request, new_value).get(timeout_ms, TimeUnit.MILLISECONDS);
+            try
+            {
+                pv.write(completion, request, new_value).get(timeout_ms, TimeUnit.MILLISECONDS);
+            }
+            catch (TimeoutException ex)
+            {
+                System.err.println("Write timed out");
+            }
             pv.close();
         }
     }
@@ -255,6 +265,8 @@ public class PVAClientMain
                 help();
                 return;
             }
+            else if (arg.startsWith("-c"))
+                completion = true;
             else if (arg.startsWith("-w") && (i+1) < args.length)
             {
                 seconds = Double.parseDouble(args[i+1]);
@@ -331,6 +343,5 @@ public class PVAClientMain
         }
         else
             help();
-
     }
 }

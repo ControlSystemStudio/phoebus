@@ -18,7 +18,7 @@ import org.epics.pva.PVASettings;
  *   @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVABoolArray extends PVAData implements PVAArray
+public class PVABoolArray extends PVAData implements PVAArray, PVAValue
 {
     private volatile boolean[] value;
 
@@ -126,10 +126,9 @@ public class PVABoolArray extends PVAData implements PVAArray
     }
 
     @Override
-    protected void formatType(final int level, final StringBuilder buffer)
+    public String getType()
     {
-        indent(level, buffer);
-        buffer.append("boolean[] ").append(name);
+        return "boolean[]";
     }
 
     @Override
@@ -153,6 +152,11 @@ public class PVABoolArray extends PVAData implements PVAArray
                 buffer.append(", ...");
         }
         buffer.append("]");
+    }
+
+    @Override
+    public String formatValue() {
+        return Arrays.toString(get());
     }
 
     @Override

@@ -7,11 +7,11 @@
  *******************************************************************************/
 package org.csstudio.display.converter.edm;
 
+import org.junit.jupiter.api.BeforeAll;
+
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.junit.BeforeClass;
 
 /** Test setup
  *  @author Kay Kasemir
@@ -19,7 +19,7 @@ import org.junit.BeforeClass;
 @SuppressWarnings("nls")
 public class TestHelper
 {
-    @BeforeClass
+    @BeforeAll
     public static void configureLogging()
     {
         final Logger logger = Logger.getLogger("");

@@ -4,8 +4,7 @@
  */
 package org.phoebus.util.time;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -15,9 +14,12 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAmount;
 
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 /**
  * TODO additional tests are needed to verify all the chrono types are properly handled.
+ *
  * @author shroffk
  */
 @SuppressWarnings("nls")
@@ -26,8 +28,8 @@ public class TimeParserTest {
     @Test
     public void getNow() {
         Instant ts = TimeParser.getInstant("now");
-        assertTrue("Failed to obtain Timestamp corresponding to now ",
-                ts != null && ts instanceof Instant);
+        assertTrue(ts != null && ts instanceof Instant,
+                "Failed to obtain Timestamp corresponding to now ");
     }
 
     /**
@@ -37,21 +39,21 @@ public class TimeParserTest {
     public void getDuration() {
         // "last min", "last hour", "last day", "last week"
         Duration lastMin = TimeParser.parseDuration("1 min");
-        assertEquals("Failed to get Duration for last min", Duration.ofSeconds(60),
-                lastMin);
+        assertEquals(Duration.ofSeconds(60),
+                lastMin, "Failed to get Duration for last min");
         Duration lastHour = TimeParser.parseDuration("1 hour");
-        assertEquals("Failed to get Duration for last hour",
-                Duration.ofHours(1), lastHour);
+        assertEquals(
+                Duration.ofHours(1), lastHour, "Failed to get Duration for last hour");
         // "last 5 mins", "last 5 hours", "last 5 days"
         TemporalAmount last5Min = TimeParser.parseDuration(" 5 mins");
-        assertEquals("Failed to get Duration for last 5 mins",
-                Duration.ofMinutes(5), last5Min);
+        assertEquals(
+                Duration.ofMinutes(5), last5Min, "Failed to get Duration for last 5 mins");
         TemporalAmount last5Hour = TimeParser.parseDuration(" 5 hours");
-        assertEquals("Failed to get Duration for last 5 hours",
-                Duration.ofHours(5), last5Hour);
+        assertEquals(
+                Duration.ofHours(5), last5Hour, "Failed to get Duration for last 5 hours");
         Duration last5Day = TimeParser.parseDuration(" 5 days");
-        assertEquals("Failed to get Duration for last 5 days",
-                60 * 60 * 24 * 5, last5Day.getSeconds());
+        assertEquals(
+                60 * 60 * 24 * 5, last5Day.getSeconds(), "Failed to get Duration for last 5 days");
     }
 
     @Test
@@ -70,19 +72,20 @@ public class TimeParserTest {
     @Test
     public void parseCompositeTimeString() {
         TemporalAmount last5Mins30Secs = TimeParser.parseDuration("5 mins 30 secs");
-        assertEquals("Failed to get Duration for last 5 mins",
-                Duration.ofMinutes(5).plusSeconds(30), last5Mins30Secs);
+        assertEquals(
+                Duration.ofMinutes(5).plusSeconds(30), last5Mins30Secs,
+                "Failed to get Duration for last 5 mins");
         TemporalAmount last3Hours5Mins30Secs = TimeParser.parseDuration("3 hours 5 mins 30 secs");
-        assertEquals("Failed to get Duration for last 5 mins",
-                Duration.ofHours(3).plusMinutes(5).plusSeconds(30), last3Hours5Mins30Secs);
+        assertEquals(
+                Duration.ofHours(3).plusMinutes(5).plusSeconds(30), last3Hours5Mins30Secs,
+                "Failed to get Duration for last 5 mins");
     }
 
 
     /**
      * Test the creation parsing of string representations of time to create {@link TimeRelativeInterval}
-     *
+     * <p>
      * The below tests create an interval which represents a single month.
-     *
      */
     @Test
     public void parseRelativeInterval() {
@@ -111,23 +114,21 @@ public class TimeParserTest {
 
 
     @Test
-    public void testParseDuration()
-    {
+    public void testParseDuration() {
         TemporalAmount amount = TimeParser.parseDuration("3 days");
         final long seconds = LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC).plus(amount).toEpochSecond(ZoneOffset.UTC);
-        assertEquals(3*24*60*60, seconds);
+        assertEquals(3 * 24 * 60 * 60, seconds);
     }
 
     @Test
-    public void testParseTemporalAmount()
-    {
+    public void testParseTemporalAmount() {
         TemporalAmount amount = TimeParser.parseTemporalAmount("3 days");
         long seconds = LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC).plus(amount).toEpochSecond(ZoneOffset.UTC);
-        assertEquals(3*24*60*60, seconds);
+        assertEquals(3 * 24 * 60 * 60, seconds);
 
         amount = TimeParser.parseTemporalAmount("3 days 20 mins 10 sec");
         seconds = LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC).plus(amount).toEpochSecond(ZoneOffset.UTC);
-        assertEquals(3*24*60*60 + 20*60 + 10, seconds);
+        assertEquals(3 * 24 * 60 * 60 + 20 * 60 + 10, seconds);
 
         amount = TimeParser.parseTemporalAmount("now");
         seconds = LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC).plus(amount).toEpochSecond(ZoneOffset.UTC);
@@ -157,31 +158,30 @@ public class TimeParserTest {
     }
 
     @Test
-    public void testParseFactionalTemporalAmount()
-    {
+    public void testParseFactionalTemporalAmount() {
         // Just having ".0" used to be an error before fractions were supported
         TemporalAmount amount = TimeParser.parseTemporalAmount("1.000 hour");
         System.out.println(TimeParser.format(amount));
         Instant instant = Instant.ofEpochSecond(0).plus(amount);
-        assertEquals(60*60, instant.getEpochSecond());
+        assertEquals(60 * 60, instant.getEpochSecond());
         assertEquals(0, instant.getNano());
 
         amount = TimeParser.parseTemporalAmount("1.5 hour");
         System.out.println(TimeParser.format(amount));
         instant = Instant.ofEpochSecond(0).plus(amount);
-        assertEquals((60+30)*60, instant.getEpochSecond());
+        assertEquals((60 + 30) * 60, instant.getEpochSecond());
         assertEquals(0, instant.getNano());
 
         amount = TimeParser.parseTemporalAmount("1.5 hour 6.5 minutes");
         System.out.println(TimeParser.format(amount));
         instant = Instant.ofEpochSecond(0).plus(amount);
-        assertEquals((60+30+6)*60+30, instant.getEpochSecond());
+        assertEquals((60 + 30 + 6) * 60 + 30, instant.getEpochSecond());
         assertEquals(0, instant.getNano());
 
         amount = TimeParser.parseTemporalAmount("6.5 minutes");
         System.out.println(TimeParser.format(amount));
         instant = Instant.ofEpochSecond(0).plus(amount);
-        assertEquals(6*60+30, instant.getEpochSecond());
+        assertEquals(6 * 60 + 30, instant.getEpochSecond());
         assertEquals(0, instant.getNano());
 
         amount = TimeParser.parseTemporalAmount("3.5 seconds");
@@ -199,7 +199,7 @@ public class TimeParserTest {
         amount = TimeParser.parseTemporalAmount("1.5 days");
         System.out.println(TimeParser.format(amount));
         instant = Instant.ofEpochSecond(0).plus(amount);
-        assertEquals((24+12)*60*60, instant.getEpochSecond());
+        assertEquals((24 + 12) * 60 * 60, instant.getEpochSecond());
         assertEquals(0, instant.getNano());
 
         // As soon as the time span enters "weeks", it's handled
@@ -207,29 +207,28 @@ public class TimeParserTest {
         // So 1.5 weeks = 7 + 3.5 days is rounded to 11 days, not 10.5
         amount = TimeParser.parseTemporalAmount("1.5 weeks");
         System.out.println(TimeParser.format(amount));
-        assertEquals(Period.of(0,  0,  11), amount);
+        assertEquals(Period.of(0, 0, 11), amount);
 
         // 1.5 month = 1 month, 2 weeks=14days
         amount = TimeParser.parseTemporalAmount("1.5 months");
         System.out.println(TimeParser.format(amount));
-        assertEquals(Period.of(0,  1,  14), amount);
+        assertEquals(Period.of(0, 1, 14), amount);
 
         // 1.5 years = 1 year, 6 months (not divving up further into days)
         amount = TimeParser.parseTemporalAmount("1.5 years");
         System.out.println(TimeParser.format(amount));
-        assertEquals(Period.of(1,  6,  0), amount);
+        assertEquals(Period.of(1, 6, 0), amount);
     }
 
     @Test
-    public void testFormatTemporalAmount()
-    {
+    public void testFormatTemporalAmount() {
         String text = TimeParser.format(Duration.ofHours(2));
         assertEquals("2 hours", text);
 
         text = TimeParser.format(Period.of(1, 2, 3));
         assertEquals("1 year 2 months 3 days", text);
 
-        text = TimeParser.format(Duration.ofSeconds(2*24*60*60 + 1*60*60 + 10, 123000000L));
+        text = TimeParser.format(Duration.ofSeconds(2 * 24 * 60 * 60 + 1 * 60 * 60 + 10, 123000000L));
         assertEquals("2 days 1 hour 10 seconds 123 ms", text);
 
         text = TimeParser.format(Duration.ofSeconds(0));

@@ -53,7 +53,7 @@ public class SnapshotEntry implements Serializable {
         this(snapshotItem.getConfigPv(),
                 snapshotItem.getValue(),
                 selected,
-                snapshotItem.getConfigPv().getReadbackPvName(),
+                snapshotItem.getConfigPv() != null ? snapshotItem.getConfigPv().getReadbackPvName() : null,
                 snapshotItem.getReadbackValue(),
                 null,
                 snapshotItem.getConfigPv().isReadOnly());

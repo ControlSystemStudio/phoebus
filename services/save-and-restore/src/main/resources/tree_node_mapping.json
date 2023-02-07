@@ -1,0 +1,55 @@
+{
+  "mappings": {
+    "properties": {
+      "node": {
+        "type" : "nested",
+        "properties": {
+          "uniqueId": {
+            "type": "keyword"
+          },
+          "name": {
+            "type": "text"
+          },
+          "userName": {
+            "type": "text"
+          },
+          "description" : {
+            "type": "text"
+          },
+          "created" : {
+            "type": "date",
+            "format": "epoch_millis||yyyy-MM-dd HH:mm:ss.SSS"
+          },
+          "lastUpdated": {
+            "type": "date",
+            "format": "epoch_millis||yyyy-MM-dd HH:mm:ss.SSS"
+          },
+          "nodeType": {
+            "type": "keyword"
+          },
+          "tags" : {
+            "type" : "nested",
+            "properties": {
+              "name": {
+                "type": "text"
+              },
+              "comment": {
+                "type": "text"
+              },
+              "userName": {
+                "type": "text"
+              },
+              "created" : {
+                "type": "date",
+                "format": "epoch_millis||yyyy-MM-dd HH:mm:ss.SSS"
+              }
+            }
+          }
+        }
+      },
+      "childNodes": {
+        "type": "keyword"
+      }
+    }
+  }
+}

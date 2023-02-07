@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (C) 2020 European Spallation Source ERIC.
+  ~
+  ~  This program is free software; you can redistribute it and/or
+  ~  modify it under the terms of the GNU General Public License
+  ~  as published by the Free Software Foundation; either version 2
+  ~  of the License, or (at your option) any later version.
+  ~
+  ~  This program is distributed in the hope that it will be useful,
+  ~  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~  GNU General Public License for more details.
+  ~
+  ~  You should have received a copy of the GNU General Public License
+  ~  along with this program; if not, write to the Free Software
+  ~  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+  -->
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane prefWidth="250.0" style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.search.SearchQueryEditorController">
+    <center>
+
+        <GridPane>
+            <columnConstraints>
+                <ColumnConstraints />
+                <ColumnConstraints />
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            </rowConstraints>
+            <children>
+                <Label text="%filterEditorNodeName" GridPane.columnSpan="2" GridPane.rowIndex="0" />
+                <TextField fx:id="nodeNameTextField" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+                <CheckBox fx:id="nodeTypeFolderCheckBox" GridPane.columnSpan="2" GridPane.rowIndex="2">
+                    <graphic>
+                        <ImageView fx:id="folderImageView" translateX="8.0" />
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="%filterEditorNodeTypeFolder" />
+                    </tooltip>
+                </CheckBox>
+                <CheckBox fx:id="nodeTypeConfigurationCheckBox" GridPane.columnSpan="2" GridPane.rowIndex="3">
+                    <graphic>
+                        <ImageView fx:id="configurationImageView" translateX="8.0" />
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="%filterEditorNodeTypeConfiguration" />
+                    </tooltip>
+                </CheckBox>
+                <CheckBox fx:id="nodeTypeSnapshotCheckBox" GridPane.columnSpan="2" GridPane.rowIndex="4">
+                    <graphic>
+                        <ImageView fx:id="snapshotImageView" translateX="8.0" />
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="%filterEditorNodeTypeSnapshot" />
+                    </tooltip>
+                </CheckBox>
+                <CheckBox fx:id="nodeTypeCompositeSnapshotCheckBox" GridPane.columnSpan="2" GridPane.rowIndex="5">
+                    <graphic>
+                        <ImageView fx:id="compositeSnapshotImageView" translateX="8.0" />
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="%filterEditorNodeTypeCompositeSnapshot" />
+                    </tooltip>
+                </CheckBox>
+                <Label text="%filterEditorDescriptionOrComment" GridPane.columnSpan="2" GridPane.rowIndex="6" />
+                <TextField fx:id="descTextField" GridPane.columnSpan="2" GridPane.rowIndex="7" />
+                <Label text="%filterEditorTags" GridPane.columnSpan="2" GridPane.rowIndex="8" />
+                <HBox GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="9">
+                    <TextField fx:id="tagsTextField" HBox.hgrow="ALWAYS">
+                        <HBox.margin>
+                            <Insets bottom="3.0" right="3.0" top="3.0" />
+                        </HBox.margin>
+                    </TextField>
+                    <Button onAction="#showTagsSelectionPopover" text="...">
+                        <HBox.margin>
+                            <Insets bottom="3.0" left="3.0" top="3.0" />
+                        </HBox.margin>
+                    </Button>
+                </HBox>
+                <CheckBox fx:id="goldenOnlyCheckbox" onAction="#goldenClicked" GridPane.columnSpan="2" GridPane.rowIndex="10">
+                    <graphic>
+                        <ImageView fx:id="goldenImageView" translateX="8.0" />
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="%golden" />
+                    </tooltip>
+                </CheckBox>
+                <Label text="%filterEditorUser" GridPane.columnSpan="2" GridPane.rowIndex="11" />
+                <TextField fx:id="userTextField" GridPane.columnSpan="2" GridPane.rowIndex="12" />
+                <Label text="%Time" GridPane.columnSpan="2" GridPane.rowIndex="13">
+                    <GridPane.margin>
+                        <Insets top="5.0" />
+                    </GridPane.margin>
+                </Label>
+
+                <Label text="%StartTime" GridPane.rowIndex="14">
+                    <GridPane.margin>
+                        <Insets />
+                    </GridPane.margin>
+                </Label>
+                <TextField fx:id="startTime" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="14">
+                    <GridPane.margin>
+                        <Insets bottom="3.0" left="3.0" top="3.0" />
+                    </GridPane.margin>
+                </TextField>
+                <Label text="%EndTime" GridPane.rowIndex="15" />
+                <TextField fx:id="endTime" GridPane.columnIndex="1" GridPane.rowIndex="15">
+                    <GridPane.margin>
+                        <Insets bottom="3.0" left="3.0" top="3.0" />
+                    </GridPane.margin>
+                </TextField>
+            </children>
+            <BorderPane.margin>
+                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+            </BorderPane.margin>
+        </GridPane>
+    </center>
+</BorderPane>

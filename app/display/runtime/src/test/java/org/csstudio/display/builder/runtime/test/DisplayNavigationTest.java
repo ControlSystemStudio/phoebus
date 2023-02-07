@@ -8,16 +8,16 @@
 package org.csstudio.display.builder.runtime.test;
 
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.csstudio.display.builder.runtime.app.DisplayInfo;
 import org.csstudio.display.builder.runtime.app.DisplayNavigation;
 import org.csstudio.display.builder.runtime.app.DisplayNavigation.Listener;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.phoebus.framework.macros.Macros;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test for {@link DisplayNavigation}
  *  @author Kay Kasemir

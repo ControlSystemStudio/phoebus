@@ -25,9 +25,9 @@ kafka in `/opt/kafka`.
     cd examples
 
     # Use wget, 'curl -O', or web browser to fetch a recent version of kafka
-    wget https://dlcdn.apache.org/kafka/3.2.0/kafka_2.13-3.2.0.tgz
-    tar -vzxf kafka_2.13-3.2.0.tgz
-    ln -s kafka_2.13-3.2.0 kafka
+    wget https://downloads.apache.org/kafka/3.3.1/kafka_2.13-3.3.1.tgz
+    tar vzxf kafka_2.13-3.3.1.tgz
+    ln -s kafka_2.13-3.3.1 kafka
 
 Check `config/zookeeper.properties` and `config/server.properties`.
 By default these contain settings for keeping data in `/tmp/`, which works for initial tests,
@@ -383,6 +383,8 @@ Demos
 
 `examples/create_alarm_topics.sh Accelerator`
 Run to create the topics used by the following demos.
+
+The demos are part of the test package included in the [app/alarm/model](https://github.com/ControlSystemStudio/phoebus/tree/master/app/alarm/model/src/test/java/org/phoebus/applications/alarm) module
 
 `AlarmConfigProducerDemo`: Run to create demo configuration.
 Loading a demo config with a total of 100000 PVs arranged into several sub and sub-sub sections

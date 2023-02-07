@@ -7,13 +7,13 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.util;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.net.URI;
 
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test of the {@link ModelResourceUtil}
  *  @author Kay Kasemir

@@ -33,10 +33,10 @@ import org.phoebus.ui.javafx.ImageCache;
 
 public class ContextMenuSnapshot extends ContextMenuBase {
 
-    protected Image snapshotGoldenIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-golden.png");
     protected Image compareSnapshotIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/compare.png");
     protected Image snapshotTagsWithCommentIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-tags.png");
     protected Image csvExportIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_export.png");
+
 
     public ContextMenuSnapshot(SaveAndRestoreController saveAndRestoreController,
                                boolean csvEnabled,
@@ -56,12 +56,12 @@ public class ContextMenuSnapshot extends ContextMenuBase {
             saveAndRestoreController.renameNode();
         });
 
-        MenuItem compareSaveSetMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, new ImageView(compareSnapshotIcon));
-        compareSaveSetMenuItem.setOnAction(ae -> {
+        MenuItem compareConfigurationMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, new ImageView(compareSnapshotIcon));
+        compareConfigurationMenuItem.setOnAction(ae -> {
             saveAndRestoreController.comapreSnapshot();
         });
 
-        MenuItem tagAsGolden = new javafx.scene.control.MenuItem(Messages.contextMenuTagAsGolden, new ImageView(snapshotGoldenIcon));
+        MenuItem tagAsGolden = new javafx.scene.control.MenuItem(Messages.contextMenuTagAsGolden, new ImageView(ImageRepository.GOLDEN_SNAPSHOT));
         tagAsGolden.textProperty().bind(toggleGoldenMenuItemText);
         tagAsGolden.graphicProperty().bind(toggleGoldenImageViewProperty);
         tagAsGolden.disableProperty().bind(multipleItemsSelected);
@@ -86,7 +86,19 @@ public class ContextMenuSnapshot extends ContextMenuBase {
 
         tagWithComment.getItems().addAll(addTagWithCommentMenuItem, new SeparatorMenuItem());
 
-        getItems().addAll(renameSnapshotItem, deleteSnapshotMenuItem, compareSaveSetMenuItem, tagAsGolden, tagWithComment, copyUniqueIdToClipboardMenuItem);
+        MenuItem findReferencesMenuItem = new MenuItem(Messages.findSnapshotReferences, new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
+        findReferencesMenuItem.setOnAction(ae -> {
+            saveAndRestoreController.findSnapshotReferences();
+        });
+
+        getItems().addAll(renameSnapshotItem,
+                deleteSnapshotMenuItem,
+                compareConfigurationMenuItem,
+                tagAsGolden,
+                tagWithComment,
+                copyUniqueIdToClipboardMenuItem/*,
+                findReferencesMenuItem*/);
+
 
         if (csvEnabled) {
             ImageView exportSnapshotIconImageView = new ImageView(csvExportIcon);

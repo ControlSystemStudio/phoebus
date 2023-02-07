@@ -7,15 +7,15 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import org.csstudio.display.builder.model.properties.WidgetColor;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /** JUnit test of JFXUtil
  *  @author Kay Kasemir
@@ -23,11 +23,22 @@ import org.junit.Test;
 @SuppressWarnings("nls")
 public class JFXUtilTest
 {
+
+    @Test
+    public void testHex() {
+        assertThat(JFXUtil.webHex(new WidgetColor(15, 255, 0)), equalTo("#0FFF00"));
+        assertThat(JFXUtil.webHex(new WidgetColor(0, 16, 255)), equalTo("#0010FF"));
+        assertThat(JFXUtil.webHex(new WidgetColor(0, 0, 0)), equalTo("#000000"));
+        assertThat(JFXUtil.webHex(new WidgetColor(255, 255, 255)), equalTo("#FFFFFF"));
+        assertThat(JFXUtil.webHex(null), equalTo(""));
+    }
+
     @Test
     public void testRGB()
     {
-        assertThat(JFXUtil.webRGB(new WidgetColor(15, 255, 0)), equalTo("#0FFF00"));
-        assertThat(JFXUtil.webRGB(new WidgetColor(0, 16, 255)), equalTo("#0010FF"));
+        assertThat(JFXUtil.webRgbOrHex(new WidgetColor(15, 255, 0)), equalTo("#0FFF00"));
+        assertThat(JFXUtil.webRgbOrHex(new WidgetColor(0, 16, 255)), equalTo("#0010FF"));
+        assertThat(JFXUtil.webRgbOrHex(new WidgetColor(0, 16, 255, 50)), equalTo("rgba(0,16,255,0.19607843)"));
     }
 
     @Test
@@ -35,8 +46,8 @@ public class JFXUtilTest
     {
         // NOTE that the actual decimal value for transparency would have been 0.019607844, however it needs
         // to be formatted to two decimal places
-        assertThat(JFXUtil.webRGB(new WidgetColor(15, 255, 0, 5)), equalTo("rgba(15,255,0,0.02)"));
-        assertThat(JFXUtil.webRGB(new WidgetColor(0, 16, 255)), equalTo("#0010FF"));
+        assertThat(JFXUtil.webRGB(JFXUtil.convert(new WidgetColor(15, 255, 0, 5))), equalTo("rgba(15,255,0,0.02)"));
+        assertThat(JFXUtil.webRGB(JFXUtil.convert(new WidgetColor(0, 16, 255))), equalTo("#0010FF"));
     }
 
     @Test

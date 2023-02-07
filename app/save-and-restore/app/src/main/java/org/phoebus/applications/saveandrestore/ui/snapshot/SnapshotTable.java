@@ -24,6 +24,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.TreeItem;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
@@ -51,16 +52,17 @@ import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.ui.MultitypeTableCell;
 import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
 import org.phoebus.applications.saveandrestore.common.VTypePair;
-import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.core.types.TimeStampedProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.util.time.TimestampFormats;
 
 import java.lang.reflect.Field;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Formatter;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -100,7 +102,7 @@ class SnapshotTable extends TableView<TableEntry> {
                 setText("---");
                 setStyle("");
             } else {
-                setText(Utilities.timestampToLittleEndianString(item, true));
+                setText(TimestampFormats.SECONDS_FORMAT.format((item)));
             }
         }
     }
@@ -441,6 +443,9 @@ class SnapshotTable extends TableView<TableEntry> {
                     if (item.readOnlyProperty().get()) {
                         cell.getStyleClass().add("check-box-table-cell-disabled");
                     }
+                    else if(item.valueProperty().get().value.equals(VNoData.INSTANCE)){
+                        item.selectedProperty().set(false);
+                    }
                 }
             }
         }
@@ -557,7 +562,6 @@ class SnapshotTable extends TableView<TableEntry> {
                         toggle.setOnAction(actionEvent -> {
                             item.readOnlyProperty().setValue(!item.readOnlyProperty().get());
                             item.selectedProperty().set(!item.readOnlyProperty().get());
-                            item.readonlyOverrideProperty().set(!item.readonlyOverrideProperty().get());
                         });
                         contextMenu.getItems().add(toggle);
                         contextMenu.show(this, event.getScreenX(), event.getScreenY());
@@ -622,6 +626,7 @@ class SnapshotTable extends TableView<TableEntry> {
                 Messages.toolTipTableColumnTimestamp, width, width, true);
         timestampColumn.setCellValueFactory(new PropertyValueFactory<TableEntry, Instant>("timestamp"));
         timestampColumn.setCellFactory(c -> new TimestampTableCell());
+        timestampColumn.getStyleClass().add("timestamp-column");
         timestampColumn.setPrefWidth(width);
         snapshotTableEntries.add(timestampColumn);
 
@@ -649,7 +654,7 @@ class SnapshotTable extends TableView<TableEntry> {
 
             ObjectProperty<VTypePair> value = e.getRowValue().valueProperty();
             value.setValue(new VTypePair(value.get().base, updatedValue, value.get().threshold));
-            controller.updateSnapshot(0, e.getRowValue(), updatedValue);
+            controller.updateLoadedSnapshot(0, e.getRowValue(), updatedValue);
         });
 
         storedValueBaseColumn.getColumns().add(storedValueColumn);
@@ -757,7 +762,7 @@ class SnapshotTable extends TableView<TableEntry> {
 
             ObjectProperty<VTypePair> value = e.getRowValue().valueProperty();
             value.setValue(new VTypePair(value.get().base, updatedValue, value.get().threshold));
-            controller.updateSnapshot(0, e.getRowValue(), updatedValue);
+            controller.updateLoadedSnapshot(0, e.getRowValue(), updatedValue);
 
             for (int i = 1; i < snapshots.size(); i++) {
                 ObjectProperty<VTypePair> compareValue = e.getRowValue().compareValueProperty(i);

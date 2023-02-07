@@ -7,11 +7,11 @@
  *******************************************************************************/
 package org.csstudio.display.builder.runtime.test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
 import org.csstudio.display.builder.runtime.TextPatch;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit demo of the {@link TextPatch}
  *  @author Kay Kasemir
@@ -20,7 +20,7 @@ import org.junit.Test;
 public class TextPatchTest
 {
     @Test
-    public void testLongString() throws Exception
+    public void testLongString()
     {
         final TextPatch pvm_string = new TextPatch(" \\{\"longString\":true\\}", "");
 
@@ -31,7 +31,7 @@ public class TextPatchTest
     }
 
     @Test
-    public void testConstantNumber() throws Exception
+    public void testConstantNumber()
     {
         final TextPatch pvm_string = new TextPatch("^=([0-9]+)", "loc://const$1($1)");
 
@@ -54,7 +54,7 @@ public class TextPatchTest
     }
 
     @Test
-    public void testConstantText() throws Exception
+    public void testConstantText()
     {
         final TextPatch pvm_string = new TextPatch("^=\"([a-zA-Z]+)\"", "loc://str$1(\"$1\")");
 

@@ -19,6 +19,6 @@
   <parent>
    <groupId>org.phoebus</groupId>
    <artifactId>parent</artifactId>
-   <version>4.7.1-SNAPSHOT</version>
+   <version>4.7.2-SNAPSHOT</version>
   </parent>
 </project>

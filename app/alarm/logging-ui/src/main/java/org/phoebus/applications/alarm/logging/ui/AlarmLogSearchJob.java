@@ -22,8 +22,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import static org.phoebus.applications.alarm.logging.ui.AlarmLogTableApp.logger;
 /**
  * A Job to search for alarm messages logged by the alarm logging service
  * @author Kunal Shroff
@@ -78,10 +80,17 @@ public class AlarmLogSearchJob implements JobRunnable {
         map.putIfAbsent("size", Arrays.asList(String.valueOf(size)));
 
         try {
-            List<AlarmLogTableItem> result = objectMapper.readValue(client.path("/search/alarm")
+
+            long start = System.currentTimeMillis();
+            String resultStr =  client.path("/search/alarm")
                     .queryParams(map)
-                    .accept(MediaType.APPLICATION_JSON).get(String.class), new TypeReference<List<AlarmLogTableItem>>() {
+                    .accept(MediaType.APPLICATION_JSON).get(String.class);
+
+            logger.log(Level.FINE,"String response = " + (System.currentTimeMillis() - start));
+            start = System.currentTimeMillis();
+            List<AlarmLogTableItem> result = objectMapper.readValue(resultStr, new TypeReference<List<AlarmLogTableItem>>() {
             });
+            logger.log(Level.FINE,"Object mapper response = " + (System.currentTimeMillis() - start));
             alarmMessageHandler.accept(result);
         } catch (JsonProcessingException e) {
             errorHandler.accept("Failed to search for alarm logs ", e);

@@ -1,80 +1,68 @@
 Save-and-restore service
 ========================
 
-The save-and-restore service implements the MASAR (MAchine SAve and Restore) service as a collection
-of REST endpoints. These can be used by clients to manage save sets (aka configurations) and
-snapshots, to compare snapshots and to restore settings from snapshots.
+The save-and-restore service implements service as a collection
+of REST endpoints. These can be used by clients to manage configurations (aka save sets) and
+snapshots, to compare snapshots and to restore PV values from snapshots.
 
-The service is packaged as a self-contained Spring Boot jar file, i.e. there are no external dependencies besides the
-JVM and the database engine persisting the data. The service is verified for Postgresql and Mysql, but alternative
-engines can be added with moderate effort, see below for details.
+The service is packaged as a self-contained Spring Boot jar file. External dependencies are limited to a JVM (Java 11+)
+and a running instance of Elasticsearch (8.x).
 
 Running the service
 -------------------
 
-To run the service, connection parameters for the database must be specified on the command line, or
-in existing property files (mysql.properties or postgresql.properties). Typical command line would be:
+The file ``application.properties`` lists a few settings that can be customized to each site's need, e.g.
+connection parameters for Elasticsearch.
 
-``java -Ddbengine=[postgresql|mysql]
--Dspring.datasource.username=<DB user name>
--Dspring.datasource.password=<DB password>
--Dspring.datasource.jdbcUrl=<DB engine URL>
--jar /path/to/service-save-and-restore-<version>.jar``
+Elasticsearch setup
+-------------------
 
-Where
-
-``-Ddbengine`` must be specified to either of the supported database engines. This parameter selects the properties
-file containing other settings (mysql.properties or postgresql.propties).
-
-``-Dspring.datasource.username`` specifies the database engine user name. Can be specified in the properties file.
-
-``-Dspring.datasource.password`` specifies the database engine password. Can be specified in the properties file.
-
-``-Dspring.datasource.jdbcUrl`` specifies the database URL required by the JDBC driver. Can be specified in the
-properties file.
-
-Database setup
---------------
-
-In order to deploy the service, one must create a database (schema) in the selected database engine matching the
-connection paramaters. When the service is started, Flyway scripts will create the required tables. New versions
-of the service that require changes to the database structure will also use Flyway scripts to perform necessary
-actions on the database.
-
-Alternative database engines
-----------------------------
-
-Currently the save-and-restore service does not use an ORM layer (e.g. Hibernate). To support a database engine
-other than Postgresql or Mysql, use this checklist:
-
-- Include the required JDBC driver.
-- Create a <my favourite DB engine>.properties file containig the driver class name and paths to Flyway scripts.
-  The name of the file must match the dbengine value on the command line.
-- Create Flyway scripts for the database. Use existing as starting point.
-- Configure command line paramaters.
-- Verify.
-
-Note that the persistence layer contains hard coded SQL which may be invalid for other database engines. If
-there is a need to modify the SQL statement, please discuss this with the community as addition of ORM may be a
-better alternative.
+There is no need to manually created the Elasticsearch indices as these are created by the application if
+they do not yet exist.
 
 REST API for Save Restore Service
 =================================
 
+Node
+----
+
+Data is arranged such that is can be rendered in a tree structure, where each node is of a specific type. See below
+for details. A root node is always available and cannot be deleted.
+
+Each node is uniquely identified through an UUID id. The root node's unique id is always
+``44bef5de-e8e6-4014-af37-b8f6c8a939a2``.
+
+REST end-points documented below can be used to locate particular nodes, or traverse the tree by listing child
+nodes.
+
+Node types
+----------
+
+**Folder:**
+
+A folder node is a container for folder and configuration nodes. The root node is a folder node.
+
 **Configuration:**
 
-A Save Restore configuration is a set of PV's which are used to take a snapshot.
-The configuration can also consist of a few options parameters.
+A configuration node is essentially a set of PVs defining what data to put in a snapshot. Configuration nodes must be created
+in folder nodes, though not in the root node.
 
-- readback pv associated with the pv
-- flag to indicate if this pv should restored
+For each such PV "item" one may also specify:
 
-The configurations can be organized in the file system like directory structure.
-
+- a read-back PV
+- flag to indicate if the PV should restored in a restore operation
 
 **Snapshot:**
 
-A Save set snapshot consists of a list ov pvs along with their values at a particular instant in time.
+A snapshot node consists of a list of PV values at a particular instant in time. To take a snapshot the client must point to
+a configuration defining this list of PVs (and optionally read-back PVs). In other words, when saving a snapshot
+the client must specify the unique id of the associated configuration node.
+
+**Composite Snapshot:**
+
+An aggregation of snapshot nodes and/or other composite snapshot nodes. The referenced nodes must exist in order
+to be able to create a composite snapshot. Moreover, a snapshot node cannot be deleted if it is referenced in
+a composite snapshot.
 
 REST Services
 -------------
@@ -84,41 +72,14 @@ The service is implemented as a REST style web service, which – in this contex
 | •  The URL specifies the data element that the operation works upon.
 | •  The HTTP method specifies the type of operation.
 
-| GET: retrieve or query, does not modify data
-| PUT: create or update, replacing the addressed element
-| POST: create or update subordinates of the addressed element
+| GET: retrieve an element, does not modify data
+| PUT: create an element
+| POST: update the addressed element
 | DELETE: delete the addressed element
 
 
-Configuration Management
-------------------------
-
-Get the root node
-"""""""""""""""""
-
-**.../root**
-
-Method: GET
-
-Return:
-The root node of the save restore configuration tree
-
-.. code-block:: JSON
-
-    {
-        "id": 0,
-        "uniqueId": "25132263-9bee-41ef-8647-fb91632ab9a8",
-        "name": "Root folder",
-        "created": 1623700954000,
-        "lastModified": 1623701038000,
-        "nodeType": "FOLDER",
-        "userName": "Developer",
-        "properties": {
-            "root": "true"
-        },
-        "tags": []
-    }
-
+Node Management
+---------------
 
 Get a node
 """"""""""
@@ -133,16 +94,97 @@ The details of the node with id `{uniqueNodeId}`
 .. code-block:: JSON
 
     {
-        "id": 3,
         "uniqueId": "ae9c3d41-5aa0-423d-a24e-fc68712b0894",
         "name": "CSX",
         "created": 1623701056000,
         "lastModified": 1623780701000,
         "nodeType": "FOLDER",
         "userName": "kunal",
-        "properties": {},
         "tags": []
     }
+
+Nodes of type CONFIGURATION and SNAPSHOT will also have a ``description`` field.
+
+A special case is the root node as it has a fixed unique id:
+
+**.../node/44bef5de-e8e6-4014-af37-b8f6c8a939a2**
+
+Create a new node
+"""""""""""""""""
+
+**.../node?parentNodeId=<parent's node id>**
+
+Method: PUT
+
+Body:
+
+.. code-block:: JSON
+
+    {
+        "name": "New_Node_Camera",
+        "nodeType": "CONFIGURATION",
+        "userName": "kunal"
+    }
+
+nodeType: "CONFIGURATION" or "FOLDER". The request parameter ``parentNodeId`` is mandatory and must identify an
+existing folder node.
+
+The nodeType can be used to specify if we want to create a new folder or a new configuration.
+
+Return:
+If the node was successfully created you will a 200 response with the details of the newly created node
+
+.. code-block:: JSON
+
+    {
+        "uniqueId": "c4302cfe-60e2-46ec-bf2b-dcd13c0ef4c0",
+        "name": "New_Node_Camera",
+        "created": 1625837873000,
+        "lastModified": 1625837873000,
+        "nodeType": "CONFIGURATION",
+        "userName": "kunal",
+        "tags": []
+    }
+
+Update a node
+"""""""""""""
+
+**.../node**
+
+Method: POST
+
+Return:
+The updated node.
+
+.. code-block:: JSON
+
+    {
+        "uniqueId": "ae9c3d41-5aa0-423d-a24e-fc68712b0894",
+        "name": "new name",
+        "description": "new description",
+        "created": 1623701056000,
+        "lastModified": 1623780701000,
+        "nodeType": "CONFIGURATION",
+        "userName": "kunal",
+        "tags": []
+    }
+
+Updates an existing node with respect to its name or description, or both. The ``nodeType`` cannot be
+updated.
+
+Delete a node
+"""""""""""""
+
+**.../node/{uniqueNodeId}**
+
+Method: DELETE
+
+Deletes the node identified by ``uniqueNodeId``. Deletion is agnostic to the node type.
+
+Note that deletion is recursive:
+
+- Deleting a configuration node will also delete all associated snapshot nodes.
+- Deleting a folder node will delete also delete all nodes in its sub-tree.
 
 Get a node parent
 """""""""""""""""
@@ -168,217 +210,477 @@ The a list of all the children nodes of the node with id `{uniqueNodeId}`
 
     [
         {
-            "id": 4,
             "uniqueId": "8cab9311-0c77-4307-a508-a33677ecc631",
             "name": "Camera",
             "created": 1623701073000,
             "lastModified": 1625836981000,
             "nodeType": "CONFIGURATION",
             "userName": "kunal",
-            "properties": {},
             "tags": []
         },
         {
-            "id": 13,
             "uniqueId": "3aa5baa3-8386-4a74-84bb-5fdd9afccc7f",
             "name": "ROI",
             "created": 1623780701000,
             "lastModified": 1623780701000,
             "nodeType": "CONFIGURATION",
             "userName": "kunal",
-            "properties": {},
             "tags": []
         }
     ]
 
-Create a new node
-"""""""""""""""""
+Get a configuration
+"""""""""""""""""""
 
-**.../node/{parentsUniqueId}**
+To get a configuration node the client should call the end-point associated with getting nodes of any type:
+
+**.../node/{uniqueNodeId}**
+
+where ``uniqueNodeId`` identifies the configuration node.
+
+The actual configuration data associated with a configuration node is maintained in a separate Elasticsearch index and
+is accessible through:
+
+**.../config/{uniqueNodeId}**
+
+where ``uniqueNodeId`` identifies the configuration node.
+
+Method: GET
+
+Return: object describing the configuration data, essentially a list of PVs.
+
+.. code-block:: JSON
+
+    {
+        "uniqueId": "89886b32-bb2e-4336-8eea-375c0a955cad",
+        "pvList": {
+            [
+                {
+                    "pvName": "13SIM1:{SimDetector-Cam:1}cam1:BinX"
+                },
+                {
+                    "pvName": "13SIM1:{SimDetector-Cam:1}cam1:BinY"
+                },
+                {
+                    "pvName": "13SIM1:{SimDetector-Cam:2}cam2:BinX",
+                    "readbackPvName": null,
+                    "readOnly": false
+                },
+                {
+                    "pvName": "13SIM1:{SimDetector-Cam:2}cam2:BinY",
+                    "readbackPvName": null,
+                    "readOnly": false
+                }
+            ]
+        }
+    }
+
+Here the ``uniqueId`` field matches the ``unqiueId`` field of the configuration node.
+
+Create a configuration
+""""""""""""""""""""""
+
+**.../config?parentNodeId=<parent's node id>**
 
 Method: PUT
 
+Return: an object representing the saved configuration. This object is of the same type as
+the body sent in the request, with additional data set by the service, e.g. the unique id of the
+created configuration node.
+
 Body:
 
 .. code-block:: JSON
 
     {
-        "name": "New_Node_Camera",
-        "nodeType": "CONFIGURATION",
-        "userName": "kunal",
-        "properties": {},
-        "tags": []
+        "configurationNode": {
+             "name": "New_Configuration",
+             "nodeType": "CONFIGURATION",
+             "userName": "kunal"
+        },
+        "configurationData": {
+            "pvList": {
+                [
+                    {
+                        "pvName": "13SIM1:{SimDetector-Cam:1}cam1:BinX"
+                    },
+                    {
+                        "pvName": "13SIM1:{SimDetector-Cam:1}cam1:BinY"
+                    },
+                    {
+                        "pvName": "13SIM1:{SimDetector-Cam:2}cam2:BinX",
+                        "readbackPvName": null,
+                        "readOnly": false
+                    },
+                    {
+                        "pvName": "13SIM1:{SimDetector-Cam:2}cam2:BinY",
+                        "readbackPvName": null,
+                        "readOnly": false
+                    }
+                ]
+            }
+        }
     }
 
-nodeType: "CONFIGURATION" or "FOLDER"
+The request parameter ``parentNodeId`` is mandatory and must identify an existing folder node. The client
+needs to specify a name for the new configuration node, as well as a user identity.
 
-The nodeType can be used to specify if we want to create a new folder or a new save set configuration
+Update a configuration
+""""""""""""""""""""""
 
-Return:
-If the node was successfully created you will a 200 response with the details of the newly created node
-
-.. code-block:: JSON
-
-    {
-        "id": 21,
-        "uniqueId": "c4302cfe-60e2-46ec-bf2b-dcd13c0ef4c0",
-        "name": "New_Node_Camera",
-        "created": 1625837873000,
-        "lastModified": 1625837873000,
-        "nodeType": "CONFIGURATION",
-        "userName": "kunal",
-        "properties": {},
-        "tags": []
-    }
-
-Create or Update a configuration
-""""""""""""""""""""""""""""""""
-
-**.../config/{uniqueNodeId}/update**
+**.../config/{uniqueNodeId}**
 
 Method: POST
 
-Body:
+This endpoint works in the same manner as the for the PUT method, i.e. the body and return value are the
+same. However, in this case the ``uniqueNodeId`` must identify an existing configuration node.
+
+The body can specify a new name or description, or both. On top of that the list of PVs can be updated. It should
+be noted though that the specified list will replace the existing one, i.e. all PVs that must remain in the updated
+configuration data must be listed in the body. Any PVs in the existing configuration data missing from the
+body will be removed.
+
+
+Snapshot Endpoints
+------------------
+
+Get a snapshot
+""""""""""""""
+
+To get a snapshot node the client should call the end-point associated with getting nodes of any type:
+
+**.../node/{uniqueNodeId}**
+
+where ``uniqueNodeId`` identifies the snapshot node.
+
+The actual snapshot data associated with a snapshot node is maintained in a separate Elasticsearch index and
+is accessible through:
+
+**.../snapshot/{uniqueNodeId}**
+
+where ``uniqueNodeId`` identifies the snapshot node.
+
+Method: GET
+
+Return: object describing the snapshot data, essentially a list of PVs and the persisted values.
 
 .. code-block:: JSON
 
     {
-        "config": {
-            "uniqueId": "8cab9311-0c77-4307-a508-a33677ecc631",
-            "userName": "kunal"
-        },
-        "configPvList" :
-        [
+        "uniqueId":"54920ffe-8932-46e6-b420-5b7b20d2cea1",
+        "snapshotItems":[
             {
-                "pvName": "13SIM1:{SimDetector-Cam:1}cam1:BinX"
+                "configPv": {
+                    "pvName":"COUNTER10",
+                    "readOnly":false
+                },
+                "value":{
+                    "type":{
+                        "name":"VDouble",
+                        "version":1
+                    },
+                    "value":11941.0,
+                    "alarm":{
+                        "severity":"NONE",
+                        "status":"NONE",
+                        "name":"NO_ALARM"
+                    },
+                    "time":{
+                        "unixSec":1664550284,
+                        "nanoSec":870687555
+                    },
+                    "display":{
+                        "lowDisplay":0.0,
+                        "highDisplay":0.0,
+                        "units":""
+                    }
+                }
             },
             {
-                "pvName": "13SIM1:{SimDetector-Cam:1}cam1:BinY"
-            },
-            {
-                "pvName": "13SIM1:{SimDetector-Cam:2}cam2:BinX",
-                "readbackPvName": null,
-                "readOnly": false
-            },
-            {
-                "pvName": "13SIM1:{SimDetector-Cam:2}cam2:BinY",
-                "readbackPvName": null,
-                "readOnly": false
+                "configPv":{
+                    "pvName":"TEMP10",
+                    "readOnly":false
+                },
+                "value":{
+                    "type":{
+                        "name":"VDouble",
+                        "version":1
+                    },
+                    "value":-4.205873713538651,
+                    "alarm":{
+                        "severity":"MINOR",
+                        "status":"NONE",
+                        "name":"LOW_ALARM"
+                    },
+                    "time":{
+                        "unixSec":1664550284,
+                        "nanoSec":870768480
+                    },
+                    "display":{
+                        "lowAlarm":-5.0,
+                        "highAlarm":30.0,
+                        "lowDisplay":-60.0,
+                        "highDisplay":60.0,
+                        "lowWarning":0.0,
+                        "highWarning":10.0,
+                        "units":"°"
+                    }
+                }
             }
         ]
     }
 
+To be noted: the ``value`` field is a serialized version of the underlying EPICS PV objects. The contents of
+this field will hence depend on the EPICS record type and its properties.
 
-Snapshot Management
---------------------
+Save a snapshot
+"""""""""""""""
 
-Retrieve all snapshots
-""""""""""""""""""""""
+**.../snapshot?parentNodeId=<parent's node id>**
 
-**.../snapshots**
+Method: PUT
 
-Method: GET
+Return: an object representing the saved snapshot. This object is of the same type as
+the body sent in the request, with additional data set by the service, e.g. the unique id of the
+created snapshot node.
 
-Retrieve all Snapshots id's
-
-Return:
-A list of all the snapshot id's
+Body:
 
 .. code-block:: JSON
 
-    [
-        {
-        "id": 21,
-        "uniqueId": "c4302cfe-60e2-46ec-bf2b-dcd13c0ef4c0",
-        "name": "New_Node_Camera",
-        "created": 1625837873000,
-        "nodeType": "SNAPSHOT",
-        ...
+    {
+        "snapshotNode": {
+             "name": "New_Snapshot",
+             "nodeType": "SNAPSHOT",
+             "userName": "kunal"
         },
-        {
-        "id": 22,
-        "uniqueId": "c4302cfe-60e2-46ec-bf2b-dad64db1f06d",
-        "name": "New_Node_Camera",
-        "created": 1625837874000,
-        "nodeType": "SNAPSHOT",
-        ...
+        "snapshotData": {
+            "snapshotItems":[
+                {
+                    "configPv": {
+                        "pvName":"COUNTER10",
+                        "readOnly":false
+                    },
+                    "value":{
+                        "type":{
+                            "name":"VDouble",
+                            "version":1
+                        },
+                        "value":11941.0,
+                        "alarm":{
+                            "severity":"NONE",
+                            "status":"NONE",
+                            "name":"NO_ALARM"
+                        },
+                        "time":{
+                            "unixSec":1664550284,
+                            "nanoSec":870687555
+                        },
+                        "display":{
+                            "lowDisplay":0.0,
+                            "highDisplay":0.0,
+                            "units":""
+                        }
+                    }
+                },
+                {
+                    "configPv":{
+                        "pvName":"TEMP10",
+                        "readOnly":false
+                    },
+                    "value":{
+                        "type":{
+                            "name":"VDouble",
+                            "version":1
+                        },
+                        "value":-4.205873713538651,
+                        "alarm":{
+                            "severity":"MINOR",
+                            "status":"NONE",
+                            "name":"LOW_ALARM"
+                        },
+                        "time":{
+                            "unixSec":1664550284,
+                            "nanoSec":870768480
+                        },
+                        "display":{
+                            "lowAlarm":-5.0,
+                            "highAlarm":30.0,
+                            "lowDisplay":-60.0,
+                            "highDisplay":60.0,
+                            "lowWarning":0.0,
+                            "highWarning":10.0,
+                            "units":"°"
+                        }
+                    }
+                }
+            ]
         }
-    ]
+    }
 
+The request parameter ``parentNodeId`` is mandatory and must identify an existing configuration node. This
+configuration node must be the configuration node associated with the snapshot, i.e. must specify the list
+of PVs contained in the snapshot. The client needs to specify a name for the new snapshot node, as well as
+a user identity.
 
-Retrieve all snapshots for a configuration
-""""""""""""""""""""""""""""""""""""""""""
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> CSSTUDIO-1707
+Composite Snapshot Endpoints
+----------------------------
 
-**.../snapshot/{uniqueNodeId}
+Get a composite snapshot
+""""""""""""""""""""""""
 
-Retrieve a Snapshot without all the data identified by the `{uniqueNodeId}`
+To get a composite snapshot node the client should call the end-point associated with getting nodes of any type:
 
+**.../node/{uniqueNodeId}**
 
-Return:
-A snapshot with all the metadata
+where ``uniqueNodeId`` identifies the composite snapshot node.
 
-.. code-block:: JSON
-    [
-        {
-        "id": 21,
-        "uniqueId": "c4302cfe-60e2-46ec-bf2b-dcd13c0ef4c0",
-        "name": "New_Node_Camera",
-        "created": 1625837873000,
-        "nodeType": "SNAPSHOT",
-        ...
-        }
-    ]
+The actual composite snapshot data associated with a composite snapshot node is maintained in a separate Elasticsearch index and
+is accessible through:
 
-Retrieve snapshots data
-"""""""""""""""""""""""
+**.../composite-snapshot/{uniqueNodeId}**
 
-**.../snapshot/{uniqueNodeId}/items
+where ``uniqueNodeId`` identifies the composite snapshot node.
 
 Method: GET
 
-Retrieve all Snapshots associated with a particular configuration identified by `{uniqueNodeId}`
+Return: object describing the composite snapshot data, essentially a list of referenced snapshot and composite
+snapshot nodes.
 
-Return:
-A snapshot with all the stored data
+.. code-block:: JSON
 
+    {
+      "uniqueId": "e80fba66-c7f0-453e-8cb6-12b22fa8c957",
+      "referencedSnapshotNodes": [
+        "b0cee6ff-76a2-46e6-b0ef-d8b78bff26f6",
+        "b6b5a03e-252e-4e6b-a9ac-9d50c23f3f0b"
+      ]
+    }
+
+Create a composite snapshot
+"""""""""""""""""""""""""""
+
+**.../composite-snapshot?parentNodeId=<parent's node id>**
+
+Method: PUT
+
+Return: an object representing the composite snapshot. This object is of the same type as
+the body sent in the request, with additional data set by the service, e.g. the unique id of the
+created composite snapshot node.
+
+Body:
+
+.. code-block:: JSON
+<<<<<<< HEAD
+=======
+Migration
+---------
+
+Commit ``48e17a380b660d59b79cec4d2bd908c0d78eeeae`` of the service code base is about changing the persistence
+component from a RDB engine to Elasticsearch. Sites using save-and-restore with an RDB engine may migrate
+data using the below procedure.
+
+Terminology: "source host" is the host running the legacy service instance using a RDB engine,
+while "target host" is the host that will be running the updated service.
+
+Make sure the source host is running the legacy save-and-restore service.
+
+Make sure the target host is running the Elasticsearch service, but **not** the save-and-restore service.
+
+On the target host, launch the save-and-restore service using the ``-migrate`` program argument:
+``java -jar /path/to/service-save-and-restore-<version>.jar -migrate http://<source host>:8080``
+
+Here it is assumed that the legacy save-and-restore service has been published on the (default) port 8080.
+
+If Elasticsearch is not running on localhost:9200, then add Java VM arguments like so:
+
+``-Delasticsearch.network.host=<hostname>``
+
+``-Delasticsearch.http.port=<port>``
+
+
+>>>>>>> master
+=======
+>>>>>>> CSSTUDIO-1707
+
+    {
+        "compositeSnapshotNode": {
+             "name": "New_Composite_Snapshot",
+             "nodeType": "COMPOSITE_SNAPSHOT",
+             "userName": "johndoe"
+        },
+        "referencedSnapshotNodes": {
+            [
+                "b0cee6ff-76a2-46e6-b0ef-d8b78bff26f6",
+                "b6b5a03e-252e-4e6b-a9ac-9d50c23f3f0b"
+            ]
+        }
+    }
+
+Update a composite snapshot
+"""""""""""""""""""""""""""
+
+**.../composite-snapshot/{uniqueNodeId}**
+
+Method: POST
+
+This endpoint works in the same manner as the for the PUT method, i.e. the body and return value are the
+same. However, in this case the ``uniqueNodeId`` must identify an existing composite snapshot node.
+
+The body can specify a new name or description, or both. On top of that the list of referenced snapshots can be updated. It should
+be noted though that the specified list will replace the existing one, i.e. all referenced snapshots that must remain in the updated
+composite snapshot data must be listed in the body. Any snapshots in the existing configuration data missing from the
+body will be removed.
+
+Get restorable items of a composite snapshot
+""""""""""""""""""""""""""""""""""""""""""""
+
+***.../composite-snapshot/{uniqueId}/items**
+
+Method: GET
+
+Return: a list of all snapshot items as persisted in the snapshots referenced by a composite snapshot.
+
+Body:
 
 .. code-block:: JSON
 
     [
       {
-        "snapshotId": "4099",
         "configPv": {
-          "id": 33,
-          "pvName": "ISrc-010:Vac-VVMC-01100:FlwSPS",
+          "pvName": "RFQ-010:RFS-EVR-101:OpMode",
           "readbackPvName": null,
           "readOnly": false
         },
         "value": {
           "type": {
-            "name": "VDouble",
+            "name": "VEnum",
             "version": 1
           },
-          "value": 3.5,
+          "value": 0,
           "alarm": {
             "severity": "NONE",
             "status": "NONE",
             "name": "NONE"
           },
           "time": {
-            "unixSec": 1635087714,
-            "nanoSec": 327966491
+            "unixSec": 1638905851,
+            "nanoSec": 445854166
           },
-          "display": {
-            "units": ""
+          "enum": {
+            "labels": [
+              "Global"
+            ]
           }
-        },
-        "readbackValue": null
+        }
       },
       {
-        "snapshotId": 4099,
         "configPv": {
-          "id": 4076,
-          "pvName": "LEBT-CS:PwrC-PSRep-01:Vol-S",
+          "pvName": "RFQ-010:RFS-EVR-101:RFSyncDly-SP",
           "readbackPvName": null,
           "readOnly": false
         },
@@ -387,20 +689,98 @@ A snapshot with all the stored data
             "name": "VDouble",
             "version": 1
           },
-          "value": 3.5,
+          "value": 200.0,
           "alarm": {
             "severity": "NONE",
             "status": "NONE",
             "name": "NONE"
           },
           "time": {
-            "unixSec": 1634899034,
-            "nanoSec": 639928152
+            "unixSec": 1638475923,
+            "nanoSec": 703595298
           },
           "display": {
             "units": ""
           }
+        }
+      },
+      {
+        "configPv": {
+          "pvName": "RFQ-010:RFS-EVR-101:RFSyncWdt-SP",
+          "readbackPvName": null,
+          "readOnly": false
         },
-        "readbackValue": null
+        "value": {
+          "type": {
+            "name": "VDouble",
+            "version": 1
+          },
+          "value": 100.0,
+          "alarm": {
+            "severity": "NONE",
+            "status": "NONE",
+            "name": "NONE"
+          },
+          "time": {
+            "unixSec": 1639063122,
+            "nanoSec": 320431469
+          },
+          "display": {
+            "units": ""
+          }
+        }
+      },
+      {
+        "configPv": {
+          "pvName": "RFQ-010:RFS-EVR-101:SCDly",
+          "readbackPvName": null,
+          "readOnly": false
+        },
+        "value": {
+          "type": {
+            "name": "VDouble",
+            "version": 1
+          },
+          "value": 493.2,
+          "alarm": {
+            "severity": "NONE",
+            "status": "NONE",
+            "name": "NONE"
+          },
+          "time": {
+            "unixSec": 1639209326,
+            "nanoSec": 372407313
+          },
+          "display": {
+            "units": ""
+          }
+        }
       }
     ]
+
+Migration
+---------
+
+Commit ``48e17a380b660d59b79cec4d2bd908c0d78eeeae`` of the service code base is about changing the persistence
+component from a RDB engine to Elasticsearch. Sites using save-and-restore with an RDB engine may migrate
+data using the below procedure.
+
+Terminology: "source host" is the host running the legacy service instance using a RDB engine,
+while "target host" is the host that will be running the updated service.
+
+Make sure the source host is running the legacy save-and-restore service.
+
+Make sure the target host is running the Elasticsearch service, but **not** the save-and-restore service.
+
+On the target host, launch the save-and-restore service using the ``-migrate`` program argument:
+``java -jar /path/to/service-save-and-restore-<version>.jar -migrate http://<source host>:8080``
+
+Here it is assumed that the legacy save-and-restore service has been published on the (default) port 8080.
+
+If Elasticsearch is not running on localhost:9200, then add Java VM arguments like so:
+
+``-Delasticsearch.network.host=<hostname>``
+
+``-Delasticsearch.http.port=<port>``
+
+

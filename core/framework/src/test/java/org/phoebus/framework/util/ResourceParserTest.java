@@ -1,20 +1,6 @@
 package org.phoebus.framework.util;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.hasItems;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-import static org.phoebus.framework.util.ResourceParser.PV_SCHEMA;
-import static org.phoebus.framework.util.ResourceParser.createResourceURI;
-import static org.phoebus.framework.util.ResourceParser.getAppName;
-import static org.phoebus.framework.util.ResourceParser.getTargetName;
-import static org.phoebus.framework.util.ResourceParser.getContent;
-import static org.phoebus.framework.util.ResourceParser.getFile;
-import static org.phoebus.framework.util.ResourceParser.getURI;
-import static org.phoebus.framework.util.ResourceParser.parsePVs;
-import static org.phoebus.framework.util.ResourceParser.parseQueryArgs;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.InputStream;
@@ -23,7 +9,21 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.phoebus.framework.util.ResourceParser.PV_SCHEMA;
+import static org.phoebus.framework.util.ResourceParser.createResourceURI;
+import static org.phoebus.framework.util.ResourceParser.getAppName;
+import static org.phoebus.framework.util.ResourceParser.getContent;
+import static org.phoebus.framework.util.ResourceParser.getFile;
+import static org.phoebus.framework.util.ResourceParser.getTargetName;
+import static org.phoebus.framework.util.ResourceParser.getURI;
+import static org.phoebus.framework.util.ResourceParser.parsePVs;
+import static org.phoebus.framework.util.ResourceParser.parseQueryArgs;
 
 /**
  * JUnit test of {@link ResourceParser}
@@ -35,7 +35,7 @@ import org.junit.Test;
 public class ResourceParserTest
 {
 
-    private static String OS = System.getProperty("os.name").toLowerCase();
+    private static final String OS = System.getProperty("os.name").toLowerCase();
 
     @Test
     public void checkFileToURI() throws Exception

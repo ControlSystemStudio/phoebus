@@ -7,15 +7,15 @@
  ******************************************************************************/
 package org.epics.pva.client;
 
-import static org.junit.Assert.assertTrue;
+import org.epics.pva.PVASettings;
+import org.epics.pva.data.PVAStructure;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.LogManager;
 
-import org.epics.pva.PVASettings;
-import org.epics.pva.data.PVAStructure;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Demo using demo.db from test resources
  *  @author Kay Kasemir

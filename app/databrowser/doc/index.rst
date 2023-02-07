@@ -429,3 +429,18 @@ To see available options, run phoebus like this::
 
     File names ending in *.m or *.mat generate Matlab files.
     All other file name endings create tab-separated data files.
+
+
+
+The Statistics-tab
+------------------
+Under the Statistics-tab, some basic statistical measures of the plotted data-points can be viewed.
+
+It is important to note that the statistics are calculated only on the data values themselves *without taking into
+account the timestamps of data-points*: in the calculation of the statistical measures, only the value of data-points
+and the total number of data-points are taken into account, while neither the time interval under consideration (except
+indirectly for determining the subset of data-points to calculate the statistical measures for), nor the timestamps of
+individual data-points are part of the calculation.
+
+For instance, in a plot based on both archived and live samples, the mean value will be skewed towards the live data
+portion if live data is sampled at a higher frequency than archived data.

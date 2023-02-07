@@ -86,8 +86,8 @@ public class RestoreReport {
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Snapshot id: ").append(snapshotId).append(System.lineSeparator());
-        stringBuilder.append("Snapshot path: ").append(snapshotPath).append(System.lineSeparator());
+        stringBuilder.append("SnapshotData id: ").append(snapshotId).append(System.lineSeparator());
+        stringBuilder.append("SnapshotData path: ").append(snapshotPath).append(System.lineSeparator());
         stringBuilder.append("Restore date: ").append(restoreDate).append(System.lineSeparator());
         stringBuilder.append("Restored PVs: ").append(System.lineSeparator());
         restoredPVs.entrySet().stream().forEach(entry -> {

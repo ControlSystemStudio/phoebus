@@ -28,19 +28,10 @@ import java.util.Objects;
  * Created 1 Oct 2018
  */
 public class ConfigPv implements Comparable<ConfigPv>{
-	
-	private int id;
+
 	private String pvName;
 	private String readbackPvName;
 	private boolean readOnly = false;
-
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
 
 	public String getPvName() {
 		return pvName;
@@ -110,11 +101,6 @@ public class ConfigPv implements Comparable<ConfigPv>{
 
 		private Builder(){
 			configPv = new ConfigPv();
-		}
-
-		public Builder id(int id){
-			configPv.setId(id);
-			return this;
 		}
 
 		public Builder pvName(String pvName){

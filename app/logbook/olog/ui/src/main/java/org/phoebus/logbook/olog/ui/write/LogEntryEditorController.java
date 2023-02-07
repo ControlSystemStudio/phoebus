@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 European Spallation Source ERIC.
+ * Copyright (C) 2022 European Spallation Source ERIC.
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -29,18 +29,36 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Side;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.CustomMenuItem;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.selection.SelectionService;
-import org.phoebus.logbook.*;
-import org.phoebus.logbook.olog.ui.AttachmentsViewController;
+import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogFactory;
+import org.phoebus.logbook.LogService;
+import org.phoebus.logbook.Logbook;
+import org.phoebus.logbook.LogbookException;
+import org.phoebus.logbook.LogbookPreferences;
+import org.phoebus.logbook.Tag;
 import org.phoebus.logbook.olog.ui.HelpViewer;
 import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
 import org.phoebus.logbook.olog.ui.PreviewViewer;
+import org.phoebus.logbook.olog.ui.menu.SendToLogBookApp;
 import org.phoebus.olog.es.api.OlogProperties;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.security.store.SecureStore;
@@ -51,7 +69,11 @@ import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -62,13 +84,14 @@ import java.util.stream.Collectors;
  */
 public class LogEntryEditorController {
 
-    //private Node parent;
     private final LogEntryCompletionHandler completionHandler;
 
     private final Logger logger = Logger.getLogger(LogEntryEditorController.class.getName());
 
     @FXML
-    private VBox root;
+    private VBox editorPane;
+    @FXML
+    private VBox errorPane;
     @FXML
     private Button submitButton;
     @FXML
@@ -84,10 +107,6 @@ public class LogEntryEditorController {
     @SuppressWarnings("unused")
     @FXML
     private LogPropertiesEditorController logPropertiesEditorController;
-
-    @SuppressWarnings("unused")
-    @FXML
-    private AttachmentsViewController attachmentsViewController;
 
     @FXML
     private Label userFieldLabel;
@@ -169,6 +188,7 @@ public class LogEntryEditorController {
      */
     private String originalTitle = "";
 
+
     public LogEntryEditorController(LogEntry logEntry, LogEntry inReplyTo, LogEntryCompletionHandler logEntryCompletionHandler) {
         this.replyTo = inReplyTo;
         this.completionHandler = logEntryCompletionHandler;
@@ -176,7 +196,7 @@ public class LogEntryEditorController {
         updateCredentialsProperty = updateCredentials;
 
         // This is the reply case:
-        if(inReplyTo != null){
+        if (inReplyTo != null) {
             OlogLog ologLog = new OlogLog();
             ologLog.setTitle(inReplyTo.getTitle());
             ologLog.setTags(inReplyTo.getTags());
@@ -185,23 +205,33 @@ public class LogEntryEditorController {
             ologLog.setLevel(inReplyTo.getLevel());
             this.logEntry = ologLog;
             this.originalTitle = inReplyTo.getTitle();
-        }
-        else{
+        } else {
             this.logEntry = logEntry;
         }
     }
 
-
     @FXML
     public void initialize() {
-        completionMessageLabel.setText("");
+
+        // This could be configured in the fxml, but then these UI components would not be visible
+        // in Scene Builder.
+        completionMessageLabel.textProperty().set("");
+        progressIndicator.visibleProperty().bind(submissionInProgress);
+
+        // Remote log service not reachable, so show error pane.
+        if (!checkConnectivity()) {
+            errorPane.visibleProperty().set(true);
+            editorPane.disableProperty().set(true);
+            return;
+        }
+
         submitButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
-                !inputValid.get() || submissionInProgress.get(),
+                        !inputValid.get() || submissionInProgress.get(),
                 inputValid, submissionInProgress));
         completionMessageLabel.visibleProperty()
                 .bind(Bindings.createBooleanBinding(() -> completionMessageLabel.textProperty().isNotEmpty().get() && !submissionInProgress.get(),
                         completionMessageLabel.textProperty(), submissionInProgress));
-        progressIndicator.visibleProperty().bind(submissionInProgress);
+
         cancelButton.disableProperty().bind(submissionInProgress);
         attachmentsEditorController.setTextArea(textArea);
 
@@ -232,16 +262,13 @@ public class LogEntryEditorController {
                 passwordField.setText(passwordProperty.get());
 
                 // Put focus on first required field that is empty.
-                if (userField.getText().isEmpty()){
+                if (userField.getText().isEmpty()) {
                     userField.requestFocus();
-                }
-                else if (passwordField.getText().isEmpty()){
+                } else if (passwordField.getText().isEmpty()) {
                     passwordField.requestFocus();
-                }
-                else if(titleField.getText() == null || titleField.getText().isEmpty()){
+                } else if (titleField.getText() == null || titleField.getText().isEmpty()) {
                     titleField.requestFocus();
-                }
-                else{
+                } else {
                     textArea.requestFocus();
                 }
             });
@@ -265,13 +292,12 @@ public class LogEntryEditorController {
         titleField.textProperty().bindBidirectional(titleProperty);
         titleProperty.addListener((changeListener, oldVal, newVal) ->
         {
-            if (newVal.trim().isEmpty()){
+            if (newVal.trim().isEmpty()) {
                 titleLabel.setTextFill(Color.RED);
-            }
-            else{
+            } else {
                 titleLabel.setTextFill(Color.BLACK);
             }
-            if(!newVal.equals(originalTitle)){
+            if (!newVal.equals(originalTitle)) {
                 isDirty = true;
             }
         });
@@ -299,7 +325,7 @@ public class LogEntryEditorController {
         });
 
         logbooksSelection.textProperty().bind(Bindings.createStringBinding(() -> {
-            if(selectedLogbooks.isEmpty()){
+            if (selectedLogbooks.isEmpty()) {
                 return "";
             }
             StringBuilder stringBuilder = new StringBuilder();
@@ -309,7 +335,7 @@ public class LogEntryEditorController {
         }, selectedLogbooks));
 
         tagsSelection.textProperty().bind(Bindings.createStringBinding(() -> {
-            if(selectedTags.isEmpty()){
+            if (selectedTags.isEmpty()) {
                 return "";
             }
             StringBuilder stringBuilder = new StringBuilder();
@@ -331,15 +357,15 @@ public class LogEntryEditorController {
         });
 
         inputValid.bind(Bindings.createBooleanBinding(() -> titleProperty.get() != null && !titleProperty.get().isEmpty() &&
-                usernameProperty.get() != null && !usernameProperty.get().isEmpty() &&
-                passwordProperty.get() != null && !passwordProperty.get().isEmpty() &&
-                !selectedLogbooks.isEmpty(),
+                        usernameProperty.get() != null && !usernameProperty.get().isEmpty() &&
+                        passwordProperty.get() != null && !passwordProperty.get().isEmpty() &&
+                        !selectedLogbooks.isEmpty(),
                 titleProperty, usernameProperty, passwordProperty, selectedLogbooks));
 
         tagsPopOver = ListSelectionPopOver.create(
                 (tags, popOver) -> {
                     setSelectedTags(tags, selectedTags);
-                    if(popOver.isShowing()) {
+                    if (popOver.isShowing()) {
                         popOver.hide();
                     }
                 },
@@ -348,7 +374,7 @@ public class LogEntryEditorController {
         logbooksPopOver = ListSelectionPopOver.create(
                 (logbooks, popOver) -> {
                     setSelectedLogbooks(logbooks, selectedLogbooks);
-                    if(popOver.isShowing()) {
+                    if (popOver.isShowing()) {
                         popOver.hide();
                     }
                 },
@@ -380,7 +406,7 @@ public class LogEntryEditorController {
     public void cancel() {
         // Need to clear selections.
         SelectionService.getInstance().clearSelection("");
-        ((LogEntryEditorStage) cancelButton.getScene().getWindow()).handleCloseEditor(isDirty, root);
+        ((LogEntryEditorStage) cancelButton.getScene().getWindow()).handleCloseEditor(isDirty, editorPane);
     }
 
     @FXML
@@ -393,7 +419,7 @@ public class LogEntryEditorController {
      */
     @FXML
     public void showHtmlPreview() {
-        new PreviewViewer(getDescription(), attachmentsViewController.getAttachments()).show();
+        new PreviewViewer(getDescription(), attachmentsEditorController.getAttachments()).show();
     }
 
 
@@ -416,10 +442,9 @@ public class LogEntryEditorController {
                     logFactory.getLogClient(new SimpleAuthenticationToken(usernameProperty.get(), passwordProperty.get()));
             LogEntry result;
             try {
-                if(replyTo == null){
+                if (replyTo == null) {
                     result = logClient.set(ologLog);
-                }
-                else {
+                } else {
                     result = logClient.reply(ologLog, replyTo);
                 }
                 // Not dirty any more...
@@ -465,25 +490,25 @@ public class LogEntryEditorController {
         selectedLevelProperty.set(levelSelector.getSelectionModel().getSelectedItem());
     }
 
-    public String getTitle(){
+    public String getTitle() {
         return titleProperty.get();
     }
 
-    public String getDescription(){
+    public String getDescription() {
         return descriptionProperty.get();
     }
 
     @FXML
-    public void addLogbooks(){
+    public void addLogbooks() {
         logbooksPopOver.show(addLogbooks);
     }
 
-    private void addSelectedLogbook(String logbookName){
+    private void addSelectedLogbook(String logbookName) {
         selectedLogbooks.add(logbookName);
         updateDropDown(logbookDropDown, logbookName, true);
     }
 
-    private void removeSelectedLogbook(String logbookName){
+    private void removeSelectedLogbook(String logbookName) {
         selectedLogbooks.remove(logbookName);
         updateDropDown(logbookDropDown, logbookName, false);
     }
@@ -504,26 +529,25 @@ public class LogEntryEditorController {
     }
 
     @FXML
-    public void selectLogbooks(){
-        if (logbooksDropdownButton.isSelected()){
+    public void selectLogbooks() {
+        if (logbooksDropdownButton.isSelected()) {
             logbookDropDown.show(logbooksSelection, Side.BOTTOM, 0, 0);
-        }
-        else{
+        } else {
             logbookDropDown.hide();
         }
     }
 
     @FXML
-    public void addTags(){
+    public void addTags() {
         tagsPopOver.show(addTags);
     }
 
-    private void addSelectedTag(String tagName){
+    private void addSelectedTag(String tagName) {
         selectedTags.add(tagName);
         updateDropDown(tagDropDown, tagName, true);
     }
 
-    private void removeSelectedTag(String tagName){
+    private void removeSelectedTag(String tagName) {
         selectedTags.remove(tagName);
         updateDropDown(tagDropDown, tagName, false);
     }
@@ -533,20 +557,19 @@ public class LogEntryEditorController {
     }
 
     @FXML
-    public void selectTags(){
-        if (tagsDropdownButton.isSelected()){
+    public void selectTags() {
+        if (tagsDropdownButton.isSelected()) {
             tagDropDown.show(tagsSelection, Side.BOTTOM, 0, 0);
-        }
-        else{
+        } else {
             tagDropDown.hide();
         }
     }
 
-    public List<Logbook> getSelectedLogbooks(){
+    public List<Logbook> getSelectedLogbooks() {
         return availableLogbooks.stream().filter(l -> selectedLogbooks.contains(l.getName())).collect(Collectors.toList());
     }
 
-    public List<Tag> getSelectedTags(){
+    public List<Tag> getSelectedTags() {
         return availableTags.stream().filter(t -> selectedTags.contains(t.getName())).collect(Collectors.toList());
     }
 
@@ -554,7 +577,7 @@ public class LogEntryEditorController {
      * Retrieves logbooks and tags from service and populates all the data structures that depend
      * on the result. The call to the remote service is asynchronous.
      */
-    private void setupLogbooksAndTags(){
+    private void setupLogbooksAndTags() {
         JobManager.schedule("Fetch Logbooks and Tags", monitor ->
         {
             LogClient logClient =
@@ -574,20 +597,16 @@ public class LogEntryEditorController {
                 checkBox.setOnAction(e -> {
                     CheckBox source = (CheckBox) e.getSource();
                     String text = source.getText();
-                    if (source.isSelected())
-                    {
+                    if (source.isSelected()) {
                         selectedLogbooks.add(text);
-                    }
-                    else
-                    {
+                    } else {
                         selectedLogbooks.remove(text);
                     }
                 });
-                if(!preSelectedLogbooks.isEmpty() && preSelectedLogbooks.contains(logbook)){
+                if (!preSelectedLogbooks.isEmpty() && preSelectedLogbooks.contains(logbook)) {
                     checkBox.setSelected(preSelectedLogbooks.contains(logbook));
                     selectedLogbooks.add(logbook);
-                }
-                else if(defaultLogbooks.contains(logbook) && selectedLogbooks.isEmpty()){
+                } else if (defaultLogbooks.contains(logbook) && selectedLogbooks.isEmpty()) {
                     checkBox.setSelected(defaultLogbooks.contains(logbook));
                     selectedLogbooks.add(logbook);
                 }
@@ -608,17 +627,14 @@ public class LogEntryEditorController {
                 checkBox.setOnAction(e -> {
                     CheckBox source = (CheckBox) e.getSource();
                     String text = source.getText();
-                    if (source.isSelected())
-                    {
+                    if (source.isSelected()) {
                         selectedTags.add(text);
-                    }
-                    else
-                    {
+                    } else {
                         selectedTags.remove(text);
                     }
                 });
                 checkBox.setSelected(preSelectedTags.contains(tag));
-                if(preSelectedTags.contains(tag)){
+                if (preSelectedTags.contains(tag)) {
                     selectedTags.add(tag);
                 }
                 tagDropDown.getItems().add(newTag);
@@ -649,7 +665,6 @@ public class LogEntryEditorController {
                 }
                 // Let anyone listening know that their credentials are now out of date.
                 updateCredentials.set(true);
-                //checkIfReadyToSubmit();
             } catch (Exception ex) {
                 logger.log(Level.WARNING, "Secure Store file not found.", ex);
             }
@@ -658,23 +673,39 @@ public class LogEntryEditorController {
 
     /**
      * Updates the logbooks or tags context menu to reflect the state of selected logbooks and tags.
-     * @param contextMenu The context menu to update
-     * @param itemName The logbook or tag name identifying to a context menu item
+     *
+     * @param contextMenu  The context menu to update
+     * @param itemName     The logbook or tag name identifying to a context menu item
      * @param itemSelected Indicates whether to select or deselect.
      */
-    private void updateDropDown(ContextMenu contextMenu, String itemName, boolean itemSelected){
-        for (MenuItem menuItem : contextMenu.getItems())
-        {
+    private void updateDropDown(ContextMenu contextMenu, String itemName, boolean itemSelected) {
+        for (MenuItem menuItem : contextMenu.getItems()) {
             CustomMenuItem custom = (CustomMenuItem) menuItem;
             CheckBox check = (CheckBox) custom.getContent();
-            if(check.getText().equals(itemName)){
+            if (check.getText().equals(itemName)) {
                 check.setSelected(itemSelected);
                 break;
             }
         }
     }
 
-    public boolean isDirty(){
+    public boolean isDirty() {
         return isDirty;
+    }
+
+    /**
+     * Checks connectivity to remote service by querying the info end-point. If connection fails,
+     * connectionError property is set to <code>true</code>, which should set opacity of the editor pane, and
+     * set visibility of error pane.
+     */
+    private boolean checkConnectivity() {
+        LogClient logClient = LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory).getLogClient();
+        try {
+            logClient.serviceInfo();
+            return true;
+        } catch (Exception e) {
+            Logger.getLogger(SendToLogBookApp.class.getName()).warning("Failed to query logbook service, it may be off-line.");
+            return false;
+        }
     }
 }

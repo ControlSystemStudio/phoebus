@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -30,6 +30,7 @@ import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
+import org.phoebus.ui.javafx.Brightness;
 import org.phoebus.ui.javafx.ClearingTextField;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.PrintAction;
@@ -67,10 +68,12 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 
 /** Alarm Table UI
  *
@@ -199,18 +202,28 @@ public class AlarmTableUI extends BorderPane
             if (empty  ||  item == null)
             {
                 setText("");
-                if (AlarmSystem.alarm_table_color_background)
-                    setBackground(null);
-                else
-                    setTextFill(Color.BLACK);
+                setBackground(null);
+                setTextFill(Color.BLACK);
             }
             else
             {
                 setText(item.toString());
-                if (AlarmSystem.alarm_table_color_background)
-                    setBackground(AlarmUI.getBackground(item));
+                if (AlarmSystem.alarm_table_color_legacy_background)
+                {
+                    final Background bg = AlarmUI.getLegacyTableBackground(item);
+                    setBackground(bg);
+                    final Paint p = bg.getFills().get(0).getFill();
+                    if (p instanceof Color &&
+                        Brightness.of((Color) p) < Brightness.BRIGHT_THRESHOLD)
+                        setTextFill(Color.WHITE);
+                    else
+                        setTextFill(Color.BLACK);
+                }
                 else
+                {
+                    setBackground(AlarmUI.getBackground(item));
                     setTextFill(AlarmUI.getColor(item));
+                }
             }
         }
     }

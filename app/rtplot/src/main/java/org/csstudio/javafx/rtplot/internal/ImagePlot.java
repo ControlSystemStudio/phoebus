@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.IntToDoubleFunction;
 import java.util.function.ToDoubleFunction;
 import java.util.function.ToIntFunction;
 import java.util.logging.Level;
@@ -237,18 +238,28 @@ public class ImagePlot extends PlotCanvasBase
     }
 
     /** Set axis range for 'full' image
-     *  @param min_x
-     *  @param max_x
-     *  @param min_y
-     *  @param max_y
+     *  @param min_x User coordinates
+     *  @param max_x ...
+     *  @param min_y ...
+     *  @param max_y ...
      */
     public void setAxisRange(final double min_x, final double max_x,
                              final double min_y, final double max_y)
     {
+        // Ignore if there are no changes, because otherwise
+        // each call would reset axes that had "zoomed" into the image
+        if (this.min_x == min_x  &&
+            this.max_x == max_x  &&
+            this.min_y == min_y  &&
+            this.max_y == max_y)
+            return;
+
+        // Update the full image size
         this.min_x = min_x;
         this.max_x = max_x;
         this.min_y = min_y;
         this.max_y = max_y;
+        // .. and set axes to show complete image
         x_axis.setValueRange(min_x, max_x);
         y_axis.setValueRange(min_y, max_y);
     }
@@ -382,7 +393,7 @@ public class ImagePlot extends PlotCanvasBase
      */
     public void setValue(final int width, final int height, final ListNumber data, final boolean unsigned)
     {
-    	setValue(width, height, data, unsigned, VImageType.TYPE_MONO);
+        setValue(width, height, data, unsigned, VImageType.TYPE_MONO);
     }
     public void setValue(final int width, final int height, final ListNumber data, final boolean unsigned, VImageType type)
     {
@@ -512,104 +523,145 @@ public class ImagePlot extends PlotCanvasBase
         final int data_width = this.data_width, data_height = this.data_height;
         final ListNumber numbers = this.image_data;
         final boolean unsigned = this.unsigned_data;
-        double min = this.min, max = this.max;
         final VImageType type = this.vimage_type;
         final ColorMappingFunction color_mapping = this.color_mapping;
 
         ToDoubleFunction<IteratorNumber> next_sample_func = IteratorNumber::nextDouble;
-    	boolean isRGB = type == VImageType.TYPE_RGB1 || type == VImageType.TYPE_RGB2 || type == VImageType.TYPE_RGB3;
-    	@SuppressWarnings("unchecked")
-		final ToIntFunction<IteratorNumber> next_rgb [] = new ToIntFunction [3];
+        boolean isRGB = type == VImageType.TYPE_RGB1 || type == VImageType.TYPE_RGB2 || type == VImageType.TYPE_RGB3;
+        @SuppressWarnings("unchecked")
+        final ToIntFunction<IteratorNumber> next_rgb [] = new ToIntFunction [3];
         if (numbers != null)
         {
             if (isRGB)
             {
-        		if (numbers instanceof ArrayShort)
-        		{
-        			if (unsigned)
-        			{
-            			next_rgb[0] = (iter) -> getUShortForRGB(iter) << 8 & 0xFF0000;
-            			next_rgb[1] = (iter) -> getUShortForRGB(iter) & 0xFF00;
-            			next_rgb[2] = (iter) -> getUShortForRGB(iter) >>> 8;
-        			}
-    				else
-    				{
-            			next_rgb[0] = (iter) -> getShortForRGB(iter) << 8 & 0xFF0000;
-            			next_rgb[1] = (iter) -> getShortForRGB(iter) & 0xFF00;
-            			next_rgb[2] = (iter) -> getShortForRGB(iter) >>> 8;
-    				}
-        		}
-        		if (numbers instanceof ArrayInteger)
-        		{
-        			if (unsigned)
-        			{
-            			next_rgb[0] = (iter) -> getUIntForRGB(iter) >>> 8 & 0xFF0000;
-            			next_rgb[1] = (iter) -> getUIntForRGB(iter) >>> 16 & 0xFF00;
-            			next_rgb[2] = (iter) -> getUIntForRGB(iter) >>> 24;
-        			}
-    				else
-    				{
-            			next_rgb[0] = (iter) -> getIntForRGB(iter) >>> 8 & 0xFF0000;
-            			next_rgb[1] = (iter) -> getIntForRGB(iter) >>> 16 & 0xFF00;
-            			next_rgb[2] = (iter) -> getIntForRGB(iter) >>> 24;
-    				}
-        		}
-        		else
-        		{
-            		if (!(numbers instanceof ArrayByte))
-            			logger.log(Level.WARNING, "Cannot handle rgb1 image data of type " + numbers.getClass().getName());
-        			if (unsigned)
-        			{
-            			next_rgb[0] = (iter) -> getUByteForRGB(iter) << 16;
-            			next_rgb[1] = (iter) -> getUByteForRGB(iter) << 8;
-            			next_rgb[2] = (iter) -> getUByteForRGB(iter);
-        			}
-    				else
-    				{
-            			next_rgb[0] = (iter) -> getByteForRGB(iter) << 16;
-            			next_rgb[1] = (iter) -> getByteForRGB(iter) << 8;
-            			next_rgb[2] = (iter) -> getByteForRGB(iter);
-    				}
-        		}
+                if (numbers instanceof ArrayShort)
+                {
+                    if (unsigned)
+                    {
+                        next_rgb[0] = (iter) -> getUShortForRGB(iter) << 8 & 0xFF0000;
+                        next_rgb[1] = (iter) -> getUShortForRGB(iter) & 0xFF00;
+                        next_rgb[2] = (iter) -> getUShortForRGB(iter) >>> 8;
+                    }
+                    else
+                    {
+                        next_rgb[0] = (iter) -> getShortForRGB(iter) << 8 & 0xFF0000;
+                        next_rgb[1] = (iter) -> getShortForRGB(iter) & 0xFF00;
+                        next_rgb[2] = (iter) -> getShortForRGB(iter) >>> 8;
+                    }
+                }
+                if (numbers instanceof ArrayInteger)
+                {
+                    if (unsigned)
+                    {
+                        next_rgb[0] = (iter) -> getUIntForRGB(iter) >>> 8 & 0xFF0000;
+                        next_rgb[1] = (iter) -> getUIntForRGB(iter) >>> 16 & 0xFF00;
+                        next_rgb[2] = (iter) -> getUIntForRGB(iter) >>> 24;
+                    }
+                    else
+                    {
+                        next_rgb[0] = (iter) -> getIntForRGB(iter) >>> 8 & 0xFF0000;
+                        next_rgb[1] = (iter) -> getIntForRGB(iter) >>> 16 & 0xFF00;
+                        next_rgb[2] = (iter) -> getIntForRGB(iter) >>> 24;
+                    }
+                }
+                else
+                {
+                    if (!(numbers instanceof ArrayByte))
+                        logger.log(Level.WARNING, "Cannot handle rgb1 image data of type " + numbers.getClass().getName());
+                    if (unsigned)
+                    {
+                        next_rgb[0] = (iter) -> getUByteForRGB(iter) << 16;
+                        next_rgb[1] = (iter) -> getUByteForRGB(iter) << 8;
+                        next_rgb[2] = (iter) -> getUByteForRGB(iter);
+                    }
+                    else
+                    {
+                        next_rgb[0] = (iter) -> getByteForRGB(iter) << 16;
+                        next_rgb[1] = (iter) -> getByteForRGB(iter) << 8;
+                        next_rgb[2] = (iter) -> getByteForRGB(iter);
+                    }
+                }
             }
             else //is not RGB
             {
-	            if (unsigned)
-	            {
-	                if (numbers instanceof ArrayShort)
-	                    next_sample_func = ImagePlot::getUnsignedShort;
-	                else if (numbers instanceof ArrayByte)
-	                    next_sample_func = ImagePlot::getUnsignedByte;
-	                else if (numbers instanceof ArrayInteger)
-	                    next_sample_func = ImagePlot::getUnsignedInt;
-	                else
-	                    logger.log(Level.WARNING, "Cannot handle unsigned data of type " + numbers.getClass().getName());
-	            }
-
-	            if (autoscale)
-	            {   // Compute min..max before layout of color bar
-	                final IteratorNumber iter = numbers.iterator();
-	                min = Double.MAX_VALUE;
-	                max = Double.NEGATIVE_INFINITY;
-	                while (iter.hasNext())
-	                {
-	                    final double sample = next_sample_func.applyAsDouble(iter);
-	                    if (sample > max)
-	                        max = sample;
-	                    if (sample < min)
-	                        min = sample;
-	                }
-	                logger.log(Level.FINE, "Autoscale range {0} .. {1}", new Object[] { min, max });
-	            }
+                if (unsigned)
+                {
+                    if (numbers instanceof ArrayShort)
+                        next_sample_func = ImagePlot::getUnsignedShort;
+                    else if (numbers instanceof ArrayByte)
+                        next_sample_func = ImagePlot::getUnsignedByte;
+                    else if (numbers instanceof ArrayInteger)
+                        next_sample_func = ImagePlot::getUnsignedInt;
+                    else
+                        logger.log(Level.WARNING, "Cannot handle unsigned data of type " + numbers.getClass().getName());
+                }
             }
         }
 
+        // Transform from full axis range into data range,
+        // using the current 'zoom' state of each axis
+        final LinearScreenTransform t = new LinearScreenTransform();
+        AxisRange<Double> zoomed = x_axis.getValueRange();
+        t.config(min_x, max_x, 0, data_width);
+        // Round down .. up to always cover the image_area
+        final int src_x1 = Math.max(0,          (int) t.transform(zoomed.getLow()));
+        final int src_x2 = Math.min(data_width, (int)(t.transform(zoomed.getHigh()) + 1));
+
+        // Pixels of the image need to be aligned to their axis location,
+        // especially when zoomed way in and the pixels are huge.
+        // Turn pixel back into axis value, and then determine its destination on screen.
+        final int dst_x1 = x_axis.getScreenCoord(t.inverse(src_x1));
+        final int dst_x2 = x_axis.getScreenCoord(t.inverse(src_x2));
+
+        // For Y axis, min_y == bottom == data_height
+        zoomed = y_axis.getValueRange();
+        t.config(min_y, max_y, data_height, 0);
+        final int src_y1 = Math.max(0,           (int)  t.transform(zoomed.getHigh()));
+        final int src_y2 = Math.min(data_height, (int) (t.transform(zoomed.getLow() ) + 1));
+        final int dst_y1 = y_axis.getScreenCoord(t.inverse(src_y1));
+        final int dst_y2 = y_axis.getScreenCoord(t.inverse(src_y2));
+
+        // Value range: Start with min..max from model
+        double min_value = this.min, max_value = this.max;
+        if (autoscale  &&  numbers != null  &&  !isRGB)
+        {   // Determine value range within the potentially zoomed/panned data
+            min_value = Double.MAX_VALUE;
+            max_value = Double.NEGATIVE_INFINITY;
+
+            // Fetch sample by index, honoring 'unsigned' data
+            IntToDoubleFunction get_sample_func = numbers::getDouble;
+            if (unsigned)
+            {
+                if (numbers instanceof ArrayShort)
+                    get_sample_func = index -> Short.toUnsignedInt(numbers.getShort(index));
+                else if (numbers instanceof ArrayByte)
+                    get_sample_func = index -> Byte.toUnsignedInt(numbers.getByte(index));
+                else if (numbers instanceof ArrayInteger)
+                    get_sample_func = index -> Integer.toUnsignedLong(numbers.getInt(index));
+                else
+                    logger.log(Level.WARNING, "Cannot handle unsigned data of type " + numbers.getClass().getName());
+            }
+            for (int y=src_y1;  y<src_y2;  ++y)
+            {
+                int row = y * data_width;
+                for (int x=src_x1;  x<src_x2;  ++x)
+                {
+                    final double sample = get_sample_func.applyAsDouble(x + row);
+                    if (sample > max_value)
+                        max_value = sample;
+                    if (sample < min_value)
+                        min_value = sample;
+                }
+            }
+            logger.log(Level.FINE, "Autoscale range {0} .. {1}", new Object[] { min_value, max_value });
+        }
+
         // If log, min needs to be > 0
-        if (colorbar_axis.isLogarithmic()  &&  min <= 0.0)
-            min = 0.001;  // arbitrary minimum
-        colorbar_axis.setValueRange(min, max);
+        if (colorbar_axis.isLogarithmic()  &&  min_value <= 0.0)
+            min_value = 0.001;  // arbitrary minimum
+        colorbar_axis.setValueRange(min_value, max_value);
         if (need_layout.getAndSet(false))
-            computeLayout(gc, area_copy, min, max);
+            computeLayout(gc, area_copy, min_value, max_value);
 
         // Fill with a 'background' color
         gc.setColor(background);
@@ -627,34 +679,11 @@ public class ImagePlot extends PlotCanvasBase
             // Paint the image
             gc.setClip(image_area.x, image_area.y, image_area.width, image_area.height);
             final Object image_or_error =  !isRGB ?
-            		drawData(data_width, data_height, numbers, next_sample_func, min, max, color_mapping) :
-        			drawDataRGB(data_width, data_height, numbers, next_rgb, type);
+                    drawData(data_width, data_height, numbers, next_sample_func, min_value, max_value, color_mapping) :
+                    drawDataRGB(data_width, data_height, numbers, next_rgb, type);
             if (image_or_error instanceof BufferedImage)
             {
                 final BufferedImage unscaled = (BufferedImage) image_or_error;
-                // Transform from full axis range into data range,
-                // using the current 'zoom' state of each axis
-                final LinearScreenTransform t = new LinearScreenTransform();
-                AxisRange<Double> zoomed = x_axis.getValueRange();
-                t.config(min_x, max_x, 0, data_width);
-                // Round down .. up to always cover the image_area
-                final int src_x1 = Math.max(0,          (int)t.transform(zoomed.getLow()));
-                final int src_x2 = Math.min(data_width, (int)(t.transform(zoomed.getHigh()) + 1));
-
-                // Pixels of the image need to be aligned to their axis location,
-                // especially when zoomed way in and the pixels are huge.
-                // Turn pixel back into axis value, and then determine its destination on screen.
-                final int dst_x1 = x_axis.getScreenCoord(t.inverse(src_x1));
-                final int dst_x2 = x_axis.getScreenCoord(t.inverse(src_x2));
-
-                // For Y axis, min_y == bottom == data_height
-                zoomed = y_axis.getValueRange();
-                t.config(min_y, max_y, data_height, 0);
-                final int src_y1 = Math.max(0,           (int) t.transform(zoomed.getHigh()));
-                final int src_y2 = Math.min(data_height, (int) (t.transform(zoomed.getLow() ) + 1));
-                final int dst_y1 = y_axis.getScreenCoord(t.inverse(src_y1));
-                final int dst_y2 = y_axis.getScreenCoord(t.inverse(src_y2));
-
                 switch (interpolation)
                 {
                 case NONE:
@@ -674,7 +703,7 @@ public class ImagePlot extends PlotCanvasBase
                 }
                 gc.drawImage(unscaled,
                              dst_x1, dst_y1, dst_x2, dst_y2,
-                             src_x1,  src_y1,  src_x2,  src_y2,
+                             src_x1, src_y1, src_x2, src_y2,
                              /* ImageObserver */ null);
             }
             else
@@ -693,7 +722,7 @@ public class ImagePlot extends PlotCanvasBase
         // Color bar
         if (colorbar_area != null)
         {
-            final BufferedImage bar = drawColorBar(min, max, color_mapping);
+            final BufferedImage bar = drawColorBar(min_value, max_value, color_mapping);
             gc.drawImage(bar, colorbar_area.x, colorbar_area.y, colorbar_area.width, colorbar_area.height, null);
             colorbar_axis.paint(gc, colorbar_area);
         }
@@ -942,37 +971,37 @@ public class ImagePlot extends PlotCanvasBase
 
         switch(type)
         {
-	        case TYPE_RGB2:
-	        	for (int y_times_width = 0; y_times_width < data_height*data_width; y_times_width += data_width)
-	        	{
-	        		//red
-        			for (int x = 0; x < data_width; ++x)
-        				data[y_times_width + x] = 0xFF000000 | next_rgbs[0].applyAsInt(iter);
-        			//green
-        			for (int x = 0; x < data_width; ++x)
-        				data[y_times_width + x] |= next_rgbs[1].applyAsInt(iter);
-        			//blue
-        			for (int x = 0; x < data_width; ++x)
-        				data[y_times_width + x] |= next_rgbs[2].applyAsInt(iter);
-	        	}
-	        	break;
-	        case TYPE_RGB3:
-	        	//red
-        		for (int i = 0; i < data_height*data_width; ++i)
-        			data[i] = 0xFF000000 | next_rgbs[0].applyAsInt(iter);
-        		//green
-        		for (int i = 0; i < data_height*data_width; ++i)
-        			data[i] |= next_rgbs[1].applyAsInt(iter);
-    			//blue
-        		for (int i = 0; i < data_height*data_width; ++i)
-        			data[i] |= next_rgbs[2].applyAsInt(iter);
-	        	break;
-        	default:
-        		throw new IllegalArgumentException("Image type must be an RGB type");
-        		//no "break;"
-	        case TYPE_RGB1:
-	        	for (int i = 0; i < data_height*data_width; ++i)
-	            	data[i] = 0xFF000000 | next_rgbs[0].applyAsInt(iter) | next_rgbs[1].applyAsInt(iter) | next_rgbs[2].applyAsInt(iter);
+            case TYPE_RGB2:
+                for (int y_times_width = 0; y_times_width < data_height*data_width; y_times_width += data_width)
+                {
+                    //red
+                    for (int x = 0; x < data_width; ++x)
+                        data[y_times_width + x] = 0xFF000000 | next_rgbs[0].applyAsInt(iter);
+                    //green
+                    for (int x = 0; x < data_width; ++x)
+                        data[y_times_width + x] |= next_rgbs[1].applyAsInt(iter);
+                    //blue
+                    for (int x = 0; x < data_width; ++x)
+                        data[y_times_width + x] |= next_rgbs[2].applyAsInt(iter);
+                }
+                break;
+            case TYPE_RGB3:
+                //red
+                for (int i = 0; i < data_height*data_width; ++i)
+                    data[i] = 0xFF000000 | next_rgbs[0].applyAsInt(iter);
+                //green
+                for (int i = 0; i < data_height*data_width; ++i)
+                    data[i] |= next_rgbs[1].applyAsInt(iter);
+                //blue
+                for (int i = 0; i < data_height*data_width; ++i)
+                    data[i] |= next_rgbs[2].applyAsInt(iter);
+                break;
+            default:
+                throw new IllegalArgumentException("Image type must be an RGB type");
+                //no "break;"
+            case TYPE_RGB1:
+                for (int i = 0; i < data_height*data_width; ++i)
+                    data[i] = 0xFF000000 | next_rgbs[0].applyAsInt(iter) | next_rgbs[1].applyAsInt(iter) | next_rgbs[2].applyAsInt(iter);
         }
 
         return image;
@@ -1227,47 +1256,47 @@ public class ImagePlot extends PlotCanvasBase
      */
     public Object [] axisClickInfo(MouseEvent event)
     {
-    	//For event.getX(), etc. to work as desired, 'this' must be the source of the MouseEvent
-    	if (!this.equals(event.getSource()))
-    		event = event.copyFor(this, event.getTarget());
+        //For event.getX(), etc. to work as desired, 'this' must be the source of the MouseEvent
+        if (!this.equals(event.getSource()))
+            event = event.copyFor(this, event.getTarget());
         if ((mouse_mode == MouseMode.NONE || mouse_mode == MouseMode.PAN) && event.getClickCount() == 2)
         {
-        	double click_x = event.getX();
-        	double click_y = event.getY();
-        	//Do the upper or lower end regions of y_axis contain the click?
-    		int x = (int) y_axis.getBounds().getX();
-    		int w = (int) y_axis.getBounds().getWidth();
-    		int h = (int) Math.min(y_axis.getBounds().getHeight()/2, w);
-    		Rectangle upper = new Rectangle(x, (int) y_axis.getBounds().getY(), w, h);
-    		Rectangle lower = new Rectangle(x, (int) y_axis.getBounds().getMaxY()-h, w, h);
-    		if (upper.contains(click_x, click_y))
-    		{
-    			Object [] ret = {y_axis, true, upper};
-    			return ret;
-    		}
-    		else if (lower.contains(click_x, click_y))
-    		{
-    			Object [] ret = {y_axis, false, lower};
-    			return ret;
-    		}
-        	//Do the left-side (lesser) or right-side (greater) end regions of the x-axis contain it?
-        	int y = (int) x_axis.getBounds().getY();
-        	h = (int) x_axis.getBounds().getHeight();
-        	w = (int) Math.min(x_axis.getBounds().getWidth()/2, h);
-        	Rectangle lesser = new Rectangle((int) x_axis.getBounds().getX(), y, w, h);
-        	Rectangle greater = new Rectangle((int) x_axis.getBounds().getMaxX()-w, y, w, h);
-    		if (lesser.contains(click_x, click_y))
-    		{
-    			Object [] ret = {x_axis, false, lesser};
-    			return ret;
-    		}
-    		else if (greater.contains(click_x, click_y))
-    		{
-    			Object [] ret = {x_axis, true, greater};
-    			return ret;
-        	}
+            double click_x = event.getX();
+            double click_y = event.getY();
+            //Do the upper or lower end regions of y_axis contain the click?
+            int x = (int) y_axis.getBounds().getX();
+            int w = (int) y_axis.getBounds().getWidth();
+            int h = (int) Math.min(y_axis.getBounds().getHeight()/2, w);
+            Rectangle upper = new Rectangle(x, (int) y_axis.getBounds().getY(), w, h);
+            Rectangle lower = new Rectangle(x, (int) y_axis.getBounds().getMaxY()-h, w, h);
+            if (upper.contains(click_x, click_y))
+            {
+                Object [] ret = {y_axis, true, upper};
+                return ret;
+            }
+            else if (lower.contains(click_x, click_y))
+            {
+                Object [] ret = {y_axis, false, lower};
+                return ret;
+            }
+            //Do the left-side (lesser) or right-side (greater) end regions of the x-axis contain it?
+            int y = (int) x_axis.getBounds().getY();
+            h = (int) x_axis.getBounds().getHeight();
+            w = (int) Math.min(x_axis.getBounds().getWidth()/2, h);
+            Rectangle lesser = new Rectangle((int) x_axis.getBounds().getX(), y, w, h);
+            Rectangle greater = new Rectangle((int) x_axis.getBounds().getMaxX()-w, y, w, h);
+            if (lesser.contains(click_x, click_y))
+            {
+                Object [] ret = {x_axis, false, lesser};
+                return ret;
+            }
+            else if (greater.contains(click_x, click_y))
+            {
+                Object [] ret = {x_axis, true, greater};
+                return ret;
+            }
         }
-    	return null;
+        return null;
     }
 
     /** Update information about the image location under the mouse pointer

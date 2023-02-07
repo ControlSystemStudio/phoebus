@@ -7,12 +7,12 @@
  ******************************************************************************/
 package org.phoebus.framework.preferences;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test of the PreferencesReader
  *  @author Kay Kasemir
@@ -45,7 +45,7 @@ public class PreferencesReaderTest
         )
         {
             PropertyPreferenceWriter.save(buf);
-            System.out.print(buf.toString());
+            System.out.print(buf);
         }
         System.out.println("Done");
     }

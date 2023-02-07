@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.epics.pva.data.PVAArray;
+import org.epics.pva.data.PVABool;
 import org.epics.pva.data.PVAByte;
 import org.epics.pva.data.PVAByteArray;
 import org.epics.pva.data.PVADouble;
@@ -50,6 +51,7 @@ import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Display;
 import org.epics.vtype.EnumDisplay;
 import org.epics.vtype.Time;
+import org.epics.vtype.VBoolean;
 import org.epics.vtype.VByte;
 import org.epics.vtype.VByteArray;
 import org.epics.vtype.VDouble;
@@ -74,6 +76,7 @@ import org.epics.vtype.VULong;
 import org.epics.vtype.VULongArray;
 import org.epics.vtype.VUShort;
 import org.epics.vtype.VUShortArray;
+import org.phoebus.pv.ca.DBRHelper;
 
 /** Decodes {@link Time}, {@link Alarm}, {@link Display}, ...
  *  @author Kay Kasemir
@@ -152,15 +155,24 @@ public class Decoders
                 timestamp = NO_TIME;
             else
                 timestamp = Instant.ofEpochSecond(sec.get(), nano.get());
-            final PVAInt user = time.get("userTag");
-            usertag = user == null ? NO_USERTAG : user.get();
+            // 2022-10 EPICS Developers meeting proposed 64 bit (Long) userTag
+            // Allow for that, but only use integer until VType is updated
+            final PVANumber user = time.get("userTag");
+            usertag = user == null ? NO_USERTAG : user.getNumber().intValue();
         }
         else
         {
             timestamp = NO_TIME;
             usertag = NO_USERTAG;
         }
-        return Time.of(timestamp, usertag, timestamp.getEpochSecond() > 0);
+
+        // A time stamp of all zeroes is not valid.
+        // In addition, a time stamp of 1990/01/02 00:00:00
+        // as used for the Channel Access and IOC time stamp epoch
+        // is considered invalid because IOCs send it for never processed records
+        final boolean valid = timestamp.getNano() != 0  &&
+                              (timestamp.getEpochSecond() > 0 &&  timestamp.getEpochSecond() != DBRHelper.EPICS_EPOCH);
+        return Time.of(timestamp, usertag, valid);
     }
 
     /** @param printfFormat Format from NTScalar display.format
@@ -319,6 +331,15 @@ public class Decoders
             alarm = warn = Range.undefined();
 
         return Display.of(display, alarm, warn, control, units, format, description);
+    }
+
+    /** @param struct Structure
+     *  @param field Field
+     *  @return Boolean for that field's value
+     */
+    public static VType decodeBool(PVAStructure struct, PVABool field)
+    {
+        return VBoolean.of(field.get(), decodeAlarm(struct), decodeTime(struct));
     }
 
     /** @param struct Structure

@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.tree;
 
+import javafx.scene.layout.Background;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.client.ClientState;
@@ -34,6 +35,7 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
         {
             setText(null);
             setGraphic(null);
+            setBackground(Background.EMPTY);
         }
         else
         {
@@ -60,12 +62,14 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                                 .append(")");
                     }
                     setTextFill(AlarmUI.getColor(state.severity));
+                    setBackground(AlarmUI.getBackground(state.severity));
                     icon = AlarmUI.getIcon(state.severity);
                 }
                 else
                 {
                     text.append(" (disabled)");
                     setTextFill(Color.GRAY);
+                    setBackground(Background.EMPTY);
                     icon = AlarmUI.disabled_icon;
                 }
                 setText(text.toString());
@@ -78,6 +82,7 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
 
                 severity = node.getState().severity;
                 setTextFill(AlarmUI.getColor(severity));
+                setBackground(AlarmUI.getBackground(severity));
                 final Image icon = AlarmUI.getIcon(severity);
                 setGraphic(icon == null ? null : new ImageView(icon));
             }

@@ -1,16 +1,15 @@
 package org.phoebus.logbook.ui;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.Test;
+import org.phoebus.logbook.ui.LogbookQueryUtil.Keys;
 
 import java.net.URI;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Test;
-import org.phoebus.logbook.ui.LogbookQueryUtil.Keys;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import static org.phoebus.util.time.TimestampFormats.MILLI_FORMAT;
 /**
  * Test the parsing of the logbook query URI syntax
  * 
@@ -58,9 +57,10 @@ public class QueryParserTest {
     /**
      * Since the current logbook client api does not support multi value maps reusing the same query key word should throw an exception.
      */
-    @Test(expected = Exception.class)
+    @Test
     public void multiValueTest() {
         URI uri = URI.create("logbook://?search=*Fault*Motor*&tag=operation&tag=loto");
-        Map<String, String> queryParameters = LogbookQueryUtil.parseQueryURI(uri);
+        assertThrows(Exception.class,
+                () -> LogbookQueryUtil.parseQueryURI(uri));
     }
 }

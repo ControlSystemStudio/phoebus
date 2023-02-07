@@ -26,9 +26,9 @@ import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VNumberArray;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ArrayMinFunctionTest {
 
@@ -44,13 +44,15 @@ public class ArrayMinFunctionTest {
         VNumberArray doubleArray = VNumberArray.of(ArrayDouble.of(-1.0, 0, 1.0, 2.0, 3.0, 4.0, 5), Alarm.none(), Time.now(), Display.none());
 
         VDouble min = (VDouble) arrayMinFunction.compute(doubleArray);
-        assertEquals("arrayMin Failed to calculate min for double array", Double.valueOf(-1.0), min.getValue());
+        assertEquals(Double.valueOf(-1.0), min.getValue(),
+                "arrayMin Failed to calculate min for double array");
 
 
         // int array
         VNumberArray intArray = VNumberArray.of(ArrayInteger.of(-1, 0, 1, 2, 3, 4, 5), Alarm.none(), Time.now(), Display.none());
         min = (VDouble) arrayMinFunction.compute(intArray);
-        assertEquals("arrayMin Failed to calculate min for int array", Double.valueOf(-1), min.getValue());
+        assertEquals(Double.valueOf(-1), min.getValue(),
+                "arrayMin Failed to calculate min for int array");
 
     }
 }

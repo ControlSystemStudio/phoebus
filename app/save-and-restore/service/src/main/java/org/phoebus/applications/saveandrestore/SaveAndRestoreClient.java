@@ -18,11 +18,19 @@
 
 package org.phoebus.applications.saveandrestore;
 
-import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
+import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
+import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.Snapshot;
+import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.search.Filter;
+import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.List;
 
 /**
@@ -44,14 +52,16 @@ public interface SaveAndRestoreClient {
     Node getRoot();
 
     /**
-     *
      * @param uniqueNodeId The unique id of the {@link Node} to retrieve.
      * @return The {@link Node} object, if it exists.
      */
     Node getNode(String uniqueNodeId);
 
+    List<Node> getCompositeSnapshotReferencedNodes(String uniqueNodeId);
+
+    List<SnapshotItem> getCompositeSnapshotItems(String uniqueNodeId);
+
     /**
-     *
      * @param unqiueNodeId Unique id of a {@link Node}
      * @return The parent {@link Node} of the specified id. May be null if the unique id is associated with the root
      * {@link Node}
@@ -59,15 +69,6 @@ public interface SaveAndRestoreClient {
     Node getParentNode(String unqiueNodeId);
 
     /**
-     *
-     * @param node An existing {@link Node}
-     * @return A list of child {@link Node}s. May be empty.
-     * @throws SaveAndRestoreClientException If error occurs when retrieving data
-     */
-    List<Node> getChildNodes(Node node) throws SaveAndRestoreClientException;
-
-    /**
-     *
      * @param uniqueNodeId Id of an existing {@link Node}
      * @return A list of child {@link Node}s. May be empty.
      * @throws SaveAndRestoreClientException If error occurs when retrieving data
@@ -75,39 +76,17 @@ public interface SaveAndRestoreClient {
     List<Node> getChildNodes(String uniqueNodeId) throws SaveAndRestoreClientException;
 
     /**
-     *
-     * @param snapshotUniqueId Unique id of a snapshot {@link Node}
-     * @return A list of {@link SnapshotItem}s associated with the snapshot.
-     */
-    List<SnapshotItem> getSnapshotItems(String snapshotUniqueId);
-
-    /**
-     * Persists a new snapshot.
-     * @param configUniqueId The unique id of the save set (config) node associated with the snapshot.
-     * @param snapshotItems List of {@link SnapshotItem}s that will be bound to the new snapshot.
-     * @param snapshotName A name for the snapshot
-     * @param comment A comment for the snapshot
-     * @return The created snapshot {@link Node}.
-     */
-    Node saveSnapshot(String configUniqueId, List<SnapshotItem> snapshotItems, String snapshotName, String comment);
-
-    /**
-     *
-     * @param configUniqueId Unique id of a save set (config) {@link Node}
-     * @return A list of {@link ConfigPv}s associated with the save set. May be empty.
-     */
-    List<ConfigPv> getConfigPvs(String configUniqueId);
-
-    /**
      * Creates a new {@link Node}
+     *
      * @param parentsUniqueId Unique id of the parent {@link Node} for the new {@link Node}
-     * @param node A {@link Node} object that should be created (=persisted).
+     * @param node            A {@link Node} object that should be created (=persisted).
      * @return The created {@link Node}.
      */
     Node createNewNode(String parentsUniqueId, Node node);
 
     /**
      * Updates a node, e.g. if user wishes to add or remove tags from a snapshot {@link Node}
+     *
      * @param nodeToUpdate The {@link Node} subject to update.
      * @return The updated {@link Node}.
      */
@@ -115,29 +94,22 @@ public interface SaveAndRestoreClient {
 
     /**
      * Updates a node, e.g. if user wishes to add or remove tags from a snapshot {@link Node}
-     * @param nodeToUpdate The {@link Node} subject to update.
+     *
+     * @param nodeToUpdate           The {@link Node} subject to update.
      * @param customTimeForMigration <code>true</code> if the created date of the {@link Node} should be used rather
      *                               than current time.
      * @return The updated {@link Node}.
      */
     Node updateNode(Node nodeToUpdate, boolean customTimeForMigration);
 
-    @Deprecated
     void deleteNode(String uniqueNodeId);
 
     /**
      * Deletes a list of {@link Node}s
+     *
      * @param nodeIds List of unique {@link Node} ids.
      */
     void deleteNodes(List<String> nodeIds);
-
-    /**
-     * Update a save set (config) {@link Node}, e.g. when new PVs are added.
-     * @param configToUpdate The unique id of the {@link Node} subject to update.
-     * @param configPvList The list of {@link ConfigPv}s associated with the save set.
-     * @return The updated {@link Node}
-     */
-    Node updateConfiguration(Node configToUpdate, List<ConfigPv> configPvList);
 
     /**
      * @return All {@link Tag}s persisted on the remote service.
@@ -145,23 +117,24 @@ public interface SaveAndRestoreClient {
     List<Tag> getAllTags();
 
     /**
-     *
      * @return All snapshot {@link Node}s persisted on the remote service
      */
     List<Node> getAllSnapshots();
 
     /**
      * Move a set of {@link Node}s to a new parent {@link Node}
+     *
      * @param sourceNodeIds List of unique {@link Node} ids.
-     * @param targetNodeId The unique id of the parent {@link Node} to which the source {@link Node}s are moved.
+     * @param targetNodeId  The unique id of the parent {@link Node} to which the source {@link Node}s are moved.
      * @return The target {@link Node}.
      */
     Node moveNodes(List<String> sourceNodeIds, String targetNodeId);
 
     /**
      * Copy a set of {@link Node}s to some parent {@link Node}
+     *
      * @param sourceNodeIds List of unique {@link Node} ids.
-     * @param targetNodeId The unique id of the parent {@link Node} to which the source {@link Node}s are copied.
+     * @param targetNodeId  The unique id of the parent {@link Node} to which the source {@link Node}s are copied.
      * @return The target {@link Node}.
      */
     Node copyNodes(List<String> sourceNodeIds, String targetNodeId);
@@ -169,4 +142,63 @@ public interface SaveAndRestoreClient {
     String getFullPath(String uniqueNodeId);
 
     List<Node> getFromPath(String path);
+
+    ConfigurationData getConfigurationData(String nodeId);
+
+    Configuration createConfiguration(String parentNodeId, Configuration configuration);
+
+    Configuration updateConfiguration(Configuration configuration);
+
+
+    SnapshotData getSnapshotData(String uniqueId);
+
+    Snapshot saveSnapshot(String parentNodeId, Snapshot snapshot);
+
+    CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot);
+
+    CompositeSnapshotData getCompositeSnapshotData(String uniqueId);
+
+    /**
+     * Utility for the purpose of checking whether a set of snapshots contain duplicate PV names.
+     * The input snapshot ids may refer to {@link Node}s of types {@link org.phoebus.applications.saveandrestore.model.NodeType#SNAPSHOT}
+     * and {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
+     * @param snapshotNodeIds List of {@link Node} ids corresponding to {@link Node}s of types {@link org.phoebus.applications.saveandrestore.model.NodeType#SNAPSHOT}
+     *      and {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
+     * @return A list of PV names that occur more than once across the list of {@link Node}s corresponding
+     * to the input. Empty if no duplicates are found.
+     */
+    List<String> checkCompositeSnapshotConsistency(List<String> snapshotNodeIds);
+
+    /**
+     * Updates a composite snapshot. Note that the list of referenced snapshots must be the full list of wanted
+     * snapshots, i.e. there is no way to only add new references, or only remove unwanted references.
+     * @param compositeSnapshot A {@link CompositeSnapshot} object hold data.
+     * @return The updates {@link CompositeSnapshot} object.
+     */
+    CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot);
+
+    /**
+     * Search for {@link Node}s based on the specified search parameters.
+     * @param searchParams {@link MultivaluedMap} holding search parameters.
+     * @return A {@link SearchResult} with potentially empty list of matching {@link Node}s
+     */
+    SearchResult search(MultivaluedMap<String, String> searchParams);
+
+    /**
+     * Save a new or updated {@link Filter}
+     * @param filter The {@link Filter} to save
+     * @return The saved {@link Filter}
+     */
+    Filter saveFilter(Filter filter);
+
+    /**
+     * @return All persisted {@link Filter}s.
+     */
+    List<Filter> getAllFilters();
+
+    /**
+     * Deletes a {@link Filter} based on its name.
+     * @param name
+     */
+    void deleteFilter(String name);
 }

@@ -54,16 +54,18 @@ import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.common.Utilities;
 import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.common.VNoData;
+import org.phoebus.applications.saveandrestore.common.VTypePair;
+import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.MultitypeTreeTableCell;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
-import org.phoebus.applications.saveandrestore.common.VTypePair;
 import org.phoebus.applications.saveandrestore.ui.snapshot.hierarchyparser.IHierarchyParser;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.util.time.TimestampFormats;
 
 import java.lang.reflect.Field;
 import java.security.AccessController;
@@ -80,15 +82,13 @@ import java.util.stream.Collectors;
 
 class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
-    private TreeTableEntry rootTTE = new TreeTableEntry("ROOT", null, null);
+    private final TreeTableEntry rootTTE = new TreeTableEntry("ROOT", null, null);
     private IHierarchyParser hierarchyParser = null;
 
     public static final Logger LOGGER = Logger.getLogger(SnapshotController.class.getName());
 
-    public static final Image folderIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/folder.png");
-
     private static boolean resizePolicyNotInitialized = true;
-    private static PrivilegedAction<Object> resizePolicyAction = () -> {
+    private static final PrivilegedAction<Object> resizePolicyAction = () -> {
         try {
             // Java FX bugfix: the table columns are not properly resized for the first table
             Field f = TreeTableView.CONSTRAINED_RESIZE_POLICY.getClass().getDeclaredField("isFirstRun");
@@ -117,7 +117,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                 setText("");
                 setStyle("");
             } else {
-                TreeTableEntry entry = getTreeTableRow().getItem();
+                TreeTableEntry entry = getTableRow().getItem();
                 if (entry == null || entry.folder) {
                     setText(null);
                     setStyle("");
@@ -126,7 +126,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                     if (instant == null) {
                         setText("---");
                     } else {
-                        setText(Utilities.timestampToLittleEndianString(item.tableEntry.timestampProperty().get(), true));
+                        setText(TimestampFormats.SECONDS_FORMAT.format(item.tableEntry.timestampProperty().get()));
                     }
                 }
             }
@@ -141,10 +141,9 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
      * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
      */
     private static class VTypeTreeCellEditor<T> extends MultitypeTreeTableCell<TreeTableEntry, T> {
-        private static final Image WARNING_IMAGE = new Image(
-                SnapshotController.class.getResourceAsStream("/icons/hprio_tsk.png"));
-        private static final Image DISCONNECTED_IMAGE = new Image(
-                SnapshotController.class.getResourceAsStream("/icons/showerr_tsk.png"));
+
+        private static final Image DISCONNECTED_IMAGE =
+                ImageCache.getImage(SaveAndRestoreController.class, "/icons/showerr_tsk.png");
         private final Tooltip tooltip = new Tooltip();
 
         VTypeTreeCellEditor() {
@@ -199,16 +198,10 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                             return item;
                         }
                     } catch (IllegalArgumentException e) {
-//                        FXMessageDialog.openError(controller.getSnapshotReceiver().getShell(), "Editing Error",
-//                            e.getMessage());
                         return item;
                     }
                 }
             });
-            // FX does not provide any facilities to get the column index at mouse position, so use this hack, to know
-            // where the mouse is located
-            setOnMouseEntered(e -> ((SnapshotTreeTable) getTreeTableView()).setColumnAndRowAtMouse(getTableColumn(), getIndex()));
-            setOnMouseExited(e -> ((SnapshotTreeTable) getTreeTableView()).setColumnAndRowAtMouse(null, -1));
         }
 
         @SuppressWarnings("unchecked")
@@ -259,7 +252,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
             super.updateItem(item, empty);
             getStyleClass().remove("diff-cell");
 
-            TreeTableEntry entry = getTreeTableRow().getItem();
+            TreeTableEntry entry = getTableRow().getItem();
             if (item == null || empty) {
                 setText("");
                 setTooltip(null);
@@ -272,12 +265,12 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                 if (item == VDisconnectedData.INSTANCE) {
                     setText(VDisconnectedData.DISCONNECTED);
                     setGraphic(new ImageView(DISCONNECTED_IMAGE));
-                    tooltip.setText("No Value Available");
+                    tooltip.setText(Messages.noValueAvailable);
                     setTooltip(tooltip);
                     getStyleClass().add("diff-cell");
                 } else if (item == VNoData.INSTANCE) {
                     setText(item.toString());
-                    tooltip.setText("No Value Available");
+                    tooltip.setText(Messages.noValueAvailable);
                     setTooltip(tooltip);
                 } else if (item instanceof VType) {
                     setText(Utilities.valueToString((VType) item));
@@ -314,10 +307,8 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
      */
     private static class VDeltaTreeCellEditor<T> extends VTypeTreeCellEditor<T> {
 
-        private static final Image WARNING_IMAGE = new Image(
-                SnapshotController.class.getResourceAsStream("/icons/hprio_tsk.png"));
-        private static final Image DISCONNECTED_IMAGE = new Image(
-                SnapshotController.class.getResourceAsStream("/icons/showerr_tsk.png"));
+        private static final Image WARNING_IMAGE = ImageCache.getImage(SnapshotController.class, "/icons/hprio_tsk.png");
+        private static final Image DISCONNECTED_IMAGE = ImageCache.getImage(SnapshotTreeTable.class, "/icons/showerr_tsk.png");
         private final Tooltip tooltip = new Tooltip();
 
         private boolean showDeltaPercentage = false;
@@ -335,7 +326,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
             super.updateItem(item, empty);
             getStyleClass().remove("diff-cell");
 
-            TreeTableEntry entry = getTreeTableRow().getItem();
+            TreeTableEntry entry = getTableRow().getItem();
             if (item == null || empty) {
                 setText("");
                 setTooltip(null);
@@ -348,12 +339,12 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                 if (item == VDisconnectedData.INSTANCE) {
                     setText(VDisconnectedData.DISCONNECTED);
                     setGraphic(new ImageView(DISCONNECTED_IMAGE));
-                    tooltip.setText("No Value Available");
+                    tooltip.setText(Messages.noValueAvailable);
                     setTooltip(tooltip);
                     getStyleClass().add("diff-cell");
                 } else if (item == VNoData.INSTANCE) {
                     setText(item.toString());
-                    tooltip.setText("No Value Available");
+                    tooltip.setText(Messages.noValueAvailable);
                     setTooltip(tooltip);
                 } else if (item instanceof VTypePair) {
                     VTypePair pair = (VTypePair) item;
@@ -393,7 +384,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
      * @param <T> the type of the values displayed by this column
      * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
      */
-    private class TooltipTreeTableColumn<T> extends TreeTableColumn<TreeTableEntry, T> {
+    private static class TooltipTreeTableColumn<T> extends TreeTableColumn<TreeTableEntry, T> {
         private String text;
         private Label label;
 
@@ -418,9 +409,6 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                 setPrefWidth(prefWidth);
             }
             setResizable(resizable);
-//            setOnEditStart(e -> controller.suspend());
-//            setOnEditCancel(e -> controller.resume());
-//            setOnEditCommit(e -> controller.resume());
             this.text = text;
         }
 
@@ -447,7 +435,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
      */
     private class SelectionTreeTableColumn extends TooltipTreeTableColumn<TreeTableEntry> {
         SelectionTreeTableColumn() {
-            super("", "Include this PV when restoring values", 30, 30, false);
+            super("", Messages.includeThisPV, 30, 30, false);
             setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(cell.getValue().getValue()));
             //for those entries, which have a read-only property, disable the checkbox
             setCellFactory(cell -> new SelectionTreeTableColumnCell());
@@ -456,11 +444,8 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
             selectAllCheckBox = new CheckBox();
             selectAllCheckBox.setSelected(false);
             selectAllCheckBox.setOnAction(action -> rootTTE.cbti.setSelected(selectAllCheckBox.isSelected()));
-//            selectAllCheckBox.setOnAction(action -> treeTableEntryItems.values().stream().filter(item -> !item.folder)
-//                        .filter(item -> !item.tableEntry.readOnlyProperty().get())
-//                        .forEach(item -> item.tableEntry.selectedProperty().set(selectAllCheckBox.isSelected())));
             setGraphic(selectAllCheckBox);
-            MenuItem inverseMI = new MenuItem("Inverse Selection");
+            MenuItem inverseMI = new MenuItem(Messages.inverseSelection);
             inverseMI.setOnAction(action -> treeTableEntryItems.values().stream().filter(item -> !item.folder)
                     .filter(item -> !item.tableEntry.readOnlyProperty().get())
                     .forEach(item -> item.tableEntry.selectedProperty().set(!item.tableEntry.selectedProperty().get())));
@@ -473,7 +458,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
         }
     }
 
-    private class SelectionTreeTableColumnCell extends TreeTableCell<TreeTableEntry, TreeTableEntry> {
+    private static class SelectionTreeTableColumnCell extends TreeTableCell<TreeTableEntry, TreeTableEntry> {
         private final CheckBox checkBox;
 
         private ObservableValue<Boolean> booleanProperty;
@@ -521,17 +506,10 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
     }
 
     private final List<VSnapshot> uiSnapshots = new ArrayList<>();
-    private boolean showStoredReadbacks;
-    private boolean showReadbacks;
     private boolean showDeltaPercentage;
     private final SnapshotController controller;
     private final Map<String, TreeTableEntry> treeTableEntryItems = new HashMap<>();
     private CheckBox selectAllCheckBox;
-
-    private TreeTableColumn<TreeTableEntry, ?> columnAtMouse;
-    private int rowAtMouse = -1;
-    private int clickedColumn = -1;
-    private int clickedRow = -1;
 
     /**
      * Constructs a new table.
@@ -555,37 +533,6 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
         VBox.setVgrow(this, Priority.ALWAYS);
         setColumnResizePolicy(TreeTableView.CONSTRAINED_RESIZE_POLICY);
         getStylesheets().add(SnapshotTreeTable.class.getResource("/style.css").toExternalForm());
-
-        setOnMouseClicked(e -> {
-            if (getSelectionModel().getSelectedCells() != null && !getSelectionModel().getSelectedCells().isEmpty()) {
-                if (columnAtMouse == null) {
-                    clickedColumn = getSelectionModel().getSelectedCells().get(0).getColumn();
-                } else {
-                    int idx = getColumns().indexOf(columnAtMouse);
-                    if (uiSnapshots.size() > 1) {
-                        int i = showReadbacks ? 4 : 3;
-                        if (idx < 0) {
-                            // it is one of the grouped stored values columns
-                            idx = getColumns().get(i).getColumns().indexOf(columnAtMouse);
-                            if (idx >= 0) {
-                                idx += i;
-                            }
-                        } else {
-                            // it is either one of the first 3 columns (do nothing) or one of the live columns
-                            if (idx > i) {
-                                idx = getColumns().get(i).getColumns().size() + idx - 1;
-                            }
-                        }
-                    }
-                    if (idx < 0) {
-                        clickedColumn = getSelectionModel().getSelectedCells().get(0).getColumn();
-                    } else {
-                        clickedColumn = idx;
-                    }
-                }
-                clickedRow = rowAtMouse == -1 ? getSelectionModel().getSelectedCells().get(0).getRow() : rowAtMouse;
-            }
-        });
 
         PreferencesReader preferencesReader = new PreferencesReader(SaveAndRestoreApplication.class, "/save_and_restore_preferences.properties");
         String parserClassName = preferencesReader.get("treeTableView.hierarchyParser");
@@ -646,7 +593,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                         ContextMenuHelper.addSupportedEntries(this, contextMenu);
                         if (!item.folder) {
                             MenuItem toggle = new MenuItem();
-                            toggle.setText(item.tableEntry.readOnlyProperty().get() ? "Make restorable" : "Make readonly");
+                            toggle.setText(item.tableEntry.readOnlyProperty().get() ? Messages.makeRestorable : Messages.makeReadOnly);
                             CheckBox toggleIcon = new CheckBox();
                             toggleIcon.setFocusTraversable(false);
                             toggleIcon.setSelected(item.tableEntry.readOnlyProperty().get());
@@ -654,7 +601,6 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                             toggle.setOnAction(actionEvent -> {
                                 item.tableEntry.readOnlyProperty().set(!item.tableEntry.readOnlyProperty().get());
                                 item.tableEntry.selectedProperty().set(!item.tableEntry.readOnlyProperty().get());
-                                item.tableEntry.readonlyOverrideProperty().set(!item.tableEntry.readonlyOverrideProperty().get());
                             });
 
                             contextMenu.getItems().add(new SeparatorMenuItem());
@@ -671,7 +617,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
         FXCollections.sort(list, Comparator.comparing((TreeItem<TreeTableEntry> tte) -> !tte.getValue().folder)
                 .thenComparing((TreeItem<TreeTableEntry> tte) -> tte.getValue().name));
 
-        list.stream().forEach(item -> recursiveSortByName(item.getChildren()));
+        list.forEach(item -> recursiveSortByName(item.getChildren()));
     }
 
     /**
@@ -704,7 +650,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                     signal.initializeEqualPropertyChangeListener(controller);
                     signal.initializeChangeListenerForColumnHeaderCheckBox(selectAllCheckBox);
                     signal.initializeReadonlyChangeListenerForToggle();
-                    treeTableEntryItems.put(getPVKey(pvName, entry.readOnlyProperty().get() ^ entry.readonlyOverrideProperty().get()), signal);
+                    treeTableEntryItems.put(getPVKey(pvName, entry.readOnlyProperty().get()), signal);
                 }
             }
         }
@@ -712,17 +658,6 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
     private String getPVKey(String pvName, boolean isReadonly) {
         return pvName + "_" + isReadonly;
-    }
-
-    /**
-     * Set the column and row number at current mouse position.
-     *
-     * @param column the column at mouse cursor (null if none)
-     * @param row    the row index at mouse cursor
-     */
-    private void setColumnAndRowAtMouse(TreeTableColumn<TreeTableEntry, ?> column, int row) {
-        this.columnAtMouse = column;
-        this.rowAtMouse = row;
     }
 
     private int measureStringWidth(String text, Font font) {
@@ -757,7 +692,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
         idColumn.setCellFactory(cell -> new IdTreeTableCell());
         snapshotTreeTableColumns.add(idColumn);
 
-        TreeTableColumn<TreeTableEntry, TreeTableEntry> pvNameColumn = new TooltipTreeTableColumn<>("PV Name",
+        TreeTableColumn<TreeTableEntry, TreeTableEntry> pvNameColumn = new TooltipTreeTableColumn<>(Messages.pvName,
                 Messages.toolTipTableColumnPVName, 100);
 
         pvNameColumn.setCellValueFactory(cell -> new SimpleObjectProperty<>(cell.getValue().getValue()));
@@ -768,27 +703,28 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
         setTreeColumn(pvNameColumn);
 
         if (showLiveReadback) {
-            TreeTableColumn<TreeTableEntry, String> readbackPVName = new TooltipTreeTableColumn<>("Readback\nPV Name",
+            TreeTableColumn<TreeTableEntry, String> readbackPVName = new TooltipTreeTableColumn<>(Messages.readbackPVName,
                     Messages.toolTipTableColumnReadbackPVName, 100);
             readbackPVName.setCellValueFactory(new TreeItemPropertyValueFactory<>("readbackName"));
             snapshotTreeTableColumns.add(readbackPVName);
         }
 
         width = measureStringWidth("MM:MM:MM.MMM MMM MM M", null);
-        TreeTableColumn<TreeTableEntry, TreeTableEntry> timestampColumn = new TooltipTreeTableColumn<>("Timestamp",
+        TreeTableColumn<TreeTableEntry, TreeTableEntry> timestampColumn = new TooltipTreeTableColumn<>(Messages.timestamp,
                 Messages.toolTipTableColumnTimestamp, width, width, true);
         timestampColumn.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(cell.getValue().getValue()));
         timestampColumn.setCellFactory(c -> new TimestampTreeTableCell());
+        timestampColumn.getStyleClass().add("timestamp-column");
         timestampColumn.setPrefWidth(width);
         snapshotTreeTableColumns.add(timestampColumn);
 
-        TreeTableColumn<TreeTableEntry, String> statusColumn = new TooltipTreeTableColumn<>("Status",
+        TreeTableColumn<TreeTableEntry, String> statusColumn = new TooltipTreeTableColumn<>(Messages.status,
                 Messages.toolTipTableColumnAlarmStatus, 100, 100, true);
         statusColumn.setCellValueFactory(new TreeItemPropertyValueFactory<>("status"));
         statusColumn.setCellFactory(cell -> new StringTreeTableCell());
         snapshotTreeTableColumns.add(statusColumn);
 
-        TreeTableColumn<TreeTableEntry, String> severityColumn = new TooltipTreeTableColumn<>("Severity",
+        TreeTableColumn<TreeTableEntry, String> severityColumn = new TooltipTreeTableColumn<>(Messages.severity,
                 Messages.toolTipTableColumnAlarmSeverity, 100, 100, true);
         severityColumn.setCellValueFactory(new TreeItemPropertyValueFactory<>("severity"));
         severityColumn.setCellFactory(cell -> new StringTreeTableCell());
@@ -809,13 +745,13 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
             ObjectProperty<VTypePair> value = treeTableEntry.tableEntry.valueProperty();
             value.setValue(new VTypePair(value.get().base, updatedValue, value.get().threshold));
-            controller.updateSnapshot(0, e.getRowValue().getValue().tableEntry, updatedValue);
+            controller.updateLoadedSnapshot(0, e.getRowValue().getValue().tableEntry, updatedValue);
         });
 
         storedValueBaseColumn.getColumns().add(storedValueColumn);
         // show deltas in separate column
         TreeTableColumn<TreeTableEntry, VTypePair> delta = new TooltipTreeTableColumn<>(
-                Utilities.DELTA_CHAR + " Live Setpoint",
+                Utilities.DELTA_CHAR + " " + Messages.liveSetpoint,
                 "", 100);
         delta.setCellValueFactory(e -> {
             TreeTableEntry treeTableEntry = e.getValue().getValue();
@@ -852,14 +788,14 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
         if (showStoredReadback) {
             TreeTableColumn<TreeTableEntry, VType> storedReadbackColumn = new TooltipTreeTableColumn<>(
-                    "Stored Readback\n(" + Utilities.DELTA_CHAR + " Stored Setpoint)", "Stored Readback Value", 100);
+                    "Stored Readback\n(" + Utilities.DELTA_CHAR + " Stored Setpoint)", Messages.storedReadbackValue, 100);
             storedReadbackColumn.setCellValueFactory(new TreeItemPropertyValueFactory<>("storedReadback"));
             storedReadbackColumn.setCellFactory(e -> new VTypeTreeCellEditor<>());
             storedReadbackColumn.setEditable(false);
             snapshotTreeTableColumns.add(storedReadbackColumn);
         }
 
-        TreeTableColumn<TreeTableEntry, VType> liveValueColumn = new TooltipTreeTableColumn<>("Live Setpoint", "Current PV Value",
+        TreeTableColumn<TreeTableEntry, VType> liveValueColumn = new TooltipTreeTableColumn<>(Messages.liveSetpoint, Messages.currentPVValue,
                 100);
         liveValueColumn.setCellValueFactory(new TreeItemPropertyValueFactory<>("liveValue"));
         liveValueColumn.setCellFactory(e -> new VTypeTreeCellEditor<>());
@@ -869,7 +805,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
         if (showLiveReadback) {
             TreeTableColumn<TreeTableEntry, VType> readbackColumn = new TooltipTreeTableColumn<>(
-                    "Live Readback\n(" + Utilities.DELTA_CHAR + " Live Setpoint)", "Current Readback Value", 100);
+                    Messages.liveReadbackVsSetpoint, Messages.currentReadbackValue, 100);
             readbackColumn.setCellValueFactory(new TreeItemPropertyValueFactory<>("liveReadback"));
             readbackColumn.setCellFactory(e -> new VTypeTreeCellEditor<>());
             readbackColumn.setEditable(false);
@@ -901,7 +837,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
         idColumn.setCellFactory(cell -> new IdTreeTableCell());
         list.add(idColumn);
 
-        TreeTableColumn<TreeTableEntry, TreeTableEntry> setpointPVName = new TooltipTreeTableColumn<>("PV Name",
+        TreeTableColumn<TreeTableEntry, TreeTableEntry> setpointPVName = new TooltipTreeTableColumn<>(Messages.pvName,
                 Messages.toolTipUnionOfSetpointPVNames, 100);
         setpointPVName.setCellValueFactory(cell -> new SimpleObjectProperty<>(cell.getValue().getValue()));
         setpointPVName.setCellFactory(cell -> new PVNameTreeTableCell());
@@ -912,12 +848,12 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
         list.add(new DividerTreeTableColumn());
 
-        TreeTableColumn<TreeTableEntry, ?> storedValueColumn = new TooltipTreeTableColumn<>("Stored Values",
+        TreeTableColumn<TreeTableEntry, ?> storedValueColumn = new TooltipTreeTableColumn<>(Messages.storedValues,
                 Messages.toolTipTableColumnPVValues, -1);
         storedValueColumn.getStyleClass().add("toplevel");
 
         String snapshotName = snapshots.get(0).getSnapshot().get().getName() + " (" +
-                String.valueOf(snapshots.get(0)) + ")";
+                snapshots.get(0) + ")";
 
 
         TreeTableColumn<TreeTableEntry, ?> baseCol = new TooltipTreeTableColumn<>(
@@ -938,7 +874,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
             ObjectProperty<VTypePair> value = treeTableEntry.tableEntry.valueProperty();
             value.setValue(new VTypePair(value.get().base, updatedValue, value.get().threshold));
-            controller.updateSnapshot(0, e.getRowValue().getValue().tableEntry, updatedValue);
+            controller.updateLoadedSnapshot(0, e.getRowValue().getValue().tableEntry, updatedValue);
 
             for (int i = 1; i < snapshots.size(); i++) {
                 ObjectProperty<VTypePair> compareValue = e.getRowValue().getValue().tableEntry.compareValueProperty(i);
@@ -950,7 +886,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
         // show deltas in separate column
         TreeTableColumn<TreeTableEntry, VTypePair> delta = new TooltipTreeTableColumn<>(
-                Utilities.DELTA_CHAR + " Live Setpoint",
+                Utilities.DELTA_CHAR + " " + Messages.liveSetpoint,
                 "", 100);
 
         delta.setCellValueFactory(e -> {
@@ -990,19 +926,16 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
             final int snapshotIndex = i;
 
             snapshotName = snapshots.get(snapshotIndex).getSnapshot().get().getName() + " (" +
-                    String.valueOf(snapshots.get(snapshotIndex)) + ")";
-//            final ContextMenu menu = createContextMenu(snapshotIndex);
+                    snapshots.get(snapshotIndex) + ")";
 
             TooltipTreeTableColumn<VTypePair> baseSnapshotCol = new TooltipTreeTableColumn<>(snapshotName,
-                    "Setpoint PV value when the " + snapshotName + " snapshot was taken", 100);
-//            baseSnapshotCol.label.setContextMenu(menu);
+                    String.format(Messages.setpointPVWhen, snapshotName), 100);
             baseSnapshotCol.getStyleClass().add("second-level");
 
             TooltipTreeTableColumn<VTypePair> setpointValueCol = new TooltipTreeTableColumn<>(
-                    "Setpoint",
-                    "Setpoint PV value when the " + snapshotName + " snapshot was taken", 66);
+                    Messages.setpoint,
+                    String.format(Messages.setpointPVWhen, snapshotName), 66);
 
-//            setpointValueCol.label.setContextMenu(menu);
             setpointValueCol.setCellValueFactory(e -> {
                 TreeTableEntry treeTableEntry = e.getValue().getValue();
                 if (treeTableEntry.folder) {
@@ -1013,17 +946,12 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
             });
             setpointValueCol.setCellFactory(e -> new VTypeTreeCellEditor<>());
             setpointValueCol.setEditable(false);
-//            setpointValueCol.label.setOnMouseReleased(e -> {
-//                if (e.getButton() == MouseButton.SECONDARY) {
-//                    menu.show(setpointValueCol.label, e.getScreenX(), e.getScreenY());
-//                }
-//            });
+
             baseSnapshotCol.getColumns().add(setpointValueCol);
 
             TooltipTreeTableColumn<VTypePair> deltaCol = new TooltipTreeTableColumn<>(
-                    Utilities.DELTA_CHAR + " Base Setpoint",
-                    "Setpoint PVV value when the " + snapshotName + " snapshot was taken", 50);
-//            deltaCol.label.setContextMenu(menu);
+                    Utilities.DELTA_CHAR + " " + Messages.baseSetpoint,
+                    String.format(Messages.setpointPVWhen, snapshotName), 50);
             deltaCol.setCellValueFactory(e -> {
                 TreeTableEntry treeTableEntry = e.getValue().getValue();
                 if (treeTableEntry.folder) {
@@ -1041,11 +969,6 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                 return vDeltaCellEditor;
             });
             deltaCol.setEditable(false);
-//            deltaCol.label.setOnMouseReleased(e -> {
-//                if (e.getButton() == MouseButton.SECONDARY) {
-//                    menu.show(deltaCol.label, e.getScreenX(), e.getScreenY());
-//                }
-//            });
             deltaCol.setComparator((pair1, pair2) -> {
                 Utilities.VTypeComparison vtc1 = Utilities.valueToCompareString(pair1.value, pair1.base, pair1.threshold);
                 Utilities.VTypeComparison vtc2 = Utilities.valueToCompareString(pair2.value, pair2.base, pair2.threshold);
@@ -1063,8 +986,8 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
         }
         list.add(storedValueColumn);
 
-        TreeTableColumn<TreeTableEntry, VType> liveValueColumn = new TooltipTreeTableColumn<>("Live Setpoint",
-                "Current Setpoint value", 100);
+        TreeTableColumn<TreeTableEntry, VType> liveValueColumn = new TooltipTreeTableColumn<>(Messages.liveSetpoint,
+                Messages.currentSetpointValue, 100);
 
         liveValueColumn.setCellValueFactory(new TreeItemPropertyValueFactory<>("liveValue"));
         liveValueColumn.setCellFactory(e -> new VTypeTreeCellEditor<>());
@@ -1073,27 +996,6 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
         getColumns().addAll(list);
     }
-
-    private ContextMenu createContextMenu(final int snapshotIndex) {
-        MenuItem removeItem = new MenuItem("Remove");
-//        removeItem.setOnAction(ev -> SaveAndRestoreService.getInstance().execute("Remove Snapshot",
-//            () -> update(controller.removeSnapshot(snapshotIndex))));
-        MenuItem setAsBaseItem = new MenuItem("Set As Base");
-//        setAsBaseItem.setOnAction(ev -> SaveAndRestoreService.getInstance().execute("Set new base Snapshot",
-//            () -> update(controller.setAsBase(snapshotIndex))));
-        MenuItem moveToNewEditor = new MenuItem("Move To New Editor");
-//        moveToNewEditor.setOnAction(ev -> SaveAndRestoreService.getInstance().execute("Open Snapshot",
-//            () -> update(controller.moveSnapshotToNewEditor(snapshotIndex))));
-        return new ContextMenu(removeItem, setAsBaseItem, new SeparatorMenuItem(), moveToNewEditor);
-    }
-
-//    private void update(final List<TableEntry> entries) {
-//        final List<Snapshot> snaps = controller.getAllSnapshots();
-//        // the readback properties are changed on the UI thread, however they are just flags, which do not have any
-//        // effect on the data model, so they can be read by anyone at anytime
-//        Platform.runLater(
-//            () -> updateTable(entries, snaps, controller.isShowReadbacks(), controller.isShowStoredReadbacks()));
-//    }
 
     /**
      * Updates the table by setting new content, including the structure. The table is always recreated, even if the new
@@ -1110,8 +1012,6 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
         getColumns().clear();
         uiSnapshots.clear();
         // we should always know if we are showing the stored readback or not, to properly extract the selection
-        this.showStoredReadbacks = showStoredReadback;
-        this.showReadbacks = showLiveReadback;
         this.showDeltaPercentage = showDeltaPercentage;
         uiSnapshots.addAll(snapshots);
         if (uiSnapshots.size() == 1) {
@@ -1138,7 +1038,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
         final boolean notHide = !controller.isHideEqualItems();
 
         entries.forEach(tableEntry -> {
-            TreeTableEntry treeTableEntry = treeTableEntryItems.get(getPVKey(tableEntry.pvNameProperty().get(), tableEntry.readOnlyProperty().get() ^ tableEntry.readonlyOverrideProperty().get()));
+            TreeTableEntry treeTableEntry = treeTableEntryItems.get(getPVKey(tableEntry.pvNameProperty().get(), tableEntry.readOnlyProperty().get()));
             if (treeTableEntry != null) {
                 treeTableEntry.update(tableEntry);
                 if (notHide || !tableEntry.liveStoredEqualProperty().get()) {
@@ -1163,7 +1063,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
     private void updateTableColumnTitles() {
         // add the * to the title of the column if the snapshot is not saved
         if (uiSnapshots.size() == 1) {
-            ((TooltipTreeTableColumn<?>) getColumns().get(6)).setSaved(true); //uiSnapshots.get(0).isSaved());
+            ((TooltipTreeTableColumn<?>) getColumns().get(6)).setSaved(true);
         } else {
             TreeTableColumn<TreeTableEntry, ?> column = getColumns().get(4);
             for (int i = 0; i < uiSnapshots.size(); i++) {
@@ -1171,7 +1071,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                 if (tableColumn instanceof DividerTreeTableColumn) {
                     continue;
                 }
-                ((TooltipTreeTableColumn<?>) tableColumn).setSaved(true); //uiSnapshots.get(i).isSaved());
+                ((TooltipTreeTableColumn<?>) tableColumn).setSaved(true);
             }
         }
     }
@@ -1229,11 +1129,11 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
     }
 
 
-    private class PVNameTreeTableCell extends TreeTableCell<TreeTableEntry, TreeTableEntry> {
+    private static class PVNameTreeTableCell extends TreeTableCell<TreeTableEntry, TreeTableEntry> {
 
         private final HBox box;
         private final CheckBox checkBox;
-        private final ImageView folderIconImageView = new ImageView(folderIcon);
+        private final ImageView folderIconImageView = new ImageView(ImageRepository.FOLDER);
 
         private ObservableValue<Boolean> booleanProperty;
 
@@ -1292,12 +1192,12 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
         }
     }
 
-    private class StringTreeTableCell extends TreeTableCell<TreeTableEntry, String> {
+    private static class StringTreeTableCell extends TreeTableCell<TreeTableEntry, String> {
         @Override
         protected void updateItem(String item, boolean empty) {
             super.updateItem(item, empty);
 
-            TreeTableEntry entry = getTreeTableRow().getItem();
+            TreeTableEntry entry = getTableRow().getItem();
             if (item == null || empty || entry.folder) {
                 setText("");
             } else {

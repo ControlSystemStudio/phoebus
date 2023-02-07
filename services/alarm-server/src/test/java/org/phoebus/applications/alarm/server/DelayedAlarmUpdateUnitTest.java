@@ -7,15 +7,15 @@
  ******************************************************************************/
 package org.phoebus.applications.alarm.server;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import org.junit.jupiter.api.Test;
+import org.phoebus.applications.alarm.model.AlarmState;
+import org.phoebus.applications.alarm.model.SeverityLevel;
 
 import java.time.Instant;
 import java.util.Date;
 
-import org.junit.Test;
-import org.phoebus.applications.alarm.model.AlarmState;
-import org.phoebus.applications.alarm.model.SeverityLevel;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /** JUnit test of the {@link DelayedAlarmUpdate}
  *  @author Kay Kasemir

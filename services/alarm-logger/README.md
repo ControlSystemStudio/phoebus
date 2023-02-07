@@ -3,8 +3,9 @@
 Logging alarm state and other messages to an elastic back end.
 
 ## Dependencies ##
-1. Elasticsearch version 6.x. As the current major version is 7, you will need to find an archived 6.x release here:
-https://www.elastic.co/downloads/past-releases#elasticsearch
+1. Elasticsearch version 8.x OS specific release can be found here:  
+https://www.elastic.co/downloads/past-releases#elasticsearch  
+The CI/CD pipeline is setup to test with elastic release 8.2.3
 
 ### Start elasticsearch
 

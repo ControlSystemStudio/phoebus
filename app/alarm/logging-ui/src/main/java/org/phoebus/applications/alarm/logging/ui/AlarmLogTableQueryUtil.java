@@ -5,6 +5,7 @@ public class AlarmLogTableQueryUtil {
     // Ordered search keys
     public enum Keys {
         PV("pv"),
+        ROOT("root"),
         SEVERITY("severity"),
         MESSAGE("message"),
         CURRENTSEVERITY("current_severity"),

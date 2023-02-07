@@ -7,12 +7,12 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.ui;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** Unit test of {@link DroppedPVNameParser}
  *  @author Kay Kasemir

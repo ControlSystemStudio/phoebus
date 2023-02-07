@@ -183,8 +183,13 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
             // Tweaking the color used by CSS keeps overall style.
             // See also http://stackoverflow.com/questions/13467259/javafx-how-to-change-progressbar-color-dynamically
             final StringBuilder style = new StringBuilder();
+
             // Color of the progress bar / foreground
-            style.append("-fx-accent: ").append(JFXUtil.webRGB(model_widget.propFillColor().getValue())).append(" !important; ");
+            style.append("-fx-accent: ").append(JFXUtil.webRGB(
+                    JFXUtil.convert(
+                            model_widget.propFillColor().getValue()
+                    )
+            )).append(" !important; ");
 
             // Color of the background underneath the progress bar
             // Note per moderna.css the background is actually three layers of color
@@ -197,7 +202,10 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
             // Unfortunately, the middle color (the "border" color) is a solid gray color (#ececec), so we must
             // override it with its rgba equivalent so that it has transparency matching the picked background color.
             style.append("-fx-control-inner-background: ")
-                    .append(JFXUtil.webRGB(model_widget.propBackgroundColor().getValue()))
+                    .append(JFXUtil.webRGB(
+                            JFXUtil.convert(
+                                    model_widget.propBackgroundColor().getValue()))
+                            )
                     .append(";");
             style.append("-fx-text-box-border: rgba(236, 236, 236, ")
                     .append(JFXUtil.webAlpha(model_widget.propBackgroundColor().getValue()))

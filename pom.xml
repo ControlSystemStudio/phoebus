@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.phoebus</groupId>
   <artifactId>parent</artifactId>
-  <version>4.7.1-SNAPSHOT</version>
+  <version>4.7.2-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>phoebus (parent)</name>
   <description>A framework and set of tools to monitor and operate large scale control systems, such as the ones in the accelerator community.</description>
@@ -69,7 +69,7 @@
     <mysql.version>8.0.30</mysql.version>
     <jetty.version>9.4.30.v20200611</jetty.version>
     <apache.commons.math.version>3.6.1</apache.commons.math.version>
-    <junit.version>4.13.1</junit.version>
+    <junit.version>5.8.2</junit.version>
     <elasticsearch.version>8.2.0</elasticsearch.version>
     <!--<maven.repo.local>${project.build.directory}/.m2</maven.repo.local> -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -78,6 +78,7 @@
     <guava.version>31.0.1-jre</guava.version>
     <log4j-to-slf4j.version>2.17.1</log4j-to-slf4j.version>
     <derby.version>10.16.1.1</derby.version>
+    <jython.version>2.7.3</jython.version>
   </properties>
   <build>
     <plugins>
@@ -105,7 +106,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.20</version>
+        <version>3.0.0-M7</version>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -205,7 +206,7 @@
           <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.20</version>
+        <version>3.0.0-M7</version>
             <configuration>
               <systemPropertyVariables>
                 <ignore_local_ipv6>true</ignore_local_ipv6>
@@ -361,7 +362,7 @@
   </profiles>
 
   <repositories>
-    <!-- The Nexus snapshot repository hosting the latest diirt modules -->
+    <!-- The Nexus snapshotData repository hosting the latest diirt modules -->
     <repository>
       <id>sonatype-nexus-snapshots</id>
       <name>sonatype-nexus-snapshots</name>
@@ -369,7 +370,7 @@
     </repository>
     <repository>
       <id>es-snapshots</id>
-      <name>elasticsearch snapshot repo</name>
+      <name>elasticsearch snapshotData repo</name>
       <url>https://snapshots.elastic.co/maven/</url>
     </repository>
   </repositories>

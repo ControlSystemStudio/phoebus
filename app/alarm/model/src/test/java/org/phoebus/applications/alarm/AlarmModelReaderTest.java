@@ -7,21 +7,22 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.List;
-import java.time.LocalDateTime;
-
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.applications.alarm.model.xml.XmlModelReader;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** JUnit test of {@link XmlModelReader}
  *  @author Evan Smith
@@ -179,7 +180,7 @@ public class AlarmModelReaderTest
 
 		assertEquals("a2pv1", ((AlarmTreeItem<?>) a2pv1).getName());
 		assertEquals("a2pv1 description", a2pv1.getDescription());
-		assertTrue( ! a2pv1.isEnabled() );
+		assertFalse(a2pv1.isEnabled());
 		assertTrue(a2pv1.isLatching());
 		assertTrue(a2pv1.isAnnunciating());
 

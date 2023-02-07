@@ -7,20 +7,20 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.widgets;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.MatcherAssert.assertThat;
-
-import java.util.Arrays;
-import java.util.List;
-
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.AxisWidgetProperty;
 import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test of XYPlot widget
  *  @author Kay Kasemir
@@ -45,7 +45,7 @@ public class XYPlotWidgetTest
         XYPlotWidget plot = new XYPlotWidget();
         assertYAxis(plot);
 
-        final String xml = ModelWriter.getXML(Arrays.asList(plot));
+        final String xml = ModelWriter.getXML(List.of(plot));
         System.out.println(xml);
 
         final DisplayModel model = ModelReader.parseXML(xml);

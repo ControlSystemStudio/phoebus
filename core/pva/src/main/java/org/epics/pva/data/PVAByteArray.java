@@ -18,7 +18,7 @@ import org.epics.pva.PVASettings;
  *   @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVAByteArray extends PVAData implements PVAArray
+public class PVAByteArray extends PVAData implements PVAArray, PVAValue
 {
     private final boolean unsigned;
     private volatile byte[] value;
@@ -82,6 +82,9 @@ public class PVAByteArray extends PVAData implements PVAArray
             }
             value = new_items;
         }
+        else if(new_value instanceof String){
+            set(((String)new_value).getBytes());
+        }
         else
             throw new Exception("Cannot set " + formatType() + " to " + new_value);
     }
@@ -141,12 +144,11 @@ public class PVAByteArray extends PVAData implements PVAArray
     }
 
     @Override
-    protected void formatType(final int level, final StringBuilder buffer)
+    public String getType()
     {
-        indent(level, buffer);
         if (unsigned)
-            buffer.append('u');
-        buffer.append("byte[] ").append(name);
+            return "ubyte[]";
+        return "byte[]";
     }
 
     @Override
@@ -173,6 +175,11 @@ public class PVAByteArray extends PVAData implements PVAArray
                 buffer.append(", ...");
         }
         buffer.append("]");
+    }
+
+    @Override
+    public String formatValue() {
+        return Arrays.toString(get());
     }
 
     @Override

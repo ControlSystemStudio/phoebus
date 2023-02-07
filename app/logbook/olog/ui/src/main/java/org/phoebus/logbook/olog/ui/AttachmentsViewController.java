@@ -105,6 +105,9 @@ public class AttachmentsViewController {
 
     private final ObservableList<Attachment> attachments = FXCollections.observableArrayList();
 
+    public AttachmentsViewController(){
+    }
+
     @FXML
     public void initialize() {
 

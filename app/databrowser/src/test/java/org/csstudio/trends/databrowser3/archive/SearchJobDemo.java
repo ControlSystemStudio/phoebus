@@ -7,15 +7,15 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.archive;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 import org.csstudio.trends.databrowser3.DemoSettings;
 import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
 import org.csstudio.trends.databrowser3.model.ChannelInfo;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /** Demo of {@link SearchJob}
  *  @author Kay Kasemir

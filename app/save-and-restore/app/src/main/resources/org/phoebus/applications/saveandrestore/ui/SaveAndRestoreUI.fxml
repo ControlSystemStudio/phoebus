@@ -3,44 +3,70 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
-<SplitPane fx:id="splitPane" dividerPositions="0.3" prefHeight="1847.0" prefWidth="707.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController">
-	<items>
-		<BorderPane prefHeight="200.0" prefWidth="200.0">
-			<top>
-				<HBox>
-					<Label fx:id="jmasarServiceTitle" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" text="Save-and-restore service" HBox.hgrow="ALWAYS">
-						<HBox.margin>
-							<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-						</HBox.margin>
-					</Label>
-					<Region HBox.hgrow="ALWAYS" />
-					<Button fx:id="reconnectButton" onAction="#loadTreeData">
-                  		<HBox.margin>
-                     		<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                  		</HBox.margin>
-					</Button>
-               <Button fx:id="searchButton" mnemonicParsing="false" onAction="#openSearchWindow">
-                  <HBox.margin>
-                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                  </HBox.margin>
-               </Button>
-				</HBox>
-			</top>
-			<center>
-				<StackPane>
-					<children>
-						<VBox alignment="CENTER">
-							<ProgressIndicator fx:id="progressIndicator" />
-						</VBox>
-						<TreeView fx:id="treeView" prefHeight="347.0" prefWidth="195.0" BorderPane.alignment="CENTER" VBox.vgrow="ALWAYS"/>
-					</children>
-				</StackPane>
-			</center>
-		</BorderPane>
-		<TabPane fx:id="tabPane" prefHeight="1872.0" prefWidth="398.0" style="-fx-padding: 1; -fx-background-color: grey, -fx-control-inner-background; -fx-background-insets: 0, 1;">
-		</TabPane>
-	</items>
+<BorderPane xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController">
+    <center>
+        <SplitPane fx:id="splitPane" dividerPositions="0.2">
+            <StackPane maxWidth="550.0" minWidth="350.0">
+                <VBox alignment="CENTER">
+                    <ProgressIndicator fx:id="progressIndicator" />
+                </VBox>
+                <VBox>
+                    <HBox HBox.hgrow="ALWAYS">
+
+                        <CheckBox fx:id="enableFilterCheckBox" text="%filter">
+                            <HBox.margin>
+                                <Insets left="4.0" top="5.0" />
+                            </HBox.margin>
+                            <padding>
+                                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                            </padding>
+                        </CheckBox>
+                        <ComboBox fx:id="filtersComboBox" prefHeight="25.0" prefWidth="230.0">
+                            <tooltip>
+                                <Tooltip fx:id="filterToolTip" />
+                            </tooltip>
+                            <HBox.margin>
+                                <Insets bottom="3.0" top="6.0" />
+                            </HBox.margin>
+                        </ComboBox>
+                        <Label maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
+                        <Button fx:id="searchButton" alignment="CENTER_RIGHT" nodeOrientation="LEFT_TO_RIGHT" onAction="#openSearchWindow">
+                            <tooltip>
+                                <Tooltip text="%openSearchView" />
+                            </tooltip>
+                            <HBox.margin>
+                                <Insets bottom="5.0" right="5.0" top="5.0" />
+                            </HBox.margin>
+
+                        </Button>
 
 
-</SplitPane>
+                    </HBox>
+
+                    <TreeView fx:id="treeView" prefHeight="347.0" prefWidth="195.0" BorderPane.alignment="CENTER" VBox.vgrow="ALWAYS">
+                        <StackPane.margin>
+                            <Insets />
+                        </StackPane.margin>
+                        <padding>
+                            <Insets top="5.0" />
+                        </padding>
+                    </TreeView>
+                </VBox>
+                <VBox fx:id="errorPane" alignment="CENTER" visible="false">
+                    <children>
+                        <Label text="%jmasarServiceUnavailable" GridPane.halignment="CENTER" GridPane.valignment="BOTTOM">
+                     <font>
+                        <Font size="15.0" />
+                     </font></Label>
+                    </children>
+                </VBox>
+            </StackPane>
+
+            <TabPane fx:id="tabPane" prefHeight="1872.0" prefWidth="398.0" style="-fx-padding: 1; -fx-background-color: grey, -fx-control-inner-background; -fx-background-insets: 0, 1;">
+            </TabPane>
+        </SplitPane>
+    </center>
+
+</BorderPane>

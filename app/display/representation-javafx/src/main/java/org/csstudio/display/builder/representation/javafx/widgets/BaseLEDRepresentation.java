@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,6 +18,7 @@ import org.csstudio.display.builder.model.widgets.BaseLEDWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.VType;
+import org.phoebus.ui.javafx.Brightness;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -230,7 +231,7 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
             label.setTextFill(color);
             label.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
 
-            led.setStyle("-fx-stroke: " + JFXUtil.webRGB(model_widget.propLineColor().getValue()));
+            led.setStyle("-fx-stroke: " + JFXUtil.webRgbOrHex(model_widget.propLineColor().getValue()));
 
             final int w = model_widget.propWidth().getValue();
             final int h = model_widget.propHeight().getValue();
@@ -272,12 +273,12 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
                 // Compare brightness of LED with text.
                 final Color color = (Color) value_color;
                 Color text_color = JFXUtil.convert(model_widget.propForegroundColor().getValue());
-                final double text_brightness = getBrightness(text_color),
-                             brightness      = getBrightness(color);
-                if (Math.abs(text_brightness - brightness) < SIMILARITY_THRESHOLD)
+                final double text_brightness = Brightness.of(text_color),
+                             brightness      = Brightness.of(color);
+                if (Math.abs(text_brightness - brightness) < Brightness.SIMILARITY_THRESHOLD)
                 {   // Colors of text and LED are very close in brightness.
                     // Make text visible by forcing black resp. white
-                    if (brightness > BRIGHT_THRESHOLD)
+                    if (brightness > Brightness.BRIGHT_THRESHOLD)
                         label.setTextFill(Color.BLACK);
                     else
                         label.setTextFill(Color.WHITE);
@@ -287,23 +288,5 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
             }
         }
         jfx_node.layout();
-    }
-
-    // Brightness weightings from BOY
-    // https://github.com/ControlSystemStudio/cs-studio/blob/master/applications/opibuilder/opibuilder-plugins/org.csstudio.swt.widgets/src/org/csstudio/swt/widgets/figures/LEDFigure.java
-    // Original RGB was 0..255 with dark/bright threshold 105000
-    // JFX color uses RGB 0..1, so threshold becomes 105000/255 ~ 410
-    /** Threshold for considering a color 'bright', suggesting black for text */
-    public static final double BRIGHT_THRESHOLD = 410;
-
-    /** Brightness differences below this are considered 'similar brightness' */
-    public static final double SIMILARITY_THRESHOLD = 350;
-
-    /** @param color Color
-     *  @return Weighed brightness
-     */
-    public static double getBrightness(final Color color)
-    {
-        return color.getRed() * 299 + color.getGreen() * 587 + color.getBlue() * 114;
     }
 }

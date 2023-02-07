@@ -20,6 +20,7 @@ package org.phoebus.applications.saveandrestore.ui.model;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.common.Utilities;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.util.time.TimestampFormats;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -62,7 +63,7 @@ public class VSnapshot implements Serializable {
 
     /**
      * Returns the snapshot descriptor if it exists, or an empty object, if this snapshot does not have a descriptor.
-     * Snapshot does not have a descriptor if it has not been taken yet.
+     * SnapshotData does not have a descriptor if it has not been taken yet.
      *
      * @return the snapshot descriptor
      */
@@ -119,11 +120,11 @@ public class VSnapshot implements Serializable {
      * @return true if this snapshot is saved or false otherwise
      */
     public boolean isSaved() {
-        return !dirty && (snapshot == null ? false : snapshot.getProperty("comment") != null);
+        return !dirty; // && (snapshot == null ? false : snapshot.getProperty("comment") != null);
     }
 
     /**
-     * Returns true if this snapshot can be saved or false if already saved. Snapshot can only be saved if it is a new
+     * Returns true if this snapshot can be saved or false if already saved. SnapshotData can only be saved if it is a new
      * snapshot that has never been saved before. If the same snapshot has to be saved again a new instance of this
      * object has to be constructed.
      *
@@ -148,9 +149,9 @@ public class VSnapshot implements Serializable {
     @Override
     public String toString() {
         if (isSaved()) {
-            return Utilities.timestampToBigEndianString(Instant.ofEpochMilli(snapshot.getLastModified().getTime()), true);
+            return TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(snapshot.getLastModified().getTime()));
         } else if (snapshot.getCreated() != null) {
-            return Utilities.timestampToBigEndianString(Instant.ofEpochMilli(snapshot.getCreated().getTime()), true);
+            return TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(snapshot.getCreated().getTime()));
         } else {
             return "<unnamed snaphot>";
         }

@@ -27,24 +27,18 @@ package org.phoebus.applications.saveandrestore.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.io.Serializable;
 import java.util.Date;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Tag implements Comparable<Tag> {
-    private String snapshotId;
+public class Tag implements Comparable<Tag>, Serializable {
+
+    public static final String GOLDEN = "golden";
+
     private String name;
     private String comment;
     private Date created;
     private String userName;
-
-    public String getSnapshotId() {
-        return snapshotId;
-    }
-
-    public void setSnapshotId(String snapshotId) {
-        this.snapshotId = snapshotId;
-    }
-
     public String getName() {
         return name;
     }
@@ -93,11 +87,6 @@ public class Tag implements Comparable<Tag> {
             tag = new Tag();
         }
 
-        public Builder snapshotId(String snapshotId){
-            tag.setSnapshotId(snapshotId);
-            return this;
-        }
-
         public Builder name(String name){
             tag.setName(name);
             return this;
@@ -122,5 +111,9 @@ public class Tag implements Comparable<Tag> {
             return tag;
         }
 
+    }
+
+    public static Tag goldenTag(String userName){
+        return Tag.builder().name(GOLDEN).userName(userName).created(new Date()).build();
     }
 }

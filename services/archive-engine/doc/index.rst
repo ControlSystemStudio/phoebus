@@ -92,7 +92,12 @@ List configurations::
      1  Demo     Demo Engine        http://localhost:4812
 
 
+<<<<<<< Updated upstream
 Extract configuration into an XML file::
+=======
+     
+Extract configuration into an XML file::
+>>>>>>> Stashed changes
 
     archive-engine.sh -engine Demo -export Demo.xml
 
@@ -140,9 +145,15 @@ Run the Archive Engine
 To start the archive engine for a configuration::
 
     archive-engine.sh -engine Demo -port 4812 -settings my_settings.ini
+<<<<<<< Updated upstream
 
 The engine name ('Demo') needs to match a previously imported configuration name,
 and the port number (4812) needs to match the port number used when importing the configuration.
+=======
+    
+The engine name ('Demo') needs to match a previously imported configuration name,
+and the port number (4812) needs to match the port number used when importing the configuration.
+>>>>>>> Stashed changes
 The settings (my_settings.ini) typically contain the EPICS CA address list settings
 as well as archive engine configuration details, see archive engine settings
 in :ref:`preference_settings`.

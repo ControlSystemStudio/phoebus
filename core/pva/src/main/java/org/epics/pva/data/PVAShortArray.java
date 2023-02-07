@@ -18,7 +18,7 @@ import org.epics.pva.PVASettings;
  *   @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVAShortArray extends PVAData implements PVAArray
+public class PVAShortArray extends PVAData implements PVAArray, PVAValue
 {
     private final boolean unsigned;
     private volatile short[] value;
@@ -148,12 +148,11 @@ public class PVAShortArray extends PVAData implements PVAArray
     }
 
     @Override
-    protected void formatType(final int level, final StringBuilder buffer)
+    public String getType()
     {
-        indent(level, buffer);
         if (unsigned)
-            buffer.append('u');
-        buffer.append("short[] ").append(name);
+            return "ushort[]";
+        return "short[]";
     }
 
     @Override
@@ -180,6 +179,11 @@ public class PVAShortArray extends PVAData implements PVAArray
                 buffer.append(", ...");
         }
         buffer.append("]");
+    }
+
+    @Override
+    public String formatValue() {
+        return Arrays.toString(get());
     }
 
     @Override
