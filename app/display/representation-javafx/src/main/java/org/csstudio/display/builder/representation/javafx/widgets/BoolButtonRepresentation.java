@@ -223,7 +223,7 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
         model_widget.propBit().removePropertyListener(bitChangedListener);
         model_widget.runtimePropValue().removePropertyListener(valueChangedListener);
         model_widget.propMode().removePropertyListener(modeChangeListener);
-        model_widget.propMode().removePropertyListener(confirmDialogWidgetPropertyListener);
+        model_widget.propConfirmDialog().removePropertyListener(confirmDialogWidgetPropertyListener);
         super.unregisterListeners();
     }
 
