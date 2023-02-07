@@ -29,6 +29,7 @@ import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.TagData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
@@ -1000,5 +1001,63 @@ public class ElasticsearchDAO implements NodeDAO {
     @Override
     public void deleteAllFilters(){
         filterRepository.deleteAll();
+    }
+
+    @Override
+    /**
+     * Adds a {@link Tag} to specified list of target {@link Node}s
+     * @param tagData See {@link TagData}
+     * @return The list of updated {@link Node}s
+     */
+    public List<Node> addTag(TagData tagData){
+        List<Node> updatedNodes = new ArrayList<>();
+        tagData.getUniqueNodeIds().forEach(nodeId -> {
+            Node node = getNode(nodeId);
+            Node updatedNode = Node.builder()
+                    .nodeType(node.getNodeType())
+                    .userName(node.getUserName())
+                    .description(node.getDescription())
+                    .name(node.getName())
+                    .uniqueId(node.getUniqueId())
+                    .created(node.getCreated())
+                    .build();
+            List<Tag> tags = node.getTags();
+            tags.add(tagData.getTag());
+            updatedNode.setTags(tags);
+            updatedNode = updateNode(updatedNode, false);
+            updatedNodes.add(updatedNode);
+        });
+        return updatedNodes;
+    }
+
+    /**
+     * Removes a {@link Tag} from specified list of target {@link Node}s. If a {@link Node} does not
+     * contain the {@link Tag}, this method does not update that {@link Node}.
+     * @param tagData See {@link TagData}
+     * @return The list of updated {@link Node}s. This may contain fewer elements than the list of
+     * unique node ids as {@link Node}s not containing the {@link Tag} are omitted from update.
+     */
+    public List<Node> deleteTag(TagData tagData){
+        List<Node> updatedNodes = new ArrayList<>();
+        tagData.getUniqueNodeIds().forEach(nodeId -> {
+            Node node = getNode(nodeId);
+            Node updatedNode = Node.builder()
+                    .nodeType(node.getNodeType())
+                    .userName(node.getUserName())
+                    .description(node.getDescription())
+                    .name(node.getName())
+                    .uniqueId(node.getUniqueId())
+                    .created(node.getCreated())
+                    .build();
+            List<Tag> tags = node.getTags();
+            Optional<Tag> optional = tags.stream().filter(tag -> tag.getName().equals(tagData.getTag().getName())).findFirst();
+            if(optional.isPresent()){
+                tags.remove(optional.get());
+                updatedNode.setTags(tags);
+                updatedNode = updateNode(updatedNode, false);
+                updatedNodes.add(updatedNode);
+            }
+        });
+        return updatedNodes;
     }
 }

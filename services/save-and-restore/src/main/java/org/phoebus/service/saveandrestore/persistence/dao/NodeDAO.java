@@ -30,6 +30,7 @@ import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.TagData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.springframework.http.HttpStatus;
@@ -323,5 +324,19 @@ public interface NodeDAO {
      * Deletes all {@link Filter}s.
      */
     void deleteAllFilters();
+
+    /**
+     * Adds a {@link Tag} to specified list of target {@link Node}s
+     * @param tagData See {@link TagData}
+     * @return The list of updated {@link Node}s
+     */
+    List<Node> addTag(TagData tagData);
+
+    /**
+     * Removes a {@link Tag} from specified list of target {@link Node}s
+     * @param tagData See {@link TagData}
+     * @return The list of updated {@link Node}s
+     */
+    List<Node> deleteTag(TagData tagData);
 
 }
