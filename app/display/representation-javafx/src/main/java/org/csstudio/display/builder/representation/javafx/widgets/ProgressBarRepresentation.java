@@ -175,8 +175,8 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
             // Default 'inset' of .bar uses 7 pixels.
             // A widget sized 15 has 8 pixels left for the bar.
             // Select leaner style where .bar uses full size.
-//            Styles.update(jfx_node, "SmallBar",
-//                          Math.min(width, height) <= 15);
+            Styles.update(jfx_node, "SmallBar",
+                          Math.min(width, height) <= 15);
 
             // Could clear style and use setBackground(),
             // but result is very plain.
