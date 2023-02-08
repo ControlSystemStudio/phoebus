@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -441,8 +441,16 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                     if (low == high)
                     {   // Center trace with constant value (empty range)
                         final double half = Math.abs(low/2);
-                        low -= half;
-                        high += half;
+                        if (half > 0)
+                        {
+                            low -= half;
+                            high += half;
+                        }
+                        else
+                        {   // low = high = half = 0, default to [-1, 1]
+                            low = -1.0;
+                            high = 1.0;
+                        }
                     }
                     if (axis.isLogarithmic())
                     {   // Perform adjustment in log space.
