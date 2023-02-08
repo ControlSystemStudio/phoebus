@@ -184,6 +184,7 @@ public class PVAStructureArray extends PVADataWithID implements PVAArray
                 final PVAStructure[] copy = new PVAStructure[other.elements.length];
                 for (int i=0; i<copy.length; ++i)
                     copy[i] = other.elements[i].cloneData();
+                this.elements = copy;
                 changes.set(index);
             }
         }
@@ -230,6 +231,6 @@ public class PVAStructureArray extends PVADataWithID implements PVAArray
         if (! (obj instanceof PVAStructureArray))
             return false;
         final PVAStructureArray other = (PVAStructureArray) obj;
-        return other.elements.equals(elements);
+        return Arrays.equals(other.elements, elements);
     }
 }
