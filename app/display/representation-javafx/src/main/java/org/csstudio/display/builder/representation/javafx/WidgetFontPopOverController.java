@@ -21,6 +21,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+import javafx.event.Event;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.NamedWidgetFont;
@@ -280,6 +281,22 @@ public class WidgetFontPopOverController implements Initializable {
             }
         });
         sizes.valueProperty().addListener(( observable, oldValue, newValue ) -> sizesUpdater.accept(newValue));
+
+        sizes.setOnKeyPressed(Event::consume);
+
+        sizes.addEventHandler(KeyEvent.KEY_RELEASED, releasedKey -> {
+            releasedKey.consume();
+            if (releasedKey.getCode() == KeyCode.ENTER) {
+                if (!okButton.isDefaultButton()) {
+                    fontNames.refresh();
+                    families.refresh();
+                    okButton.setDefaultButton(true);
+                }
+            }
+            else {
+                okButton.setDefaultButton(false);
+            }
+        });
 
         // Get fonts on background thread
         ModelThreadPool.getExecutor().execute( ( ) -> {
