@@ -32,6 +32,7 @@ public class Messages {
     public static String saveFilterFailed;
     public static String searchFailed;
     public static String saveSnapshotFailed;
+    public static String tagAddFailed;
     public static String updateNodeFailed;
 
     static

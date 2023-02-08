@@ -18,57 +18,60 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.ui.javafx.ImageCache;
 
-public class ContextMenuConfiguration extends ContextMenuBase {
+public class ContextMenuConfiguration extends ContextMenuBase{
 
-    public ContextMenuConfiguration(SaveAndRestoreController saveAndRestoreController, boolean csvEnabled, SimpleBooleanProperty multipleItemsSelected) {
-        super(saveAndRestoreController, multipleItemsSelected);
+    public ContextMenuConfiguration(SaveAndRestoreController saveAndRestoreController,
+                                    TreeView<Node> treeView) {
+        super(saveAndRestoreController, treeView);
 
         Image csvExportIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_export.png");
 
         MenuItem openConfigurationMenuItem = new MenuItem(Messages.contextMenuCreateSnapshot, new ImageView(ImageRepository.CONFIGURATION));
+        openConfigurationMenuItem.disableProperty().bind(multipleSelection);
         openConfigurationMenuItem.setOnAction(ae -> {
             saveAndRestoreController.openConfigurationForSnapshot();
         });
 
         MenuItem editConfigurationMenuItem = new MenuItem(Messages.contextMenuEdit, new ImageView(ImageRepository.EDIT_CONFIGURATION));
-        editConfigurationMenuItem.disableProperty().bind(multipleItemsSelected);
+        editConfigurationMenuItem.disableProperty().bind(multipleSelection);
         editConfigurationMenuItem.setOnAction(ae -> {
             saveAndRestoreController.nodeDoubleClicked();
         });
 
-        getItems().addAll(openConfigurationMenuItem, editConfigurationMenuItem, renameNodeMenuItem, deleteNodesMenuItem, copyUniqueIdToClipboardMenuItem);
+        ImageView exportConfigurationIconImageView = new ImageView(csvExportIcon);
+        exportConfigurationIconImageView.setFitWidth(18);
+        exportConfigurationIconImageView.setFitHeight(18);
 
-        if (csvEnabled) {
-            ImageView exportConfigurationIconImageView = new ImageView(csvExportIcon);
-            exportConfigurationIconImageView.setFitWidth(18);
-            exportConfigurationIconImageView.setFitHeight(18);
+        MenuItem exportConfigurationMenuItem = new MenuItem(Messages.exportConfigurationLabel, exportConfigurationIconImageView);
+        exportConfigurationMenuItem.disableProperty().bind(multipleSelection);
+        exportConfigurationMenuItem.setOnAction(ae -> {
+            saveAndRestoreController.exportConfiguration();
+        });
 
-            MenuItem exportConfigurationMenuItem = new MenuItem(Messages.exportConfigurationLabel, exportConfigurationIconImageView);
-            exportConfigurationIconImageView.disableProperty().bind(multipleItemsSelected);
-            exportConfigurationMenuItem.setOnAction(ae -> {
-                saveAndRestoreController.exportConfiguration();
-            });
+        ImageView importSnapshotIconImageView = new ImageView(csvImportIcon);
+        importSnapshotIconImageView.setFitWidth(18);
+        importSnapshotIconImageView.setFitHeight(18);
 
-            ImageView importSnapshotIconImageView = new ImageView(csvImportIcon);
-            importSnapshotIconImageView.setFitWidth(18);
-            importSnapshotIconImageView.setFitHeight(18);
+        MenuItem importSnapshotMenuItem = new MenuItem(Messages.importSnapshotLabel, importSnapshotIconImageView);
+        importSnapshotMenuItem.disableProperty().bind(multipleSelection);
+        importSnapshotMenuItem.setOnAction(ae -> {
+            saveAndRestoreController.importSnapshot();
+        });
 
-            MenuItem importSnapshotMenuItem = new MenuItem(Messages.importSnapshotLabel, importSnapshotIconImageView);
-            importSnapshotMenuItem.disableProperty().bind(multipleItemsSelected);
-            importSnapshotMenuItem.setOnAction(ae -> {
-                saveAndRestoreController.importSnapshot();
-            });
-
-            if (csvEnabled) {
-                getItems().addAll(exportConfigurationMenuItem, importSnapshotMenuItem);
-            }
-        }
+        getItems().addAll(openConfigurationMenuItem,
+                editConfigurationMenuItem,
+                renameNodeMenuItem,
+                deleteNodesMenuItem,
+                copyUniqueIdToClipboardMenuItem,
+                exportConfigurationMenuItem,
+                importSnapshotMenuItem);
     }
 }

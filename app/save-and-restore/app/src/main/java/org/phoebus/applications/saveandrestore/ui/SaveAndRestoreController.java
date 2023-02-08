@@ -68,19 +68,20 @@ import javafx.util.Pair;
 import javafx.util.StringConverter;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
-import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVExporter;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVImporter;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.TagData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
+import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
+import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationTab;
 import org.phoebus.applications.saveandrestore.ui.search.SearchAndFilterTab;
-import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
-import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
 import org.phoebus.applications.saveandrestore.ui.snapshot.CompositeSnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotNewTagDialog;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
@@ -221,21 +222,18 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             filterEnabledChanged(newValue);
         });
 
-
-        folderContextMenu = new ContextMenuFolder(this, Preferences.enableCSVIO, multipleItemsSelected);
-        folderContextMenu.setOnShowing(event -> multipleItemsSelected.set(browserSelectionModel.getSelectedItems().size() > 1));
-        configurationContextMenu = new ContextMenuConfiguration(this, Preferences.enableCSVIO, multipleItemsSelected);
-        configurationContextMenu.setOnShowing(event -> multipleItemsSelected.set(browserSelectionModel.getSelectedItems().size() > 1));
+        folderContextMenu = new ContextMenuFolder(this, treeView);
+        configurationContextMenu = new ContextMenuConfiguration(this, treeView);
 
         rootFolderContextMenu = new ContextMenu();
         MenuItem newRootFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(ImageRepository.FOLDER));
         newRootFolderMenuItem.setOnAction(ae -> createNewFolder());
         rootFolderContextMenu.getItems().add(newRootFolderMenuItem);
 
-        snapshotContextMenu = new ContextMenuSnapshot(this, Preferences.enableCSVIO,
-                toggleGoldenMenuItemText, toggleGoldenImageViewProperty, multipleItemsSelected);
+        snapshotContextMenu = new ContextMenuSnapshot(this,
+                toggleGoldenMenuItemText, toggleGoldenImageViewProperty, treeView);
 
-        compositeSnapshotContextMenu = new ContextMenuCompositeSnapshot(this, multipleItemsSelected);
+        compositeSnapshotContextMenu = new ContextMenuCompositeSnapshot(this, treeView);
 
         treeView.setEditable(true);
 
@@ -512,14 +510,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * @param selectedItems List of nodes to delete.
      */
     private void deleteNodes(ObservableList<TreeItem<Node>> selectedItems) {
-        if (!isDeletionPossible(selectedItems)) {
-            Alert alert = new Alert(AlertType.INFORMATION);
-            alert.setTitle(Messages.promptDeleteSelectedTitle);
-            alert.setHeaderText(Messages.deletionNotAllowedHeader);
-            alert.setContentText(Messages.deletionNotAllowed);
-            alert.showAndWait();
-            return;
-        }
 
         Alert alert = new Alert(AlertType.CONFIRMATION);
         alert.setTitle(Messages.promptDeleteSelectedTitle);
@@ -1037,21 +1027,15 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     /**
      * Adds a tag to the selected snapshot {@link Node}
      */
-    protected void addTagToSnapshot() {
-        addTagToSnapshot(browserSelectionModel.getSelectedItems().get(0).getValue());
-    }
-
-    /**
-     * Adds a tag to the specified snapshot {@link Node}
-     *
-     * @param node The snapshot to which tag is added.
-     */
-    public void addTagToSnapshot(Node node) {
-        SnapshotNewTagDialog snapshotNewTagDialog = new SnapshotNewTagDialog(node);
+    protected void addTagToSnapshots() {
+        ObservableList<TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
+        List<String> selectedNodeIds =
+                selectedItems.stream().map(treeItem -> treeItem.getValue().getUniqueId()).collect(Collectors.toList());
+        SnapshotNewTagDialog snapshotNewTagDialog = new SnapshotNewTagDialog(selectedItems.get(0).getValue());
         snapshotNewTagDialog.initModality(Modality.APPLICATION_MODAL);
 
-        String locationString = DirectoryUtilities.CreateLocationString(node, true);
-        snapshotNewTagDialog.getDialogPane().setHeader(TagUtil.CreateAddHeader(locationString, node.getName()));
+        String locationString = DirectoryUtilities.CreateLocationString(selectedItems.get(0).getValue(), true);
+        snapshotNewTagDialog.getDialogPane().setHeader(TagUtil.CreateAddHeader(locationString, selectedItems.get(0).getValue().getName()));
 
         ProposalService proposalService = new ProposalService(new TagProposalProvider(saveAndRestoreService));
         AutocompleteMenu autocompleteMenu = new AutocompleteMenu(proposalService);
@@ -1067,7 +1051,11 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                     .build();
 
             try {
-                saveAndRestoreService.addTagToSnapshot(node, aNewTag);
+                //saveAndRestoreService.addTagToSnapshot(node, aNewTag);
+                TagData tagData = new TagData();
+                tagData.setTag(aNewTag);
+                tagData.setUniqueNodeIds(selectedNodeIds);
+                saveAndRestoreService.addTag(tagData);
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Failed to add tag to snapshot");
             }
@@ -1327,18 +1315,18 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         filtersList.remove(filter);
         searchResultNodes.clear();
         treeView.refresh();
-        if(filtersList.isEmpty()){
+        if (filtersList.isEmpty()) {
             filterEnabledProperty.set(false);
         }
     }
 
     public void filterAddedOrUpdated(Filter filter) {
-        Filter selectedFilter =  filtersComboBox.getSelectionModel().getSelectedItem();
+        Filter selectedFilter = filtersComboBox.getSelectionModel().getSelectedItem();
         boolean selectFilterAfterRefresh =
                 selectedFilter != null &&
-                selectedFilter.getName().equals(filter.getName());
+                        selectedFilter.getName().equals(filter.getName());
         loadFilters();
-        if(selectFilterAfterRefresh){
+        if (selectFilterAfterRefresh) {
             filtersComboBox.getSelectionModel().select(filter);
         }
     }
@@ -1353,5 +1341,18 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 applyFilter(filter);
             }
         }
+    }
+
+    /**
+     * @return An array of two elements: the configuration {@link Node} anf the snapshot {@link Node} of
+     * an active {@link SnapshotTab}.
+     */
+    public Node[] getConfigAndSnapshotForActiveSnapshotTab(){
+        Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+        if(selectedTab instanceof SnapshotTab) {
+            SnapshotTab snapshotTab = (SnapshotTab) selectedTab;
+            return new Node[]{snapshotTab.getConfigNode(), snapshotTab.getSnapshotNode()};
+        }
+        return null;
     }
 }

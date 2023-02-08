@@ -18,12 +18,18 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.ui.javafx.ImageCache;
 
 public abstract class ContextMenuBase extends ContextMenu {
@@ -36,22 +42,65 @@ public abstract class ContextMenuBase extends ContextMenu {
     protected MenuItem renameNodeMenuItem;
     protected MenuItem copyUniqueIdToClipboardMenuItem;
 
-    public ContextMenuBase(SaveAndRestoreController saveAndRestoreController, SimpleBooleanProperty multipleItemsSelected){
+    protected TreeView<Node> treeView;
+
+    protected SimpleBooleanProperty multipleSelection = new SimpleBooleanProperty();
+
+    protected SaveAndRestoreController saveAndRestoreController;
+
+    public ContextMenuBase(SaveAndRestoreController saveAndRestoreController, TreeView<Node> treeView) {
+        this.treeView = treeView;
+        this.saveAndRestoreController = saveAndRestoreController;
         deleteNodesMenuItem = new MenuItem(Messages.contextMenuDelete, new ImageView(deleteIcon));
-        deleteNodesMenuItem.setOnAction(ae -> {
-            saveAndRestoreController.deleteNodes();
-        });
+        deleteNodesMenuItem.setOnAction(ae -> saveAndRestoreController.deleteNodes());
 
         renameNodeMenuItem = new MenuItem(Messages.contextMenuRename, new ImageView(renameIcon));
-        renameNodeMenuItem.disableProperty().bind(multipleItemsSelected);
-        renameNodeMenuItem.setOnAction(ae -> {
-            saveAndRestoreController.renameNode();
-        });
+        renameNodeMenuItem.setOnAction(ae -> saveAndRestoreController.renameNode());
 
         copyUniqueIdToClipboardMenuItem = new MenuItem(Messages.copyUniqueIdToClipboard, ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));
-        copyUniqueIdToClipboardMenuItem.disableProperty().bind(multipleItemsSelected);
-        copyUniqueIdToClipboardMenuItem.setOnAction(ae -> {
-            saveAndRestoreController.copyUniqueNodeIdToClipboard();
+        copyUniqueIdToClipboardMenuItem.setOnAction(ae -> saveAndRestoreController.copyUniqueNodeIdToClipboard());
+
+        treeView.getSelectionModel().getSelectedItems().addListener(new ListChangeListener<TreeItem<Node>>() {
+            @Override
+            public void onChanged(Change<? extends TreeItem<Node>> c) {
+                multipleSelection.set(treeView.getSelectionModel().getSelectedItems().size() > 1);
+            }
         });
+
+        renameNodeMenuItem.disableProperty().bind(multipleSelection);
+        copyUniqueIdToClipboardMenuItem.disableProperty().bind(multipleSelection);
+
+        setOnShowing(event -> runChecks());
+    }
+
+    /**
+     * Applies logic to determine which context menu items to disable as some actions (e.g. rename) do not
+     * make sense if multiple items are selected. Special case is if nodes in different parent nodes
+     * are selected, in this case none of the menu items make sense, to the context menu is suppressed.
+     */
+    protected void runChecks() {
+        ObservableList<TreeItem<Node>> selected =
+                treeView.getSelectionModel().getSelectedItems();
+        if (multipleSelection.get() && !isDeletionPossible(selected)) {
+            Platform.runLater(this::hide);
+        }
+    }
+
+    /**
+     * Deletion of tree nodes when multiple nodes are selected is allowed only if all of the
+     * selected nodes have the same parent node. This method checks the parent node(s) of
+     * the selected nodes accordingly.
+     *
+     * @param selectedItems The selected tree nodes.
+     * @return <code>true</code> if all selected nodes have the same parent node, <code>false</code> otherwise.
+     */
+    protected boolean isDeletionPossible(ObservableList<TreeItem<Node>> selectedItems) {
+        Node parentNode = selectedItems.get(0).getParent().getValue();
+        for (TreeItem<Node> treeItem : selectedItems) {
+            if (!treeItem.getParent().getValue().getUniqueId().equals(parentNode.getUniqueId())) {
+                return false;
+            }
+        }
+        return true;
     }
 }

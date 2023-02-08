@@ -496,6 +496,12 @@ public class SnapshotController implements NodeChangedListener {
         createLogEntryButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
                 saveActionDone.get() || restoreActionDone.get(),
                 saveActionDone, restoreActionDone).not());
+
+        nodeDataDirty.addListener((observablem, oldValue, newValue) -> {
+            if(newValue){
+
+            }
+        });
     }
 
     /**
@@ -699,6 +705,11 @@ public class SnapshotController implements NodeChangedListener {
 
     @FXML
     public void takeSnapshot() {
+        // User may click Take Snapshot button when the view is showing an existing snapshot.
+        // In this case we need to "invalidate" the <code>sapshotNode</code> field and set it to a new, unsaved one.
+        if(snapshotNode.getUniqueId() != null){
+            snapshotNode = Node.builder().name(Messages.unnamedSnapshot).nodeType(NodeType.SNAPSHOT).build();
+        }
         restoreActionDone.set(false);
         saveActionDone.set(false);
         snapshotNameProperty.set(null);
@@ -1239,5 +1250,8 @@ public class SnapshotController implements NodeChangedListener {
         else if(restoreActionDone.get()){
             logSnapshotRestored();
         }
+    }
+    public Node getConfigNode(){
+        return configNode;
     }
 }

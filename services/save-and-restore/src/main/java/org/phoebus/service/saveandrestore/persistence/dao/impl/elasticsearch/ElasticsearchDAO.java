@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -728,6 +729,9 @@ public class ElasticsearchDAO implements NodeDAO {
         if(configurationData == null){
             return null;
         }
+        if(configurationData.getPvList() == null){
+            return configurationData;
+        }
         Map<String, ConfigPv> sanitizedMap = new HashMap<>();
         for (ConfigPv configPv : configurationData.getPvList()){
             if(sanitizedMap.containsKey(configPv.getPvName())){
@@ -752,6 +756,9 @@ public class ElasticsearchDAO implements NodeDAO {
     protected SnapshotData removeDuplicateSnapshotItems(SnapshotData snapshotData) {
         if (snapshotData == null) {
             return null;
+        }
+        if(snapshotData.getSnapshotItems() == null){
+            return snapshotData;
         }
         Map<String, SnapshotItem> sanitizedMap = new HashMap<>();
         for (SnapshotItem snapshotItem : snapshotData.getSnapshotItems()) {
@@ -1012,20 +1019,27 @@ public class ElasticsearchDAO implements NodeDAO {
     public List<Node> addTag(TagData tagData){
         List<Node> updatedNodes = new ArrayList<>();
         tagData.getUniqueNodeIds().forEach(nodeId -> {
-            Node node = getNode(nodeId);
-            Node updatedNode = Node.builder()
-                    .nodeType(node.getNodeType())
-                    .userName(node.getUserName())
-                    .description(node.getDescription())
-                    .name(node.getName())
-                    .uniqueId(node.getUniqueId())
-                    .created(node.getCreated())
-                    .build();
-            List<Tag> tags = node.getTags();
-            tags.add(tagData.getTag());
-            updatedNode.setTags(tags);
-            updatedNode = updateNode(updatedNode, false);
-            updatedNodes.add(updatedNode);
+            try {
+                Node node = getNode(nodeId);
+                Node updatedNode = Node.builder()
+                        .nodeType(node.getNodeType())
+                        .userName(node.getUserName())
+                        .description(node.getDescription())
+                        .name(node.getName())
+                        .uniqueId(node.getUniqueId())
+                        .created(node.getCreated())
+                        .build();
+                List<Tag> tags = node.getTags();
+                if(tags == null){
+                    tags = new ArrayList<>();
+                }
+                tags.add(tagData.getTag());
+                updatedNode.setTags(tags);
+                updatedNode = updateNode(updatedNode, false);
+                updatedNodes.add(updatedNode);
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Cannot add tag to node " + nodeId, e);
+            }
         });
         return updatedNodes;
     }
@@ -1040,22 +1054,28 @@ public class ElasticsearchDAO implements NodeDAO {
     public List<Node> deleteTag(TagData tagData){
         List<Node> updatedNodes = new ArrayList<>();
         tagData.getUniqueNodeIds().forEach(nodeId -> {
-            Node node = getNode(nodeId);
-            Node updatedNode = Node.builder()
-                    .nodeType(node.getNodeType())
-                    .userName(node.getUserName())
-                    .description(node.getDescription())
-                    .name(node.getName())
-                    .uniqueId(node.getUniqueId())
-                    .created(node.getCreated())
-                    .build();
-            List<Tag> tags = node.getTags();
-            Optional<Tag> optional = tags.stream().filter(tag -> tag.getName().equals(tagData.getTag().getName())).findFirst();
-            if(optional.isPresent()){
-                tags.remove(optional.get());
-                updatedNode.setTags(tags);
-                updatedNode = updateNode(updatedNode, false);
-                updatedNodes.add(updatedNode);
+            try {
+                Node node = getNode(nodeId);
+                if(node != null){
+                    Node updatedNode = Node.builder()
+                            .nodeType(node.getNodeType())
+                            .userName(node.getUserName())
+                            .description(node.getDescription())
+                            .name(node.getName())
+                            .uniqueId(node.getUniqueId())
+                            .created(node.getCreated())
+                            .build();
+                    List<Tag> tags = node.getTags();
+                    Optional<Tag> optional = tags.stream().filter(tag -> tag.getName().equals(tagData.getTag().getName())).findFirst();
+                    if(optional.isPresent()){
+                        tags.remove(optional.get());
+                        updatedNode.setTags(tags);
+                        updatedNode = updateNode(updatedNode, false);
+                        updatedNodes.add(updatedNode);
+                    }
+                }
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Cannot delete tag from node " + nodeId, e);
             }
         });
         return updatedNodes;

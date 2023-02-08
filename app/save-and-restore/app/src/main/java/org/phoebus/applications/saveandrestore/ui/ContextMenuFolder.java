@@ -18,47 +18,42 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.TreeView;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.model.Node;
 
 public class ContextMenuFolder extends ContextMenuBase {
 
-    public ContextMenuFolder(SaveAndRestoreController saveAndRestoreController, boolean csvImportEnabled, SimpleBooleanProperty multipleItemsSelected) {
-        super(saveAndRestoreController, multipleItemsSelected);
+    public ContextMenuFolder(SaveAndRestoreController saveAndRestoreController, TreeView<Node> treeView) {
+        super(saveAndRestoreController, treeView);
         MenuItem newFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(ImageRepository.FOLDER));
-        newFolderMenuItem.disableProperty().bind(multipleItemsSelected);
-        newFolderMenuItem.setOnAction(ae -> {
-            saveAndRestoreController.createNewFolder();
-        });
+        newFolderMenuItem.disableProperty().bind(multipleSelection);
+        newFolderMenuItem.setOnAction(ae -> saveAndRestoreController.createNewFolder());
 
         MenuItem newConfigurationMenuItem = new MenuItem(Messages.contextMenuNewConfiguration, new ImageView(ImageRepository.CONFIGURATION));
-        newConfigurationMenuItem.disableProperty().bind(multipleItemsSelected);
-        newConfigurationMenuItem.setOnAction(ae -> {
-            saveAndRestoreController.createNewConfiguration();
-        });
+        newConfigurationMenuItem.disableProperty().bind(multipleSelection);
+        newConfigurationMenuItem.setOnAction(ae -> saveAndRestoreController.createNewConfiguration());
 
         MenuItem newCompositeSnapshotMenuItem = new MenuItem(Messages.contextMenuNewCompositeSnapshot, new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
-        newCompositeSnapshotMenuItem.setOnAction(ae -> {
-            saveAndRestoreController.createNewCompositeSnapshot();
-        });
+        newCompositeSnapshotMenuItem.disableProperty().bind(multipleSelection);
+        newCompositeSnapshotMenuItem.setOnAction(ae -> saveAndRestoreController.createNewCompositeSnapshot());
 
-        getItems().addAll(newFolderMenuItem, renameNodeMenuItem, deleteNodesMenuItem, newConfigurationMenuItem, newCompositeSnapshotMenuItem, copyUniqueIdToClipboardMenuItem);
+        ImageView importConfigurationIconImageView = new ImageView(csvImportIcon);
+        importConfigurationIconImageView.setFitWidth(18);
+        importConfigurationIconImageView.setFitHeight(18);
 
-        if (csvImportEnabled) {
+        MenuItem importConfigurationMenuItem = new MenuItem(Messages.importConfigurationLabel, importConfigurationIconImageView);
+        importConfigurationMenuItem.disableProperty().bind(multipleSelection);
+        importConfigurationMenuItem.setOnAction(ae -> saveAndRestoreController.importConfiguration());
 
-            ImageView importConfigurationIconImageView = new ImageView(csvImportIcon);
-            importConfigurationIconImageView.setFitWidth(18);
-            importConfigurationIconImageView.setFitHeight(18);
-
-            MenuItem importConfigurationMenuItem = new MenuItem(Messages.importConfigurationLabel, importConfigurationIconImageView);
-            importConfigurationMenuItem.disableProperty().bind(multipleItemsSelected);
-            importConfigurationMenuItem.setOnAction(ae -> {
-                saveAndRestoreController.importConfiguration();
-            });
-
-            getItems().add(importConfigurationMenuItem);
-        }
+        getItems().addAll(newFolderMenuItem,
+                renameNodeMenuItem,
+                deleteNodesMenuItem,
+                newConfigurationMenuItem,
+                newCompositeSnapshotMenuItem,
+                copyUniqueIdToClipboardMenuItem,
+                importConfigurationMenuItem);
     }
 }

@@ -52,8 +52,6 @@ public class Messages {
     public static String currentSetpointValue;
     public static String createNewTagDialogTitle;
     public static String deleteFilter;
-    public static String deletionNotAllowed;
-    public static String deletionNotAllowedHeader;
 
     public static String duplicatePVNamesAdditionalItems;
     public static String duplicatePVNamesCheckFailed;

@@ -23,6 +23,7 @@ import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
@@ -31,8 +32,8 @@ import org.phoebus.ui.javafx.ImageCache;
 
 public class ContextMenuCompositeSnapshot extends ContextMenuBase {
 
-    public ContextMenuCompositeSnapshot(SaveAndRestoreController saveAndRestoreController, SimpleBooleanProperty multipleItemsSelected) {
-        super(saveAndRestoreController, multipleItemsSelected);
+    public ContextMenuCompositeSnapshot(SaveAndRestoreController saveAndRestoreController, TreeView treeView) {
+        super(saveAndRestoreController, treeView);
 
         Image snapshotTagsWithCommentIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-tags.png");
 
@@ -40,7 +41,9 @@ public class ContextMenuCompositeSnapshot extends ContextMenuBase {
         openCompositeSnapshotMenuItem.setOnAction(ae -> saveAndRestoreController.openCompositeSnapshotForRestore());
 
         MenuItem editCompositeSnapshotMenuItem = new MenuItem(Messages.contextMenuEdit, new ImageView(ImageRepository.EDIT_CONFIGURATION));
-        editCompositeSnapshotMenuItem.disableProperty().bind(multipleItemsSelected);
+        //editCompositeSnapshotMenuItem.disableProperty().bind(multipleItemsSelected);
+        setOnShowing(event ->
+                editCompositeSnapshotMenuItem.disableProperty().set(treeView.getSelectionModel().getSelectedItems().size() > 1));
         editCompositeSnapshotMenuItem.setOnAction(ae -> {
             saveAndRestoreController.nodeDoubleClicked();
         });
@@ -50,15 +53,19 @@ public class ContextMenuCompositeSnapshot extends ContextMenuBase {
         snapshotTagsWithCommentIconImage.setFitWidth(22);
 
         Menu tagWithComment = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
-        tagWithComment.disableProperty().bind(multipleItemsSelected);
+        //tagWithComment.disableProperty().bind(multipleItemsSelected);
+        setOnShowing(event ->
+                tagWithComment.disableProperty().set(treeView.getSelectionModel().getSelectedItems().size() > 1));
         tagWithComment.setOnShowing(event -> {
             saveAndRestoreController.tagWithComment(tagWithComment.getItems());
         });
 
         CustomMenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
-        addTagWithCommentMenuItem.disableProperty().bind(multipleItemsSelected);
+        //addTagWithCommentMenuItem.disableProperty().bind(multipleItemsSelected);
+        setOnShowing(event ->
+                addTagWithCommentMenuItem.disableProperty().set(treeView.getSelectionModel().getSelectedItems().size() > 1));
         addTagWithCommentMenuItem.setOnAction(action -> {
-            saveAndRestoreController.addTagToSnapshot();
+            saveAndRestoreController.addTagToSnapshots();
         });
 
         tagWithComment.getItems().addAll(addTagWithCommentMenuItem, new SeparatorMenuItem());

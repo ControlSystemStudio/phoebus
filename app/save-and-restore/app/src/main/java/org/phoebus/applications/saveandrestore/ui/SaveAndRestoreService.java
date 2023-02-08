@@ -32,6 +32,7 @@ import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.TagData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 
@@ -388,5 +389,29 @@ public class SaveAndRestoreService {
      */
     public void deleteFilter(final String name) throws Exception{
         executor.submit(() -> saveAndRestoreClient.deleteFilter(name)).get();
+    }
+
+    /**
+     * Adds a tag to a list of unique node ids, see {@link TagData}
+     * @param tagData see {@link TagData}
+     * @return A list of updated {@link Node}s. This may contain fewer elements than the list of unique node ids
+     * passed in the <code>tagData</code> parameter.
+     */
+    public List<Node> addTag(TagData tagData) throws Exception{
+        Future<List<Node>> future =
+                executor.submit(() -> saveAndRestoreClient.addTag(tagData));
+        return future.get();
+    }
+
+    /**
+     * Deletes a tag from a list of unique node ids, see {@link TagData}
+     * @param tagData see {@link TagData}
+     * @return A list of updated {@link Node}s. This may contain fewer elements than the list of unique node ids
+     * passed in the <code>tagData</code> parameter.
+     */
+    public List<Node> deleteTag(TagData tagData) throws Exception{
+        Future<List<Node>> future =
+                executor.submit(() -> saveAndRestoreClient.deleteTag(tagData));
+        return future.get();
     }
 }

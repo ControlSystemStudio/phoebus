@@ -146,4 +146,12 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
             tabTitleProperty.set(node.getName());
         }
     }
+
+    public Node getSnapshotNode(){
+        return snapshotController.getSnapshot(0).getSnapshot().get();
+    }
+
+    public Node getConfigNode(){
+        return snapshotController.getConfigNode();
+    }
 }
