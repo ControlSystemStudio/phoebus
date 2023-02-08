@@ -18,6 +18,7 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
@@ -40,20 +41,16 @@ public class ContextMenuSnapshot extends ContextMenuBase {
     protected Image snapshotTagsWithCommentIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-tags.png");
     protected Image csvExportIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_export.png");
 
-    private final  MenuItem compareSnapshotsMenuItem;
-
-    private final MenuItem tagAsGolden;
-
     public ContextMenuSnapshot(SaveAndRestoreController saveAndRestoreController,
                                SimpleStringProperty toggleGoldenMenuItemText,
                                SimpleObjectProperty<ImageView> toggleGoldenImageViewProperty,
                                TreeView<org.phoebus.applications.saveandrestore.model.Node> treeView) {
         super(saveAndRestoreController, treeView);
 
-        compareSnapshotsMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, new ImageView(compareSnapshotIcon));
+        MenuItem compareSnapshotsMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, new ImageView(compareSnapshotIcon));
         compareSnapshotsMenuItem.setOnAction(ae -> saveAndRestoreController.comapreSnapshot());
 
-        tagAsGolden = new MenuItem(Messages.contextMenuTagAsGolden, new ImageView(ImageRepository.GOLDEN_SNAPSHOT));
+        MenuItem tagAsGolden = new MenuItem(Messages.contextMenuTagAsGolden, new ImageView(ImageRepository.GOLDEN_SNAPSHOT));
         tagAsGolden.textProperty().bind(toggleGoldenMenuItemText);
         tagAsGolden.graphicProperty().bind(toggleGoldenImageViewProperty);
         tagAsGolden.setOnAction(ae -> saveAndRestoreController.toggleGoldenProperty());
@@ -89,15 +86,23 @@ public class ContextMenuSnapshot extends ContextMenuBase {
                 exportSnapshotMenuItem);
     }
 
+
     @Override
     protected void runChecks() {
         ObservableList<TreeItem<Node>> selected =
                 treeView.getSelectionModel().getSelectedItems();
+        // TODO: support multiple selection to allow tagging of multiple snapshots
+        if (multipleSelection.get() && !isDeletionPossible(selected)) {
+            Platform.runLater(this::hide);
+        }
+        /*
         if (multipleSelection.get() && !isDeletionPossible(selected)) {
             deleteNodesMenuItem.disableProperty().set(true);
         }
         tagAsGolden.disableProperty().set(multipleSelection.getValue());
         compareSnapshotsMenuItem.disableProperty().set(!compareSnapshotsPossible());
+
+         */
     }
 
     /**
@@ -108,7 +113,7 @@ public class ContextMenuSnapshot extends ContextMenuBase {
      *     <li>The snapshot selected from the tree view must have same parent as the one shown in the active {@link org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab}</li>
      *     <li>The snapshot selected from the tree view must not be the same as as the one shown in the active {@link org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab}</li>
      * </ul>
-     * @return
+     * @return <code>true</code> if selection can be added to snapshot view for comparison.
      */
     private boolean compareSnapshotsPossible() {
         Node[] configAndSnapshotNode = saveAndRestoreController.getConfigAndSnapshotForActiveSnapshotTab();

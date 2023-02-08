@@ -18,55 +18,47 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
-import javafx.beans.property.SimpleBooleanProperty;
+import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
 import org.phoebus.ui.javafx.ImageCache;
 
 public class ContextMenuCompositeSnapshot extends ContextMenuBase {
 
-    public ContextMenuCompositeSnapshot(SaveAndRestoreController saveAndRestoreController, TreeView treeView) {
+    public ContextMenuCompositeSnapshot(SaveAndRestoreController saveAndRestoreController, TreeView<Node> treeView) {
         super(saveAndRestoreController, treeView);
 
         Image snapshotTagsWithCommentIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-tags.png");
 
         MenuItem openCompositeSnapshotMenuItem = new MenuItem(Messages.contextMenuOpenCompositeSnapshotForRestore, new ImageView(ImageRepository.EDIT_CONFIGURATION));
+        openCompositeSnapshotMenuItem.disableProperty().bind(multipleSelection);
         openCompositeSnapshotMenuItem.setOnAction(ae -> saveAndRestoreController.openCompositeSnapshotForRestore());
 
         MenuItem editCompositeSnapshotMenuItem = new MenuItem(Messages.contextMenuEdit, new ImageView(ImageRepository.EDIT_CONFIGURATION));
-        //editCompositeSnapshotMenuItem.disableProperty().bind(multipleItemsSelected);
-        setOnShowing(event ->
-                editCompositeSnapshotMenuItem.disableProperty().set(treeView.getSelectionModel().getSelectedItems().size() > 1));
-        editCompositeSnapshotMenuItem.setOnAction(ae -> {
-            saveAndRestoreController.nodeDoubleClicked();
-        });
+        editCompositeSnapshotMenuItem.disableProperty().bind(multipleSelection);
+        editCompositeSnapshotMenuItem.setOnAction(ae -> saveAndRestoreController.nodeDoubleClicked());
 
         ImageView snapshotTagsWithCommentIconImage = new ImageView(snapshotTagsWithCommentIcon);
         snapshotTagsWithCommentIconImage.setFitHeight(22);
         snapshotTagsWithCommentIconImage.setFitWidth(22);
 
         Menu tagWithComment = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
-        //tagWithComment.disableProperty().bind(multipleItemsSelected);
-        setOnShowing(event ->
-                tagWithComment.disableProperty().set(treeView.getSelectionModel().getSelectedItems().size() > 1));
-        tagWithComment.setOnShowing(event -> {
-            saveAndRestoreController.tagWithComment(tagWithComment.getItems());
-        });
+        tagWithComment.disableProperty().bind(multipleSelection);
+        tagWithComment.setOnShowing(event -> saveAndRestoreController.tagWithComment(tagWithComment.getItems()));
 
         CustomMenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
-        //addTagWithCommentMenuItem.disableProperty().bind(multipleItemsSelected);
-        setOnShowing(event ->
-                addTagWithCommentMenuItem.disableProperty().set(treeView.getSelectionModel().getSelectedItems().size() > 1));
-        addTagWithCommentMenuItem.setOnAction(action -> {
-            saveAndRestoreController.addTagToSnapshots();
-        });
+        addTagWithCommentMenuItem.disableProperty().bind(multipleSelection);
+        addTagWithCommentMenuItem.setOnAction(action -> saveAndRestoreController.addTagToSnapshots());
 
         tagWithComment.getItems().addAll(addTagWithCommentMenuItem, new SeparatorMenuItem());
 
@@ -76,5 +68,14 @@ public class ContextMenuCompositeSnapshot extends ContextMenuBase {
                 deleteNodesMenuItem,
                 copyUniqueIdToClipboardMenuItem,
                 tagWithComment);
+    }
+
+    @Override
+    protected void runChecks() {
+        ObservableList<TreeItem<Node>> selected =
+                treeView.getSelectionModel().getSelectedItems();
+        if (multipleSelection.get() && !isDeletionPossible(selected)) {
+            Platform.runLater(this::hide);
+        }
     }
 }
