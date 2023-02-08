@@ -284,6 +284,20 @@ public class WidgetFontPopOverController implements Initializable {
 
         sizes.setOnKeyPressed(Event::consume);
 
+        sizes.addEventHandler(KeyEvent.KEY_RELEASED, releasedKey -> {
+            releasedKey.consume();
+            if (releasedKey.getCode() == KeyCode.ENTER) {
+                if (!okButton.isDefaultButton()) {
+                    fontNames.refresh();
+                    families.refresh();
+                    okButton.setDefaultButton(true);
+                }
+            }
+            else {
+                okButton.setDefaultButton(false);
+            }
+        });
+
         // Get fonts on background thread
         ModelThreadPool.getExecutor().execute( ( ) -> {
 
