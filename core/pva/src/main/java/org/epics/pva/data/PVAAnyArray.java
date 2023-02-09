@@ -57,11 +57,26 @@ public class PVAAnyArray extends PVADataWithID implements PVAArray{
      */
     private volatile PVAny[] elements;
 
+    /**
+     * Set the array of elements
+     *
+     * @param elements Desired new set of elements */
+    public void set(final PVAny[] elements) {
+        this.elements = elements;
+    }
+
     @Override
     public void setValue(Object new_value) throws Exception {
-
-        // Cannot set array, only individual elements
-        throw new Exception("Cannot set " + getType() + " " + name + " to " + new_value);
+        if (new_value instanceof PVAAnyArray)
+        {
+            PVAAnyArray newValueArray = (PVAAnyArray) new_value;
+            final PVAny[] other = newValueArray.elements;
+            elements = Arrays.copyOf(other, other.length);
+        }
+        else if (new_value instanceof PVAny[])
+            set(((PVAny[]) new_value));
+        else
+            throw new Exception("Cannot set " + formatType() + " to " + new_value);
     }
 
     /** @return Current value */
