@@ -88,7 +88,59 @@ class PVAAnyArrayTest {
         PVAAnyArray cloneArray = anyArray.cloneData();
         cloneArray.get()[1].get().setValue(new PVAString("element1", "newElement2"));
 
+        assertNotEquals(cloneArray, anyArray);
         anyArray.update(0, cloneArray, new BitSet());
+
+        assertEquals(cloneArray, anyArray);
+    }
+
+    @Test
+    void setValue() throws Exception {
+        // Create a Structure Array for testing
+        PVAny[] anys = new PVAny[2];
+        PVAStructure structure = new PVAStructure("structure0", "struct 0", new PVAString("element0", "element0value"));
+        anys[0] = new PVAny("any s", structure);
+        anys[1] = new PVAny("any string", new PVAString("element1", "valueElement1"));
+        PVAAnyArray anyArray = new PVAAnyArray("anyArray", anys );
+
+        // Clone the structure
+        PVAAnyArray cloneArray = anyArray.cloneData();
+        // Modify to be different to the original array
+        cloneArray.get()[1].get().setValue(new PVAString("element1", "newElement2"));
+
+        assertNotEquals(cloneArray, anyArray);
+
+        // Update the original to match the modified clone
+        anyArray.setValue(cloneArray.cloneData());
+
+        assertEquals(cloneArray, anyArray);
+
+        // Modify the clone again
+        cloneArray.get()[1].get().setValue(new PVAString("element1", "newElement3"));
+        assertNotEquals(cloneArray, anyArray);
+
+        // Update the original to match the modified clone via the PVAny[]
+        cloneArray.setValue(anyArray.get());
+        assertEquals(cloneArray, anyArray);
+
+    }
+    @Test
+    void set() throws Exception {
+        PVAny[] anys = new PVAny[2];
+        PVAStructure structure = new PVAStructure("structure0", "struct 0", new PVAString("element0", "element0value"));
+        anys[0] = new PVAny("any s", structure);
+        anys[1] = new PVAny("any string", new PVAString("element1", "valueElement1"));
+        PVAAnyArray anyArray = new PVAAnyArray("anyArray", anys );
+
+        // Clone the structure
+        PVAAnyArray cloneArray = anyArray.cloneData();
+        // Modify to be different to the original array
+        cloneArray.get()[1].get().setValue(new PVAString("element1", "newElement2"));
+
+        assertNotEquals(cloneArray, anyArray);
+
+        // Update the original to match the modified clone
+        anyArray.set(cloneArray.cloneData().get());
 
         assertEquals(cloneArray, anyArray);
     }
