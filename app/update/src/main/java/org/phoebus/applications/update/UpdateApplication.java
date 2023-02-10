@@ -43,6 +43,8 @@ public class UpdateApplication implements AppDescriptor
     private static final String NAME = "Update";
     private Button start_update = null;
 
+    private UpdateProvider updater;
+
     @Override
     public String getName()
     {
@@ -58,7 +60,8 @@ public class UpdateApplication implements AppDescriptor
             TimeUnit.SECONDS.sleep(Update.delay);
             if (monitor.isCanceled())
                 return;
-            final Instant new_version = Update.checkForUpdate(monitor);
+            updater = Update.updaterFactory();
+            final Instant new_version = updater.checkForUpdate(monitor);
             if (new_version != null)
                 installUpdateButton(new_version);
         });
@@ -89,9 +92,7 @@ public class UpdateApplication implements AppDescriptor
            .append("\n\n")
            .append("The update will replace the installation in\n")
            .append(install_location)
-           .append("\n(").append(stage_area).append(")")
-           .append("\nwith the content of ")
-           .append(Update.update_url)
+           .append("\n(").append(stage_area).append(").")
            .append("\n\n")
            .append("Do you want to update?\n");
 
@@ -120,8 +121,7 @@ public class UpdateApplication implements AppDescriptor
             // Perform update
             JobManager.schedule(NAME, monitor ->
             {
-                Update.downloadAndUpdate(monitor, stage_area);
-                Update.adjustCurrentVersion();
+                updater.downloadAndUpdate(monitor, stage_area);
                 if (! monitor.isCanceled())
                     Platform.runLater(() -> restart(parent));
             });
