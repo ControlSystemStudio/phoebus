@@ -75,7 +75,6 @@ import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
 import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
-import org.phoebus.applications.saveandrestore.ui.model.SnapshotEntry;
 import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.pv.PVPool;
@@ -616,7 +615,6 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
             CountDownLatch countDownLatch = new CountDownLatch(s.getEntries().size());
             s.getEntries().forEach(e -> pvs.get(getPVKey(e.getConfigPv().getPvName(), e.getConfigPv().isReadOnly())).setCountDownLatch(countDownLatch));
 
-            //List<SnapshotEntry> entries = s.getEntries();
             for (SnapshotItem entry : s.getEntries()) {
                 TableEntry e = tableEntryItems.get(getPVKey(entry.getConfigPv().getPvName(), entry.getConfigPv().isReadOnly()));
 
@@ -1000,54 +998,6 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
             alert.setContentText(cause != null ? cause : Messages.loggingFailedCauseUnknown);
             DialogHelper.positionDialog(alert, snapshotTab.getTabPane(), -150, -150);
             alert.showAndWait();
-        });
-    }
-
-    /**
-     * Reads all PVs using a thread pool. All reads are asynchronous, waiting at most the amount of time
-     * configured through a preference setting.
-     *
-     * @param completion Callback receiving a list of {@link SnapshotEntry}s where values for PVs that could
-     *                   not be read are set to {@link VDisconnectedData#INSTANCE}.
-     */
-    private void readAll(Consumer<List<SnapshotEntry>> completion) {
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
-        SnapshotEntry[] snapshotEntries = new SnapshotEntry[tableEntryItems.values().size()];
-        JobManager.schedule("Take snapshot", monitor -> {
-            final CountDownLatch countDownLatch = new CountDownLatch(tableEntryItems.values().size());
-            for (TableEntry t : tableEntryItems.values()) {
-                // Submit read request only if job has not been cancelled
-                executorService.submit(() -> {
-                    String name = t.pvNameProperty().get();
-                    PV pv = pvs.get(getPVKey(t.pvNameProperty().get(), t.readOnlyProperty().get()));
-                    VType value = VNoData.INSTANCE;
-                    try {
-                        value = pv.pv.asyncRead().get(Preferences.readTimeout, TimeUnit.MILLISECONDS);
-                    } catch (Exception e) {
-                        LOGGER.log(Level.WARNING, "Failed to read PV " + pv.pvName);
-                    }
-                    VType readBackValue = VNoData.INSTANCE;
-                    if (pv.readbackPv != null && !pv.readbackValue.equals(VDisconnectedData.INSTANCE)) {
-                        try {
-                            readBackValue = pv.readbackPv.asyncRead().get(Preferences.readTimeout, TimeUnit.MILLISECONDS);
-                        } catch (Exception e) {
-                            LOGGER.log(Level.WARNING, "Failed to read read-back PV " + pv.readbackPvName);
-                        }
-                    }
-
-                    SnapshotItem snapshotItem = new SnapshotItem();
-                    snapshotItem.setConfigPv(t.getConfigPv());
-                    snapshotItem.setValue(value);
-                    snapshotItem.setReadbackValue(readBackValue);
-
-                    snapshotEntries[t.idProperty().get() - 1] = new SnapshotEntry(snapshotItem,
-                            t.readOnlyProperty().get());
-                    countDownLatch.countDown();
-                });
-            }
-            countDownLatch.await();
-            completion.accept(Arrays.asList(snapshotEntries));
-            executorService.shutdown();
         });
     }
 

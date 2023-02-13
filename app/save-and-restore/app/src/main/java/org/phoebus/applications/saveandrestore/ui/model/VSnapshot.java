@@ -34,7 +34,7 @@ import java.util.Optional;
 
 
 /**
- * <code>VSnapshot</code> describes the snapshot data. It encapsulates a {@link List} of {@link SnapshotEntry} objects,
+ * <code>VSnapshot</code> describes the snapshot data. It encapsulates a {@link List} of {@link SnapshotItem} objects,
  * which
  *
  * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>

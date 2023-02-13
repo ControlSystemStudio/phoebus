@@ -63,7 +63,6 @@ import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.applications.saveandrestore.ui.model.SnapshotEntry;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -143,7 +142,7 @@ public final class FileUtilities {
     public static SnapshotContent readFromSnapshot(InputStream stream) throws IOException, ParseException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
         String date = null;
-        List<SnapshotEntry> entries = new ArrayList<>();
+        List<SnapshotItem> entries = new ArrayList<>();
         String line;
         String[] header = null;
         Map<String, Integer> headerMap = new HashMap<>();
@@ -208,19 +207,13 @@ public final class FileUtilities {
                     readbackData = VDisconnectedData.INSTANCE;
                 }
 
-                boolean selected = true;
-                try {
-                    selected = Integer.parseInt(sel) != 0;
-                } catch (NumberFormatException e) {
-                    // ignore
-                }
                 ConfigPv configPv = ConfigPv.builder().pvName(name).readbackPvName(readback).build();
                 SnapshotItem snapshotItem = new SnapshotItem();
                 snapshotItem.setConfigPv(configPv);
                 snapshotItem.setValue(data);
                 snapshotItem.setReadbackValue(readbackData);
 
-                entries.add(new SnapshotEntry(snapshotItem, readOnly));
+                entries.add(snapshotItem);
             }
         }
         if (date == null || date.isEmpty()) {

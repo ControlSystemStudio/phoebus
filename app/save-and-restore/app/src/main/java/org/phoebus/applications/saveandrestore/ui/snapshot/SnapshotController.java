@@ -63,7 +63,6 @@ import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
-import org.phoebus.applications.saveandrestore.ui.model.SnapshotEntry;
 import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.pv.PVPool;
@@ -306,12 +305,7 @@ public class SnapshotController {
 
         disabledUi.set(true);
         JobManager.schedule("Save Snapshot", monitor -> {
-            //List<SnapshotEntry> snapshotEntries = snapshot.getEntries();
             List<SnapshotItem> snapshotItems = snapshot.getEntries();
-            //.stream()
-            //.map(snapshotEntry -> SnapshotItem.builder().value(snapshotEntry.getValue()).configPv(snapshotEntry.getConfigPv()).readbackValue(snapshotEntry.getReadbackValue()).build())
-            //      .collect(Collectors.toList());
-
             SnapshotData snapshotData = new SnapshotData();
             snapshotData.setSnasphotItems(snapshotItems);
             Snapshot snapshot = new Snapshot();
@@ -365,20 +359,6 @@ public class SnapshotController {
         return new ArrayList<>(tableEntryItems.values());
     }
 
-    /*
-    protected List<SnapshotEntry> snapshotItemsToSnapshotItems(List<SnapshotItem> snapshotItems) {
-        List<SnapshotEntry> snapshotEntries = new ArrayList<>();
-        for (SnapshotItem snapshotItem : snapshotItems) {
-            SnapshotEntry snapshotEntry =
-                    new SnapshotEntry(snapshotItem, true);
-            snapshotEntries.add(snapshotEntry);
-        }
-
-        return snapshotEntries;
-    }
-
-     */
-
     protected List<SnapshotItem> configurationToSnapshotItems(List<ConfigPv> configPvs) {
         List<SnapshotItem> snapshotEntries = new ArrayList<>();
         for (ConfigPv configPv : configPvs) {
@@ -386,9 +366,6 @@ public class SnapshotController {
             snapshotItem.setConfigPv(configPv);
             snapshotItem.setValue(VNoData.INSTANCE);
             snapshotItem.setReadbackValue(VNoData.INSTANCE);
-
-            //SnapshotEntry snapshotEntry =
-            //        new SnapshotEntry(snapshotItem, true);
             snapshotEntries.add(snapshotItem);
         }
         return snapshotEntries;
@@ -577,7 +554,7 @@ public class SnapshotController {
      * Reads all PVs using a thread pool. All reads are asynchronous, waiting at most the amount of time
      * configured through a preference setting.
      *
-     * @param completion Callback receiving a list of {@link SnapshotEntry}s where values for PVs that could
+     * @param completion Callback receiving a list of {@link SnapshotItem}s where values for PVs that could
      *                   not be read are set to {@link VDisconnectedData#INSTANCE}.
      */
     private void readAll(Consumer<List<SnapshotItem>> completion) {
