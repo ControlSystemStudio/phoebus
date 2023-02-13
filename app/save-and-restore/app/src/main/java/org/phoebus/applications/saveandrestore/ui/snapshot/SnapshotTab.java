@@ -49,6 +49,8 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
 
     private SnapshotController snapshotController;
 
+    private RestoreSnapshotController restoreSnapshotController;
+
     private final SimpleObjectProperty<Image> tabGraphicImageProperty = new SimpleObjectProperty<>();
 
 
@@ -60,34 +62,6 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
             setId(node.getUniqueId());
         }
 
-        ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
-        FXMLLoader loader = new FXMLLoader();
-        loader.setResources(resourceBundle);
-        loader.setLocation(SnapshotTab.class.getResource("SnapshotEditor.fxml"));
-
-        loader.setControllerFactory(clazz -> {
-            try {
-                if (clazz.isAssignableFrom(SnapshotController.class)) {
-                    return clazz.getConstructor(SnapshotTab.class)
-                            .newInstance(this);
-                }
-            } catch (Exception e) {
-                ExceptionDetailsErrorDialog.openError("Error",
-                        "Failed to open new snapshot tab", e);
-            }
-            return null;
-        });
-
-        javafx.scene.Node rootNode;
-        try {
-            rootNode = loader.load();
-        } catch (IOException e) {
-            Logger.getLogger(SnapshotTab.class.getName())
-                    .log(Level.SEVERE, "Failed to load fxml", e);
-            return;
-        }
-        setContent(rootNode);
-
         HBox container = new HBox();
         ImageView imageView = new ImageView();
         imageView.imageProperty().bind(tabGraphicImageProperty);
@@ -98,7 +72,6 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
 
         setGraphic(container);
 
-        snapshotController = loader.getController();
         tabTitleProperty.set(node.getNodeType().equals(NodeType.SNAPSHOT) ? node.getName() : Messages.unnamedSnapshot);
 
         boolean isGolden = node.getTags() != null && node.getTags().stream().anyMatch(t -> t.getName().equals(Tag.GOLDEN));
@@ -129,15 +102,75 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
     }
 
     public void newSnapshot(org.phoebus.applications.saveandrestore.model.Node configurationNode) {
+        if(snapshotController == null){
+            ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
+            FXMLLoader loader = new FXMLLoader();
+            loader.setResources(resourceBundle);
+            loader.setLocation(SnapshotTab.class.getResource("SnapshotView.fxml"));
+            /*
+            loader.setControllerFactory(clazz -> {
+                try {
+                   if (clazz.isAssignableFrom(SnapshotController.class)) {
+                        return clazz.getConstructor(SnapshotTab.class)
+                                .newInstance(this);
+                    }
+                } catch (Exception e) {
+                    ExceptionDetailsErrorDialog.openError("Error",
+                            "Failed to open new snapshot tab", e);
+                }
+                return null;
+            });
+
+             */
+
+            try {
+                setContent(loader.load());
+                snapshotController = loader.getController();
+            } catch (IOException e) {
+                Logger.getLogger(SnapshotTab.class.getName())
+                        .log(Level.SEVERE, "Failed to load fxml", e);
+                return;
+            }
+        }
+        setId(null);
+        updateTabTitle(Messages.unnamedSnapshot);
         snapshotController.newSnapshot(configurationNode);
     }
 
     public void loadSnapshot(Node snapshotNode) {
-        snapshotController.loadSnapshot(snapshotNode);
+        if(restoreSnapshotController == null){
+            ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
+            FXMLLoader loader = new FXMLLoader();
+            loader.setResources(resourceBundle);
+            loader.setLocation(SnapshotTab.class.getResource("RestoreSnapshotView.fxml"));
+
+            loader.setControllerFactory(clazz -> {
+                try {
+                    if (clazz.isAssignableFrom(RestoreSnapshotController.class)) {
+                        return clazz.getConstructor(SnapshotTab.class)
+                                .newInstance(this);
+                    }
+                } catch (Exception e) {
+                    ExceptionDetailsErrorDialog.openError("Error",
+                            "Failed to open new snapshot tab", e);
+                }
+                return null;
+            });
+
+            try {
+                setContent(loader.load());
+                restoreSnapshotController = loader.getController();
+            } catch (IOException e) {
+                Logger.getLogger(SnapshotTab.class.getName())
+                        .log(Level.SEVERE, "Failed to load fxml", e);
+                return;
+            }
+        }
+        restoreSnapshotController.loadSnapshot(snapshotNode);
     }
 
     public void addSnapshot(org.phoebus.applications.saveandrestore.model.Node node) {
-        snapshotController.addSnapshot(node);
+        restoreSnapshotController.addSnapshot(node);
     }
 
     @Override
@@ -152,6 +185,6 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
     }
 
     public Node getConfigNode(){
-        return snapshotController.getConfigNode();
+        return snapshotController.getConfigurationNode();
     }
 }

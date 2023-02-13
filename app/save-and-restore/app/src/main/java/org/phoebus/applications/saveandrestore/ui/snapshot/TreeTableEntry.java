@@ -64,7 +64,7 @@ public class TreeTableEntry {
 
     private ChangeListener<Boolean> tableEntryReadonlyChangeListener = null;
 
-    public void initializeEqualPropertyChangeListener(SnapshotController controller) {
+    public void initializeEqualPropertyChangeListener(RestoreSnapshotController controller) {
         equalPropertyChangeListener = (observableValue, oldValue, newValue) -> {
             if (controller.isHideEqualItems()) {
                 if (newValue) {

@@ -572,15 +572,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         tabPane.getSelectionModel().select(tab);
     }
 
-    protected void openCompositeSnapshotForRestore() {
-        TreeItem<Node> treeItem = browserSelectionModel.getSelectedItems().get(0);
-        SnapshotTab tab = new SnapshotTab(treeItem.getValue(), saveAndRestoreService);
-        tab.loadSnapshot(treeItem.getValue());
-
-        tabPane.getTabs().add(tab);
-        tabPane.getSelectionModel().select(tab);
-    }
-
     public void openSearchWindow() {
         Optional<Tab> searchTabOptional = tabPane.getTabs().stream().filter(t -> t.getId() != null &&
                 t.getId().equals(SearchAndFilterTab.SEARCH_AND_FILTER_TAB_ID)).findFirst();
@@ -1354,5 +1345,14 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             return new Node[]{snapshotTab.getConfigNode(), snapshotTab.getSnapshotNode()};
         }
         return null;
+    }
+
+    protected void openCompositeSnapshotForRestore() {
+        TreeItem<Node> treeItem = browserSelectionModel.getSelectedItems().get(0);
+        SnapshotTab tab = new SnapshotTab(treeItem.getValue(), saveAndRestoreService);
+        tab.loadSnapshot(treeItem.getValue());
+
+        tabPane.getTabs().add(tab);
+        tabPane.getSelectionModel().select(tab);
     }
 }

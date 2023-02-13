@@ -62,6 +62,7 @@ import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.ui.model.SnapshotEntry;
 
 import java.io.BufferedReader;
@@ -189,7 +190,7 @@ public final class FileUtilities {
                 idx = headerMap.get(H_READBACK_VALUE);
                 String readbackValue = idx == null || idx > length ? null : trim(split[idx]);
                 idx = headerMap.get(H_DELTA);
-                String delta = idx == null || idx > length ? "" : trim(split[idx]);
+                //String delta = idx == null || idx > length ? "" : trim(split[idx]);
                 idx = headerMap.get(H_READ_ONLY);
                 Boolean readOnly = idx == null || idx > length ? Boolean.FALSE : Boolean.valueOf(trim(split[idx]));
 
@@ -214,7 +215,12 @@ public final class FileUtilities {
                     // ignore
                 }
                 ConfigPv configPv = ConfigPv.builder().pvName(name).readbackPvName(readback).build();
-                entries.add(new SnapshotEntry(configPv, data, selected, readback, readbackData, delta, readOnly));
+                SnapshotItem snapshotItem = new SnapshotItem();
+                snapshotItem.setConfigPv(configPv);
+                snapshotItem.setValue(data);
+                snapshotItem.setReadbackValue(readbackData);
+
+                entries.add(new SnapshotEntry(snapshotItem, readOnly));
             }
         }
         if (date == null || date.isEmpty()) {

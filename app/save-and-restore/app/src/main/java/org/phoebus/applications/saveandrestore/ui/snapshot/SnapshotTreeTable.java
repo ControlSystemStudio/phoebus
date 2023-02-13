@@ -507,7 +507,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
 
     private final List<VSnapshot> uiSnapshots = new ArrayList<>();
     private boolean showDeltaPercentage;
-    private final SnapshotController controller;
+    private final RestoreSnapshotController controller;
     private final Map<String, TreeTableEntry> treeTableEntryItems = new HashMap<>();
     private CheckBox selectAllCheckBox;
 
@@ -516,7 +516,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
      *
      * @param controller the controller
      */
-    SnapshotTreeTable(SnapshotController controller) {
+    SnapshotTreeTable(RestoreSnapshotController controller) {
         if (resizePolicyNotInitialized) {
             AccessController.doPrivileged(resizePolicyAction);
         }

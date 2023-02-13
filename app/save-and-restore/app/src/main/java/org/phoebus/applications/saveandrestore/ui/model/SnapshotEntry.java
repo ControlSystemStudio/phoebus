@@ -31,52 +31,23 @@ import java.util.Objects;
 
 
 /**
- * <code>SnapshotEntry</code> represents a single entry in the snapshot. It contains fields for all parameters that are
- * store in the snapshot file. All parameters except <code>value</code> and <code>selected</code> are fixed and cannot
- * be changed.
- *
- * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
+ * <code>SnapshotEntry</code> wraps an {@link SnapshotItem} (the data object stored in the
+ * remote service through {@link org.phoebus.applications.saveandrestore.model.SnapshotData}) and
+ * a few additional fields.
  */
-public class SnapshotEntry implements Serializable {
+public class SnapshotEntry {
 
     private static final long serialVersionUID = 5181175467248870613L;
-    private final ConfigPv configPv;
-    private transient ObjectProperty<VType> valueProperty = new SimpleObjectProperty<>();
-    private final transient VType storedValue;
     private boolean selected;
-    private final String readbackName;
-    private final transient VType readbackValue;
-    private final String delta;
-    private final boolean readOnly;
+    private SnapshotItem snapshotItem;
 
-    public SnapshotEntry(SnapshotItem snapshotItem, boolean selected) {
-        this(snapshotItem.getConfigPv(),
-                snapshotItem.getValue(),
-                selected,
-                snapshotItem.getConfigPv() != null ? snapshotItem.getConfigPv().getReadbackPvName() : null,
-                snapshotItem.getReadbackValue(),
-                null,
-                snapshotItem.getConfigPv().isReadOnly());
-    }
-
-
-    /**
-     * Constructs a new entry from pieces.
-     */
-    public SnapshotEntry(ConfigPv configPv, VType value, boolean selected, String readbackName, VType readbackValue,
-                         String delta, boolean readOnly) {
-        this.valueProperty.set(value == null ? VNoData.INSTANCE : value);
-        this.storedValue = value;
-        this.configPv = configPv;
+    public SnapshotEntry(SnapshotItem snapshotItem, boolean selected){
+        this.snapshotItem = snapshotItem;
         this.selected = selected;
-        this.readbackName = readbackName == null ? "" : readbackName;
-        this.readbackValue = readbackValue == null ? VNoData.INSTANCE : readbackValue;
-        this.delta = delta == null ? "" : delta;
-        this.readOnly = readOnly;
     }
 
     public ConfigPv getConfigPv() {
-        return configPv;
+        return snapshotItem.getConfigPv();
     }
 
     /**
@@ -85,27 +56,7 @@ public class SnapshotEntry implements Serializable {
      * @return the stored pv value
      */
     public VType getValue() {
-        return valueProperty.get();
-    }
-
-    /**
-     * Returns PV value property
-     *
-     * @return the stored PV value property
-     */
-
-    public ObjectProperty<VType> getValueProperty() {
-        return valueProperty;
-    }
-
-    /**
-     * Returns stored PV value.
-     * Initialized once when object creation and remain unchanged.
-     *
-     * @return an immutable stored PV value
-     */
-    public VType getStoredValue() {
-        return storedValue;
+        return snapshotItem.getValue();
     }
 
     /**
@@ -114,18 +65,9 @@ public class SnapshotEntry implements Serializable {
      * @return the PV name
      */
     public String getPVName() {
-        return configPv.getPvName();
+        return snapshotItem.getConfigPv().getPvName();
     }
 
-    /**
-     * Returns the delta used for validating the value of this PV.
-     *
-     * @return the delta
-     * @see org.phoebus.applications.saveandrestore.common.Threshold
-     */
-    public String getDelta() {
-        return delta;
-    }
 
     /**
      * Returns the name of the readback PV associated with the setpoint represented by this entry.
@@ -133,7 +75,7 @@ public class SnapshotEntry implements Serializable {
      * @return the readback name
      */
     public String getReadbackName() {
-        return readbackName;
+        return snapshotItem.getConfigPv().getReadbackPvName();
     }
 
     /**
@@ -142,7 +84,7 @@ public class SnapshotEntry implements Serializable {
      * @return the readback pv value
      */
     public VType getReadbackValue() {
-        return readbackValue;
+        return snapshotItem.getReadbackValue() == null ? VNoData.INSTANCE : snapshotItem.getReadbackValue();
     }
 
     /**
@@ -152,7 +94,7 @@ public class SnapshotEntry implements Serializable {
      * @return true if read only or false if not
      */
     public boolean isReadOnly() {
-        return readOnly;
+        return snapshotItem.getConfigPv().isReadOnly();
     }
 
     /**
@@ -161,6 +103,7 @@ public class SnapshotEntry implements Serializable {
      * @return true if selected or false if not selected
      */
     public boolean isSelected() {
+        System.out.println("****************** Querying isSelected **********************");
         return selected;
     }
 
@@ -171,8 +114,12 @@ public class SnapshotEntry implements Serializable {
      * @param selected true if selected or false otherwise
      */
     public void set(VType value, boolean selected) {
-        this.valueProperty.set(value == null ? VNoData.INSTANCE : value);
+        snapshotItem.setValue(value == null ? VNoData.INSTANCE : value);
         this.selected = selected;
+    }
+
+    public SnapshotItem getSnapshotItem(){
+        return snapshotItem;
     }
 
     /*
@@ -182,8 +129,13 @@ public class SnapshotEntry implements Serializable {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(SnapshotEntry.class, configPv.getPvName(), selected, readOnly, readbackName, readbackValue, delta, valueProperty.get(),
-                readbackValue);
+        return Objects.hash(SnapshotEntry.class,
+                snapshotItem.getConfigPv().getPvName(),
+                selected,
+                snapshotItem.getConfigPv().isReadOnly(),
+                snapshotItem.getConfigPv().getReadbackPvName(),
+                snapshotItem.getReadbackValue(),
+                snapshotItem.getValue());
     }
 
     /*
@@ -199,14 +151,17 @@ public class SnapshotEntry implements Serializable {
             return false;
         }
         SnapshotEntry other = (SnapshotEntry) obj;
-        if (!(Objects.equals(configPv.getPvName(), other.configPv.getPvName()) && selected == other.selected && readOnly == other.readOnly
-                && Objects.equals(readbackName, other.readbackName) && Objects.equals(delta, other.delta))) {
+        if (!(Objects.equals(snapshotItem.getConfigPv().getPvName(),
+                other.snapshotItem.getConfigPv().getPvName()) &&
+                selected == other.selected &&
+                snapshotItem.getConfigPv().isReadOnly() == other.getConfigPv().isReadOnly() &&
+                Objects.equals(snapshotItem.getConfigPv().getReadbackPvName(), other.getConfigPv().getReadbackPvName()))) {
             return false;
         }
-        if (!Utilities.areVTypesIdentical(valueProperty.get(), other.valueProperty.get(), true)) {
+        if (!Utilities.areVTypesIdentical(snapshotItem.getValue(), other.getSnapshotItem().getValue(), true)) {
             return false;
         }
-        if (!Utilities.areVTypesIdentical(readbackValue, other.readbackValue, false)) {
+        if (!Utilities.areVTypesIdentical(snapshotItem.getReadbackValue(), other.getSnapshotItem().getReadbackValue(), false)) {
             return false;
         }
         return true;

@@ -20,6 +20,7 @@ package org.phoebus.applications.saveandrestore.ui.model;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.common.Utilities;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.io.Serializable;
@@ -33,8 +34,8 @@ import java.util.Optional;
 
 
 /**
- * <code>VSnapshot</code> describes the snapshot data. It contains the list of pv names together with their values at a
- * specific time.
+ * <code>VSnapshot</code> describes the snapshot data. It encapsulates a {@link List} of {@link SnapshotEntry} objects,
+ * which
  *
  * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
  */
@@ -42,7 +43,7 @@ public class VSnapshot implements Serializable {
 
     private static final long serialVersionUID = 920021965024686224L;
 
-    private final List<SnapshotEntry> entries;
+    private final List<SnapshotItem> entries;
     private Node snapshot;
     private boolean dirty;
 
@@ -52,7 +53,7 @@ public class VSnapshot implements Serializable {
      * @param snapshot the descriptor
      * @param entries  the PV entries
      */
-    public VSnapshot(Node snapshot, List<SnapshotEntry> entries) {
+    public VSnapshot(Node snapshot, List<SnapshotItem> entries) {
         this.entries = new ArrayList<>(entries);
         this.snapshot = snapshot;
     }
@@ -76,42 +77,8 @@ public class VSnapshot implements Serializable {
      *
      * @return the list of entries
      */
-    public List<SnapshotEntry> getEntries() {
+    public List<SnapshotItem> getEntries() {
         return Collections.unmodifiableList(entries);
-    }
-
-    /**
-     * Returns the delta value for the given pv name.
-     *
-     * @param pvName the name of the pv for which the delta is requested
-     * @return the delta value
-     */
-    public String getDelta(String pvName) {
-        for (SnapshotEntry e : entries) {
-            if (e.getPVName().equals(pvName)) {
-                return e.getDelta();
-            }
-        }
-        return null;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.diirt.vtype.Array#getData()
-     */
-
-    public Object getData() {
-        int n = entries.size();
-        List<String> names = new ArrayList<>(n);
-        List<Boolean> selected = new ArrayList<>(n);
-        List<VType> values = new ArrayList<>(n);
-        for (SnapshotEntry e : entries) {
-            names.add(e.getPVName());
-            selected.add(e.isSelected());
-            values.add(e.getValue());
-        }
-        return Collections.unmodifiableList(Arrays.asList(names, selected, values));
     }
 
     /**
@@ -153,7 +120,7 @@ public class VSnapshot implements Serializable {
         } else if (snapshot.getCreated() != null) {
             return TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(snapshot.getCreated().getTime()));
         } else {
-            return "<unnamed snaphot>";
+            return "<unnamed snapshot>";
         }
     }
 
