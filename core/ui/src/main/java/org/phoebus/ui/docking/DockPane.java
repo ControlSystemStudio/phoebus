@@ -579,7 +579,7 @@ public class DockPane extends TabPane
     public SplitDock split(final boolean horizontally)
     {
         final SplitDock split;
-            if (dock_parent instanceof BorderPane)
+        if (dock_parent instanceof BorderPane)
         {
             final BorderPane parent = (BorderPane) dock_parent;
             // Remove this dock pane from BorderPane
