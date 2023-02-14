@@ -75,7 +75,6 @@ import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
 import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
-import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.pv.PVPool;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -171,7 +170,7 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
     private final SimpleStringProperty snapshotCommentProperty = new SimpleStringProperty();
     private final SimpleStringProperty snapshotUniqueIdProperty = new SimpleStringProperty();
 
-    private final List<VSnapshot> snapshots = new ArrayList<>(10);
+    private final List<Snapshot> snapshots = new ArrayList<>(10);
     private final Map<String, PV> pvs = new HashMap<>();
     private final Map<String, String> readbacks = new HashMap<>();
     private final Map<String, TableEntry> tableEntryItems = new LinkedHashMap<>();
@@ -214,10 +213,8 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
 
     private List<String> restoreFailedPVNames = new ArrayList<>();
 
-    private SnapshotTab snapshotTab;
-
     public RestoreSnapshotController(SnapshotTab snapshotTab) {
-        this.snapshotTab = snapshotTab;
+        super(snapshotTab);
     }
 
     @FXML
@@ -505,18 +502,19 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
             return;
         }
 
-        for (VSnapshot vSnapshot : snapshots) {
-            if (treeNode.getUniqueId().equals(vSnapshot.getId())) {
+        for (Snapshot vSnapshot : snapshots) {
+            if (treeNode.getUniqueId().equals(vSnapshot.getSnapshotNode().getUniqueId())) {
                 return;
             }
         }
 
         try {
-            Node snapshot = saveAndRestoreService.getNode(treeNode.getUniqueId());
-            SnapshotData snapshotData = saveAndRestoreService.getSnapshot(snapshot.getUniqueId());
-            VSnapshot vSnapshot =
-                    new VSnapshot(snapshot, snapshotData.getSnapshotItems());
-            List<TableEntry> tableEntries = addSnapshot(vSnapshot);
+            Node snapshotNode = saveAndRestoreService.getNode(treeNode.getUniqueId());
+            SnapshotData snapshotData = saveAndRestoreService.getSnapshot(snapshotNode.getUniqueId());
+            Snapshot snapshot = new Snapshot();
+            snapshot.setSnapshotNode(snapshotNode);
+            snapshot.setSnapshotData(snapshotData);
+            List<TableEntry> tableEntries = addSnapshot(snapshot);
             snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
             if (Preferences.tree_tableview_enable) {
                 snapshotTreeTable.updateTable(tableEntries, snapshots, false, false, false);
@@ -545,9 +543,12 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
             }
             List<ConfigPv> configPvs = configuration.getPvList();
             snapshotNode = Node.builder().name(Messages.unnamedSnapshot).nodeType(NodeType.SNAPSHOT).build();
-            VSnapshot vSnapshot =
-                    new VSnapshot(snapshotNode, configurationToSnapshotItems(configPvs));
-            List<TableEntry> tableEntries = setSnapshotInternal(vSnapshot);
+            Snapshot snapshot = new Snapshot();
+            snapshot.setSnapshotNode(snapshotNode);
+            SnapshotData snapshotData = new SnapshotData();
+            snapshotData.setSnasphotItems(configurationToSnapshotItems(configPvs));
+            snapshot.setSnapshotData(snapshotData);
+            List<TableEntry> tableEntries = setSnapshotInternal(snapshot);
             Platform.runLater(() -> {
                 snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
                 if (Preferences.tree_tableview_enable) {
@@ -571,10 +572,11 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
             } finally {
                 disabledUi.set(false);
             }
-            VSnapshot vSnapshot =
-                    new VSnapshot(snapshotNode, snapshotData.getSnapshotItems());
+            Snapshot snapshot = new Snapshot();
+            snapshot.setSnapshotNode(snapshotNode);
+            snapshot.setSnapshotData(snapshotData);
             Platform.runLater(() -> {
-                List<TableEntry> tableEntries = loadSnapshotInternal(vSnapshot);
+                List<TableEntry> tableEntries = loadSnapshotInternal(snapshot);
 
                 snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
                 if (Preferences.tree_tableview_enable) {
@@ -586,7 +588,7 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
         });
     }
 
-    private void loadCompositeSnapshotInternal(Consumer<VSnapshot> completion) {
+    private void loadCompositeSnapshotInternal(Consumer<Snapshot> completion) {
 
         JobManager.schedule("Load composite snapshot items", items -> {
             disabledUi.set(true);
@@ -600,10 +602,13 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
             } finally {
                 disabledUi.set(false);
             }
-            VSnapshot vSnapshot =
-                    new VSnapshot(snapshotNode, snapshotItems);
+            Snapshot snapshot = new Snapshot();
+            snapshot.setSnapshotNode(snapshotNode);
+            SnapshotData snapshotData = new SnapshotData();
+            snapshotData.setSnasphotItems(snapshotItems);
+            snapshot.setSnapshotData(snapshotData);
             disabledUi.set(false);
-            completion.accept(vSnapshot);
+            completion.accept(snapshot);
         });
     }
 
@@ -611,11 +616,12 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
     public void restore() {
         new Thread(() -> {
             restoreFailedPVNames.clear();
-            VSnapshot s = snapshots.get(0);
-            CountDownLatch countDownLatch = new CountDownLatch(s.getEntries().size());
-            s.getEntries().forEach(e -> pvs.get(getPVKey(e.getConfigPv().getPvName(), e.getConfigPv().isReadOnly())).setCountDownLatch(countDownLatch));
+            Snapshot s = snapshots.get(0);
+            CountDownLatch countDownLatch = new CountDownLatch(s.getSnapshotData().getSnapshotItems().size());
+            s.getSnapshotData().getSnapshotItems()
+                    .forEach(e -> pvs.get(getPVKey(e.getConfigPv().getPvName(), e.getConfigPv().isReadOnly())).setCountDownLatch(countDownLatch));
 
-            for (SnapshotItem entry : s.getEntries()) {
+            for (SnapshotItem entry : s.getSnapshotData().getSnapshotItems()) {
                 TableEntry e = tableEntryItems.get(getPVKey(entry.getConfigPv().getPvName(), entry.getConfigPv().isReadOnly()));
 
                 boolean restorable = e.selectedProperty().get() && !e.readOnlyProperty().get() &&
@@ -644,32 +650,31 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
             }
 
             if (restoreFailedPVNames.isEmpty()) {
-                LOGGER.log(Level.FINE, "Restored snapshot {0}", s.getSnapshot().get().getName());
+                LOGGER.log(Level.FINE, "Restored snapshot {0}", s.getSnapshotNode().getName());
             } else {
                 Collections.sort(restoreFailedPVNames);
                 StringBuilder sb = new StringBuilder(restoreFailedPVNames.size() * 200);
                 restoreFailedPVNames.forEach(e -> sb.append(e).append('\n'));
                 LOGGER.log(Level.WARNING,
                         "Not all PVs could be restored for {0}: {1}. The following errors occurred:\n{2}",
-                        new Object[]{s.getSnapshot().get().getName(), s.getSnapshot().get(), sb.toString()});
+                        new Object[]{s.getSnapshotNode().getName(), s.getSnapshotNode(), sb.toString()});
             }
             restoreActionDone.set(true);
         }).start();
     }
 
-    private List<TableEntry> loadSnapshotInternal(VSnapshot snapshotData) {
+    private List<TableEntry> loadSnapshotInternal(Snapshot snapshot) {
         dispose();
-        return setSnapshotInternal(snapshotData);
+        return setSnapshotInternal(snapshot);
     }
 
-    private List<TableEntry> setSnapshotInternal(VSnapshot snapshotData) {
-        snapshots.add(snapshotData);
-        snapshotRestorableProperty.set(snapshotData.getSnapshot().isPresent());
+    private List<TableEntry> setSnapshotInternal(Snapshot snapshot) {
+        snapshots.add(snapshot);
         String name;
         TableEntry e;
         SnapshotItem entry;
-        for (int i = 0; i < snapshotData.getEntries().size(); i++) {
-            entry = snapshotData.getEntries().get(i);
+        for (int i = 0; i < snapshot.getSnapshotData().getSnapshotItems().size(); i++) {
+            entry = snapshot.getSnapshotData().getSnapshotItems().get(i);
             e = new TableEntry();
             name = entry.getConfigPv().getPvName();
             e.idProperty().setValue(i + 1);
@@ -688,18 +693,17 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
             }
         }
         connectPVs();
-        nodeDataDirty.set(snapshotData.isSaveable());
         return new ArrayList<>(tableEntryItems.values());
     }
 
-    private List<TableEntry> addSnapshot(VSnapshot data) {
+    private List<TableEntry> addSnapshot(Snapshot data) {
         int numberOfSnapshots = getNumberOfSnapshots();
         if (numberOfSnapshots == 0) {
             return setSnapshotInternal(data); // do not dispose of anything
-        } else if (numberOfSnapshots == 1 && !getSnapshot(0).isSaveable() && !getSnapshot(0).isSaved()) {
+        } else if (numberOfSnapshots == 1) {
             return setSnapshotInternal(data);
         } else {
-            List<SnapshotItem> entries = data.getEntries();
+            List<SnapshotItem> entries = data.getSnapshotData().getSnapshotItems();
             String n;
             TableEntry e;
             List<TableEntry> withoutValue = new ArrayList<>(tableEntryItems.values());
@@ -730,9 +734,6 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
                 snapshots.add(data);
             }
             connectPVs();
-            if (!nodeDataDirty.get()) {
-                nodeDataDirty.set(data.isSaveable());
-            }
             snapshotRestorableProperty.set(true);
 
             return new ArrayList<>(tableEntryItems.values());
@@ -745,7 +746,7 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
      * @param index the index of the snapshot to return
      * @return the snapshot under the given index (0 for the base snapshot and 1 or more for the compared ones)
      */
-    public VSnapshot getSnapshot(int index) {
+    public Snapshot getSnapshot(int index) {
         synchronized (snapshots) {
             return snapshots.isEmpty() ? null
                     : index >= snapshots.size() ? snapshots.get(snapshots.size() - 1)
@@ -774,7 +775,7 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
     }
 
     private void updateThreshold(double threshold) {
-        snapshots.forEach(snapshot -> snapshot.getEntries().forEach(item -> {
+        snapshots.forEach(snapshot -> snapshot.getSnapshotData().getSnapshotItems().forEach(item -> {
             VType vtype = item.getValue();
             VNumber diffVType;
 
@@ -800,7 +801,7 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
     }
 
     private void updateSnapshotValues(double multiplier) {
-        snapshots.forEach(snapshot -> snapshot.getEntries()
+        snapshots.forEach(snapshot -> snapshot.getSnapshotData().getSnapshotItems()
                 .forEach(item -> {
                     TableEntry tableEntry = tableEntryItems.get(getPVKey(item.getConfigPv().getPvName(), item.getConfigPv().isReadOnly()));
                     VType vtype = item.getValue();
@@ -826,8 +827,8 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
     }
 
     public void updateLoadedSnapshot(int snapshotIndex, TableEntry rowValue, VType newValue) {
-        VSnapshot snapshot = snapshots.get(snapshotIndex);
-        snapshot.getEntries().stream()
+        Snapshot snapshot = snapshots.get(snapshotIndex);
+        snapshot.getSnapshotData().getSnapshotItems().stream()
                 .filter(item -> item.getConfigPv().equals(rowValue.getConfigPv()))
                 .findFirst()
                 .ifPresent(item -> {

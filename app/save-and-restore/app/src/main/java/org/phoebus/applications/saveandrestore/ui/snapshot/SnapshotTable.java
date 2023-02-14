@@ -13,7 +13,6 @@ package org.phoebus.applications.saveandrestore.ui.snapshot;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.ObservableList;
-import javafx.geometry.Pos;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -50,8 +49,8 @@ import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.common.VNoData;
 import org.phoebus.applications.saveandrestore.common.VTypePair;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.ui.MultitypeTableCell;
-import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
 import org.phoebus.core.types.TimeStampedProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
@@ -392,7 +391,7 @@ class SnapshotTable extends TableView<TableEntry> {
         }
     }
 
-    private final List<VSnapshot> uiSnapshots = new ArrayList<>();
+    private final List<Snapshot> uiSnapshots = new ArrayList<>();
     private boolean showReadbacks;
     private boolean showDeltaPercentage;
     private final SnapshotController controller;
@@ -403,7 +402,8 @@ class SnapshotTable extends TableView<TableEntry> {
     private int rowAtMouse = -1;
     private int clickedColumn = -1;
     private int clickedRow = -1;
-    public SnapshotTable(){
+
+    public SnapshotTable() {
         this.controller = null;
     }
 
@@ -668,7 +668,7 @@ class SnapshotTable extends TableView<TableEntry> {
      * @param showStoredReadback  true if the stored readback value columns should be visible or false otherwise
      * @param showDeltaPercentage true if delta percentage should be be visible or false otherwise
      */
-    public void updateTable(List<TableEntry> entries, List<VSnapshot> snapshots, boolean showLiveReadback, boolean showStoredReadback, boolean showDeltaPercentage) {
+    public void updateTable(List<TableEntry> entries, List<Snapshot> snapshots, boolean showLiveReadback, boolean showStoredReadback, boolean showDeltaPercentage) {
         getColumns().clear();
         uiSnapshots.clear();
         // we should always know if we are showing the stored readback or not, to properly extract the selection
@@ -799,8 +799,7 @@ class SnapshotTable extends TableView<TableEntry> {
                     cell.setEditable(!item.readOnlyProperty().get());
                     if (item.readOnlyProperty().get()) {
                         cell.getStyleClass().add("check-box-table-cell-disabled");
-                    }
-                    else if(item.valueProperty().get().value.equals(VNoData.INSTANCE)){
+                    } else if (item.valueProperty().get().value.equals(VNoData.INSTANCE)) {
                         item.selectedProperty().set(false);
                     }
                 }

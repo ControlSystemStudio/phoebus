@@ -63,7 +63,6 @@ import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
-import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.pv.PVPool;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -122,7 +121,7 @@ public class SnapshotController {
     private final SimpleStringProperty snapshotNameProperty = new SimpleStringProperty();
     private final SimpleStringProperty snapshotCommentProperty = new SimpleStringProperty();
 
-    private VSnapshot snapshot;
+    private Snapshot snapshot;
     private final Map<String, PV> pvs = new HashMap<>();
     private final Map<String, TableEntry> tableEntryItems = new LinkedHashMap<>();
     private final BooleanProperty snapshotRestorableProperty = new SimpleBooleanProperty(false);
@@ -157,6 +156,12 @@ public class SnapshotController {
 
     @FXML
     protected VBox progressIndicator;
+
+    protected SnapshotTab snapshotTab;
+
+    public SnapshotController(SnapshotTab snapshotTab){
+        this.snapshotTab = snapshotTab;
+    }
 
     /**
      * Used to disable portions of the UI when long-lasting operations are in progress, e.g.
@@ -235,6 +240,7 @@ public class SnapshotController {
      */
     public void newSnapshot(Node configurationNode) {
         this.configurationNode = configurationNode;
+        snapshotTab.updateTabTitle(Messages.unnamedSnapshot);
         JobManager.schedule("Get configuration", monitor -> {
             ConfigurationData configuration;
             try {
@@ -245,8 +251,12 @@ public class SnapshotController {
                 return;
             }
             List<ConfigPv> configPvs = configuration.getPvList();
+            snapshot = new Snapshot();
             snapshotNode = Node.builder().name(Messages.unnamedSnapshot).nodeType(NodeType.SNAPSHOT).build();
-            snapshot = new VSnapshot(snapshotNode, configurationToSnapshotItems(configPvs));
+            snapshot.setSnapshotNode(snapshotNode);
+            SnapshotData snapshotData = new SnapshotData();
+            snapshotData.setSnasphotItems(configurationToSnapshotItems(configPvs));
+            snapshot.setSnapshotData(snapshotData);
             List<TableEntry> tableEntries = setSnapshotInternal();
             Platform.runLater(() -> {
                 snapshotTable.updateTable(tableEntries, List.of(snapshot), false, false, false);
@@ -254,7 +264,7 @@ public class SnapshotController {
         });
     }
 
-    private void loadCompositeSnapshotInternal(Consumer<VSnapshot> completion) {
+    private void loadCompositeSnapshotInternal(Consumer<Snapshot> completion) {
 
         JobManager.schedule("Load composite snapshot items", items -> {
             disabledUi.set(true);
@@ -268,11 +278,12 @@ public class SnapshotController {
             } finally {
                 disabledUi.set(false);
             }
-            VSnapshot vSnapshot =
-                    //new VSnapshot(snapshotNode, snapshotItemsToSnapshotItems(snapshotItems));
-                    new VSnapshot(snapshotNode, snapshotItems);
+            snapshot = new Snapshot();
+            snapshot.setSnapshotNode(snapshotNode);
+            SnapshotData snapshotData = new SnapshotData();
+            snapshotData.setSnasphotItems(snapshotItems);
             disabledUi.set(false);
-            completion.accept(vSnapshot);
+            completion.accept(snapshot);
         });
     }
 
@@ -282,6 +293,10 @@ public class SnapshotController {
         // In this case we need to "invalidate" the <code>sapshotNode</code> field and set it to a new, unsaved one.
         if (snapshotNode.getUniqueId() != null) {
             snapshotNode = Node.builder().name(Messages.unnamedSnapshot).nodeType(NodeType.SNAPSHOT).build();
+            snapshotNameProperty.set(null);
+            snapshotCommentProperty.set(null);
+            snapshotTab.setId(null);
+            snapshotTab.updateTabTitle(Messages.unnamedSnapshot);
         }
         snapshotDataDirty.set(true);
         disabledUi.set(true);
@@ -293,7 +308,12 @@ public class SnapshotController {
                     disabledUi.set(false);
                     entries.addAll(list);
                     Node snapshotNode = Node.builder().name(Messages.unnamedSnapshot).nodeType(NodeType.SNAPSHOT).build();
-                    snapshot = new VSnapshot(snapshotNode, entries);
+                    this.snapshot = new Snapshot();
+                    snapshot.setSnapshotNode(snapshotNode);
+                    SnapshotData snapshotData = new SnapshotData();
+                    snapshotData.setSnasphotItems(entries);
+                    snapshot.setSnapshotData(snapshotData);
+
                     List<TableEntry> tableEntries = setSnapshotInternal();
                     snapshotTable.updateTable(tableEntries, List.of(snapshot), showLiveReadbackProperty.get(), false, showDeltaPercentage);
                 })
@@ -305,7 +325,7 @@ public class SnapshotController {
 
         disabledUi.set(true);
         JobManager.schedule("Save Snapshot", monitor -> {
-            List<SnapshotItem> snapshotItems = snapshot.getEntries();
+            List<SnapshotItem> snapshotItems = snapshot.getSnapshotData().getSnapshotItems();
             SnapshotData snapshotData = new SnapshotData();
             snapshotData.setSnasphotItems(snapshotItems);
             Snapshot snapshot = new Snapshot();
@@ -315,6 +335,7 @@ public class SnapshotController {
                 snapshot = saveAndRestoreService.saveSnapshot(configurationNode, snapshot);
                 snapshotDataDirty.set(false);
                 snapshotNode = snapshot.getSnapshotNode();
+                snapshotTab.updateTabTitle(snapshot.getSnapshotNode().getName());
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, "Failed to save snapshot", e);
                 Platform.runLater(() -> {
@@ -332,12 +353,11 @@ public class SnapshotController {
     }
 
     protected List<TableEntry> setSnapshotInternal() {
-        snapshotRestorableProperty.set(snapshot.getSnapshot().isPresent());
         String name;
         TableEntry e;
         SnapshotItem entry;
-        for (int i = 0; i < snapshot.getEntries().size(); i++) {
-            entry = snapshot.getEntries().get(i);
+        for (int i = 0; i < snapshot.getSnapshotData().getSnapshotItems().size(); i++) {
+            entry = snapshot.getSnapshotData().getSnapshotItems().get(i);
             e = new TableEntry();
             name = entry.getConfigPv().getPvName();
             e.idProperty().setValue(i + 1);
@@ -377,7 +397,7 @@ public class SnapshotController {
      * @param index the index of the snapshot to return
      * @return the snapshot under the given index (0 for the base snapshot and 1 or more for the compared ones)
      */
-    public VSnapshot getSnapshot(int index) {
+    public Snapshot getSnapshot(int index) {
         return snapshot;
     }
 
@@ -400,7 +420,7 @@ public class SnapshotController {
     }
 
     public void updateLoadedSnapshot(int snapshotIndex, TableEntry rowValue, VType newValue) {
-        snapshot.getEntries().stream()
+        snapshot.getSnapshotData().getSnapshotItems().stream()
                 .filter(item -> item.getConfigPv().equals(rowValue.getConfigPv()))
                 .findFirst()
                 .ifPresent(item -> {

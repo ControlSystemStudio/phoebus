@@ -35,7 +35,7 @@ import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.common.Utilities;
 import org.phoebus.applications.saveandrestore.common.VNoData;
 import org.phoebus.applications.saveandrestore.common.VTypePair;
-import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
+import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.core.types.TimeStampedProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
@@ -105,7 +105,7 @@ class RestoreSnapshotTable extends SnapshotTable {
         }
     }
 
-    private final List<VSnapshot> uiSnapshots = new ArrayList<>();
+    private final List<Snapshot> uiSnapshots = new ArrayList<>();
     private boolean showStoredReadbacks;
     private boolean showReadbacks;
     private boolean showDeltaPercentage;
@@ -245,7 +245,7 @@ class RestoreSnapshotTable extends SnapshotTable {
         return (int) mText.getLayoutBounds().getWidth();
     }
 
-    private void createTableForMultipleSnapshots(List<VSnapshot> snapshots) {
+    private void createTableForMultipleSnapshots(List<Snapshot> snapshots) {
         List<TableColumn<TableEntry, ?>> list = new ArrayList<>(7);
         TableColumn<TableEntry, Boolean> selectedColumn = new SelectionTableColumn();
         list.add(selectedColumn);
@@ -272,9 +272,8 @@ class RestoreSnapshotTable extends SnapshotTable {
                 Messages.toolTipTableColumnPVValues, -1);
         storedValueColumn.getStyleClass().add("toplevel");
 
-        String snapshotName = snapshots.get(0).getSnapshot().get().getName() + " (" +
+        String snapshotName = snapshots.get(0).getSnapshotNode().getName() + " (" +
                 snapshots.get(0) + ")";
-
 
         TableColumn<TableEntry, ?> baseCol = new TooltipTableColumn<>(
                 snapshotName,
@@ -337,7 +336,7 @@ class RestoreSnapshotTable extends SnapshotTable {
         for (int i = 1; i < snapshots.size(); i++) {
             final int snapshotIndex = i;
 
-            snapshotName = snapshots.get(snapshotIndex).getSnapshot().get().getName() + " (" +
+            snapshotName = snapshots.get(snapshotIndex).getSnapshotNode().getName() + " (" +
                     snapshots.get(snapshotIndex) + ")";
 
 

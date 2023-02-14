@@ -17,6 +17,7 @@
  */
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXMLLoader;
@@ -79,7 +80,13 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
         tabGraphicImageProperty.set(isGolden ? ImageRepository.GOLDEN_SNAPSHOT : ImageRepository.SNAPSHOT);
 
         setOnCloseRequest(event -> {
-            if (!snapshotController.handleSnapshotTabClosed()) {
+            if (snapshotController != null && !snapshotController.handleSnapshotTabClosed()) {
+                event.consume();
+            } else {
+                SaveAndRestoreService.getInstance().removeNodeChangeListener(this);
+            }
+
+            if (restoreSnapshotController != null && !restoreSnapshotController.handleSnapshotTabClosed()) {
                 event.consume();
             } else {
                 SaveAndRestoreService.getInstance().removeNodeChangeListener(this);
@@ -90,7 +97,7 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
     }
 
     public void updateTabTitle(String name) {
-        tabTitleProperty.set(name);
+        Platform.runLater(() -> tabTitleProperty.set(name));
     }
 
     public void setGoldenImage() {
@@ -102,15 +109,15 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
     }
 
     public void newSnapshot(org.phoebus.applications.saveandrestore.model.Node configurationNode) {
-        if(snapshotController == null){
+        if (snapshotController == null) {
             ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
             FXMLLoader loader = new FXMLLoader();
             loader.setResources(resourceBundle);
             loader.setLocation(SnapshotTab.class.getResource("SnapshotView.fxml"));
-            /*
+
             loader.setControllerFactory(clazz -> {
                 try {
-                   if (clazz.isAssignableFrom(SnapshotController.class)) {
+                    if (clazz.isAssignableFrom(SnapshotController.class)) {
                         return clazz.getConstructor(SnapshotTab.class)
                                 .newInstance(this);
                     }
@@ -120,8 +127,6 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
                 }
                 return null;
             });
-
-             */
 
             try {
                 setContent(loader.load());
@@ -133,12 +138,11 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
             }
         }
         setId(null);
-        updateTabTitle(Messages.unnamedSnapshot);
         snapshotController.newSnapshot(configurationNode);
     }
 
     public void loadSnapshot(Node snapshotNode) {
-        if(restoreSnapshotController == null){
+        if (restoreSnapshotController == null) {
             ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
             FXMLLoader loader = new FXMLLoader();
             loader.setResources(resourceBundle);
@@ -180,11 +184,11 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
         }
     }
 
-    public Node getSnapshotNode(){
-        return snapshotController.getSnapshot(0).getSnapshot().get();
+    public Node getSnapshotNode() {
+        return snapshotController.getSnapshot(0).getSnapshotNode();
     }
 
-    public Node getConfigNode(){
+    public Node getConfigNode() {
         return snapshotController.getConfigurationNode();
     }
 }
