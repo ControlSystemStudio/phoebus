@@ -203,7 +203,7 @@ public class DockItem extends Tab
         final MenuItem split_vert = new MenuItem(Messages.DockSplitV, new ImageView(split_vert_icon));
         split_vert.setOnAction(event -> split(false));
 
-        final SaveLayoutMenuItem save_window = new SaveLayoutMenuItem("Save Layout of Containing Window");
+        final SaveLayoutMenuItem save_window = new SaveLayoutMenuItem(Messages.SaveLayoutOfContainingWindowAs);
         save_window.setOnAction(event -> {
             DockPane activeDockPane = getActiveDockPane();
             List<Stage> stagesContainingActiveDockPane = DockStage.getDockStages().stream().filter(stage -> getDockPanes(stage).contains(activeDockPane)).collect(Collectors.toList());
