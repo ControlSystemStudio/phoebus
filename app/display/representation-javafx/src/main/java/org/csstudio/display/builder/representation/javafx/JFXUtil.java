@@ -33,7 +33,7 @@ import javafx.scene.text.FontWeight;
 public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
 {
     private static double font_calibration = 1.0;
-    private static final DecimalFormat RGBA_ALPHA_DECIMAL_FORMAT = new DecimalFormat("#.##");
+    private static final DecimalFormat RGBA_ALPHA_DECIMAL_FORMAT = new DecimalFormat("0.00");
 
     static
     {

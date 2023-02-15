@@ -38,7 +38,7 @@ public class JFXUtilTest
     {
         assertThat(JFXUtil.webRgbOrHex(new WidgetColor(15, 255, 0)), equalTo("#0FFF00"));
         assertThat(JFXUtil.webRgbOrHex(new WidgetColor(0, 16, 255)), equalTo("#0010FF"));
-        assertThat(JFXUtil.webRgbOrHex(new WidgetColor(0, 16, 255, 50)), equalTo("rgba(0,16,255,0.19607843)"));
+        assertThat(JFXUtil.webRgbOrHex(new WidgetColor(0, 16, 255, 50)), equalTo("rgba(0,16,255,0.20)"));
     }
 
     @Test
