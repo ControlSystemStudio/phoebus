@@ -9,15 +9,15 @@ package org.phoebus.ui.docking;
 
 import java.lang.ref.WeakReference;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -402,30 +402,38 @@ public class DockPane extends TabPane
      *  return the scene.
      *  But if this dock pane is nested inside a newly created {@link SplitDock},
      *  it will not have a scene until it is rendered.
-     *  So keep deferring to the next UI pulse until there is a scene.
+     *  The relative ordering in time of deferred function calls is preserved: if
+     *  f1() is deferred before f2() is deferred, then f1() will be called before
+     *  f2() is called.
      *  @param user_of_scene Something that needs to run once there is a scene
      */
-    public void deferUntilInScene(final Consumer<Scene> user_of_scene)
-    {
-        // Tried to optimize this based on
-        //     sceneProperty().addListener(...),
-        // creating list of registered users_of_scene,
-        // invoking once the scene property changes to != null,
-        // then deleting the list and removing the listener,
-        // but that added quite some code and failed for
-        // strange endless-loop type reasons.
-        deferUntilInScene(0, user_of_scene);
-    }
+    private Deque<Consumer<Scene>> functionsDeferredUntilInScene = new LinkedList<>();
+    private boolean changeListenerAdded = false;
+    public void deferUntilInScene(Consumer<Scene> function) {
+        Scene scene = sceneProperty().get();
+        if (scene != null) {
+            function.accept(scene);
+        }
+        else {
+            functionsDeferredUntilInScene.addLast(function);
 
-    // See deferUntilInScene, giving up after 10 attempts
-    private void deferUntilInScene(final int level, final Consumer<Scene> user_of_scene)
-    {
-        if (getScene() != null)
-            user_of_scene.accept(getScene());
-        else if (level < 10)
-            Platform.runLater(() -> deferUntilInScene(level+1, user_of_scene));
-        else
-            logger.log(Level.WARNING, this + " has no scene for deferred call to " + user_of_scene);
+            if (!changeListenerAdded) {
+                ChangeListener changeListener = new ChangeListener() {
+                    @Override
+                    public void changed(ObservableValue observableValue, Object oldValue, Object newValue) {
+                        if (newValue != null) {
+                            while(!functionsDeferredUntilInScene.isEmpty()) {
+                                Consumer<Scene> f = functionsDeferredUntilInScene.removeFirst();
+                                f.accept((Scene) newValue);
+                            }
+                            sceneProperty().removeListener(this);
+                        }
+                    }
+                };
+                sceneProperty().addListener(changeListener);
+                changeListenerAdded = true;
+            }
+        }
     }
 
     /** Hide or show tabs
