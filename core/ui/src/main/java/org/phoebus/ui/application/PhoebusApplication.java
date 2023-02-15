@@ -528,6 +528,8 @@ public class PhoebusApplication extends Application {
         show_statusbar.setOnAction(event -> showStatusbar(show_statusbar.isSelected()));
 
         save_layout = new SaveLayoutMenuItem(Messages.SaveLayoutAs);
+        save_layout.setOnAction(event -> save_layout.saveLayout(DockStage.getDockStages()));
+
         delete_layouts = new DeleteLayoutsMenuItem();
 
         final Menu menu = new Menu(Messages.Window, null,
@@ -1187,7 +1189,7 @@ public class PhoebusApplication extends Application {
         // Save current state, _before_ tabs are closed and thus
         // there's nothing left to save
         final File memfile = XMLMementoTree.getDefaultFile();
-        MementoHelper.saveState(memfile, last_opened_file, default_application, isMenuVisible(), isToolbarVisible(), isStatusbarVisible());
+        MementoHelper.saveState(DockStage.getDockStages(), memfile, last_opened_file, default_application, isMenuVisible(), isToolbarVisible(), isStatusbarVisible());
 
         // TODO Necessary to close main_stage last?
         if (stages.contains(main_stage)) {

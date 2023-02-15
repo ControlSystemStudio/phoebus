@@ -81,14 +81,6 @@ public class MementoHelper
         savePaneOrSplit(stage_memento, node);
     }
 
-    /** Persist each stage (window) and its tabs
-     * @param memento The memento tree to which each stage will be saved.*/
-    public static void saveStages(final MementoTree memento)
-    {
-        for (final Stage stage : DockStage.getDockStages())
-           saveStage(memento, stage);
-    }
-
     /** @param memento
      *  @param item DockPane or SplitDock
      */
@@ -329,7 +321,8 @@ public class MementoHelper
      *  @param show_toolbar Show toolbar?
      *  @param show_statusbar Show status bar?
      */
-    public static void saveState(final File memento_file,
+    public static void saveState(List<Stage> stagesToSave,
+                                 final File memento_file,
                                  final File last_opened_file,
                                  final String default_application,
                                  final boolean show_menu,
@@ -352,7 +345,8 @@ public class MementoHelper
             memento.setBoolean(PhoebusApplication.SHOW_STATUSBAR, show_statusbar);
 
             // Persist each stage (window) and its tabs
-            saveStages(memento);
+            for (final Stage stage : stagesToSave)
+                saveStage(memento, stage);
 
             // Write the memento file
             if (!memento_file.getParentFile().exists())

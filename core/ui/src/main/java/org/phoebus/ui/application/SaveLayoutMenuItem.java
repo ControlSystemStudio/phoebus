@@ -47,7 +47,7 @@ public class SaveLayoutMenuItem extends MenuItem
     /** Save the layout. Prompt for a new filename, validate, possibly confirm an overwrite, and then save.
      *  @return <code>true</code> if layout save has been initiated (may take some time to complete)
      */
-    private boolean saveLayout()
+    public boolean saveLayout(List<Stage> stagesToSave)
     {
         final TextInputDialog prompt = new TextInputDialog();
         prompt.setTitle(getText());
@@ -72,7 +72,7 @@ public class SaveLayoutMenuItem extends MenuItem
                 prompt.setHeaderText(Messages.SaveDlgHdr);
 
             // Done if save succeeded.
-            if (saveState(filename))
+            if (saveState(stagesToSave, filename))
                 return true;
         }
     }
@@ -92,7 +92,7 @@ public class SaveLayoutMenuItem extends MenuItem
      *  @param layout Memento name
      *  @return <code>true</code> if saved, <code>false</code> when not overwriting existing file
      */
-    private boolean saveState(final String layout)
+    private boolean saveState(List<Stage> stagesToSave, final String layout)
     {
         final String memento_filename = layout + ".memento";
         final File memento_file = new File(Locations.user(), memento_filename);
@@ -111,7 +111,7 @@ public class SaveLayoutMenuItem extends MenuItem
         // Save in background thread
         JobManager.schedule("Save " + memento_filename, monitor ->
         {
-            MementoHelper.saveState(memento_file, null, null, PhoebusApplication.INSTANCE.isMenuVisible(), PhoebusApplication.INSTANCE.isToolbarVisible(), PhoebusApplication.INSTANCE.isStatusbarVisible());
+            MementoHelper.saveState(stagesToSave, memento_file, null, null, PhoebusApplication.INSTANCE.isMenuVisible(), PhoebusApplication.INSTANCE.isToolbarVisible(), PhoebusApplication.INSTANCE.isStatusbarVisible());
 
             // After the layout has been saved,
             // update menu to include the newly saved layout
