@@ -52,7 +52,7 @@ public class SaveLayoutMenuItem extends MenuItem
         final TextInputDialog prompt = new TextInputDialog();
         prompt.setTitle(getText());
         prompt.setHeaderText(Messages.SaveDlgHdr);
-        positionDialog(prompt);
+        positionDialog(prompt, stagesToSave.get(0));
 
         while (true)
         {
@@ -77,10 +77,9 @@ public class SaveLayoutMenuItem extends MenuItem
         }
     }
 
-    private void positionDialog(final Dialog<?> dialog)
+    private void positionDialog(final Dialog<?> dialog, Stage stage)
     {
-        final List<Stage> stages = DockStage.getDockStages();
-        DialogHelper.positionDialog(dialog, stages.get(0).getScene().getRoot(), -100, -100);
+        DialogHelper.positionDialog(dialog, stage.getScene().getRoot(), -100, -100);
         dialog.setResizable(true);
         dialog.getDialogPane().setMinSize(280, 160);
     }
@@ -103,7 +102,7 @@ public class SaveLayoutMenuItem extends MenuItem
         {
             final Alert fileExistsAlert = new Alert(AlertType.CONFIRMATION);
             fileExistsAlert.setHeaderText(MessageFormat.format(Messages.FileExists, layout));
-            positionDialog(fileExistsAlert);
+            positionDialog(fileExistsAlert, stagesToSave.get(0));
             if (fileExistsAlert.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK)
                 return false;
         }
