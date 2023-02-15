@@ -304,7 +304,7 @@ public class SnapshotController {
         List<SnapshotItem> entries = new ArrayList<>();
         readAll(list ->
                 Platform.runLater(() -> {
-                    dispose();
+                    tableEntryItems.clear();
                     disabledUi.set(false);
                     entries.addAll(list);
                     Node snapshotNode = Node.builder().name(Messages.unnamedSnapshot).nodeType(NodeType.SNAPSHOT).build();
@@ -313,7 +313,6 @@ public class SnapshotController {
                     SnapshotData snapshotData = new SnapshotData();
                     snapshotData.setSnasphotItems(entries);
                     snapshot.setSnapshotData(snapshotData);
-
                     List<TableEntry> tableEntries = setSnapshotInternal();
                     snapshotTable.updateTable(tableEntries, List.of(snapshot), showLiveReadbackProperty.get(), false, showDeltaPercentage);
                 })
@@ -363,17 +362,12 @@ public class SnapshotController {
             e.idProperty().setValue(i + 1);
             e.pvNameProperty().setValue(name);
             e.setConfigPv(entry.getConfigPv());
-            //e.selectedProperty().setValue(entry.isSelected());
             e.setSnapshotValue(entry.getValue(), 0);
             e.setStoredReadbackValue(entry.getReadbackValue(), 0);
             String key = getPVKey(name, entry.getConfigPv().isReadOnly());
             e.readbackNameProperty().set(entry.getConfigPv().getReadbackPvName());
             e.readOnlyProperty().set(entry.getConfigPv().isReadOnly());
             tableEntryItems.put(key, e);
-            PV pv = pvs.get(key);
-            if (pv != null) {
-                pv.setSnapshotTableEntry(e);
-            }
         }
         connectPVs();
         return new ArrayList<>(tableEntryItems.values());
@@ -415,6 +409,9 @@ public class SnapshotController {
             PV pv = pvs.get(getPVKey(e.getConfigPv().getPvName(), e.getConfigPv().isReadOnly()));
             if (pv == null) {
                 pvs.put(getPVKey(e.getConfigPv().getPvName(), e.getConfigPv().isReadOnly()), new PV(e));
+            }
+            else {
+                pv.setSnapshotTableEntry(e);
             }
         });
     }
@@ -466,7 +463,6 @@ public class SnapshotController {
                     this.snapshotTableEntry.setLiveValue(pvValue);
                 });
 
-
                 if (readbackPvName != null && !readbackPvName.isEmpty()) {
                     readbackPv = PVPool.getPV(this.readbackPvName);
                     readbackPv.onValueEvent()
@@ -502,6 +498,7 @@ public class SnapshotController {
 
         public void setSnapshotTableEntry(TableEntry snapshotTableEntry) {
             this.snapshotTableEntry = snapshotTableEntry;
+            this.snapshotTableEntry.setLiveValue(pv.read());
         }
 
         void dispose() {
