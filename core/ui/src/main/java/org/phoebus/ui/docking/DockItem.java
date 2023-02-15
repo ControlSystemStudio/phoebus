@@ -7,7 +7,9 @@
  *******************************************************************************/
 package org.phoebus.ui.docking;
 
+import static org.phoebus.ui.docking.DockPane.getActiveDockPane;
 import static org.phoebus.ui.docking.DockPane.logger;
+import static org.phoebus.ui.docking.DockStage.getDockPanes;
 
 import java.awt.MouseInfo;
 import java.awt.Point;
@@ -20,12 +22,14 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.application.Messages;
+import org.phoebus.ui.application.SaveLayoutMenuItem;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Styles;
@@ -93,6 +97,7 @@ public class DockItem extends Tab
                                detach_icon = ImageCache.getImage(DockItem.class, "/icons/detach.png"),
                                split_horiz_icon = ImageCache.getImage(DockItem.class, "/icons/split_horiz.png"),
                                split_vert_icon = ImageCache.getImage(DockItem.class, "/icons/split_vert.png"),
+                               save_window_layout_icon = ImageCache.getImage(DockItem.class, "/icons/new_layout.png"),
                                close_many_icon = ImageCache.getImage(DockItem.class, "/icons/remove_multiple.png");
 
 
@@ -198,6 +203,21 @@ public class DockItem extends Tab
         final MenuItem split_vert = new MenuItem(Messages.DockSplitV, new ImageView(split_vert_icon));
         split_vert.setOnAction(event -> split(false));
 
+        final SaveLayoutMenuItem save_window = new SaveLayoutMenuItem("Save Layout of Containing Window");
+        save_window.setOnAction(event -> {
+            DockPane activeDockPane = getActiveDockPane();
+            List<Stage> stagesContainingActiveDockPane = DockStage.getDockStages().stream().filter(stage -> getDockPanes(stage).contains(activeDockPane)).collect(Collectors.toList());
+            if (stagesContainingActiveDockPane.size() == 1) {
+                save_window.saveLayout(stagesContainingActiveDockPane);
+            }
+            else if (stagesContainingActiveDockPane.size() == 1) {
+                logger.log(Level.SEVERE, "No stage contains the active dock pane!");
+            }
+            else {
+                logger.log(Level.SEVERE, "More than one stage contains the active dock pane!");
+            }
+        });
+
         final MenuItem close = new MenuItem(Messages.DockClose, new ImageView(DockPane.close_icon));
         close.setOnAction(event -> close(List.of(this)));
 
@@ -207,7 +227,7 @@ public class DockItem extends Tab
             // Close all other tabs in non-fixed panes of this window
             final Stage stage = (Stage) getDockPane().getScene().getWindow();
             final List<DockItem> tabs = new ArrayList<>();
-            for (DockPane pane : DockStage.getDockPanes(stage))
+            for (DockPane pane : getDockPanes(stage))
                 if (! pane.isFixed())
                     for (Tab tab : new ArrayList<>(pane.getTabs()))
                         if ((tab instanceof DockItem)  &&  tab != DockItem.this)
@@ -221,7 +241,7 @@ public class DockItem extends Tab
             // Close all tabs in non-fixed panes of this window
             final Stage stage = (Stage) getDockPane().getScene().getWindow();
             final List<DockItem> tabs = new ArrayList<>();
-            for (DockPane pane : DockStage.getDockPanes(stage))
+            for (DockPane pane : getDockPanes(stage))
                 if (! pane.isFixed())
                     for (Tab tab : new ArrayList<>(pane.getTabs()))
                         if ((tab instanceof DockItem))
@@ -234,6 +254,7 @@ public class DockItem extends Tab
         menu.setOnShowing(event ->
         {
             menu.getItems().setAll(info);
+            menu.getItems().setAll(save_window);
 
             final boolean may_lock = AuthorizationService.hasAuthorization("lock_ui");
             final DockPane pane = getDockPane();
