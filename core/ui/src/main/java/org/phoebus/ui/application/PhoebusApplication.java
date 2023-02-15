@@ -102,7 +102,7 @@ public class PhoebusApplication extends Application {
      * <p>Set on {@link #start(Stage)},
      * may be used to for example get HostServices
      */
-    public static Application INSTANCE;
+    public static PhoebusApplication INSTANCE;
 
     /**
      * Application parameters
