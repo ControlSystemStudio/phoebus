@@ -33,9 +33,9 @@ import javafx.stage.Stage;
 public class SaveLayoutMenuItem extends MenuItem
 {
     /** Save layout menu item */
-    public SaveLayoutMenuItem()
+    public SaveLayoutMenuItem(String menuText)
     {
-        super(Messages.SaveLayoutAs, ImageCache.getImageView(ImageCache.class, "/icons/new_layout.png"));
+        super(menuText, ImageCache.getImageView(ImageCache.class, "/icons/new_layout.png"));
     }
 
     /** Validate the filename. Only [A-Z][a-z]_[0-9]. are allowed. */
