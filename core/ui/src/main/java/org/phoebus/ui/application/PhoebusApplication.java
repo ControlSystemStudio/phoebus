@@ -95,7 +95,7 @@ public class PhoebusApplication extends Application {
      * <p>Set on {@link #start(Stage)},
      * may be used to for example get HostServices
      */
-    public static PhoebusApplication INSTANCE;
+    public static Application INSTANCE;
 
     /**
      * Application parameters
@@ -181,7 +181,7 @@ public class PhoebusApplication extends Application {
      * without the ".memento" suffix and without the 'user'
      * location path.
      */
-    public final List<String> memento_files = new CopyOnWriteArrayList<>();
+    private final List<String> memento_files = new CopyOnWriteArrayList<>();
 
     /**
      * Toolbar button for top resources
