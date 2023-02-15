@@ -30,18 +30,12 @@ import javafx.stage.Stage;
  *  @author Evan Smith
  */
 @SuppressWarnings("nls")
-class SaveLayoutMenuItem extends MenuItem
+public class SaveLayoutMenuItem extends MenuItem
 {
-    private final PhoebusApplication phoebus;
-    private final List<String> memento_files;
-
     /** Save layout menu item */
-    public SaveLayoutMenuItem(final PhoebusApplication phoebus, final List<String> memento_files)
+    public SaveLayoutMenuItem()
     {
         super(Messages.SaveLayoutAs, ImageCache.getImageView(ImageCache.class, "/icons/new_layout.png"));
-        this.phoebus = phoebus;
-        this.memento_files = memento_files;
-        setOnAction(event ->  saveLayout());
     }
 
     /** Validate the filename. Only [A-Z][a-z]_[0-9]. are allowed. */
@@ -95,7 +89,6 @@ class SaveLayoutMenuItem extends MenuItem
      *
      *  <p> If the file already exists, alert the user and prompt for file overwrite confirmation.
      *
-     *  @param phoebus Phoebus application
      *  @param layout Memento name
      *  @return <code>true</code> if saved, <code>false</code> when not overwriting existing file
      */
@@ -106,7 +99,7 @@ class SaveLayoutMenuItem extends MenuItem
         // File.exists() is blocking in nature.
         // To combat this the phoebus application maintains a list of *.memento files that are in the default directory.
         // Check if the file name is in the list, and confirm a file overwrite with the user.
-        if (memento_files.contains(layout))
+        if (PhoebusApplication.INSTANCE.memento_files.contains(layout))
         {
             final Alert fileExistsAlert = new Alert(AlertType.CONFIRMATION);
             fileExistsAlert.setHeaderText(MessageFormat.format(Messages.FileExists, layout));
@@ -118,11 +111,11 @@ class SaveLayoutMenuItem extends MenuItem
         // Save in background thread
         JobManager.schedule("Save " + memento_filename, monitor ->
         {
-            MementoHelper.saveState(memento_file, null, null, phoebus.isMenuVisible(), phoebus.isToolbarVisible(), phoebus.isStatusbarVisible());
+            MementoHelper.saveState(memento_file, null, null, PhoebusApplication.INSTANCE.isMenuVisible(), PhoebusApplication.INSTANCE.isToolbarVisible(), PhoebusApplication.INSTANCE.isStatusbarVisible());
 
             // After the layout has been saved,
             // update menu to include the newly saved layout
-            phoebus.createLoadLayoutsMenu();
+            PhoebusApplication.INSTANCE.createLoadLayoutsMenu();
         });
         return true;
     }

@@ -527,8 +527,8 @@ public class PhoebusApplication extends Application {
         show_statusbar = new CheckMenuItem(Messages.ShowStatusbar);
         show_statusbar.setOnAction(event -> showStatusbar(show_statusbar.isSelected()));
 
-        save_layout = new SaveLayoutMenuItem(this, memento_files);
-        delete_layouts = new DeleteLayoutsMenuItem(this, memento_files);
+        save_layout = new SaveLayoutMenuItem();
+        delete_layouts = new DeleteLayoutsMenuItem();
 
         final Menu menu = new Menu(Messages.Window, null,
                 show_tabs,
