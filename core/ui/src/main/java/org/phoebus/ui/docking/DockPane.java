@@ -394,8 +394,9 @@ public class DockPane extends TabPane
         return null;
     }
 
-    /** Somewhat hacky:
-     *  Need the scene of this dock pane to adjust the style sheet
+    private Deque<Consumer<Scene>> functionsDeferredUntilInScene = new LinkedList<>();
+    private boolean changeListenerAdded = false;
+    /** Need the scene of this dock pane to adjust the style sheet
      *  or to interact with the Window.
      *
      *  We _have_ added this DockPane to a scene graph, so getScene() should
@@ -405,10 +406,8 @@ public class DockPane extends TabPane
      *  The relative ordering in time of deferred function calls is preserved: if
      *  f1() is deferred before f2() is deferred, then f1() will be called before
      *  f2() is called.
-     *  @param user_of_scene Something that needs to run once there is a scene
+     *  @param function Something that needs to run once there is a scene
      */
-    private Deque<Consumer<Scene>> functionsDeferredUntilInScene = new LinkedList<>();
-    private boolean changeListenerAdded = false;
     public void deferUntilInScene(Consumer<Scene> function) {
         Scene scene = sceneProperty().get();
         if (scene != null) {
