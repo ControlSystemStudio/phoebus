@@ -183,7 +183,7 @@ public class PhoebusApplication extends Application {
      * without the ".memento" suffix and without the 'user'
      * location path.
      */
-    private final List<String> memento_files = new CopyOnWriteArrayList<>();
+    public final List<String> memento_files = new CopyOnWriteArrayList<>();
 
     /**
      * Toolbar button for top resources
