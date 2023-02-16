@@ -605,12 +605,13 @@ public class DockItem extends Tab
             logger.log(Level.SEVERE, "'prepareToClose' must not be called on UI thread because it can block/deadlock", new Exception("Stack Trace"));
 
         if (close_check != null)
-        	try
-        	{	// Allow DockItem to close gracefully. It may ask to defer closing
+            try
+            {    // Allow DockItem to close gracefully. It may ask to defer closing
                 for (Supplier<Future<Boolean>> check : close_check)
                 {
                     final CompletableFuture<Boolean> result = new CompletableFuture<>();
-                    JobManager.schedule("Check if OK to close", monitor -> {
+                    JobManager.schedule("Check if OK to close", monitor ->
+                    {
                         try
                         {
                             result.complete(check.get().get());
@@ -623,13 +624,13 @@ public class DockItem extends Tab
                     if (! result.get())
                         return false;
                 }
-        	}
-        	catch (Exception ex)
-	        {	// Internal error prevented an orderly shutdown.
-        		// Log, but don't allow a crashing part to prevent shutdown
-        		// of other parts and overall application
-        		logger.log(Level.SEVERE, this + " failed to shut down cleanly, forcing to close", ex);
-	        }
+            }
+            catch (Exception ex)
+            {   // Internal error prevented an orderly shutdown.
+                // Log, but don't allow a crashing part to prevent shutdown
+                // of other parts and overall application
+                logger.log(Level.SEVERE, this + " failed to shut down cleanly, forcing to close", ex);
+            }
         
         prepared_do_close = true;
         return true;
