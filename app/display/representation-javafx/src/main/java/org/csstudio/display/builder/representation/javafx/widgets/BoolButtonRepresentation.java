@@ -18,6 +18,7 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.ConfirmDialog;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.VTypeUtil;
@@ -120,6 +121,13 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
         Pane pane = new Pane();
         pane.getChildren().setAll(button);
         return pane;
+    }
+
+    @Override
+    protected void attachTooltip()
+    {
+        model_widget.checkProperty(CommonWidgetProperties.propTooltip)
+                .ifPresent(prop -> TooltipSupport.attach(button, prop));
     }
 
     /** Respond to button press
