@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -605,23 +605,32 @@ public class DockItem extends Tab
             logger.log(Level.SEVERE, "'prepareToClose' must not be called on UI thread because it can block/deadlock", new Exception("Stack Trace"));
 
         if (close_check != null)
-            for (Supplier<Future<Boolean>> check : close_check)
-            {
-                final CompletableFuture<Boolean> result = new CompletableFuture<>();
-                JobManager.schedule("Check if OK to close", monitor -> {
-                    try
-                    {
-                        result.complete(check.get().get());
-                    }
-                    catch (Exception ex)
-                    {
-                        result.completeExceptionally(ex);
-                    }
-                });
-                if (! result.get())
-                    return false;
-            }
-
+        	try
+        	{	// Allow DockItem to close gracefully. It may ask to defer closing
+                for (Supplier<Future<Boolean>> check : close_check)
+                {
+                    final CompletableFuture<Boolean> result = new CompletableFuture<>();
+                    JobManager.schedule("Check if OK to close", monitor -> {
+                        try
+                        {
+                            result.complete(check.get().get());
+                        }
+                        catch (Exception ex)
+                        {
+                            result.completeExceptionally(ex);
+                        }
+                    });
+                    if (! result.get())
+                        return false;
+                }
+        	}
+        	catch (Exception ex)
+	        {	// Internal error prevented an orderly shutdown.
+        		// Log, but don't allow a crashing part to prevent shutdown
+        		// of other parts and overall application
+        		logger.log(Level.SEVERE, this + " failed to shut down cleanly, forcing to close", ex);
+	        }
+        
         prepared_do_close = true;
         return true;
     }
