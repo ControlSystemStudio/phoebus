@@ -254,7 +254,6 @@ public class DockItem extends Tab
         menu.setOnShowing(event ->
         {
             menu.getItems().setAll(info);
-            menu.getItems().setAll(save_window);
 
             final boolean may_lock = AuthorizationService.hasAuthorization("lock_ui");
             final DockPane pane = getDockPane();
@@ -279,6 +278,7 @@ public class DockItem extends Tab
                                        new SeparatorMenuItem(),
                                        close_all);
             }
+            menu.getItems().addAll(new SeparatorMenuItem(), save_window);
         });
 
         name_tab.setContextMenu(menu);
