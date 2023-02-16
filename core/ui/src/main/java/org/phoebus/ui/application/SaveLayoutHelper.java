@@ -11,35 +11,28 @@ import java.io.File;
 import java.text.MessageFormat;
 import java.util.List;
 
+import javafx.scene.control.*;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.dialog.DialogHelper;
-import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.internal.MementoHelper;
-import org.phoebus.ui.javafx.ImageCache;
 
-import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TextInputDialog;
 import javafx.stage.Stage;
 
-/** Menu item and helper to save layout
+/** Helper to save layout
  *  @author Evan Smith
  */
 @SuppressWarnings("nls")
-public class SaveLayoutMenuItem extends MenuItem
+public class SaveLayoutHelper
 {
-    /** Save layout menu item */
-    public SaveLayoutMenuItem(String menuText)
+    private SaveLayoutHelper()
     {
-        super(menuText, ImageCache.getImageView(ImageCache.class, "/icons/new_layout.png"));
+        ;
     }
 
     /** Validate the filename. Only [A-Z][a-z]_[0-9]. are allowed. */
-    private boolean validateFilename(final String filename)
+    private static boolean validateFilename(final String filename)
     {
         return filename.matches("[\\w -]+");
     }
@@ -47,10 +40,10 @@ public class SaveLayoutMenuItem extends MenuItem
     /** Save the layout. Prompt for a new filename, validate, possibly confirm an overwrite, and then save.
      *  @return <code>true</code> if layout save has been initiated (may take some time to complete)
      */
-    public boolean saveLayout(List<Stage> stagesToSave)
+    public static boolean saveLayout(List<Stage> stagesToSave, String titleText)
     {
         final TextInputDialog prompt = new TextInputDialog();
-        prompt.setTitle(getText());
+        prompt.setTitle(titleText);
         prompt.setHeaderText(Messages.SaveDlgHdr);
         positionDialog(prompt, stagesToSave.get(0));
 
@@ -77,7 +70,7 @@ public class SaveLayoutMenuItem extends MenuItem
         }
     }
 
-    private void positionDialog(final Dialog<?> dialog, Stage stage)
+    private static void positionDialog(final Dialog<?> dialog, Stage stage)
     {
         DialogHelper.positionDialog(dialog, stage.getScene().getRoot(), -100, -100);
         dialog.setResizable(true);
@@ -91,7 +84,7 @@ public class SaveLayoutMenuItem extends MenuItem
      *  @param layout Memento name
      *  @return <code>true</code> if saved, <code>false</code> when not overwriting existing file
      */
-    private boolean saveState(List<Stage> stagesToSave, final String layout)
+    private static boolean saveState(List<Stage> stagesToSave, final String layout)
     {
         final String memento_filename = layout + ".memento";
         final File memento_file = new File(Locations.user(), memento_filename);

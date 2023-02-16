@@ -164,7 +164,7 @@ public class PhoebusApplication extends Application {
     /**
      * Menu item to save layout
      */
-    private SaveLayoutMenuItem save_layout;
+    private MenuItem save_layout;
 
     /**
      * Menu item to delete layouts
@@ -527,8 +527,8 @@ public class PhoebusApplication extends Application {
         show_statusbar = new CheckMenuItem(Messages.ShowStatusbar);
         show_statusbar.setOnAction(event -> showStatusbar(show_statusbar.isSelected()));
 
-        save_layout = new SaveLayoutMenuItem(Messages.SaveLayoutAs);
-        save_layout.setOnAction(event -> save_layout.saveLayout(DockStage.getDockStages()));
+        save_layout = new MenuItem(Messages.SaveLayoutAs, ImageCache.getImageView(getClass(), "/icons/new_layout.png"));
+        save_layout.setOnAction(event -> SaveLayoutHelper.saveLayout(DockStage.getDockStages(), Messages.SaveLayoutAs));
 
         delete_layouts = new DeleteLayoutsMenuItem();
 

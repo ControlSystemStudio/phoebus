@@ -29,7 +29,7 @@ import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.application.Messages;
-import org.phoebus.ui.application.SaveLayoutMenuItem;
+import org.phoebus.ui.application.SaveLayoutHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Styles;
@@ -203,12 +203,12 @@ public class DockItem extends Tab
         final MenuItem split_vert = new MenuItem(Messages.DockSplitV, new ImageView(split_vert_icon));
         split_vert.setOnAction(event -> split(false));
 
-        final SaveLayoutMenuItem save_window = new SaveLayoutMenuItem(Messages.SaveLayoutOfContainingWindowAs);
+        final MenuItem save_window = new MenuItem(Messages.SaveLayoutOfContainingWindowAs, new ImageView(save_window_layout_icon));
         save_window.setOnAction(event -> {
             DockPane activeDockPane = getActiveDockPane();
             List<Stage> stagesContainingActiveDockPane = DockStage.getDockStages().stream().filter(stage -> getDockPanes(stage).contains(activeDockPane)).collect(Collectors.toList());
             if (stagesContainingActiveDockPane.size() == 1) {
-                save_window.saveLayout(stagesContainingActiveDockPane);
+                SaveLayoutHelper.saveLayout(stagesContainingActiveDockPane, Messages.SaveLayoutOfContainingWindowAs);
             }
             else if (stagesContainingActiveDockPane.size() == 1) {
                 logger.log(Level.SEVERE, "No stage contains the active dock pane!");
