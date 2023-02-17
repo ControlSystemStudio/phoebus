@@ -42,6 +42,12 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * {@link Tab} subclass showing a view for the purpose of taking a snapshot, or restoring one.
+ * These two use cases are split in terms of fxml files and controller classes in order to facilitate development
+ * and maintenance. Drawback is that this class will need to switch between the two in order to switch
+ * view when a new snapshot has been saved.
+ */
 public class SnapshotTab extends Tab implements NodeChangedListener {
 
     public SaveAndRestoreService saveAndRestoreService;
@@ -85,12 +91,6 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
             } else {
                 SaveAndRestoreService.getInstance().removeNodeChangeListener(this);
             }
-
-            if (restoreSnapshotController != null && !restoreSnapshotController.handleSnapshotTabClosed()) {
-                event.consume();
-            } else {
-                SaveAndRestoreService.getInstance().removeNodeChangeListener(this);
-            }
         });
 
         SaveAndRestoreService.getInstance().addNodeChangeListener(this);
@@ -109,33 +109,32 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
     }
 
     public void newSnapshot(org.phoebus.applications.saveandrestore.model.Node configurationNode) {
-        if (snapshotController == null) {
-            ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
-            FXMLLoader loader = new FXMLLoader();
-            loader.setResources(resourceBundle);
-            loader.setLocation(SnapshotTab.class.getResource("SnapshotView.fxml"));
+        ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
+        FXMLLoader loader = new FXMLLoader();
+        loader.setResources(resourceBundle);
+        loader.setLocation(SnapshotTab.class.getResource("SnapshotView.fxml"));
 
-            loader.setControllerFactory(clazz -> {
-                try {
-                    if (clazz.isAssignableFrom(SnapshotController.class)) {
-                        return clazz.getConstructor(SnapshotTab.class)
-                                .newInstance(this);
-                    }
-                } catch (Exception e) {
-                    ExceptionDetailsErrorDialog.openError("Error",
-                            "Failed to open new snapshot tab", e);
-                }
-                return null;
-            });
-
+        loader.setControllerFactory(clazz -> {
             try {
-                setContent(loader.load());
-                snapshotController = loader.getController();
-            } catch (IOException e) {
-                Logger.getLogger(SnapshotTab.class.getName())
-                        .log(Level.SEVERE, "Failed to load fxml", e);
-                return;
+                if (clazz.isAssignableFrom(SnapshotController.class)) {
+                    return clazz.getConstructor(SnapshotTab.class)
+                            .newInstance(this);
+                }
+            } catch (Exception e) {
+                ExceptionDetailsErrorDialog.openError("Error",
+                        "Failed to open new snapshot tab", e);
             }
+            return null;
+        });
+
+        try {
+            setContent(loader.load());
+            snapshotController = loader.getController();
+            restoreSnapshotController = null;
+        } catch (IOException e) {
+            Logger.getLogger(SnapshotTab.class.getName())
+                    .log(Level.SEVERE, "Failed to load fxml", e);
+            return;
         }
         setId(null);
         snapshotController.newSnapshot(configurationNode);
@@ -164,6 +163,7 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
             try {
                 setContent(loader.load());
                 restoreSnapshotController = loader.getController();
+                snapshotController = restoreSnapshotController;
             } catch (IOException e) {
                 Logger.getLogger(SnapshotTab.class.getName())
                         .log(Level.SEVERE, "Failed to load fxml", e);

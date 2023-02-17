@@ -121,9 +121,6 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
     private Button restoreButton;
 
     @FXML
-    private ToggleButton showLiveReadbackButton;
-
-    @FXML
     private ToggleButton showStoredReadbackButton;
 
     @FXML
@@ -169,8 +166,6 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
     private final SimpleStringProperty snapshotNameProperty = new SimpleStringProperty();
     private final SimpleStringProperty snapshotCommentProperty = new SimpleStringProperty();
     private final SimpleStringProperty snapshotUniqueIdProperty = new SimpleStringProperty();
-
-    private final List<Snapshot> snapshots = new ArrayList<>(10);
     private final Map<String, PV> pvs = new HashMap<>();
     private final Map<String, String> readbacks = new HashMap<>();
     private final Map<String, TableEntry> tableEntryItems = new LinkedHashMap<>();
@@ -192,8 +187,6 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
      * Property used to indicate if there is new snapshot data to save.
      */
     private final SimpleBooleanProperty snapshotDataDirty = new SimpleBooleanProperty(false);
-
-    private Node configNode;
 
     private List<List<Pattern>> regexPatterns = new ArrayList<>();
 
@@ -250,18 +243,6 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
             });
         }
 
-        showLiveReadbackButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/icons/show_live_readback_column.png"))));
-        showLiveReadbackButton.setTooltip(new Tooltip(Messages.toolTipShowLiveReadback));
-        showLiveReadbackProperty.bind(showLiveReadbackButton.selectedProperty());
-        showStoredReadbackProperty.bind(showStoredReadbackButton.selectedProperty());
-        showLiveReadbackButton.selectedProperty().addListener((a, o, n) -> Platform.runLater(() -> {
-            ArrayList<TableEntry> arrayList = new ArrayList<>(tableEntryItems.values());
-            snapshotTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbackProperty.get(), showDeltaPercentage);
-            if (Preferences.tree_tableview_enable) {
-                snapshotTreeTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbackProperty.get(), showDeltaPercentage);
-            }
-        }));
-
         showStoredReadbackButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/icons/show_stored_readback_column.png"))));
         showStoredReadbackButton.setTooltip(new Tooltip(Messages.toolTipShowStoredReadback));
         showStoredReadbackButton.selectedProperty().addListener((a, o, n) -> Platform.runLater(() -> {
@@ -316,34 +297,6 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
         ImageView showHideDeltaPercentageButtonImageView = new ImageView(new Image(getClass().getResourceAsStream("/icons/show_hide_delta_percentage.png")));
         showHideDeltaPercentageButtonImageView.setFitWidth(16);
         showHideDeltaPercentageButtonImageView.setFitHeight(16);
-
-        showHideDeltaPercentageButton.setGraphic(showHideDeltaPercentageButtonImageView);
-        showHideDeltaPercentageButton.setTooltip(new Tooltip(Messages.toolTipShowHideDeltaPercentageToggleButton));
-        showHideDeltaPercentageButton.selectedProperty()
-                .addListener((a, o, n) -> {
-                    showDeltaPercentage = n;
-
-                    Platform.runLater(() -> {
-                        ArrayList<TableEntry> arrayList = new ArrayList<>(tableEntryItems.values());
-                        snapshotTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbackProperty.get(), showDeltaPercentage);
-                        if (Preferences.tree_tableview_enable) {
-                            snapshotTreeTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbackProperty.get(), showDeltaPercentage);
-                        }
-                    });
-                });
-
-        hideShowEqualItemsButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/icons/hide_show_equal_items.png"))));
-        hideShowEqualItemsButton.setTooltip(new Tooltip(Messages.toolTipShowHideEqualToggleButton));
-        hideShowEqualItemsButton.selectedProperty()
-                .addListener((a, o, n) -> {
-                    hideEqualItems = n;
-
-                    ArrayList<TableEntry> arrayList = new ArrayList<>(tableEntryItems.values());
-                    Platform.runLater(() -> snapshotTable.updateTable(arrayList));
-                    if (Preferences.tree_tableview_enable) {
-                        Platform.runLater(() -> snapshotTreeTable.updateTable(arrayList));
-                    }
-                });
 
         restoreButton.disableProperty().bind(snapshotRestorableProperty.not());
 
@@ -524,46 +477,12 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
         }
     }
 
-    /**
-     * Loads data from a configuration {@link Node} in order to populate the
-     * view with PV items.
-     *
-     * @param configurationNode A {@link Node} of type {@link NodeType#CONFIGURATION}
-     */
-    public void newSnapshot(Node configurationNode) {
-        this.configNode = configurationNode;
-        JobManager.schedule("Get configuration", monitor -> {
-            ConfigurationData configuration;
-            try {
-                configuration = saveAndRestoreService.getConfiguration(configurationNode.getUniqueId());
-            } catch (Exception e) {
-                ExceptionDetailsErrorDialog.openError(snapshotTreeTable, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
-                LOGGER.log(Level.INFO, "Error loading configuration", e);
-                return;
-            }
-            List<ConfigPv> configPvs = configuration.getPvList();
-            snapshotNode = Node.builder().name(Messages.unnamedSnapshot).nodeType(NodeType.SNAPSHOT).build();
-            Snapshot snapshot = new Snapshot();
-            snapshot.setSnapshotNode(snapshotNode);
-            SnapshotData snapshotData = new SnapshotData();
-            snapshotData.setSnasphotItems(configurationToSnapshotItems(configPvs));
-            snapshot.setSnapshotData(snapshotData);
-            List<TableEntry> tableEntries = setSnapshotInternal(snapshot);
-            Platform.runLater(() -> {
-                snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
-                if (Preferences.tree_tableview_enable) {
-                    snapshotTreeTable.updateTable(tableEntries, snapshots, false, false, false);
-                }
-            });
-        });
-    }
-
     private void loadSnapshotInternal() {
         disabledUi.set(true);
         JobManager.schedule("Load snapshot items", monitor -> {
             SnapshotData snapshotData;
             try {
-                configNode = saveAndRestoreService.getParentNode(snapshotNode.getUniqueId());
+                this.configurationNode = saveAndRestoreService.getParentNode(snapshotNode.getUniqueId());
                 snapshotData = saveAndRestoreService.getSnapshot(snapshotNode.getUniqueId());
             } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError(snapshotTreeTable, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
@@ -664,37 +583,33 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
     }
 
     private List<TableEntry> loadSnapshotInternal(Snapshot snapshot) {
-        dispose();
         return setSnapshotInternal(snapshot);
     }
 
     private List<TableEntry> setSnapshotInternal(Snapshot snapshot) {
         snapshots.add(snapshot);
         String name;
-        TableEntry e;
+        TableEntry tableEntry;
         SnapshotItem entry;
         for (int i = 0; i < snapshot.getSnapshotData().getSnapshotItems().size(); i++) {
             entry = snapshot.getSnapshotData().getSnapshotItems().get(i);
-            e = new TableEntry();
+            tableEntry = new TableEntry();
             name = entry.getConfigPv().getPvName();
-            e.idProperty().setValue(i + 1);
-            e.pvNameProperty().setValue(name);
-            e.setConfigPv(entry.getConfigPv());
-            e.setSnapshotValue(entry.getValue(), 0);
-            e.setStoredReadbackValue(entry.getReadbackValue(), 0);
+            tableEntry.idProperty().setValue(i + 1);
+            tableEntry.pvNameProperty().setValue(name);
+            tableEntry.setConfigPv(entry.getConfigPv());
+            tableEntry.setSnapshotValue(entry.getValue(), 0);
+            tableEntry.setStoredReadbackValue(entry.getReadbackValue(), 0);
             String key = getPVKey(name, entry.getConfigPv().isReadOnly());
-            tableEntryItems.put(key, e);
+            tableEntryItems.put(key, tableEntry);
             readbacks.put(key, entry.getConfigPv().getReadbackPvName());
-            e.readbackNameProperty().set(entry.getConfigPv().getReadbackPvName());
-            e.readOnlyProperty().set(entry.getConfigPv().isReadOnly());
-            PV pv = pvs.get(key);
-            if (pv != null) {
-                pv.setSnapshotTableEntry(e);
-            }
+            tableEntry.readbackNameProperty().set(entry.getConfigPv().getReadbackPvName());
+            tableEntry.readOnlyProperty().set(entry.getConfigPv().isReadOnly());
         }
         connectPVs();
         return new ArrayList<>(tableEntryItems.values());
     }
+
 
     private List<TableEntry> addSnapshot(Snapshot data) {
         int numberOfSnapshots = getNumberOfSnapshots();
@@ -1011,7 +926,10 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
         }
     }
 
-    public Node getConfigurationNode() {
-        return configNode;
+    @FXML
+    @SuppressWarnings("unused")
+    private void takeSnapshot() {
+        dispose();
+        snapshotTab.newSnapshot(configurationNode);
     }
 }
