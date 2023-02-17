@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -525,10 +525,16 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
         else if (new_value instanceof Long)
         {
             final Long orig = (Long) new_value;
-            // ChannelAccess doesn't support long
-            if (orig.longValue() == orig.intValue())
+            // ChannelAccess doesn't support long.
+            // If value is small, write as int
+            // 
+            // Channel Access doesn't support unsigned, either.
+            // Will the number fit into 32 bits?
+            // As an unsigned long it may be beyond the largest int,
+            // but if it fits into a signed int, write as such
+            if (orig.longValue() == orig.intValue()  ||
+                Integer.toUnsignedLong(orig.intValue()) == orig.longValue())
             {
-                // If value is small, write as int
                 final int val = orig.intValue();
                 if (put_listener != null)
                     channel.put(val, put_listener);
