@@ -403,9 +403,22 @@ public class DockPane extends TabPane
      *  return the scene.
      *  But if this dock pane is nested inside a newly created {@link SplitDock},
      *  it will not have a scene until it is rendered.
-     *  The relative ordering in time of deferred function calls is preserved: if
-     *  f1() is deferred before f2() is deferred, then f1() will be called before
-     *  f2() is called.
+     *
+     *  If calls to deferUntilInScene() are not nested (i.e., there is no
+     *  call of the form deferUntilInScene(f) where f() in turn contains further
+     *  calls of the form deferUntilInScene(g) for some g), then the relative
+     *  ordering in time of deferred function calls is preserved: if f1() is
+     *  deferred before f2() is deferred, then f1() will be invoked before f2()
+     *  is invoked.
+     *
+     *  If, on the other hand, there *is* a call of the form deferUntilInScene(f)
+     *  where f() in turn contains a nested call of the form deferUntilInScene(g),
+     *  then the invocation of g() that is deferred by the call deferUntilInScene(g)
+     *  will occur as part of the (possibly deferred) invocation of f(). I.e.,  it
+     *  will *not* be deferred until after all other deferred function invocations
+     *  have completed, but will be invoked as part of the (possibly deferred)
+     *  invocation of f().
+     *
      *  @param function Something that needs to run once there is a scene
      */
     public void deferUntilInScene(Consumer<Scene> function) {
