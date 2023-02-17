@@ -97,6 +97,8 @@ public class AlarmLogSearchUtil {
         BoolQuery.Builder boolQuery = new BoolQuery.Builder();
         List<String> indexList = new ArrayList<>();
 
+        String root = "";
+
         for (Map.Entry<String, String> parameter : searchParameters.entrySet()) {
             switch (parameter.getKey().strip().toLowerCase()) {
                 case STARTTIME:
@@ -140,17 +142,19 @@ public class AlarmLogSearchUtil {
                     break;
                 case ROOT:
                     if (!parameter.getValue().equalsIgnoreCase("*")) {
+                        root = parameter.getValue().strip();
+                        String _root = root;
                         boolQuery.must(
                                 Query.of(b -> b.bool(s -> s.should(
                                         Query.of(q -> q
                                                 .wildcard(WildcardQuery.of(w -> w
-                                                                .field("config").value("state:/" + parameter.getValue().strip() + "*")
+                                                                .field("config").value("state:/" + _root + "*")
                                                         )
                                                 )
                                         ),
                                         Query.of(q -> q
                                                 .wildcard(WildcardQuery.of(w -> w
-                                                                .field("config").value("config:/" + parameter.getValue().strip() + "*")
+                                                                .field("config").value("config:/" + _root + "*")
                                                         )
                                                 )
                                         )
@@ -242,7 +246,9 @@ public class AlarmLogSearchUtil {
             );
 
             try {
-                indexList = findIndexNames("*", fromInstant, toInstant, indexDateSpanUnits);
+                // "root" is empty string unless user specifies one, in which case we can narrow down to
+                // only matching alarm config indices.
+                indexList = findIndexNames(root.toLowerCase() + "*", fromInstant, toInstant, indexDateSpanUnits);
             } catch (Exception e) {
                 logger.log(Level.SEVERE,
                         "Failed to search for alarm logs:" + e.getMessage(), e);
