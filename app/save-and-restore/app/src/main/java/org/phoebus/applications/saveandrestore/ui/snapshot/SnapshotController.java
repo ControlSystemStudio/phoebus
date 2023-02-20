@@ -27,6 +27,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -125,7 +126,6 @@ public class SnapshotController {
     //private Snapshot snapshot;
     private final Map<String, PV> pvs = new HashMap<>();
     private final Map<String, TableEntry> tableEntryItems = new LinkedHashMap<>();
-    private final BooleanProperty snapshotRestorableProperty = new SimpleBooleanProperty(false);
     private final BooleanProperty showLiveReadbackProperty = new SimpleBooleanProperty(false);
 
     private final BooleanProperty showStoredReadbackProperty = new SimpleBooleanProperty(false);
@@ -188,6 +188,12 @@ public class SnapshotController {
         borderPane.setCenter(snapshotTable);
 
         saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() -> (
+                        snapshotDataDirty.not().get()) ||
+                        snapshotNameProperty.isEmpty().get() ||
+                        snapshotCommentProperty.isEmpty().get(),
+                snapshotDataDirty, snapshotNameProperty, snapshotCommentProperty));
+
+        saveSnapshotAndCreateLogEntryButton.disableProperty().bind(Bindings.createBooleanBinding(() -> (
                         snapshotDataDirty.not().get()) ||
                         snapshotNameProperty.isEmpty().get() ||
                         snapshotCommentProperty.isEmpty().get(),
@@ -295,7 +301,8 @@ public class SnapshotController {
     }
 
     @FXML
-    public void saveSnapshot() {
+    @SuppressWarnings("unused")
+    public void saveSnapshot(ActionEvent actionEvent) {
 
         disabledUi.set(true);
         JobManager.schedule("Save Snapshot", monitor -> {
@@ -308,6 +315,11 @@ public class SnapshotController {
             try {
                 snapshot = saveAndRestoreService.saveSnapshot(configurationNode, snapshot);
                 Node _snapshotNode = snapshot.getSnapshotNode();
+                javafx.scene.Node jfxNode = (javafx.scene.Node)actionEvent.getSource();
+                String userData = (String)jfxNode.getUserData();
+                if(userData.equalsIgnoreCase("true")){
+                    eventReceivers.forEach(r -> r.snapshotSaved(_snapshotNode, this::showLoggingError));
+                }
                 // Snapshot successfully saved, clean up and request tab to switch to restore view.
                 dispose();
                 Platform.runLater(() -> snapshotTab.loadSnapshot(_snapshotNode));

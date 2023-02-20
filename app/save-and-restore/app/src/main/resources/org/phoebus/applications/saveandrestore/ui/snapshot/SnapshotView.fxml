@@ -62,12 +62,12 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                                     <Insets bottom="5.0" left="5.0" right="5.0" top="6.0" />
                                 </GridPane.margin>
                             </Button>
-                            <Button fx:id="saveSnapshotButton" onAction="#saveSnapshot" prefWidth="120.0" text="%saveSnapshot" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+                            <Button fx:id="saveSnapshotButton" onAction="#saveSnapshot" userData="false" prefWidth="120.0" text="%saveSnapshot" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.valignment="CENTER">
                                 <GridPane.margin>
                                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                 </GridPane.margin>
                             </Button>
-                            <Button fx:id="saveSnapshotAndCreateLogEntryButton" prefWidth="120.0" text="%saveSnapshotAndCreateLogEntry" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="CENTER">
+                            <Button fx:id="saveSnapshotAndCreateLogEntryButton" onAction="#saveSnapshot" userData="true" prefWidth="120.0" text="%saveSnapshotAndCreateLogEntry" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="CENTER">
                                 <GridPane.margin>
                                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                 </GridPane.margin>
