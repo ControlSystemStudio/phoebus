@@ -424,7 +424,7 @@ public class SnapshotController {
                 });
     }
 
-    private static class PV {
+    protected static class PV {
         final String pvName;
         final String readbackPvName;
         CountDownLatch countDownLatch;

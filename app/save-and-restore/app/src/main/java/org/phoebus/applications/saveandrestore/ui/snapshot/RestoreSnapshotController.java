@@ -75,7 +75,6 @@ import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventRe
 import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.pv.PVPool;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockPane;
@@ -91,7 +90,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
@@ -176,17 +174,13 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
      * A {@link Node} of type {@link NodeType#SNAPSHOT} or {@link NodeType#COMPOSITE_SNAPSHOT}.
      */
     private Node snapshotNode;
-
-    /**
-     * Property used to determine whether the create log entry button should be enabled.
-     */
-    private final SimpleBooleanProperty saveActionDone = new SimpleBooleanProperty(false);
+    
     /**
      * Property used to determine whether the create log entry button should be enabled.
      */
     private final SimpleBooleanProperty restoreActionDone = new SimpleBooleanProperty(false);
 
-    private List<String> restoreFailedPVNames = new ArrayList<>();
+    private final List<String> restoreFailedPVNames = new ArrayList<>();
 
     public RestoreSnapshotController(SnapshotTab snapshotTab) {
         super(snapshotTab);
@@ -376,19 +370,6 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
 
         progressIndicator.visibleProperty().bind(disabledUi);
         disabledUi.addListener((observable, oldValue, newValue) -> borderPane.setDisable(newValue));
-
-        // Do not show the create log entry button if no event receivers have been registered
-        //createLogEntryButton.visibleProperty().set(eventReceivers.iterator().hasNext());
-        // Enable/disable create log entry button based on what actions user has taken
-        //createLogEntryButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
-        //                saveActionDone.get() || restoreActionDone.get(),
-        //        saveActionDone, restoreActionDone).not());
-
-        nodeDataDirty.addListener((observablem, oldValue, newValue) -> {
-            if (newValue) {
-
-            }
-        });
     }
 
     /**
@@ -766,79 +747,6 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
         }
     }
 
-    private static class PV {
-        final String pvName;
-        final String readbackPvName;
-        CountDownLatch countDownLatch;
-        org.phoebus.pv.PV pv;
-        org.phoebus.pv.PV readbackPv;
-        volatile VType pvValue = VDisconnectedData.INSTANCE;
-        volatile VType readbackValue = VDisconnectedData.INSTANCE;
-        TableEntry snapshotTableEntry;
-        boolean readOnly;
-
-        PV(TableEntry snapshotTableEntry) {
-            this.snapshotTableEntry = snapshotTableEntry;
-            this.pvName = patchPvName(snapshotTableEntry.pvNameProperty().get());
-            this.readbackPvName = patchPvName(snapshotTableEntry.readbackNameProperty().get());
-            this.readOnly = snapshotTableEntry.readOnlyProperty().get();
-
-            try {
-                pv = PVPool.getPV(pvName);
-                pv.onValueEvent().throttleLatest(TABLE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS).subscribe(value -> {
-                    pvValue = org.phoebus.pv.PV.isDisconnected(value) ? VDisconnectedData.INSTANCE : value;
-                    this.snapshotTableEntry.setLiveValue(pvValue);
-                });
-
-
-                if (readbackPvName != null && !readbackPvName.isEmpty()) {
-                    readbackPv = PVPool.getPV(this.readbackPvName);
-                    readbackPv.onValueEvent()
-                            .throttleLatest(TABLE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS)
-                            .subscribe(value -> {
-                                this.readbackValue = org.phoebus.pv.PV.isDisconnected(value) ? VDisconnectedData.INSTANCE : value;
-                                this.snapshotTableEntry.setReadbackValue(this.readbackValue);
-                            });
-                }
-            } catch (Exception e) {
-                LOGGER.log(Level.INFO, "Error connecting to PV", e);
-            }
-        }
-
-        private String patchPvName(String pvName) {
-            if (pvName == null || pvName.isEmpty()) {
-                return null;
-            } else if (pvName.startsWith("ca://") || pvName.startsWith("pva://")) {
-                return pvName.substring(pvName.lastIndexOf('/') + 1);
-            } else {
-                return pvName;
-            }
-        }
-
-        public void setCountDownLatch(CountDownLatch countDownLatch) {
-            LOGGER.info(countDownLatch + " New CountDownLatch set");
-            this.countDownLatch = countDownLatch;
-        }
-
-        public void countDown() {
-            this.countDownLatch.countDown();
-        }
-
-        public void setSnapshotTableEntry(TableEntry snapshotTableEntry) {
-            this.snapshotTableEntry = snapshotTableEntry;
-        }
-
-        void dispose() {
-            if (pv != null) {
-                PVPool.releasePV(pv);
-            }
-
-            if (readbackPv != null) {
-                PVPool.releasePV(readbackPv);
-            }
-        }
-    }
-
     public boolean handleSnapshotTabClosed() {
         if (nodeDataDirty.get()) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -875,22 +783,6 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
         }
     }
 
-    private void logNewSnapshotSaved() {
-        saveActionDone.set(false);
-        JobManager.schedule("Log new snapshot saved", monitor -> {
-            eventReceivers
-                    .forEach(r -> r.snapshotSaved(snapshotNode, this::showLoggingError));
-        });
-    }
-
-    private void logSnapshotRestored() {
-        restoreActionDone.set(false);
-        JobManager.schedule("Log snapshot restored", monitor -> {
-            eventReceivers
-                    .forEach(r -> r.snapshotRestored(snapshotNode, restoreFailedPVNames, this::showLoggingError));
-        });
-    }
-
     private void showLoggingError(String cause) {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -900,15 +792,6 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
             DialogHelper.positionDialog(alert, snapshotTab.getTabPane(), -150, -150);
             alert.showAndWait();
         });
-    }
-
-    @FXML
-    public void createLogEntry() {
-        if (saveActionDone.get()) {
-            logNewSnapshotSaved();
-        } else if (restoreActionDone.get()) {
-            logSnapshotRestored();
-        }
     }
 
     @FXML
