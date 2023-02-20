@@ -23,6 +23,7 @@ import org.phoebus.logbook.Property;
 import org.phoebus.logbook.Tag;
 import org.phoebus.olog.es.api.model.OlogAttachment;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.web.HyperLinkRedirectListener;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -49,7 +50,9 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
     @FXML
     Label logTitle;
     @FXML
-    WebView logDescription;
+    WebView webView;
+
+    private WebEngine webEngine;
 
     @FXML
     public TitledPane attachmentsPane;
@@ -94,6 +97,10 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
 
         copyURLButton.visibleProperty().setValue(LogbookUIPreferences.web_client_root_URL != null
                 && !LogbookUIPreferences.web_client_root_URL.isEmpty());
+
+        webEngine = webView.getEngine();
+        // This will make links clicked in the WebView to open in default browser.
+        webEngine.getLoadWorker().stateProperty().addListener(new HyperLinkRedirectListener(webView));
     }
 
     public void setLogEntry(LogEntry entry) {
@@ -118,9 +125,6 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
         logTitle.setWrapText(true);
         logTitle.setText(entry.getTitle());
 
-        // Content is defined by the source (default) or description field. If both are null
-        // or empty, do no load any content to the WebView.
-        WebEngine webEngine = logDescription.getEngine();
         webEngine.setUserStyleSheetLocation(getClass()
                 .getResource("/detail_log_webview.css").toExternalForm());
 
@@ -168,10 +172,10 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
      * Retrieves the actual attachments from the remote service and copies them to temporary files. Attachments
      * should be retrieved when user requests to see the details, not in connection to a log entry search.
      */
-    private void fetchAttachments(){
+    private void fetchAttachments() {
         JobManager.schedule("Fetch attachment data", monitor -> {
             Collection<Attachment> attachments = logEntry.getAttachments().stream()
-                    .filter( (attachment) -> attachment.getName() != null && !attachment.getName().isEmpty())
+                    .filter((attachment) -> attachment.getName() != null && !attachment.getName().isEmpty())
                     .map((attachment) -> {
                         OlogAttachment fileAttachment = new OlogAttachment();
                         fileAttachment.setContentType(attachment.getContentType());
@@ -184,7 +188,7 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
                             temp.toFile().deleteOnExit();
                         } catch (LogbookException | IOException e) {
                             Logger.getLogger(SingleLogEntryDisplayController.class.getName())
-                                    .log(Level.WARNING, "Failed to retrieve attachment " + fileAttachment.getFileName() ,e);
+                                    .log(Level.WARNING, "Failed to retrieve attachment " + fileAttachment.getFileName(), e);
                         }
                         return fileAttachment;
                     }).collect(Collectors.toList());
