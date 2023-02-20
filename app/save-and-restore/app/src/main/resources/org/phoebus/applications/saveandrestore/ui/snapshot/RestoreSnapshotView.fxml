@@ -81,7 +81,7 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                                     <Insets bottom="2.0" right="3.0" top="4.0" />
                                 </GridPane.margin>
                             </TextArea>
-                            <Button fx:id="restoreButton" onAction="#restore" prefWidth="120.0" text="%restore" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="CENTER">
+                            <Button fx:id="restoreButton" onAction="#restore" userData="false" prefWidth="120.0" text="%restore" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="CENTER">
                                 <GridPane.margin>
                                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                 </GridPane.margin>
@@ -102,7 +102,7 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                                 </GridPane.margin>
                             </Label>
                             <Label fx:id="snapshotLastModifiedLabel" text="Last Modified Date" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                            <Button fx:id="saveSnapshotAndCreateLogEntryButton" prefWidth="120.0" text="%createLogEntry" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.valignment="CENTER">
+                            <Button fx:id="restoreAndCreateLogEntryButton" onAction="#restore" userData="true" prefWidth="120.0" text="%restoreAndLog" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.valignment="CENTER">
                                 <GridPane.margin>
                                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                 </GridPane.margin>

@@ -27,6 +27,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
@@ -64,8 +65,6 @@ import org.phoebus.applications.saveandrestore.common.Utilities;
 import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.common.VNoData;
 import org.phoebus.applications.saveandrestore.common.VTypePair;
-import org.phoebus.applications.saveandrestore.model.ConfigPv;
-import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
@@ -92,8 +91,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -139,19 +136,10 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
     private Spinner<Double> multiplierSpinner;
 
     @FXML
-    private ToggleButton showHideDeltaPercentageButton;
-
-    @FXML
-    private ToggleButton hideShowEqualItemsButton;
-
-    @FXML
     private TextField filterTextField;
 
     @FXML
     private CheckBox preserveSelectionCheckBox;
-
-    @FXML
-    private Button createLogEntryButton;
 
     private RestoreSnapshotTable snapshotTable;
 
@@ -167,14 +155,13 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
     private final SimpleStringProperty snapshotCommentProperty = new SimpleStringProperty();
     private final SimpleStringProperty snapshotUniqueIdProperty = new SimpleStringProperty();
     private final Map<String, PV> pvs = new HashMap<>();
-    private final Map<String, String> readbacks = new HashMap<>();
     private final Map<String, TableEntry> tableEntryItems = new LinkedHashMap<>();
     private final BooleanProperty snapshotRestorableProperty = new SimpleBooleanProperty(false);
     private final BooleanProperty showLiveReadbackProperty = new SimpleBooleanProperty(false);
 
     private final BooleanProperty showStoredReadbackProperty = new SimpleBooleanProperty(false);
 
-    private boolean showDeltaPercentage = false;
+    private final boolean showDeltaPercentage = false;
 
     private final SimpleBooleanProperty showTreeTable = new SimpleBooleanProperty(false);
 
@@ -182,11 +169,6 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
      * Property used to indicate if snapshot node has changed with respect to name or comment, or both.
      */
     private final SimpleBooleanProperty nodeDataDirty = new SimpleBooleanProperty(false);
-
-    /**
-     * Property used to indicate if there is new snapshot data to save.
-     */
-    private final SimpleBooleanProperty snapshotDataDirty = new SimpleBooleanProperty(false);
 
     private List<List<Pattern>> regexPatterns = new ArrayList<>();
 
@@ -198,11 +180,11 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
     /**
      * Property used to determine whether the create log entry button should be enabled.
      */
-    private SimpleBooleanProperty saveActionDone = new SimpleBooleanProperty(false);
+    private final SimpleBooleanProperty saveActionDone = new SimpleBooleanProperty(false);
     /**
      * Property used to determine whether the create log entry button should be enabled.
      */
-    private SimpleBooleanProperty restoreActionDone = new SimpleBooleanProperty(false);
+    private final SimpleBooleanProperty restoreActionDone = new SimpleBooleanProperty(false);
 
     private List<String> restoreFailedPVNames = new ArrayList<>();
 
@@ -532,15 +514,15 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
     }
 
     @FXML
-    public void restore() {
+    public void restore(ActionEvent actionEvent) {
         new Thread(() -> {
             restoreFailedPVNames.clear();
-            Snapshot s = snapshots.get(0);
-            CountDownLatch countDownLatch = new CountDownLatch(s.getSnapshotData().getSnapshotItems().size());
-            s.getSnapshotData().getSnapshotItems()
+            Snapshot snapshot = snapshots.get(0);
+            CountDownLatch countDownLatch = new CountDownLatch(snapshot.getSnapshotData().getSnapshotItems().size());
+            snapshot.getSnapshotData().getSnapshotItems()
                     .forEach(e -> pvs.get(getPVKey(e.getConfigPv().getPvName(), e.getConfigPv().isReadOnly())).setCountDownLatch(countDownLatch));
 
-            for (SnapshotItem entry : s.getSnapshotData().getSnapshotItems()) {
+            for (SnapshotItem entry : snapshot.getSnapshotData().getSnapshotItems()) {
                 TableEntry e = tableEntryItems.get(getPVKey(entry.getConfigPv().getPvName(), entry.getConfigPv().isReadOnly()));
 
                 boolean restorable = e.selectedProperty().get() && !e.readOnlyProperty().get() &&
@@ -569,16 +551,21 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
             }
 
             if (restoreFailedPVNames.isEmpty()) {
-                LOGGER.log(Level.FINE, "Restored snapshot {0}", s.getSnapshotNode().getName());
+                LOGGER.log(Level.FINE, "Restored snapshot {0}", snapshot.getSnapshotNode().getName());
             } else {
                 Collections.sort(restoreFailedPVNames);
                 StringBuilder sb = new StringBuilder(restoreFailedPVNames.size() * 200);
                 restoreFailedPVNames.forEach(e -> sb.append(e).append('\n'));
                 LOGGER.log(Level.WARNING,
                         "Not all PVs could be restored for {0}: {1}. The following errors occurred:\n{2}",
-                        new Object[]{s.getSnapshotNode().getName(), s.getSnapshotNode(), sb.toString()});
+                        new Object[]{snapshot.getSnapshotNode().getName(), snapshot.getSnapshotNode(), sb.toString()});
             }
             restoreActionDone.set(true);
+            javafx.scene.Node jfxNode = (javafx.scene.Node) actionEvent.getSource();
+            String userData = (String) jfxNode.getUserData();
+            if (userData.equalsIgnoreCase("true")) {
+                eventReceivers.forEach(r -> r.snapshotRestored(snapshot.getSnapshotNode(), restoreFailedPVNames, this::showLoggingError));
+            }
         }).start();
     }
 
@@ -602,7 +589,6 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
             tableEntry.setStoredReadbackValue(entry.getReadbackValue(), 0);
             String key = getPVKey(name, entry.getConfigPv().isReadOnly());
             tableEntryItems.put(key, tableEntry);
-            readbacks.put(key, entry.getConfigPv().getReadbackPvName());
             tableEntry.readbackNameProperty().set(entry.getConfigPv().getReadbackPvName());
             tableEntry.readOnlyProperty().set(entry.getConfigPv().isReadOnly());
         }
@@ -634,7 +620,6 @@ public class RestoreSnapshotController extends SnapshotController implements Nod
                     e.pvNameProperty().setValue(n);
                     e.setConfigPv(entry.getConfigPv());
                     tableEntryItems.put(key, e);
-                    readbacks.put(key, entry.getConfigPv().getReadbackPvName());
                     e.readbackNameProperty().set(entry.getConfigPv().getReadbackPvName());
                 }
                 e.setSnapshotValue(entry.getValue(), numberOfSnapshots);
