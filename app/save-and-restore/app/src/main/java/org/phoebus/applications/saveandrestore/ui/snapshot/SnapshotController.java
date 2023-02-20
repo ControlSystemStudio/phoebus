@@ -270,32 +270,6 @@ public class SnapshotController {
         });
     }
 
-    /*
-    private void loadCompositeSnapshotInternal(Consumer<Snapshot> completion) {
-
-        JobManager.schedule("Load composite snapshot items", items -> {
-            disabledUi.set(true);
-            List<SnapshotItem> snapshotItems;
-            try {
-                snapshotItems = saveAndRestoreService.getCompositeSnapshotItems(snapshotNode.getUniqueId());
-            } catch (Exception e) {
-                LOGGER.log(Level.INFO, "Error loading composite snapshot for restore", e);
-                ExceptionDetailsErrorDialog.openError(showLiveReadbackButton, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
-                return;
-            } finally {
-                disabledUi.set(false);
-            }
-            snapshot = new Snapshot();
-            snapshot.setSnapshotNode(snapshotNode);
-            SnapshotData snapshotData = new SnapshotData();
-            snapshotData.setSnasphotItems(snapshotItems);
-            disabledUi.set(false);
-            completion.accept(snapshot);
-        });
-    }
-
-     */
-
     @FXML
     @SuppressWarnings("unused")
     private void takeSnapshot() {
@@ -308,12 +282,12 @@ public class SnapshotController {
                     tableEntryItems.clear();
                     disabledUi.set(false);
                     entries.addAll(list);
-                    //Node snapshotNode = Node.builder().name(Messages.unnamedSnapshot).nodeType(NodeType.SNAPSHOT).build();
                     Snapshot snapshot = new Snapshot();
                     snapshot.setSnapshotNode(Node.builder().name(Messages.unnamedSnapshot).nodeType(NodeType.SNAPSHOT).build());
                     SnapshotData snapshotData = new SnapshotData();
                     snapshotData.setSnasphotItems(entries);
                     snapshot.setSnapshotData(snapshotData);
+                    snapshots.set(0, snapshot);
                     List<TableEntry> tableEntries = setSnapshotInternal();
                     snapshotTable.updateTable(tableEntries, snapshots, showLiveReadbackProperty.get(), false, showDeltaPercentage);
                 })
@@ -580,7 +554,6 @@ public class SnapshotController {
             for (TableEntry t : tableEntryItems.values()) {
                 // Submit read request only if job has not been cancelled
                 executorService.submit(() -> {
-                    String name = t.pvNameProperty().get();
                     PV pv = pvs.get(getPVKey(t.pvNameProperty().get(), t.readOnlyProperty().get()));
                     VType value = VNoData.INSTANCE;
                     try {
@@ -596,7 +569,6 @@ public class SnapshotController {
                             LOGGER.log(Level.WARNING, "Failed to read read-back PV " + pv.readbackPvName);
                         }
                     }
-                    //String delta = snapshot.getDelta(name);
                     SnapshotItem snapshotItem = new SnapshotItem();
                     snapshotItem.setConfigPv(t.getConfigPv());
                     snapshotItem.setValue(value);
