@@ -38,6 +38,7 @@ import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -174,7 +175,10 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
     @Override
     public void nodeChanged(Node node) {
         if (node.getUniqueId().equals(getId())) {
-            Platform.runLater(() -> tabTitleProperty.set(node.getName()));
+            Platform.runLater(() -> {
+                tabTitleProperty.set(node.getName());
+                snapshotController.setSnapshotNameProperty(node.getName());
+            });
         }
     }
 

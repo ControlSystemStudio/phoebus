@@ -141,9 +141,9 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                             <CheckBox fx:id="preserveSelectionCheckBox" mnemonicParsing="false" text="%preserveSelection" />
                             <Label text="%filter" />
                             <TextField fx:id="filterTextField" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="26.0" HBox.hgrow="ALWAYS" />
-                            <Label fx:id="thresholdLabel" text="%threashold" />
+                            <Label fx:id="thresholdLabel" text="%labelThreshold" />
                             <Spinner fx:id="thresholdSpinner" editable="true" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" />
-                            <Label fx:id="multiplierLabel" text="%restoreWithScale" />
+                            <Label fx:id="multiplierLabel" text="%labelMultiplier" />
                             <Spinner fx:id="multiplierSpinner" editable="true" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" />
                         </items>
                     </ToolBar>

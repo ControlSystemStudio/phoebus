@@ -76,9 +76,7 @@ import org.phoebus.util.time.TimestampFormats;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.concurrent.CountDownLatch;
@@ -114,13 +112,7 @@ public class RestoreSnapshotController extends SnapshotController {
     private ToggleButton showTreeTableButton;
 
     @FXML
-    private Label thresholdLabel;
-
-    @FXML
     private Spinner<Double> thresholdSpinner;
-
-    @FXML
-    private Label multiplierLabel;
 
     @FXML
     private Spinner<Double> multiplierSpinner;
@@ -140,7 +132,6 @@ public class RestoreSnapshotController extends SnapshotController {
     private final SimpleStringProperty snapshotNameProperty = new SimpleStringProperty();
     private final SimpleStringProperty snapshotCommentProperty = new SimpleStringProperty();
     private final SimpleStringProperty snapshotUniqueIdProperty = new SimpleStringProperty();
-    private final Map<String, PV> pvs = new HashMap<>();
 
     private final BooleanProperty snapshotRestorableProperty = new SimpleBooleanProperty(false);
 
@@ -161,11 +152,6 @@ public class RestoreSnapshotController extends SnapshotController {
      * A {@link Node} of type {@link NodeType#SNAPSHOT} or {@link NodeType#COMPOSITE_SNAPSHOT}.
      */
     private Node snapshotNode;
-
-    /**
-     * Property used to determine whether the create log entry button should be enabled.
-     */
-    private final SimpleBooleanProperty restoreActionDone = new SimpleBooleanProperty(false);
 
     private final List<String> restoreFailedPVNames = new ArrayList<>();
 
@@ -230,16 +216,12 @@ public class RestoreSnapshotController extends SnapshotController {
             showTreeTableButton.setVisible(false);
         }
 
-        thresholdLabel.setText(Messages.labelThreshold);
-
         SpinnerValueFactory<Double> thresholdSpinnerValueFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, 999.0, 0.0, 0.01);
         thresholdSpinnerValueFactory.setConverter(new DoubleStringConverter());
         thresholdSpinner.setValueFactory(thresholdSpinnerValueFactory);
         thresholdSpinner.getEditor().setAlignment(Pos.CENTER_RIGHT);
         thresholdSpinner.getEditor().getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         thresholdSpinner.getEditor().textProperty().addListener((a, o, n) -> parseAndUpdateThreshold(n));
-
-        multiplierLabel.setText(Messages.labelMultiplier);
 
         SpinnerValueFactory<Double> multiplierSpinnerValueFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, 999.0, 1.0, 0.01);
         multiplierSpinnerValueFactory.setConverter(new DoubleStringConverter());
@@ -527,7 +509,6 @@ public class RestoreSnapshotController extends SnapshotController {
                         "Not all PVs could be restored for {0}: {1}. The following errors occurred:\n{2}",
                         new Object[]{snapshot.getSnapshotNode().getName(), snapshot.getSnapshotNode(), sb.toString()});
             }
-            restoreActionDone.set(true);
             javafx.scene.Node jfxNode = (javafx.scene.Node) actionEvent.getSource();
             String userData = (String) jfxNode.getUserData();
             if (userData.equalsIgnoreCase("true")) {
@@ -541,7 +522,7 @@ public class RestoreSnapshotController extends SnapshotController {
      * Since the added snapshot may have a different number of valued, some care is taken to
      * render sensible values (e.g. DISCONNECTED) for such table rows.
      *
-     * @param snapshotNode
+     * @param snapshotNode An existing {@link Node} of type {@link NodeType#SNAPSHOT}
      * @return List of updated {@link TableEntry}s.
      */
     @Override
@@ -606,7 +587,7 @@ public class RestoreSnapshotController extends SnapshotController {
         snapshots.forEach(snapshot -> snapshot.getSnapshotData().getSnapshotItems()
                 .forEach(item -> {
                     TableEntry tableEntry = tableEntryItems.get(getPVKey(item.getConfigPv().getPvName(), item.getConfigPv().isReadOnly()));
-                    VType vtype = item.getValue();
+                    VType vtype = tableEntry.getStoredSnapshotValue().get();
                     VType newVType;
 
                     if (vtype instanceof VNumber) {

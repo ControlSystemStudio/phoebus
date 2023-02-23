@@ -119,7 +119,7 @@ public class SnapshotController {
     private final SimpleStringProperty snapshotNameProperty = new SimpleStringProperty();
     private final SimpleStringProperty snapshotCommentProperty = new SimpleStringProperty();
 
-    private final Map<String, PV> pvs = new HashMap<>();
+    protected final Map<String, PV> pvs = new HashMap<>();
     protected final Map<String, TableEntry> tableEntryItems = new LinkedHashMap<>();
     protected final BooleanProperty showLiveReadbackProperty = new SimpleBooleanProperty(false);
 
@@ -603,7 +603,7 @@ public class SnapshotController {
      * Since the added snapshot may have a different number of valued, some care is taken to
      * render sensible values (e.g. DISCONNECTED) for such table rows.
      *
-     * @param snapshotNode
+     * @param snapshotNode A {@link Node} of type {@link NodeType#SNAPSHOT}
      * @return List of updated {@link TableEntry}s.
      */
     protected List<TableEntry> getSnapshotDataAndAdd(Node snapshotNode) {
@@ -650,5 +650,11 @@ public class SnapshotController {
             snapshotTable.updateTable(new ArrayList<>(tableEntryItems.values()), snapshots, false, false, false);
             return new ArrayList<>(tableEntryItems.values());
         }
+    }
+
+    public void setSnapshotNameProperty(String name){
+        snapshotNameProperty.set(name);
+        // Externally saved so not really dirty.
+        snapshotDataDirty.set(false);
     }
 }
