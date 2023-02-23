@@ -283,8 +283,6 @@ the :math:`{\Delta}` Base Snapshot column will show the difference to the refere
    :width: 80%
 
 
-
-
 Search And Filters
 ------------------
 
@@ -340,6 +338,17 @@ snapshots are rendered using a golden snapshot icon: |golden|
 User may delete a tag through the tagging sub-menu:
 
 .. image:: images/delete-tag.png
+
+Snapshot View Context Menu
+--------------------------
+
+A right click on a table item in the restore snapshot view launches the following context menu:
+
+.. imag:: images/context-menu-restore-view.png
+
+The items of this context menu offers actions associated with a PV, which is similar to "PV context menus" in
+other applications. However, user should be aware that the "Data Browser" item will launch the Data Browser app for
+the selected PV *around the point in time defined by the PV timestamp*.
 
 
 

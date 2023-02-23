@@ -26,6 +26,8 @@ public class Messages {
     public static String baseSetpoint;
     public static String buttonRefresh;
     public static String buttonSearch;
+    public static String cannotCompareHeader;
+    public static String cannotCompareTitle;
     public static String closeConfigurationWarning;
     public static String closeCompositeSnapshotWarning;
     public static String closeTabPrompt;

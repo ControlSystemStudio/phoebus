@@ -56,8 +56,6 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
 
     private SnapshotController snapshotController;
 
-    private RestoreSnapshotController restoreSnapshotController;
-
     private final SimpleObjectProperty<Image> tabGraphicImageProperty = new SimpleObjectProperty<>();
 
 
@@ -130,7 +128,6 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
         try {
             setContent(loader.load());
             snapshotController = loader.getController();
-            restoreSnapshotController = null;
         } catch (IOException e) {
             Logger.getLogger(SnapshotTab.class.getName())
                     .log(Level.SEVERE, "Failed to load fxml", e);
@@ -141,7 +138,6 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
     }
 
     public void loadSnapshot(Node snapshotNode) {
-        if (restoreSnapshotController == null) {
             ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
             FXMLLoader loader = new FXMLLoader();
             loader.setResources(resourceBundle);
@@ -162,25 +158,23 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
 
             try {
                 setContent(loader.load());
-                restoreSnapshotController = loader.getController();
-                snapshotController = restoreSnapshotController;
+                snapshotController = loader.getController();
             } catch (IOException e) {
                 Logger.getLogger(SnapshotTab.class.getName())
                         .log(Level.SEVERE, "Failed to load fxml", e);
                 return;
             }
-        }
-        restoreSnapshotController.loadSnapshot(snapshotNode);
+        ((RestoreSnapshotController)snapshotController).loadSnapshot(snapshotNode);
     }
 
     public void addSnapshot(org.phoebus.applications.saveandrestore.model.Node node) {
-        restoreSnapshotController.addSnapshot(node);
+        snapshotController.addSnapshot(node);
     }
 
     @Override
     public void nodeChanged(Node node) {
         if (node.getUniqueId().equals(getId())) {
-            tabTitleProperty.set(node.getName());
+            Platform.runLater(() -> tabTitleProperty.set(node.getName()));
         }
     }
 

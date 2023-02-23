@@ -17,12 +17,32 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                 <VBox fx:id="vBox" maxHeight="1.7976931348623157E308" prefWidth="1188.0">
                     <ToolBar prefHeight="40.0">
                         <items>
-                            <ToggleButton fx:id="showLiveReadbackButton" mnemonicParsing="false" />
-                            <ToggleButton fx:id="showStoredReadbackButton" mnemonicParsing="false" />
-                            <ToggleButton fx:id="showTreeTableButton" mnemonicParsing="false" />
+                            <ToggleButton fx:id="showLiveReadbackButton" mnemonicParsing="false" >
+                                <tooltip>
+                                    <Tooltip text="%toolTipShowLiveReadback"/>
+                                </tooltip>
+                            </ToggleButton>
+                            <ToggleButton fx:id="showStoredReadbackButton" mnemonicParsing="false">
+                                <tooltip>
+                                    <Tooltip text="%toolTipShowStoredReadback"/>
+                                </tooltip>
+                            </ToggleButton>
+                            <ToggleButton fx:id="showTreeTableButton" mnemonicParsing="false">
+                                <tooltip>
+                                    <Tooltip text="%toolTipShowTreeTable"/>
+                                </tooltip>
+                            </ToggleButton>
                             <Pane HBox.hgrow="ALWAYS" />
-                            <ToggleButton fx:id="showHideDeltaPercentageButton" mnemonicParsing="false" />
-                            <ToggleButton fx:id="hideShowEqualItemsButton" mnemonicParsing="false" />
+                            <ToggleButton fx:id="showHideDeltaPercentageButton" mnemonicParsing="false" >
+                                <tooltip>
+                                    <Tooltip text="%toolTipShowHideDeltaPercentageToggleButton"/>
+                                </tooltip>
+                            </ToggleButton>
+                            <ToggleButton fx:id="hideShowEqualItemsButton" mnemonicParsing="false" >
+                                <tooltip>
+                                    <Tooltip text="%toolTipShowHideEqualToggleButton"/>
+                                </tooltip>
+                            </ToggleButton>
                         </items>
                     </ToolBar>
                     <GridPane hgap="5.0">

@@ -675,7 +675,12 @@ class SnapshotTable extends TableView<TableEntry> {
         this.showReadbacks = showLiveReadback;
         this.showDeltaPercentage = showDeltaPercentage;
         uiSnapshots.addAll(snapshots);
-        createTableForSingleSnapshot(showLiveReadback, showStoredReadback);
+        if(snapshots.size() == 1){
+            createTableForSingleSnapshot(showLiveReadback, showStoredReadback);
+        }
+        else{
+            createTableForMultipleSnapshots(snapshots);
+        }
         updateTableColumnTitles();
         updateTable(entries);
     }
@@ -714,7 +719,7 @@ class SnapshotTable extends TableView<TableEntry> {
     private void updateTableColumnTitles() {
         // add the * to the title of the column if the snapshot is not saved
         if (uiSnapshots.size() == 1) {
-            ((TooltipTableColumn<?>) getColumns().get(6)).setSaved(true); //uiSnapshots.get(0).isSaved());
+            ((TooltipTableColumn<?>) getColumns().get(6)).setSaved(true);
         } else {
             TableColumn<TableEntry, ?> column = getColumns().get(4);
             for (int i = 0; i < uiSnapshots.size(); i++) {
@@ -722,7 +727,7 @@ class SnapshotTable extends TableView<TableEntry> {
                 if (tableColumn instanceof DividerTableColumn) {
                     continue;
                 }
-                ((TooltipTableColumn<?>) tableColumn).setSaved(true); //uiSnapshots.get(i).isSaved());
+                ((TooltipTableColumn<?>) tableColumn).setSaved(true);
             }
         }
     }
@@ -805,5 +810,159 @@ class SnapshotTable extends TableView<TableEntry> {
                 }
             }
         }
+    }
+
+    private void createTableForMultipleSnapshots(List<Snapshot> snapshots) {
+        List<TableColumn<TableEntry, ?>> list = new ArrayList<>(7);
+        TableColumn<TableEntry, Boolean> selectedColumn = new SelectionTableColumn();
+        list.add(selectedColumn);
+
+        int width = measureStringWidth("000", Font.font(20));
+        TableColumn<TableEntry, Integer> idColumn = new TooltipTableColumn<>("#",
+                Messages.toolTipTableColumIndex, width, width, false);
+        idColumn.setCellValueFactory(cell -> {
+            int idValue = cell.getValue().idProperty().get();
+            idColumn.setPrefWidth(Math.max(idColumn.getWidth(), measureStringWidth(String.valueOf(idValue), Font.font(20))));
+
+            return new ReadOnlyObjectWrapper(idValue);
+        });
+        list.add(idColumn);
+
+        TableColumn<TableEntry, String> setpointPVName = new TooltipTableColumn<>(Messages.pvName,
+                Messages.toolTipUnionOfSetpointPVNames, 100);
+        setpointPVName.setCellValueFactory(new PropertyValueFactory<>("pvName"));
+        list.add(setpointPVName);
+
+        list.add(new DividerTableColumn());
+
+        TableColumn<TableEntry, ?> storedValueColumn = new TooltipTableColumn<>(Messages.storedValues,
+                Messages.toolTipTableColumnPVValues, -1);
+        storedValueColumn.getStyleClass().add("toplevel");
+
+        String baseSnapshotTimeStamp = snapshots.get(0).getSnapshotNode().getCreated() == null ?
+                "" :
+                " (" + TimestampFormats.SECONDS_FORMAT.format(snapshots.get(0).getSnapshotNode().getCreated().toInstant()) + ")";
+        String snapshotName = snapshots.get(0).getSnapshotNode().getName() + baseSnapshotTimeStamp;
+
+        TableColumn<TableEntry, ?> baseCol = new TooltipTableColumn<>(
+                snapshotName,
+                Messages.toolTipTableColumnSetpointPVValue, 33);
+        baseCol.getStyleClass().add("second-level");
+
+        TableColumn<TableEntry, VType> storedBaseSetpointValueColumn = new TooltipTableColumn<>(
+                Messages.baseSetpoint,
+                Messages.toolTipTableColumnBaseSetpointValue, 100);
+
+        storedBaseSetpointValueColumn.setCellValueFactory(new PropertyValueFactory<>("snapshotVal"));
+        storedBaseSetpointValueColumn.setCellFactory(e -> new VTypeCellEditor<>());
+        storedBaseSetpointValueColumn.setEditable(true);
+        storedBaseSetpointValueColumn.setOnEditCommit(e -> {
+            VType updatedValue = e.getRowValue().readOnlyProperty().get() ? e.getOldValue() : e.getNewValue();
+
+            ObjectProperty<VTypePair> value = e.getRowValue().valueProperty();
+            value.setValue(new VTypePair(value.get().base, updatedValue, value.get().threshold));
+            controller.updateLoadedSnapshot(0, e.getRowValue(), updatedValue);
+
+            for (int i = 1; i < snapshots.size(); i++) {
+                ObjectProperty<VTypePair> compareValue = e.getRowValue().compareValueProperty(i);
+                compareValue.setValue(new VTypePair(updatedValue, compareValue.get().value, compareValue.get().threshold));
+            }
+        });
+
+        baseCol.getColumns().add(storedBaseSetpointValueColumn);
+
+        // show deltas in separate column
+        TableColumn<TableEntry, VTypePair> delta = new TooltipTableColumn<>(
+                Utilities.DELTA_CHAR + " Live Setpoint",
+                "", 100);
+
+        delta.setCellValueFactory(e -> e.getValue().valueProperty());
+        delta.setCellFactory(e -> {
+            VDeltaCellEditor vDeltaCellEditor = new VDeltaCellEditor<>();
+            if (showDeltaPercentage) {
+                vDeltaCellEditor.setShowDeltaPercentage();
+            }
+
+            return vDeltaCellEditor;
+        });
+        delta.setEditable(false);
+        delta.setComparator((pair1, pair2) -> {
+            Utilities.VTypeComparison vtc1 = Utilities.valueToCompareString(pair1.value, pair1.base, pair1.threshold);
+            Utilities.VTypeComparison vtc2 = Utilities.valueToCompareString(pair2.value, pair2.base, pair2.threshold);
+
+            if (!vtc1.isWithinThreshold() && vtc2.isWithinThreshold()) {
+                return -1;
+            } else if (vtc1.isWithinThreshold() && !vtc2.isWithinThreshold()) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
+        baseCol.getColumns().add(delta);
+
+        storedValueColumn.getColumns().addAll(baseCol, new DividerTableColumn());
+
+        for (int i = 1; i < snapshots.size(); i++) {
+            final int snapshotIndex = i;
+
+            snapshotName = snapshots.get(snapshotIndex).getSnapshotNode().getName() + " (" +
+                    TimestampFormats.SECONDS_FORMAT.format(snapshots.get(snapshotIndex).getSnapshotNode().getCreated().toInstant()) + ")";
+
+
+            TooltipTableColumn<VTypePair> baseSnapshotCol = new TooltipTableColumn<>(snapshotName,
+                    "Setpoint PV value when the " + snapshotName + " snapshot was taken", 100);
+            baseSnapshotCol.getStyleClass().add("second-level");
+
+            TooltipTableColumn<VTypePair> setpointValueCol = new TooltipTableColumn<>(
+                    Messages.setpoint,
+                    "Setpoint PV value when the " + snapshotName + " snapshot was taken", 66);
+
+
+            setpointValueCol.setCellValueFactory(e -> e.getValue().compareValueProperty(snapshotIndex));
+            setpointValueCol.setCellFactory(e -> new VTypeCellEditor<>());
+            setpointValueCol.setEditable(false);
+
+            baseSnapshotCol.getColumns().add(setpointValueCol);
+
+            TooltipTableColumn<VTypePair> deltaCol = new TooltipTableColumn<>(
+                    Utilities.DELTA_CHAR + Messages.baseSetpoint,
+                    "Setpoint PVV value when the " + snapshotName + " snapshot was taken", 50);
+            deltaCol.setCellValueFactory(e -> e.getValue().compareValueProperty(snapshotIndex));
+            deltaCol.setCellFactory(e -> {
+                VDeltaCellEditor vDeltaCellEditor = new VDeltaCellEditor<>();
+                if (showDeltaPercentage) {
+                    vDeltaCellEditor.setShowDeltaPercentage();
+                }
+
+                return vDeltaCellEditor;
+            });
+            deltaCol.setEditable(false);
+
+            deltaCol.setComparator((pair1, pair2) -> {
+                Utilities.VTypeComparison vtc1 = Utilities.valueToCompareString(pair1.value, pair1.base, pair1.threshold);
+                Utilities.VTypeComparison vtc2 = Utilities.valueToCompareString(pair2.value, pair2.base, pair2.threshold);
+
+                if (!vtc1.isWithinThreshold() && vtc2.isWithinThreshold()) {
+                    return -1;
+                } else if (vtc1.isWithinThreshold() && !vtc2.isWithinThreshold()) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            });
+            baseSnapshotCol.getColumns().addAll(deltaCol);
+            storedValueColumn.getColumns().addAll(baseSnapshotCol, new DividerTableColumn());
+        }
+        list.add(storedValueColumn);
+
+        TableColumn<TableEntry, VType> liveValueColumn = new TooltipTableColumn<>(Messages.liveSetpoint,
+                Messages.currentSetpointValue, 100);
+
+        liveValueColumn.setCellValueFactory(new PropertyValueFactory<>("liveValue"));
+        liveValueColumn.setCellFactory(e -> new VTypeCellEditor<>());
+        liveValueColumn.setEditable(false);
+        list.add(liveValueColumn);
+
+        getColumns().addAll(list);
     }
 }
