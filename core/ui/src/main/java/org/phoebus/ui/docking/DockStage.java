@@ -417,4 +417,18 @@ public class DockStage
         else
             buf.append(node).append("\n");
     }
+
+    private static void deferUntilAllPanesOfStageHaveScenes(Runnable runnable, List<DockPane> remainingPanes) {
+        // This is a helper function for implementing deferUntilAllPanesOfStageHaveScenes(Stage stage, Runnable runnable).
+        if (remainingPanes.size() == 0) {
+            runnable.run();
+        } else {
+            var pane = remainingPanes.get(0);
+            pane.deferUntilInScene(scene -> deferUntilAllPanesOfStageHaveScenes(runnable, remainingPanes.subList(1, remainingPanes.size())));
+        }
+    }
+
+    public static void deferUntilAllPanesOfStageHaveScenes(Stage stage, Runnable runnable) {
+        deferUntilAllPanesOfStageHaveScenes(runnable, getDockPanes(stage));
+    }
 }

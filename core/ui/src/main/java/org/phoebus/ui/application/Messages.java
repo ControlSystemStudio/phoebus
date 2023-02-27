@@ -12,6 +12,7 @@ import org.phoebus.framework.nls.NLS;
 public class Messages
 {
     // Keep in alphabetical order and aligned with messages.properties
+    public static String AddLayout;
     public static String AllFiles;
     public static String AlwaysShowTabs;
     public static String Applications;
