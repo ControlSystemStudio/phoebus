@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -193,6 +193,15 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
         });
     }
 
+    /** @param trace Trace
+     *  @return Is trace visible?
+     */
+    private boolean isTraceVisible(final Trace<XTYPE> trace)
+    {
+        return trace.isVisible() &&
+              (trace.getType() != TraceType.NONE  ||  trace.getPointType() != PointType.NONE);
+    }
+
     /** Submit background job to determine value range
      *  @param axis {@link YAxisImpl} for which to determine range
      *  @param position_range Range of positions to consider
@@ -208,8 +217,7 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                 // In parallel, determine range of all traces in this axis
                 final List<Future<ValueRange>> ranges = new ArrayList<>();
                 for (Trace<XTYPE> trace : axis.getTraces())
-                    if (trace.isVisible() &&
-                        (trace.getType() != TraceType.NONE  ||  trace.getPointType() != PointType.NONE))
+                    if (isTraceVisible(trace))
                         ranges.add(determineValueRange(trace.getData(), position_range));
 
                 // Merge the trace ranges into overall axis range
@@ -264,6 +272,7 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
             final List<AxisRange<Double>> original_ranges = new ArrayList<>();
             final List<AxisRange<Double>> new_ranges = new ArrayList<>();
             final List<Future<ValueRange>> ranges = new ArrayList<>();
+            int spans = 0;
             for (YAxisImpl<XTYPE> axis : plot.getYAxes())
             {
                 y_axes.add(axis);
@@ -271,14 +280,32 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                 new_ranges.add(axis.getValueRange());
                 original_ranges.add(axis.getValueRange());
                 ranges.add(determineValueRange(axis, plot.getXAxis().getValueRange()));
+                // How many spans for non-empty axes do we need?
+                for (Trace<XTYPE> trace : axis.getTraces())
+                    if (isTraceVisible(trace))
+                    {
+                        ++spans;
+                        break;
+                    }
             }
             final int N = y_axes.size();
+            int span_idx = 0;
             for (int i=0; i<N; ++i)
             {
                 final YAxisImpl<XTYPE> axis = y_axes.get(i);
                 // Does axis handle itself in another way?
                 if (axis.isAutoscale())
                    continue;
+                // Does axis have any traces?
+                boolean any = false;
+                for (Trace<XTYPE> trace : axis.getTraces())
+                    if (isTraceVisible(trace))
+                    {
+                        any = true;
+                        break;
+                    }
+                if (! any)
+                    continue;
 
                 // Fetch range of values on this axis
                 final ValueRange axis_range;
@@ -299,9 +326,17 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                     continue;
                 if (low == high)
                 {   // Center trace with constant value (empty range)
-                    final double half = Math.abs(low/2);
-                    low -= half;
-                    high += half;
+                    double half = Math.abs(low/2);
+                    if (half > 0)
+                    {
+                        low -= half;
+                        high += half;
+                    }
+                    else
+                    {
+                        low = -1.0;
+                        high = 1.0;
+                    }
                 }
                 if (axis.isLogarithmic())
                 {   // Transition into log space
@@ -317,8 +352,10 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                 // With N axes, assign 1/Nth of the vertical plot space to this axis
                 // by shifting the span down according to the axis index,
                 // using a total of N*range.
-                low -= (N-i-1)*span;
-                high += i*span;
+                logger.log(Level.FINE, "Axis " + axis.getName() + " staggers into span " + span_idx + " of " + spans);
+                low -= (spans-span_idx-1)*span;
+                high += span_idx*span;
+                ++span_idx;
 
                 final ValueRange rounded = roundValueRange(low, high);
                 low = rounded.getLow();
@@ -334,10 +371,10 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                 if (low < high  &&
                     !Double.isInfinite(low) && !Double.isInfinite(high))
                 {
-                	final AxisRange<Double> orig = original_ranges.get(i);
-                	final boolean normal = orig.getLow() < orig.getHigh();
-                	new_ranges.set(i, normal ? new AxisRange<>(low, high)
-                			                 : new AxisRange<>(high, low));
+                    final AxisRange<Double> orig = original_ranges.get(i);
+                    final boolean normal = orig.getLow() < orig.getHigh();
+                    new_ranges.set(i, normal ? new AxisRange<>(low, high)
+                                             : new AxisRange<>(high, low));
                 }
             }
 
@@ -441,8 +478,16 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                     if (low == high)
                     {   // Center trace with constant value (empty range)
                         final double half = Math.abs(low/2);
-                        low -= half;
-                        high += half;
+                        if (half > 0)
+                        {
+                            low -= half;
+                            high += half;
+                        }
+                        else
+                        {   // low = high = half = 0, default to [-1, 1]
+                            low = -1.0;
+                            high = 1.0;
+                        }
                     }
                     if (axis.isLogarithmic())
                     {   // Perform adjustment in log space.
@@ -475,11 +520,11 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                     // Do not use undo, but notify listeners.
                     if (low != high)
                     {
-                    	final AxisRange<Double> orig = axis.getValueRange();
-                    	final boolean normal = orig.getLow() < orig.getHigh();
-                    	final boolean changed = normal ? axis.setValueRange(low, high)
-            										   : axis.setValueRange(high, low);
-            			if (changed)
+                        final AxisRange<Double> orig = axis.getValueRange();
+                        final boolean normal = orig.getLow() < orig.getHigh();
+                        final boolean changed = normal ? axis.setValueRange(low, high)
+                                                       : axis.setValueRange(high, low);
+                        if (changed)
                             plot.fireYAxisChange(axis);
                     }
                 }

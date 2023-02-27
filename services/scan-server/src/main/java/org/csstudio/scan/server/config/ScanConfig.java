@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -37,6 +37,7 @@ public class ScanConfig
 {
     final private static String XML_ALIAS = "alias",
                                 XML_DATALOG = "data_log",
+                                XML_LOG_LIMIT = "log_limit",
                                 XML_MACROS = "macros",
                                 XML_MAXIMUM = "maximum",
                                 XML_MINIMUM = "minimum",
@@ -72,6 +73,8 @@ public class ScanConfig
     private String macros = "";
 
     private double old_scan_removal_threadhold = 50.0;
+
+    private int log_limit = 0;
 
     /** Predefined devices, maybe with alias */
     private final List<DeviceInfo> devices = new ArrayList<>();
@@ -174,6 +177,11 @@ public class ScanConfig
         return old_scan_removal_threadhold;
     }
 
+    public int getLogLimit()
+    {
+        return log_limit;
+    }
+
     /** @return {@link DeviceInfo}s read from config file */
     public List<DeviceInfo> getDevices()
     {
@@ -232,6 +240,9 @@ public class ScanConfig
 
         XMLUtil.getChildString(xml, XML_DATALOG)
                .ifPresent(parm -> data_log = parm);
+
+        XMLUtil.getChildInteger(xml, XML_LOG_LIMIT)
+               .ifPresent(l -> log_limit = l);
 
         for (Element path : XMLUtil.getChildElements(xml, XML_PRE_SCAN))
             pre_scan.add(XMLUtil.getString(path));

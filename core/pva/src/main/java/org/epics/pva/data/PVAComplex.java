@@ -37,7 +37,9 @@ class PVAComplex
         {
             if (array == PVAFieldDesc.Array.SCALAR)
                 return new PVAny(name);
-            throw new Exception("Cannot handle " + array + " any '" + name + "'");
+            else if (array == PVAFieldDesc.Array.VARIABLE_SIZE)
+                return new PVAAnyArray(name);
+            throw new Exception("Cannot handle " + array + " any '" + name + "'"); //
         }
         else if (cplx == UNION)
         {
