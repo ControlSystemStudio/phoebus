@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -261,6 +261,12 @@ public class ScanEngine
         return false;
     }
 
+    /** @return Number of scans, be it logged or with commands, any state */
+    public int getScanCount()
+    {
+        return scan_queue.size();
+    }
+
     /** @return List of scans */
     public List<LoggedScan> getScans()
     {
@@ -399,14 +405,14 @@ public class ScanEngine
 
     /** Remove the oldest completed scan
      *  @return LoggedScan that was removed or <code>null</code>
+     *  @throws Exception on error
      */
-    public Scan removeOldestCompletedScan()
+    public Scan removeOldestCompletedScan() throws Exception
     {
         for (LoggedScan scan : scan_queue)
             if (scan.getScanState().isDone())
             {
-                scan_queue.remove(scan);
-                closeExecutableScan(scan);
+                removeScan(scan);
                 return scan;
             }
         return null;

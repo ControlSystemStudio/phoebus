@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -252,6 +252,22 @@ public class ScanServerImpl implements ScanServer
     /** If memory consumption is high, remove some older scans */
     private void cullScans() throws Exception
     {
+        // Is there a limit to the number of completed scans we keep?
+        final int limit = ScanServerInstance.getScanConfig().getLogLimit();
+        if (limit > 0)
+        {
+            final int to_remove = scan_engine.getScanCount() - limit;
+            for (int i=0; i<to_remove; ++i)
+            {
+                // Find a completed scan, remove from engine 
+                final Scan removed = scan_engine.removeOldestCompletedScan();
+                if (removed == null)
+                    break;
+                logger.log(Level.INFO, "Keeping only " + limit + " scans, removed: " + removed);
+            }
+        }
+
+        // Convert scans with commands into just the logged data to keep enough runtime memory
         final double threshold = ScanServerInstance.getScanConfig().getOldScanRemovalMemoryThreshold();
         int count = 0;
 

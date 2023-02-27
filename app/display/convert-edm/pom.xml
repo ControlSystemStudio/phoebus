@@ -36,7 +36,7 @@
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
-      <artifactId>app-display-model</artifactId>
+      <artifactId>app-display-editor</artifactId>
       <version>4.7.2-SNAPSHOT</version>
     </dependency>
   </dependencies>

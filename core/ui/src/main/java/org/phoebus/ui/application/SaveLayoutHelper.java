@@ -11,41 +11,28 @@ import java.io.File;
 import java.text.MessageFormat;
 import java.util.List;
 
+import javafx.scene.control.*;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.dialog.DialogHelper;
-import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.internal.MementoHelper;
-import org.phoebus.ui.javafx.ImageCache;
 
-import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TextInputDialog;
 import javafx.stage.Stage;
 
-/** Menu item and helper to save layout
+/** Helper to save layout
  *  @author Evan Smith
  */
 @SuppressWarnings("nls")
-class SaveLayoutMenuItem extends MenuItem
+public class SaveLayoutHelper
 {
-    private final PhoebusApplication phoebus;
-    private final List<String> memento_files;
-
-    /** Save layout menu item */
-    public SaveLayoutMenuItem(final PhoebusApplication phoebus, final List<String> memento_files)
+    private SaveLayoutHelper()
     {
-        super(Messages.SaveLayoutAs, ImageCache.getImageView(ImageCache.class, "/icons/new_layout.png"));
-        this.phoebus = phoebus;
-        this.memento_files = memento_files;
-        setOnAction(event ->  saveLayout());
+        ;
     }
 
     /** Validate the filename. Only [A-Z][a-z]_[0-9]. are allowed. */
-    private boolean validateFilename(final String filename)
+    private static boolean validateFilename(final String filename)
     {
         return filename.matches("[\\w -]+");
     }
@@ -53,12 +40,12 @@ class SaveLayoutMenuItem extends MenuItem
     /** Save the layout. Prompt for a new filename, validate, possibly confirm an overwrite, and then save.
      *  @return <code>true</code> if layout save has been initiated (may take some time to complete)
      */
-    private boolean saveLayout()
+    public static boolean saveLayout(List<Stage> stagesToSave, String titleText)
     {
         final TextInputDialog prompt = new TextInputDialog();
-        prompt.setTitle(getText());
+        prompt.setTitle(titleText);
         prompt.setHeaderText(Messages.SaveDlgHdr);
-        positionDialog(prompt);
+        positionDialog(prompt, stagesToSave.get(0));
 
         while (true)
         {
@@ -78,15 +65,14 @@ class SaveLayoutMenuItem extends MenuItem
                 prompt.setHeaderText(Messages.SaveDlgHdr);
 
             // Done if save succeeded.
-            if (saveState(filename))
+            if (saveState(stagesToSave, filename))
                 return true;
         }
     }
 
-    private void positionDialog(final Dialog<?> dialog)
+    private static void positionDialog(final Dialog<?> dialog, Stage stage)
     {
-        final List<Stage> stages = DockStage.getDockStages();
-        DialogHelper.positionDialog(dialog, stages.get(0).getScene().getRoot(), -100, -100);
+        DialogHelper.positionDialog(dialog, stage.getScene().getRoot(), -100, -100);
         dialog.setResizable(true);
         dialog.getDialogPane().setMinSize(280, 160);
     }
@@ -95,22 +81,21 @@ class SaveLayoutMenuItem extends MenuItem
      *
      *  <p> If the file already exists, alert the user and prompt for file overwrite confirmation.
      *
-     *  @param phoebus Phoebus application
      *  @param layout Memento name
      *  @return <code>true</code> if saved, <code>false</code> when not overwriting existing file
      */
-    private boolean saveState(final String layout)
+    private static boolean saveState(List<Stage> stagesToSave, final String layout)
     {
         final String memento_filename = layout + ".memento";
         final File memento_file = new File(Locations.user(), memento_filename);
         // File.exists() is blocking in nature.
         // To combat this the phoebus application maintains a list of *.memento files that are in the default directory.
         // Check if the file name is in the list, and confirm a file overwrite with the user.
-        if (memento_files.contains(layout))
+        if (PhoebusApplication.INSTANCE.memento_files.contains(layout))
         {
             final Alert fileExistsAlert = new Alert(AlertType.CONFIRMATION);
             fileExistsAlert.setHeaderText(MessageFormat.format(Messages.FileExists, layout));
-            positionDialog(fileExistsAlert);
+            positionDialog(fileExistsAlert, stagesToSave.get(0));
             if (fileExistsAlert.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK)
                 return false;
         }
@@ -118,11 +103,11 @@ class SaveLayoutMenuItem extends MenuItem
         // Save in background thread
         JobManager.schedule("Save " + memento_filename, monitor ->
         {
-            MementoHelper.saveState(memento_file, null, null, phoebus.isMenuVisible(), phoebus.isToolbarVisible(), phoebus.isStatusbarVisible());
+            MementoHelper.saveState(stagesToSave, memento_file, null, null, PhoebusApplication.INSTANCE.isMenuVisible(), PhoebusApplication.INSTANCE.isToolbarVisible(), PhoebusApplication.INSTANCE.isStatusbarVisible());
 
             // After the layout has been saved,
             // update menu to include the newly saved layout
-            phoebus.createLoadLayoutsMenu();
+            PhoebusApplication.INSTANCE.createLoadLayoutsMenu();
         });
         return true;
     }
