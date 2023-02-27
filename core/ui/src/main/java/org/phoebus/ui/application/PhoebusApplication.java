@@ -95,7 +95,7 @@ public class PhoebusApplication extends Application {
      * <p>Set on {@link #start(Stage)},
      * may be used to for example get HostServices
      */
-    public static Application INSTANCE;
+    public static PhoebusApplication INSTANCE;
 
     /**
      * Application parameters
@@ -157,7 +157,7 @@ public class PhoebusApplication extends Application {
     /**
      * Menu item to save layout
      */
-    private SaveLayoutMenuItem save_layout;
+    private MenuItem save_layout;
 
     /**
      * Menu item to delete layouts
@@ -181,7 +181,7 @@ public class PhoebusApplication extends Application {
      * without the ".memento" suffix and without the 'user'
      * location path.
      */
-    private final List<String> memento_files = new CopyOnWriteArrayList<>();
+    public final List<String> memento_files = new CopyOnWriteArrayList<>();
 
     /**
      * Toolbar button for top resources
@@ -525,8 +525,10 @@ public class PhoebusApplication extends Application {
         show_statusbar = new CheckMenuItem(Messages.ShowStatusbar);
         show_statusbar.setOnAction(event -> showStatusbar(show_statusbar.isSelected()));
 
-        save_layout = new SaveLayoutMenuItem(this, memento_files);
-        delete_layouts = new DeleteLayoutsMenuItem(this, memento_files);
+        save_layout = new MenuItem(Messages.SaveLayoutAs, ImageCache.getImageView(getClass(), "/icons/new_layout.png"));
+        save_layout.setOnAction(event -> SaveLayoutHelper.saveLayout(DockStage.getDockStages(), Messages.SaveLayoutAs));
+
+        delete_layouts = new DeleteLayoutsMenuItem();
 
         final Menu menu = new Menu(Messages.Window, null,
                 show_tabs,
@@ -1251,7 +1253,7 @@ public class PhoebusApplication extends Application {
         // Save current state, _before_ tabs are closed and thus
         // there's nothing left to save
         final File memfile = XMLMementoTree.getDefaultFile();
-        MementoHelper.saveState(memfile, last_opened_file, default_application, isMenuVisible(), isToolbarVisible(), isStatusbarVisible());
+        MementoHelper.saveState(DockStage.getDockStages(), memfile, last_opened_file, default_application, isMenuVisible(), isToolbarVisible(), isStatusbarVisible());
 
         // TODO Necessary to close main_stage last?
         if (stages.contains(main_stage)) {

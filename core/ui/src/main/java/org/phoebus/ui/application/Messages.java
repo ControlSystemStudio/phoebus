@@ -114,6 +114,7 @@ public class Messages
     public static String SaveDlgErrHdr;
     public static String SaveDlgHdr;
     public static String SaveLayoutAs;
+    public static String SaveLayoutOfContainingWindowAs;
     public static String SaveSnapshot;
     public static String SaveSnapshotSelectFilename;
     public static String Saving;
