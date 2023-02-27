@@ -18,7 +18,6 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
-import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
@@ -32,6 +31,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -41,24 +42,24 @@ public class ContextMenuSnapshot extends ContextMenuBase {
     protected Image snapshotTagsWithCommentIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-tags.png");
     protected Image csvExportIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_export.png");
 
+    private MenuItem compareSnapshotsMenuItem;
+
+    private Menu tagWithComment;
+
     public ContextMenuSnapshot(SaveAndRestoreController saveAndRestoreController,
                                SimpleStringProperty toggleGoldenMenuItemText,
                                SimpleObjectProperty<ImageView> toggleGoldenImageViewProperty,
                                TreeView<org.phoebus.applications.saveandrestore.model.Node> treeView) {
         super(saveAndRestoreController, treeView);
 
-        MenuItem compareSnapshotsMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, new ImageView(compareSnapshotIcon));
+        compareSnapshotsMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, new ImageView(compareSnapshotIcon));
         compareSnapshotsMenuItem.setOnAction(ae -> saveAndRestoreController.comapreSnapshot());
-
-        MenuItem tagAsGolden = new MenuItem(Messages.contextMenuTagAsGolden, new ImageView(ImageRepository.GOLDEN_SNAPSHOT));
-        tagAsGolden.textProperty().bind(toggleGoldenMenuItemText);
-        tagAsGolden.graphicProperty().bind(toggleGoldenImageViewProperty);
-        tagAsGolden.setOnAction(ae -> saveAndRestoreController.toggleGoldenProperty());
 
         ImageView snapshotTagsWithCommentIconImage = new ImageView(snapshotTagsWithCommentIcon);
         snapshotTagsWithCommentIconImage.setFitHeight(22);
         snapshotTagsWithCommentIconImage.setFitWidth(22);
-        Menu tagWithComment = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
+
+        tagWithComment = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
         tagWithComment.setOnShowing(event -> saveAndRestoreController.tagWithComment(tagWithComment.getItems()));
 
         CustomMenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
@@ -80,7 +81,6 @@ public class ContextMenuSnapshot extends ContextMenuBase {
         getItems().addAll(renameNodeMenuItem,
                 deleteNodesMenuItem,
                 compareSnapshotsMenuItem,
-                tagAsGolden,
                 tagWithComment,
                 copyUniqueIdToClipboardMenuItem,
                 exportSnapshotMenuItem);
@@ -89,20 +89,16 @@ public class ContextMenuSnapshot extends ContextMenuBase {
 
     @Override
     protected void runChecks() {
+        super.runChecks();
         ObservableList<TreeItem<Node>> selected =
                 treeView.getSelectionModel().getSelectedItems();
-        // TODO: support multiple selection to allow tagging of multiple snapshots
-        if (multipleSelection.get() && !isDeletionPossible(selected)) {
-            Platform.runLater(this::hide);
+        if (multipleSelection.get() && checkNotTaggable(selected)) {
+            tagWithComment.disableProperty().set(true);
         }
-        /*
-        if (multipleSelection.get() && !isDeletionPossible(selected)) {
-            deleteNodesMenuItem.disableProperty().set(true);
+        else{
+            tagWithComment.disableProperty().set(false);
         }
-        tagAsGolden.disableProperty().set(multipleSelection.getValue());
         compareSnapshotsMenuItem.disableProperty().set(!compareSnapshotsPossible());
-
-         */
     }
 
     /**
@@ -125,5 +121,16 @@ public class ContextMenuSnapshot extends ContextMenuBase {
         return configAndSnapshotNode[1].getUniqueId() != null &&
                 parentItem.getValue().getUniqueId().equals(configAndSnapshotNode[0].getUniqueId()) &&
                 !selectedItem.getValue().getUniqueId().equals(configAndSnapshotNode[1].getUniqueId());
+    }
+
+    /**
+     * Checks if selection is not allowed, i.e. not all selected nodes are snapshot nodes.
+     * @param selectedItems List of selected nodes
+     * @return <code>true</code> if any of the selected nodes is of type {@link NodeType#FOLDER} or
+     * {@link NodeType#CONFIGURATION}.
+     */
+    private boolean checkNotTaggable(ObservableList<TreeItem<Node>> selectedItems){
+        return selectedItems.stream().filter(i -> i.getValue().getNodeType().equals(NodeType.FOLDER) ||
+                i.getValue().getNodeType().equals(NodeType.CONFIGURATION)).findFirst().isPresent();
     }
 }

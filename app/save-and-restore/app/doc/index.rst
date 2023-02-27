@@ -339,6 +339,18 @@ User may delete a tag through the tagging sub-menu:
 
 .. image:: images/delete-tag.png
 
+Tagging multiple snapshots
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If user selects multiple snapshot nodes, all of the selected nodes can be tagged with the same tag in one single operation.
+Note however that this is possible only if the wanted tag is not already present on any of the nodes.
+
+Removing tag on multiple snapshots
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If user selects multiple snapshot nodes, tags may be removed on all of the nodes in one single operation. Note however
+that the context menu will only show tags common for all selected nodes.
+
 Snapshot View Context Menu
 --------------------------
 

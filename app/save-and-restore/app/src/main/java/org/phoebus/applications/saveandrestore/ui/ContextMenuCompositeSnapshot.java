@@ -69,13 +69,4 @@ public class ContextMenuCompositeSnapshot extends ContextMenuBase {
                 copyUniqueIdToClipboardMenuItem,
                 tagWithComment);
     }
-
-    @Override
-    protected void runChecks() {
-        ObservableList<TreeItem<Node>> selected =
-                treeView.getSelectionModel().getSelectedItems();
-        if (multipleSelection.get() && !isDeletionPossible(selected)) {
-            Platform.runLater(this::hide);
-        }
-    }
 }

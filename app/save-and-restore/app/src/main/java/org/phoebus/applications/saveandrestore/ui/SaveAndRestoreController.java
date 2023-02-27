@@ -29,6 +29,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -47,6 +48,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SelectionModel;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -201,14 +203,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         treeView.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         browserSelectionModel = treeView.getSelectionModel();
-        browserSelectionModel.selectedItemProperty().addListener(new ChangeListener<TreeItem<Node>>() {
-            @Override
-            public void changed(ObservableValue<? extends TreeItem<Node>> observable, TreeItem<Node> oldValue, TreeItem<Node> newValue) {
-                if (newValue != null) {
-
-                }
-            }
-        });
 
         ImageView searchButtonImageView = ImageCache.getImageView(SaveAndRestoreApplication.class, "/icons/sar-search.png");
         searchButtonImageView.setFitWidth(20);
@@ -1353,5 +1347,18 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);
+    }
+
+    protected boolean hasSameParent(ObservableList<? extends TreeItem<Node>> selectedItems) {
+        if(selectedItems.size() == 1){
+            return true;
+        }
+        Node parentNode = selectedItems.get(0).getParent().getValue();
+        for (TreeItem<Node> treeItem : selectedItems) {
+            if (treeItem.getParent().getValue().getUniqueId().equals(parentNode.getUniqueId())) {
+                return true;
+            }
+        }
+        return false;
     }
 }
