@@ -122,4 +122,17 @@ public class Tag implements Comparable<Tag>, Serializable {
     public static Tag goldenTag(String userName){
         return Tag.builder().name(GOLDEN).userName(userName).created(new Date()).build();
     }
+
+    @Override
+    public boolean equals(Object other){
+        if(!(other instanceof Tag)){
+            return false;
+        }
+        return name.equals(((Tag)other).getName());
+    }
+
+    @Override
+    public int hashCode(){
+        return name.hashCode();
+    }
 }

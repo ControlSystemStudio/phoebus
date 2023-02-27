@@ -73,7 +73,6 @@ import org.phoebus.applications.saveandrestore.filehandler.csv.CSVExporter;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVImporter;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.TagData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
@@ -1022,7 +1021,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         ObservableList<TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
         List<String> selectedNodeIds =
                 selectedItems.stream().map(treeItem -> treeItem.getValue().getUniqueId()).collect(Collectors.toList());
-        SnapshotNewTagDialog snapshotNewTagDialog = new SnapshotNewTagDialog(selectedItems.get(0).getValue());
+        SnapshotNewTagDialog snapshotNewTagDialog =
+                new SnapshotNewTagDialog(selectedItems.stream().map(i -> i.getValue()).collect(Collectors.toList()));
         snapshotNewTagDialog.initModality(Modality.APPLICATION_MODAL);
 
         String locationString = DirectoryUtilities.CreateLocationString(selectedItems.get(0).getValue(), true);
@@ -1042,7 +1042,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                     .build();
 
             try {
-                //saveAndRestoreService.addTagToSnapshot(node, aNewTag);
                 TagData tagData = new TagData();
                 tagData.setTag(aNewTag);
                 tagData.setUniqueNodeIds(selectedNodeIds);
@@ -1338,9 +1337,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * @return An array of two elements: the configuration {@link Node} anf the snapshot {@link Node} of
      * an active {@link SnapshotTab}.
      */
-    public Node[] getConfigAndSnapshotForActiveSnapshotTab(){
+    public Node[] getConfigAndSnapshotForActiveSnapshotTab() {
         Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
-        if(selectedTab instanceof SnapshotTab) {
+        if (selectedTab instanceof SnapshotTab) {
             SnapshotTab snapshotTab = (SnapshotTab) selectedTab;
             return new Node[]{snapshotTab.getConfigNode(), snapshotTab.getSnapshotNode()};
         }

@@ -53,10 +53,20 @@ public class SnapshotNewTagDialog extends Dialog<Pair<String, String>> {
 
     private final TextInputControl tagNameTextField;
 
-    public SnapshotNewTagDialog(Node node) {
+    public SnapshotNewTagDialog(List<Node> nodes) {
         super();
 
-        List<Tag> tagList = node.getTags() == null ? new ArrayList<>(): node.getTags();
+        // Construct a list of all (unique) tags found in the node list.
+        List<Tag> tagList = new ArrayList<>();
+        nodes.forEach(node -> {
+            if(node.getTags() != null){
+                node.getTags().forEach(tag -> {
+                    if(!tagList.contains(tag)){
+                        tagList.add(tag);
+                    }
+                });
+            }
+        });
 
         setTitle(Messages.createNewTagDialogTitle);
 
@@ -93,16 +103,12 @@ public class SnapshotNewTagDialog extends Dialog<Pair<String, String>> {
         });
 
         tagNameTextField.textProperty().addListener((observableValue, oldString, newString) -> {
+            javafx.scene.Node saveButton = getDialogPane().lookupButton(saveTagButton);
             if (!newString.isEmpty()) {
-                tagList.stream()
-                        .filter(tag -> tag.getName().equals(newString) ||
-                                // Composite snapshots may be tagged as golden
-                                (node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT) && newString.equalsIgnoreCase(Tag.GOLDEN)))
-                        .findFirst()
-                        .ifPresentOrElse(tag ->
-                                getDialogPane().lookupButton(saveTagButton).setDisable(true), () -> getDialogPane().lookupButton(saveTagButton).setDisable(false));
+                Platform.runLater(() ->
+                        saveButton.setDisable(!isTagSelectable(nodes, newString)));
             } else {
-                Platform.runLater(() -> getDialogPane().lookupButton(saveTagButton).setDisable(true));
+                Platform.runLater(() -> saveButton.setDisable(true));
             }
         });
 
@@ -114,15 +120,43 @@ public class SnapshotNewTagDialog extends Dialog<Pair<String, String>> {
 
             return null;
         });
-
-
     }
 
     /**
      * Adds {@link AutocompleteMenu} to the tag name field such that user may choose among existing tag names.
+     *
      * @param autocompleteMenu The {@link AutocompleteMenu} that will be attached to the tag name input field.
      */
     public void configureAutocompleteMenu(AutocompleteMenu autocompleteMenu) {
         autocompleteMenu.attachField(tagNameTextField);
+    }
+
+    /**
+     * Determines if a {@link Tag} name can be used to tag a list of {@link Node}s.
+     * <ul>
+     *     <li>A {@link Node} of type {@link NodeType#COMPOSITE_SNAPSHOT} cannot be tagged as golden.</li>
+     *     <li>A tag name must not exist on any of the {@link Node}s.</li>
+     * </ul>
+     * Uniqueness of {@link Tag} is determined by its case-sensitive name.
+     * @param nodes A list of {@link Node}s to check.
+     * @param tagName A {@link Tag} name
+     * @return <code>true</code> if the tag name can be used on all {@link Node}s in the list.
+     */
+    private boolean isTagSelectable(List<Node> nodes, String tagName){
+        for(Node node : nodes){
+            if(node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT) &&
+                    tagName.equalsIgnoreCase(Tag.GOLDEN)){
+                return false;
+            }
+            if(node.getTags() != null){
+                for(Tag tag : node.getTags()){
+
+                    if(tag.getName().equals(tagName)){
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 }
