@@ -32,7 +32,6 @@ import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -53,7 +52,7 @@ public class ContextMenuSnapshot extends ContextMenuBase {
         super(saveAndRestoreController, treeView);
 
         compareSnapshotsMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, new ImageView(compareSnapshotIcon));
-        compareSnapshotsMenuItem.setOnAction(ae -> saveAndRestoreController.comapreSnapshot());
+        compareSnapshotsMenuItem.setOnAction(ae -> saveAndRestoreController.compareSnapshot());
 
         ImageView snapshotTagsWithCommentIconImage = new ImageView(snapshotTagsWithCommentIcon);
         snapshotTagsWithCommentIconImage.setFitHeight(22);

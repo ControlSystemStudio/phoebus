@@ -52,6 +52,7 @@ public class Messages {
     public static String currentPVValue;
     public static String currentReadbackValue;
     public static String currentSetpointValue;
+    public static String createNewTagDialogMultipleSnapshots;
     public static String createNewTagDialogTitle;
     public static String deleteFilter;
 

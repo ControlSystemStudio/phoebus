@@ -26,10 +26,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -48,7 +45,6 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.control.SelectionModel;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -155,7 +151,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     protected SimpleStringProperty toggleGoldenMenuItemText = new SimpleStringProperty();
     protected SimpleObjectProperty<ImageView> toggleGoldenImageViewProperty = new SimpleObjectProperty<>();
-    private final SimpleBooleanProperty multipleItemsSelected = new SimpleBooleanProperty(false);
+
     protected MultipleSelectionModel<TreeItem<Node>> browserSelectionModel;
 
     protected ImageView snapshotImageView = new ImageView(ImageRepository.SNAPSHOT);
@@ -171,7 +167,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     protected SimpleBooleanProperty disabledUi = new SimpleBooleanProperty(false);
 
-    private SimpleBooleanProperty filterEnabledProperty = new SimpleBooleanProperty(false);
+    private final SimpleBooleanProperty filterEnabledProperty = new SimpleBooleanProperty(false);
 
     private final URI uri;
 
@@ -211,9 +207,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         enableFilterCheckBox.selectedProperty().bindBidirectional(filterEnabledProperty);
         filtersComboBox.disableProperty().bind(filterEnabledProperty.not());
-        filterEnabledProperty.addListener((observable, oldValue, newValue) -> {
-            filterEnabledChanged(newValue);
-        });
+        filterEnabledProperty.addListener((observable, oldValue, newValue) -> filterEnabledChanged(newValue));
 
         folderContextMenu = new ContextMenuFolder(this, treeView);
         configurationContextMenu = new ContextMenuConfiguration(this, treeView);
@@ -284,7 +278,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                             return filter.getName();
                         }
                     }
-
                     @Override
                     public Filter fromString(String s) {
                         return null;
@@ -302,7 +295,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         filtersComboBox.itemsProperty().bind(new SimpleObjectProperty<>(filtersList));
 
-        enableFilterCheckBox.disableProperty().bind(Bindings.createBooleanBinding(() -> filtersList.isEmpty(), filtersList));
+        enableFilterCheckBox.disableProperty().bind(Bindings.createBooleanBinding(filtersList::isEmpty, filtersList));
 
         loadTreeData();
     }
@@ -360,9 +353,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 String savedFilterName = getSavedFilterName();
                 if (savedFilterName != null) {
                     Optional<Filter> f = filtersComboBox.getItems().stream().filter(filter -> filter.getName().equals(savedFilterName)).findFirst();
-                    if (f.isPresent()) {
-                        filtersComboBox.getSelectionModel().select(f.get());
-                    }
+                    f.ifPresent(filter -> filtersComboBox.getSelectionModel().select(filter));
                 }
             }
 
@@ -419,28 +410,10 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     /**
-     * Deletion of tree nodes when multiple nodes are selected is allowed only if all of the
-     * selected nodes have the same parent node. This method checks the parent node(s) of
-     * the selected nodes accordingly.
-     *
-     * @param selectedItems The selected tree nodes.
-     * @return <code>true</code> if all selected nodes have the same parent node, <code>false</code> otherwise.
-     */
-    private boolean isDeletionPossible(ObservableList<TreeItem<Node>> selectedItems) {
-        Node parentNode = selectedItems.get(0).getParent().getValue();
-        for (TreeItem<Node> treeItem : selectedItems) {
-            if (!treeItem.getParent().getValue().getUniqueId().equals(parentNode.getUniqueId())) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
      * Action when user requests comparison between an opened snapshot and a snapshot item selected from
      * the tree view.
      */
-    protected void comapreSnapshot() {
+    protected void compareSnapshot() {
         compareSnapshot(browserSelectionModel.getSelectedItems().get(0).getValue());
     }
 
@@ -459,35 +432,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Failed to compare snapshot", e);
         }
-    }
-
-    /**
-     * Toggles the "golden" property of a snapshot as selected from the tree view.
-     */
-    protected void toggleGoldenProperty() {
-        toggleGoldenProperty(browserSelectionModel.getSelectedItems().get(0).getValue());
-    }
-
-    /**
-     * Toggles the "golden" property of the specified snapshot {@link Node}
-     *
-     * @param node The snapshot {@link Node} on which to toggle the "golden" property.
-     */
-    protected void toggleGoldenProperty(Node node) {
-        try {
-            Node updatedNode = saveAndRestoreService.tagSnapshotAsGolden(node,
-                    !node.hasTag(Tag.GOLDEN));
-            browserSelectionModel.getSelectedItems().get(0).setValue(updatedNode);
-        } catch (Exception e) {
-            LOG.log(Level.WARNING, "Failed to toggle golden property", e);
-        }
-    }
-
-    /**
-     * Deletes selected snapshots.
-     */
-    protected void deleteSnapshots() {
-        deleteNodes(browserSelectionModel.getSelectedItems());
     }
 
     /**
@@ -1016,11 +960,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         List<String> selectedNodeIds =
                 selectedItems.stream().map(treeItem -> treeItem.getValue().getUniqueId()).collect(Collectors.toList());
         SnapshotNewTagDialog snapshotNewTagDialog =
-                new SnapshotNewTagDialog(selectedItems.stream().map(i -> i.getValue()).collect(Collectors.toList()));
+                new SnapshotNewTagDialog(selectedItems.stream().map(TreeItem::getValue).collect(Collectors.toList()));
         snapshotNewTagDialog.initModality(Modality.APPLICATION_MODAL);
-
-        String locationString = DirectoryUtilities.CreateLocationString(selectedItems.get(0).getValue(), true);
-        snapshotNewTagDialog.getDialogPane().setHeader(TagUtil.CreateAddHeader(locationString, selectedItems.get(0).getValue().getName()));
 
         ProposalService proposalService = new ProposalService(new TagProposalProvider(saveAndRestoreService));
         AutocompleteMenu autocompleteMenu = new AutocompleteMenu(proposalService);
@@ -1039,13 +980,14 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 TagData tagData = new TagData();
                 tagData.setTag(aNewTag);
                 tagData.setUniqueNodeIds(selectedNodeIds);
-                saveAndRestoreService.addTag(tagData);
+                List<Node> updatedNodes = saveAndRestoreService.addTag(tagData);
+                for(Node node : updatedNodes){
+                    nodeChanged(node);
+                }
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Failed to add tag to snapshot");
             }
         });
-
-
     }
 
     /**
@@ -1347,18 +1289,5 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);
-    }
-
-    protected boolean hasSameParent(ObservableList<? extends TreeItem<Node>> selectedItems) {
-        if(selectedItems.size() == 1){
-            return true;
-        }
-        Node parentNode = selectedItems.get(0).getParent().getValue();
-        for (TreeItem<Node> treeItem : selectedItems) {
-            if (treeItem.getParent().getValue().getUniqueId().equals(parentNode.getUniqueId())) {
-                return true;
-            }
-        }
-        return false;
     }
 }
