@@ -85,4 +85,87 @@ public class LinearTicksTest extends TicksTestBase
         System.out.println(text);
         assertThat(text, equalTo("'10000' 9600 9200 8800 8400 '8000' 7600 7200 6800 6400 '6000' 5600 5200 4800 4400 '4000' 3600 3200 2800 2400 '2000' 1600 1200 800 400 "));
     }
+
+    @Test
+    public void testShouldUseExpNotation() {
+        final LinearTicks linearTicks = new LinearTicks();
+        linearTicks.setExponentialThreshold(3);
+
+        // Small orders of magnitude:
+        assertThat(linearTicks.shouldUseExpNotation(0.0, 10.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(0.0, 1.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(0.0, 0.1), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(0.0, 0.01), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(0.0, 0.001), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(0.0, 0.0001), equalTo(true));
+        assertThat(linearTicks.shouldUseExpNotation(0.0, 0.00001), equalTo(true));
+
+        assertThat(linearTicks.shouldUseExpNotation(-10.0, 0.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(-1.0, 0.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(-0.1, 0.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(-0.01, 0.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(-0.001, 0.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(-0.0001, 0.0), equalTo(true));
+        assertThat(linearTicks.shouldUseExpNotation(-0.00001, 0.0), equalTo(true));
+
+        assertThat(linearTicks.shouldUseExpNotation(-10.0, 10.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(-1.0, 1.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(-0.1, 0.1), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(-0.01, 0.01), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(-0.001, 0.001), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(-0.0001, 0.0001), equalTo(true));
+        assertThat(linearTicks.shouldUseExpNotation(-0.00001, 0.00001), equalTo(true));
+
+        assertThat(linearTicks.shouldUseExpNotation(-9.0, 9.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(-0.9, 0.9), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(-0.09, 0.09), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(-0.009, 0.009), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(-0.0009, 0.0009), equalTo(true));
+        assertThat(linearTicks.shouldUseExpNotation(-0.00009, 0.00009), equalTo(true));
+        assertThat(linearTicks.shouldUseExpNotation(-0.000009, 0.000009), equalTo(true));
+
+        assertThat(linearTicks.shouldUseExpNotation(-9.999999999, 9.999999999), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(-0.9999999999, 0.9999999999), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(-0.09999999999, 0.09999999999), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(-0.009999999999, 0.009999999999), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(-0.0009999999999, 0.0009999999999), equalTo(true));
+        assertThat(linearTicks.shouldUseExpNotation(-0.00009999999999, 0.00009999999999), equalTo(true));
+        assertThat(linearTicks.shouldUseExpNotation(-0.000009999999999, 0.000009999999999), equalTo(true));
+
+        // Large orders of magnitude:
+        assertThat(linearTicks.shouldUseExpNotation(0.0, 1.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(0.0, 10.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(0.0, 100.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(0.0, 1000.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(0.0, 10000.0), equalTo(true));
+        assertThat(linearTicks.shouldUseExpNotation(0.0, 100000.0), equalTo(true));
+
+        assertThat(linearTicks.shouldUseExpNotation(1.0, 0.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(10.0, 0.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(100.0, 0.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(1000.0, 0.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(10000.0, 0.0), equalTo(true));
+        assertThat(linearTicks.shouldUseExpNotation(100000.0, 0.0), equalTo(true));
+
+        assertThat(linearTicks.shouldUseExpNotation(1.0, 1.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(10.0, 10.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(100.0, 100.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(1000.0, 1000.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(10000.0, 10000.0), equalTo(true));
+        assertThat(linearTicks.shouldUseExpNotation(100000.0, 100000.0), equalTo(true));
+
+        assertThat(linearTicks.shouldUseExpNotation(0.9, 0.9), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(9.0, 9.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(90.0, 90.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(900.0, 900.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(9000.0, 9000.0), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(90000.0, 90000.0), equalTo(true));
+
+        assertThat(linearTicks.shouldUseExpNotation(0.9999999999, 0.9999999999), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(9.999999999, 9.999999999), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(99.99999999, 99.99999999), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(999.9999999, 999.9999999), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(9999.999999, 9999.999999), equalTo(false));
+        assertThat(linearTicks.shouldUseExpNotation(99999.99999, 99999.99999), equalTo(true));
+    }
 }
