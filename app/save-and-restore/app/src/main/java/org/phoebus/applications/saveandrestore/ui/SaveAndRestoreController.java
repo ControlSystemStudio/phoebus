@@ -683,9 +683,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 ((SnapshotTab) tab).loadSnapshot(node);
                 break;
             case COMPOSITE_SNAPSHOT:
-                tab = new CompositeSnapshotTab(this);
-                ((CompositeSnapshotTab) tab).editCompositeSnapshot(node);
-                break;
+                openCompositeSnapshotForRestore();
+                return;
             case FOLDER:
             default:
                 return;
@@ -1270,11 +1269,12 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     /**
      * @param node A {@link Node} to be checked
      * @return <code>true</code> if a {@link Filter} is enabled/selected and if the {@link Node} is
-     * contained in the search result associated with that {@link Filter}.
+     * contained in the search result associated with that {@link Filter}. If on the other hand filtering is
+     * disabled, then all items match as we have a "no filter".
      */
     public boolean matchesFilter(Node node) {
         if (!filterEnabledProperty.get()) {
-            return false;
+            return true;
         }
         TreeItem<Node> selectedItem = treeView.getSelectionModel().getSelectedItem();
         if (selectedItem == null) {

@@ -18,8 +18,6 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
-import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -30,8 +28,6 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
@@ -62,10 +58,6 @@ public class BrowserTreeCell extends TreeCell<Node> {
     private final ContextMenu rootFolderContextMenu;
     private final ContextMenu compositeSnapshotContextMenu;
     private final SaveAndRestoreController saveAndRestoreController;
-
-    private static final Background HIGHLIGHT_BACKGROUND =
-            new Background(new BackgroundFill(Color.rgb(242, 242, 242), CornerRadii.EMPTY, new Insets(-3,0,-3,0)));
-
 
     private static final Border BORDER = new Border(new BorderStroke(Color.GREEN, BorderStrokeStyle.SOLID,
             new CornerRadii(5.0), BorderStroke.THIN));
@@ -161,11 +153,8 @@ public class BrowserTreeCell extends TreeCell<Node> {
         }
         // Use custom layout as this makes it easier to set opacity
         HBox hBox = new HBox();
-        if (saveAndRestoreController.matchesFilter(node)) {
-            getStyleClass().add("filter-match");
-        }
-        else{
-            getStyleClass().remove("filter-match");
+        if (!saveAndRestoreController.matchesFilter(node)) {
+            hBox.setOpacity(0.4);
         }
         StringBuffer stringBuffer = new StringBuffer();
         String comment = node.getDescription();
@@ -205,7 +194,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
                 String name = node.getName();
                 if (node.getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)) {
                     setContextMenu(rootFolderContextMenu);
-                    name += " (" + SaveAndRestoreService.getInstance().getServiceIdentifier() +")";
+                    name += " (" + SaveAndRestoreService.getInstance().getServiceIdentifier() + ")";
                 } else {
                     setContextMenu(folderContextMenu);
                 }
