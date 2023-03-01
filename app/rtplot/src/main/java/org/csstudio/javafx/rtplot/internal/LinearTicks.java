@@ -91,12 +91,10 @@ public class LinearTicks extends Ticks<Double>
         final boolean normal = low < high;
         final double range = Math.abs(high-low);
 
-        final long order_of_magnitude = Math.abs(Math.round(Log10.log10(range)));
-
         // Determine initial precision for displaying numbers in this range.
         // Precision must be set to format test entries, which
         // are then used to compute ticks.
-        final boolean use_exp_notation = order_of_magnitude > exponential_threshold;
+        final boolean use_exp_notation = shouldUseExpNotation(low, high);
         int precision;
         if (use_exp_notation)
         {
@@ -203,6 +201,13 @@ public class LinearTicks extends Ticks<Double>
         }
         this.major_ticks = major_ticks;
         this.minor_ticks = minor_ticks;
+    }
+
+    protected boolean shouldUseExpNotation(Double low, Double high) {
+        boolean isLargeOrderOfMagnitude = Log10.log10(Math.abs(low)) >= exponential_threshold + 1 || Log10.log10(Math.abs(high)) >= exponential_threshold + 1;
+        boolean isSmallOrderOfMagnitude = Log10.log10(Math.abs(low)) < -exponential_threshold && Log10.log10(Math.abs(high)) < -exponential_threshold;
+
+        return isLargeOrderOfMagnitude || isSmallOrderOfMagnitude;
     }
 
     /** @param number A number
