@@ -32,7 +32,7 @@ import java.util.Date;
 
 /**
  * A {@link Tag} is a piece of meta-data that may be added to a {@link Node} in order to
- * organize save&restore objects and facilitate search.
+ * organize save-and-restore objects and facilitate search.
  *
  * {@link Tag}s are uniquely identified by its case-sensitive name.
  */
