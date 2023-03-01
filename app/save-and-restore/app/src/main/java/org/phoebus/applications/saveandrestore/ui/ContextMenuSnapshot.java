@@ -18,9 +18,11 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
@@ -29,6 +31,7 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.stage.WindowEvent;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
@@ -46,8 +49,6 @@ public class ContextMenuSnapshot extends ContextMenuBase {
     private Menu tagWithComment;
 
     public ContextMenuSnapshot(SaveAndRestoreController saveAndRestoreController,
-                               SimpleStringProperty toggleGoldenMenuItemText,
-                               SimpleObjectProperty<ImageView> toggleGoldenImageViewProperty,
                                TreeView<org.phoebus.applications.saveandrestore.model.Node> treeView) {
         super(saveAndRestoreController, treeView);
 
@@ -59,12 +60,12 @@ public class ContextMenuSnapshot extends ContextMenuBase {
         snapshotTagsWithCommentIconImage.setFitWidth(22);
 
         tagWithComment = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
-        tagWithComment.setOnShowing(event -> saveAndRestoreController.tagWithComment(tagWithComment.getItems()));
+        tagWithComment.setOnShowing(event -> saveAndRestoreController.tagWithComment(tagWithComment));
 
-        CustomMenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
+        MenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
         addTagWithCommentMenuItem.setOnAction(action -> saveAndRestoreController.addTagToSnapshots());
 
-        tagWithComment.getItems().addAll(addTagWithCommentMenuItem, new SeparatorMenuItem());
+        tagWithComment.getItems().addAll(addTagWithCommentMenuItem);
 
         MenuItem findReferencesMenuItem = new MenuItem(Messages.findSnapshotReferences, new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
         findReferencesMenuItem.setOnAction(ae -> saveAndRestoreController.findSnapshotReferences());
@@ -77,9 +78,17 @@ public class ContextMenuSnapshot extends ContextMenuBase {
         exportSnapshotMenuItem.disableProperty().bind(multipleSelection);
         exportSnapshotMenuItem.setOnAction(ae -> saveAndRestoreController.exportSnapshot());
 
+        MenuItem tagGoldenMenuItem = new MenuItem(Messages.contextMenuTagAsGolden, new ImageView(ImageRepository.SNAPSHOT));
+
+        //
+        setOnShowing(event -> {
+            saveAndRestoreController.configureGoldenItem(tagGoldenMenuItem);
+        });
+
         getItems().addAll(renameNodeMenuItem,
                 deleteNodesMenuItem,
                 compareSnapshotsMenuItem,
+                tagGoldenMenuItem,
                 tagWithComment,
                 copyUniqueIdToClipboardMenuItem,
                 exportSnapshotMenuItem);

@@ -53,11 +53,10 @@ public class ContextMenuCompositeSnapshot extends ContextMenuBase {
         snapshotTagsWithCommentIconImage.setFitWidth(22);
 
         Menu tagWithComment = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
-        tagWithComment.disableProperty().bind(multipleSelection);
-        tagWithComment.setOnShowing(event -> saveAndRestoreController.tagWithComment(tagWithComment.getItems()));
+        //tagWithComment.disableProperty().bind(multipleSelection);
+        tagWithComment.setOnShowing(event -> saveAndRestoreController.tagWithComment(tagWithComment));
 
         CustomMenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
-        addTagWithCommentMenuItem.disableProperty().bind(multipleSelection);
         addTagWithCommentMenuItem.setOnAction(action -> saveAndRestoreController.addTagToSnapshots());
 
         tagWithComment.getItems().addAll(addTagWithCommentMenuItem, new SeparatorMenuItem());

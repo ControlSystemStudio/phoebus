@@ -24,15 +24,12 @@ package org.phoebus.applications.saveandrestore.ui.snapshot;
 import javafx.application.Platform;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.util.Pair;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
@@ -40,7 +37,6 @@ import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
 import org.phoebus.ui.autocomplete.AutocompleteMenu;
 
@@ -73,14 +69,7 @@ public class SnapshotNewTagDialog extends Dialog<Pair<String, String>> {
             }
         });
 
-        if(nodes.size() == 1){
-            String locationString = DirectoryUtilities.CreateLocationString(nodes.get(0), true);
-            getDialogPane().setHeader(TagUtil.CreateAddHeader(locationString, nodes.get(0).getName()));
-        }
-        else{
-            getDialogPane().setHeader(TagUtil.createHeaderForMultipleSnapshotTagging());
-        }
-
+        setHeaderText(Messages.createNewTagDialogHeader);
         setTitle(Messages.createNewTagDialogTitle);
 
         ButtonType saveTagButton = new ButtonType(Messages.saveTagButtonLabel, ButtonBar.ButtonData.OK_DONE);
@@ -99,29 +88,13 @@ public class SnapshotNewTagDialog extends Dialog<Pair<String, String>> {
 
         tagNameTextField = new TextField();
         TextField tagCommentTextField = new TextField();
-        tagCommentTextField.setPrefHeight(34);
-
-        Button goldenButton = new Button();
-        goldenButton.setOnAction(event -> tagNameTextField.textProperty().set(Tag.GOLDEN));
-        goldenButton.disableProperty().set(!isTagSelectable(nodes, Tag.GOLDEN));
-        goldenButton.setGraphic(new ImageView(ImageRepository.GOLDEN_SNAPSHOT));
-
-        AnchorPane anchorPane = new AnchorPane();
-        AnchorPane.setBottomAnchor(tagNameTextField, 0.0);
-        AnchorPane.setTopAnchor(tagNameTextField, 0.0);
-        AnchorPane.setLeftAnchor(tagNameTextField, 0.0);
-        AnchorPane.setRightAnchor(tagNameTextField, 0.0);
-        AnchorPane.setBottomAnchor(goldenButton, 4.0);
-        AnchorPane.setTopAnchor(goldenButton, 4.0);
-        AnchorPane.setRightAnchor(goldenButton, 4.0);
-        anchorPane.getChildren().addAll(tagNameTextField, goldenButton);
 
         tagNameTextField.setMinWidth(400);
         tagCommentTextField.setMinWidth(400);
 
         gridPane.add(tagNameLabel, 0, 0);
         gridPane.add(tagCommentLabel, 0, 1);
-        gridPane.add(anchorPane, 1, 0);
+        gridPane.add(tagNameTextField, 1, 0);
         gridPane.add(tagCommentTextField, 1, 1);
 
         getDialogPane().setContent(gridPane);
@@ -173,13 +146,11 @@ public class SnapshotNewTagDialog extends Dialog<Pair<String, String>> {
      */
     private boolean isTagSelectable(List<Node> nodes, String tagName){
         for(Node node : nodes){
-            if(node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT) &&
-                    tagName.equalsIgnoreCase(Tag.GOLDEN)){
+            if(tagName.equalsIgnoreCase(Tag.GOLDEN)){
                 return false;
             }
             if(node.getTags() != null){
                 for(Tag tag : node.getTags()){
-
                     if(tag.getName().equals(tagName)){
                         return false;
                     }

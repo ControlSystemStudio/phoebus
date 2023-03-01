@@ -25,7 +25,6 @@ import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -41,10 +40,12 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -109,6 +110,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Stack;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -149,13 +151,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     protected ContextMenu rootFolderContextMenu;
     protected ContextMenu compositeSnapshotContextMenu;
 
-    protected SimpleStringProperty toggleGoldenMenuItemText = new SimpleStringProperty();
-    protected SimpleObjectProperty<ImageView> toggleGoldenImageViewProperty = new SimpleObjectProperty<>();
-
     protected MultipleSelectionModel<TreeItem<Node>> browserSelectionModel;
-
-    protected ImageView snapshotImageView = new ImageView(ImageRepository.SNAPSHOT);
-    protected ImageView snapshotGoldenImageView = new ImageView(ImageRepository.GOLDEN_SNAPSHOT);
 
     private static final String TREE_STATE = "tree_state";
 
@@ -217,8 +213,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         newRootFolderMenuItem.setOnAction(ae -> createNewFolder());
         rootFolderContextMenu.getItems().add(newRootFolderMenuItem);
 
-        snapshotContextMenu = new ContextMenuSnapshot(this,
-                toggleGoldenMenuItemText, toggleGoldenImageViewProperty, treeView);
+        snapshotContextMenu = new ContextMenuSnapshot(this, treeView);
 
         compositeSnapshotContextMenu = new ContextMenuCompositeSnapshot(this, treeView);
 
@@ -228,10 +223,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             TreeItem<Node> item = browserSelectionModel.getSelectedItem();
             if (item == null) {
                 return;
-            }
-            if (item.getValue().getNodeType().equals(NodeType.SNAPSHOT)) {
-                toggleGoldenMenuItemText.set(item.getValue().hasTag(Tag.GOLDEN) ? Messages.contextMenuRemoveGoldenTag : Messages.contextMenuTagAsGolden);
-                toggleGoldenImageViewProperty.set(item.getValue().hasTag(Tag.GOLDEN) ? snapshotImageView : snapshotGoldenImageView);
             }
             // Check if a tab has already been opened for this node.
             boolean highlighted = highlightTab(item.getValue().getUniqueId());
@@ -278,6 +269,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                             return filter.getName();
                         }
                     }
+
                     @Override
                     public Filter fromString(String s) {
                         return null;
@@ -975,13 +967,12 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                     .created(new Date())
                     .userName(System.getProperty("user.name"))
                     .build();
-
             try {
                 TagData tagData = new TagData();
                 tagData.setTag(aNewTag);
                 tagData.setUniqueNodeIds(selectedNodeIds);
                 List<Node> updatedNodes = saveAndRestoreService.addTag(tagData);
-                for(Node node : updatedNodes){
+                for (Node node : updatedNodes) {
                     nodeChanged(node);
                 }
             } catch (Exception e) {
@@ -990,59 +981,113 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         });
     }
 
-    /**
-     * Adds a tag with comment to the selected snapshot node.
-     *
-     * @param tagList A list of existing tags, if any.
-     */
-    protected void tagWithComment(ObservableList<MenuItem> tagList) {
-        Node node = browserSelectionModel.getSelectedItems().get(0).getValue();
-        tagWithComment(node, tagList);
-    }
 
     /**
-     * Adds a tag with comment to the specified snapshot node.
+     * Configures the "tag with comment" sub-menu. Items are added based on existing {@link Tag}s on the
+     * selected {@link Node}s
      *
-     * @param node    The {@link Node} to enrich with a commented tag.
-     * @param tagList List of existing tags, if any.
+     * @param tagWithCommentMenu The {@link Menu} subject to configuration.
      */
-    public void tagWithComment(Node node, ObservableList<MenuItem> tagList) {
-        while (tagList.size() > 2) {
-            tagList.remove(tagList.size() - 1);
+    public void tagWithComment(final Menu tagWithCommentMenu) {
+
+        List<Node> selectedNodes =
+                browserSelectionModel.getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
+        ObservableList<MenuItem> items = tagWithCommentMenu.getItems();
+        if (items.size() > 1) {
+            items.remove(1, items.size());
         }
-
-        if (node.getTags() == null || node.getTags().isEmpty()) {
-            CustomMenuItem noTags = TagWidget.NoTagMenuItem();
-            noTags.setDisable(true);
-            tagList.add(noTags);
-        } else {
-            node.getTags().sort(new TagComparator());
-            node.getTags().forEach(tag -> {
+        // For a single Node this list should be the same as the Node's (potentially empty) tag list, though not null.
+        List<Tag> commonTags = TagUtil.getCommonTags(selectedNodes);
+        // Exclude golden tag as it is removed in separate context menu item.
+        commonTags.remove(Tag.builder().name(Tag.GOLDEN).build());
+        List<MenuItem> additionalItems = new ArrayList<>();
+        if (!commonTags.isEmpty()) {
+            additionalItems.add(new SeparatorMenuItem());
+            commonTags.sort(new TagComparator());
+            commonTags.forEach(tag -> {
                 CustomMenuItem tagItem = TagWidget.TagWithCommentMenuItem(tag);
-
                 tagItem.setOnAction(actionEvent -> {
                     Alert confirmation = new Alert(AlertType.CONFIRMATION);
                     confirmation.setTitle(Messages.tagRemoveConfirmationTitle);
-                    String locationString = DirectoryUtilities.CreateLocationString(node, true);
-                    javafx.scene.Node headerNode = TagUtil.CreateRemoveHeader(locationString, node.getName(), tag);
-                    confirmation.getDialogPane().setHeader(headerNode);
                     confirmation.setContentText(Messages.tagRemoveConfirmationContent);
-
                     Optional<ButtonType> result = confirmation.showAndWait();
                     result.ifPresent(buttonType -> {
                         if (buttonType == ButtonType.OK) {
                             try {
-                                saveAndRestoreService.removeTagFromSnapshot(node, tag);
+                                TagData tagData = new TagData();
+                                tagData.setTag(tag);
+                                tagData.setUniqueNodeIds(selectedNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
+                                List<Node> updatedNodes = saveAndRestoreService.deleteTag(tagData);
+                                updatedNodes.forEach(n -> nodeChanged(n));
                             } catch (Exception e) {
                                 LOG.log(Level.WARNING, "Failed to remove tag from snapshot", e);
                             }
                         }
                     });
                 });
-                tagList.add(tagItem);
+                additionalItems.add(tagItem);
             });
         }
+        items.addAll(additionalItems);
     }
+
+    /**
+     * Configures the "tag as golden" menu item. Depending on the occurrence of the golden {@link Tag} on the
+     * selected {@link Node}s, the logic goes as:
+     * <ul>
+     *     <li>If all selected {@link Node}s have been tagged as golden, the item will offer possibility to remove
+     *     the tag on all {@link Node}s.</li>
+     *     <li>If none of the selected {@link Node}s have been tagged as golden, the item will offer possibility
+     *     to add the tag on all {@link Node}s.</li>
+     *     <li>If some - but not all - of the selected {@link Node}s have been tagged as golden, the item is disabled.</li>
+     * </ul>
+     *
+     * @param menuItem The {@link MenuItem} subject to configuration.
+     */
+    public void configureGoldenItem(MenuItem menuItem) {
+        List<Node> selectedNodes =
+                browserSelectionModel.getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
+        AtomicInteger goldenTagCount = new AtomicInteger(0);
+        selectedNodes.forEach(node -> {
+            if (node.hasTag(Tag.GOLDEN)) {
+                goldenTagCount.incrementAndGet();
+            }
+        });
+        if (goldenTagCount.get() == selectedNodes.size()) {
+            menuItem.disableProperty().set(false);
+            menuItem.setText(Messages.contextMenuRemoveGoldenTag);
+            menuItem.setGraphic(new ImageView(ImageRepository.SNAPSHOT));
+            menuItem.setOnAction(event -> {
+                TagData tagData = new TagData();
+                tagData.setTag(Tag.builder().name(Tag.GOLDEN).build());
+                tagData.setUniqueNodeIds(selectedNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
+                try {
+                    List<Node> updatedNodes = saveAndRestoreService.deleteTag(tagData);
+                    updatedNodes.forEach(node -> nodeChanged(node));
+                } catch (Exception e) {
+                    LOG.log(Level.SEVERE, "Failed to delete tag");
+                }
+            });
+        } else if (goldenTagCount.get() == 0) {
+            menuItem.disableProperty().set(false);
+            menuItem.setText(Messages.contextMenuTagAsGolden);
+            menuItem.setGraphic(new ImageView(ImageRepository.GOLDEN_SNAPSHOT));
+            menuItem.setOnAction(event -> {
+                TagData tagData = new TagData();
+                tagData.setTag(Tag.builder().name(Tag.GOLDEN).build());
+                tagData.setUniqueNodeIds(selectedNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
+                try {
+                    List<Node> updatedNodes = saveAndRestoreService.addTag(tagData);
+                    updatedNodes.forEach(node -> nodeChanged(node));
+                } catch (Exception e) {
+                    LOG.log(Level.SEVERE, "Failed to add tag");
+                }
+            });
+        } else {
+            menuItem.disableProperty().set(true);
+        }
+    }
+
 
     /**
      * Performs check of multiple selection to determine if it fulfills the criteria:

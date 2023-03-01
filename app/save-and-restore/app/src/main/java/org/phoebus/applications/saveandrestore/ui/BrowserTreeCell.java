@@ -18,7 +18,6 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
-import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -64,7 +63,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
     private final SaveAndRestoreController saveAndRestoreController;
 
     private static final Background HIGHLIGHT_BACKGROUND =
-            new Background(new BackgroundFill(Color.rgb(242, 242, 242), CornerRadii.EMPTY, new Insets(-3,0,-3,0)));
+            new Background(new BackgroundFill(Color.rgb(242, 242, 242), CornerRadii.EMPTY, new Insets(-3, 0, -3, 0)));
 
 
     private static final Border BORDER = new Border(new BorderStroke(Color.GREEN, BorderStrokeStyle.SOLID,
@@ -163,8 +162,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
         HBox hBox = new HBox();
         if (saveAndRestoreController.matchesFilter(node)) {
             getStyleClass().add("filter-match");
-        }
-        else{
+        } else {
             getStyleClass().remove("filter-match");
         }
         StringBuffer stringBuffer = new StringBuffer();
@@ -194,6 +192,12 @@ public class BrowserTreeCell extends TreeCell<Node> {
             case COMPOSITE_SNAPSHOT:
                 hBox.getChildren().add(new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
                 hBox.getChildren().add(new Label(node.getName()));
+                if (node.getTags() != null && !node.getTags().isEmpty()) {
+                    ImageView tagImage = new ImageView(ImageCache.getImage(BrowserTreeCell.class, "/icons/save-and-restore/snapshot-tags.png"));
+                    tagImage.setFitHeight(13);
+                    tagImage.setPreserveRatio(true);
+                    hBox.getChildren().add(tagImage);
+                }
                 setContextMenu(compositeSnapshotContextMenu);
                 break;
             case CONFIGURATION:
@@ -205,7 +209,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
                 String name = node.getName();
                 if (node.getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)) {
                     setContextMenu(rootFolderContextMenu);
-                    name += " (" + SaveAndRestoreService.getInstance().getServiceIdentifier() +")";
+                    name += " (" + SaveAndRestoreService.getInstance().getServiceIdentifier() + ")";
                 } else {
                     setContextMenu(folderContextMenu);
                 }
