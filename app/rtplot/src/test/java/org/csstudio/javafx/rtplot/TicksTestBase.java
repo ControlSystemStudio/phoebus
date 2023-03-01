@@ -31,8 +31,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 @SuppressWarnings("nls")
 public class TicksTestBase
 {
-    final static BufferedImage buf = new BufferedImage(400, 50, BufferedImage.TYPE_INT_ARGB);
-    final static Graphics2D gc = buf.createGraphics();
+    protected final static BufferedImage buf = new BufferedImage(400, 50, BufferedImage.TYPE_INT_ARGB);
+    protected final static Graphics2D gc = buf.createGraphics();
 
     @BeforeAll
     public static void setup()

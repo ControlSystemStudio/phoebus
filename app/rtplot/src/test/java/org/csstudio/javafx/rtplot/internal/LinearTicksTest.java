@@ -5,8 +5,9 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.csstudio.javafx.rtplot;
+package org.csstudio.javafx.rtplot.internal;
 
+import org.csstudio.javafx.rtplot.TicksTestBase;
 import org.csstudio.javafx.rtplot.internal.LinearTicks;
 import org.junit.jupiter.api.Test;
 
