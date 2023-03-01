@@ -52,7 +52,7 @@ public class LinearTicks extends Ticks<Double>
     /** Threshold for order-of-magnitude to use exponential notation */
     private long exponential_threshold = 4;
 
-    /** @param order_of_magnitude If value range exceeds this threshold, use exponential notation */
+    /** @param order_of_magnitude determines when to use exponential notation */
     public void setExponentialThreshold(long order_of_magnitude)
     {
         exponential_threshold = order_of_magnitude;
