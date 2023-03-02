@@ -9,7 +9,7 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<StackPane xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotController">
+<StackPane xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.RestoreSnapshotController">
     <children>
 
         <BorderPane fx:id="borderPane" style="-fx-background-color: #f4f4f4;">
@@ -17,12 +17,32 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                 <VBox fx:id="vBox" maxHeight="1.7976931348623157E308" prefWidth="1188.0">
                     <ToolBar prefHeight="40.0">
                         <items>
-                            <ToggleButton fx:id="showLiveReadbackButton" mnemonicParsing="false" />
-                            <ToggleButton fx:id="showStoredReadbackButton" mnemonicParsing="false" />
-                            <ToggleButton fx:id="showTreeTableButton" mnemonicParsing="false" />
+                            <ToggleButton fx:id="showLiveReadbackButton" mnemonicParsing="false" >
+                                <tooltip>
+                                    <Tooltip text="%toolTipShowLiveReadback"/>
+                                </tooltip>
+                            </ToggleButton>
+                            <ToggleButton fx:id="showStoredReadbackButton" mnemonicParsing="false">
+                                <tooltip>
+                                    <Tooltip text="%toolTipShowStoredReadback"/>
+                                </tooltip>
+                            </ToggleButton>
+                            <ToggleButton fx:id="showTreeTableButton" mnemonicParsing="false">
+                                <tooltip>
+                                    <Tooltip text="%toolTipShowTreeTable"/>
+                                </tooltip>
+                            </ToggleButton>
                             <Pane HBox.hgrow="ALWAYS" />
-                            <ToggleButton fx:id="showHideDeltaPercentageButton" mnemonicParsing="false" />
-                            <ToggleButton fx:id="hideShowEqualItemsButton" mnemonicParsing="false" />
+                            <ToggleButton fx:id="showHideDeltaPercentageButton" mnemonicParsing="false" >
+                                <tooltip>
+                                    <Tooltip text="%toolTipShowHideDeltaPercentageToggleButton"/>
+                                </tooltip>
+                            </ToggleButton>
+                            <ToggleButton fx:id="hideShowEqualItemsButton" mnemonicParsing="false" >
+                                <tooltip>
+                                    <Tooltip text="%toolTipShowHideEqualToggleButton"/>
+                                </tooltip>
+                            </ToggleButton>
                         </items>
                     </ToolBar>
                     <GridPane hgap="5.0">
@@ -81,7 +101,7 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                                     <Insets bottom="2.0" right="3.0" top="4.0" />
                                 </GridPane.margin>
                             </TextArea>
-                            <Button fx:id="restoreButton" onAction="#restore" prefWidth="120.0" text="%restore" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="CENTER">
+                            <Button fx:id="restoreButton" onAction="#restore" userData="false" prefWidth="120.0" text="%restore" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="CENTER">
                                 <GridPane.margin>
                                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                 </GridPane.margin>
@@ -102,7 +122,7 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                                 </GridPane.margin>
                             </Label>
                             <Label fx:id="snapshotLastModifiedLabel" text="Last Modified Date" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                            <Button fx:id="createLogEntryButton" onAction="#createLogEntry" prefWidth="120.0" text="%createLogEntry" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.valignment="CENTER">
+                            <Button fx:id="restoreAndCreateLogEntryButton" onAction="#restore" userData="true" prefWidth="120.0" text="%restoreAndLog" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.valignment="CENTER">
                                 <GridPane.margin>
                                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                 </GridPane.margin>
@@ -121,9 +141,9 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                             <CheckBox fx:id="preserveSelectionCheckBox" mnemonicParsing="false" text="%preserveSelection" />
                             <Label text="%filter" />
                             <TextField fx:id="filterTextField" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="26.0" HBox.hgrow="ALWAYS" />
-                            <Label fx:id="thresholdLabel" text="%threashold" />
+                            <Label fx:id="thresholdLabel" text="%labelThreshold" />
                             <Spinner fx:id="thresholdSpinner" editable="true" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" />
-                            <Label fx:id="multiplierLabel" text="%restoreWithScale" />
+                            <Label fx:id="multiplierLabel" text="%labelMultiplier" />
                             <Spinner fx:id="multiplierSpinner" editable="true" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" />
                         </items>
                     </ToolBar>

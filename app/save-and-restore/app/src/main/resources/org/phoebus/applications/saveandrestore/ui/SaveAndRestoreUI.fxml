@@ -7,7 +7,7 @@
 
 <BorderPane xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController">
     <center>
-        <SplitPane fx:id="splitPane" dividerPositions="0.2">
+        <SplitPane fx:id="splitPane" dividerPositions="0.3">
             <StackPane maxWidth="550.0" minWidth="350.0">
                 <VBox alignment="CENTER">
                     <ProgressIndicator fx:id="progressIndicator" />
@@ -45,14 +45,8 @@
 
                     </HBox>
 
-                    <TreeView fx:id="treeView" prefHeight="347.0" prefWidth="195.0" BorderPane.alignment="CENTER" VBox.vgrow="ALWAYS">
-                        <StackPane.margin>
-                            <Insets />
-                        </StackPane.margin>
-                        <padding>
-                            <Insets top="5.0" />
-                        </padding>
-                    </TreeView>
+                    <TreeView fx:id="treeView" prefHeight="347.0" prefWidth="195.0" BorderPane.alignment="CENTER" VBox.vgrow="ALWAYS" />
+
                 </VBox>
                 <VBox fx:id="errorPane" alignment="CENTER" visible="false">
                     <children>

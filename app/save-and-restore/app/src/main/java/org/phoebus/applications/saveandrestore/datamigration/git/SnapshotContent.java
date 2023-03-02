@@ -14,7 +14,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
-import org.phoebus.applications.saveandrestore.ui.model.SnapshotEntry;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 
 /**
  * <code>SnapshotContent</code> provides the raw data as they were read from the snapshot file. This is only a container
@@ -25,7 +25,7 @@ import org.phoebus.applications.saveandrestore.ui.model.SnapshotEntry;
 public final class SnapshotContent {
 
     private final Instant date;
-    private final List<SnapshotEntry> entries;
+    private final List<SnapshotItem> entries;
 
     /**
      * Constructs a new snapshot content.
@@ -33,7 +33,7 @@ public final class SnapshotContent {
      * @param date the time when snapshot was taken
      * @param entries the entries of this snapshot
      */
-    SnapshotContent(Instant date, List<SnapshotEntry> entries) {
+    SnapshotContent(Instant date, List<SnapshotItem> entries) {
         this.entries = Collections.unmodifiableList(entries);
         this.date = date;
     }
@@ -43,7 +43,7 @@ public final class SnapshotContent {
      *
      * @return the list of entries
      */
-    public List<SnapshotEntry> getEntries() {
+    public List<SnapshotItem> getEntries() {
         return entries;
     }
 

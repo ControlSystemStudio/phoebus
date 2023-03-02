@@ -459,4 +459,10 @@ public class CompositeSnapshotController {
             completion.accept(duplicates);
         });
     }
+
+    public void setSnapshotNameProperty(String name){
+        compositeSnapshotNameProperty.set(name);
+        // Externally saved so not really dirty.
+        dirty.set(false);
+    }
 }

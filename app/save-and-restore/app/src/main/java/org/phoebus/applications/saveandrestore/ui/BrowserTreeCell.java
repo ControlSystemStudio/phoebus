@@ -45,7 +45,6 @@ import org.phoebus.util.time.TimestampFormats;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
  * A cell editor managing the different type of nodes in the save-and-restore tree.
  * Implements aspects like icon selection, text layout, context menu and editing.
@@ -183,6 +182,12 @@ public class BrowserTreeCell extends TreeCell<Node> {
             case COMPOSITE_SNAPSHOT:
                 hBox.getChildren().add(new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
                 hBox.getChildren().add(new Label(node.getName()));
+                if (node.getTags() != null && !node.getTags().isEmpty()) {
+                    ImageView tagImage = new ImageView(ImageCache.getImage(BrowserTreeCell.class, "/icons/save-and-restore/snapshot-tags.png"));
+                    tagImage.setFitHeight(13);
+                    tagImage.setPreserveRatio(true);
+                    hBox.getChildren().add(tagImage);
+                }
                 setContextMenu(compositeSnapshotContextMenu);
                 break;
             case CONFIGURATION:

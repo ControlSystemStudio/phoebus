@@ -24,8 +24,9 @@ public class Messages {
     public static String alertContinue;
     public static String alertAddingPVsToConfiguration;
     public static String baseSetpoint;
-    public static String buttonRefresh;
     public static String buttonSearch;
+    public static String cannotCompareHeader;
+    public static String cannotCompareTitle;
     public static String closeConfigurationWarning;
     public static String closeCompositeSnapshotWarning;
     public static String closeTabPrompt;
@@ -50,10 +51,9 @@ public class Messages {
     public static String currentPVValue;
     public static String currentReadbackValue;
     public static String currentSetpointValue;
+    public static String createNewTagDialogHeader;
     public static String createNewTagDialogTitle;
     public static String deleteFilter;
-    public static String deletionNotAllowed;
-    public static String deletionNotAllowedHeader;
 
     public static String duplicatePVNamesAdditionalItems;
     public static String duplicatePVNamesCheckFailed;
@@ -64,7 +64,6 @@ public class Messages {
     public static String errorCreateConfigurationFailed;
     public static String errorDeleteNodeFailed;
     public static String errorGeneric;
-    public static String errorTakeSnapshot;
     public static String errorUnableToRetrieveData;
     public static String exportConfigurationLabel;
     public static String exportSnapshotLabel;
@@ -76,9 +75,6 @@ public class Messages {
     public static String importSnapshotLabel;
     public static String includeThisPV;
     public static String inverseSelection;
-    public static String jmasarServiceUnavailable;
-    public static String labelMultiplier;
-    public static String labelThreshold;
     public static String liveReadbackVsSetpoint;
     public static String liveSetpoint;
     public static String loggingFailedTitle;
@@ -107,11 +103,8 @@ public class Messages {
     public static String readbackPVName;
     public static String saveFilter;
 
-    public static String saveFilterFailed;
-
     public static String saveFilterConfirmOverwrite;
 
-    public static String saveFilterSelectName;
     public static String saveSnapshotErrorContent;
     public static String saveTagButtonLabel;
     public static String search;
@@ -119,7 +112,7 @@ public class Messages {
     public static String searchErrorBody;
     public static String searchNoResultsTitle;
     public static String searchNoResult;
-    public static String searchWindowLabel;
+
     public static String setpoint;
     public static String setpointPVWhen;
     public static String severity;
@@ -131,11 +124,6 @@ public class Messages {
     public static String tagRemoveConfirmationTitle;
     public static String tagRemoveConfirmationContent;
     public static String timestamp;
-    public static String toolTipShowLiveReadback;
-    public static String toolTipShowStoredReadback;
-    public static String toolTipShowTreeTable;
-    public static String toolTipShowHideEqualToggleButton;
-    public static String toolTipShowHideDeltaPercentageToggleButton;
     public static String toolTipTableColumnPVName;
     public static String toolTipTableColumnReadbackPVName;
     public static String toolTipTableColumIndex;

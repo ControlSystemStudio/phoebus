@@ -22,7 +22,6 @@ package org.phoebus.applications.saveandrestore.datamigration.git;
 
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.applications.saveandrestore.ui.model.SnapshotEntry;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -47,25 +46,7 @@ public class FileReaderHelper {
     }
 
     public static List<SnapshotItem> readSnapshot(InputStream file) throws Exception {
-
         SnapshotContent snapshotContent = FileUtilities.readFromSnapshot(file);
-        List<SnapshotEntry> snapshotEntries = snapshotContent.getEntries();
-        List<SnapshotItem> snapshotItems = new ArrayList<>();
-        for (SnapshotEntry snapshotEntry : snapshotEntries) {
-            ConfigPv configPv = ConfigPv.builder()
-                    .pvName(snapshotEntry.getPVName())
-                    .readbackPvName((snapshotEntry.getReadbackName() == null || snapshotEntry.getReadbackName().isEmpty()) ? null : (snapshotEntry.getReadbackName()))
-                    .readOnly(snapshotEntry.isReadOnly())
-                    .build();
-
-            SnapshotItem snapshotItem = SnapshotItem.builder()
-                    .configPv(configPv)
-                    .value(snapshotEntry.getValue())
-                    .readbackValue(snapshotEntry.getReadbackValue())
-                    .build();
-
-            snapshotItems.add(snapshotItem);
-        }
-        return snapshotItems;
+        return snapshotContent.getEntries();
     }
 }
