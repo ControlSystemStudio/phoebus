@@ -14,27 +14,35 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
  */
 
-package org.phoebus.applications.saveandrestore;
+package org.phoebus.applications.saveandrestore.model;
 
-import org.phoebus.framework.preferences.AnnotatedPreferences;
-import org.phoebus.framework.preferences.Preference;
+import java.util.List;
 
-public class Preferences {
+/**
+ * Class wrapping a {@link Tag} and a list of unique {@link Node} ids.
+ * Used to manage a {@link Tag} (add or delete) on a list of target {@link Node}s.
+ */
+public class TagData {
 
-    @Preference
-    public static boolean tree_tableview_enable;
+    private Tag tag;
+    private List<String> uniqueNodeIds;
 
-    @Preference
-    public static int readTimeout;
-    @Preference
-    public static int search_result_page_size;
-    @Preference
-    public static String default_search_query;
+    public Tag getTag() {
+        return tag;
+    }
 
-    static
-    {
-        AnnotatedPreferences.initialize(Preferences.class, "/save_and_restore_preferences.properties");
+    public void setTag(Tag tag) {
+        this.tag = tag;
+    }
+
+    public List<String> getUniqueNodeIds() {
+        return uniqueNodeIds;
+    }
+
+    public void setUniqueNodeIds(List<String> uniqueNodeIds) {
+        this.uniqueNodeIds = uniqueNodeIds;
     }
 }

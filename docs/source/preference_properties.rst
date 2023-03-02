@@ -872,6 +872,23 @@ File ../../app/errlog/src/main/resources/errlog_preferences.properties::
    max_lines = 500
 
 
+eslog
+-----
+
+File ../../app/eslog/src/main/resources/eslog_preferences.properties::
+
+   # --------------------------------------
+   # Package org.phoebus.applications.eslog
+   # --------------------------------------
+   es_url=
+   es_index=messagelog
+   
+   jms_url=
+   jms_user
+   jms_password
+   jms_topic=LOG
+
+
 filebrowser
 -----------
 
@@ -1453,6 +1470,10 @@ File ../../core/security/src/main/resources/phoebus_security_preferences.propert
    # Use authorization.conf in the install location
    #authorization_file=authorization.conf
    
+   # Secure store underlying implementation.
+   # Can be 'FILE' or 'IN_MEMORY'
+   secure_store_target=FILE
+   
 
 
 trends.databrowser3
@@ -1752,11 +1773,13 @@ File ../../app/update/src/main/resources/update_preferences.properties::
    # Location may include system properties
    # and $(arch) will be replaced by "linux", "mac" or "win"
    # to allow locations specific to each architecture.
-   #
-   # Empty: Do not perform any update check
    update_url=
    # update_url=https://controlssoftware.sns.ornl.gov/css_phoebus/nightly/product-sns-$(arch).zip
    
+   #gitlab_api_url=https://HOST/api/v4
+   #gitlab_project_id=
+   gitlab_package_name=phoebus-$(arch)
+   #gitlab_token=
    
    # List of regular expressions, comma-separated, which will be
    # removed from the ZIP file entry.

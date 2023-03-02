@@ -62,7 +62,7 @@ import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
-import org.phoebus.applications.saveandrestore.ui.model.SnapshotEntry;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -142,7 +142,7 @@ public final class FileUtilities {
     public static SnapshotContent readFromSnapshot(InputStream stream) throws IOException, ParseException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
         String date = null;
-        List<SnapshotEntry> entries = new ArrayList<>();
+        List<SnapshotItem> entries = new ArrayList<>();
         String line;
         String[] header = null;
         Map<String, Integer> headerMap = new HashMap<>();
@@ -189,7 +189,7 @@ public final class FileUtilities {
                 idx = headerMap.get(H_READBACK_VALUE);
                 String readbackValue = idx == null || idx > length ? null : trim(split[idx]);
                 idx = headerMap.get(H_DELTA);
-                String delta = idx == null || idx > length ? "" : trim(split[idx]);
+                //String delta = idx == null || idx > length ? "" : trim(split[idx]);
                 idx = headerMap.get(H_READ_ONLY);
                 Boolean readOnly = idx == null || idx > length ? Boolean.FALSE : Boolean.valueOf(trim(split[idx]));
 
@@ -207,14 +207,13 @@ public final class FileUtilities {
                     readbackData = VDisconnectedData.INSTANCE;
                 }
 
-                boolean selected = true;
-                try {
-                    selected = Integer.parseInt(sel) != 0;
-                } catch (NumberFormatException e) {
-                    // ignore
-                }
                 ConfigPv configPv = ConfigPv.builder().pvName(name).readbackPvName(readback).build();
-                entries.add(new SnapshotEntry(configPv, data, selected, readback, readbackData, delta, readOnly));
+                SnapshotItem snapshotItem = new SnapshotItem();
+                snapshotItem.setConfigPv(configPv);
+                snapshotItem.setValue(data);
+                snapshotItem.setReadbackValue(readbackData);
+
+                entries.add(snapshotItem);
             }
         }
         if (date == null || date.isEmpty()) {

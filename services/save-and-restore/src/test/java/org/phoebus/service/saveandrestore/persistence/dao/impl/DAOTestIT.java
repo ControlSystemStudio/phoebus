@@ -47,6 +47,7 @@ import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.TagData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.persistence.config.ElasticConfig;
@@ -617,6 +618,38 @@ public class DAOTestIT {
         snapshotNode = nodeDAO.updateNode(snapshotNode, false);
         assertEquals(0, snapshotNode.getTags().size());
 
+        // Create another snapshot, then test Tag management
+
+        Snapshot snapshot2 = new Snapshot();
+        snapshot2.setSnapshotNode(Node.builder().name("testSnapshot2").nodeType(NodeType.SNAPSHOT).build());
+        snapshot2.setSnapshotData(new SnapshotData());
+
+        Node snapshotNode2 = nodeDAO.saveSnapshot(configNode.getUniqueId(), snapshot2).getSnapshotNode();
+
+        Tag newTag = Tag.builder().name("newtag").comment("comment1").userName("testUser1").build();
+
+        TagData tagData = new TagData();
+        tagData.setTag(newTag);
+        tagData.setUniqueNodeIds(Arrays.asList(snapshotNode.getUniqueId(), snapshotNode2.getUniqueId(), "non-existing"));
+
+        List<Node> updatedNodes = nodeDAO.addTag(tagData);
+        assertEquals(2, updatedNodes.size());
+        Node n1 = updatedNodes.get(0);
+        List<Tag> tagList1 = n1.getTags();
+        assertTrue(tagList1.stream().filter(t -> t.getName().equals(newTag.getName())).findFirst().isPresent());
+        Node n2 = updatedNodes.get(1);
+        List<Tag> tagList2 = n2.getTags();
+        assertTrue(tagList2.stream().filter(t -> t.getName().equals(newTag.getName())).findFirst().isPresent());
+
+        updatedNodes = nodeDAO.deleteTag(tagData);
+        assertEquals(2, updatedNodes.size());
+        n1 = updatedNodes.get(0);
+        tagList1 = n1.getTags();
+        assertFalse(tagList1.stream().filter(t -> t.getName().equals(newTag.getName())).findFirst().isPresent());
+        n2 = updatedNodes.get(1);
+        tagList2 = n2.getTags();
+        assertFalse(tagList2.stream().filter(t -> t.getName().equals(newTag.getName())).findFirst().isPresent());
+
         clearAllData();
     }
 
@@ -689,7 +722,7 @@ public class DAOTestIT {
         SnapshotItem item1 = SnapshotItem.builder().configPv(configuration.getConfigurationData().getPvList().get(0))
                 .value(VDouble.of(7.7, alarm, time, display)).build();
 
-        SnapshotItem item2 = SnapshotItem.builder().configPv(configuration.getConfigurationData().getPvList().get(0))
+        SnapshotItem item2 = SnapshotItem.builder().configPv(configuration.getConfigurationData().getPvList().get(1))
                 .value(VInt.of(7, alarm, time, display)).build();
 
         Snapshot snapshot = new Snapshot();

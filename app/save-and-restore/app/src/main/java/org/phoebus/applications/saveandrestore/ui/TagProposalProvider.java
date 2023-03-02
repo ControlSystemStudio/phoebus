@@ -33,8 +33,8 @@ import java.util.logging.Logger;
  */
 public class TagProposalProvider implements ProposalProvider {
 
-    private List<String> tagNames = new ArrayList<>();
-    private SaveAndRestoreService saveAndRestoreService;
+    private final List<String> tagNames = new ArrayList<>();
+    private final SaveAndRestoreService saveAndRestoreService;
 
     public TagProposalProvider(SaveAndRestoreService saveAndRestoreService){
         this.saveAndRestoreService = saveAndRestoreService;
@@ -48,7 +48,7 @@ public class TagProposalProvider implements ProposalProvider {
     @Override
     public List<Proposal> lookup(String text){
         if(tagNames.isEmpty()){
-            List<Tag> allTags = null;
+            List<Tag> allTags;
             try {
                 allTags = saveAndRestoreService.getAllTags();
             } catch (Exception e) {
@@ -57,7 +57,7 @@ public class TagProposalProvider implements ProposalProvider {
                 return Collections.emptyList();
             }
             allTags.forEach(tag -> {
-                if(!tagNames.contains(tag.getName())){ // Add tags names only once
+                if(!tagNames.contains(tag.getName()) && !tag.getName().equalsIgnoreCase(Tag.GOLDEN)){ // Add tags names only once. Omit "golden" tag.
                     tagNames.add(tag.getName());
                 }
             });

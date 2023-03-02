@@ -95,10 +95,10 @@ public class TagWidget {
                         }
                     }
 
-                    UpdatePrefWidth(newContextMenu, myMax);
+                    //UpdatePrefWidth(newContextMenu, myMax);
                 });
 
-                newContextMenu.setOnHiding(action -> UpdatePrefWidth(newContextMenu, 0.0));
+                //newContextMenu.setOnHiding(action -> UpdatePrefWidth(newContextMenu, 0.0));
             }
         });
 
@@ -186,10 +186,10 @@ public class TagWidget {
                         }
                     }
 
-                    UpdatePrefWidth(newContextMenu, myMax);
+                    //UpdatePrefWidth(newContextMenu, myMax);
                 });
 
-                newContextMenu.setOnHiding(action -> UpdatePrefWidth(newContextMenu, 0.0));
+               // newContextMenu.setOnHiding(action -> UpdatePrefWidth(newContextMenu, 0.0));
             }
         });
 

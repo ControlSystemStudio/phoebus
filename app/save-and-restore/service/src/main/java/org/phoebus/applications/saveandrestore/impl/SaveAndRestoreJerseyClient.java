@@ -41,6 +41,7 @@ import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.TagData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.service.Messages;
@@ -550,5 +551,69 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
             }
             throw new RuntimeException(message);
         }
+    }
+
+    /**
+     * Adds a tag to a list of unique node ids, see {@link TagData}
+     * @param tagData see {@link TagData}
+     * @return A list of updated {@link Node}s. This may contain fewer elements than the list of unique node ids
+     * passed in the <code>tagData</code> parameter.
+     */
+    public List<Node> addTag(TagData tagData){
+        WebResource webResource =
+                client.resource(jmasarServiceUrl + "/tags");
+        ClientResponse response;
+        try {
+            response = webResource.accept(CONTENT_TYPE_JSON)
+                    .entity(tagData, CONTENT_TYPE_JSON)
+                    .post(ClientResponse.class);
+        } catch (UniformInterfaceException e) {
+            throw new RuntimeException(e);
+        } catch (ClientHandlerException e) {
+            throw new RuntimeException(e);
+        }
+        if (response.getStatus() != 200) {
+            String message = Messages.tagAddFailed;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                // Ignore
+            }
+            throw new SaveAndRestoreClientException(message);
+        }
+        return response.getEntity(new GenericType<List<Node>>() {
+        });
+    }
+
+    /**
+     * Deletes a tag from a list of unique node ids, see {@link TagData}
+     * @param tagData see {@link TagData}
+     * @return A list of updated {@link Node}s. This may contain fewer elements than the list of unique node ids
+     * passed in the <code>tagData</code> parameter.
+     */
+    public List<Node> deleteTag(TagData tagData){
+        WebResource webResource =
+                client.resource(jmasarServiceUrl + "/tags");
+        ClientResponse response;
+        try {
+            response = webResource.accept(CONTENT_TYPE_JSON)
+                    .entity(tagData, CONTENT_TYPE_JSON)
+                    .delete(ClientResponse.class);
+        } catch (UniformInterfaceException e) {
+            throw new RuntimeException(e);
+        } catch (ClientHandlerException e) {
+            throw new RuntimeException(e);
+        }
+        if (response.getStatus() != 200) {
+            String message = Messages.tagAddFailed;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                // Ignore
+            }
+            throw new SaveAndRestoreClientException(message);
+        }
+        return response.getEntity(new GenericType<List<Node>>() {
+        });
     }
 }

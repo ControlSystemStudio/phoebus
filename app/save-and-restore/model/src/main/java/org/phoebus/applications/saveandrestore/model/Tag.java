@@ -30,6 +30,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.Serializable;
 import java.util.Date;
 
+/**
+ * A {@link Tag} is a piece of meta-data that may be added to a {@link Node} in order to
+ * organize save-and-restore objects and facilitate search.
+ *
+ * {@link Tag}s are uniquely identified by its case-sensitive name.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Tag implements Comparable<Tag>, Serializable {
 
@@ -115,5 +121,18 @@ public class Tag implements Comparable<Tag>, Serializable {
 
     public static Tag goldenTag(String userName){
         return Tag.builder().name(GOLDEN).userName(userName).created(new Date()).build();
+    }
+
+    @Override
+    public boolean equals(Object other){
+        if(!(other instanceof Tag)){
+            return false;
+        }
+        return name.equals(((Tag)other).getName());
+    }
+
+    @Override
+    public int hashCode(){
+        return name.hashCode();
     }
 }

@@ -25,9 +25,6 @@ import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -43,10 +40,12 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -68,19 +67,19 @@ import javafx.util.Pair;
 import javafx.util.StringConverter;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
-import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVExporter;
 import org.phoebus.applications.saveandrestore.filehandler.csv.CSVImporter;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.TagData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
+import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
+import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationTab;
 import org.phoebus.applications.saveandrestore.ui.search.SearchAndFilterTab;
-import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
-import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
 import org.phoebus.applications.saveandrestore.ui.snapshot.CompositeSnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotNewTagDialog;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
@@ -111,6 +110,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Stack;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -151,13 +151,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     protected ContextMenu rootFolderContextMenu;
     protected ContextMenu compositeSnapshotContextMenu;
 
-    protected SimpleStringProperty toggleGoldenMenuItemText = new SimpleStringProperty();
-    protected SimpleObjectProperty<ImageView> toggleGoldenImageViewProperty = new SimpleObjectProperty<>();
-    private final SimpleBooleanProperty multipleItemsSelected = new SimpleBooleanProperty(false);
     protected MultipleSelectionModel<TreeItem<Node>> browserSelectionModel;
-
-    protected ImageView snapshotImageView = new ImageView(ImageRepository.SNAPSHOT);
-    protected ImageView snapshotGoldenImageView = new ImageView(ImageRepository.GOLDEN_SNAPSHOT);
 
     private static final String TREE_STATE = "tree_state";
 
@@ -169,7 +163,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     protected SimpleBooleanProperty disabledUi = new SimpleBooleanProperty(false);
 
-    private SimpleBooleanProperty filterEnabledProperty = new SimpleBooleanProperty(false);
+    private final SimpleBooleanProperty filterEnabledProperty = new SimpleBooleanProperty(false);
 
     private final URI uri;
 
@@ -201,14 +195,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         treeView.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         browserSelectionModel = treeView.getSelectionModel();
-        browserSelectionModel.selectedItemProperty().addListener(new ChangeListener<TreeItem<Node>>() {
-            @Override
-            public void changed(ObservableValue<? extends TreeItem<Node>> observable, TreeItem<Node> oldValue, TreeItem<Node> newValue) {
-                if (newValue != null) {
-
-                }
-            }
-        });
 
         ImageView searchButtonImageView = ImageCache.getImageView(SaveAndRestoreApplication.class, "/icons/sar-search.png");
         searchButtonImageView.setFitWidth(20);
@@ -217,25 +203,19 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         enableFilterCheckBox.selectedProperty().bindBidirectional(filterEnabledProperty);
         filtersComboBox.disableProperty().bind(filterEnabledProperty.not());
-        filterEnabledProperty.addListener((observable, oldValue, newValue) -> {
-            filterEnabledChanged(newValue);
-        });
+        filterEnabledProperty.addListener((observable, oldValue, newValue) -> filterEnabledChanged(newValue));
 
-
-        folderContextMenu = new ContextMenuFolder(this, Preferences.enableCSVIO, multipleItemsSelected);
-        folderContextMenu.setOnShowing(event -> multipleItemsSelected.set(browserSelectionModel.getSelectedItems().size() > 1));
-        configurationContextMenu = new ContextMenuConfiguration(this, Preferences.enableCSVIO, multipleItemsSelected);
-        configurationContextMenu.setOnShowing(event -> multipleItemsSelected.set(browserSelectionModel.getSelectedItems().size() > 1));
+        folderContextMenu = new ContextMenuFolder(this, treeView);
+        configurationContextMenu = new ContextMenuConfiguration(this, treeView);
 
         rootFolderContextMenu = new ContextMenu();
         MenuItem newRootFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(ImageRepository.FOLDER));
         newRootFolderMenuItem.setOnAction(ae -> createNewFolder());
         rootFolderContextMenu.getItems().add(newRootFolderMenuItem);
 
-        snapshotContextMenu = new ContextMenuSnapshot(this, Preferences.enableCSVIO,
-                toggleGoldenMenuItemText, toggleGoldenImageViewProperty, multipleItemsSelected);
+        snapshotContextMenu = new ContextMenuSnapshot(this, treeView);
 
-        compositeSnapshotContextMenu = new ContextMenuCompositeSnapshot(this, multipleItemsSelected);
+        compositeSnapshotContextMenu = new ContextMenuCompositeSnapshot(this, treeView);
 
         treeView.setEditable(true);
 
@@ -243,10 +223,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             TreeItem<Node> item = browserSelectionModel.getSelectedItem();
             if (item == null) {
                 return;
-            }
-            if (item.getValue().getNodeType().equals(NodeType.SNAPSHOT)) {
-                toggleGoldenMenuItemText.set(item.getValue().hasTag(Tag.GOLDEN) ? Messages.contextMenuRemoveGoldenTag : Messages.contextMenuTagAsGolden);
-                toggleGoldenImageViewProperty.set(item.getValue().hasTag(Tag.GOLDEN) ? snapshotImageView : snapshotGoldenImageView);
             }
             // Check if a tab has already been opened for this node.
             boolean highlighted = highlightTab(item.getValue().getUniqueId());
@@ -311,7 +287,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         filtersComboBox.itemsProperty().bind(new SimpleObjectProperty<>(filtersList));
 
-        enableFilterCheckBox.disableProperty().bind(Bindings.createBooleanBinding(() -> filtersList.isEmpty(), filtersList));
+        enableFilterCheckBox.disableProperty().bind(Bindings.createBooleanBinding(filtersList::isEmpty, filtersList));
 
         loadTreeData();
     }
@@ -369,9 +345,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 String savedFilterName = getSavedFilterName();
                 if (savedFilterName != null) {
                     Optional<Filter> f = filtersComboBox.getItems().stream().filter(filter -> filter.getName().equals(savedFilterName)).findFirst();
-                    if (f.isPresent()) {
-                        filtersComboBox.getSelectionModel().select(f.get());
-                    }
+                    f.ifPresent(filter -> filtersComboBox.getSelectionModel().select(filter));
                 }
             }
 
@@ -428,28 +402,10 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     /**
-     * Deletion of tree nodes when multiple nodes are selected is allowed only if all of the
-     * selected nodes have the same parent node. This method checks the parent node(s) of
-     * the selected nodes accordingly.
-     *
-     * @param selectedItems The selected tree nodes.
-     * @return <code>true</code> if all selected nodes have the same parent node, <code>false</code> otherwise.
-     */
-    private boolean isDeletionPossible(ObservableList<TreeItem<Node>> selectedItems) {
-        Node parentNode = selectedItems.get(0).getParent().getValue();
-        for (TreeItem<Node> treeItem : selectedItems) {
-            if (!treeItem.getParent().getValue().getUniqueId().equals(parentNode.getUniqueId())) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
      * Action when user requests comparison between an opened snapshot and a snapshot item selected from
      * the tree view.
      */
-    protected void comapreSnapshot() {
+    protected void compareSnapshot() {
         compareSnapshot(browserSelectionModel.getSelectedItems().get(0).getValue());
     }
 
@@ -471,35 +427,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     /**
-     * Toggles the "golden" property of a snapshot as selected from the tree view.
-     */
-    protected void toggleGoldenProperty() {
-        toggleGoldenProperty(browserSelectionModel.getSelectedItems().get(0).getValue());
-    }
-
-    /**
-     * Toggles the "golden" property of the specified snapshot {@link Node}
-     *
-     * @param node The snapshot {@link Node} on which to toggle the "golden" property.
-     */
-    protected void toggleGoldenProperty(Node node) {
-        try {
-            Node updatedNode = saveAndRestoreService.tagSnapshotAsGolden(node,
-                    !node.hasTag(Tag.GOLDEN));
-            browserSelectionModel.getSelectedItems().get(0).setValue(updatedNode);
-        } catch (Exception e) {
-            LOG.log(Level.WARNING, "Failed to toggle golden property", e);
-        }
-    }
-
-    /**
-     * Deletes selected snapshots.
-     */
-    protected void deleteSnapshots() {
-        deleteNodes(browserSelectionModel.getSelectedItems());
-    }
-
-    /**
      * Deletes the tree items selected in the tree view.
      */
     protected void deleteNodes() {
@@ -512,14 +439,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * @param selectedItems List of nodes to delete.
      */
     private void deleteNodes(ObservableList<TreeItem<Node>> selectedItems) {
-        if (!isDeletionPossible(selectedItems)) {
-            Alert alert = new Alert(AlertType.INFORMATION);
-            alert.setTitle(Messages.promptDeleteSelectedTitle);
-            alert.setHeaderText(Messages.deletionNotAllowedHeader);
-            alert.setContentText(Messages.deletionNotAllowed);
-            alert.showAndWait();
-            return;
-        }
 
         Alert alert = new Alert(AlertType.CONFIRMATION);
         alert.setTitle(Messages.promptDeleteSelectedTitle);
@@ -577,15 +496,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         TreeItem<Node> treeItem = browserSelectionModel.getSelectedItems().get(0);
         SnapshotTab tab = new SnapshotTab(treeItem.getValue(), saveAndRestoreService);
         tab.newSnapshot(treeItem.getValue());
-
-        tabPane.getTabs().add(tab);
-        tabPane.getSelectionModel().select(tab);
-    }
-
-    protected void openCompositeSnapshotForRestore() {
-        TreeItem<Node> treeItem = browserSelectionModel.getSelectedItems().get(0);
-        SnapshotTab tab = new SnapshotTab(treeItem.getValue(), saveAndRestoreService);
-        tab.loadSnapshot(treeItem.getValue());
 
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);
@@ -1037,21 +947,13 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     /**
      * Adds a tag to the selected snapshot {@link Node}
      */
-    protected void addTagToSnapshot() {
-        addTagToSnapshot(browserSelectionModel.getSelectedItems().get(0).getValue());
-    }
-
-    /**
-     * Adds a tag to the specified snapshot {@link Node}
-     *
-     * @param node The snapshot to which tag is added.
-     */
-    public void addTagToSnapshot(Node node) {
-        SnapshotNewTagDialog snapshotNewTagDialog = new SnapshotNewTagDialog(node);
+    protected void addTagToSnapshots() {
+        ObservableList<TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
+        List<String> selectedNodeIds =
+                selectedItems.stream().map(treeItem -> treeItem.getValue().getUniqueId()).collect(Collectors.toList());
+        SnapshotNewTagDialog snapshotNewTagDialog =
+                new SnapshotNewTagDialog(selectedItems.stream().map(TreeItem::getValue).collect(Collectors.toList()));
         snapshotNewTagDialog.initModality(Modality.APPLICATION_MODAL);
-
-        String locationString = DirectoryUtilities.CreateLocationString(node, true);
-        snapshotNewTagDialog.getDialogPane().setHeader(TagUtil.CreateAddHeader(locationString, node.getName()));
 
         ProposalService proposalService = new ProposalService(new TagProposalProvider(saveAndRestoreService));
         AutocompleteMenu autocompleteMenu = new AutocompleteMenu(proposalService);
@@ -1065,70 +967,127 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                     .created(new Date())
                     .userName(System.getProperty("user.name"))
                     .build();
-
             try {
-                saveAndRestoreService.addTagToSnapshot(node, aNewTag);
+                TagData tagData = new TagData();
+                tagData.setTag(aNewTag);
+                tagData.setUniqueNodeIds(selectedNodeIds);
+                List<Node> updatedNodes = saveAndRestoreService.addTag(tagData);
+                for (Node node : updatedNodes) {
+                    nodeChanged(node);
+                }
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Failed to add tag to snapshot");
             }
         });
-
-
     }
 
-    /**
-     * Adds a tag with comment to the selected snapshot node.
-     *
-     * @param tagList A list of existing tags, if any.
-     */
-    protected void tagWithComment(ObservableList<MenuItem> tagList) {
-        Node node = browserSelectionModel.getSelectedItems().get(0).getValue();
-        tagWithComment(node, tagList);
-    }
 
     /**
-     * Adds a tag with comment to the specified snapshot node.
+     * Configures the "tag with comment" sub-menu. Items are added based on existing {@link Tag}s on the
+     * selected {@link Node}s
      *
-     * @param node    The {@link Node} to enrich with a commented tag.
-     * @param tagList List of existing tags, if any.
+     * @param tagWithCommentMenu The {@link Menu} subject to configuration.
      */
-    public void tagWithComment(Node node, ObservableList<MenuItem> tagList) {
-        while (tagList.size() > 2) {
-            tagList.remove(tagList.size() - 1);
+    public void tagWithComment(final Menu tagWithCommentMenu) {
+
+        List<Node> selectedNodes =
+                browserSelectionModel.getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
+        ObservableList<MenuItem> items = tagWithCommentMenu.getItems();
+        if (items.size() > 1) {
+            items.remove(1, items.size());
         }
-
-        if (node.getTags() == null || node.getTags().isEmpty()) {
-            CustomMenuItem noTags = TagWidget.NoTagMenuItem();
-            noTags.setDisable(true);
-            tagList.add(noTags);
-        } else {
-            node.getTags().sort(new TagComparator());
-            node.getTags().forEach(tag -> {
+        // For a single Node this list should be the same as the Node's (potentially empty) tag list, though not null.
+        List<Tag> commonTags = TagUtil.getCommonTags(selectedNodes);
+        // Exclude golden tag as it is removed in separate context menu item.
+        commonTags.remove(Tag.builder().name(Tag.GOLDEN).build());
+        List<MenuItem> additionalItems = new ArrayList<>();
+        if (!commonTags.isEmpty()) {
+            additionalItems.add(new SeparatorMenuItem());
+            commonTags.sort(new TagComparator());
+            commonTags.forEach(tag -> {
                 CustomMenuItem tagItem = TagWidget.TagWithCommentMenuItem(tag);
-
                 tagItem.setOnAction(actionEvent -> {
                     Alert confirmation = new Alert(AlertType.CONFIRMATION);
                     confirmation.setTitle(Messages.tagRemoveConfirmationTitle);
-                    String locationString = DirectoryUtilities.CreateLocationString(node, true);
-                    javafx.scene.Node headerNode = TagUtil.CreateRemoveHeader(locationString, node.getName(), tag);
-                    confirmation.getDialogPane().setHeader(headerNode);
                     confirmation.setContentText(Messages.tagRemoveConfirmationContent);
-
                     Optional<ButtonType> result = confirmation.showAndWait();
                     result.ifPresent(buttonType -> {
                         if (buttonType == ButtonType.OK) {
                             try {
-                                saveAndRestoreService.removeTagFromSnapshot(node, tag);
+                                TagData tagData = new TagData();
+                                tagData.setTag(tag);
+                                tagData.setUniqueNodeIds(selectedNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
+                                List<Node> updatedNodes = saveAndRestoreService.deleteTag(tagData);
+                                updatedNodes.forEach(n -> nodeChanged(n));
                             } catch (Exception e) {
                                 LOG.log(Level.WARNING, "Failed to remove tag from snapshot", e);
                             }
                         }
                     });
                 });
-                tagList.add(tagItem);
+                additionalItems.add(tagItem);
             });
         }
+        items.addAll(additionalItems);
     }
+
+    /**
+     * Configures the "tag as golden" menu item. Depending on the occurrence of the golden {@link Tag} on the
+     * selected {@link Node}s, the logic goes as:
+     * <ul>
+     *     <li>If all selected {@link Node}s have been tagged as golden, the item will offer possibility to remove
+     *     the tag on all {@link Node}s.</li>
+     *     <li>If none of the selected {@link Node}s have been tagged as golden, the item will offer possibility
+     *     to add the tag on all {@link Node}s.</li>
+     *     <li>If some - but not all - of the selected {@link Node}s have been tagged as golden, the item is disabled.</li>
+     * </ul>
+     *
+     * @param menuItem The {@link MenuItem} subject to configuration.
+     */
+    public void configureGoldenItem(MenuItem menuItem) {
+        List<Node> selectedNodes =
+                browserSelectionModel.getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
+        AtomicInteger goldenTagCount = new AtomicInteger(0);
+        selectedNodes.forEach(node -> {
+            if (node.hasTag(Tag.GOLDEN)) {
+                goldenTagCount.incrementAndGet();
+            }
+        });
+        if (goldenTagCount.get() == selectedNodes.size()) {
+            menuItem.disableProperty().set(false);
+            menuItem.setText(Messages.contextMenuRemoveGoldenTag);
+            menuItem.setGraphic(new ImageView(ImageRepository.SNAPSHOT));
+            menuItem.setOnAction(event -> {
+                TagData tagData = new TagData();
+                tagData.setTag(Tag.builder().name(Tag.GOLDEN).build());
+                tagData.setUniqueNodeIds(selectedNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
+                try {
+                    List<Node> updatedNodes = saveAndRestoreService.deleteTag(tagData);
+                    updatedNodes.forEach(node -> nodeChanged(node));
+                } catch (Exception e) {
+                    LOG.log(Level.SEVERE, "Failed to delete tag");
+                }
+            });
+        } else if (goldenTagCount.get() == 0) {
+            menuItem.disableProperty().set(false);
+            menuItem.setText(Messages.contextMenuTagAsGolden);
+            menuItem.setGraphic(new ImageView(ImageRepository.GOLDEN_SNAPSHOT));
+            menuItem.setOnAction(event -> {
+                TagData tagData = new TagData();
+                tagData.setTag(Tag.builder().name(Tag.GOLDEN).build());
+                tagData.setUniqueNodeIds(selectedNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
+                try {
+                    List<Node> updatedNodes = saveAndRestoreService.addTag(tagData);
+                    updatedNodes.forEach(node -> nodeChanged(node));
+                } catch (Exception e) {
+                    LOG.log(Level.SEVERE, "Failed to add tag");
+                }
+            });
+        } else {
+            menuItem.disableProperty().set(true);
+        }
+    }
+
 
     /**
      * Performs check of multiple selection to determine if it fulfills the criteria:
@@ -1327,18 +1286,18 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         filtersList.remove(filter);
         searchResultNodes.clear();
         treeView.refresh();
-        if(filtersList.isEmpty()){
+        if (filtersList.isEmpty()) {
             filterEnabledProperty.set(false);
         }
     }
 
     public void filterAddedOrUpdated(Filter filter) {
-        Filter selectedFilter =  filtersComboBox.getSelectionModel().getSelectedItem();
+        Filter selectedFilter = filtersComboBox.getSelectionModel().getSelectedItem();
         boolean selectFilterAfterRefresh =
                 selectedFilter != null &&
-                selectedFilter.getName().equals(filter.getName());
+                        selectedFilter.getName().equals(filter.getName());
         loadFilters();
-        if(selectFilterAfterRefresh){
+        if (selectFilterAfterRefresh) {
             filtersComboBox.getSelectionModel().select(filter);
         }
     }
@@ -1353,5 +1312,27 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 applyFilter(filter);
             }
         }
+    }
+
+    /**
+     * @return An array of two elements: the configuration {@link Node} anf the snapshot {@link Node} of
+     * an active {@link SnapshotTab}.
+     */
+    public Node[] getConfigAndSnapshotForActiveSnapshotTab() {
+        Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+        if (selectedTab instanceof SnapshotTab) {
+            SnapshotTab snapshotTab = (SnapshotTab) selectedTab;
+            return new Node[]{snapshotTab.getConfigNode(), snapshotTab.getSnapshotNode()};
+        }
+        return null;
+    }
+
+    protected void openCompositeSnapshotForRestore() {
+        TreeItem<Node> treeItem = browserSelectionModel.getSelectedItems().get(0);
+        SnapshotTab tab = new SnapshotTab(treeItem.getValue(), saveAndRestoreService);
+        tab.loadSnapshot(treeItem.getValue());
+
+        tabPane.getTabs().add(tab);
+        tabPane.getSelectionModel().select(tab);
     }
 }

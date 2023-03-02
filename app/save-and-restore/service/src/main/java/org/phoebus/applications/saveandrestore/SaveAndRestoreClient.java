@@ -27,6 +27,7 @@ import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.TagData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 
@@ -201,4 +202,20 @@ public interface SaveAndRestoreClient {
      * @param name
      */
     void deleteFilter(String name);
+
+    /**
+     * Adds a tag to a list of unique node ids, see {@link TagData}
+     * @param tagData see {@link TagData}
+     * @return A list of updated {@link Node}s. This may contain fewer elements than the list of unique node ids
+     * passed in the <code>tagData</code> parameter.
+     */
+    List<Node> addTag(TagData tagData);
+
+    /**
+     * Deletes a tag from a list of unique node ids, see {@link TagData}
+     * @param tagData see {@link TagData}
+     * @return A list of updated {@link Node}s. This may contain fewer elements than the list of unique node ids
+     * passed in the <code>tagData</code> parameter.
+     */
+    List<Node> deleteTag(TagData tagData);
 }

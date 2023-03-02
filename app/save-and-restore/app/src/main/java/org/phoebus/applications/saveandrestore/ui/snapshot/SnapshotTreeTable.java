@@ -55,10 +55,10 @@ import org.phoebus.applications.saveandrestore.common.Utilities;
 import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.common.VNoData;
 import org.phoebus.applications.saveandrestore.common.VTypePair;
+import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.MultitypeTreeTableCell;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
-import org.phoebus.applications.saveandrestore.ui.model.VSnapshot;
 import org.phoebus.applications.saveandrestore.ui.snapshot.hierarchyparser.IHierarchyParser;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.preferences.PreferencesReader;
@@ -505,9 +505,9 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
         }
     }
 
-    private final List<VSnapshot> uiSnapshots = new ArrayList<>();
+    private final List<Snapshot> uiSnapshots = new ArrayList<>();
     private boolean showDeltaPercentage;
-    private final SnapshotController controller;
+    private final RestoreSnapshotController controller;
     private final Map<String, TreeTableEntry> treeTableEntryItems = new HashMap<>();
     private CheckBox selectAllCheckBox;
 
@@ -516,7 +516,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
      *
      * @param controller the controller
      */
-    SnapshotTreeTable(SnapshotController controller) {
+    SnapshotTreeTable(RestoreSnapshotController controller) {
         if (resizePolicyNotInitialized) {
             AccessController.doPrivileged(resizePolicyAction);
         }
@@ -815,7 +815,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
         getColumns().addAll(snapshotTreeTableColumns);
     }
 
-    private void createTableForMultipleSnapshots(List<VSnapshot> snapshots) {
+    private void createTableForMultipleSnapshots(List<Snapshot> snapshots) {
         List<TreeTableColumn<TreeTableEntry, ?>> list = new ArrayList<>(7);
         TreeTableColumn<TreeTableEntry, TreeTableEntry> selectedColumn = new SelectionTreeTableColumn();
         list.add(selectedColumn);
@@ -852,7 +852,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                 Messages.toolTipTableColumnPVValues, -1);
         storedValueColumn.getStyleClass().add("toplevel");
 
-        String snapshotName = snapshots.get(0).getSnapshot().get().getName() + " (" +
+        String snapshotName = snapshots.get(0).getSnapshotNode().getName() + " (" +
                 snapshots.get(0) + ")";
 
 
@@ -925,7 +925,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
         for (int i = 1; i < snapshots.size(); i++) {
             final int snapshotIndex = i;
 
-            snapshotName = snapshots.get(snapshotIndex).getSnapshot().get().getName() + " (" +
+            snapshotName = snapshots.get(snapshotIndex).getSnapshotNode().getName() + " (" +
                     snapshots.get(snapshotIndex) + ")";
 
             TooltipTreeTableColumn<VTypePair> baseSnapshotCol = new TooltipTreeTableColumn<>(snapshotName,
@@ -1008,7 +1008,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
      * @param showStoredReadback  true if the stored readback value columns should be visible or false otherwise
      * @param showDeltaPercentage true if delta percentage should be be visible or false otherwise
      */
-    public void updateTable(List<TableEntry> entries, List<VSnapshot> snapshots, boolean showLiveReadback, boolean showStoredReadback, boolean showDeltaPercentage) {
+    public void updateTable(List<TableEntry> entries, List<Snapshot> snapshots, boolean showLiveReadback, boolean showStoredReadback, boolean showDeltaPercentage) {
         getColumns().clear();
         uiSnapshots.clear();
         // we should always know if we are showing the stored readback or not, to properly extract the selection

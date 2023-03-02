@@ -42,4 +42,10 @@ public class ImageRepository {
             ImageCache.getImage(SearchWindowController.class, "/icons/save-and-restore/composite-snapshot.png");
     public static final Image EDIT_CONFIGURATION =
             ImageCache.getImage(SearchWindowController.class, "/icons/save-and-restore/edit-configuration.png");
+
+    public static final Image SNAPSHOT_ADD_TAG_WITH_COMMENT =
+        ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-add_tag.png");
+
+    public static final Image SNAPSHOT_REMOVE_TAG_WITH_COMMENT =
+            ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-remove_tag.png");
 }

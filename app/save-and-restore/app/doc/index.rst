@@ -279,10 +279,8 @@ Compare Snapshots context menu item for a snapshot node user may choose a snapsh
 Once the additional snapshot has been loaded, the snapshot view will show stored values from both snapshots. In this view
 the :math:`{\Delta}` Base Snapshot column will show the difference to the reference snapshot values:
 
-.. image:: images/compare-snapshots.png
+.. image:: images/compare-snapshots-view.png
    :width: 80%
-
-
 
 
 Search And Filters
@@ -327,8 +325,7 @@ snapshot node is used to launch the tagging dialog:
 .. image:: images/context-menu-snapshot-add-tag.png
 
 In the dialog user may specify a case sensitive tag name and optionally a comment. When typing in the Tag name field,
-a list of existing tag names that may match the typed text is shown. User may hence determine if a tag already exists
-and could be reused:
+a list of existing tag names that may match the typed text is shown. User may hence "reuse" existing tags:
 
 .. image:: images/tag-hints.png
 
@@ -339,7 +336,31 @@ snapshots are rendered using a golden snapshot icon: |golden|
 
 User may delete a tag through the tagging sub-menu:
 
-.. image:: images/delete-tag.png
+.. image:: images/context-menu-delete-tag.png
+
+
+Tagging multiple snapshots
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If user selects multiple snapshot nodes in the tree view, all of the selected nodes can be tagged with the same tag in one single operation.
+Note however that this is possible only if the wanted tag is not already present on any of the nodes.
+
+Deleting tags on multiple snapshots
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If user selects multiple snapshot nodes, tags may be deleted on all of the nodes in one single operation. Note however
+that the context menu will only show tags common to all selected nodes.
+
+Snapshot View Context Menu
+--------------------------
+
+A right click on a table item in the restore snapshot view launches the following context menu:
+
+.. image:: images/context-menu-restore-view.png
+
+The items of this context menu offers actions associated with a PV, which is similar to "PV context menus" in
+other applications. However, user should be aware that the "Data Browser" item will launch the Data Browser app for
+the selected PV *around the point in time defined by the PV timestamp*.
 
 
 

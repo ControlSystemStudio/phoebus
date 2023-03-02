@@ -137,7 +137,10 @@ public class CompositeSnapshotTab extends Tab implements NodeChangedListener {
     public void nodeChanged(Node node) {
         if (node.getUniqueId().equals(getId())) {
             // May be called by non-UI thread
-            Platform.runLater(() -> tabTitleProperty.set(node.getName()));
+            Platform.runLater(() -> {
+                tabTitleProperty.set(node.getName());
+                compositeSnapshotController.setSnapshotNameProperty(node.getName());
+            });
         }
     }
 }

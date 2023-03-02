@@ -32,12 +32,11 @@ import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.TagData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 
 import javax.ws.rs.core.MultivaluedMap;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -90,7 +89,7 @@ public class SaveAndRestoreService {
         try {
             return future.get();
         } catch (Exception ie) {
-            LOG.log(Level.SEVERE,"Unable to retrieve node " + uniqueNodeId + ", cause: " + ie.getMessage());
+            LOG.log(Level.SEVERE, "Unable to retrieve node " + uniqueNodeId + ", cause: " + ie.getMessage());
         }
         return null;
     }
@@ -100,7 +99,7 @@ public class SaveAndRestoreService {
         try {
             return future.get();
         } catch (Exception ie) {
-            LOG.log(Level.SEVERE,"Unable to retrieve child nodes of node " + node.getUniqueId() + ", cause: " + ie.getMessage());
+            LOG.log(Level.SEVERE, "Unable to retrieve child nodes of node " + node.getUniqueId() + ", cause: " + ie.getMessage());
         }
         return null;
     }
@@ -306,25 +305,25 @@ public class SaveAndRestoreService {
     }
 
 
-    public CompositeSnapshotData getCompositeSnapshot(String compositeSnapshotNodeUniqueId) throws Exception{
+    public CompositeSnapshotData getCompositeSnapshot(String compositeSnapshotNodeUniqueId) throws Exception {
         Future<CompositeSnapshotData> future =
                 executor.submit(() -> saveAndRestoreClient.getCompositeSnapshotData(compositeSnapshotNodeUniqueId));
-       return future.get();
+        return future.get();
     }
 
-    public List<Node> getCompositeSnapshotNodes(String compositeSnapshotNodeUniqueId) throws Exception{
+    public List<Node> getCompositeSnapshotNodes(String compositeSnapshotNodeUniqueId) throws Exception {
         Future<List<Node>> future =
                 executor.submit(() -> saveAndRestoreClient.getCompositeSnapshotReferencedNodes(compositeSnapshotNodeUniqueId));
         return future.get();
     }
 
-    public List<SnapshotItem> getCompositeSnapshotItems(String compositeSnapshotNodeUniqueId) throws Exception{
+    public List<SnapshotItem> getCompositeSnapshotItems(String compositeSnapshotNodeUniqueId) throws Exception {
         Future<List<SnapshotItem>> future =
                 executor.submit(() -> saveAndRestoreClient.getCompositeSnapshotItems(compositeSnapshotNodeUniqueId));
         return future.get();
     }
 
-    public CompositeSnapshot saveCompositeSnapshot(Node parentNode, CompositeSnapshot compositeSnapshot) throws Exception{
+    public CompositeSnapshot saveCompositeSnapshot(Node parentNode, CompositeSnapshot compositeSnapshot) throws Exception {
         Future<CompositeSnapshot> future =
                 executor.submit(() -> saveAndRestoreClient.createCompositeSnapshot(parentNode.getUniqueId(), compositeSnapshot));
         CompositeSnapshot newCompositeSnapshot = future.get();
@@ -332,7 +331,7 @@ public class SaveAndRestoreService {
         return newCompositeSnapshot;
     }
 
-    public CompositeSnapshot updateCompositeSnapshot(final CompositeSnapshot compositeSnapshot) throws Exception{
+    public CompositeSnapshot updateCompositeSnapshot(final CompositeSnapshot compositeSnapshot) throws Exception {
         Future<CompositeSnapshot> future = executor.submit(() -> saveAndRestoreClient.updateCompositeSnapshot(compositeSnapshot));
         CompositeSnapshot updatedCompositeSnapshot = future.get();
         // Associated composite snapshot Node may have a new name
@@ -344,30 +343,33 @@ public class SaveAndRestoreService {
      * Utility for the purpose of checking whether a set of snapshots contain duplicate PV names.
      * The input snapshot ids may refer to {@link Node}s of types {@link org.phoebus.applications.saveandrestore.model.NodeType#SNAPSHOT}
      * and {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
+     *
      * @param snapshotNodeIds List of {@link Node} ids corresponding to {@link Node}s of types {@link org.phoebus.applications.saveandrestore.model.NodeType#SNAPSHOT}
-     *      and {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
+     *                        and {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}
      * @return A list of PV names that occur more than once across the list of {@link Node}s corresponding
      * to the input. Empty if no duplicates are found.
      */
-    public List<String> checkCompositeSnapshotConsistency(List<String> snapshotNodeIds) throws Exception{
+    public List<String> checkCompositeSnapshotConsistency(List<String> snapshotNodeIds) throws Exception {
         return saveAndRestoreClient.checkCompositeSnapshotConsistency(snapshotNodeIds);
     }
 
     /**
      * Search for {@link Node}s based on the specified search parameters.
+     *
      * @param searchParams {@link MultivaluedMap} holding search parameters.
      * @return A {@link SearchResult} with potentially empty list of matching {@link Node}s
      */
-    public SearchResult search(MultivaluedMap<String, String> searchParams) throws Exception{
+    public SearchResult search(MultivaluedMap<String, String> searchParams) throws Exception {
         return saveAndRestoreClient.search(searchParams);
     }
 
     /**
      * Save a new or updated {@link Filter}
+     *
      * @param filter The {@link Filter} to save
      * @return The saved {@link Filter}
      */
-    public Filter saveFilter(Filter filter) throws Exception{
+    public Filter saveFilter(Filter filter) throws Exception {
         Future<Filter> future =
                 executor.submit(() -> saveAndRestoreClient.saveFilter(filter));
         return future.get();
@@ -376,7 +378,7 @@ public class SaveAndRestoreService {
     /**
      * @return All persisted {@link Filter}s.
      */
-    public List<Filter> getAllFilters() throws Exception{
+    public List<Filter> getAllFilters() throws Exception {
         Future<List<Filter>> future =
                 executor.submit(() -> saveAndRestoreClient.getAllFilters());
         return future.get();
@@ -384,9 +386,36 @@ public class SaveAndRestoreService {
 
     /**
      * Deletes a {@link Filter} based on its name.
+     *
      * @param name
      */
-    public void deleteFilter(final String name) throws Exception{
+    public void deleteFilter(final String name) throws Exception {
         executor.submit(() -> saveAndRestoreClient.deleteFilter(name)).get();
+    }
+
+    /**
+     * Adds a tag to a list of unique node ids, see {@link TagData}
+     *
+     * @param tagData see {@link TagData}
+     * @return A list of updated {@link Node}s. This may contain fewer elements than the list of unique node ids
+     * passed in the <code>tagData</code> parameter.
+     */
+    public List<Node> addTag(TagData tagData) throws Exception {
+        Future<List<Node>> future =
+                executor.submit(() -> saveAndRestoreClient.addTag(tagData));
+        return future.get();
+    }
+
+    /**
+     * Deletes a tag from a list of unique node ids, see {@link TagData}
+     *
+     * @param tagData see {@link TagData}
+     * @return A list of updated {@link Node}s. This may contain fewer elements than the list of unique node ids
+     * passed in the <code>tagData</code> parameter.
+     */
+    public List<Node> deleteTag(TagData tagData) throws Exception {
+        Future<List<Node>> future =
+                executor.submit(() -> saveAndRestoreClient.deleteTag(tagData));
+        return future.get();
     }
 }
