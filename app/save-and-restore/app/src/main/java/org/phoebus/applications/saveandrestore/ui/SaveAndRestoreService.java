@@ -121,10 +121,6 @@ public class SaveAndRestoreService {
         return future.get();
     }
 
-    public void deleteNode(String uniqueNodeId) throws Exception {
-        executor.submit(() -> saveAndRestoreClient.deleteNode(uniqueNodeId)).get();
-    }
-
     public void deleteNodes(List<String> nodeIds) throws Exception {
         executor.submit(() -> saveAndRestoreClient.deleteNodes(nodeIds)).get();
     }
@@ -136,58 +132,6 @@ public class SaveAndRestoreService {
     public Node getParentNode(String uniqueNodeId) throws Exception {
         Future<Node> future = executor.submit(() -> saveAndRestoreClient.getParentNode(uniqueNodeId));
         return future.get();
-    }
-
-    public Node tagSnapshotAsGolden(final Node node, boolean golden) throws Exception {
-        Future<Node> future = executor.submit(() -> {
-            String userName = System.getProperty("user.name");
-            List<Tag> tags = node.getTags();
-            Tag goldenTag;
-            if (tags == null) {
-                tags = new ArrayList<>();
-                node.setTags(tags);
-            }
-            if (node.hasTag(Tag.GOLDEN)) {
-                goldenTag = tags.stream().filter(t -> t.getName().equals(Tag.GOLDEN)).findFirst().get();
-            } else {
-                goldenTag = Tag.goldenTag(userName);
-            }
-
-            if (golden) {
-                tags.add(goldenTag);
-            } else {
-                tags.remove(goldenTag);
-            }
-
-            return saveAndRestoreClient.updateNode(node);
-        });
-
-        Node updatedNode = future.get();
-        notifyNodeChangeListeners(updatedNode);
-        return updatedNode;
-    }
-
-    public Node addTagToSnapshot(final Node node, final Tag tag) throws Exception {
-        Future<Node> future = executor.submit(() -> {
-            node.addTag(tag);
-            return saveAndRestoreClient.updateNode(node);
-        });
-
-        Node updatedNode = future.get();
-        notifyNodeChangeListeners(updatedNode);
-        return updatedNode;
-    }
-
-    public Node removeTagFromSnapshot(final Node node, final Tag tag) throws Exception {
-        Future<Node> future = executor.submit(() -> {
-            node.removeTag(tag);
-
-            return saveAndRestoreClient.updateNode(node);
-        });
-
-        Node updatedNode = future.get();
-        notifyNodeChangeListeners(updatedNode);
-        return updatedNode;
     }
 
     public Configuration createConfiguration(final Node parentNode, final Configuration configuration) throws Exception {
@@ -207,11 +151,6 @@ public class SaveAndRestoreService {
 
     public List<Tag> getAllTags() throws Exception {
         Future<List<Tag>> future = executor.submit(saveAndRestoreClient::getAllTags);
-        return future.get();
-    }
-
-    public List<Node> getAllSnapshots() throws Exception {
-        Future<List<Node>> future = executor.submit(saveAndRestoreClient::getAllSnapshots);
         return future.get();
     }
 
@@ -302,13 +241,6 @@ public class SaveAndRestoreService {
         // Notify listeners as the configuration node has a new child node.
         notifyNodeChangeListeners(configurationNode);
         return updatedSnapshot;
-    }
-
-
-    public CompositeSnapshotData getCompositeSnapshot(String compositeSnapshotNodeUniqueId) throws Exception {
-        Future<CompositeSnapshotData> future =
-                executor.submit(() -> saveAndRestoreClient.getCompositeSnapshotData(compositeSnapshotNodeUniqueId));
-        return future.get();
     }
 
     public List<Node> getCompositeSnapshotNodes(String compositeSnapshotNodeUniqueId) throws Exception {

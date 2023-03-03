@@ -436,12 +436,6 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     @Override
-    public CompositeSnapshotData getCompositeSnapshotData(String uniqueId){
-        ClientResponse clientResponse = getCall("/composite-snapshot/" + uniqueId);
-        return clientResponse.getEntity(CompositeSnapshotData.class);
-    }
-
-    @Override
     public List<String> checkCompositeSnapshotConsistency(List<String> snapshotNodeIds){
         WebResource webResource =
                 client.resource(jmasarServiceUrl + "/composite-snapshot-consistency-check");
