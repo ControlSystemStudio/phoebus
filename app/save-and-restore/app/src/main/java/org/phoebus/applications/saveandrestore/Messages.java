@@ -34,7 +34,7 @@ public class Messages {
     public static String contextMenuCreateSnapshot;
     public static String contextMenuCompareSnapshots;
     public static String contextMenuDelete;
-    public static String contextMenuEdit;
+    public static String Edit;
     public static String contextMenuNewFolder;
     public static String contextMenuNewCompositeSnapshot;
     public static String contextMenuNewConfiguration;

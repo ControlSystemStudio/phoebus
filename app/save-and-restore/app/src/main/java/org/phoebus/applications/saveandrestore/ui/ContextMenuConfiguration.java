@@ -40,7 +40,7 @@ public class ContextMenuConfiguration extends ContextMenuBase{
             saveAndRestoreController.openConfigurationForSnapshot();
         });
 
-        MenuItem editConfigurationMenuItem = new MenuItem(Messages.contextMenuEdit, new ImageView(ImageRepository.EDIT_CONFIGURATION));
+        MenuItem editConfigurationMenuItem = new MenuItem(Messages.Edit, new ImageView(ImageRepository.EDIT_CONFIGURATION));
         editConfigurationMenuItem.disableProperty().bind(multipleSelection);
         editConfigurationMenuItem.setOnAction(ae -> {
             saveAndRestoreController.nodeDoubleClicked();
@@ -68,7 +68,6 @@ public class ContextMenuConfiguration extends ContextMenuBase{
 
         getItems().addAll(openConfigurationMenuItem,
                 editConfigurationMenuItem,
-                renameNodeMenuItem,
                 deleteNodesMenuItem,
                 copyUniqueIdToClipboardMenuItem,
                 exportConfigurationMenuItem,

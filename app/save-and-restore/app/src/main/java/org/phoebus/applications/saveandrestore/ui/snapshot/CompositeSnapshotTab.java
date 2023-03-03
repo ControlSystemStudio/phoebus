@@ -45,7 +45,7 @@ import java.util.logging.Logger;
  * Tab for creating or editing composite snapshots,
  * i.e. for node type {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}.
  */
-public class CompositeSnapshotTab extends Tab implements NodeChangedListener {
+public class CompositeSnapshotTab extends Tab {
 
     private CompositeSnapshotController compositeSnapshotController;
 
@@ -94,16 +94,19 @@ public class CompositeSnapshotTab extends Tab implements NodeChangedListener {
         setOnCloseRequest(event -> {
             if (!compositeSnapshotController.handleCompositeSnapshotTabClosed()) {
                 event.consume();
-            } else {
-                SaveAndRestoreService.getInstance().removeNodeChangeListener(this);
             }
         });
-
-        SaveAndRestoreService.getInstance().addNodeChangeListener(this);
     }
 
-    public void updateTabTitle(String name) {
-        Platform.runLater(() -> tabTitleProperty.set(name));
+    public void handleNodeNameSet(String nodeName){
+        Platform.runLater(() -> tabTitleProperty.set("[" + Messages.Edit + "] " + nodeName));
+    }
+
+    public void annotateDirty(boolean dirty) {
+        String tabTitle = tabTitleProperty.get();
+        if (dirty) {
+            Platform.runLater(() -> tabTitleProperty.set("* " + tabTitle));
+        }
     }
 
     private javafx.scene.Node getTabGraphic() {
@@ -128,19 +131,8 @@ public class CompositeSnapshotTab extends Tab implements NodeChangedListener {
      * @param compositeSnapshotNode non-null configuration {@link Node}
      */
     public void editCompositeSnapshot(Node compositeSnapshotNode) {
-        setId(compositeSnapshotNode.getUniqueId());
-        tabTitleProperty.set(compositeSnapshotNode.getName());
+        setId("edit_" + compositeSnapshotNode.getUniqueId());
+        handleNodeNameSet(compositeSnapshotNode.getName());
         compositeSnapshotController.loadCompositeSnapshot(compositeSnapshotNode);
-    }
-
-    @Override
-    public void nodeChanged(Node node) {
-        if (node.getUniqueId().equals(getId())) {
-            // May be called by non-UI thread
-            Platform.runLater(() -> {
-                tabTitleProperty.set(node.getName());
-                compositeSnapshotController.setSnapshotNameProperty(node.getName());
-            });
-        }
     }
 }

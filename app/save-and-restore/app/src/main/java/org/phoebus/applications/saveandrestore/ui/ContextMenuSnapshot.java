@@ -85,8 +85,7 @@ public class ContextMenuSnapshot extends ContextMenuBase {
             saveAndRestoreController.configureGoldenItem(tagGoldenMenuItem);
         });
 
-        getItems().addAll(renameNodeMenuItem,
-                deleteNodesMenuItem,
+        getItems().addAll(deleteNodesMenuItem,
                 compareSnapshotsMenuItem,
                 tagGoldenMenuItem,
                 tagWithComment,

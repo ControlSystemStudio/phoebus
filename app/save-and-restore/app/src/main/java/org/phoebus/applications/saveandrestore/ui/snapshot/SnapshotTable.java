@@ -403,10 +403,6 @@ class SnapshotTable extends TableView<TableEntry> {
     private int clickedColumn = -1;
     private int clickedRow = -1;
 
-    public SnapshotTable() {
-        this.controller = null;
-    }
-
     /**
      * Constructs a new table.
      *

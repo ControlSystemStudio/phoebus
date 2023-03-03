@@ -224,9 +224,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             if (item == null) {
                 return;
             }
-            // Check if a tab has already been opened for this node.
-            boolean highlighted = highlightTab(item.getValue().getUniqueId());
-            if (!highlighted && me.getClickCount() == 2) {
+            if(me.getClickCount() == 2){
                 nodeDoubleClicked(item.getValue());
             }
         });
@@ -580,7 +578,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * @param node The double click source
      */
     public void nodeDoubleClicked(Node node) {
-
+        if(highlightTab(node.getUniqueId())){
+            return;
+        }
         Tab tab;
 
         switch (node.getNodeType()) {
@@ -600,6 +600,21 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 return;
         }
 
+        tabPane.getTabs().add(tab);
+        tabPane.getSelectionModel().select(tab);
+    }
+
+    /**
+     * Launches the composite snapshot editor view. Note that a tab showing this view uses the "edit_" prefix
+     * for the id since it would otherwise clash with a restore view of a composite snapshot.
+     */
+    public void editCompositeSnapshot(){
+        Node compositeSnapshotNode = browserSelectionModel.getSelectedItem().getValue();
+        if(highlightTab("edit_" + compositeSnapshotNode.getUniqueId())){
+            return;
+        }
+        Tab tab = new CompositeSnapshotTab(this);
+        ((CompositeSnapshotTab) tab).editCompositeSnapshot(compositeSnapshotNode);
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);
     }
@@ -641,7 +656,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     /**
      * Renames a node through the service and its underlying data provider.
-     * If there is a problem in the call to the remote JMasar service,
+     * If there is a problem in the call to the remote service,
      * the user is shown a suitable error dialog and the name of the node is restored.
      */
     protected void renameNode() {
