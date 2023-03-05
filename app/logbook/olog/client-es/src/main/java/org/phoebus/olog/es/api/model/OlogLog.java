@@ -5,33 +5,23 @@
  */
 package org.phoebus.olog.es.api.model;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.Tag;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Log object that can be represented as XML/JSON in payload data.
  *
  * @author Kunal Shroff taken from Ralph Lange <Ralph.Lange@bessy.de>
  */
-@XmlAccessorType(XmlAccessType.NONE)
-@XmlRootElement(name = "log")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OlogLog implements LogEntry {
 
@@ -52,7 +42,9 @@ public class OlogLog implements LogEntry {
     private Collection<Attachment> attachments;
     private Collection<Property> properties;
 
-    /** Creates a new instance of OlogLog */
+    /**
+     * Creates a new instance of OlogLog
+     */
     public OlogLog() {
     }
 
@@ -90,7 +82,6 @@ public class OlogLog implements LogEntry {
      *
      * @return id
      */
-    @XmlAttribute
     public Long getId() {
         return id;
     }
@@ -109,7 +100,6 @@ public class OlogLog implements LogEntry {
      *
      * @return versionId
      */
-    @XmlAttribute
     public int getVersion() {
         return version;
     }
@@ -133,7 +123,6 @@ public class OlogLog implements LogEntry {
      *
      * @return owner
      */
-    @XmlAttribute
     @Override
     public String getOwner() {
         return owner;
@@ -153,7 +142,6 @@ public class OlogLog implements LogEntry {
      *
      * @return level
      */
-    @XmlAttribute
     @Override
     public String getLevel() {
         return level;
@@ -176,12 +164,12 @@ public class OlogLog implements LogEntry {
     public void setTitle(String title) {
         this.title = title;
     }
+
     /**
      * Getter for log created date.
      *
      * @return createdDate
      */
-    @XmlElement
     public Instant getCreatedDate() {
         return createdDate;
     }
@@ -200,27 +188,17 @@ public class OlogLog implements LogEntry {
      *
      * @return modifiedDate
      */
-    @XmlElement
     @Override
     public Instant getModifiedDate() {
         return modifiedDate;
     }
 
-    /**
-     * Setter for log modified date.
-     *
-     * @param modifiedDate
-     */
-    public void setModifiedDate(Instant modifiedDate) {
-        this.modifiedDate = modifiedDate;
-    }
 
     /**
      * Getter for log source IP.
      *
      * @return source IP
      */
-    @XmlAttribute
     @Override
     public String getSource() {
         return source;
@@ -240,7 +218,6 @@ public class OlogLog implements LogEntry {
      *
      * @return description
      */
-    @XmlElement(name = "description")
     @Override
     public String getDescription() {
         return description;
@@ -256,15 +233,13 @@ public class OlogLog implements LogEntry {
     }
 
     @Override
-    @XmlElementWrapper(name = "properties")
-    @XmlElement(type = OlogProperty.class, name = "property", nillable = true)
     public Collection<Property> getProperties() {
         return properties == null ? new ArrayList<Property>() : properties;
     }
 
     @Override
     public Property getProperty(String propertyName) {
-        if(propertyName == null){
+        if (propertyName == null) {
             return null;
         }
         return getProperties().stream().filter(p -> propertyName.equals(p.getName())).findFirst().orElse(null);
@@ -280,8 +255,6 @@ public class OlogLog implements LogEntry {
     }
 
     @Override
-    @XmlElementWrapper(name = "logbooks")
-    @XmlElement(type = OlogLogbook.class, name = "logbook")
     public Collection<Logbook> getLogbooks() {
         return logbooks == null ? new ArrayList<Logbook>() : logbooks;
     }
@@ -300,8 +273,6 @@ public class OlogLog implements LogEntry {
      *
      * @return OlogTags for this log
      */
-    @XmlElementWrapper(name = "tags")
-    @XmlElement(type = OlogTag.class, name = "tag")
     @Override
     public Collection<Tag> getTags() {
         return tags == null ? new ArrayList<Tag>() : tags;
@@ -316,7 +287,6 @@ public class OlogLog implements LogEntry {
         this.tags = tags;
     }
 
-    @XmlElement(name = "attachments")
     @Override
     public Collection<Attachment> getAttachments() {
         return attachments == null ? new ArrayList<Attachment>() : attachments;
