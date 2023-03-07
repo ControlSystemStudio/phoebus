@@ -5,23 +5,19 @@
  */
 package org.phoebus.olog.es.api.model;
 
-import java.util.Map;
-
-import javax.xml.bind.annotation.XmlRootElement;
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.phoebus.logbook.Property;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.Map;
 
 /**
  * Property object that can be represented as XML/JSON in payload data.
- * 
+ *
  * @author Kunal Shroff taken from Ralph Lange
- *         <Ralph.Lange@helmholtz-berlin.de>
+ * <Ralph.Lange@helmholtz-berlin.de>
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-@XmlRootElement(name = "property")
-public class OlogProperty implements Property{
+public class OlogProperty implements Property {
 
     private int id;
     private String name = null;
@@ -29,14 +25,13 @@ public class OlogProperty implements Property{
 
     /**
      * Creates a new instance of XmlProperty.
-     * 
      */
     public OlogProperty() {
     }
 
     /**
      * Creates a new instance of XmlProperty.
-     * 
+     *
      * @param name
      */
     public OlogProperty(String name) {
@@ -44,7 +39,7 @@ public class OlogProperty implements Property{
     }
 
     /**
-     * @param name property name
+     * @param name       property name
      * @param attributes property attributes
      */
     public OlogProperty(String name, Map<String, String> attributes) {
@@ -54,7 +49,7 @@ public class OlogProperty implements Property{
 
     /**
      * Getter for property id.
-     * 
+     *
      * @return property id
      */
     public int getId() {
@@ -63,7 +58,7 @@ public class OlogProperty implements Property{
 
     /**
      * Setter for property id.
-     * 
+     *
      * @param id property id
      */
     public void setId(int id) {
@@ -72,7 +67,7 @@ public class OlogProperty implements Property{
 
     /**
      * Getter for property name.
-     * 
+     *
      * @return property name
      */
     public String getName() {
@@ -81,7 +76,7 @@ public class OlogProperty implements Property{
 
     /**
      * Setter for property name.
-     * 
+     *
      * @param name property name
      */
     public void setName(String name) {
@@ -103,17 +98,17 @@ public class OlogProperty implements Property{
     }
 
     @Override
-    public boolean equals(Object other){
-        if(!(other instanceof Property)){
+    public boolean equals(Object other) {
+        if (!(other instanceof Property)) {
             return false;
         }
-        Property otherProperty = (Property)other;
+        Property otherProperty = (Property) other;
         return name.equals(otherProperty.getName());
     }
 
     @Override
-    public int hashCode(){
-       return name.hashCode();
+    public int hashCode() {
+        return name.hashCode();
     }
 
 }
