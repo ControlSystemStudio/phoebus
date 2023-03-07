@@ -335,7 +335,9 @@ public class SaveAndRestoreService {
     public List<Node> addTag(TagData tagData) throws Exception {
         Future<List<Node>> future =
                 executor.submit(() -> saveAndRestoreClient.addTag(tagData));
-        return future.get();
+        List<Node> updatedNodes = future.get();
+        updatedNodes.forEach(n -> notifyNodeChangeListeners(n));
+        return updatedNodes;
     }
 
     /**
@@ -348,6 +350,8 @@ public class SaveAndRestoreService {
     public List<Node> deleteTag(TagData tagData) throws Exception {
         Future<List<Node>> future =
                 executor.submit(() -> saveAndRestoreClient.deleteTag(tagData));
-        return future.get();
+        List<Node> updatedNodes = future.get();
+        updatedNodes.forEach(n -> notifyNodeChangeListeners(n));
+        return updatedNodes;
     }
 }

@@ -1076,8 +1076,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 tagData.setTag(Tag.builder().name(Tag.GOLDEN).build());
                 tagData.setUniqueNodeIds(selectedNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
                 try {
-                    List<Node> updatedNodes = saveAndRestoreService.deleteTag(tagData);
-                    updatedNodes.forEach(node -> nodeChanged(node));
+                    saveAndRestoreService.deleteTag(tagData);
                 } catch (Exception e) {
                     LOG.log(Level.SEVERE, "Failed to delete tag");
                 }
@@ -1091,8 +1090,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 tagData.setTag(Tag.builder().name(Tag.GOLDEN).build());
                 tagData.setUniqueNodeIds(selectedNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
                 try {
-                    List<Node> updatedNodes = saveAndRestoreService.addTag(tagData);
-                    updatedNodes.forEach(node -> nodeChanged(node));
+                    saveAndRestoreService.addTag(tagData);
                 } catch (Exception e) {
                     LOG.log(Level.SEVERE, "Failed to add tag");
                 }
