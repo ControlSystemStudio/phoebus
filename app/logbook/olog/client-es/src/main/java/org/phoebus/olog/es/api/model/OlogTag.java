@@ -6,11 +6,8 @@
 
 package org.phoebus.olog.es.api.model;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
-import org.phoebus.logbook.Tag;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.phoebus.logbook.Tag;
 
 /**
  * Tag object that can be represented as XML/JSON in payload data.
@@ -18,13 +15,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * @author Kunal Shroff taken from Ralph Lange <Ralph.Lange@bessy.de>
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-@XmlRootElement(name = "tag")
 public class OlogTag implements Tag {
     private String name = null;
     private String state = "Active";
+
     /**
      * Creates a new instance of OlogTag.
-     *
      */
     public OlogTag() {
     }

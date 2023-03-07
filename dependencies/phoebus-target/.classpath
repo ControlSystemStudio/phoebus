@@ -51,7 +51,6 @@
     <classpathentry exported="true" kind="lib" path="target/lib/derby-10.16.1.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/derbyshared-10.16.1.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/derbytools-10.16.1.1.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/eclipselink-2.7.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/ehcache-core-2.3.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-java-8.2.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-rest-client-8.2.0.jar"/>

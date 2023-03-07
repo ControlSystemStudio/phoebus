@@ -50,9 +50,9 @@ public class LinearTicks extends Ticks<Double>
     protected NumberFormat detailed_num_fmt = createDecimalFormat(2);
 
     /** Threshold for order-of-magnitude to use exponential notation */
-    private long exponential_threshold = 5;
+    private long exponential_threshold = 4;
 
-    /** @param order_of_magnitude If value range exceeds this threshold, use exponential notation */
+    /** @param order_of_magnitude determines when to use exponential notation */
     public void setExponentialThreshold(long order_of_magnitude)
     {
         exponential_threshold = order_of_magnitude;
@@ -91,12 +91,10 @@ public class LinearTicks extends Ticks<Double>
         final boolean normal = low < high;
         final double range = Math.abs(high-low);
 
-        final long order_of_magnitude = Math.abs(Math.round(Log10.log10(range)));
-
         // Determine initial precision for displaying numbers in this range.
         // Precision must be set to format test entries, which
         // are then used to compute ticks.
-        final boolean use_exp_notation = order_of_magnitude > exponential_threshold;
+        final boolean use_exp_notation = shouldUseExpNotation(low, high);
         int precision;
         if (use_exp_notation)
         {
@@ -125,9 +123,7 @@ public class LinearTicks extends Ticks<Double>
         double distance = selectNiceStep(min_distance);
         if (distance == 0.0)
             throw new Error("Broken tickmark computation");
-
-        // System.out.println("Range " + low + " - " + high + ", dist " + distance + ", prec. " + precision);
-
+        
         // Update num_fmt based on distance between major tick labels.
         // For example, an axis with range 0 .. 10 would ordinarily use precision 0
         // and axis markers like 0, 2, 4, 6, 8, 10.
@@ -205,6 +201,13 @@ public class LinearTicks extends Ticks<Double>
         }
         this.major_ticks = major_ticks;
         this.minor_ticks = minor_ticks;
+    }
+
+    protected boolean shouldUseExpNotation(Double low, Double high) {
+        boolean isLargeOrderOfMagnitude = Log10.log10(Math.abs(low)) >= exponential_threshold + 1 || Log10.log10(Math.abs(high)) >= exponential_threshold + 1;
+        boolean isSmallOrderOfMagnitude = Log10.log10(Math.abs(low)) < -exponential_threshold && Log10.log10(Math.abs(high)) < -exponential_threshold;
+
+        return isLargeOrderOfMagnitude || isSmallOrderOfMagnitude;
     }
 
     /** @param number A number
