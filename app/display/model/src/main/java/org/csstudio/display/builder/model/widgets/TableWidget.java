@@ -51,6 +51,7 @@ import org.epics.util.array.ListDouble;
 import org.epics.util.array.ListNumber;
 import org.epics.vtype.VTable;
 import org.epics.vtype.VType;
+import org.epics.vtype.VStringArray;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 
@@ -562,6 +563,18 @@ public class TableWidget extends VisibleWidget
             for (List<String> row : (List<List<String>>)the_value)
             {
                 final List<String> row_copy = new ArrayList<>(row);
+                deep_copy.add(row_copy);
+            }
+            return deep_copy;
+        }
+        else if (the_value instanceof VStringArray) {
+            // Create deep copy as above, but each 'row' is actually just a scalar,
+            // coerced to a one-element list
+            //List<String> list = ((VStringArray) value).getData()
+            final List<String> _list = ((VStringArray) the_value).getData();
+            final List<List<String>> deep_copy = new ArrayList<>(_list.size());
+            for (String row : _list){
+                final List<String> row_copy = List.of(row);
                 deep_copy.add(row_copy);
             }
             return deep_copy;
