@@ -49,6 +49,7 @@ import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.epics.util.array.ListDouble;
 import org.epics.util.array.ListNumber;
+import org.epics.vtype.Array;
 import org.epics.vtype.VTable;
 import org.epics.vtype.VType;
 import org.epics.vtype.VStringArray;
@@ -567,7 +568,7 @@ public class TableWidget extends VisibleWidget
             }
             return deep_copy;
         }
-        else if (the_value instanceof VStringArray) {
+        /*else if (the_value instanceof VStringArray) {
             // Create deep copy as above, but each 'row' is actually just a scalar,
             // coerced to a one-element list
             //List<String> list = ((VStringArray) value).getData()
@@ -578,10 +579,19 @@ public class TableWidget extends VisibleWidget
                 deep_copy.add(row_copy);
             }
             return deep_copy;
-        }
-        else if (the_value instanceof VTable)
+        }*/
+        else if (the_value instanceof VTable ||the_value instanceof Array)
         {
-            final VTable table = (VTable) the_value;
+            VTable _tbl;
+            if(the_value instanceof VTable) {
+                _tbl  = (VTable) the_value;
+            }
+            else{ //the_value instanceof VStringArray
+                _tbl = VTable.of(Arrays.asList((((Array)the_value).getData()).getClass().getComponentType()),
+                        Arrays.asList("values"),
+                        Arrays.asList((((Array) the_value).getData())));
+            }
+            final VTable table = _tbl;
             final int rows = table.getRowCount();
             final int cols = table.getColumnCount();
             // Extract 2D string matrix for data
