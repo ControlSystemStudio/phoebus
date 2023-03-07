@@ -376,15 +376,11 @@ public class RestoreSnapshotController extends SnapshotController {
         snapshotTab.setId(snapshotNode.getUniqueId());
 
         if (this.snapshotNode.getNodeType().equals(NodeType.SNAPSHOT)) {
-            if (snapshotNode.getTags() != null && snapshotNode.getTags().stream().anyMatch(t -> t.getName().equals(Tag.GOLDEN))) {
-                snapshotTab.setGoldenImage();
-            }
             loadSnapshotInternal();
         } else {
             takeSnapshotButton.setDisable(true);
             snapshotName.setEditable(false);
             snapshotComment.setEditable(false);
-            snapshotTab.setCompositeSnapshotImage();
             loadCompositeSnapshotInternal(snapshot -> Platform.runLater(() -> {
                 List<TableEntry> tableEntries = createTableEntries(snapshot);
                 snapshotTable.updateTable(tableEntries, snapshots, false, false, false);

@@ -33,12 +33,10 @@ import org.phoebus.ui.javafx.ImageCache;
 
 public abstract class ContextMenuBase extends ContextMenu {
 
-    protected Image renameIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/rename_col.png");
     protected Image deleteIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/delete.png");
     protected Image csvImportIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_import.png");
 
     protected MenuItem deleteNodesMenuItem;
-    protected MenuItem renameNodeMenuItem;
     protected MenuItem copyUniqueIdToClipboardMenuItem;
 
     protected TreeView<Node> treeView;
@@ -52,10 +50,6 @@ public abstract class ContextMenuBase extends ContextMenu {
         this.saveAndRestoreController = saveAndRestoreController;
         deleteNodesMenuItem = new MenuItem(Messages.contextMenuDelete, new ImageView(deleteIcon));
         deleteNodesMenuItem.setOnAction(ae -> saveAndRestoreController.deleteNodes());
-
-        renameNodeMenuItem = new MenuItem(Messages.contextMenuRename, new ImageView(renameIcon));
-        renameNodeMenuItem.setOnAction(ae -> saveAndRestoreController.renameNode());
-        renameNodeMenuItem.disableProperty().bind(multipleSelection);
 
         copyUniqueIdToClipboardMenuItem = new MenuItem(Messages.copyUniqueIdToClipboard, ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));
         copyUniqueIdToClipboardMenuItem.setOnAction(ae -> saveAndRestoreController.copyUniqueNodeIdToClipboard());
@@ -78,8 +72,7 @@ public abstract class ContextMenuBase extends ContextMenu {
                 treeView.getSelectionModel().getSelectedItems();
         if (multipleSelection.get() && !hasSameParent(selected)) {
             deleteNodesMenuItem.disableProperty().set(true);
-        }
-        else{
+        } else {
             deleteNodesMenuItem.disableProperty().set(false);
         }
     }
@@ -87,11 +80,12 @@ public abstract class ContextMenuBase extends ContextMenu {
     /**
      * Used to determine if nodes selected in the tree view have the same parent node. Most menu items
      * do not make sense unless the selected nodes have same the parent node.
+     *
      * @param selectedItems The selected tree nodes.
      * @return <code>true</code> if all selected nodes have the same parent node, <code>false</code> otherwise.
      */
     protected boolean hasSameParent(ObservableList<TreeItem<Node>> selectedItems) {
-        if(selectedItems.size() == 1){
+        if (selectedItems.size() == 1) {
             return true;
         }
         Node parentNodeOfFirst = selectedItems.get(0).getParent().getValue();

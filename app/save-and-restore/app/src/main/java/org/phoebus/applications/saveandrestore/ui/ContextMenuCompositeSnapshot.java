@@ -18,13 +18,10 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
-import javafx.application.Platform;
-import javafx.collections.ObservableList;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -40,20 +37,15 @@ public class ContextMenuCompositeSnapshot extends ContextMenuBase {
 
         Image snapshotTagsWithCommentIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-tags.png");
 
-        MenuItem openCompositeSnapshotMenuItem = new MenuItem(Messages.contextMenuOpenCompositeSnapshotForRestore, new ImageView(ImageRepository.EDIT_CONFIGURATION));
-        openCompositeSnapshotMenuItem.disableProperty().bind(multipleSelection);
-        openCompositeSnapshotMenuItem.setOnAction(ae -> saveAndRestoreController.openCompositeSnapshotForRestore());
-
-        MenuItem editCompositeSnapshotMenuItem = new MenuItem(Messages.contextMenuEdit, new ImageView(ImageRepository.EDIT_CONFIGURATION));
+        MenuItem editCompositeSnapshotMenuItem = new MenuItem(Messages.Edit, new ImageView(ImageRepository.EDIT_CONFIGURATION));
         editCompositeSnapshotMenuItem.disableProperty().bind(multipleSelection);
-        editCompositeSnapshotMenuItem.setOnAction(ae -> saveAndRestoreController.nodeDoubleClicked());
+        editCompositeSnapshotMenuItem.setOnAction(ae -> saveAndRestoreController.editCompositeSnapshot());
 
         ImageView snapshotTagsWithCommentIconImage = new ImageView(snapshotTagsWithCommentIcon);
         snapshotTagsWithCommentIconImage.setFitHeight(22);
         snapshotTagsWithCommentIconImage.setFitWidth(22);
 
         Menu tagWithComment = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
-        //tagWithComment.disableProperty().bind(multipleSelection);
         tagWithComment.setOnShowing(event -> saveAndRestoreController.tagWithComment(tagWithComment));
 
         CustomMenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
@@ -61,9 +53,7 @@ public class ContextMenuCompositeSnapshot extends ContextMenuBase {
 
         tagWithComment.getItems().addAll(addTagWithCommentMenuItem, new SeparatorMenuItem());
 
-        getItems().addAll(openCompositeSnapshotMenuItem,
-                editCompositeSnapshotMenuItem,
-                renameNodeMenuItem,
+        getItems().addAll(editCompositeSnapshotMenuItem,
                 deleteNodesMenuItem,
                 copyUniqueIdToClipboardMenuItem,
                 tagWithComment);

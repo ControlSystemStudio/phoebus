@@ -20,14 +20,23 @@ package org.phoebus.applications.saveandrestore.ui;
 
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.ui.javafx.ImageCache;
 
 public class ContextMenuFolder extends ContextMenuBase {
 
     public ContextMenuFolder(SaveAndRestoreController saveAndRestoreController, TreeView<Node> treeView) {
         super(saveAndRestoreController, treeView);
+
+        Image renameIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/rename_col.png");
+
+        MenuItem renameNodeMenuItem = new MenuItem(Messages.contextMenuRename, new ImageView(renameIcon));
+        renameNodeMenuItem.setOnAction(ae -> saveAndRestoreController.renameNode());
+        renameNodeMenuItem.disableProperty().bind(multipleSelection);
+
         MenuItem newFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(ImageRepository.FOLDER));
         newFolderMenuItem.disableProperty().bind(multipleSelection);
         newFolderMenuItem.setOnAction(ae -> saveAndRestoreController.createNewFolder());

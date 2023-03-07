@@ -20,8 +20,6 @@
 package org.phoebus.applications.saveandrestore.ui.configuration;
 
 import javafx.application.Platform;
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -131,7 +129,6 @@ public class ConfigurationController implements NodeChangedListener {
     private final ObservableList<ConfigPv> configurationEntries = FXCollections.observableArrayList();
 
     private final SimpleBooleanProperty selectionEmpty = new SimpleBooleanProperty(false);
-    private final SimpleBooleanProperty singelSelection = new SimpleBooleanProperty(false);
     private final SimpleStringProperty configurationDescriptionProperty = new SimpleStringProperty();
     private final SimpleStringProperty configurationNameProperty = new SimpleStringProperty();
     private Node configurationNodeParent;
@@ -155,8 +152,6 @@ public class ConfigurationController implements NodeChangedListener {
 
         pvTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         pvTable.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> selectionEmpty.set(nv == null));
-
-        pvTable.getSelectionModel().getSelectedItems().addListener((ListChangeListener<ConfigPv>) c -> singelSelection.set(c.getList().size() == 1));
 
         ContextMenu pvNameContextMenu = new ContextMenu();
 
@@ -242,8 +237,8 @@ public class ConfigurationController implements NodeChangedListener {
         readOnlyCheckBox.selectedProperty().bindBidirectional(readOnlyProperty);
 
         configurationNode.addListener(observable -> {
-            if(observable != null){
-                SimpleObjectProperty<Node> simpleObjectProperty = (SimpleObjectProperty<Node>)observable;
+            if (observable != null) {
+                SimpleObjectProperty<Node> simpleObjectProperty = (SimpleObjectProperty<Node>) observable;
                 Node newValue = simpleObjectProperty.get();
                 configurationNameProperty.set(newValue.getName());
                 configurationCreatedDateField.textProperty().set(newValue.getCreated() != null ?
@@ -328,6 +323,7 @@ public class ConfigurationController implements NodeChangedListener {
 
     /**
      * Configures the controller to create a new configuration.
+     *
      * @param parentNode The parent {@link Node} for the new configuration, i.e. must be a
      *                   {@link Node} of type {@link NodeType#FOLDER}.
      */
@@ -342,6 +338,7 @@ public class ConfigurationController implements NodeChangedListener {
 
     /**
      * Loads an existing configuration {@link Node} and its associated {@link ConfigurationData}.
+     *
      * @param node An existing {@link Node} of type {@link NodeType#CONFIGURATION}.
      */
     public void loadConfiguration(final Node node) {

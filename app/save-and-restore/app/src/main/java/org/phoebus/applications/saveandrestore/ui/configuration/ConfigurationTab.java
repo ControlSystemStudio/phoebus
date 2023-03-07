@@ -126,4 +126,14 @@ public class ConfigurationTab extends Tab implements NodeChangedListener {
     public void updateTabTitle(String tabTitle) {
         tabTitleProperty.set(tabTitle);
     }
+
+    public void annotateDirty(boolean dirty){
+        String tabTitle = tabTitleProperty.get();
+        if(dirty){
+            updateTabTitle("* " + tabTitle);
+        }
+        else{
+            updateTabTitle(tabTitle.substring(2));
+        }
+    }
 }

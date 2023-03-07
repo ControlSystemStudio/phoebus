@@ -24,6 +24,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -67,14 +68,12 @@ import org.phoebus.util.time.TimestampFormats;
 
 import java.text.MessageFormat;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Stack;
 import java.util.function.Consumer;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class CompositeSnapshotController {
@@ -90,6 +89,9 @@ public class CompositeSnapshotController {
 
     @FXML
     private TableColumn<Node, Date> snapshotDateColumn;
+
+    @FXML
+    private TableColumn<Node, Node> snapshotPathColumn;
 
     @FXML
     private TableView<Node> snapshotTable;
@@ -117,16 +119,19 @@ public class CompositeSnapshotController {
     private final ObservableList<Node> snapshotEntries = FXCollections.observableArrayList();
 
     private final SimpleBooleanProperty selectionEmpty = new SimpleBooleanProperty(false);
-    private final SimpleBooleanProperty singelSelection = new SimpleBooleanProperty(false);
     private final SimpleStringProperty compositeSnapshotDescriptionProperty = new SimpleStringProperty();
     private final SimpleStringProperty compositeSnapshotNameProperty = new SimpleStringProperty();
+
+    private final SimpleStringProperty createdDateProperty = new SimpleStringProperty();
+
+    private final SimpleStringProperty lastUpdatedProperty = new SimpleStringProperty();
+    private final SimpleStringProperty createdByProperty = new SimpleStringProperty();
+
     private Node parentFolder;
 
-    private final SimpleObjectProperty<Node> compositeSnapshotNode = new SimpleObjectProperty<>();
+    private Node compositeSnapshotNode;
 
     private final CompositeSnapshotTab compositeSnapshotTab;
-
-    private final Logger logger = Logger.getLogger(CompositeSnapshotController.class.getName());
 
     private final SimpleBooleanProperty disabledUi = new SimpleBooleanProperty(false);
 
@@ -134,6 +139,10 @@ public class CompositeSnapshotController {
 
     @FXML
     private VBox progressIndicator;
+
+    private final EntriesListChangeListener entriesListChangeListener = new EntriesListChangeListener();
+    private ChangeListener<String> nodeNameChangeListener;
+    private ChangeListener<String> descriptionChangeListener;
 
     public CompositeSnapshotController(CompositeSnapshotTab compositeSnapshotTab, SaveAndRestoreController saveAndRestoreController) {
         this.compositeSnapshotTab = compositeSnapshotTab;
@@ -143,12 +152,12 @@ public class CompositeSnapshotController {
     @FXML
     public void initialize() {
 
+        snapshotTable.getStylesheets().add(SnapshotTable.class.getResource("/style.css").toExternalForm());
+
         saveAndRestoreService = SaveAndRestoreService.getInstance();
 
         snapshotTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         snapshotTable.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> selectionEmpty.set(nv == null));
-
-        snapshotTable.getSelectionModel().getSelectedItems().addListener((ListChangeListener<Node>) c -> singelSelection.set(c.getList().size() == 1));
 
         MenuItem deleteMenuItem = new MenuItem(Messages.menuItemDeleteSelectedPVs,
                 new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/delete.png")));
@@ -171,6 +180,25 @@ public class CompositeSnapshotController {
                             setText("");
                         } else {
                             setText(TimestampFormats.SECONDS_FORMAT.format(getItem().toInstant()));
+                        }
+                    }
+                };
+            }
+        });
+        snapshotDateColumn.getStyleClass().add("timestamp-column");
+        snapshotPathColumn.setCellValueFactory(cell -> new SimpleObjectProperty<>(cell.getValue()));
+        snapshotPathColumn.setCellFactory(new Callback<>() {
+            @Override
+            public TableCell<Node, Node> call(TableColumn param) {
+                return new TableCell<>() {
+                    @Override
+                    public void updateItem(Node item, boolean empty) {
+                        super.updateItem(item, empty);
+                        selectionEmpty.set(empty);
+                        if (empty) {
+                            setText(null);
+                        } else {
+                            setText(DirectoryUtilities.CreateLocationString(item, true));
                         }
                     }
                 };
@@ -230,7 +258,7 @@ public class CompositeSnapshotController {
                             setText(getItem().getName());
                             NodeType nodeType = getItem().getNodeType();
                             boolean golden = getItem().getTags() != null &&
-                                    getItem().getTags().stream().filter(t -> t.getName().equals(Tag.GOLDEN)).findFirst().isPresent();
+                                    getItem().getTags().stream().anyMatch(t -> t.getName().equals(Tag.GOLDEN));
                             if (nodeType.equals(NodeType.SNAPSHOT)) {
                                 setGraphic(new ImageView(golden ?
                                         ImageRepository.GOLDEN_SNAPSHOT :
@@ -246,39 +274,19 @@ public class CompositeSnapshotController {
 
         compositeSnapshotNameField.textProperty().bindBidirectional(compositeSnapshotNameProperty);
         descriptionTextArea.textProperty().bindBidirectional(compositeSnapshotDescriptionProperty);
+        compositeSnapshotLastModifiedDateField.textProperty().bindBidirectional(lastUpdatedProperty);
+        compositeSnapshotCreatedDateField.textProperty().bindBidirectional(createdDateProperty);
+        createdByField.textProperty().bindBidirectional(createdByProperty);
 
-        snapshotEntries.addListener((ListChangeListener<Node>) change -> {
-            while (change.next()) {
-                if (change.wasAdded() || change.wasRemoved()) {
-                    FXCollections.sort(snapshotEntries);
-                    dirty.set(true);
-                }
-            }
-        });
+        snapshotTable.setItems(snapshotEntries);
 
-        compositeSnapshotNameProperty.addListener((observableValue, oldValue, newValue) -> dirty.set(!newValue.equals(compositeSnapshotNode.getName())));
-        compositeSnapshotDescriptionProperty.addListener((observable, oldValue, newValue) -> dirty.set(!newValue.equals(compositeSnapshotNode.get().getDescription())));
+        nodeNameChangeListener = (observableValue, oldValue, newValue) -> dirty.set(true);
+        descriptionChangeListener = (observableValue, oldValue, newValue) -> dirty.set(true);
 
         saveButton.disableProperty().bind(Bindings.createBooleanBinding(() -> dirty.not().get() ||
                         compositeSnapshotDescriptionProperty.isEmpty().get() ||
                         compositeSnapshotNameProperty.isEmpty().get(),
                 dirty, compositeSnapshotDescriptionProperty, compositeSnapshotNameProperty));
-
-        // Update UI when the composite snapshot node has been set or updated.
-        compositeSnapshotNode.addListener(observable -> {
-            if (observable != null) {
-                SimpleObjectProperty<Node> simpleObjectProperty = (SimpleObjectProperty<Node>) observable;
-                Node newValue = simpleObjectProperty.get();
-                compositeSnapshotNameProperty.set(newValue.getName());
-                compositeSnapshotCreatedDateField.textProperty().set(newValue.getCreated() != null ?
-                        TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(newValue.getCreated().getTime())) : null);
-                compositeSnapshotLastModifiedDateField.textProperty().set(newValue.getLastModified() != null ?
-                        TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(newValue.getLastModified().getTime())) : null);
-                createdByField.textProperty().set(newValue.getUserName());
-                compositeSnapshotDescriptionProperty.set(compositeSnapshotNode.get().getDescription());
-            }
-        });
-
 
         snapshotTable.setOnDragOver(event -> {
             if (event.getDragboard().hasContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT)) {
@@ -324,6 +332,12 @@ public class CompositeSnapshotController {
         progressIndicator.visibleProperty().bind(disabledUi);
         disabledUi.addListener((observable, oldValue, newValue) -> borderPane.setDisable(newValue));
 
+        dirty.addListener((ob, o, n) -> {
+            if (dirty.get()) {
+                compositeSnapshotTab.annotateDirty(n);
+            }
+        });
+
     }
 
     @FXML
@@ -337,24 +351,24 @@ public class CompositeSnapshotController {
         disabledUi.set(true);
         JobManager.schedule("Save/update composite snapshot", monitor -> {
             try {
-                compositeSnapshotNode.get().setName(compositeSnapshotNameProperty.get());
-                compositeSnapshotNode.get().setDescription(compositeSnapshotDescriptionProperty.get());
+                compositeSnapshotNode.setName(compositeSnapshotNameProperty.get());
+                compositeSnapshotNode.setDescription(compositeSnapshotDescriptionProperty.get());
                 CompositeSnapshot compositeSnapshot = new CompositeSnapshot();
-                compositeSnapshot.setCompositeSnapshotNode(compositeSnapshotNode.get());
+                compositeSnapshot.setCompositeSnapshotNode(compositeSnapshotNode);
                 CompositeSnapshotData compositeSnapshotData = new CompositeSnapshotData();
                 compositeSnapshotData
                         .setReferencedSnapshotNodes(snapshotEntries.stream().map(Node::getUniqueId).collect(Collectors.toList()));
                 compositeSnapshot.setCompositeSnapshotData(compositeSnapshotData);
 
-                if (compositeSnapshotNode.get().getUniqueId() == null) { // New composite snapshot
+                if (compositeSnapshotNode.getUniqueId() == null) { // New composite snapshot
                     compositeSnapshot = saveAndRestoreService.saveCompositeSnapshot(parentFolder,
                             compositeSnapshot);
                     compositeSnapshotTab.setId(compositeSnapshot.getCompositeSnapshotNode().getUniqueId());
-                    compositeSnapshotTab.updateTabTitle(compositeSnapshot.getCompositeSnapshotNode().getName());
                 } else {
-                    compositeSnapshotData.setUniqueId(compositeSnapshotNode.get().getUniqueId());
+                    compositeSnapshotData.setUniqueId(compositeSnapshotNode.getUniqueId());
                     compositeSnapshot = saveAndRestoreService.updateCompositeSnapshot(compositeSnapshot);
                 }
+                compositeSnapshotTab.handleNodeNameSet(compositeSnapshot.getCompositeSnapshotNode().getName());
                 dirty.set(false);
                 completion.accept(compositeSnapshot);
             } catch (Exception e1) {
@@ -362,8 +376,7 @@ public class CompositeSnapshotController {
                         Messages.errorActionFailed,
                         Messages.errorCreateConfigurationFailed,
                         e1);
-            }
-            finally {
+            } finally {
                 disabledUi.set(false);
             }
         });
@@ -377,19 +390,30 @@ public class CompositeSnapshotController {
      * @param node An existing {@link Node} of type {@link NodeType#COMPOSITE_SNAPSHOT}.
      */
     public void loadCompositeSnapshot(final Node node) {
-        Platform.runLater(() -> compositeSnapshotNode.setValue(node));
-        snapshotEntries.clear();
+        compositeSnapshotNode = node;
         disabledUi.set(true);
+        removeListeners();
         JobManager.schedule("Load composite snapshot data", monitor -> {
             try {
-                List<Node> referencedNodes = saveAndRestoreService.getCompositeSnapshotNodes(node.getUniqueId());
+                snapshotEntries.clear();
+                List<Node> referencedNodes = saveAndRestoreService.getCompositeSnapshotNodes(compositeSnapshotNode.getUniqueId());
                 snapshotEntries.addAll(referencedNodes);
+                // Add change listener added only after the saved entries have been loaded.
                 Collections.sort(snapshotEntries);
-                snapshotTable.setItems(snapshotEntries);
+                Platform.runLater(() -> {
+                    snapshotTable.setItems(snapshotEntries);
+                    compositeSnapshotNameProperty.set(compositeSnapshotNode.getName());
+                    compositeSnapshotDescriptionProperty.set(compositeSnapshotNode.getDescription());
+                    createdDateProperty.set(compositeSnapshotNode.getCreated() != null ?
+                            TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(compositeSnapshotNode.getCreated().getTime())) : null);
+                    lastUpdatedProperty.set(compositeSnapshotNode.getLastModified() != null ?
+                            TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(compositeSnapshotNode.getLastModified().getTime())) : null);
+                    createdByProperty.set(compositeSnapshotNode.getUserName());
+                    addListeners();
+                });
             } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError(root, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
-            }
-            finally {
+            } finally {
                 disabledUi.set(false);
             }
         });
@@ -414,12 +438,10 @@ public class CompositeSnapshotController {
      */
     public void newCompositeSnapshot(Node parentNode) {
         parentFolder = parentNode;
-        compositeSnapshotNode.setValue(Node.builder().nodeType(NodeType.COMPOSITE_SNAPSHOT).build());
-        snapshotEntries.clear();
-        snapshotEntries.addAll(new ArrayList<>());
-        snapshotTable.setItems(snapshotEntries);
-        Platform.runLater(() -> compositeSnapshotNameField.requestFocus());
+        compositeSnapshotNode = Node.builder().nodeType(NodeType.COMPOSITE_SNAPSHOT).build();
         dirty.set(false);
+        addListeners();
+        Platform.runLater(() -> compositeSnapshotNameField.requestFocus());
     }
 
     /**
@@ -430,8 +452,8 @@ public class CompositeSnapshotController {
      * @return <code>true</code> if the source {@link Node}s may be added.
      */
     private boolean mayDrop(List<Node> sourceNodes) {
-        if (sourceNodes.stream().filter(n -> !n.getNodeType().equals(NodeType.SNAPSHOT) &&
-                !n.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)).findFirst().isPresent()) {
+        if (sourceNodes.stream().anyMatch(n -> !n.getNodeType().equals(NodeType.SNAPSHOT) &&
+                !n.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT))) {
             return false;
         }
         return true;
@@ -460,9 +482,28 @@ public class CompositeSnapshotController {
         });
     }
 
-    public void setSnapshotNameProperty(String name){
-        compositeSnapshotNameProperty.set(name);
-        // Externally saved so not really dirty.
-        dirty.set(false);
+    private class EntriesListChangeListener implements ListChangeListener<Node> {
+        @Override
+        public void onChanged(Change<? extends Node> change) {
+            while (change.next()) {
+                if (change.wasAdded() || change.wasRemoved()) {
+                    FXCollections.sort(snapshotEntries);
+                    dirty.set(true);
+                }
+            }
+        }
     }
+
+    private void addListeners() {
+        snapshotEntries.addListener(entriesListChangeListener);
+        compositeSnapshotNameProperty.addListener(nodeNameChangeListener);
+        compositeSnapshotDescriptionProperty.addListener(descriptionChangeListener);
+    }
+
+    private void removeListeners() {
+        snapshotEntries.removeListener(entriesListChangeListener);
+        compositeSnapshotNameProperty.removeListener(nodeNameChangeListener);
+        compositeSnapshotDescriptionProperty.removeListener(descriptionChangeListener);
+    }
+
 }

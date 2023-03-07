@@ -155,9 +155,13 @@ public interface SaveAndRestoreClient {
 
     Snapshot saveSnapshot(String parentNodeId, Snapshot snapshot);
 
+    /**
+     * Creates a new {@link CompositeSnapshot}.
+     * @param parentNodeId The parent {@link Node} for the new {@link CompositeSnapshot}
+     * @param compositeSnapshot The data object
+     * @return A {@link CompositeSnapshot} as persisted by the service.
+     */
     CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot);
-
-    CompositeSnapshotData getCompositeSnapshotData(String uniqueId);
 
     /**
      * Utility for the purpose of checking whether a set of snapshots contain duplicate PV names.
