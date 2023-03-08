@@ -12,9 +12,11 @@ import java.util.List;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
+import org.phoebus.applications.alarm.ui.Messages;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Platform;
@@ -198,8 +200,15 @@ class AddComponentAction extends MenuItem
                                                      .replace('\n', ' ')
                                                      .replaceAll(" +", " ")
                                                      .trim();
-                    if (! haveExistingItem(node, parent, comp_name))
-                        model.addComponent(parent.getPathName(), comp_name);
+                    if (! haveExistingItem(node, parent, comp_name)) {
+                        try {
+                            model.addComponent(parent.getPathName(), comp_name);
+                        } catch (Exception e) {
+                            Platform.runLater(() -> ExceptionDetailsErrorDialog.openError(Messages.error,
+                                    Messages.addComponentFailed,
+                                    e));
+                        }
+                    }
                 }
             });
         });

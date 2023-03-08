@@ -116,7 +116,11 @@ public class AlarmContext
                     }
                     if (node != null)
                     {
-                        alarmModels.get(alarmPV.getInfo().getRoot()).acknowledge(node, ack);
+                        try {
+                            alarmModels.get(alarmPV.getInfo().getRoot()).acknowledge(node, ack);
+                        } catch (Exception e) {
+                            logger.log(Level.WARNING, "Failed to acknowledge alarm", e);
+                        }
                     }
                 }
             }

@@ -10,7 +10,9 @@ package org.phoebus.applications.alarm.ui.tree;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.ui.Messages;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.control.MenuItem;
@@ -61,13 +63,19 @@ public class MoveTreeItemAction extends MenuItem
 			// On a background thread, send the item configuration updates for the item to be moved and all its children.
             JobManager.schedule(getText(), monitor ->
             {
-                // Move the item.
-                model.sendItemConfigurationUpdate(new_path, item);
-                // Move the item's children.
-                AlarmTreeHelper.rebuildTree(model, item, new_path);
-                // Delete the old item. This deletes the old item's children as well.
-                model.removeComponent(item);
-            });
+				try {
+					// Move the item.
+					model.sendItemConfigurationUpdate(new_path, item);
+					// Move the item's children.
+					AlarmTreeHelper.rebuildTree(model, item, new_path);
+					// Delete the old item. This deletes the old item's children as well.
+					model.removeComponent(item);
+				} catch (Exception e) {
+					ExceptionDetailsErrorDialog.openError(Messages.error,
+							Messages.moveItemFailed,
+							e);
+				}
+			});
 
     	});
 	}
