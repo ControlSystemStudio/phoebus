@@ -41,19 +41,11 @@ import org.phoebus.util.time.TimestampFormats;
 @SuppressWarnings("nls")
 public class ModelWriter implements Closeable
 {
-    /** Internal flag for unit tests.
-     *  Default values are usually not written,
-     *  but for tests they can be included in the XML output.
-     *
-     *  <b>Not API.</b>
-     */
+    /** Add comments to the XML output? */
     public static boolean with_comments = Preferences.with_comments;
 
-    /** Internal flag for unit tests.
-     *  Default values are usually not written,
+    /** Default values are usually not written,
      *  but for tests they can be included in the XML output.
-     *
-     *  <b>Not API.</b>
      */
     public static boolean skip_defaults = Preferences.skip_defaults;
 
