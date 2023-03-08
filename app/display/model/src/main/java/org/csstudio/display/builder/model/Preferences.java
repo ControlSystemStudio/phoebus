@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -24,13 +24,15 @@ import org.phoebus.framework.preferences.Preference;
 public class Preferences
 {
     /** Preference setting */
-	@Preference public static String[] class_files, color_files, font_files;
+    @Preference public static String[] class_files, color_files, font_files;
     /** Preference setting */
-	@Preference public static int read_timeout, cache_timeout, max_reparse_iterations;
+    @Preference public static int read_timeout, cache_timeout, max_reparse_iterations;
     /** Preference setting */
-	@Preference public static double legacy_font_calibration;
+    @Preference public static double legacy_font_calibration;
     /** Preference setting */
-	@Preference public static boolean skip_defaults;
+    @Preference public static boolean with_comments;
+    /** Preference setting */
+    @Preference public static boolean skip_defaults;
     /** Preference setting */
     @Preference(name="macros") private static String macro_spec;
     private static Macros macros;

@@ -29,5 +29,15 @@
       <formatter type="plain" usefile="false"/>
     </junit>
   </target>
-	
+
+  <target name="all_widgets" depends="app-display-model">
+    <java classname="org.csstudio.display.builder.model.AllWidgetsAllProperties">
+      <classpath>
+        <path refid="app-classpath"/>
+        <pathelement path="${build}/app-display-model-${version}.jar"/>
+      </classpath>
+      <arg path="/tmp/all_widgets.bob"/>
+    </java>
+  </target>
+
 </project>
