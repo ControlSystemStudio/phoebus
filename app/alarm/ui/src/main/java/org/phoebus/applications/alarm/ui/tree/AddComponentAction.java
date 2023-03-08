@@ -204,9 +204,9 @@ class AddComponentAction extends MenuItem
                         try {
                             model.addComponent(parent.getPathName(), comp_name);
                         } catch (Exception e) {
-                            Platform.runLater(() -> ExceptionDetailsErrorDialog.openError(Messages.error,
+                            ExceptionDetailsErrorDialog.openError(Messages.error,
                                     Messages.addComponentFailed,
-                                    e));
+                                    e);
                         }
                     }
                 }

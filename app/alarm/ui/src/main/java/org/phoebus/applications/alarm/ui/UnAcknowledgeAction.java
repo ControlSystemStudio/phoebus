@@ -33,9 +33,9 @@ class UnAcknowledgeAction extends MenuItem
                     try {
                         model.acknowledge(item, false);
                     } catch (Exception e) {
-                        Platform.runLater(() -> ExceptionDetailsErrorDialog.openError(Messages.error,
+                        ExceptionDetailsErrorDialog.openError(Messages.error,
                                 Messages.unacknowledgeFailed,
-                                e));
+                                e);
                         // Breaking under the assumption that if one unacknowledge fails, all will fail.
                         break;
                     }

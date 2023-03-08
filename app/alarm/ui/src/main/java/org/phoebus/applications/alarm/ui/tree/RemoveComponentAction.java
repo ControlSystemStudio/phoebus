@@ -75,9 +75,9 @@ class RemoveComponentAction extends MenuItem
                     try {
                         model.removeComponent(item);
                     } catch (Exception e) {
-                        Platform.runLater(() -> ExceptionDetailsErrorDialog.openError(Messages.error,
+                        ExceptionDetailsErrorDialog.openError(Messages.error,
                                 Messages.removeComponentFailed,
-                                e));
+                                e);
                         // Breaking under the assumption that if one fails, all will fail
                         break;
                     }
