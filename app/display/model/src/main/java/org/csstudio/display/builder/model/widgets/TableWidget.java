@@ -568,30 +568,20 @@ public class TableWidget extends VisibleWidget
             }
             return deep_copy;
         }
-        /*else if (the_value instanceof VStringArray) {
+        else if (the_value instanceof org.epics.vtype.VStringArray) {
             // Create deep copy as above, but each 'row' is actually just a scalar,
             // coerced to a one-element list
-            //List<String> list = ((VStringArray) value).getData()
-            final List<String> _list = ((VStringArray) the_value).getData();
+            final List<String> _list = (((VStringArray) the_value).getData());
             final List<List<String>> deep_copy = new ArrayList<>(_list.size());
             for (String row : _list){
                 final List<String> row_copy = List.of(row);
                 deep_copy.add(row_copy);
             }
             return deep_copy;
-        }*/
-        else if (the_value instanceof VTable ||the_value instanceof Array)
+        }
+        else if (the_value instanceof VTable)
         {
-            VTable _tbl;
-            if(the_value instanceof VTable) {
-                _tbl  = (VTable) the_value;
-            }
-            else{ //the_value instanceof VStringArray
-                _tbl = VTable.of(Arrays.asList((((Array)the_value).getData()).getClass().getComponentType()),
-                        Arrays.asList("values"),
-                        Arrays.asList((((Array) the_value).getData())));
-            }
-            final VTable table = _tbl;
+            final VTable table = (VTable) the_value;
             final int rows = table.getRowCount();
             final int cols = table.getColumnCount();
             // Extract 2D string matrix for data
