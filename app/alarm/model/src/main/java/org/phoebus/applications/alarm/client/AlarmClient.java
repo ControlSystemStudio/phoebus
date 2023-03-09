@@ -470,7 +470,7 @@ public class AlarmClient
      *  @param path_name to parent Root or parent component under which to add the component
      *  @param new_name Name of the new component
      */
-    public void addComponent(final String path_name, final String new_name)
+    public void addComponent(final String path_name, final String new_name) throws Exception
     {
         try
         {
@@ -556,7 +556,7 @@ public class AlarmClient
     /** @param item Item for which to acknowledge alarm
      *  @param acknowledge <code>true</code> to acknowledge, else un-acknowledge
      */
-    public void acknowledge(final AlarmTreeItem<?> item, final boolean acknowledge)
+    public void acknowledge(final AlarmTreeItem<?> item, final boolean acknowledge) throws Exception
     {
         try
         {
@@ -568,6 +568,7 @@ public class AlarmClient
         catch (final Exception ex)
         {
             logger.log(Level.WARNING, "Cannot acknowledge component " + item, ex);
+            throw ex;
         }
     }
 

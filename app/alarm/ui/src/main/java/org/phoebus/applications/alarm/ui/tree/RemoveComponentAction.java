@@ -9,10 +9,13 @@ package org.phoebus.applications.alarm.ui.tree;
 
 import java.util.List;
 
+import javafx.application.Platform;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
+import org.phoebus.applications.alarm.ui.Messages;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.Node;
@@ -68,8 +71,18 @@ class RemoveComponentAction extends MenuItem
 
             JobManager.schedule(getText(), monitor ->
             {
-                for (AlarmTreeItem<?> item : items)
-                    model.removeComponent(item);
+                for (AlarmTreeItem<?> item : items){
+                    try {
+                        model.removeComponent(item);
+                    } catch (Exception e) {
+                        ExceptionDetailsErrorDialog.openError(Messages.error,
+                                Messages.removeComponentFailed,
+                                e);
+                        // Breaking under the assumption that if one fails, all will fail
+                        break;
+                    }
+                }
+
             });
         });
     }
