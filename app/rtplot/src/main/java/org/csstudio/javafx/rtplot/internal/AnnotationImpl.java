@@ -94,6 +94,9 @@ public class AnnotationImpl<XTYPE extends Comparable<XTYPE>> extends Annotation<
         {
             this.position = position;
             this.value = value;
+            return true;
+        }
+        if(info != null){
             this.info = info;
             return true;
         }
