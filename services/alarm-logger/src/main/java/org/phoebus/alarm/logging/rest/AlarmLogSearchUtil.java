@@ -41,11 +41,11 @@ import static org.phoebus.alarm.logging.rest.SearchController.logger;
  */
 public class AlarmLogSearchUtil {
 
-    private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").withZone(ZoneId.of("UTC"));
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").withZone(ZoneId.of("UTC"));
 
     private static final PreferencesReader prefs = new PreferencesReader(AlarmLoggingService.class, "/application.properties");
 
-    private static ObjectMapper mapper;
+    private static final ObjectMapper mapper;
 
     static {
         mapper = new ObjectMapper();
@@ -65,12 +65,6 @@ public class AlarmLogSearchUtil {
 
     private static final String ROOT = "root";
 
-    private static final String CONFIG_INDEX_FORMAT = "_alarms_config";
-    private static final String STATE_INDEX_FORMAT = "_alarms_state";
-
-    private IndexNameHelper stateIndexNameHelper;
-    private IndexNameHelper configIndexNameHelper;
-
     /**
      * Find all the log (state and config) messages which match the search criteria
      *
@@ -89,13 +83,14 @@ public class AlarmLogSearchUtil {
         // The maximum search result size
         int maxSize = prefs.getInt("es_max_size");
         final String indexDateSpanUnits = prefs.get("date_span_units");
-        final boolean useDatedIndexNames = prefs.getBoolean("use_dated_index_names");
 
         boolean configSet = false;
         boolean temporalSearch = false;
 
         BoolQuery.Builder boolQuery = new BoolQuery.Builder();
         List<String> indexList = new ArrayList<>();
+
+        String root = "";
 
         for (Map.Entry<String, String> parameter : searchParameters.entrySet()) {
             switch (parameter.getKey().strip().toLowerCase()) {
@@ -140,17 +135,19 @@ public class AlarmLogSearchUtil {
                     break;
                 case ROOT:
                     if (!parameter.getValue().equalsIgnoreCase("*")) {
+                        root = parameter.getValue().strip();
+                        String _root = root;
                         boolQuery.must(
                                 Query.of(b -> b.bool(s -> s.should(
                                         Query.of(q -> q
                                                 .wildcard(WildcardQuery.of(w -> w
-                                                                .field("config").value("state:/" + parameter.getValue().strip() + "*")
+                                                                .field("config").value("state:/" + _root + "*")
                                                         )
                                                 )
                                         ),
                                         Query.of(q -> q
                                                 .wildcard(WildcardQuery.of(w -> w
-                                                                .field("config").value("config:/" + parameter.getValue().strip() + "*")
+                                                                .field("config").value("config:/" + _root + "*")
                                                         )
                                                 )
                                         )
@@ -221,7 +218,7 @@ public class AlarmLogSearchUtil {
         // Add the temporal queries
         if (temporalSearch) {
             // TODO check that the start is before the end
-            if(fromInstant.isBefore(toInstant)) {
+            if (fromInstant.isBefore(toInstant)) {
             } else {
                 //
                 logger.log(Level.SEVERE,
@@ -242,7 +239,9 @@ public class AlarmLogSearchUtil {
             );
 
             try {
-                indexList = findIndexNames("*", fromInstant, toInstant, indexDateSpanUnits);
+                // "root" is empty string unless user specifies one, in which case we can narrow down to
+                // only matching alarm config indices.
+                indexList = findIndexNames(root.toLowerCase() + "*", fromInstant, toInstant, indexDateSpanUnits);
             } catch (Exception e) {
                 logger.log(Level.SEVERE,
                         "Failed to search for alarm logs:" + e.getMessage(), e);
@@ -287,18 +286,20 @@ public class AlarmLogSearchUtil {
     /**
      * Return the latest alarm config message associated with 'config'
      *
-     * @param client        elastic client
-     * @param configPattern the wildcard pattern which matches the 'config'
+     * @param client           elastic client
+     * @param allRequestParams the wildcard pattern which matches the 'config'
      * @return last alarm config message for the given 'config'
      */
-    public static List<AlarmLogMessage> searchConfig(ElasticsearchClient client, String configPattern) {
-        String searchPattern = "*".concat(configPattern).concat("*");
+    public static List<AlarmLogMessage> searchConfig(ElasticsearchClient client, Map<String, String> allRequestParams) {
+        String configString = allRequestParams.get("config");
+        // Determine which alarm config to specify as Elasticsearch index
+        String alarmConfig = configString.split("/")[1];
+
+        String searchPattern = "*".concat(configString).concat("*");
         int size = 1;
 
         SearchRequest searchRequest = SearchRequest.of(r -> r
-                .query(Query.of(q -> q.wildcard(WildcardQuery.of(w -> w.field("config").value(searchPattern)))
-                        )
-                )
+                .query(Query.of(q -> q.wildcard(WildcardQuery.of(w -> w.field("config").value(searchPattern)))))
                 .size(size)
                 .sort(SortOptions.of(o -> o
                                 .field(FieldSort.of(f -> f
@@ -308,6 +309,7 @@ public class AlarmLogSearchUtil {
                                 )
                         )
                 )
+                .index(alarmConfig + "_alarms_config_*")
         );
 
         try {
@@ -329,11 +331,12 @@ public class AlarmLogSearchUtil {
 
     /**
      * return a list of index names between the from and to instant
-     * @param fromInstant
-     * @param toInstant
-     * @param indexDateSpanUnits
-     * @throws Exception
+     *
+     * @param fromInstant From time
+     * @param toInstant To time
+     * @param indexDateSpanUnits Date span unit (Y, M, D...)
      * @return List of index names
+     * @throws Exception If index names cannot be determined
      */
     public static List<String> findIndexNames(String baseIndexName, Instant fromInstant, Instant toInstant, String indexDateSpanUnits) throws Exception {
 
@@ -349,7 +352,7 @@ public class AlarmLogSearchUtil {
                 indexList.add(fromIndex);
             } else {
                 int indexDateSpanDayValue = -1;
-                switch (indexDateSpanUnits){
+                switch (indexDateSpanUnits) {
                     case "Y":
                         indexDateSpanDayValue = 365;
                         break;

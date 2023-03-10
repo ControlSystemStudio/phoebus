@@ -28,6 +28,7 @@ import java.util.logging.Logger;
  * @author Kunal Shroff
  */
 @RestController
+@SuppressWarnings("unused")
 public class SearchController {
 
     static final Logger logger = Logger.getLogger(SearchController.class.getName());
@@ -81,9 +82,9 @@ public class SearchController {
         return result;
     }
 
-    @RequestMapping(value = "/search/alarm/config/{config}", method = RequestMethod.GET)
-    public List<AlarmLogMessage> searchConfig(@PathVariable String config) {
-        List<AlarmLogMessage> result = AlarmLogSearchUtil.searchConfig(ElasticClientHelper.getInstance().getClient(), config);
+    @RequestMapping(value = "/search/alarm/config", method = RequestMethod.GET)
+    public List<AlarmLogMessage> searchConfig(@RequestParam Map<String, String> allRequestParams) {
+        List<AlarmLogMessage> result = AlarmLogSearchUtil.searchConfig(ElasticClientHelper.getInstance().getClient(), allRequestParams);
         return result;
     }
 
