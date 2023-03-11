@@ -28,7 +28,7 @@ echo off
 FOR /F "tokens=* USEBACKQ" %%F IN (`dir /B product*.jar`) DO (SET JAR=%%F)
 echo on
 
-@REM Don't start CA repeater (#494)
-@REM To get one instance, use server mode
-@java -DCA_DISABLE_REPEATER=true -Dfile.encoding=UTF-8 -jar %JAR% -server 4918 %*
+@REM CA_DISABLE_REPEATER=true: Don't start CA repeater (#494)
+@REM To get one instance, use server mode by adding `-server 4918`
+@java -DCA_DISABLE_REPEATER=true -Dfile.encoding=UTF-8 -jar %JAR%  %*
 
