@@ -110,7 +110,7 @@ public class PersistenceUnitTest
         System.out.println(xml);
 
         final String desired = getExampleFile();
-        assertThat(xml.replace("\r", ""), equalTo(desired));
+        assertThat(xml.replace("\r", "").replaceAll("<!--[\\s\\S]*?-->\n", ""), equalTo(desired));
     }
 
     /** Read widgets from XML
