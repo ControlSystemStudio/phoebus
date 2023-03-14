@@ -1,23 +1,23 @@
 /**
  * Copyright (C) 2020 Facility for Rare Isotope Beams
- *
+ * <p>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *
+ * <p>
  * Contact Information: Facility for Rare Isotope Beam,
- *                      Michigan State University,
- *                      East Lansing, MI 48824-1321
- *                      http://frib.msu.edu
+ * Michigan State University,
+ * East Lansing, MI 48824-1321
+ * http://frib.msu.edu
  */
 package org.phoebus.applications.saveandrestore.ui.configuration;
 
@@ -33,10 +33,11 @@ import javafx.stage.Stage;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.BrowserTreeCell;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 
 import java.net.URL;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -88,20 +89,9 @@ public class ConfigurationSelectionController implements Initializable {
             if (selectedTreeItem == null) {
                 return;
             }
-
             Node selectedNode = selectedTreeItem.getValue();
-            if (selectedNode.getUniqueId().equals(saveAndRestoreService.getRootNode().getUniqueId())
-                    || selectedNode.getNodeType().equals(NodeType.FOLDER)) {
-                chooseButton.setDisable(true);
-            } else {
-                chooseButton.setDisable(false);
-            }
-
-            if (selectedNode.getNodeType().equals(NodeType.FOLDER)) {
-                createFolderButton.setDisable(false);
-            } else {
-                createFolderButton.setDisable(true);
-            }
+            chooseButton.setDisable(selectedNode.getUniqueId().equals(saveAndRestoreService.getRootNode().getUniqueId()));
+            createFolderButton.setDisable(!selectedNode.getNodeType().equals(NodeType.FOLDER));
         });
 
         treeView.getSelectionModel().selectFirst();
@@ -125,35 +115,23 @@ public class ConfigurationSelectionController implements Initializable {
     private void RecursiveAddNode(TreeItem<Node> parentItem) {
         List<Node> childNodes = saveAndRestoreService.getChildNodes(parentItem.getValue());
         List<TreeItem<Node>> childItems = childNodes.stream()
-                .filter(node -> isDisabledConfigurationSelection ? !(node.getNodeType().equals(NodeType.CONFIGURATION) || node.getNodeType().equals(NodeType.SNAPSHOT)) : !node.getNodeType().equals(NodeType.SNAPSHOT) )
+                .filter(node -> isDisabledConfigurationSelection ? !(node.getNodeType().equals(NodeType.CONFIGURATION) || node.getNodeType().equals(NodeType.SNAPSHOT)) : !node.getNodeType().equals(NodeType.SNAPSHOT))
                 .map(node -> {
                     TreeItem<Node> treeItem = createNode(node);
-                    if (node.getNodeType().equals(NodeType.FOLDER)) {
-                        treeItem.getChildren().add(createCreateConfiguration());
-                    }
                     RecursiveAddNode(treeItem);
                     return treeItem;
                 }).collect(Collectors.toList());
-        parentItem.getChildren().addAll(childItems);
+        List<TreeItem<Node>> sorted = childItems.stream().sorted(Comparator.comparing(TreeItem::getValue)).collect(Collectors.toList());
+        parentItem.getChildren().addAll(sorted);
     }
 
-    private TreeItem<Node> createNode(final Node node){
-        return new TreeItem<>(node){
+    private TreeItem<Node> createNode(final Node node) {
+        return new TreeItem<>(node) {
             @Override
-            public boolean isLeaf(){
+            public boolean isLeaf() {
                 return getChildren().isEmpty();
             }
         };
-    }
-
-    private TreeItem<Node> createCreateConfiguration() {
-        Node newConfiguration = Node.builder()
-                .nodeType(NodeType.CONFIGURATION)
-                .name("Create a new configuration")
-                .uniqueId("0")
-                .build();
-
-        return createNode(newConfiguration);
     }
 
     private void createNewFolder(TreeItem<Node> parentTreeItem) {
@@ -185,7 +163,6 @@ public class ConfigurationSelectionController implements Initializable {
                 Node newTreeNode = saveAndRestoreService
                         .createNode(parentTreeItem.getValue().getUniqueId(), newFolderNode);
                 TreeItem<Node> treeItem = createNode(newTreeNode);
-                treeItem.getChildren().add(createCreateConfiguration());
                 parentTreeItem.getChildren().add(treeItem);
                 parentTreeItem.setExpanded(true);
             } catch (Exception e) {

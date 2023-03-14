@@ -34,6 +34,7 @@ import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationFromSelectionController;
 import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.ContextMenuEntry;
@@ -42,6 +43,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -91,6 +93,8 @@ public class ContextMenuCreateSaveset implements ContextMenuEntry
 
         try {
             FXMLLoader loader = new FXMLLoader();
+            ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
+            loader.setResources(resourceBundle);
             loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/configuration/ConfigurationFromSelection.fxml"));
             Parent root = loader.load();
             Stage dialog = new Stage();

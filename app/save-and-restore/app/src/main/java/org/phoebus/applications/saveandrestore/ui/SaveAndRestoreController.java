@@ -305,7 +305,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 // Check if there is a save tree structure. Also check that the first node id (=tree root)
                 // has the same unique id as the actual root node retrieved from the remote service. This check
                 // is needed to handle the case when the client connects to a different save-and-restore service.
-                if (savedTreeViewStructure != null && savedTreeViewStructure.get(0).equals(rootNode.getUniqueId())) {
+                if (savedTreeViewStructure != null && !savedTreeViewStructure.isEmpty() && savedTreeViewStructure.get(0).equals(rootNode.getUniqueId())) {
                     HashMap<String, List<TreeItem<Node>>> childNodesMap = new HashMap<>();
                     savedTreeViewStructure.forEach(s -> {
                         List<Node> childNodes = saveAndRestoreService.getChildNodes(Node.builder().uniqueId(s).build());

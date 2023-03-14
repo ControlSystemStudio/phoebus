@@ -152,7 +152,8 @@ public class BrowserTreeCell extends TreeCell<Node> {
         }
         // Use custom layout as this makes it easier to set opacity
         HBox hBox = new HBox();
-        if (!saveAndRestoreController.matchesFilter(node)) {
+        // saveAndRestoreController is null if configuration management is accessed from context menu
+        if (saveAndRestoreController != null && !saveAndRestoreController.matchesFilter(node)) {
             hBox.setOpacity(0.4);
         }
         StringBuffer stringBuffer = new StringBuffer();
@@ -160,7 +161,9 @@ public class BrowserTreeCell extends TreeCell<Node> {
         if (comment != null && !comment.isEmpty()) {
             stringBuffer.append(comment).append(System.lineSeparator());
         }
-        stringBuffer.append(TimestampFormats.SECONDS_FORMAT.format(node.getCreated().toInstant())).append(" (").append(node.getUserName()).append(")");
+        if(node.getCreated() != null){ // Happens if configuration management is accessed from context menu
+            stringBuffer.append(TimestampFormats.SECONDS_FORMAT.format(node.getCreated().toInstant())).append(" (").append(node.getUserName()).append(")");
+        }
         // Tooltip with at least date and user id is set on all tree items
         setTooltip(new Tooltip(stringBuffer.toString()));
         switch (node.getNodeType()) {
