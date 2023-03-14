@@ -9,7 +9,7 @@ https://control-system-studio.readthedocs.io
 
 ## Requirements
  - [JDK11 or later, suggested is OpenJDK](http://jdk.java.net/12).
- - [maven 2.x](https://maven.apache.org/) or [ant](http://ant.apache.org/)
+ - [maven 3.x](https://maven.apache.org/) or [ant](http://ant.apache.org/)
 
 
 ## Target Platform
