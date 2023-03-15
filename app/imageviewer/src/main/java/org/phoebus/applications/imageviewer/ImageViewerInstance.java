@@ -18,6 +18,7 @@
 
 package org.phoebus.applications.imageviewer;
 
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.spi.AppDescriptor;
@@ -61,9 +62,16 @@ public class ImageViewerInstance implements AppInstance {
             try {
                 fxmlLoader.load();
                 ImageViewerController imageViewerController = fxmlLoader.getController();
-                imageViewerController.setImage(uri.toURL());
                 dockItem = new DockItemWithInput(this, imageViewerController.getRoot(), uri, null, null);
                 DockPane.getActiveDockPane().addTab(dockItem);
+                Platform.runLater(() -> {
+                    try {
+                        imageViewerController.setImage(uri.toURL());
+                    } catch (MalformedURLException e) {
+                        Logger.getLogger(ImageViewerInstance.class.getName())
+                                .log(Level.WARNING, "Unable to set image", e);
+                    }
+                });
             } catch (Exception e) {
                 Logger.getLogger(ImageViewerInstance.class.getName())
                     .log(Level.WARNING, "Unable to load fxml", e);

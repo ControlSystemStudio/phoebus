@@ -19,13 +19,20 @@
 package org.phoebus.applications.imageviewer;
 
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.svg.SVGTranscoder;
 
@@ -40,7 +47,7 @@ import java.util.logging.Logger;
  * Controller for the image viewer application UI. It intentionally does not
  * use the {@link org.phoebus.ui.javafx.ImageCache} as the intention is to render
  * images at original - potentially very high - resolution.
- *
+ * <p>
  * A button is available to scale the image to the current view size.
  */
 public class ImageViewerController {
@@ -55,12 +62,25 @@ public class ImageViewerController {
     private ImageView imageView;
 
     @FXML
+    private Pane watermarkPane;
+
+    @FXML
     private Button scaleToFitButton;
+
+    @FXML
+    private Label watermarkText;
+
+    @FXML
+    private BorderPane imageParent;
 
     private Image image;
 
     private SimpleBooleanProperty isSVG = new SimpleBooleanProperty(false);
     private SimpleBooleanProperty fitToWindow = new SimpleBooleanProperty(false);
+
+    private SimpleBooleanProperty showWatermarkProperty = new SimpleBooleanProperty(true);
+
+    private SimpleObjectProperty fontProperty = new SimpleObjectProperty();
 
     @FXML
     public void initialize() {
@@ -84,6 +104,14 @@ public class ImageViewerController {
                 scale();
             }
         });
+
+        fontProperty.set(new Font(20));
+
+        watermarkPane.visibleProperty().bind(showWatermarkProperty);
+        watermarkText.fontProperty().bind(fontProperty);
+
+        watermarkText.getStylesheets().addAll(getClass().getResource("/style.css").toExternalForm());
+        watermarkText.getStyleClass().add("outline");
     }
 
     public Node getRoot() {
@@ -109,6 +137,9 @@ public class ImageViewerController {
                 image = SwingFXUtils.toFXImage(bufferedImage, null);
             }
             imageView.setImage(image);
+            imageParent.layout();
+            scale();
+
         } catch (Exception e) {
             ExceptionDetailsErrorDialog.openError(root,
                     Messages.ErrorDialogTitle,
@@ -132,5 +163,16 @@ public class ImageViewerController {
             imageView.setFitWidth(image.getWidth());
             imageView.setFitHeight(image.getHeight());
         }
+        fontProperty.set(getFont());
+    }
+
+    public void toggleWatermark() {
+        showWatermarkProperty.set(!showWatermarkProperty.getValue());
+    }
+
+    private Font getFont() {
+        double height = imageView.getFitHeight();
+        double width = imageView.getFitWidth();
+        return Font.font("Liberation Sans", FontWeight.BOLD, FontPosture.REGULAR, Math.min(width, height) / 10);
     }
 }
