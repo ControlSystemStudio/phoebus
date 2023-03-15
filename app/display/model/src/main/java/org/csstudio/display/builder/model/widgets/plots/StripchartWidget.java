@@ -360,6 +360,12 @@ public class StripchartWidget extends VisibleWidget
 
                 if (! handleLegacyTraces(model_reader, strip, xml, pv_macro))
                     return false;
+		    
+		// If legend was turned off, clear the trace names since they would
+                // otherwise show on the Y axes
+                if (! strip.propLegend().getValue())
+                    for (TraceWidgetProperty trace : strip.propTraces().getValue())
+                        trace.traceName().setValue("");
                 
             }
             // Stripchart V2.1.0
