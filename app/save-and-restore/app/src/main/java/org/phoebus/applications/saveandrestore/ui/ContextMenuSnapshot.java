@@ -83,6 +83,7 @@ public class ContextMenuSnapshot extends ContextMenuBase {
         //
         setOnShowing(event -> {
             saveAndRestoreController.configureGoldenItem(tagGoldenMenuItem);
+            runChecks();
         });
 
         getItems().addAll(deleteNodesMenuItem,

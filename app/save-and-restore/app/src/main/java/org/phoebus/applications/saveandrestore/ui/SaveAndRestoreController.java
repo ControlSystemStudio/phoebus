@@ -413,14 +413,17 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * @param node The snapshot used in the comparison.
      */
     protected void compareSnapshot(Node node) {
-        try {
-            SnapshotTab currentTab = (SnapshotTab) tabPane.getSelectionModel().getSelectedItem();
-            if (currentTab == null) {
-                return;
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if(tab == null){
+            return;
+        }
+        if (tab instanceof SnapshotTab) {
+            try {
+                SnapshotTab currentTab = (SnapshotTab) tab;
+                currentTab.addSnapshot(node);
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, "Failed to compare snapshot", e);
             }
-            currentTab.addSnapshot(node);
-        } catch (Exception e) {
-            LOG.log(Level.WARNING, "Failed to compare snapshot", e);
         }
     }
 
