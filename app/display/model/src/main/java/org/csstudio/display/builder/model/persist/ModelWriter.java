@@ -83,8 +83,7 @@ public class ModelWriter implements Closeable
         writer = new IndentingXMLStreamWriter(base);
 
         writer.writeStartDocument(XMLUtil.ENCODING, "1.0");
-        if (with_comments)
-            writer.writeComment("Created " + TimestampFormats.DATETIME_FORMAT.format(Instant.now()));
+        writer.writeComment("Saved on " + TimestampFormats.SECONDS_FORMAT.format(Instant.now()) + " by " + System.getProperty("user.name"));
         writer.writeStartElement(XMLTags.DISPLAY);
         writer.writeAttribute(XMLTags.VERSION, DisplayModel.VERSION.toString());
     }
