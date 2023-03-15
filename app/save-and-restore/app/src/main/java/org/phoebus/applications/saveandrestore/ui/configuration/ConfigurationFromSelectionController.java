@@ -18,6 +18,8 @@
  */
 package org.phoebus.applications.saveandrestore.ui.configuration;
 
+import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -55,14 +57,12 @@ import org.phoebus.ui.javafx.ImageCache;
 
 import java.net.URL;
 import java.text.NumberFormat;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -84,8 +84,6 @@ public class ConfigurationFromSelectionController implements Initializable {
         private ConfigPv pv;
     }
 
-    private static final DateTimeFormatter configurationTimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
-
     private final List<String> nodeListInFolder = new ArrayList<>();
 
     @FXML
@@ -95,10 +93,10 @@ public class ConfigurationFromSelectionController implements Initializable {
     private Button browseButton;
 
     @FXML
-    private TextField configurationName;
+    private TextField configurationNameField;
 
     @FXML
-    private TextArea description;
+    private TextArea descriptionTextArea;
 
     @FXML
     private Label numSelectedLabel;
@@ -137,6 +135,14 @@ public class ConfigurationFromSelectionController implements Initializable {
 
     private SimpleObjectProperty<Node> createdConfiguration = null;
 
+    private final SimpleStringProperty configurationName = new SimpleStringProperty();
+
+    private final SimpleStringProperty description = new SimpleStringProperty();
+
+    private final SimpleStringProperty locationProperty = new SimpleStringProperty();
+
+    private final SimpleBooleanProperty updateOfExistingConfiguration = new SimpleBooleanProperty();
+
 
     public void setCreatedConfigurationProperty(SimpleObjectProperty<Node> createdConfiguration) {
         this.createdConfiguration = createdConfiguration;
@@ -147,43 +153,30 @@ public class ConfigurationFromSelectionController implements Initializable {
         targetNode.addListener((observableValue, node, newNode) -> {
             if (newNode != null) {
                 try {
+                    nodeListInFolder.clear();
+                    configurationNameField.promptTextProperty().set(null);
                     if (newNode.getNodeType() == NodeType.CONFIGURATION) {
-                        configurationName.setText(newNode.getName());
-                        description.setText(newNode.getDescription());
-
-                        configurationName.setEditable(false);
-                        description.setEditable(true);
-
+                        configurationName.set(newNode.getName());
+                        description.set(newNode.getDescription());
                         Node parentNode = saveAndRestoreService.getParentNode(newNode.getUniqueId());
-                        locationTextField.setText(DirectoryUtilities.CreateLocationString(parentNode, false));
-
-                        nodeListInFolder.clear();
+                        locationProperty.set(DirectoryUtilities.CreateLocationString(parentNode, false));
                         saveAndRestoreService.getChildNodes(parentNode).forEach(item -> nodeListInFolder.add(item.getName()));
-
-                        saveButton.setDisable(false);
-
+                        updateOfExistingConfiguration.set(true);
                     } else {
-                        configurationName.setText("");
-                        description.setText("");
-
-                        configurationName.setEditable(true);
-                        description.setEditable(true);
-
-                        locationTextField.setText(DirectoryUtilities.CreateLocationString(newNode, false));
-
-                        nodeListInFolder.clear();
+                        configurationName.set(null);
+                        description.set(null);
+                        locationProperty.set(DirectoryUtilities.CreateLocationString(newNode, false));
                         saveAndRestoreService.getChildNodes(newNode).forEach(item -> nodeListInFolder.add(item.getName()));
-
+                        updateOfExistingConfiguration.set(false);
                     }
-                    configurationName.getStyleClass().remove("input-error");
-                    configurationName.setTooltip(null);
+                    configurationNameField.getStyleClass().remove("input-error");
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LOGGER.log(Level.WARNING, "Failed to handle selection of target node", e);
                 }
             }
         });
 
-        targetNode.set(saveAndRestoreService.getChildNodes(saveAndRestoreService.getRootNode()).get(0));
+        locationTextField.textProperty().bind(locationProperty);
 
         browseButton.setOnAction(action -> {
             try {
@@ -208,25 +201,22 @@ public class ConfigurationFromSelectionController implements Initializable {
                     targetNode.set(selectedNode);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                LOGGER.log(Level.WARNING, "Unable to launch UI", e);
             }
         });
 
-        configurationName.setPromptText(configurationTimeFormat.format(Instant.now()));
-        configurationName.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
-        configurationName.textProperty().addListener((observableValue, oldName, newName) -> {
-            saveButton.setDisable(nodeListInFolder.contains(newName));
-
-            if (saveButton.isDisabled()) {
-                configurationName.getStyleClass().add("input-error");
-                configurationName.setTooltip(new Tooltip(Messages.toolTipConfigurationExists + (!isDisabledConfigurationSelectionInBrowsing ? System.lineSeparator() + Messages.toolTipConfigurationExistsOption : "")));
+        configurationNameField.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        configurationNameField.textProperty().addListener((observableValue, oldName, newName) -> {
+            if (nodeListInFolder.contains(newName)) {
+                configurationNameField.getStyleClass().add("input-error");
+                configurationNameField.setTooltip(new Tooltip(Messages.toolTipConfigurationExists + (!isDisabledConfigurationSelectionInBrowsing ? System.lineSeparator() + Messages.toolTipConfigurationExistsOption : "")));
             } else {
-                configurationName.getStyleClass().remove("input-error");
-                configurationName.setTooltip(null);
+                configurationNameField.getStyleClass().remove("input-error");
+                configurationNameField.setTooltip(null);
             }
         });
 
-        description.setPromptText("Configuration created at " + configurationTimeFormat.format(Instant.now()));
+        configurationNameField.textProperty().bindBidirectional(configurationName);
 
         selectColumn.setReorderable(false);
         selectColumn.setCellFactory(CheckBoxTableCell.forTableColumn(selectColumn));
@@ -275,6 +265,28 @@ public class ConfigurationFromSelectionController implements Initializable {
         });
 
         numSelected.addListener((observableValue, number, newValue) -> numSelectedLabel.setText(NumberFormat.getIntegerInstance().format(newValue)));
+
+        // Cannot save until location, config name and description are set.
+        saveButton.disableProperty().bind(Bindings.createBooleanBinding(() -> targetNode.get() == null ||
+                        configurationName.get() == null || configurationName.get().isEmpty() ||
+                        description.get() == null || description.get().isEmpty(),
+                targetNode, configurationName, description));
+
+        // Make config name field non-editable if location is not set, or if user is updating existing configuration
+        configurationNameField.editableProperty().bind(Bindings.createBooleanBinding(() -> targetNode.get() != null
+                        && updateOfExistingConfiguration.not().get(),
+                targetNode,
+                updateOfExistingConfiguration));
+
+
+        // Make description text area non-editable if location is not set, or if user is updating existing configuration
+        descriptionTextArea.editableProperty().bind(Bindings.createBooleanBinding(() -> targetNode.get() != null
+                        && updateOfExistingConfiguration.not().get(),
+                targetNode,
+                updateOfExistingConfiguration));
+        descriptionTextArea.textProperty().bindBidirectional(description);
+
+        Platform.runLater(() -> browseButton.requestFocus());
     }
 
     public void setSelection(List<ProcessVariable> pvList) {
@@ -298,8 +310,10 @@ public class ConfigurationFromSelectionController implements Initializable {
             this.targetNode.set(targetNode);
         }
 
-        this.configurationName.setText(name);
-        this.description.setText(description);
+        //this.configurationNameField.setText(name);
+        //this.descriptionTextArea.setText(description);
+        this.configurationName.set(name);
+        this.description.set(description);
 
         for (Map<String, String> entry : entries) {
             final TableRowEntry rowEntry = new TableRowEntry();
@@ -338,7 +352,7 @@ public class ConfigurationFromSelectionController implements Initializable {
         if (selectedNode.getNodeType() == NodeType.FOLDER) {
             Node newConfigurationBuild = Node.builder()
                     .nodeType(NodeType.CONFIGURATION)
-                    .name(configurationName.getText().trim().isEmpty() ? configurationName.getPromptText() : configurationName.getText().trim())
+                    .name(configurationNameField.getText().trim().isEmpty() ? configurationNameField.getPromptText() : configurationNameField.getText().trim())
                     .build();
 
             try {
@@ -347,7 +361,7 @@ public class ConfigurationFromSelectionController implements Initializable {
                 configurationData.setPvList(pvs);
 
                 Configuration configuration = new Configuration();
-                newConfigurationBuild.setDescription(description.getText().trim().isEmpty() ? description.getPromptText() : description.getText().trim());
+                newConfigurationBuild.setDescription(descriptionTextArea.getText().trim().isEmpty() ? descriptionTextArea.getPromptText() : descriptionTextArea.getText().trim());
                 configuration.setConfigurationNode(newConfigurationBuild);
                 configuration.setConfigurationData(configurationData);
 
