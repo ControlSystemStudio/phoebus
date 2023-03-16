@@ -33,7 +33,7 @@
         <ToolBar>
             <Button fx:id="scaleToFitButton" prefWidth="130.0" text="%ScaleToFit">
             </Button>
-            <CheckBox fx:id="showWatermark" onAction="#toggleWatermark" prefWidth="130.0" selected="true"
+            <CheckBox fx:id="showWatermarkCheckBox" onAction="#toggleWatermark" prefWidth="130.0" selected="true"
                       text="%watermarkButton">
                 <padding>
                     <Insets left="10.0"/>
@@ -43,7 +43,6 @@
 
     </top>
     <center>
-
         <ScrollPane fx:id="scrollPane">
             <BorderPane fx:id="imageParent">
                 <center>
@@ -51,8 +50,7 @@
                         <ImageView fx:id="imageView"/>
                         <BorderPane fx:id="watermarkPane">
                             <center>
-                                <Label fx:id="watermarkText" rotate="25.0" style="-fx-text-fill: #AAAAAA90;"
-                                       text="%watermarkText"/>
+                                <Label fx:id="watermarkText" rotate="25.0" style="-fx-text-fill: #AAAAAA90;"/>
                             </center>
                         </BorderPane>
                     </StackPane>
