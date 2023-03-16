@@ -29,13 +29,15 @@ import org.phoebus.util.time.SecondsParser;
 public class AlarmConfigTool
 {
     /** Time the model must be stable for. Unit is seconds. Default is 4 seconds. */
-    private static final long STABILIZATION_SECS = 4;
+    private long STABILIZATION_SECS = 4;
 
     	// Export an alarm system model to an xml file.
-    public void exportModel(String filename, String server, String config, String kafka_properties_file) throws Exception
+    public void exportModel(String filename, String server, String config, String kafka_properties_file, long wait) throws Exception
 	{
         final XmlModelWriter xmlWriter;
 
+        if (wait > STABILIZATION_SECS) STABILIZATION_SECS = wait;
+        
         // Write to stdout or to file.
         if (filename.equals("stdout"))
             xmlWriter = new XmlModelWriter(System.out);

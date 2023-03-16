@@ -571,6 +571,7 @@ public class AlarmServerMain implements ServerModelListener
             String settings_arg         = "-settings";
             String noshell_arg          = "-noshell";
             String export_arg           = "-export";
+            String export_wait_arg      = "-export_wait";
             String import_arg           = "-import";
             String logging_arg          = "-logging";
             String kafka_props_arg      = "-kafka_properties";
@@ -580,6 +581,7 @@ public class AlarmServerMain implements ServerModelListener
                 config_arg,
                 settings_arg,
                 export_arg,
+                export_wait_arg,
                 import_arg,
                 logging_arg,
                 kafka_props_arg);
@@ -596,6 +598,7 @@ public class AlarmServerMain implements ServerModelListener
             Map<String, String> args_to_prefs = Map.ofEntries(
                 Map.entry(config_arg, "config_names"),
                 Map.entry(server_arg, "server"),
+                Map.entry(export_wait_arg, "export_wait"),
                 Map.entry(kafka_props_arg, "kafka_properties")
             );
 
@@ -658,8 +661,11 @@ public class AlarmServerMain implements ServerModelListener
             }
             if (parsed_args.containsKey(export_arg)){
                 final String filename = parsed_args.get(export_arg);
+                final String waitArg = parsed_args.get(export_wait_arg);
+                final long wait = (waitArg != null && !waitArg.equals("")) ? Long.parseLong(waitArg) : 0;
                 logger.info("Exporting model to " + filename);
-                new AlarmConfigTool().exportModel(filename, server, config, kafka_properties);
+                logger.info("wait " + wait);
+                new AlarmConfigTool().exportModel(filename, server, config, kafka_properties, wait);
             }
             if (parsed_args.containsKey(import_arg)){
                 final String filename = parsed_args.get(import_arg);
