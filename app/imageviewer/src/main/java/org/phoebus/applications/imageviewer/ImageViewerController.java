@@ -19,13 +19,22 @@
 package org.phoebus.applications.imageviewer;
 
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.svg.SVGTranscoder;
 
@@ -40,7 +49,7 @@ import java.util.logging.Logger;
  * Controller for the image viewer application UI. It intentionally does not
  * use the {@link org.phoebus.ui.javafx.ImageCache} as the intention is to render
  * images at original - potentially very high - resolution.
- *
+ * <p>
  * A button is available to scale the image to the current view size.
  */
 public class ImageViewerController {
@@ -55,12 +64,30 @@ public class ImageViewerController {
     private ImageView imageView;
 
     @FXML
+    private Pane watermarkPane;
+
+    @FXML
     private Button scaleToFitButton;
+
+    @FXML
+    private Label watermarkText;
+
+    @FXML
+    private BorderPane imageParent;
+
+    @FXML
+    private CheckBox showWatermarkCheckBox;
 
     private Image image;
 
-    private SimpleBooleanProperty isSVG = new SimpleBooleanProperty(false);
-    private SimpleBooleanProperty fitToWindow = new SimpleBooleanProperty(false);
+    private final SimpleBooleanProperty isSVG = new SimpleBooleanProperty(false);
+    private final SimpleBooleanProperty fitToWindow = new SimpleBooleanProperty(false);
+
+    private final SimpleBooleanProperty showWatermarkProperty = new SimpleBooleanProperty(true);
+
+    private final SimpleObjectProperty fontProperty = new SimpleObjectProperty();
+
+    private final SimpleDoubleProperty rotationProperty = new SimpleDoubleProperty();
 
     @FXML
     public void initialize() {
@@ -84,6 +111,16 @@ public class ImageViewerController {
                 scale();
             }
         });
+
+        fontProperty.set(new Font(20));
+
+        watermarkPane.visibleProperty().bind(showWatermarkProperty);
+
+        watermarkText.textProperty().set(ImageViewerPreferences.watermark_text);
+        watermarkText.fontProperty().bind(fontProperty);
+        watermarkText.getStylesheets().addAll(getClass().getResource("/style.css").toExternalForm());
+        watermarkText.getStyleClass().add("outline");
+        watermarkText.rotateProperty().bind(rotationProperty);
     }
 
     public Node getRoot() {
@@ -94,9 +131,11 @@ public class ImageViewerController {
      * Sets the image in the view. Shows error dialog if the image file
      * cannot be loaded/rendered, e.g. non-image file or incompatible SVG.
      *
-     * @param url
+     * @param url URL to image resource
      */
-    public void setImage(URL url) {
+    public void setImage(URL url, boolean showWatermark) {
+        showWatermarkProperty.set(showWatermark);
+        showWatermarkCheckBox.selectedProperty().set(showWatermark);
         try {
             if (url.toExternalForm().endsWith("svg")) {
                 image = SVGTranscoder.loadSVG(url.openStream(), 0, 0);
@@ -109,6 +148,9 @@ public class ImageViewerController {
                 image = SwingFXUtils.toFXImage(bufferedImage, null);
             }
             imageView.setImage(image);
+            imageParent.layout();
+            scale();
+
         } catch (Exception e) {
             ExceptionDetailsErrorDialog.openError(root,
                     Messages.ErrorDialogTitle,
@@ -132,5 +174,33 @@ public class ImageViewerController {
             imageView.setFitWidth(image.getWidth());
             imageView.setFitHeight(image.getHeight());
         }
+        fontProperty.set(getFont());
+        setRotation();
+    }
+
+    public void toggleWatermark() {
+        showWatermarkProperty.set(!showWatermarkProperty.getValue());
+    }
+
+    /**
+     * Computes a font size based on current size of image view and length of the watermark text.
+     * In short: larger image view -> larger font, longer text -> smaller font.
+     *
+     * @return A bold {@link Font} using calculated size.
+     */
+    private Font getFont() {
+        double height = imageView.getFitHeight();
+        double width = imageView.getFitWidth();
+        int textLength = ImageViewerPreferences.watermark_text.length();
+        double scalingFactor = textLength / 2.0;
+        return Font.font("Liberation Sans", FontWeight.BOLD, FontPosture.REGULAR, Math.min(width, height) / scalingFactor);
+    }
+
+    /**
+     * Determines rotation of the watermark text depending on portrait or landscape orientation of
+     * the image. If portrait the text is rotated more to better fit it on top ov the image.
+     */
+    private void setRotation() {
+        rotationProperty.set(imageView.getFitHeight() < imageView.getFitWidth() ? 25.0 : 60.0);
     }
 }
