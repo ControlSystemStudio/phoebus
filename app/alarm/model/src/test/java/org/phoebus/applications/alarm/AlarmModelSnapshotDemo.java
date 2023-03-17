@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,25 +20,25 @@ import org.phoebus.applications.alarm.model.xml.XmlModelWriter;
 @SuppressWarnings("nls")
 public class AlarmModelSnapshotDemo
 {
-	@Test
-	public void testAlarmModelWriter() throws Exception
-	{
-	    // Get alarm configuration
-	    final AlarmClient client = new AlarmClient(AlarmDemoSettings.SERVERS, AlarmDemoSettings.ROOT, AlarmDemoSettings.KAFKA_PROPERTIES_FILE);
+    @Test
+    public void testAlarmModelWriter() throws Exception
+    {
+        // Get alarm configuration
+        final AlarmClient client = new AlarmClient(AlarmDemoSettings.SERVERS, AlarmDemoSettings.ROOT, AlarmDemoSettings.KAFKA_PROPERTIES_FILE);
+        client.start();
+        
+        System.out.println("Wait 10 secs for connection, then for stable configuration, i.e. no changes for 4 seconds...");
+        final long start = System.currentTimeMillis();
 
-	    System.out.println("Wait for stable configuration, i.e. no changes for 4 seconds...");
+        final AlarmConfigMonitor monitor = new AlarmConfigMonitor(10, 4, client);
+        monitor.waitForPauseInUpdates(30);
+        final double secs = (System.currentTimeMillis() - start) / 1000.0;
+        System.out.format("Alarm configuration after %.3f seconds:\n\n", secs);
 
-	    // Wait until we have a snapshot, i.e. no more changes for 4 seconds
-	    final AlarmConfigMonitor monitor = new AlarmConfigMonitor(4, client);
-	    monitor.waitForPauseInUpdates(30);
-
-	    System.out.println("Alarm configuration:");
-
-
-		final ByteArrayOutputStream buf = new ByteArrayOutputStream();
-		final XmlModelWriter xmlWriter = new XmlModelWriter(buf);
-		xmlWriter.write(client.getRoot());
-		xmlWriter.close();
+        final ByteArrayOutputStream buf = new ByteArrayOutputStream();
+        final XmlModelWriter xmlWriter = new XmlModelWriter(buf);
+        xmlWriter.write(client.getRoot());
+        xmlWriter.close();
         final String xml = buf.toString();
         System.out.println(xml);
 
@@ -47,5 +47,5 @@ public class AlarmModelSnapshotDemo
             System.out.println("Bummer, there were " + changes + " updates to the configuration, might have to try this again...");
         monitor.dispose();
         client.shutdown();
-	}
+    }
 }
