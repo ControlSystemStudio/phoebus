@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -24,26 +24,37 @@ import org.phoebus.framework.jobs.NamedThreadFactory;
  *  Eventually, if there are no more resets,
  *  it will time out.
  *
+ *  Timeout can be adjusted on each 'reset'
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class ResettableTimeout
 {
-    private final long timeout_secs;
+    private long timeout_secs;
 
-	private final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("ResettableTimeout"));
+    private final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("ResettableTimeout"));
     private final CountDownLatch no_more_messages = new CountDownLatch(1);
     private final Runnable signal_no_more_messages = () -> no_more_messages.countDown();
     private final AtomicReference<ScheduledFuture<?>> timeout = new AtomicReference<>();
 
     /** @param timeout_secs Seconds after which we time out */
     public ResettableTimeout(final long timeout_secs)
-	{
-	    this.timeout_secs = timeout_secs;
-		reset();
-	}
+    {
+        this.timeout_secs = timeout_secs;
+        reset();
+    }
 
-	/** Reset the timer. As long as this is called within the timeout, we keep running */
+    /** Reset the timer. As long as this is called within the timeout, we keep running
+     *  @param timeout_secs New timeout in seconds
+     */
+    public void reset(final long timeout_secs)
+    {
+        this.timeout_secs = timeout_secs;
+        reset();
+    }
+
+    /** Reset the timer. As long as this is called within the timeout, we keep running */
     public void reset()
     {
         final ScheduledFuture<?> previous = timeout.getAndSet(timer.schedule(signal_no_more_messages, timeout_secs, TimeUnit.SECONDS));
