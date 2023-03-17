@@ -544,8 +544,8 @@ public class AlarmServerMain implements ServerModelListener
         System.out.println("-export             config.xml          - Export alarm configuration to file");
         System.out.println("-import             config.xml          - Import alarm configruation from file");
         System.out.println("-logging            logging.properties  - Load log settings");
-        System.out.println("-connect_secs       10                  - Time import/export waits for connection");
-        System.out.println("-stable_secs         4                  - Time import/export waits for stable configuration");
+        System.out.println("-connect_secs       10                  - Time alarm server and config import/export waits for connection");
+        System.out.println("-stable_secs         4                  - Time alarm server and config import/export waits for stable configuration");
         System.out.println("-kafka_properties   client.properties   - Load kafka client settings from file");
         System.out.println();
     }
