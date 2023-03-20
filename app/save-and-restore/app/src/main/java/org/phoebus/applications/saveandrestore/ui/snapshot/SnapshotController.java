@@ -271,7 +271,6 @@ public class SnapshotController {
     public String getValueVType(String pvEntry, List<SnapshotItem> entries){
         String valueOutput ="";
         for (SnapshotItem e : entries) {
-            System.out.println("name "+e.getConfigPv().getPvName());
             if (e.getConfigPv().getPvName().equals(pvEntry)){
                 VType newValue=e.getValue();
                 if (newValue instanceof VNumber) {
