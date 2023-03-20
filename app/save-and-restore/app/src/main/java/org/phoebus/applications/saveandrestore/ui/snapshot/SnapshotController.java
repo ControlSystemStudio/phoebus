@@ -270,8 +270,6 @@ public class SnapshotController {
     
     public String getValueVType(String pvEntry, List<SnapshotItem> entries){
         String valueOutput ="";
-
-        System.out.println("length  "+entries.size());
         for (SnapshotItem e : entries) {
             System.out.println("name "+e.getConfigPv().getPvName());
             if (e.getConfigPv().getPvName().equals(pvEntry)){
@@ -279,22 +277,18 @@ public class SnapshotController {
                 if (newValue instanceof VNumber) {
                 Number newVType = ((VNumber) newValue).getValue();
                 valueOutput=newVType.toString();
-                System.out.println("VNumber "+valueOutput);
                 return valueOutput;
                 } else if (newValue instanceof VString) {
                 String newVType = ((VString) newValue).getValue();
                 valueOutput=newVType.toString();
-                System.out.println("VString "+valueOutput);
                 return valueOutput;
                 } else if (newValue instanceof VStringArray) {
                     List<String> newVType =((VStringArray) newValue).getData();
                     valueOutput=newVType.toString();
-                    System.out.println("VStringArray "+valueOutput);
                     return valueOutput;
                 } else if (newValue instanceof VEnum) {
                     VEnum newVType = (VEnum) newValue;
                     valueOutput=newVType.getValue().toString();
-                    System.out.println("VEnum "+valueOutput);
                     return valueOutput;
                 }
             }
