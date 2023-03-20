@@ -324,6 +324,9 @@ public class XYPlotWidget extends VisibleWidget
                 XMLUtil.getChildInteger(xml, "trace_" + legacy_trace + "_point_style")
                        .ifPresent(style -> trace.tracePointType().setValue(StripchartWidget.mapPointType(style)));
 
+                XMLUtil.getChildInteger(xml, "trace_" + legacy_trace + "_line_width")
+                       .ifPresent(width -> trace.traceWidth().setValue(width));
+
                 // Name
                 String name = XMLUtil.getChildString(xml, "trace_" + legacy_trace + "_name").orElse("");
                 name = name.replace("$(trace_" + legacy_trace + "_y_pv)", "$(traces[" + legacy_trace + "].y_pv)");
