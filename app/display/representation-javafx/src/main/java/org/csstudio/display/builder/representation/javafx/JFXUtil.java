@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx;
 
+import java.text.DecimalFormat;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -32,6 +33,7 @@ import javafx.scene.text.FontWeight;
 public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
 {
     private static double font_calibration = 1.0;
+    private static final DecimalFormat RGBA_ALPHA_DECIMAL_FORMAT = new DecimalFormat("0.00");
 
     static
     {
@@ -88,10 +90,18 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
                 return "rgba(" + col.getRed() + ',' +
                                  col.getGreen() + ',' +
                                  col.getBlue() + ',' +
-                                 col.getAlpha()/255f + ')';
+                                 RGBA_ALPHA_DECIMAL_FORMAT.format(col.getAlpha()/255f) + ')';
             else
                 return webHex(col);
         });
+    }
+
+    /**
+     * Extract alpha value, formatted as expected for e.g. an RGBA function
+     * @return alpha value in decimal form, from 0.00 to 1.00
+     */
+    public static String webAlpha(final WidgetColor color) {
+        return RGBA_ALPHA_DECIMAL_FORMAT.format(color.getAlpha()/255f);
     }
 
     /** Convert model color into web-type RGB text

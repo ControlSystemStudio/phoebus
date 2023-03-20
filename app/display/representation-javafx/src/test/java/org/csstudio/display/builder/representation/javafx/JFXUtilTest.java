@@ -38,7 +38,16 @@ public class JFXUtilTest
     {
         assertThat(JFXUtil.webRgbOrHex(new WidgetColor(15, 255, 0)), equalTo("#0FFF00"));
         assertThat(JFXUtil.webRgbOrHex(new WidgetColor(0, 16, 255)), equalTo("#0010FF"));
-        assertThat(JFXUtil.webRgbOrHex(new WidgetColor(0, 16, 255, 50)), equalTo("rgba(0,16,255,0.19607843)"));
+        assertThat(JFXUtil.webRgbOrHex(new WidgetColor(0, 16, 255, 50)), equalTo("rgba(0,16,255,0.20)"));
+    }
+
+    @Test
+    public void testRGBWithAlpha()
+    {
+        // NOTE that the actual decimal value for transparency would have been 0.019607844, however it needs
+        // to be formatted to two decimal places
+        assertThat(JFXUtil.webRgbOrHex(new WidgetColor(15, 255, 0, 5)), equalTo("rgba(15,255,0,0.02)"));
+        assertThat(JFXUtil.webRgbOrHex(new WidgetColor(0, 16, 255)), equalTo("#0010FF"));
     }
 
     @Test
