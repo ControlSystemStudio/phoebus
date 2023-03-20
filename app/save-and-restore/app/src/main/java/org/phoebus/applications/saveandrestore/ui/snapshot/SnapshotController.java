@@ -289,14 +289,9 @@ public class SnapshotController {
                     List<TableEntry> tableEntries = createTableEntries(snapshots.get(0));
                     snapshotTable.updateTable(tableEntries, snapshots, showLiveReadbackProperty.get(), false, showDeltaPercentage);
                 
-                    SimpleDateFormat formater = null;
-                    Date now = new Date();
-                    formater = new SimpleDateFormat("yy-MM-dd");
-                    String defaultTitle="";
                     if (!Preferences.default_title_snapshot_date_format.equals("")) {
-                            formater = new SimpleDateFormat(Preferences.default_title_snapshot_date_format);
-                            defaultTitle+=defaultTitle+formater.format(now);
-                            snapshotNameProperty.set(defaultTitle);
+                            SimpleDateFormat formater = new SimpleDateFormat(Preferences.default_title_snapshot_date_format);
+                            snapshotNameProperty.set(formater.format(new Date()));
                     }
                 
                 })
