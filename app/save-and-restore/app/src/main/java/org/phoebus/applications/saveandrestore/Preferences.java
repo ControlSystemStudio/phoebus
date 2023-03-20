@@ -32,6 +32,16 @@ public class Preferences {
     public static int search_result_page_size;
     @Preference
     public static String default_search_query;
+    @Preference
+    public static String default_title_snapshot_configuration;
+    @Preference
+    public static String default_title_snapshot_format;
+    @Preference
+    public static String default_title_snapshot_date_format;
+    @Preference
+    public static String default_title_snapshot_pv1;
+    @Preference
+    public static String default_title_snapshot_pv2;
 
     static
     {

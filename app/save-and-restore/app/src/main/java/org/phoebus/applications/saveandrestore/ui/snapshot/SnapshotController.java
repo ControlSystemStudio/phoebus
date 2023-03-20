@@ -67,8 +67,10 @@ import org.phoebus.pv.PVPool;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -265,6 +267,40 @@ public class SnapshotController {
             });
         });
     }
+    
+    public String getValueVType(String pvEntry, List<SnapshotItem> entries){
+        String valueOutput ="";
+
+        System.out.println("length  "+entries.size());
+        for (SnapshotItem e : entries) {
+            System.out.println("name "+e.getConfigPv().getPvName());
+            if (e.getConfigPv().getPvName().equals(pvEntry)){
+                VType newValue=e.getValue();
+                if (newValue instanceof VNumber) {
+                Number newVType = ((VNumber) newValue).getValue();
+                valueOutput=newVType.toString();
+                System.out.println("VNumber "+valueOutput);
+                return valueOutput;
+                } else if (newValue instanceof VString) {
+                String newVType = ((VString) newValue).getValue();
+                valueOutput=newVType.toString();
+                System.out.println("VString "+valueOutput);
+                return valueOutput;
+                } else if (newValue instanceof VStringArray) {
+                    List<String> newVType =((VStringArray) newValue).getData();
+                    valueOutput=newVType.toString();
+                    System.out.println("VStringArray "+valueOutput);
+                    return valueOutput;
+                } else if (newValue instanceof VEnum) {
+                    VEnum newVType = (VEnum) newValue;
+                    valueOutput=newVType.getValue().toString();
+                    System.out.println("VEnum "+valueOutput);
+                    return valueOutput;
+                }
+            }
+        }
+        return valueOutput;
+    }
 
     @FXML
     @SuppressWarnings("unused")
@@ -286,6 +322,37 @@ public class SnapshotController {
                     snapshots.set(0, snapshot);
                     List<TableEntry> tableEntries = createTableEntries(snapshots.get(0));
                     snapshotTable.updateTable(tableEntries, snapshots, showLiveReadbackProperty.get(), false, showDeltaPercentage);
+                
+                    SimpleDateFormat formater = null;
+                    Date now = new Date();
+                    formater = new SimpleDateFormat("yy-MM-dd");
+                    String defaultTitle="";
+                    if (!Preferences.default_title_snapshot_format.equals("")) {
+                        String[] formatTitle=Preferences.default_title_snapshot_format.split("_");
+                        for (int index = 0; index < formatTitle.length; index++) {
+                            switch (formatTitle[index]) {
+                                case "<date>":
+                                    if (!Preferences.default_title_snapshot_date_format.equals("")){
+                                        formater = new SimpleDateFormat(Preferences.default_title_snapshot_date_format);
+                                        defaultTitle+=defaultTitle+formater.format(now);
+                                    }
+                                    break;
+                                case "<pv1>": 
+                                    defaultTitle+=getValueVType(Preferences.default_title_snapshot_pv1,entries);
+                                    break;
+                                case "<pv2>":
+                                    defaultTitle+=getValueVType(Preferences.default_title_snapshot_pv2,entries);
+                                    break;
+                                default:
+                                    System.out.println("nothing");
+                                    break;
+                            }
+                            if (index<formatTitle.length-1)
+                                defaultTitle+="_";
+                        }            
+                    }
+                    snapshotNameProperty.set(defaultTitle);
+                
                 })
         );
     }
