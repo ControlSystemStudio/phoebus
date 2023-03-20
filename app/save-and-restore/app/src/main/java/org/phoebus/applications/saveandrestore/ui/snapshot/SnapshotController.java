@@ -268,33 +268,6 @@ public class SnapshotController {
         });
     }
     
-    public String getValueVType(String pvEntry, List<SnapshotItem> entries){
-        String valueOutput ="";
-        for (SnapshotItem e : entries) {
-            if (e.getConfigPv().getPvName().equals(pvEntry)){
-                VType newValue=e.getValue();
-                if (newValue instanceof VNumber) {
-                Number newVType = ((VNumber) newValue).getValue();
-                valueOutput=newVType.toString();
-                return valueOutput;
-                } else if (newValue instanceof VString) {
-                String newVType = ((VString) newValue).getValue();
-                valueOutput=newVType.toString();
-                return valueOutput;
-                } else if (newValue instanceof VStringArray) {
-                    List<String> newVType =((VStringArray) newValue).getData();
-                    valueOutput=newVType.toString();
-                    return valueOutput;
-                } else if (newValue instanceof VEnum) {
-                    VEnum newVType = (VEnum) newValue;
-                    valueOutput=newVType.getValue().toString();
-                    return valueOutput;
-                }
-            }
-        }
-        return valueOutput;
-    }
-
     @FXML
     @SuppressWarnings("unused")
     private void takeSnapshot() {
@@ -320,31 +293,11 @@ public class SnapshotController {
                     Date now = new Date();
                     formater = new SimpleDateFormat("yy-MM-dd");
                     String defaultTitle="";
-                    if (!Preferences.default_title_snapshot_format.equals("")) {
-                        String[] formatTitle=Preferences.default_title_snapshot_format.split("_");
-                        for (int index = 0; index < formatTitle.length; index++) {
-                            switch (formatTitle[index]) {
-                                case "<date>":
-                                    if (!Preferences.default_title_snapshot_date_format.equals("")){
-                                        formater = new SimpleDateFormat(Preferences.default_title_snapshot_date_format);
-                                        defaultTitle+=defaultTitle+formater.format(now);
-                                    }
-                                    break;
-                                case "<pv1>": 
-                                    defaultTitle+=getValueVType(Preferences.default_title_snapshot_pv1,entries);
-                                    break;
-                                case "<pv2>":
-                                    defaultTitle+=getValueVType(Preferences.default_title_snapshot_pv2,entries);
-                                    break;
-                                default:
-                                    System.out.println("nothing");
-                                    break;
-                            }
-                            if (index<formatTitle.length-1)
-                                defaultTitle+="_";
-                        }            
+                    if (!Preferences.default_title_snapshot_date_format.equals("")) {
+                            formater = new SimpleDateFormat(Preferences.default_title_snapshot_date_format);
+                            defaultTitle+=defaultTitle+formater.format(now);
+                            snapshotNameProperty.set(defaultTitle);
                     }
-                    snapshotNameProperty.set(defaultTitle);
                 
                 })
         );
