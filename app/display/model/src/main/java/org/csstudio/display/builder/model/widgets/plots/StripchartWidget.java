@@ -462,6 +462,9 @@ public class StripchartWidget extends VisibleWidget
 		XMLUtil.getChildString(xml, "trace_" + legacy_trace + "_visible")
 		       .ifPresent(show -> trace.traceVisible().setValue(Boolean.parseBoolean(show)) );
 
+                XMLUtil.getChildInteger(xml, "trace_" + legacy_trace + "_line_width")
+                       .ifPresent(width -> trace.traceWidth().setValue(width));
+
                 // Name
                 String name = XMLUtil.getChildString(xml, "trace_" + legacy_trace + "_name").orElse("");
                 name = name.replace("$(trace_" + legacy_trace + "_y_pv)", "$(traces[" + legacy_trace + "].y_pv)");
