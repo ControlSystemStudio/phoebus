@@ -289,8 +289,8 @@ public class SnapshotController {
                     List<TableEntry> tableEntries = createTableEntries(snapshots.get(0));
                     snapshotTable.updateTable(tableEntries, snapshots, showLiveReadbackProperty.get(), false, showDeltaPercentage);
                 
-                    if (!Preferences.default_title_snapshot_date_format.equals("")) {
-                            SimpleDateFormat formater = new SimpleDateFormat(Preferences.default_title_snapshot_date_format);
+                    if (!Preferences.default_snapshot_name_date_format.equals("")) {
+                            SimpleDateFormat formater = new SimpleDateFormat(Preferences.default_snapshot_name_date_format);
                             snapshotNameProperty.set(formater.format(new Date()));
                     }
                 

@@ -33,7 +33,7 @@ public class Preferences {
     @Preference
     public static String default_search_query;
     @Preference
-    public static String default_title_snapshot_date_format;
+    public static String default_snapshot_name_date_format;
 
     static
     {
