@@ -257,7 +257,7 @@ public class SearchWindowController implements Initializable {
 
     public void search() {
 
-        if (query.get() == null) {
+        if (query.get() == null || query.get().isEmpty()) {
             return;
         }
 
@@ -342,7 +342,7 @@ public class SearchWindowController implements Initializable {
         try {
             JobManager.schedule("Save Filter", monitor -> {
                 saveAndRestoreService.saveFilter(filter);
-                searchAndFilterViewController.filterAddedOrUpdated(filter);
+                //searchAndFilterViewController.filterAddedOrUpdated(filter);
             });
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Failed to save filter." + (e.getMessage() != null ? ("Cause: " + e.getMessage()) : ""));
@@ -353,12 +353,6 @@ public class SearchWindowController implements Initializable {
     public void setFilter(Filter filter) {
         query.set(filter.getQueryString());
         filterNameProperty.set(filter.getName());
-    }
-
-    public void clearFilter(Filter filter) {
-        if (filterNameProperty.get() != null && filterNameProperty.get().equals(filter.getName())) {
-            filterNameProperty.set(null);
-        }
     }
 }
 

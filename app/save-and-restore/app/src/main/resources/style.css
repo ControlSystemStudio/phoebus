@@ -126,3 +126,13 @@
 .tree-cell:selected{
     -fx-background-color: rgb(0, 150, 201);
 }
+
+.column-header.rightAlignedTableColumnHeader > .label {
+    -fx-alignment: center-right;
+    -fx-padding: 0 2 0 0;
+}
+
+.column-header.leftAlignedTableColumnHeader > .label {
+    -fx-alignment: center-left;
+    -fx-padding: 0 0 0 2;
+}
