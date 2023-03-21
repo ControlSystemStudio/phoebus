@@ -67,8 +67,10 @@ import org.phoebus.pv.PVPool;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -265,7 +267,7 @@ public class SnapshotController {
             });
         });
     }
-
+    
     @FXML
     @SuppressWarnings("unused")
     private void takeSnapshot() {
@@ -286,6 +288,12 @@ public class SnapshotController {
                     snapshots.set(0, snapshot);
                     List<TableEntry> tableEntries = createTableEntries(snapshots.get(0));
                     snapshotTable.updateTable(tableEntries, snapshots, showLiveReadbackProperty.get(), false, showDeltaPercentage);
+                
+                    if (!Preferences.default_snapshot_name_date_format.equals("")) {
+                            SimpleDateFormat formater = new SimpleDateFormat(Preferences.default_snapshot_name_date_format);
+                            snapshotNameProperty.set(formater.format(new Date()));
+                    }
+                
                 })
         );
     }
