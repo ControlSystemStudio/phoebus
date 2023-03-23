@@ -205,7 +205,7 @@ public class ConfigurationFromSelectionController implements Initializable {
             }
         });
 
-        configurationNameField.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        configurationNameField.getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
         configurationNameField.textProperty().addListener((observableValue, oldName, newName) -> {
             if (nodeListInFolder.contains(newName)) {
                 configurationNameField.getStyleClass().add("input-error");

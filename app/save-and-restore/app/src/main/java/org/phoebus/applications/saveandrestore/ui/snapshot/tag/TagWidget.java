@@ -71,7 +71,7 @@ public class TagWidget {
         Label label = new Label(text);
 
         HBox hBox = new HBox();
-        hBox.getStylesheets().add(SaveAndRestoreApplication.class.getResource("/style.css").toExternalForm());
+        hBox.getStylesheets().add(SaveAndRestoreApplication.class.getResource("/save-and-restore-style.css").toExternalForm());
         hBox.setSpacing(4);
         hBox.setAlignment(Pos.CENTER_LEFT);
         hBox.getChildren().addAll(imageView, label);
@@ -143,12 +143,12 @@ public class TagWidget {
         tagCreated.setFont(Font.font(Font.getDefault().getSize()*0.9));
 
         VBox vBoxLeft = new VBox();
-        vBoxLeft.getStylesheets().add(SaveAndRestoreApplication.class.getResource("/style.css").toExternalForm());
+        vBoxLeft.getStylesheets().add(SaveAndRestoreApplication.class.getResource("/save-and-restore-style.css").toExternalForm());
         vBoxLeft.getChildren().addAll(tagName, tagComment);
 
         VBox vBoxRight = new VBox();
         vBoxRight.setAlignment(Pos.CENTER_RIGHT);
-        vBoxRight.getStylesheets().add(SaveAndRestoreApplication.class.getResource("/style.css").toExternalForm());
+        vBoxRight.getStylesheets().add(SaveAndRestoreApplication.class.getResource("/save-and-restore-style.css").toExternalForm());
         vBoxRight.getChildren().addAll(tagCreator, tagCreated);
 
         ImageView trashcanImageView = new ImageView(snapshotTrashcanIcon);
@@ -162,7 +162,7 @@ public class TagWidget {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         HBox hBox = new HBox();
-        hBox.getStylesheets().add(SaveAndRestoreApplication.class.getResource("/style.css").toExternalForm());
+        hBox.getStylesheets().add(SaveAndRestoreApplication.class.getResource("/save-and-restore-style.css").toExternalForm());
         hBox.setAlignment(Pos.CENTER_LEFT);
         hBox.setSpacing(4);
         hBox.getChildren().addAll(imageView, vBoxLeft, spacer, vBoxRight, trashcanImageView);

@@ -532,7 +532,7 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
         setMaxHeight(Double.MAX_VALUE);
         VBox.setVgrow(this, Priority.ALWAYS);
         setColumnResizePolicy(TreeTableView.CONSTRAINED_RESIZE_POLICY);
-        getStylesheets().add(SnapshotTreeTable.class.getResource("/style.css").toExternalForm());
+        getStylesheets().add(SnapshotTreeTable.class.getResource("/save-and-restore-style.css").toExternalForm());
 
         PreferencesReader preferencesReader = new PreferencesReader(SaveAndRestoreApplication.class, "/save_and_restore_preferences.properties");
         String parserClassName = preferencesReader.get("treeTableView.hierarchyParser");
