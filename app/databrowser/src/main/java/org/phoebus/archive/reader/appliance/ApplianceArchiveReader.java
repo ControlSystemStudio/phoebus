@@ -138,7 +138,11 @@ public class ApplianceArchiveReader implements ArchiveReader, IteratorListener {
         if (it == null) {
             try {
                 int points = getNumberOfPoints(name, start, end);
-                if (points <= count) {
+                // No points found, return "empty" iterator to suppress request for raw data
+                if(points == 0){
+                    it = new EmptyRawValueIterator(this, name, start, end, this);
+                }
+                else if (points <= count) {
                     it = new ApplianceRawValueIterator(this, name, start, end, this);
                 } else {
                     //only fetch if binning is "still" supported
