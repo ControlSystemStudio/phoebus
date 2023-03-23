@@ -28,7 +28,7 @@ For site-specific examples, see
  
 The following use cases have been verified:
  
- * MacOS version 10.15.7, dmg and pkg.
+ * MacOS versions 10,11,12,13, dmg and pkg.
  * Windows 10, msi only.
  
  #### Prerequisites
@@ -85,7 +85,7 @@ Consider either of the following workarounds:
 * Copy the installer from a file share. This is apparently considered more safe than HTTP download, and works for
 both Windows and MacOS.
 * Add a digital signature using a trusted certificate. `jpackage` supports application signing, so it may be incorporated
-into the `jpackage` build process. NOTE: this has not been verified.
+into the `jpackage` build process. See also below.
 * Distribute installers - and updates! - using IT management tools. This is the current setup used for Windows
 and MacOS at the European Spallation Source.
 
@@ -96,6 +96,20 @@ target runtime selection may impact the end result, i.e. the Phoebus application
 For instance, while the Java runtime Adopt JDK 11.0.9 can be bundled into a working installation, 
 Adopt JDK 11.0.12 will not work when Phoebus is launched. On MacOS Adopt JDK 11.0.12 works fine.
 
+### Application signing
+Starting from MacOS 13.2 (possibly from 13.0), installer packages must be signed for a hassle-free installation process.
+To include signing in the `jpackage` build, add the following in step 1:
+`--mac-sign 
+--mac-package-identifier org.phoebus.product.Launcher 
+--mac-package-name CSS-Phoebus 
+--mac-signing-keychain "/Library/Keychains/System.keychain" 
+--mac-signing-key-user-name 'Developer ID Application: European Spallation Source Eric (W2AG9MPZ43)'`.
 
+Here the `--mac-signing-key-user-name` value identifies a certificate installed on the Mac OS host. Note that the
+certificate type **must** be of type `Developer ID Application`. Users or organizations enrolled in the Apple
+Developer Program may request/create such certificates.
+
+
+`
  
  
