@@ -54,7 +54,7 @@ public class EnabledState
     {
         final int prime = 31;
         final int enabled_check = this.enabled ? 1 : 0;
-        int result = enabled_date.hashCode();
+        int result = enabled_date == null ? 0 : enabled_date.hashCode();
         result = prime * result + enabled_check;
         return result;
     }
