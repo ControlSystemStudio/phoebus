@@ -241,8 +241,9 @@ public class SearchAndFilterViewController implements Initializable {
     @FXML
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
-        resultTableView.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        resultTableView.getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
         pagination.getStylesheets().add(this.getClass().getResource("/pagination.css").toExternalForm());
+        resultTableView.getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
 
         nodeNameTextField.textProperty().bindBidirectional(nodeNameProperty);
         nodeNameTextField.setOnKeyPressed(e -> {
@@ -337,7 +338,7 @@ public class SearchAndFilterViewController implements Initializable {
                 }
         );
 
-        filterTableView.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        filterTableView.getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
 
         filterNameColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getName()));
         filterNameColumn.getStyleClass().add("leftAlignedTableColumnHeader");
@@ -369,9 +370,6 @@ public class SearchAndFilterViewController implements Initializable {
         filterNameTextField.textProperty().bindBidirectional(filterNameProperty);
         saveFilterButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
                 filterNameProperty.get() == null || filterNameProperty.get().isEmpty(), filterNameProperty));
-
-        resultTableView.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
-        pagination.getStylesheets().add(this.getClass().getResource("/pagination.css").toExternalForm());
 
         resultTableView.setRowFactory(tableView -> new TableRow<>() {
             @Override

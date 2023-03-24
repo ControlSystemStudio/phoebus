@@ -144,7 +144,7 @@ public class SearchWindowController implements Initializable {
         saveFilterButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
                 filterNameProperty.get() == null || filterNameProperty.get().isEmpty(), filterNameProperty));
 
-        resultTableView.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        resultTableView.getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
         pagination.getStylesheets().add(this.getClass().getResource("/pagination.css").toExternalForm());
 
         resultTableView.setRowFactory(tableView -> new TableRow<>() {

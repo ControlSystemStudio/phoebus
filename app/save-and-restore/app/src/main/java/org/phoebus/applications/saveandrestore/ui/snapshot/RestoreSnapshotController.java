@@ -64,7 +64,6 @@ import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.framework.jobs.JobManager;
@@ -220,14 +219,14 @@ public class RestoreSnapshotController extends SnapshotController {
         thresholdSpinnerValueFactory.setConverter(new DoubleStringConverter());
         thresholdSpinner.setValueFactory(thresholdSpinnerValueFactory);
         thresholdSpinner.getEditor().setAlignment(Pos.CENTER_RIGHT);
-        thresholdSpinner.getEditor().getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        thresholdSpinner.getEditor().getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
         thresholdSpinner.getEditor().textProperty().addListener((a, o, n) -> parseAndUpdateThreshold(n));
 
         SpinnerValueFactory<Double> multiplierSpinnerValueFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, 999.0, 1.0, 0.01);
         multiplierSpinnerValueFactory.setConverter(new DoubleStringConverter());
         multiplierSpinner.setValueFactory(multiplierSpinnerValueFactory);
         multiplierSpinner.getEditor().setAlignment(Pos.CENTER_RIGHT);
-        multiplierSpinner.getEditor().getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        multiplierSpinner.getEditor().getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
         multiplierSpinner.getEditor().textProperty()
                 .addListener((a, o, n) -> {
                     multiplierSpinner.getEditor().getStyleClass().remove("input-error");

@@ -417,7 +417,7 @@ class SnapshotTable extends TableView<TableEntry> {
         getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         setMaxWidth(Double.MAX_VALUE);
         setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        getStylesheets().add(SnapshotTable.class.getResource("/style.css").toExternalForm());
+        getStylesheets().add(SnapshotTable.class.getResource("/save-and-restore-style.css").toExternalForm());
 
         setOnMouseClicked(e -> {
             if (getSelectionModel().getSelectedCells() != null && !getSelectionModel().getSelectedCells().isEmpty()) {

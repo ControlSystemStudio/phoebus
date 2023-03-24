@@ -193,7 +193,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         saveAndRestoreService = SaveAndRestoreService.getInstance();
         treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        treeView.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        treeView.getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
         browserSelectionModel = treeView.getSelectionModel();
 
         ImageView searchButtonImageView = ImageCache.getImageView(SaveAndRestoreApplication.class, "/icons/sar-search.png");
