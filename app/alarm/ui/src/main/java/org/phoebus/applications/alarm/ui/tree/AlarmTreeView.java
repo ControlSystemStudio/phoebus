@@ -486,8 +486,8 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         // but there are two problems:
         // Since we're currently using the alarm tree model item as a value,
         // the value as seen by the TreeView remains the same.
-        // We use a model item wrappers class as the cell value
-        // and replace it (still referencing the same model item!)
+        // We could use a model item wrapper class as the cell value
+        // and replace it (while still holding the same model item!)
         // for the TreeView to see a different wrapper value, but
         // as shown in org.phoebus.applications.alarm.TreeItemUpdateDemo,
         // replacing a tree cell value fails to trigger refreshes
