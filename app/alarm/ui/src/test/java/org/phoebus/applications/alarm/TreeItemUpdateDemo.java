@@ -7,12 +7,8 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm;
 
-import java.time.Instant;
-import java.util.concurrent.TimeUnit;
-
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TreeItem;
@@ -24,6 +20,11 @@ import javafx.stage.Stage;
 
 /** Demo of alarm tree cell update
  *
+ *  Demonstrates refresh issue for tree cells that are
+ *  not visible because they scrolled below the window bottom.
+ *
+ *  Only replacing the TreeItem results in reliable tree updates.
+ *
  *  1) Start this program, click the "On" and "Off" buttons, and observe how item "Two" is updated
  *  2) Click "Off", reduce the window height so that the items under "Top" are hidden,
  *     click "On", increase window height to again show all items.
@@ -33,11 +34,13 @@ import javafx.stage.Stage;
  *     click "Off", increase window height to again show all items.
  *     Tree should indeed show "Off".
  *
- *  Conclusion is that TreeItem.setValue() does not trigger updates of hidden items.
+ *  Conclusion is that TreeItem.setValue() does not trigger updates of certain hidden items.
  *  Basic google search suggests that the value must change, but "On" and "Off"
  *  are different object references and they are not 'equal'.
  *
  *  When instead replacing the complete TreeItem, the tree is always updated.
+ *
+ *  Tested with JavaFX 15, 19, 20
  *
  *  @author Kay Kasemir
  */
@@ -61,6 +64,8 @@ public class TreeItemUpdateDemo extends ApplicationWrapper
             tree_view.getRoot().getChildren().set(1, new TreeItem<>("Off"));
         });
         final HBox bottom = new HBox(on, off);
+        on.setMaxWidth(1000);
+        off.setMaxWidth(1000);
         HBox.setHgrow(on, Priority.ALWAYS);
         HBox.setHgrow(off, Priority.ALWAYS);
 
@@ -70,7 +75,9 @@ public class TreeItemUpdateDemo extends ApplicationWrapper
         TreeItem<String> top = new TreeItem<>("Top");
         tree_view.setRoot(top);
 
-        top.getChildren().addAll(new TreeItem<>("One"), new TreeItem<>("Two"), new TreeItem<>("Three"));
+        top.getChildren().add(new TreeItem<>("One"));
+        top.getChildren().add(new TreeItem<>("Two"));
+        top.getChildren().add(new TreeItem<>("Three"));
         top.setExpanded(true);
 
         final Scene scene = new Scene(root, 300, 300);

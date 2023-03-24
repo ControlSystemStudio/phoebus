@@ -9,6 +9,7 @@ package org.phoebus.applications.alarm.ui.tree;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -41,7 +42,6 @@ import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.ToolbarHelper;
-import org.phoebus.ui.javafx.TreeHelper;
 import org.phoebus.ui.javafx.UpdateThrottle;
 import org.phoebus.ui.selection.AppSelection;
 import org.phoebus.ui.spi.ContextMenuEntry;
@@ -466,9 +466,10 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     }
 
     /** Called by throttle to perform accumulated updates */
+    @SuppressWarnings("unchecked")
     private void performUpdates()
     {
-        final TreeItem<?>[] view_items;
+        final TreeItem<AlarmTreeItem<?>>[] view_items;
         synchronized (items_to_update)
         {
             // Creating a direct copy, i.e. another new LinkedHashSet<>(items_to_update),
@@ -480,8 +481,38 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             items_to_update.clear();
         }
 
-        for (final TreeItem<?> view_item : view_items)
-            TreeHelper.triggerTreeItemRefresh(view_item);
+        // How to update alarm tree cells when data changed?
+        // `setValue()` with a truly new value (not 'equal') should suffice,
+        // but there are two problems:
+        // Since we're currently using the alarm tree model item as a value,
+        // the value as seen by the TreeView remains the same.
+        // We use a model item wrappers class as the cell value
+        // and replace it (still referencing the same model item!)
+        // for the TreeView to see a different wrapper value, but
+        // as shown in org.phoebus.applications.alarm.TreeItemUpdateDemo,
+        // replacing a tree cell value fails to trigger refreshes
+        // for certain hidden items.
+        // Only replacing the TreeItem gives reliable refreshes.
+        for (final TreeItem<AlarmTreeItem<?>> view_item : view_items)
+            // Top-level item has no parent, and is not visible, so we keep it
+            if (view_item.getParent() != null)
+            {
+                // Locate item in tree parent
+                final TreeItem<AlarmTreeItem<?>> parent = view_item.getParent();
+                final int index = parent.getChildren().indexOf(view_item);
+
+                // Create new TreeItem for that value
+                final AlarmTreeItem<?> value = view_item.getValue();
+                final TreeItem<AlarmTreeItem<?>> update = new TreeItem<>(value);
+                // Move child links to new item
+                final ArrayList<TreeItem<AlarmTreeItem<?>>> children = new ArrayList<>(view_item.getChildren());
+                view_item.getChildren().clear();
+                update.getChildren().addAll(children);
+                update.setExpanded(view_item.isExpanded());
+
+                path2view.put(value.getPathName(), update);
+                parent.getChildren().set(index, update);
+            }
     }
 
     /** Context menu, details depend on selected items */
