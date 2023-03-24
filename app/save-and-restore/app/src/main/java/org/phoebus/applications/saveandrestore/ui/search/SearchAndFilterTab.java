@@ -41,6 +41,8 @@ import java.util.logging.Logger;
 public class SearchAndFilterTab extends Tab {
     public static final String SEARCH_AND_FILTER_TAB_ID = "SearchAndFilterTab";
 
+    private SearchAndFilterViewController searchAndFilterViewController;
+
     public SearchAndFilterTab(SaveAndRestoreController saveAndRestoreController) {
 
         setId(SEARCH_AND_FILTER_TAB_ID);
@@ -70,6 +72,8 @@ public class SearchAndFilterTab extends Tab {
             return;
         }
 
+        searchAndFilterViewController = loader.getController();
+
         HBox container = new HBox();
         ImageView imageView = new ImageView(ImageCache.getImage(ImageCache.class, "/icons/sar-search.png"));
         imageView.setFitWidth(18);
@@ -79,5 +83,9 @@ public class SearchAndFilterTab extends Tab {
         container.getChildren().addAll(imageView, label);
 
         setGraphic(container);
+    }
+
+    public void search(){
+        searchAndFilterViewController.search();
     }
 }

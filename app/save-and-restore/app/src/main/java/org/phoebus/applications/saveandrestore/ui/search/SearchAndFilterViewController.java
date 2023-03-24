@@ -38,7 +38,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -62,6 +65,8 @@ import org.phoebus.applications.saveandrestore.ui.HelpViewer;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
+import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -392,6 +397,27 @@ public class SearchAndFilterViewController implements Initializable {
             }
         });
 
+        ContextMenu contextMenu = new ContextMenu();
+        ImageView snapshotTagsWithCommentIconImage = new ImageView(ImageRepository.SNAPSHOT_ADD_TAG_WITH_COMMENT);
+        Menu tagMenu = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
+        contextMenu.setOnShowing(event -> TagUtil.tagWithComment(tagMenu,
+                        resultTableView.getSelectionModel().getSelectedItems(),
+                updatedNodes -> {
+                    updatedNodes.forEach(node -> saveAndRestoreController.nodeChanged(node));
+                    // Invoke new search to make sure result list reflects changes
+                    search();
+                }));
+        MenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
+        addTagWithCommentMenuItem.setOnAction(event -> {
+            List<Node> updatedNodes = TagUtil.addTag(resultTableView.getSelectionModel().getSelectedItems());
+            updatedNodes.forEach(node -> saveAndRestoreController.nodeChanged(node));
+            search();
+        });
+        tagMenu.getItems().add(addTagWithCommentMenuItem);
+        contextMenu.getItems().addAll(tagMenu);
+
+        resultTableView.setContextMenu(contextMenu);
+
         // Bind search result table to tableEntries observable
         Property<ObservableList<Node>> authorListProperty = new SimpleObjectProperty<>(tableEntries);
         resultTableView.itemsProperty().bind(authorListProperty);
@@ -416,7 +442,7 @@ public class SearchAndFilterViewController implements Initializable {
 
         tagsColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getTags() == null ?
                 "" :
-                cell.getValue().getTags().stream().map(Tag::getName).collect(Collectors.joining(System.lineSeparator()))));
+                cell.getValue().getTags().stream().filter(tag -> !tag.getName().equals(Tag.GOLDEN)).map(Tag::getName).collect(Collectors.joining(System.lineSeparator()))));
         tagsColumn.getStyleClass().add("leftAlignedTableColumnHeader");
 
         pageSizeTextField.setText(Integer.toString(pageSizeProperty.get()));
@@ -537,7 +563,8 @@ public class SearchAndFilterViewController implements Initializable {
                 SearchResult searchResult = saveAndRestoreService.search(map);
                 if (searchResult.getHitCount() > 0) {
                     Platform.runLater(() -> {
-                        tableEntries.setAll(searchResult.getNodes().stream().sorted(nodeComparator()).collect(Collectors.toList()));
+                        List<Node> sorted = searchResult.getNodes().stream().sorted(nodeComparator()).collect(Collectors.toList());
+                        tableEntries.setAll(sorted);
                         hitCountProperty.set(searchResult.getHitCount());
                     });
                 } else {

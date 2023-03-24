@@ -158,7 +158,7 @@ public class Node implements Comparable<Node>, Serializable {
      * Implements strategy where the node type ordinal is considered first, then
      * name in lower case.
      *
-     * @param other The tree item to compare to
+     * @param other The {@link Node} item to compare to
      * @return -1 if this item is a folder and the other item is a configuration,
      * 1 if vice versa, and result of name comparison if node types are equal.
      */

@@ -33,7 +33,6 @@ import org.phoebus.ui.javafx.ImageCache;
 
 public abstract class ContextMenuBase extends ContextMenu {
 
-    protected Image deleteIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/delete.png");
     protected Image csvImportIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_import.png");
 
     protected MenuItem deleteNodesMenuItem;
@@ -48,7 +47,7 @@ public abstract class ContextMenuBase extends ContextMenu {
     public ContextMenuBase(SaveAndRestoreController saveAndRestoreController, TreeView<Node> treeView) {
         this.treeView = treeView;
         this.saveAndRestoreController = saveAndRestoreController;
-        deleteNodesMenuItem = new MenuItem(Messages.contextMenuDelete, new ImageView(deleteIcon));
+        deleteNodesMenuItem = new MenuItem(Messages.contextMenuDelete, new ImageView(ImageRepository.DELETE));
         deleteNodesMenuItem.setOnAction(ae -> saveAndRestoreController.deleteNodes());
 
         copyUniqueIdToClipboardMenuItem = new MenuItem(Messages.copyUniqueIdToClipboard, ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));

@@ -842,7 +842,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     /**
      * Tag comparator using the tags' created date.
      */
-    protected static class TagComparator implements Comparator<Tag> {
+    public static class TagComparator implements Comparator<Tag> {
         @Override
         public int compare(Tag tag1, Tag tag2) {
             return -tag1.getCreated().compareTo(tag2.getCreated());
@@ -966,36 +966,21 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      */
     protected void addTagToSnapshots() {
         ObservableList<TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
-        List<String> selectedNodeIds =
-                selectedItems.stream().map(treeItem -> treeItem.getValue().getUniqueId()).collect(Collectors.toList());
-        SnapshotNewTagDialog snapshotNewTagDialog =
-                new SnapshotNewTagDialog(selectedItems.stream().map(TreeItem::getValue).collect(Collectors.toList()));
-        snapshotNewTagDialog.initModality(Modality.APPLICATION_MODAL);
+        List<Node> selectedNodes = selectedItems.stream().map(TreeItem::getValue).collect(Collectors.toList());
+        List<Node> updatedNodes = TagUtil.addTag(selectedNodes);
+        updatedNodes.forEach(node -> nodeChanged(node));
+        updateSearchAndFilterUI();
+    }
 
-        ProposalService proposalService = new ProposalService(new TagProposalProvider(saveAndRestoreService));
-        AutocompleteMenu autocompleteMenu = new AutocompleteMenu(proposalService);
-        snapshotNewTagDialog.configureAutocompleteMenu(autocompleteMenu);
-
-        Optional<Pair<String, String>> result = snapshotNewTagDialog.showAndWait();
-        result.ifPresent(items -> {
-            Tag aNewTag = Tag.builder()
-                    .name(items.getKey())
-                    .comment(items.getValue())
-                    .created(new Date())
-                    .userName(System.getProperty("user.name"))
-                    .build();
-            try {
-                TagData tagData = new TagData();
-                tagData.setTag(aNewTag);
-                tagData.setUniqueNodeIds(selectedNodeIds);
-                List<Node> updatedNodes = saveAndRestoreService.addTag(tagData);
-                for (Node node : updatedNodes) {
-                    nodeChanged(node);
-                }
-            } catch (Exception e) {
-                LOG.log(Level.WARNING, "Failed to add tag to snapshot");
-            }
-        });
+    /**
+     * Updates the search and filter UI, if opened, by invoking a new search.
+     */
+    private void updateSearchAndFilterUI(){
+        Optional<Tab> searchTabOptional = tabPane.getTabs().stream().filter(t -> t.getId() != null &&
+                t.getId().equals(SearchAndFilterTab.SEARCH_AND_FILTER_TAB_ID)).findFirst();
+        if (searchTabOptional.isPresent()) {
+            ((SearchAndFilterTab)searchTabOptional.get()).search();
+        }
     }
 
 
@@ -1009,43 +994,10 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         List<Node> selectedNodes =
                 browserSelectionModel.getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
-        ObservableList<MenuItem> items = tagWithCommentMenu.getItems();
-        if (items.size() > 1) {
-            items.remove(1, items.size());
-        }
-        // For a single Node this list should be the same as the Node's (potentially empty) tag list, though not null.
-        List<Tag> commonTags = TagUtil.getCommonTags(selectedNodes);
-        // Exclude golden tag as it is removed in separate context menu item.
-        commonTags.remove(Tag.builder().name(Tag.GOLDEN).build());
-        List<MenuItem> additionalItems = new ArrayList<>();
-        if (!commonTags.isEmpty()) {
-            additionalItems.add(new SeparatorMenuItem());
-            commonTags.sort(new TagComparator());
-            commonTags.forEach(tag -> {
-                CustomMenuItem tagItem = TagWidget.TagWithCommentMenuItem(tag);
-                tagItem.setOnAction(actionEvent -> {
-                    Alert confirmation = new Alert(AlertType.CONFIRMATION);
-                    confirmation.setTitle(Messages.tagRemoveConfirmationTitle);
-                    confirmation.setContentText(Messages.tagRemoveConfirmationContent);
-                    Optional<ButtonType> result = confirmation.showAndWait();
-                    result.ifPresent(buttonType -> {
-                        if (buttonType == ButtonType.OK) {
-                            try {
-                                TagData tagData = new TagData();
-                                tagData.setTag(tag);
-                                tagData.setUniqueNodeIds(selectedNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
-                                List<Node> updatedNodes = saveAndRestoreService.deleteTag(tagData);
-                                updatedNodes.forEach(n -> nodeChanged(n));
-                            } catch (Exception e) {
-                                LOG.log(Level.WARNING, "Failed to remove tag from snapshot", e);
-                            }
-                        }
-                    });
-                });
-                additionalItems.add(tagItem);
-            });
-        }
-        items.addAll(additionalItems);
+        TagUtil.tagWithComment(tagWithCommentMenu, selectedNodes, updatedNodes -> {
+            updatedNodes.forEach(n -> nodeChanged(n));
+            updateSearchAndFilterUI();
+        });
     }
 
     /**
