@@ -1,5 +1,8 @@
 package org.phoebus.service.saveandrestore.search;
 
+import co.elastic.clients.elasticsearch._types.FieldSort;
+import co.elastic.clients.elasticsearch._types.SortOptions;
+import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery.Builder;
 import co.elastic.clients.elasticsearch._types.query_dsl.ChildScoreMode;
@@ -42,8 +45,8 @@ public class SearchUtil {
     final public static DateTimeFormatter MILLI_FORMAT = DateTimeFormatter.ofPattern(MILLI_PATTERN).withZone(ZoneId.systemDefault());
 
     @SuppressWarnings("unused")
-    @Value("${elasticsearch.tree_node.index:saveandrestore_tree}")
-    public String ES_TREE_INDEX;
+    @Value("${elasticsearch.tree_node.index_v2:saveandrestore_tree_v2}")
+    public String ES_TREE_INDEX_V2;
     @SuppressWarnings("unused")
     @Value("${elasticsearch.result.size.search.default:100}")
     private int defaultSearchSize;
@@ -269,8 +272,17 @@ public class SearchUtil {
         int _searchResultSize = searchResultSize;
         int _from = from;
 
-        return SearchRequest.of(s -> s.index(ES_TREE_INDEX)
+        return SearchRequest.of(s -> s.index(ES_TREE_INDEX_V2)
                 .query(boolQueryBuilder.build()._toQuery())
+                .sort(SortOptions.of(o -> o
+                                .field(FieldSort.of(f -> f
+                                                .field("node.name.raw")
+                                                .nested(n -> n.path("node"))
+                                                .order(SortOrder.Asc)
+                                        )
+                                )
+                        )
+                )
                 .timeout("60s")
                 .size(Math.min(_searchResultSize, maxSearchSize))
                 .from(_from));

@@ -5,6 +5,10 @@ import co.elastic.clients.elasticsearch._types.Refresh;
 import co.elastic.clients.elasticsearch._types.Result;
 import co.elastic.clients.elasticsearch.core.IndexRequest;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
+import co.elastic.clients.elasticsearch.core.ReindexRequest;
+import co.elastic.clients.elasticsearch.core.ReindexResponse;
+import co.elastic.clients.elasticsearch.core.reindex.Destination;
+import co.elastic.clients.elasticsearch.core.reindex.Source;
 import co.elastic.clients.elasticsearch.indices.CreateIndexRequest;
 import co.elastic.clients.elasticsearch.indices.CreateIndexResponse;
 import co.elastic.clients.elasticsearch.indices.ExistsRequest;
@@ -47,6 +51,9 @@ public class ElasticConfig {
     @Value("${elasticsearch.tree_node.index:saveandrestore_tree}")
     public String ES_TREE_INDEX;
 
+    @Value("${elasticsearch.tree_node.index_v2:saveandrestore_tree_v2}")
+    public String ES_TREE_INDEX_V2;
+
     @Value("${elasticsearch.configuration_node.index:saveandrestore_configuration}")
     public String ES_CONFIGURATION_INDEX;
 
@@ -63,6 +70,12 @@ public class ElasticConfig {
     private String host;
     @Value("${elasticsearch.http.port:9200}")
     private int port;
+
+    /**
+     * Perform re-indexing, if needed. Test context should set this to false.
+     */
+    @Value("${performReindex:true")
+    private String performReindex;
 
     private ElasticsearchClient client;
     private static final AtomicBoolean esInitialized = new AtomicBoolean();
@@ -113,17 +126,7 @@ public class ElasticConfig {
     void elasticIndexValidation(ElasticsearchClient client) {
 
         // Tree index
-        try (InputStream is = ElasticConfig.class.getResourceAsStream("/tree_node_mapping.json")) {
-            BooleanResponse exits = client.indices().exists(ExistsRequest.of(e -> e.index(ES_TREE_INDEX)));
-            if (!exits.value()) {
-                CreateIndexResponse result = client.indices().create(
-                        CreateIndexRequest.of(
-                                c -> c.index(ES_TREE_INDEX).withJson(is)));
-                logger.info("Created index: " + ES_TREE_INDEX + " : acknowledged " + result.acknowledged());
-            }
-        } catch (IOException e) {
-            logger.log(Level.WARNING, "Failed to create index " + ES_TREE_INDEX, e);
-        }
+        createTreeIndex();
 
         // Configuration index
         try (InputStream is = ElasticConfig.class.getResourceAsStream("/configuration_mapping.json")) {
@@ -186,14 +189,14 @@ public class ElasticConfig {
     private void elasticIndexInitialization(ElasticsearchClient indexClient) {
 
         try {
-            if (!indexClient.exists(e -> e.index(ES_TREE_INDEX).id(ROOT_FOLDER_UNIQUE_ID)).value()) {
+            if (!indexClient.exists(e -> e.index(ES_TREE_INDEX_V2).id(ROOT_FOLDER_UNIQUE_ID)).value()) {
                 Date now = new Date();
                 ESTreeNode elasticsearchTreeNode = new ESTreeNode();
                 elasticsearchTreeNode.setNode(ROOT_NODE);
 
                 IndexRequest<ESTreeNode> indexRequest =
                         IndexRequest.of(i ->
-                                i.index(ES_TREE_INDEX)
+                                i.index(ES_TREE_INDEX_V2)
                                         .id(ROOT_FOLDER_UNIQUE_ID)
                                         .document(elasticsearchTreeNode)
                                         .refresh(Refresh.True));
@@ -213,5 +216,38 @@ public class ElasticConfig {
     @Bean
     public SearchUtil searchUtil(){
         return new SearchUtil();
+    }
+
+    /**
+     * Creates index ES_TREE_INDEX_V2 and - if legacy index ES_TREE_INDEX exists - re-indexes.
+     */
+    private void createTreeIndex(){
+        try (InputStream is = ElasticConfig.class.getResourceAsStream("/tree_node_mapping_v2.json")) {
+            BooleanResponse exits = client.indices().exists(ExistsRequest.of(e -> e.index(ES_TREE_INDEX_V2)));
+            if (!exits.value()) {
+                CreateIndexResponse result = client.indices().create(
+                        CreateIndexRequest.of(
+                                c -> c.index(ES_TREE_INDEX_V2).withJson(is)));
+                logger.info("Created index: " + ES_TREE_INDEX_V2 + " : acknowledged " + result.acknowledged());
+
+                // Re-index, if needed
+                if("true".equalsIgnoreCase(performReindex)){
+                    BooleanResponse legacyExists = client.indices().exists(ExistsRequest.of(e -> e.index(ES_TREE_INDEX)));
+                    if(legacyExists.value()){
+                        ReindexRequest request = ReindexRequest.of(r -> r.source(Source.of(s -> s.index(ES_TREE_INDEX))).dest(Destination.of(d -> d.index(ES_TREE_INDEX_V2))));
+                        ReindexResponse response = client.reindex(request);
+                        if(!response.failures().isEmpty()){
+                            logger.log(Level.SEVERE, "Reindex failed!");
+                            response.failures().forEach(f -> logger.log(Level.SEVERE, f.cause().reason()));
+                        }
+                        else{
+                            logger.log(Level.INFO, "Reindex done, took " + response.took().offset() + "ms");
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "Failed to create index " + ES_TREE_INDEX_V2, e);
+        }
     }
 }
