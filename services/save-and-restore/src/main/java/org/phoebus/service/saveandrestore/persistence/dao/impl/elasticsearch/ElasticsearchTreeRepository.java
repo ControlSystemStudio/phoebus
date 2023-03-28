@@ -72,8 +72,8 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
 
     private static final Logger logger = Logger.getLogger(ElasticsearchTreeRepository.class.getName());
 
-    @Value("${elasticsearch.tree_node.index_v2:saveandrestore_tree_v2}")
-    public String ES_TREE_INDEX_V2;
+    @Value("${elasticsearch.tree_node.index:saveandrestore_tree}")
+    public String ES_TREE_INDEX;
 
     /**
      * Used to determine if the {@link ESTreeNode} is saved or updated in connection to a migration
@@ -128,7 +128,7 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
 
             IndexRequest<ESTreeNode> indexRequest =
                     IndexRequest.of(i ->
-                            i.index(ES_TREE_INDEX_V2)
+                            i.index(ES_TREE_INDEX)
                                     .id(elasticTreeNode.getNode().getUniqueId())
                                     .document(elasticTreeNode)
                                     .refresh(Refresh.True));
@@ -137,7 +137,7 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
             if (response.result().equals(Result.Created) || response.result().equals(Result.Updated)) {
                 GetRequest getRequest =
                         GetRequest.of(g ->
-                                g.index(ES_TREE_INDEX_V2).id(response.id()));
+                                g.index(ES_TREE_INDEX).id(response.id()));
                 GetResponse<ESTreeNode> resp =
                         client.get(getRequest, ESTreeNode.class);
                 return (S) resp.source();
@@ -159,7 +159,7 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
         try {
             GetRequest getRequest =
                     GetRequest.of(g ->
-                            g.index(ES_TREE_INDEX_V2).id(id));
+                            g.index(ES_TREE_INDEX).id(id));
             GetResponse<ESTreeNode> resp =
                     client.get(getRequest, ESTreeNode.class);
 
@@ -177,7 +177,7 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
     public boolean existsById(String s) {
 
         try {
-            ExistsRequest existsRequest = ExistsRequest.of(e -> e.index(ES_TREE_INDEX_V2).id(s));
+            ExistsRequest existsRequest = ExistsRequest.of(e -> e.index(ES_TREE_INDEX).id(s));
             BooleanResponse existsResponse = client.exists(existsRequest);
             return existsResponse.value();
         } catch (IOException e) {
@@ -209,7 +209,7 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
         }
         List<String> ids = new ArrayList<>();
         uniqueIds.forEach(ids::add);
-        MgetRequest mgetRequest = MgetRequest.of(m -> m.index(ES_TREE_INDEX_V2).ids(ids));
+        MgetRequest mgetRequest = MgetRequest.of(m -> m.index(ES_TREE_INDEX).ids(ids));
         try {
             List<ESTreeNode> treeNodes = new ArrayList<>();
             MgetResponse<ESTreeNode> resp = client.mget(mgetRequest, ESTreeNode.class);
@@ -234,7 +234,7 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
     public void deleteById(String s) {
         try {
             DeleteRequest deleteRequest = DeleteRequest.of(d ->
-                    d.index(ES_TREE_INDEX_V2).id(s).refresh(Refresh.True));
+                    d.index(ES_TREE_INDEX).id(s).refresh(Refresh.True));
             DeleteResponse deleteResponse = client.delete(deleteRequest);
             if (deleteResponse.result().equals(Result.Deleted)) {
                 logger.log(Level.WARNING, "Node with id " + s + " deleted.");
@@ -266,7 +266,7 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
     public void deleteAll() {
         try {
             DeleteByQueryRequest deleteRequest = DeleteByQueryRequest.of(d ->
-                    d.index(ES_TREE_INDEX_V2).query(new MatchAllQuery.Builder().build()._toQuery()).refresh(true));
+                    d.index(ES_TREE_INDEX).query(new MatchAllQuery.Builder().build()._toQuery()).refresh(true));
             DeleteByQueryResponse deleteResponse = client.deleteByQuery(deleteRequest);
             logger.log(Level.INFO, "Deleted " + deleteResponse.deleted() + " ESTreeNode objects");
         } catch (IOException e) {
@@ -287,7 +287,7 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
     public ESTreeNode getParentNode(String uniqueId) {
         Builder bqb = new Builder();
         bqb.must(TermQuery.of(w -> w.field("childNodes").value(uniqueId))._toQuery());
-        SearchRequest searchRequest = SearchRequest.of(s -> s.index(ES_TREE_INDEX_V2)
+        SearchRequest searchRequest = SearchRequest.of(s -> s.index(ES_TREE_INDEX)
                 .query(bqb.build()._toQuery())
                 .timeout("60s"));
         try {
@@ -326,7 +326,7 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
         }
         NestedQuery outerNestedQuery = NestedQuery.of(n2 -> n2.path("node").query(innerNestedQuery._toQuery()));
         boolQueryBuilder.must(outerNestedQuery._toQuery());
-        SearchRequest searchRequest = SearchRequest.of(s -> s.index(ES_TREE_INDEX_V2)
+        SearchRequest searchRequest = SearchRequest.of(s -> s.index(ES_TREE_INDEX)
                 .query(boolQueryBuilder.build()._toQuery())
                 .timeout("60s")
                 .size(1000));
@@ -358,7 +358,7 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
         MatchQuery matchQuery = MatchQuery.of(m -> m.field("node.name").query(nodeName));
         innerNestedQuery = NestedQuery.of(n1 -> n1.path("node").query(matchQuery._toQuery()));
         boolQueryBuilder.must(innerNestedQuery._toQuery());
-        SearchRequest searchRequest = SearchRequest.of(s -> s.index(ES_TREE_INDEX_V2)
+        SearchRequest searchRequest = SearchRequest.of(s -> s.index(ES_TREE_INDEX)
                 .query(boolQueryBuilder.build()._toQuery())
                 .timeout("60s")
                 .size(1000));

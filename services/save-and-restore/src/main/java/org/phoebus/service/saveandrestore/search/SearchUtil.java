@@ -45,8 +45,8 @@ public class SearchUtil {
     final public static DateTimeFormatter MILLI_FORMAT = DateTimeFormatter.ofPattern(MILLI_PATTERN).withZone(ZoneId.systemDefault());
 
     @SuppressWarnings("unused")
-    @Value("${elasticsearch.tree_node.index_v2:saveandrestore_tree_v2}")
-    public String ES_TREE_INDEX_V2;
+    @Value("${elasticsearch.tree_node.index:saveandrestore_tree}")
+    public String ES_TREE_INDEX;
     @SuppressWarnings("unused")
     @Value("${elasticsearch.result.size.search.default:100}")
     private int defaultSearchSize;
@@ -272,7 +272,7 @@ public class SearchUtil {
         int _searchResultSize = searchResultSize;
         int _from = from;
 
-        return SearchRequest.of(s -> s.index(ES_TREE_INDEX_V2)
+        return SearchRequest.of(s -> s.index(ES_TREE_INDEX)
                 .query(boolQueryBuilder.build()._toQuery())
                 .sort(SortOptions.of(o -> o
                                 .field(FieldSort.of(f -> f

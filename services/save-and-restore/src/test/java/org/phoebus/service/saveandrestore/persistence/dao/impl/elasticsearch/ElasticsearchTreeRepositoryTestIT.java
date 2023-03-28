@@ -70,8 +70,8 @@ public class ElasticsearchTreeRepositoryTestIT {
     @Autowired
     private ElasticsearchClient client;
 
-    @Value("${elasticsearch.tree_node.index_v2:test_saveandrestore_tree_v2}")
-    private String ES_TREE_INDEX_V2;
+    @Value("${elasticsearch.tree_node.index:test_saveandrestore_tree}")
+    private String ES_TREE_INDEX;
 
     @Autowired
     private ElasticsearchTreeRepository elasticsearchTreeRepository;
@@ -234,11 +234,11 @@ public class ElasticsearchTreeRepositoryTestIT {
     @AfterAll
     public void dropIndex() {
         try {
-            BooleanResponse exists = client.indices().exists(ExistsRequest.of(e -> e.index(ES_TREE_INDEX_V2)));
+            BooleanResponse exists = client.indices().exists(ExistsRequest.of(e -> e.index(ES_TREE_INDEX)));
             if (exists.value()) {
                 client.indices().delete(
                         DeleteIndexRequest.of(
-                                c -> c.index(ES_TREE_INDEX_V2)));
+                                c -> c.index(ES_TREE_INDEX)));
             }
         } catch (IOException e) {
             e.printStackTrace();

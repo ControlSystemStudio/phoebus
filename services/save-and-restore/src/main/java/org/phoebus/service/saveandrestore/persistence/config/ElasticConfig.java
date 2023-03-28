@@ -3,15 +3,20 @@ package org.phoebus.service.saveandrestore.persistence.config;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.Refresh;
 import co.elastic.clients.elasticsearch._types.Result;
+import co.elastic.clients.elasticsearch._types.mapping.KeywordProperty;
+import co.elastic.clients.elasticsearch._types.mapping.NestedProperty;
+import co.elastic.clients.elasticsearch._types.mapping.Property;
+import co.elastic.clients.elasticsearch._types.mapping.TextProperty;
 import co.elastic.clients.elasticsearch.core.IndexRequest;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
-import co.elastic.clients.elasticsearch.core.ReindexRequest;
-import co.elastic.clients.elasticsearch.core.ReindexResponse;
-import co.elastic.clients.elasticsearch.core.reindex.Destination;
-import co.elastic.clients.elasticsearch.core.reindex.Source;
 import co.elastic.clients.elasticsearch.indices.CreateIndexRequest;
 import co.elastic.clients.elasticsearch.indices.CreateIndexResponse;
 import co.elastic.clients.elasticsearch.indices.ExistsRequest;
+import co.elastic.clients.elasticsearch.indices.GetMappingRequest;
+import co.elastic.clients.elasticsearch.indices.GetMappingResponse;
+import co.elastic.clients.elasticsearch.indices.PutMappingRequest;
+import co.elastic.clients.elasticsearch.indices.PutMappingResponse;
+import co.elastic.clients.elasticsearch.indices.get_mapping.IndexMappingRecord;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
@@ -35,6 +40,7 @@ import org.springframework.context.annotation.PropertySource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,9 +57,6 @@ public class ElasticConfig {
     @Value("${elasticsearch.tree_node.index:saveandrestore_tree}")
     public String ES_TREE_INDEX;
 
-    @Value("${elasticsearch.tree_node.index_v2:saveandrestore_tree_v2}")
-    public String ES_TREE_INDEX_V2;
-
     @Value("${elasticsearch.configuration_node.index:saveandrestore_configuration}")
     public String ES_CONFIGURATION_INDEX;
 
@@ -66,23 +69,19 @@ public class ElasticConfig {
     @Value("${elasticsearch.filter.index:saveandrestore_filter}")
     public String ES_FILTER_INDEX;
 
+    @SuppressWarnings("unused")
     @Value("${elasticsearch.network.host:localhost}")
     private String host;
+    @SuppressWarnings("unused")
     @Value("${elasticsearch.http.port:9200}")
     private int port;
-
-    /**
-     * Perform re-indexing, if needed. Test context should set this to false.
-     */
-    @Value("${performReindex:true")
-    private String performReindex;
 
     private ElasticsearchClient client;
     private static final AtomicBoolean esInitialized = new AtomicBoolean();
 
     public static final Node ROOT_NODE;
 
-    static{
+    static {
         Date now = new Date();
         ROOT_NODE = Node.builder().nodeType(NodeType.FOLDER).uniqueId(ROOT_FOLDER_UNIQUE_ID).name("Root folder")
                 .userName("anonymous").created(now).lastModified(now).build();
@@ -121,12 +120,25 @@ public class ElasticConfig {
     /**
      * Create the indices and templates if they don't exist
      *
-     * @param client
+     * @param client The Elasticsearch high level Java client.
      */
     void elasticIndexValidation(ElasticsearchClient client) {
 
         // Tree index
-        createTreeIndex();
+        try (InputStream is = ElasticConfig.class.getResourceAsStream("/tree_node_mapping.json")) {
+            BooleanResponse exits = client.indices().exists(ExistsRequest.of(e -> e.index(ES_TREE_INDEX)));
+            if (!exits.value()) {
+                CreateIndexResponse result = client.indices().create(
+                        CreateIndexRequest.of(
+                                c -> c.index(ES_TREE_INDEX).withJson(is)));
+                logger.info("Created index: " + ES_TREE_INDEX + " : acknowledged " + result.acknowledged());
+            }
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "Failed to create index " + ES_TREE_INDEX, e);
+        }
+
+        // Update may be needed depending on when the index was created
+        updateNodeNameMappingIfNeeded();
 
         // Configuration index
         try (InputStream is = ElasticConfig.class.getResourceAsStream("/configuration_mapping.json")) {
@@ -189,14 +201,13 @@ public class ElasticConfig {
     private void elasticIndexInitialization(ElasticsearchClient indexClient) {
 
         try {
-            if (!indexClient.exists(e -> e.index(ES_TREE_INDEX_V2).id(ROOT_FOLDER_UNIQUE_ID)).value()) {
-                Date now = new Date();
+            if (!indexClient.exists(e -> e.index(ES_TREE_INDEX).id(ROOT_FOLDER_UNIQUE_ID)).value()) {
                 ESTreeNode elasticsearchTreeNode = new ESTreeNode();
                 elasticsearchTreeNode.setNode(ROOT_NODE);
 
                 IndexRequest<ESTreeNode> indexRequest =
                         IndexRequest.of(i ->
-                                i.index(ES_TREE_INDEX_V2)
+                                i.index(ES_TREE_INDEX)
                                         .id(ROOT_FOLDER_UNIQUE_ID)
                                         .document(elasticsearchTreeNode)
                                         .refresh(Refresh.True));
@@ -213,41 +224,37 @@ public class ElasticConfig {
         }
     }
 
+    @SuppressWarnings("unused")
     @Bean
-    public SearchUtil searchUtil(){
+    public SearchUtil searchUtil() {
         return new SearchUtil();
     }
 
     /**
-     * Creates index ES_TREE_INDEX_V2 and - if legacy index ES_TREE_INDEX exists - re-indexes.
+     * Checks if the "name" property has the "raw" field mapped. If not it is added.
+     * The "raw" field is needed to be able to sort on node name.
      */
-    private void createTreeIndex(){
-        try (InputStream is = ElasticConfig.class.getResourceAsStream("/tree_node_mapping_v2.json")) {
-            BooleanResponse exits = client.indices().exists(ExistsRequest.of(e -> e.index(ES_TREE_INDEX_V2)));
-            if (!exits.value()) {
-                CreateIndexResponse result = client.indices().create(
-                        CreateIndexRequest.of(
-                                c -> c.index(ES_TREE_INDEX_V2).withJson(is)));
-                logger.info("Created index: " + ES_TREE_INDEX_V2 + " : acknowledged " + result.acknowledged());
-
-                // Re-index, if needed
-                if("true".equalsIgnoreCase(performReindex)){
-                    BooleanResponse legacyExists = client.indices().exists(ExistsRequest.of(e -> e.index(ES_TREE_INDEX)));
-                    if(legacyExists.value()){
-                        ReindexRequest request = ReindexRequest.of(r -> r.source(Source.of(s -> s.index(ES_TREE_INDEX))).dest(Destination.of(d -> d.index(ES_TREE_INDEX_V2))));
-                        ReindexResponse response = client.reindex(request);
-                        if(!response.failures().isEmpty()){
-                            logger.log(Level.SEVERE, "Reindex failed!");
-                            response.failures().forEach(f -> logger.log(Level.SEVERE, f.cause().reason()));
-                        }
-                        else{
-                            logger.log(Level.INFO, "Reindex done, took " + response.took().offset() + "ms");
-                        }
-                    }
+    private void updateNodeNameMappingIfNeeded() {
+        GetMappingRequest getMappingRequest = GetMappingRequest.of(g -> g.index(ES_TREE_INDEX));
+        try {
+            GetMappingResponse getMappingResponse = client.indices().getMapping(getMappingRequest);
+            Map<String, IndexMappingRecord> map = getMappingResponse.result();
+            IndexMappingRecord record = map.get(ES_TREE_INDEX);
+            Property nodeProperty = record.mappings().properties().get("node");
+            Map<String, Property> nodeProperties = nodeProperty.nested().properties();
+            Property nameProperty = nodeProperties.get("name");
+            if (nameProperty.text().fields().get("raw") == null) {
+                KeywordProperty keywordProperty = KeywordProperty.of(k -> k);
+                Property nameProperty2 = new Property(TextProperty.of(t -> t.fields(Map.of("raw", new Property(keywordProperty)))));
+                Property nodeProperty2 = new Property(NestedProperty.of(n -> n.properties(Map.of("name", nameProperty2))));
+                PutMappingRequest putMappingRequest = PutMappingRequest.of(p -> p.index(ES_TREE_INDEX).properties(Map.of("node", nodeProperty2)));
+                PutMappingResponse putMappingResponse = client.indices().putMapping(putMappingRequest);
+                if (putMappingResponse.acknowledged()) {
+                    logger.log(Level.INFO, "Updated the name property mapping by adding the 'raw' field");
                 }
             }
         } catch (IOException e) {
-            logger.log(Level.WARNING, "Failed to create index " + ES_TREE_INDEX_V2, e);
+            logger.log(Level.SEVERE, "Failed to update the name property mapping");
         }
     }
 }
