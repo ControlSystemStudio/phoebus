@@ -969,7 +969,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         List<Node> selectedNodes = selectedItems.stream().map(TreeItem::getValue).collect(Collectors.toList());
         List<Node> updatedNodes = TagUtil.addTag(selectedNodes);
         updatedNodes.forEach(node -> nodeChanged(node));
-        updateSearchAndFilterUI();
+        //updateSearchAndFilterUI();
     }
 
     /**
@@ -996,7 +996,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 browserSelectionModel.getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
         TagUtil.tagWithComment(tagWithCommentMenu, selectedNodes, updatedNodes -> {
             updatedNodes.forEach(n -> nodeChanged(n));
-            updateSearchAndFilterUI();
+            //updateSearchAndFilterUI();
         });
     }
 

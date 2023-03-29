@@ -63,6 +63,7 @@ import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.ui.HelpViewer;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
+import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
@@ -92,7 +93,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class SearchAndFilterViewController implements Initializable {
+public class SearchAndFilterViewController implements Initializable{
 
     private final SaveAndRestoreController saveAndRestoreController;
 
@@ -402,16 +403,11 @@ public class SearchAndFilterViewController implements Initializable {
         Menu tagMenu = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
         contextMenu.setOnShowing(event -> TagUtil.tagWithComment(tagMenu,
                         resultTableView.getSelectionModel().getSelectedItems(),
-                updatedNodes -> {
-                    updatedNodes.forEach(node -> saveAndRestoreController.nodeChanged(node));
-                    // Invoke new search to make sure result list reflects changes
-                    search();
+                updatedNodes -> { // Callback, any extra handling added here
                 }));
         MenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
         addTagWithCommentMenuItem.setOnAction(event -> {
-            List<Node> updatedNodes = TagUtil.addTag(resultTableView.getSelectionModel().getSelectedItems());
-            updatedNodes.forEach(node -> saveAndRestoreController.nodeChanged(node));
-            search();
+            TagUtil.addTag(resultTableView.getSelectionModel().getSelectedItems());
         });
         tagMenu.getItems().add(addTagWithCommentMenuItem);
         contextMenu.getItems().addAll(tagMenu);
@@ -790,5 +786,14 @@ public class SearchAndFilterViewController implements Initializable {
                 searchParams.get(Keys.TAGS.getName()).contains(Tag.GOLDEN));
 
         searchDisabled = false;
+    }
+
+    public void nodeChanged(Node updatedNode){
+        for(Node node : resultTableView.getItems()){
+            if(node.getUniqueId().equals(updatedNode.getUniqueId())){
+                node.setTags(updatedNode.getTags());
+                resultTableView.refresh();
+            }
+        }
     }
 }
