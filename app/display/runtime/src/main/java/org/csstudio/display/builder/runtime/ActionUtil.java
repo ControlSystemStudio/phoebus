@@ -88,7 +88,10 @@ public class ActionUtil
             final Macros expanded = new Macros(action.getMacros());
             expanded.expandValues(source_widget.getEffectiveMacros());
             final Macros macros = Macros.merge(source_widget.getEffectiveMacros(), expanded);
+            // For display path, use the combined macros...
             expanded_path = MacroHandler.replace(new MacroOrSystemProvider(macros), action.getFile());
+            // .. but fall back to properties
+            expanded_path = MacroHandler.replace(source_widget.getMacrosOrProperties(), expanded_path);
             logger.log(Level.FINER, "{0}, effective macros {1} ({2})", new Object[] { action, macros, expanded_path });
 
             // Resolve new display file relative to the source widget model (not 'top'!)
@@ -370,7 +373,7 @@ public class ActionUtil
     private static String resolve(final Widget source_widget, final String path) throws Exception
     {
         // Path to resolve, after expanding macros
-        final Macros macros = source_widget.getEffectiveMacros();
+        final MacroValueProvider macros = source_widget.getMacrosOrProperties();
         final String expanded_path = MacroHandler.replace(macros, path);
 
         // Resolve file relative to the source widget model (not 'top'!)
