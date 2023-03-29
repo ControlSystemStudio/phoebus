@@ -38,12 +38,31 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
     private final Label label = new Label();
     private final ImageView image = new ImageView();
     private final HBox content = new HBox(image, label);
-            
+
+    // TreeCell optimizes redraws by suppressing updates
+    // when old and new values match.
+    // Since we use the model item as a value,
+    // the cell sees no change, in fact an identical reference.
+    // In the fullness of time, a complete redesign might be useful
+    // to present changing values to the TreeCell, but also note
+    // the issue shown in org.phoebus.applications.alarm.TreeItemUpdateDemo
+    //
+    // So for now we simply force redraws by always pretending a change.
+    // This seems bad for performance, but profiling the alarm GUI for
+    // a large configuration like org.phoebus.applications.alarm.AlarmConfigProducerDemo
+    // with 1000 'sections' of 10 subsections of 10 PVs,
+    // the time spent in updateItem is negligible.
+    @Override
+    protected boolean isItemChanged(final AlarmTreeItem<?> before, final AlarmTreeItem<?> after)
+    {
+        return true;
+    }
+
     @Override
     protected void updateItem(final AlarmTreeItem<?> item, final boolean empty)
     {
         super.updateItem(item, empty);
-        
+
         if (empty  ||  item == null)
             setGraphic(null);
         else

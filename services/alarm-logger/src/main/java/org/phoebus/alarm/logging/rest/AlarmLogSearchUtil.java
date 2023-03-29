@@ -292,8 +292,9 @@ public class AlarmLogSearchUtil {
      */
     public static List<AlarmLogMessage> searchConfig(ElasticsearchClient client, Map<String, String> allRequestParams) {
         String configString = allRequestParams.get("config");
-        // Determine which alarm config to specify as Elasticsearch index
-        String alarmConfig = configString.split("/")[1];
+        // Determine which alarm config to specify as Elasticsearch index, convert to lower case as
+        // indices are created using lower case.
+        String alarmConfig = configString.split("/")[1].toLowerCase();
 
         String searchPattern = "*".concat(configString).concat("*");
         int size = 1;
