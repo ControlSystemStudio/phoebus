@@ -43,6 +43,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Pagination;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -63,7 +64,6 @@ import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.ui.HelpViewer;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
-import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
@@ -93,7 +93,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class SearchAndFilterViewController implements Initializable{
+public class SearchAndFilterViewController implements Initializable {
 
     private final SaveAndRestoreController saveAndRestoreController;
 
@@ -399,18 +399,22 @@ public class SearchAndFilterViewController implements Initializable{
         });
 
         ContextMenu contextMenu = new ContextMenu();
+        MenuItem tagGoldenMenuItem = new MenuItem(Messages.contextMenuTagAsGolden, new ImageView(ImageRepository.SNAPSHOT));
+
         ImageView snapshotTagsWithCommentIconImage = new ImageView(ImageRepository.SNAPSHOT_ADD_TAG_WITH_COMMENT);
         Menu tagMenu = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
-        contextMenu.setOnShowing(event -> TagUtil.tagWithComment(tagMenu,
-                        resultTableView.getSelectionModel().getSelectedItems(),
-                updatedNodes -> { // Callback, any extra handling added here
-                }));
-        MenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
-        addTagWithCommentMenuItem.setOnAction(event -> {
-            TagUtil.addTag(resultTableView.getSelectionModel().getSelectedItems());
+
+        contextMenu.setOnShowing(event -> {
+            TagUtil.tagWithComment(tagMenu,
+                    resultTableView.getSelectionModel().getSelectedItems(),
+                    updatedNodes -> { // Callback, any extra handling added here
+                    });
+            TagUtil.configureGoldenItem(resultTableView.getSelectionModel().getSelectedItems(), tagGoldenMenuItem);
         });
+        MenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
+        addTagWithCommentMenuItem.setOnAction(event -> TagUtil.addTag(resultTableView.getSelectionModel().getSelectedItems()));
         tagMenu.getItems().add(addTagWithCommentMenuItem);
-        contextMenu.getItems().addAll(tagMenu);
+        contextMenu.getItems().addAll(tagGoldenMenuItem, tagMenu);
 
         resultTableView.setContextMenu(contextMenu);
 
@@ -438,7 +442,7 @@ public class SearchAndFilterViewController implements Initializable{
 
         tagsColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getTags() == null ?
                 "" :
-                cell.getValue().getTags().stream().filter(tag -> !tag.getName().equals(Tag.GOLDEN)).map(Tag::getName).collect(Collectors.joining(System.lineSeparator()))));
+                cell.getValue().getTags().stream().map(Tag::getName).filter(name -> !name.equals(Tag.GOLDEN)).collect(Collectors.joining(System.lineSeparator()))));
         tagsColumn.getStyleClass().add("leftAlignedTableColumnHeader");
 
         pageSizeTextField.setText(Integer.toString(pageSizeProperty.get()));
@@ -446,7 +450,7 @@ public class SearchAndFilterViewController implements Initializable{
         // This is to accept numerical input only, and at most 3 digits (maximizing search to 999 hits).
         pageSizeTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (DIGIT_PATTERN.matcher(newValue).matches()) {
-                if ("".equals(newValue)) {
+                if ("" .equals(newValue)) {
                     pageSizeProperty.set(Preferences.search_result_page_size);
                 } else if (newValue.length() > 3) {
                     pageSizeTextField.setText(oldValue);
@@ -471,6 +475,8 @@ public class SearchAndFilterViewController implements Initializable{
                 search();
             }
         });
+
+        resultTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         loadFilters();
     }
@@ -788,9 +794,9 @@ public class SearchAndFilterViewController implements Initializable{
         searchDisabled = false;
     }
 
-    public void nodeChanged(Node updatedNode){
-        for(Node node : resultTableView.getItems()){
-            if(node.getUniqueId().equals(updatedNode.getUniqueId())){
+    public void nodeChanged(Node updatedNode) {
+        for (Node node : resultTableView.getItems()) {
+            if (node.getUniqueId().equals(updatedNode.getUniqueId())) {
                 node.setTags(updatedNode.getTags());
                 resultTableView.refresh();
             }

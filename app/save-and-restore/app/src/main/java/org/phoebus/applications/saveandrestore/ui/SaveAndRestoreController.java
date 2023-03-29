@@ -37,7 +37,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
@@ -45,7 +44,6 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -61,9 +59,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
-import javafx.stage.Modality;
 import javafx.util.Callback;
-import javafx.util.Pair;
 import javafx.util.StringConverter;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
@@ -73,7 +69,6 @@ import org.phoebus.applications.saveandrestore.filehandler.csv.CSVImporter;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.applications.saveandrestore.model.TagData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
@@ -81,14 +76,10 @@ import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationTab;
 import org.phoebus.applications.saveandrestore.ui.search.SearchAndFilterTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.CompositeSnapshotTab;
-import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotNewTagDialog;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
-import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
-import org.phoebus.framework.autocomplete.ProposalService;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
-import org.phoebus.ui.autocomplete.AutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
@@ -103,14 +94,12 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Stack;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -224,7 +213,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             if (item == null) {
                 return;
             }
-            if(me.getClickCount() == 2){
+            if (me.getClickCount() == 2) {
                 nodeDoubleClicked(item.getValue());
             }
         });
@@ -414,7 +403,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      */
     protected void compareSnapshot(Node node) {
         Tab tab = tabPane.getSelectionModel().getSelectedItem();
-        if(tab == null){
+        if (tab == null) {
             return;
         }
         if (tab instanceof SnapshotTab) {
@@ -581,7 +570,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * @param node The double click source
      */
     public void nodeDoubleClicked(Node node) {
-        if(highlightTab(node.getUniqueId())){
+        if (highlightTab(node.getUniqueId())) {
             return;
         }
         Tab tab;
@@ -611,13 +600,13 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * Launches the composite snapshot editor view. Note that a tab showing this view uses the "edit_" prefix
      * for the id since it would otherwise clash with a restore view of a composite snapshot.
      */
-    public void editCompositeSnapshot(){
+    public void editCompositeSnapshot() {
         Node compositeSnapshotNode = browserSelectionModel.getSelectedItem().getValue();
-        if(highlightTab("edit_" + compositeSnapshotNode.getUniqueId())){
+        if (highlightTab("edit_" + compositeSnapshotNode.getUniqueId())) {
             return;
         }
-        Tab tab = new CompositeSnapshotTab(this);
-        ((CompositeSnapshotTab) tab).editCompositeSnapshot(compositeSnapshotNode);
+        CompositeSnapshotTab tab = new CompositeSnapshotTab(this);
+        tab.editCompositeSnapshot(compositeSnapshotNode);
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);
     }
@@ -968,21 +957,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         ObservableList<TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
         List<Node> selectedNodes = selectedItems.stream().map(TreeItem::getValue).collect(Collectors.toList());
         List<Node> updatedNodes = TagUtil.addTag(selectedNodes);
-        updatedNodes.forEach(node -> nodeChanged(node));
-        //updateSearchAndFilterUI();
+        updatedNodes.forEach(this::nodeChanged);
     }
-
-    /**
-     * Updates the search and filter UI, if opened, by invoking a new search.
-     */
-    private void updateSearchAndFilterUI(){
-        Optional<Tab> searchTabOptional = tabPane.getTabs().stream().filter(t -> t.getId() != null &&
-                t.getId().equals(SearchAndFilterTab.SEARCH_AND_FILTER_TAB_ID)).findFirst();
-        if (searchTabOptional.isPresent()) {
-            ((SearchAndFilterTab)searchTabOptional.get()).search();
-        }
-    }
-
 
     /**
      * Configures the "tag with comment" sub-menu. Items are added based on existing {@link Tag}s on the
@@ -994,10 +970,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         List<Node> selectedNodes =
                 browserSelectionModel.getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
-        TagUtil.tagWithComment(tagWithCommentMenu, selectedNodes, updatedNodes -> {
-            updatedNodes.forEach(n -> nodeChanged(n));
-            //updateSearchAndFilterUI();
-        });
+        TagUtil.tagWithComment(tagWithCommentMenu, selectedNodes, updatedNodes -> updatedNodes.forEach(this::nodeChanged));
     }
 
     /**
@@ -1016,43 +989,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     public void configureGoldenItem(MenuItem menuItem) {
         List<Node> selectedNodes =
                 browserSelectionModel.getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
-        AtomicInteger goldenTagCount = new AtomicInteger(0);
-        selectedNodes.forEach(node -> {
-            if (node.hasTag(Tag.GOLDEN)) {
-                goldenTagCount.incrementAndGet();
-            }
-        });
-        if (goldenTagCount.get() == selectedNodes.size()) {
-            menuItem.disableProperty().set(false);
-            menuItem.setText(Messages.contextMenuRemoveGoldenTag);
-            menuItem.setGraphic(new ImageView(ImageRepository.SNAPSHOT));
-            menuItem.setOnAction(event -> {
-                TagData tagData = new TagData();
-                tagData.setTag(Tag.builder().name(Tag.GOLDEN).build());
-                tagData.setUniqueNodeIds(selectedNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
-                try {
-                    saveAndRestoreService.deleteTag(tagData);
-                } catch (Exception e) {
-                    LOG.log(Level.SEVERE, "Failed to delete tag");
-                }
-            });
-        } else if (goldenTagCount.get() == 0) {
-            menuItem.disableProperty().set(false);
-            menuItem.setText(Messages.contextMenuTagAsGolden);
-            menuItem.setGraphic(new ImageView(ImageRepository.GOLDEN_SNAPSHOT));
-            menuItem.setOnAction(event -> {
-                TagData tagData = new TagData();
-                tagData.setTag(Tag.builder().name(Tag.GOLDEN).build());
-                tagData.setUniqueNodeIds(selectedNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
-                try {
-                    saveAndRestoreService.addTag(tagData);
-                } catch (Exception e) {
-                    LOG.log(Level.SEVERE, "Failed to add tag");
-                }
-            });
-        } else {
-            menuItem.disableProperty().set(true);
-        }
+        TagUtil.configureGoldenItem(selectedNodes, menuItem);
     }
 
 

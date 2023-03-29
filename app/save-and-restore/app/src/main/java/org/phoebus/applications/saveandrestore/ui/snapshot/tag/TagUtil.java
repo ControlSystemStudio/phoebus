@@ -28,13 +28,16 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.TreeItem;
+import javafx.scene.image.ImageView;
 import javafx.stage.Modality;
 import javafx.util.Pair;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.TagData;
+import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController.TagComparator;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.TagProposalProvider;
@@ -42,12 +45,12 @@ import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotNewTagDialog;
 import org.phoebus.framework.autocomplete.ProposalService;
 import org.phoebus.ui.autocomplete.AutocompleteMenu;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -71,7 +74,7 @@ public class TagUtil {
     public static List<Tag> getCommonTags(List<org.phoebus.applications.saveandrestore.model.Node> nodes) {
         // Construct a list containing all tags across all nodes. May contain duplicates.
         List<Tag> allTags = new ArrayList<>();
-        nodes.stream().forEach(n -> {
+        nodes.forEach(n -> {
             if (n.getTags() != null) {
                 allTags.addAll(n.getTags());
             }
@@ -90,7 +93,16 @@ public class TagUtil {
 
     public static void tagWithComment(Menu parentMenu,
                                       List<org.phoebus.applications.saveandrestore.model.Node> selectedNodes,
-                                      Consumer<List<org.phoebus.applications.saveandrestore.model.Node>> callback){
+                                      Consumer<List<org.phoebus.applications.saveandrestore.model.Node>> callback) {
+        AtomicInteger nonSnapshotCount = new AtomicInteger(0);
+        selectedNodes.forEach(n -> {
+            if (!n.getNodeType().equals(NodeType.SNAPSHOT)) {
+                nonSnapshotCount.incrementAndGet();
+            }
+        });
+        if (nonSnapshotCount.get() > 0) {
+            parentMenu.disableProperty().set(true);
+        }
         ObservableList<javafx.scene.control.MenuItem> items = parentMenu.getItems();
         // Need to remove items as they would otherwise be maintained when user selects another node with tags
         if (items.size() > 1) {
@@ -131,9 +143,9 @@ public class TagUtil {
         items.addAll(additionalItems);
     }
 
-    public static List<org.phoebus.applications.saveandrestore.model.Node> addTag(List<org.phoebus.applications.saveandrestore.model.Node> selectedNodes){
+    public static List<org.phoebus.applications.saveandrestore.model.Node> addTag(List<org.phoebus.applications.saveandrestore.model.Node> selectedNodes) {
         List<String> selectedNodeIds =
-                selectedNodes.stream().map(node -> node.getUniqueId()).collect(Collectors.toList());
+                selectedNodes.stream().map(org.phoebus.applications.saveandrestore.model.Node::getUniqueId).collect(Collectors.toList());
         SnapshotNewTagDialog snapshotNewTagDialog =
                 new SnapshotNewTagDialog(selectedNodes);
         snapshotNewTagDialog.initModality(Modality.APPLICATION_MODAL);
@@ -160,5 +172,67 @@ public class TagUtil {
             }
         });
         return updatedNodes;
+    }
+
+    /**
+     * Configures the "tag as golden" menu item. Depending on the occurrence of the golden {@link Tag} on the
+     * selected {@link org.phoebus.applications.saveandrestore.model.Node}s, the logic goes as:
+     * <ul>
+     *     <li>If all selected {@link org.phoebus.applications.saveandrestore.model.Node}s have been tagged as golden, the item will offer possibility to remove
+     *     the tag on all {@link org.phoebus.applications.saveandrestore.model.Node}s.</li>
+     *     <li>If none of the selected {@link org.phoebus.applications.saveandrestore.model.Node}s have been tagged as golden, the item will offer possibility
+     *     to add the tag on all {@link org.phoebus.applications.saveandrestore.model.Node}s.</li>
+     *     <li>If some - but not all - of the selected {@link org.phoebus.applications.saveandrestore.model.Node}s have been tagged as golden, the item is disabled.</li>
+     *     <li>If any of the selected nodes is not a snapshot, the menu item is disabled.</li>
+     * </ul>
+     *
+     * @param selectedNodes List of {@link org.phoebus.applications.saveandrestore.model.Node}s selected by user.
+     * @param menuItem      The {@link javafx.scene.control.MenuItem} subject to configuration.
+     */
+    public static void configureGoldenItem(List<org.phoebus.applications.saveandrestore.model.Node> selectedNodes, MenuItem menuItem) {
+        AtomicInteger goldenTagCount = new AtomicInteger(0);
+        AtomicInteger nonSnapshotCount = new AtomicInteger(0);
+        selectedNodes.forEach(node -> {
+            if (node.hasTag(Tag.GOLDEN)) {
+                goldenTagCount.incrementAndGet();
+            } else if (!node.getNodeType().equals(NodeType.SNAPSHOT)) {
+                nonSnapshotCount.incrementAndGet();
+            }
+        });
+        if (nonSnapshotCount.get() > 0) {
+            menuItem.disableProperty().set(true);
+            return;
+        }
+        if (goldenTagCount.get() == selectedNodes.size()) {
+            menuItem.disableProperty().set(false);
+            menuItem.setText(Messages.contextMenuRemoveGoldenTag);
+            menuItem.setGraphic(new ImageView(ImageRepository.SNAPSHOT));
+            menuItem.setOnAction(event -> {
+                TagData tagData = new TagData();
+                tagData.setTag(Tag.builder().name(Tag.GOLDEN).build());
+                tagData.setUniqueNodeIds(selectedNodes.stream().map(org.phoebus.applications.saveandrestore.model.Node::getUniqueId).collect(Collectors.toList()));
+                try {
+                    SaveAndRestoreService.getInstance().deleteTag(tagData);
+                } catch (Exception e) {
+                    Logger.getLogger(TagUtil.class.getName()).log(Level.SEVERE, "Failed to delete tag");
+                }
+            });
+        } else if (goldenTagCount.get() == 0) {
+            menuItem.disableProperty().set(false);
+            menuItem.setText(Messages.contextMenuTagAsGolden);
+            menuItem.setGraphic(new ImageView(ImageRepository.GOLDEN_SNAPSHOT));
+            menuItem.setOnAction(event -> {
+                TagData tagData = new TagData();
+                tagData.setTag(Tag.builder().name(Tag.GOLDEN).build());
+                tagData.setUniqueNodeIds(selectedNodes.stream().map(org.phoebus.applications.saveandrestore.model.Node::getUniqueId).collect(Collectors.toList()));
+                try {
+                    SaveAndRestoreService.getInstance().addTag(tagData);
+                } catch (Exception e) {
+                    Logger.getLogger(TagUtil.class.getName()).log(Level.SEVERE, "Failed to add tag");
+                }
+            });
+        } else {
+            menuItem.disableProperty().set(true);
+        }
     }
 }
