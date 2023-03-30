@@ -38,7 +38,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Profile;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -71,8 +70,8 @@ public class ElasticsearchTreeRepositoryTestIT {
     @Autowired
     private ElasticsearchClient client;
 
-    @Value("${elasticsearch.tree_node.index:test_saveandrestore_tree}")
-    private String ES_TREE_INDEX;
+    @Value("${elasticsearch.tree_node.index_v2:test_saveandrestore_tree_v2}")
+    private String ES_TREE_INDEX_V2;
 
     @Autowired
     private ElasticsearchTreeRepository elasticsearchTreeRepository;
@@ -235,11 +234,11 @@ public class ElasticsearchTreeRepositoryTestIT {
     @AfterAll
     public void dropIndex() {
         try {
-            BooleanResponse exists = client.indices().exists(ExistsRequest.of(e -> e.index(ES_TREE_INDEX)));
+            BooleanResponse exists = client.indices().exists(ExistsRequest.of(e -> e.index(ES_TREE_INDEX_V2)));
             if (exists.value()) {
                 client.indices().delete(
                         DeleteIndexRequest.of(
-                                c -> c.index(ES_TREE_INDEX)));
+                                c -> c.index(ES_TREE_INDEX_V2)));
             }
         } catch (IOException e) {
             e.printStackTrace();
