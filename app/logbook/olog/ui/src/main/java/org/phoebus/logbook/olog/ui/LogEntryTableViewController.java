@@ -42,11 +42,15 @@ import javafx.util.StringConverter;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogService;
 import org.phoebus.logbook.LogbookException;
+import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.logbook.SearchResult;
 import org.phoebus.logbook.olog.ui.query.OlogQuery;
 import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
+import org.phoebus.security.store.SecureStore;
+import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
@@ -123,6 +127,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
     private final SimpleIntegerProperty pageCountProperty = new SimpleIntegerProperty(0);
     private final OlogQueryManager ologQueryManager;
     private final ObservableList<OlogQuery> ologQueries = FXCollections.observableArrayList();
+    private final SimpleBooleanProperty userHasSignedIn = new SimpleBooleanProperty(false);
 
     private final SearchParameters searchParameters;
 
@@ -145,7 +150,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
         groupSelectedEntries.disableProperty()
                 .bind(Bindings.createBooleanBinding(() ->
-                        selectedLogEntries.size() < 2, selectedLogEntries));
+                        selectedLogEntries.size() < 2 || userHasSignedIn.not().get(), selectedLogEntries, userHasSignedIn));
         ContextMenu contextMenu = new ContextMenu();
 
         MenuItem menuItemShowHideAll = new MenuItem(Messages.ShowHideDetails);
@@ -156,6 +161,15 @@ public class LogEntryTableViewController extends LogbookSearchController {
         });
 
         contextMenu.getItems().addAll(groupSelectedEntries, menuItemShowHideAll);
+        contextMenu.setOnShowing(e -> {
+            try {
+                SecureStore store = new SecureStore();
+                ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken(LogService.AUTHENTICATION_SCOPE);
+                userHasSignedIn.set(scopedAuthenticationToken != null);
+            } catch (Exception ex) {
+                logger.log(Level.WARNING, "Secure Store file not found.", ex);
+            }
+        });
 
         tableView.setContextMenu(contextMenu);
 
@@ -163,7 +177,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         tableView.getColumns().clear();
         tableView.setEditable(false);
         tableView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            if(newValue != null && tableView.getSelectionModel().getSelectedItems().size() == 1){
+            if (newValue != null && tableView.getSelectionModel().getSelectedItems().size() == 1) {
                 selectedLogEntry = newValue.getLogEntry();
                 logEntryDisplayController.setLogEntry(newValue.getLogEntry());
             }
@@ -177,7 +191,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
         descriptionCol = new TableColumn<>();
         descriptionCol.setMaxWidth(1f * Integer.MAX_VALUE * 100);
-        descriptionCol.setCellValueFactory(col -> new SimpleObjectProperty(col.getValue()));
+        descriptionCol.setCellValueFactory(col -> new SimpleObjectProperty<>(col.getValue()));
         descriptionCol.setCellFactory(col -> new TableCell<>() {
             private final Node graphic;
             private final PseudoClass childlessTopLevel =
@@ -224,7 +238,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         // This is to accept numerical input only, and at most 3 digits (maximizing search to 999 hits).
         pageSizeTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (DIGIT_PATTERN.matcher(newValue).matches()) {
-                if ("".equals(newValue)) {
+                if ("" .equals(newValue)) {
                     pageSizeProperty.set(LogbookUIPreferences.search_result_page_size);
                 } else if (newValue.length() > 3) {
                     pageSizeTextField.setText(oldValue);
@@ -300,7 +314,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
      */
     public void search() {
         // In case the page size text field is empty, or the value is zero, set the page size to the default
-        if ("".equals(pageSizeTextField.getText()) || Integer.parseInt(pageSizeTextField.getText()) == 0) {
+        if ("" .equals(pageSizeTextField.getText()) || Integer.parseInt(pageSizeTextField.getText()) == 0) {
             pageSizeTextField.setText(Integer.toString(LogbookUIPreferences.search_result_page_size));
         }
 
@@ -366,9 +380,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
             tableView.setItems(logsList);
             // This will ensure that if an entry was selected, it stays selected after the list has been
             // updated from the search result, even if it is empty.
-            if(selectedLogEntry != null){
-                for(TableViewListItem item : tableView.getItems()){
-                    if(item.getLogEntry().getId().equals(selectedLogEntry.getId())){
+            if (selectedLogEntry != null) {
+                for (TableViewListItem item : tableView.getItems()) {
+                    if (item.getLogEntry().getId().equals(selectedLogEntry.getId())) {
                         Platform.runLater(() -> tableView.getSelectionModel().select(item));
                         break;
                     }
@@ -382,7 +396,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
                 selectedLogEntries.stream().map(LogEntry::getId).collect(Collectors.toList());
         JobManager.schedule("Group log entries", monitor -> {
             try {
-                client.groupLogEntries(logEntryIds);
+                LogClient logClient = LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory).getLogClient();
+                logClient.groupLogEntries(logEntryIds);
                 search();
             } catch (LogbookException e) {
                 logger.log(Level.INFO, "Unable to create log entry group from selection");
@@ -483,15 +498,15 @@ public class LogEntryTableViewController extends LogbookSearchController {
         }
     }
 
-    public void setShowDetails(boolean show){
+    public void setShowDetails(boolean show) {
         showDetails.set(show);
     }
 
-    public boolean getShowDetails(){
+    public boolean getShowDetails() {
         return showDetails.get();
     }
 
-    public void showHelp(){
+    public void showHelp() {
         new HelpViewer(LogbookUIPreferences.search_help).show();
     }
 }
