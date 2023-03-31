@@ -264,6 +264,9 @@ public class PropertyPanelSection extends GridPane
             combo.setMaxWidth(Double.MAX_VALUE);
             combo.setMaxHeight(Double.MAX_VALUE);
 
+            Tooltip.install(combo, new Tooltip(enum_prop.getValue().toString()));
+            enum_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(combo, new Tooltip(new_value.toString())));
+
             final ToggleButton macroButton = new ToggleButton("", ImageCache.getImageView(DisplayEditor.class, "/icons/macro-edit.png"));
             macroButton.getStyleClass().add("macro_button");
             macroButton.setTooltip(new Tooltip(Messages.MacroEditButton));
