@@ -58,6 +58,7 @@
   </distributionManagement>
 
   <properties>
+    <project.build.outputTimestamp>2022-11-07T10:03:00Z</project.build.outputTimestamp>
     <epics.version>7.0.8</epics.version>
     <vtype.version>1.0.5</vtype.version>
     <openjfx.version>19</openjfx.version>
