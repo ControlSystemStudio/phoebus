@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
+import java.util.function.Consumer;
 
 import org.csstudio.display.builder.editor.DisplayEditor;
 import org.csstudio.display.builder.editor.Messages;
@@ -321,6 +322,25 @@ public class PropertyPanelSection extends GridPane
             macroButton.setTooltip(new Tooltip(Messages.MacroEditButton));
             BorderPane.setMargin(macroButton, new Insets(0, 0, 0, 3));
             BorderPane.setAlignment(macroButton, Pos.CENTER);
+
+            {
+                Tooltip tooltipWhenSetToTrue = new Tooltip("True");
+                Tooltip tooltipWhenSetToFalse = new Tooltip("False");
+
+                Consumer<Boolean> setToolTip = (bool) -> {
+                    if (bool) {
+                        Tooltip.install(combo, tooltipWhenSetToTrue);
+                        Tooltip.install(check, tooltipWhenSetToTrue);
+                    }
+                    else {
+                        Tooltip.install(combo, tooltipWhenSetToTrue);
+                        Tooltip.install(check, tooltipWhenSetToFalse);
+                    }
+                };
+
+                setToolTip.accept(bool_prop.getValue());
+                bool_prop.addPropertyListener((listener, old_value, new_value) -> setToolTip.accept(new_value));
+            }
 
             final BooleanWidgetPropertyBinding binding = new BooleanWidgetPropertyBinding(undo, check, combo, macroButton, bool_prop, other);
             bindings.add(binding);
