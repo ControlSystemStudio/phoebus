@@ -250,6 +250,10 @@ public class PropertyPanelSection extends GridPane
             final Button font_field = new Button();
             font_field.setMnemonicParsing(false);
             font_field.setMaxWidth(Double.MAX_VALUE);
+
+            Tooltip.install(font_field, new Tooltip(font_prop.getValue().toString()));
+            font_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(font_field, new Tooltip(new_value.toString())));
+
             final WidgetFontPropertyBinding binding = new WidgetFontPropertyBinding(undo, font_field, font_prop, other);
             bindings.add(binding);
             binding.bind();
