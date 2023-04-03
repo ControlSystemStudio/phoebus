@@ -425,6 +425,10 @@ public class PropertyPanelSection extends GridPane
             final WidgetClassBinding binding = new WidgetClassBinding(undo, combo, widget_class_prop, other);
             bindings.add(binding);
             binding.bind();
+
+            Tooltip.install(combo, new Tooltip(widget_class_prop.getValue()));
+            widget_class_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(combo, new Tooltip(new_value)));
+
             field = combo;
         }
         else if (property instanceof FilenameWidgetProperty)
