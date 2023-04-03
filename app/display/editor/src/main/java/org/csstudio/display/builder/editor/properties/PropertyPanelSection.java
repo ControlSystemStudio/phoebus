@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.function.Consumer;
 
@@ -30,20 +31,7 @@ import org.csstudio.display.builder.model.WidgetFactory;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.persist.WidgetClassesService;
-import org.csstudio.display.builder.model.properties.ActionsWidgetProperty;
-import org.csstudio.display.builder.model.properties.BooleanWidgetProperty;
-import org.csstudio.display.builder.model.properties.ColorMapWidgetProperty;
-import org.csstudio.display.builder.model.properties.ColorWidgetProperty;
-import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
-import org.csstudio.display.builder.model.properties.EnumWidgetProperty;
-import org.csstudio.display.builder.model.properties.FilenameWidgetProperty;
-import org.csstudio.display.builder.model.properties.FontWidgetProperty;
-import org.csstudio.display.builder.model.properties.MacrosWidgetProperty;
-import org.csstudio.display.builder.model.properties.PVNameWidgetProperty;
-import org.csstudio.display.builder.model.properties.PointsWidgetProperty;
-import org.csstudio.display.builder.model.properties.RulesWidgetProperty;
-import org.csstudio.display.builder.model.properties.ScriptsWidgetProperty;
-import org.csstudio.display.builder.model.properties.WidgetClassProperty;
+import org.csstudio.display.builder.model.properties.*;
 import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
@@ -240,6 +228,25 @@ public class PropertyPanelSection extends GridPane
             final ColorWidgetProperty color_prop = (ColorWidgetProperty) property;
             final WidgetColorPropertyField color_field = new WidgetColorPropertyField();
             final WidgetColorPropertyBinding binding = new WidgetColorPropertyBinding(undo, color_field, color_prop, other);
+
+            Function<WidgetColor, Tooltip> widgetColorToTooltip = (widgetColor) ->
+            {
+                if (widgetColor instanceof NamedWidgetColor) {
+                    return new Tooltip(((NamedWidgetColor) widgetColor).getName());
+                }
+                else {
+                    if (widgetColor.getAlpha() == 255) {
+                        return new Tooltip("RGB(" + widgetColor.getRed() + "," + widgetColor.getGreen() + "," + widgetColor.getBlue() + ")");
+                    }
+                    else {
+                        return new Tooltip("RGB(" + widgetColor.getRed() + "," + widgetColor.getGreen() + "," + widgetColor.getBlue() + "," + widgetColor.getAlpha() + ")");
+                    }
+                }
+            };
+
+            Tooltip.install(color_field, widgetColorToTooltip.apply(color_prop.getValue()));
+            color_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(color_field, widgetColorToTooltip.apply(new_value)));
+
             bindings.add(binding);
             binding.bind();
             field = color_field;
