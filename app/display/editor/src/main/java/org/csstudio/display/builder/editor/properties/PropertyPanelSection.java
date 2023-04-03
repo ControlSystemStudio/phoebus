@@ -521,13 +521,18 @@ public class PropertyPanelSection extends GridPane
             final MacroizedWidgetProperty<?> macro_prop = (MacroizedWidgetProperty<?>)property;
             final TextField text = new TextField();
             text.setPromptText(macro_prop.getDefaultValue().toString());
+            text.setOnKeyReleased((event) -> Tooltip.install(text, new Tooltip(text.getText())));
             final MacroizedWidgetPropertyBinding binding = new MacroizedWidgetPropertyBinding(undo, text, macro_prop, other);
             bindings.add(binding);
             binding.bind();
+
+            Tooltip.install(text, new Tooltip(text.getText()));
+
             if (CommonWidgetProperties.propText.getName().equals(property.getName())  ||
                 CommonWidgetProperties.propTooltip.getName().equals(property.getName()))
             {   // Allow editing multi-line text in dialog
                 final Button open_editor = new Button("...");
+                Tooltip.install(open_editor, new Tooltip("Open Editor"));
                 open_editor.setOnAction(event ->
                 {
                     final MultiLineInputDialog dialog = new MultiLineInputDialog(open_editor, macro_prop.getSpecification());
@@ -541,6 +546,8 @@ public class PropertyPanelSection extends GridPane
                         final MacroizedWidgetProperty<?> other_prop = (MacroizedWidgetProperty<?>) w.getProperty(macro_prop.getName());
                         undo.execute(new SetMacroizedWidgetPropertyAction(other_prop, result.get()));
                     }
+                    text.setText(result.get());
+                    Tooltip.install(text, new Tooltip(result.get()));
                 });
                 field = new HBox(text, open_editor);
                 HBox.setHgrow(text, Priority.ALWAYS);
