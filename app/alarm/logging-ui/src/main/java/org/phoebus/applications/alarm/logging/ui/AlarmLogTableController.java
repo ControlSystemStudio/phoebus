@@ -10,29 +10,34 @@ import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
+import javafx.geometry.Side;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
-import javafx.util.Callback;
 import javafx.util.Duration;
+import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.logging.ui.AlarmLogTableQueryUtil.Keys;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmUI;
@@ -40,13 +45,13 @@ import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +71,7 @@ public class AlarmLogTableController {
     @FXML
     TableView<AlarmLogTableItem> tableView;
     @FXML
+    @SuppressWarnings("unused")
     private AdvancedSearchViewController advancedSearchViewController;
     @FXML
     TableColumn<AlarmLogTableItem, String> configCol;
@@ -109,10 +115,17 @@ public class AlarmLogTableController {
     TextField startTime;
     @FXML
     TextField endTime;
-    TableColumn<AlarmLogTableItem, String> sortTableCol = null;
+
+    @FXML
+    private TextField configSelection;
+    @FXML
+    private ToggleButton configDropdownButton;
+
+    @FXML
+    TableColumn sortTableCol = null;
     SortType sortColType = null;
     // Search parameters
-    ObservableMap<Keys, String> searchParameters = FXCollections.<Keys, String>observableHashMap();
+    ObservableMap<Keys, String> searchParameters = FXCollections.observableHashMap();
     // The search string
     // TODO need to standardize the search string so that it can be easily parsed
     private String searchString = "*";
@@ -122,10 +135,15 @@ public class AlarmLogTableController {
 
     private Job alarmLogSearchJob;
     private WebResource searchClient;
-    
+
     @FXML
     private ProgressIndicator progressIndicator;
-    private SimpleBooleanProperty searchInProgress = new SimpleBooleanProperty(false);
+    private final SimpleBooleanProperty searchInProgress = new SimpleBooleanProperty(false);
+    private final ObservableList<AlarmConfiguration> alarmConfigs = FXCollections.observableArrayList();
+    private final SimpleStringProperty selectedConfigsString = new SimpleStringProperty();
+
+
+    private final ContextMenu configsContextMenu = new ContextMenu();
 
     public AlarmLogTableController(WebResource client) {
         setClient(client);
@@ -137,43 +155,25 @@ public class AlarmLogTableController {
         tableView.getColumns().clear();
         configCol = new TableColumn<>("Config");
         configCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmLogTableItem, String>, ObservableValue<String>>() {
-                    @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableItem, String> alarmMessage) {
-                        return new SimpleStringProperty(alarmMessage.getValue().getConfig());
-                    }
-                });
+                alarmMessage -> new SimpleStringProperty(alarmMessage.getValue().getConfig()));
         tableView.getColumns().add(configCol);
 
         pvCol = new TableColumn<>("PV");
-        pvCol.setCellValueFactory(new Callback<CellDataFeatures<AlarmLogTableItem, String>, ObservableValue<String>>() {
-            @Override
-            public ObservableValue<String> call(CellDataFeatures<AlarmLogTableItem, String> alarmMessage) {
-                return new SimpleStringProperty(alarmMessage.getValue().getPv());
-            }
-        });
+        pvCol.setCellValueFactory(alarmMessage -> new SimpleStringProperty(alarmMessage.getValue().getPv()));
         tableView.getColumns().add(pvCol);
 
         severityCol = new TableColumn<>("Severity");
         severityCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmLogTableItem, String>, ObservableValue<String>>() {
-                    @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableItem, String> alarmMessage) {
-                        return new SimpleStringProperty(alarmMessage.getValue().getSeverity());
-                    }
-                });
-        severityCol.setCellFactory(alarmLogTableTypeStringTableColumn -> new TableCell<AlarmLogTableItem, String>() {
+                alarmMessage -> new SimpleStringProperty(alarmMessage.getValue().getSeverity()));
+        severityCol.setCellFactory(alarmLogTableTypeStringTableColumn -> new TableCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
 
-                if (empty  ||  item == null)
-                {
+                if (empty || item == null) {
                     setText("");
                     setTextFill(Color.BLACK);
-                }
-                else
-                {
+                } else {
                     setText(item);
                     setTextFill(AlarmUI.getColor(parseSeverityLevel(item)));
                 }
@@ -183,36 +183,25 @@ public class AlarmLogTableController {
 
         messageCol = new TableColumn<>("Message");
         messageCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmLogTableItem, String>, ObservableValue<String>>() {
-                    @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableItem, String> alarmMessage) {
-                        return new SimpleStringProperty(alarmMessage.getValue().getMessage());
-                    }
-                });
+                alarmMessage -> new SimpleStringProperty(alarmMessage.getValue().getMessage()));
         tableView.getColumns().add(messageCol);
 
         timeCol = new TableColumn<>("Time");
         timeCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmLogTableItem, String>, ObservableValue<String>>() {
-                    @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableItem, String> alarmMessage) {
-                        if (alarmMessage.getValue().getTime() != null) {
-                            String time = TimestampFormats.MILLI_FORMAT.format(alarmMessage.getValue().getTime());
-                            return new SimpleStringProperty(time);
-                        }
-                        return null;
+                alarmMessage -> {
+                    if (alarmMessage.getValue().getTime() != null) {
+                        String time = TimestampFormats.MILLI_FORMAT.format(alarmMessage.getValue().getTime());
+                        return new SimpleStringProperty(time);
                     }
+                    return null;
                 });
         tableView.getColumns().add(timeCol);
 
         msgTimeCol = new TableColumn<>("Message Time");
         msgTimeCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmLogTableItem, String>, ObservableValue<String>>() {
-                    @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableItem, String> alarmMessage) {
-                        String time = TimestampFormats.MILLI_FORMAT.format(alarmMessage.getValue().getMessage_time());
-                        return new SimpleStringProperty(time);
-                    }
+                alarmMessage -> {
+                    String time = TimestampFormats.MILLI_FORMAT.format(alarmMessage.getValue().getMessage_time());
+                    return new SimpleStringProperty(time);
                 });
         tableView.getColumns().add(msgTimeCol);
 
@@ -228,24 +217,16 @@ public class AlarmLogTableController {
 
         currentSeverityCol = new TableColumn<>("Current Severity");
         currentSeverityCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmLogTableItem, String>, ObservableValue<String>>() {
-                    @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableItem, String> alarmMessage) {
-                        return new SimpleStringProperty(alarmMessage.getValue().getCurrent_severity());
-                    }
-                });
-        currentSeverityCol.setCellFactory(alarmLogTableTypeStringTableColumn -> new TableCell<AlarmLogTableItem, String>() {
+                alarmMessage -> new SimpleStringProperty(alarmMessage.getValue().getCurrent_severity()));
+        currentSeverityCol.setCellFactory(alarmLogTableTypeStringTableColumn -> new TableCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
 
-                if (empty  ||  item == null)
-                {
+                if (empty || item == null) {
                     setText("");
                     setTextFill(Color.BLACK);
-                }
-                else
-                {
+                } else {
                     setText(item);
                     setTextFill(AlarmUI.getColor(parseSeverityLevel(item)));
                 }
@@ -255,54 +236,36 @@ public class AlarmLogTableController {
 
         currentMessageCol = new TableColumn<>("Current Message");
         currentMessageCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmLogTableItem, String>, ObservableValue<String>>() {
-                    @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableItem, String> alarmMessage) {
-                        return new SimpleStringProperty(alarmMessage.getValue().getCurrent_message());
-                    }
-                });
+                alarmMessage -> new SimpleStringProperty(alarmMessage.getValue().getCurrent_message()));
         tableView.getColumns().add(currentMessageCol);
 
         commandCol = new TableColumn<>("Command");
         commandCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmLogTableItem, String>, ObservableValue<String>>() {
-                    @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableItem, String> alarmMessage) {
-                        String action = alarmMessage.getValue().getCommand();
-                        if (action != null) {
-                            return new SimpleStringProperty(action);
-                        }
-                        boolean en = alarmMessage.getValue().isEnabled();
-                        if (alarmMessage.getValue().getUser() != null && alarmMessage.getValue().getHost() != null) {
-                            if (en == false) {
-                                return new SimpleStringProperty("Disabled");
-                            } else if (en == true) {
-                                return new SimpleStringProperty("Enabled");
-                            }
-                        }
-                        return null;
+                alarmMessage -> {
+                    String action = alarmMessage.getValue().getCommand();
+                    if (action != null) {
+                        return new SimpleStringProperty(action);
                     }
+                    boolean en = alarmMessage.getValue().isEnabled();
+                    if (alarmMessage.getValue().getUser() != null && alarmMessage.getValue().getHost() != null) {
+                        if (!en) {
+                            return new SimpleStringProperty("Disabled");
+                        } else {
+                            return new SimpleStringProperty("Enabled");
+                        }
+                    }
+                    return null;
                 });
         tableView.getColumns().add(commandCol);
 
         userCol = new TableColumn<>("User");
         userCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmLogTableItem, String>, ObservableValue<String>>() {
-                    @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableItem, String> alarmMessage) {
-                        return new SimpleStringProperty(alarmMessage.getValue().getUser());
-                    }
-                });
+                alarmMessage -> new SimpleStringProperty(alarmMessage.getValue().getUser()));
         tableView.getColumns().add(userCol);
 
         hostCol = new TableColumn<>("Host");
         hostCol.setCellValueFactory(
-                new Callback<CellDataFeatures<AlarmLogTableItem, String>, ObservableValue<String>>() {
-                    @Override
-                    public ObservableValue<String> call(CellDataFeatures<AlarmLogTableItem, String> alarmMessage) {
-                        return new SimpleStringProperty(alarmMessage.getValue().getHost());
-                    }
-                });
+                alarmMessage -> new SimpleStringProperty(alarmMessage.getValue().getHost()));
         tableView.getColumns().add(hostCol);
         tableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
@@ -337,17 +300,40 @@ public class AlarmLogTableController {
             }
         });
 
-	    progressIndicator.visibleProperty().bind(searchInProgress);
-        searchInProgress.addListener((observable, oldValue, newValue) -> {
-            tableView.setDisable(newValue.booleanValue());
-        });
+        progressIndicator.visibleProperty().bind(searchInProgress);
+        searchInProgress.addListener((observable, oldValue, newValue) -> tableView.setDisable(newValue));
 
         search.disableProperty().bind(searchInProgress);
 
+        String[] configNames = AlarmSystem.config_names;
+        for (String configName : configNames) {
+            AlarmConfiguration alarmConfiguration = new AlarmConfiguration(configName, false);
+            alarmConfigs.add(alarmConfiguration);
+            CheckBox checkBox = new CheckBox(configName);
+            CustomMenuItem configItem = new CustomMenuItem(checkBox);
+            configItem.setHideOnClick(false);
+            checkBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+                alarmConfiguration.setSelected(newValue);
+                setSelectedConfigsString();
+            });
+            configsContextMenu.getItems().add(configItem);
+        }
+
+        Image downIcon = ImageCache.getImage(AlarmLogTableController.class, "/icons/down_triangle.png");
+        configDropdownButton.setGraphic(new ImageView(downIcon));
+        configDropdownButton.focusedProperty().addListener((changeListener, oldVal, newVal) ->
+        {
+            if (!newVal && !configsContextMenu.isShowing() && !configsContextMenu.isShowing())
+                configDropdownButton.setSelected(false);
+        });
+
+        configSelection.textProperty().bind(selectedConfigsString);
+
+        setSelectedConfigsString();
         periodicSearch();
     }
 
-    private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture<?> runningTask;
 
     private void periodicSearch() {
@@ -362,14 +348,14 @@ public class AlarmLogTableController {
             sortTableCol = null;
             sortColType = null;
             if (!tableView.getSortOrder().isEmpty()) {
-                sortTableCol = (TableColumn) tableView.getSortOrder().get(0);
+                sortTableCol = tableView.getSortOrder().get(0);
                 sortColType = sortTableCol.getSortType();
             }
             alarmLogSearchJob = AlarmLogSearchJob.submit(searchClient, searchString, isNodeTable, searchParameters,
                     result -> Platform.runLater(() -> {
                         setAlarmMessages(result);
                         searchInProgress.set(false);
-                        }), (url, ex) -> {
+                    }), (url, ex) -> {
                         searchInProgress.set(false);
                         logger.log(Level.WARNING, "Shutting down alarm log message scheduler.", ex);
                         runningTask.cancel(true);
@@ -383,7 +369,7 @@ public class AlarmLogTableController {
 
     public void setIsNodeTable(Boolean isNodeTable) {
         this.isNodeTable = isNodeTable;
-        if (isNodeTable == false) {
+        if (!isNodeTable) {
             searchParameters.put(Keys.PV, this.searchString);
         } else {
             searchParameters.put(Keys.PV, "*");
@@ -399,13 +385,7 @@ public class AlarmLogTableController {
         searchParameters.put(Keys.STARTTIME, TimeParser.format(java.time.Duration.ofDays(7)));
         searchParameters.put(Keys.ENDTIME, TimeParser.format(java.time.Duration.ZERO));
 
-        query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> {
-            return e.getKey().getName().trim() + "=" + e.getValue().trim();
-        }).collect(Collectors.joining("&")));
-    }
-
-    public List<AlarmLogTableItem> getAlarmMessages() {
-        return alarmMessages;
+        query.setText(searchParameters.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim()).collect(Collectors.joining("&")));
     }
 
     public void setAlarmMessages(List<AlarmLogTableItem> alarmMessages) {
@@ -425,6 +405,7 @@ public class AlarmLogTableController {
     /**
      * A Helper method which returns the appropriate {@link SeverityLevel} matching the
      * string level
+     *
      * @param level
      */
     private static SeverityLevel parseSeverityLevel(String level) {
@@ -454,7 +435,7 @@ public class AlarmLogTableController {
 
     // Keeps track of when the animation is active. Multiple clicks will be ignored
     // until a give resize action is completed
-    private AtomicBoolean moving = new AtomicBoolean(false);
+    private final AtomicBoolean moving = new AtomicBoolean(false);
 
     @FXML
     public void resize() {
@@ -484,17 +465,15 @@ public class AlarmLogTableController {
         }
     }
 
-    Map<String, Keys> lookup = Arrays.stream(Keys.values()).collect(Collectors.toMap(Keys::getName, k -> {
-        return k;
-    }));
+    Map<String, Keys> lookup = Arrays.stream(Keys.values()).collect(Collectors.toMap(Keys::getName, k -> k));
 
     @FXML
     void updateQuery() {
         List<String> searchTerms = Arrays.asList(query.getText().split("&"));
-        searchTerms.stream().forEach(s -> {
+        searchTerms.forEach(s -> {
             String key = s.split("=")[0];
             String value = s.split("=")[1];
-            if(lookup.containsKey(key)) {
+            if (lookup.containsKey(key)) {
                 searchParameters.put(lookup.get(key), value);
             }
         });
@@ -509,6 +488,7 @@ public class AlarmLogTableController {
     }
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
+
     static {
         objectMapper.registerModule(new JavaTimeModule());
     }
@@ -517,7 +497,7 @@ public class AlarmLogTableController {
     public void createContextMenu() {
         final ContextMenu contextMenu = new ContextMenu();
         MenuItem configurationInfo = new MenuItem(Messages.ConfigurationInfo);
-        configurationInfo.setOnAction( actionEvent -> {
+        configurationInfo.setOnAction(actionEvent -> {
             List<String> configs = tableView.getSelectionModel().getSelectedItems()
                     .stream().map(e -> {
                         try {
@@ -544,13 +524,13 @@ public class AlarmLogTableController {
                             try {
                                 String newLine = System.lineSeparator();
                                 StringBuilder sb = new StringBuilder();
-                                sb.append("message_time: " + TimestampFormats.MILLI_FORMAT.format(result.getMessage_time()) + newLine);
-                                sb.append("config: " + result.getConfig() + newLine);
-                                sb.append("user: " + result.getUser() + newLine);
-                                sb.append("host: " + result.getHost() + newLine);
-                                sb.append("enabled: " + result.isEnabled() + newLine);
+                                sb.append("message_time: ").append(TimestampFormats.MILLI_FORMAT.format(result.getMessage_time())).append(newLine);
+                                sb.append("config: ").append(result.getConfig()).append(newLine);
+                                sb.append("user: ").append(result.getUser()).append(newLine);
+                                sb.append("host: ").append(result.getHost()).append(newLine);
+                                sb.append("enabled: ").append(result.isEnabled()).append(newLine);
                                 Object jsonObject = objectMapper.readValue(result.getConfig_msg(), Object.class);
-                                sb.append("config_msg: " + objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObject) + newLine);
+                                sb.append("config_msg: ").append(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObject)).append(newLine);
                                 alarmInfo.setContentText(sb.toString());
                             } catch (JsonProcessingException e) {
                                 alarmInfo.setContentText(Messages.ConfigurationInfoNotFound);
@@ -566,7 +546,7 @@ public class AlarmLogTableController {
 
         contextMenu.getItems().add(new SeparatorMenuItem());
 
-       // search for other context menu actions registered for AlarmLogTableType
+        // search for other context menu actions registered for AlarmLogTableType
         SelectionService.getInstance().setSelection("AlarmLogTable", tableView.getSelectionModel().getSelectedItems());
         ContextMenuHelper.addSupportedEntries(tableView, contextMenu);
 
@@ -577,6 +557,47 @@ public class AlarmLogTableController {
     public void shutdown() {
         if (runningTask != null) {
             runningTask.cancel(true);
+        }
+    }
+
+    private static class AlarmConfiguration {
+        private String configurationName;
+        private boolean selected;
+
+        public AlarmConfiguration(String configurationName, boolean selected) {
+            this.configurationName = configurationName;
+            this.selected = selected;
+        }
+
+        public String getConfigurationName() {
+            return configurationName;
+        }
+        public boolean isSelected() {
+            return selected;
+        }
+
+        public void setSelected(boolean selected) {
+            this.selected = selected;
+        }
+    }
+
+    private void setSelectedConfigsString() {
+        List<AlarmConfiguration> selectedConfigs =
+                alarmConfigs.stream().filter(AlarmConfiguration::isSelected).collect(Collectors.toList());
+        if (selectedConfigs.size() == alarmConfigs.size() || selectedConfigs.size() == 0) {
+            selectedConfigsString.set("*");
+        } else {
+            selectedConfigsString.set(alarmConfigs.stream().filter(AlarmConfiguration::isSelected)
+                    .map(AlarmConfiguration::getConfigurationName).collect(Collectors.joining(",")));
+        }
+    }
+
+    @FXML
+    public void selectConfigs() {
+        if (configDropdownButton.isSelected()) {
+            configsContextMenu.show(configSelection, Side.BOTTOM, 0, 0);
+        } else {
+            configsContextMenu.hide();
         }
     }
 
