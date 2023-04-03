@@ -502,6 +502,11 @@ public class PropertyPanelSection extends GridPane
                 }
             });
 
+
+            Tooltip.install(open_editor, new Tooltip("Open Editor"));
+            Tooltip.install(text, new Tooltip(pv_prop.getValue()));
+            pv_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(text, new Tooltip(new_value)));
+
             field = new HBox(text, open_editor);
             HBox.setHgrow(text, Priority.ALWAYS);
             // For RulesDialog, see above
