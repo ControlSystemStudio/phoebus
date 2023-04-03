@@ -394,6 +394,21 @@ public class PropertyPanelSection extends GridPane
             final ColorMapPropertyBinding binding = new ColorMapPropertyBinding(undo, map_button, colormap_prop, other);
             bindings.add(binding);
             binding.bind();
+
+            Function<ColorMap, Tooltip> colorMapToTooltip = (colorMap) ->
+            {
+                if (colorMap instanceof PredefinedColorMaps.Predefined) {
+                    PredefinedColorMaps.Predefined predefinedColorMap = (PredefinedColorMaps.Predefined) colorMap;
+                    return new Tooltip(predefinedColorMap.getDescription());
+                }
+                else {
+                    return new Tooltip("Color Map");
+                }
+            };
+
+            Tooltip.install(map_button, colorMapToTooltip.apply(colormap_prop.getValue()));
+            colormap_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(map_button, colorMapToTooltip.apply(new_value)));
+
             field = map_button;
         }
         else if (property instanceof WidgetClassProperty)
