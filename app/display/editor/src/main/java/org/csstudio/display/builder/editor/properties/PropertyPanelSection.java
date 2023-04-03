@@ -569,6 +569,10 @@ public class PropertyPanelSection extends GridPane
             final PointsPropertyBinding binding = new PointsPropertyBinding(undo, points_field, points_prop, other);
             bindings.add(binding);
             binding.bind();
+
+            Tooltip.install(points_field, new Tooltip(points_prop.getValue().size() + " Points"));
+            points_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(points_field, new Tooltip(new_value.size() + " Points")));
+
             field = points_field;
         }
         return field;
