@@ -454,6 +454,11 @@ public class PropertyPanelSection extends GridPane
             final MacroizedWidgetPropertyBinding binding = new MacroizedWidgetPropertyBinding(undo, text, file_prop, other);
             bindings.add(binding);
             binding.bind();
+
+            Tooltip.install(select_file, new Tooltip("Select File"));
+            Tooltip.install(text, new Tooltip(file_prop.getValue()));
+            file_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(text, new Tooltip(new_value)));
+
             field = new HBox(text, select_file);
             HBox.setHgrow(text, Priority.ALWAYS);
             // For RulesDialog, see above
