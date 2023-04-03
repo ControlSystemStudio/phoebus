@@ -110,13 +110,6 @@ public class AlarmLogTableController {
     @FXML
     GridPane ViewSearchPane;
     @FXML
-    TextField searchText;
-    @FXML
-    TextField startTime;
-    @FXML
-    TextField endTime;
-
-    @FXML
     private TextField configSelection;
     @FXML
     private ToggleButton configDropdownButton;
@@ -284,6 +277,7 @@ public class AlarmLogTableController {
 
         query.setText(
                 searchParameters.entrySet().stream()
+                        .filter(e -> !e.getKey().getName().equals(Keys.ROOT.getName())) // Exclude alarm config (root) as selection is managed in drop-down
                         .sorted(Map.Entry.comparingByKey())
                         .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
                         .collect(Collectors.joining("&")));
@@ -291,6 +285,7 @@ public class AlarmLogTableController {
         searchParameters.addListener(
                 (MapChangeListener<Keys, String>) change -> query.setText(searchParameters.entrySet().stream()
                         .sorted(Entry.comparingByKey())
+                        .filter(e -> !e.getKey().getName().equals(Keys.ROOT.getName())) // Exclude alarm config (root) as selection is managed in drop-down
                         .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
                         .collect(Collectors.joining("&"))));
 
@@ -315,6 +310,7 @@ public class AlarmLogTableController {
             checkBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
                 alarmConfiguration.setSelected(newValue);
                 setSelectedConfigsString();
+                search();
             });
             configsContextMenu.getItems().add(configItem);
         }
@@ -465,7 +461,8 @@ public class AlarmLogTableController {
         }
     }
 
-    Map<String, Keys> lookup = Arrays.stream(Keys.values()).collect(Collectors.toMap(Keys::getName, k -> k));
+    Map<String, Keys> lookup =
+            Arrays.stream(Keys.values()).filter(k -> !k.getName().equals(Keys.ROOT.getName())).collect(Collectors.toMap(Keys::getName, k -> k));
 
     @FXML
     void updateQuery() {
@@ -477,6 +474,9 @@ public class AlarmLogTableController {
                 searchParameters.put(lookup.get(key), value);
             }
         });
+        // Add root (alarm config) separately as it is selected differently by user,
+        // i.e. from drop-down rather than typing into the text field.
+        searchParameters.put(Keys.ROOT, configSelection.getText());
 
     }
 
@@ -561,7 +561,7 @@ public class AlarmLogTableController {
     }
 
     private static class AlarmConfiguration {
-        private String configurationName;
+        private final String configurationName;
         private boolean selected;
 
         public AlarmConfiguration(String configurationName, boolean selected) {
@@ -572,6 +572,7 @@ public class AlarmLogTableController {
         public String getConfigurationName() {
             return configurationName;
         }
+
         public boolean isSelected() {
             return selected;
         }
@@ -600,5 +601,4 @@ public class AlarmLogTableController {
             configsContextMenu.hide();
         }
     }
-
 }
