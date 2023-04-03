@@ -196,7 +196,10 @@ public class PropertyPanelSection extends GridPane
             {
                 if (widget instanceof DisplayModel)
                 {   // DisplayModel is not registered as a Widget that users can add
-                    field = new Label(Messages.Display, ImageCache.getImageView(ModelPlugin.class, "/icons/display.png"));
+                    String text = Messages.Display;
+                    Label label = new Label(text, ImageCache.getImageView(ModelPlugin.class, "/icons/display.png"));
+                    Tooltip.install(label, new Tooltip(text));
+                    field = label;
                 }
                 else
                 {
@@ -205,13 +208,18 @@ public class PropertyPanelSection extends GridPane
                     {
                         final ImageView icon = new ImageView(WidgetIcons.getIcon(type));
                         final String name = WidgetFactory.getInstance().getWidgetDescriptor(type).getName();
-                        field = new Label(name, icon);
+                        Label label = new Label(name, icon);
+                        Tooltip.install(label, new Tooltip(name));
+                        field = label;
                     }
                     catch (Exception ex)
                     {
                         // Even 'unknown' widgets should have an icon,
                         // but fall back to just showing the type name
-                        field = new Label(String.valueOf(property.getValue()));
+                        String text = String.valueOf(property.getValue());
+                        Label label = new Label(text);
+                        Tooltip.install(label, new Tooltip(text));
+                        field = label;
                     }
                 }
             }
@@ -220,6 +228,7 @@ public class PropertyPanelSection extends GridPane
                 final TextField text = new TextField();
                 text.setText(String.valueOf(property.getValue()));
                 text.setDisable(true);
+                Tooltip.install(text, new Tooltip(text.getText()));
                 field = text;
             }
         }
