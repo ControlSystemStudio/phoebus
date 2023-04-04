@@ -633,6 +633,10 @@ public class PropertyPanelSection extends GridPane
             final ActionsPropertyBinding binding = new ActionsPropertyBinding(undo, actions_field, actions_prop, other);
             bindings.add(binding);
             binding.bind();
+
+            Tooltip.install(actions_field, new Tooltip(actions_field.getText()));
+            actions_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(actions_field, new Tooltip(actions_field.getText())));
+
             field = actions_field;
         }
         else if (property instanceof ScriptsWidgetProperty)
