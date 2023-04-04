@@ -769,6 +769,10 @@ public class PropertyPanelSection extends GridPane
             final TextField text = new TextField();
             text.setText(String.valueOf(property.getValue()));
             text.setEditable(false);
+
+            Tooltip.install(text, new Tooltip(text.getText()));
+            property.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(text, new Tooltip(text.getText())));
+
             field = text;
         }
 
