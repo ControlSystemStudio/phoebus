@@ -662,6 +662,10 @@ public class PropertyPanelSection extends GridPane
             final RulesPropertyBinding binding = new RulesPropertyBinding(undo, rules_field, rules_prop, other);
             bindings.add(binding);
             binding.bind();
+
+            Tooltip.install(rules_field, new Tooltip(rules_field.getText()));
+            rules_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(rules_field, new Tooltip(rules_field.getText())));
+
             field = rules_field;
         }
         else if (property instanceof StructuredWidgetProperty)
