@@ -618,6 +618,10 @@ public class PropertyPanelSection extends GridPane
             final MacrosPropertyBinding binding = new MacrosPropertyBinding(undo, macros_field, macros_prop, other);
             bindings.add(binding);
             binding.bind();
+
+            Tooltip.install(macros_field, new Tooltip(macros_field.getText()));
+            macros_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(macros_field, new Tooltip(macros_field.getText())));
+
             field = macros_field;
         }
         else if (property instanceof ActionsWidgetProperty)
