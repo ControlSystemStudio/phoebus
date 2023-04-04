@@ -485,6 +485,8 @@ public class AlarmLogTableController {
         searchInProgress.set(true);
         tableView.getSortOrder().clear();
         updateQuery();
+        alarmLogSearchJob.cancel();
+        periodicSearch();
     }
 
     private static final ObjectMapper objectMapper = new ObjectMapper();

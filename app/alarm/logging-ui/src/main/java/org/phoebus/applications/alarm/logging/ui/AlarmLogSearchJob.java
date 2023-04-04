@@ -86,7 +86,7 @@ public class AlarmLogSearchJob implements JobRunnable {
             });
             logger.log(Level.FINE, "Object mapper response = " + (System.currentTimeMillis() - start));
             alarmMessageHandler.accept(result);
-        } catch (JsonProcessingException e) {
+        } catch (Exception e) {
             errorHandler.accept("Failed to search for alarm logs ", e);
         }
     }
