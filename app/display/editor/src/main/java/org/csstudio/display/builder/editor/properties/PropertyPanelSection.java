@@ -648,6 +648,10 @@ public class PropertyPanelSection extends GridPane
             final ScriptsPropertyBinding binding = new ScriptsPropertyBinding(undo, scripts_field, scripts_prop, other);
             bindings.add(binding);
             binding.bind();
+
+            Tooltip.install(scripts_field, new Tooltip(scripts_field.getText()));
+            scripts_prop.addPropertyListener((listener, old_value, new_value) -> Tooltip.install(scripts_field, new Tooltip(scripts_field.getText())));
+
             field = scripts_field;
         }
         else if (property instanceof RulesWidgetProperty)
