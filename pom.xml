@@ -41,6 +41,12 @@
       <organization>European Spallation Source</organization>
       <organizationUrl>https://github.com/georgweiss</organizationUrl>
     </developer>
+    <developer>
+      <name>Katy Saintin</name>
+      <email>katy.saintin@cea.fr</email>
+      <organization>CEA Paris-Saclay</organization>
+      <organizationUrl>https://github.com/katysaintin</organizationUrl>
+    </developer>
   </developers>
 
   <distributionManagement>
