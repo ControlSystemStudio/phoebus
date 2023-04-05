@@ -207,10 +207,18 @@ feature user can choose to:
 
 .. image:: images/ContextMenuLogEntryTable.png
 
-Log entries that are contained in a log entry group are rendered with a grey background in the search result table view.
+Log entries that are contained in a log entry group are rendered with a "reply" icon in the search result table view:
+
+.. image:: images/ReplyAnnotation.png
+
 In the log entry view, the "Show/Hide Group" button (see screen shot above) can be used to show all log entries of a group sequentially,
 ordered on created date with oldest log entry on top. In this merged view attachments and properties are not shown.
 Clicking on a header in the merged view will show that log entry in full.
+
+**NOTE**: To be able to group log entries user must be authenticated in one of the following manners:
+
+* Use "credentials caching" through preference setting ``org.phoebus.logbook.olog.ui/save_credentials``. Once a log entry has been created, credentials will be reused when creating a group.
+* Use the Credentials Management app to sign in to the logbook context.
 
 Limitations
 ^^^^^^^^^^^
