@@ -5,6 +5,7 @@ import co.elastic.clients.elasticsearch._types.FieldSort;
 import co.elastic.clients.elasticsearch._types.SortOptions;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.DisMaxQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.WildcardQuery;
@@ -26,6 +27,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -89,8 +91,7 @@ public class AlarmLogSearchUtil {
 
         BoolQuery.Builder boolQuery = new BoolQuery.Builder();
         List<String> indexList = new ArrayList<>();
-
-        String root = "";
+        List<String> alarmConfigs = new ArrayList<>();
 
         for (Map.Entry<String, String> parameter : searchParameters.entrySet()) {
             switch (parameter.getKey().strip().toLowerCase()) {
@@ -135,24 +136,29 @@ public class AlarmLogSearchUtil {
                     break;
                 case ROOT:
                     if (!parameter.getValue().equalsIgnoreCase("*")) {
-                        root = parameter.getValue().strip();
-                        String _root = root;
-                        boolQuery.must(
-                                Query.of(b -> b.bool(s -> s.should(
-                                        Query.of(q -> q
-                                                .wildcard(WildcardQuery.of(w -> w
-                                                                .field("config").value("state:/" + _root + "*")
-                                                        )
-                                                )
-                                        ),
-                                        Query.of(q -> q
-                                                .wildcard(WildcardQuery.of(w -> w
-                                                                .field("config").value("config:/" + _root + "*")
-                                                        )
-                                                )
-                                        )
-                                )))
-                        );
+                        DisMaxQuery.Builder alarmConfigQuery = new DisMaxQuery.Builder();
+                        List<Query> alarmConfigQueries = new ArrayList<>();
+                        // Construct a list of alarm config names
+                        alarmConfigs =
+                                Arrays.stream(parameter.getValue().split(",")).map(s -> s.trim()).collect(Collectors.toList());
+                        for (String alarmConfig : alarmConfigs) {
+                            alarmConfigQueries.add(Query.of(b -> b.bool(s -> s.should(
+                                    Query.of(q -> q
+                                            .wildcard(WildcardQuery.of(w -> w
+                                                            .field("config").value("state:/" + alarmConfig + "*")
+                                                    )
+                                            )
+                                    ),
+                                    Query.of(q -> q
+                                            .wildcard(WildcardQuery.of(w -> w
+                                                            .field("config").value("config:/" + alarmConfig + "*")
+                                                    )
+                                            )
+                                    )
+                            ))));
+                        }
+                        Query configsQuery = alarmConfigQuery.queries(alarmConfigQueries).build()._toQuery();
+                        boolQuery.must(configsQuery);
                         configSet = true;
                     }
                     break;
@@ -239,9 +245,11 @@ public class AlarmLogSearchUtil {
             );
 
             try {
-                // "root" is empty string unless user specifies one, in which case we can narrow down to
+                // "root" is empty string unless user specifies a list of alarm configs, in which case we can narrow down to
                 // only matching alarm config indices.
-                indexList = findIndexNames(root.toLowerCase() + "*", fromInstant, toInstant, indexDateSpanUnits);
+                for(String alarmConfig : alarmConfigs){
+                    indexList.addAll(findIndexNames(alarmConfig, fromInstant, toInstant, indexDateSpanUnits));
+                }
             } catch (Exception e) {
                 logger.log(Level.SEVERE,
                         "Failed to search for alarm logs:" + e.getMessage(), e);
@@ -332,22 +340,22 @@ public class AlarmLogSearchUtil {
 
     /**
      * return a list of index names between the from and to instant
-     *
-     * @param fromInstant From time
-     * @param toInstant To time
+     * @param baseIndexName A lower case index base name, which should be same as an alarm config name.
+     * @param fromInstant        From time
+     * @param toInstant          To time
      * @param indexDateSpanUnits Date span unit (Y, M, D...)
      * @return List of index names
      * @throws Exception If index names cannot be determined
      */
     public static List<String> findIndexNames(String baseIndexName, Instant fromInstant, Instant toInstant, String indexDateSpanUnits) throws Exception {
+        List<String> indexList = new ArrayList<>();
 
-        IndexNameHelper fromIndexNameHelper = new IndexNameHelper(baseIndexName, true, indexDateSpanUnits);
-        IndexNameHelper toIndexNameHelper = new IndexNameHelper(baseIndexName, true, indexDateSpanUnits);
+        IndexNameHelper fromIndexNameHelper = new IndexNameHelper(baseIndexName.toLowerCase() + "*", true, indexDateSpanUnits);
+        IndexNameHelper toIndexNameHelper = new IndexNameHelper(baseIndexName.toLowerCase() + "*", true, indexDateSpanUnits);
 
         String fromIndex = fromIndexNameHelper.getIndexName(fromInstant);
         String toIndex = toIndexNameHelper.getIndexName(toInstant);
 
-        List<String> indexList = new ArrayList<>();
         if (fromInstant.isBefore(toInstant)) {
             if (fromIndex.equalsIgnoreCase(toIndex)) {
                 indexList.add(fromIndex);
@@ -375,6 +383,7 @@ public class AlarmLogSearchUtil {
                 }
             }
         }
+
         return indexList;
     }
 }
