@@ -30,13 +30,12 @@ import javafx.scene.layout.HBox;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
-import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
-import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,7 +50,7 @@ public class CompositeSnapshotTab extends Tab {
 
     private final SimpleStringProperty tabTitleProperty = new SimpleStringProperty(Messages.contextMenuNewCompositeSnapshot);
 
-    private SaveAndRestoreController saveAndRestoreController;
+    private final SaveAndRestoreController saveAndRestoreController;
 
     public CompositeSnapshotTab(SaveAndRestoreController saveAndRestoreController) {
         this.saveAndRestoreController = saveAndRestoreController;
@@ -98,7 +97,7 @@ public class CompositeSnapshotTab extends Tab {
         });
     }
 
-    public void handleNodeNameSet(String nodeName){
+    public void setNodeName(String nodeName){
         Platform.runLater(() -> tabTitleProperty.set("[" + Messages.Edit + "] " + nodeName));
     }
 
@@ -121,18 +120,30 @@ public class CompositeSnapshotTab extends Tab {
         return container;
     }
 
-    public void configureForNewCompositeSnapshot(Node parentNode) {
-        compositeSnapshotController.newCompositeSnapshot(parentNode);
+    public void configureForNewCompositeSnapshot(Node parentNode, List<Node> snapshotNodes) {
+        compositeSnapshotController.newCompositeSnapshot(parentNode, snapshotNodes);
     }
 
     /**
      * Configures UI to edit an existing composite snapshot {@link Node}
      *
      * @param compositeSnapshotNode non-null configuration {@link Node}
+     * @param snapshotNodes A potentially empty (but non-null) list of snapshot nodes that should
+     *                      be added to the list of references snapshots.
      */
-    public void editCompositeSnapshot(Node compositeSnapshotNode) {
+    public void editCompositeSnapshot(Node compositeSnapshotNode, List<Node> snapshotNodes) {
         setId("edit_" + compositeSnapshotNode.getUniqueId());
-        handleNodeNameSet(compositeSnapshotNode.getName());
-        compositeSnapshotController.loadCompositeSnapshot(compositeSnapshotNode);
+        setNodeName(compositeSnapshotNode.getName());
+        compositeSnapshotController.loadCompositeSnapshot(compositeSnapshotNode, snapshotNodes);
+    }
+
+    /**
+     * Adds additional snapshot nodes to an existing composite snapshot.
+     *
+     * @param  snapshotNodes Potentially empty (but non-null) list of snapshot nodes to include into
+     *                       the composite snapshot.
+     */
+    public void addToCompositeSnapshot(List<Node> snapshotNodes) {
+        compositeSnapshotController.addToCompositeSnapshot(snapshotNodes);
     }
 }

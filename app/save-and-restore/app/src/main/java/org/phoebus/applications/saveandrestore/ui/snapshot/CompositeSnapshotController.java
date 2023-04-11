@@ -301,32 +301,7 @@ public class CompositeSnapshotController {
                 return;
             }
             disabledUi.set(true);
-            checkForDuplicatePVs(sourceNodes, duplicates -> {
-                disabledUi.set(false);
-                if (duplicates.isEmpty()) {
-                    snapshotEntries.addAll(sourceNodes);
-                } else {
-                    int maxItems = 10;
-                    StringBuilder stringBuilder = new StringBuilder();
-                    for (int i = 0; i < Math.min(duplicates.size(), maxItems); i++) {
-                        stringBuilder.append(duplicates.get(i)).append(System.lineSeparator());
-                    }
-                    if (duplicates.size() > maxItems) {
-                        stringBuilder.append(".").append(System.lineSeparator())
-                                .append(".").append(System.lineSeparator())
-                                .append(".").append(System.lineSeparator());
-                        stringBuilder.append(MessageFormat.format(Messages.duplicatePVNamesAdditionalItems, duplicates.size() - maxItems));
-                    }
-
-                    Platform.runLater(() -> {
-                        Alert alert = new Alert(AlertType.ERROR);
-                        alert.setTitle(Messages.errorGeneric);
-                        alert.setHeaderText(Messages.duplicatePVNamesFoundInSelection);
-                        alert.setContentText(stringBuilder.toString());
-                        alert.showAndWait();
-                    });
-                }
-            });
+            addToCompositeSnapshot(sourceNodes);
         });
 
         progressIndicator.visibleProperty().bind(disabledUi);
@@ -343,7 +318,7 @@ public class CompositeSnapshotController {
     @FXML
     public void save() {
         doSave(compositeSnapshot -> {
-            loadCompositeSnapshot(compositeSnapshot.getCompositeSnapshotNode());
+            loadCompositeSnapshot(compositeSnapshot.getCompositeSnapshotNode(), Collections.emptyList());
         });
     }
 
@@ -368,7 +343,7 @@ public class CompositeSnapshotController {
                     compositeSnapshotData.setUniqueId(compositeSnapshotNode.getUniqueId());
                     compositeSnapshot = saveAndRestoreService.updateCompositeSnapshot(compositeSnapshot);
                 }
-                compositeSnapshotTab.handleNodeNameSet(compositeSnapshot.getCompositeSnapshotNode().getName());
+                compositeSnapshotTab.setNodeName(compositeSnapshot.getCompositeSnapshotNode().getName());
                 dirty.set(false);
                 completion.accept(compositeSnapshot);
             } catch (Exception e1) {
@@ -389,7 +364,7 @@ public class CompositeSnapshotController {
      *
      * @param node An existing {@link Node} of type {@link NodeType#COMPOSITE_SNAPSHOT}.
      */
-    public void loadCompositeSnapshot(final Node node) {
+    public void loadCompositeSnapshot(final Node node, final List<Node> snapshotNodes) {
         compositeSnapshotNode = node;
         disabledUi.set(true);
         removeListeners();
@@ -409,7 +384,9 @@ public class CompositeSnapshotController {
                     lastUpdatedProperty.set(compositeSnapshotNode.getLastModified() != null ?
                             TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(compositeSnapshotNode.getLastModified().getTime())) : null);
                     createdByProperty.set(compositeSnapshotNode.getUserName());
+
                     addListeners();
+
                 });
             } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError(root, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
@@ -435,11 +412,20 @@ public class CompositeSnapshotController {
      *
      * @param parentNode The parent {@link Node} for the new composite, i.e. must be a
      *                   {@link Node} of type {@link NodeType#FOLDER}.
+     * @param snapshotNodes Potentially empty list of {@link Node}s of type {@link NodeType#SNAPSHOT}
+     *                      or {@link NodeType#COMPOSITE_SNAPSHOT}, or both.
      */
-    public void newCompositeSnapshot(Node parentNode) {
+    public void newCompositeSnapshot(Node parentNode, List<Node> snapshotNodes) {
         parentFolder = parentNode;
         compositeSnapshotNode = Node.builder().nodeType(NodeType.COMPOSITE_SNAPSHOT).build();
-        dirty.set(false);
+        if(snapshotNodes.isEmpty()){
+            dirty.set(false);
+        }
+        else{
+            dirty.set(true);
+            //snapshotEntries.addAll(snapshotNodes);
+            addToCompositeSnapshot(snapshotNodes);
+        }
         addListeners();
         Platform.runLater(() -> compositeSnapshotNameField.requestFocus());
     }
@@ -462,13 +448,13 @@ public class CompositeSnapshotController {
     /**
      * Calls service to determine if the list of PV names found in referenced snapshots contains duplicates.
      *
-     * @param droppedSnapshots The snapshot {@link Node}s dropped by user into the editor tab.
-     * @param completion       Callback receiving a list of duplicate PV names.
+     * @param sourceNodes The snapshot {@link Node}s dropped by user into the editor tab.
      */
-    private void checkForDuplicatePVs(List<Node> droppedSnapshots, Consumer<List<String>> completion) {
+    public void addToCompositeSnapshot(List<Node> sourceNodes) {
         JobManager.schedule("Check snapshot PV duplicates", monitor -> {
+            disabledUi.set(true);
             List<String> allSnapshotIds = snapshotEntries.stream().map(Node::getUniqueId).collect(Collectors.toList());
-            allSnapshotIds.addAll(droppedSnapshots.stream().map(Node::getUniqueId).collect(Collectors.toList()));
+            allSnapshotIds.addAll(sourceNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
             List<String> duplicates = null;
             try {
                 duplicates = saveAndRestoreService.checkCompositeSnapshotConsistency(allSnapshotIds);
@@ -478,7 +464,30 @@ public class CompositeSnapshotController {
                         Messages.duplicatePVNamesCheckFailed,
                         e);
             }
-            completion.accept(duplicates);
+            disabledUi.set(false);
+            if (duplicates.isEmpty()) {
+                snapshotEntries.addAll(sourceNodes);
+            } else {
+                int maxItems = 10;
+                StringBuilder stringBuilder = new StringBuilder();
+                for (int i = 0; i < Math.min(duplicates.size(), maxItems); i++) {
+                    stringBuilder.append(duplicates.get(i)).append(System.lineSeparator());
+                }
+                if (duplicates.size() > maxItems) {
+                    stringBuilder.append(".").append(System.lineSeparator())
+                            .append(".").append(System.lineSeparator())
+                            .append(".").append(System.lineSeparator());
+                    stringBuilder.append(MessageFormat.format(Messages.duplicatePVNamesAdditionalItems, duplicates.size() - maxItems));
+                }
+
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(AlertType.ERROR);
+                    alert.setTitle(Messages.errorGeneric);
+                    alert.setHeaderText(Messages.duplicatePVNamesFoundInSelection);
+                    alert.setContentText(stringBuilder.toString());
+                    alert.showAndWait();
+                });
+            }
         });
     }
 

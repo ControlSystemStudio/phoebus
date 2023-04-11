@@ -195,7 +195,7 @@ public class TagUtil {
         selectedNodes.forEach(node -> {
             if (node.hasTag(Tag.GOLDEN)) {
                 goldenTagCount.incrementAndGet();
-            } else if (!node.getNodeType().equals(NodeType.SNAPSHOT)) {
+            } else if (!node.getNodeType().equals(NodeType.SNAPSHOT) && !node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)) {
                 nonSnapshotCount.incrementAndGet();
             }
         });

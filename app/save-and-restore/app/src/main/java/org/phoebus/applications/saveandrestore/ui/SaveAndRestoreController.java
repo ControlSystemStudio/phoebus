@@ -570,7 +570,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * @param node The double click source
      */
     public void nodeDoubleClicked(Node node) {
-        if (highlightTab(node.getUniqueId())) {
+        if (getTab(node.getUniqueId()) != null) {
             return;
         }
         Tab tab;
@@ -602,15 +602,36 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      */
     public void editCompositeSnapshot() {
         Node compositeSnapshotNode = browserSelectionModel.getSelectedItem().getValue();
-        if (highlightTab("edit_" + compositeSnapshotNode.getUniqueId())) {
-            return;
-        }
-        CompositeSnapshotTab tab = new CompositeSnapshotTab(this);
-        tab.editCompositeSnapshot(compositeSnapshotNode);
-        tabPane.getTabs().add(tab);
-        tabPane.getSelectionModel().select(tab);
+        editCompositeSnapshot(compositeSnapshotNode, Collections.emptyList());
     }
 
+    /**
+     * Launches the composite snapshot editor view for the purpose of editing an existing
+     * composite snapshot.
+     * @param compositeSnapshotNode A non-null {@link Node} of type {@link NodeType#COMPOSITE_SNAPSHOT}
+     * @param snapshotNodes A potentially empty (but non-null) list of snapshot nodes to include in
+     *                      a new or existing composite snapshot.
+     */
+    public void editCompositeSnapshot(Node compositeSnapshotNode, List<Node> snapshotNodes) {
+        CompositeSnapshotTab compositeSnapshotTab;
+        Tab tab = getTab("edit_" + compositeSnapshotNode.getUniqueId());
+        if (tab != null) {
+            compositeSnapshotTab = (CompositeSnapshotTab)tab;
+            compositeSnapshotTab.addToCompositeSnapshot(snapshotNodes);
+        }
+        else{
+            compositeSnapshotTab = new CompositeSnapshotTab(this);
+            compositeSnapshotTab.editCompositeSnapshot(compositeSnapshotNode, snapshotNodes);
+            tabPane.getTabs().add(compositeSnapshotTab);
+        }
+        tabPane.getSelectionModel().select(compositeSnapshotTab);
+    }
+
+    /**
+     * Launches a {@link Tab} for the purpose of creating a new configuration.
+     * @param parentNode A non-null parent {@link Node} that must be of type
+     *                   {@link NodeType#FOLDER}.
+     */
     private void launchTabForNewConfiguration(Node parentNode) {
         ConfigurationTab tab = new ConfigurationTab();
         tab.configureForNewConfiguration(parentNode);
@@ -618,21 +639,34 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         tabPane.getSelectionModel().select(tab);
     }
 
-    private void launchTabForNewCompositeSnapshot(Node parentNode) {
+    /**
+     * Launches a {@link Tab} for the purpose of creating a new composite snapshot.
+     * @param parentNode A non-null parent {@link Node} that must be of type
+     *                   {@link NodeType#FOLDER}.
+     * @param snapshotNodes A potentially empty list of snapshot nodes
+     *                      added to the composite snapshot.
+     */
+    public void launchTabForNewCompositeSnapshot(Node parentNode, List<Node> snapshotNodes) {
         CompositeSnapshotTab tab = new CompositeSnapshotTab(this);
-        tab.configureForNewCompositeSnapshot(parentNode);
+        tab.configureForNewCompositeSnapshot(parentNode, snapshotNodes);
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);
     }
 
-    private boolean highlightTab(String id) {
+    /**
+     * Locates a {@link Tab} in the {@link TabPane }and returns it if it exists.
+     * @param id Unique id of a {@link Tab}, which is based on the id of the {@link Node} it
+     *           is associated with.
+     * @return A non-null {@link Tab} if one is found, otherwise <code>null</code>.
+     */
+    private Tab getTab(String id) {
         for (Tab tab : tabPane.getTabs()) {
             if (tab.getId() != null && tab.getId().equals(id)) {
                 tabPane.getSelectionModel().select(tab);
-                return true;
+                return tab;
             }
         }
-        return false;
+        return null;
     }
 
     /**
@@ -643,7 +677,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     protected void createNewCompositeSnapshot() {
-        launchTabForNewCompositeSnapshot(browserSelectionModel.getSelectedItems().get(0).getValue());
+        launchTabForNewCompositeSnapshot(browserSelectionModel.getSelectedItems().get(0).getValue(),
+                Collections.emptyList());
     }
 
     /**
@@ -810,7 +845,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             List<TreeItem<Node>> childItems = allItems.get(parentItem.getValue().getUniqueId());
             parentItem.getChildren().setAll(childItems);
             parentItem.getChildren().sort(treeNodeComparator);
-            childItems.forEach(ci -> setChildItems(allItems, ci));
+            Platform.runLater(() -> childItems.forEach(ci -> setChildItems(allItems, ci)));
         }
     }
 

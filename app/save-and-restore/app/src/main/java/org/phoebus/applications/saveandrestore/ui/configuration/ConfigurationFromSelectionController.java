@@ -42,6 +42,7 @@ import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.phoebus.applications.saveandrestore.ui.NodeSelectionController;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
@@ -58,6 +59,7 @@ import org.phoebus.ui.javafx.ImageCache;
 import java.net.URL;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -183,20 +185,17 @@ public class ConfigurationFromSelectionController implements Initializable {
 
                 FXMLLoader loader = new FXMLLoader();
                 Stage dialog = new Stage();
-                dialog.setTitle("Choose a folder, a configuration, or create one");
+                dialog.setTitle(Messages.nodeSelectionForConfiguration);
                 dialog.getIcons().add(ImageCache.getImage(ImageCache.class, "/icons/logo.png"));
                 dialog.initModality(Modality.APPLICATION_MODAL);
-                loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/configuration/ConfigurationSelector.fxml"));
+                loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/NodeSelector.fxml"));
                 dialog.setScene(new Scene(loader.load()));
 
-                final ConfigurationSelectionController configurationSelectionController = loader.getController();
-                if (isDisabledConfigurationSelectionInBrowsing) {
-                    configurationSelectionController.disableConfigurationSelection();
-                }
-
+                final NodeSelectionController nodeSelectionController = loader.getController();
+                nodeSelectionController.setHiddenNodeTypes(Arrays.asList(NodeType.SNAPSHOT, NodeType.COMPOSITE_SNAPSHOT));
                 dialog.showAndWait();
 
-                final Node selectedNode = configurationSelectionController.getSelectedNode();
+                final Node selectedNode = nodeSelectionController.getSelectedNode();
                 if (selectedNode != null) {
                     targetNode.set(selectedNode);
                 }

@@ -31,7 +31,9 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -52,9 +54,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.Preferences;
+import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
@@ -64,6 +69,7 @@ import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.ui.HelpViewer;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
+import org.phoebus.applications.saveandrestore.ui.NodeSelectionController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
@@ -77,6 +83,7 @@ import org.phoebus.util.time.TimestampFormats;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
+import java.io.IOException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -404,6 +411,18 @@ public class SearchAndFilterViewController implements Initializable {
         ImageView snapshotTagsWithCommentIconImage = new ImageView(ImageRepository.SNAPSHOT_ADD_TAG_WITH_COMMENT);
         Menu tagMenu = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
 
+        MenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
+        addTagWithCommentMenuItem.setOnAction(event -> TagUtil.addTag(resultTableView.getSelectionModel().getSelectedItems()));
+        tagMenu.getItems().add(addTagWithCommentMenuItem);
+
+        MenuItem addToCompositeSnapshotMenuItem = new MenuItem(Messages.contextMenuAddToCompositeSnapshot,
+                new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
+        addToCompositeSnapshotMenuItem.setOnAction(event -> createOrAddToCompositeSnapshot());
+        addToCompositeSnapshotMenuItem.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                        resultTableView.getSelectionModel().getSelectedItems()
+                                .stream().anyMatch(i -> !i.getNodeType().equals(NodeType.SNAPSHOT)  && !i.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)),
+                resultTableView.getSelectionModel().getSelectedItems()));
+
         contextMenu.setOnShowing(event -> {
             TagUtil.tagWithComment(tagMenu,
                     resultTableView.getSelectionModel().getSelectedItems(),
@@ -411,10 +430,9 @@ public class SearchAndFilterViewController implements Initializable {
                     });
             TagUtil.configureGoldenItem(resultTableView.getSelectionModel().getSelectedItems(), tagGoldenMenuItem);
         });
-        MenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
-        addTagWithCommentMenuItem.setOnAction(event -> TagUtil.addTag(resultTableView.getSelectionModel().getSelectedItems()));
-        tagMenu.getItems().add(addTagWithCommentMenuItem);
-        contextMenu.getItems().addAll(tagGoldenMenuItem, tagMenu);
+
+        contextMenu.getItems().addAll(tagGoldenMenuItem, tagMenu, addToCompositeSnapshotMenuItem);
+
 
         resultTableView.setContextMenu(contextMenu);
 
@@ -799,6 +817,39 @@ public class SearchAndFilterViewController implements Initializable {
             if (node.getUniqueId().equals(updatedNode.getUniqueId())) {
                 node.setTags(updatedNode.getTags());
                 resultTableView.refresh();
+            }
+        }
+    }
+
+    /**
+     * Launches UI to create a new composite snapshot, or to edit an existing
+     */
+    private void createOrAddToCompositeSnapshot(){
+        List<Node> selectedSnapshots = resultTableView.getSelectionModel().getSelectedItems();
+        FXMLLoader loader = new FXMLLoader();
+        Stage dialog = new Stage();
+        dialog.setTitle(Messages.nodeSelectionForCompositeSnapshot);
+        dialog.getIcons().add(ImageCache.getImage(ImageCache.class, "/icons/logo.png"));
+        dialog.initModality(Modality.APPLICATION_MODAL);
+        loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/NodeSelector.fxml"));
+        try {
+            dialog.setScene(new Scene(loader.load()));
+        } catch (IOException e) {
+            LOGGER.log(Level.WARNING, "Unable to launch UI", e);
+            return;
+        }
+
+        final NodeSelectionController nodeSelectionController = loader.getController();
+        nodeSelectionController.setHiddenNodeTypes(Arrays.asList(NodeType.SNAPSHOT, NodeType.CONFIGURATION));
+        dialog.showAndWait();
+
+        final Node targetNode = nodeSelectionController.getSelectedNode();
+        if (targetNode != null) {
+            if(targetNode.getNodeType().equals(NodeType.FOLDER)){
+                saveAndRestoreController.launchTabForNewCompositeSnapshot(targetNode, selectedSnapshots);
+            }
+            else if(targetNode.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)){
+                saveAndRestoreController.editCompositeSnapshot(targetNode, selectedSnapshots);
             }
         }
     }
