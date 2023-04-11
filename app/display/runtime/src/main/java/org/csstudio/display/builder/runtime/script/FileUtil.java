@@ -175,17 +175,6 @@ public class FileUtil {
         return selected.getPath();
     }
 
-    /**Open a file save dialog.
-     * @param inWorkspace true if it is a workspace file dialog; Otherwise, it is a local
-     * file system file dialog.
-     * @return the full file path. Or null if it is cancelled.
-     */
-    public static String saveFileDialog(boolean inWorkspace)
-    {
-	return ScriptUtil.showSaveAsDialog(null, null);
-    }
-
-
     /**Convert a workspace path to system path.
      * If this resource is a project that does not exist in the workspace, or a file or folder below such a project, this method returns null.
      * @param workspacePath path in workspace.
