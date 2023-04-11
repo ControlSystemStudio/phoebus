@@ -129,7 +129,7 @@ public class ValueHelper
                         break;
                     }
                     else if (currentChar != ' ' && currentChar != '\t') {
-                        throw new Exception("A character that is not a space of a tab appeared after a closing quote");
+                        throw new Exception("A character that is not a space or a tab appeared after a closing quote");
                     }
                     else {
                         pos++;
