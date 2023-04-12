@@ -537,7 +537,7 @@ public class SearchAndFilterViewController implements Initializable {
                 SearchResult searchResult = saveAndRestoreService.search(map);
                 if (searchResult.getHitCount() > 0) {
                     Platform.runLater(() -> {
-                        tableEntries.setAll(searchResult.getNodes().stream().sorted(nodeComparator()).collect(Collectors.toList()));
+                        tableEntries.setAll(searchResult.getNodes());
                         hitCountProperty.set(searchResult.getHitCount());
                     });
                 } else {
@@ -560,11 +560,6 @@ public class SearchAndFilterViewController implements Initializable {
                 tableEntries.clear();
             }
         });
-    }
-
-    private Comparator<Node> nodeComparator() {
-        return Comparator.comparing(Node::getNodeType)
-                .thenComparing((Node n) -> n.getName().toLowerCase());
     }
 
     @FXML
