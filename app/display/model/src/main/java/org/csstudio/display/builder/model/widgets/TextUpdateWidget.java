@@ -85,7 +85,7 @@ public class TextUpdateWidget extends PVWidget
             if (xml_version.getMajor() < 2)
             {
                 final TextUpdateWidget text_widget = (TextUpdateWidget)widget;
-                TextUpdateWidget.readLegacyFormat(xml, text_widget.format, text_widget.precision, text_widget.propPVName());
+                TextUpdateWidget.readLegacyFormat(xml, text_widget.format, text_widget.precision, text_widget.propPVName(), text_widget.interactive);
 
                 // Legacy rotation_angle -> rotation_step
                 // BOY counted angle clockwise, we now use mathematical sense of rotation
@@ -140,7 +140,8 @@ public class TextUpdateWidget extends PVWidget
     // package-level access for TextEntryWidget
     static void readLegacyFormat(final Element xml, final WidgetProperty<FormatOption> format,
                                  final WidgetProperty<Integer> precision,
-                                 final WidgetProperty<String> pv_name) throws Exception
+                                 final WidgetProperty<String> pv_name,
+				 final WidgetProperty<Boolean> interactive) throws Exception
     {
         XMLUtil.getChildInteger(xml, "format_type").ifPresent(legacy_format ->
         {
@@ -196,6 +197,7 @@ public class TextUpdateWidget extends PVWidget
             pv = pv.substring(0, pv.length() - 20);
             ((StringWidgetProperty)pv_name).setSpecification(pv);
             format.setValue(FormatOption.STRING);
+	    interactive.setValue(true);
         }
     }
 
