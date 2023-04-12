@@ -33,6 +33,7 @@ public class Messages
                          LogbookServiceHasNoLogbooks,
                          LogbooksTitle,
                          LogbooksTooltip,
+                         NewLogEntry,
                          NoAttachments,
                          NoClipboardContent,
                          Normal,
