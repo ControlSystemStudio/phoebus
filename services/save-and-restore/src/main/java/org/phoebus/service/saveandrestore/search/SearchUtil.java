@@ -1,5 +1,8 @@
 package org.phoebus.service.saveandrestore.search;
 
+import co.elastic.clients.elasticsearch._types.FieldSort;
+import co.elastic.clients.elasticsearch._types.SortOptions;
+import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery.Builder;
 import co.elastic.clients.elasticsearch._types.query_dsl.ChildScoreMode;
@@ -208,7 +211,7 @@ public class SearchUtil {
             DisMaxQuery.Builder descQuery = new DisMaxQuery.Builder();
             List<Query> descQueries = new ArrayList<>();
             if (fuzzySearch) {
-                descriptionTerms.stream().forEach(searchTerm -> {
+                descriptionTerms.forEach(searchTerm -> {
                     Query fuzzyQuery = FuzzyQuery.of(f -> f.field("node.description").value(searchTerm))._toQuery();
                     NestedQuery nestedQuery =
                             NestedQuery.of(n1 -> n1.path("node")
@@ -216,7 +219,7 @@ public class SearchUtil {
                     descQueries.add(nestedQuery._toQuery());
                 });
             } else {
-                descriptionTerms.stream().forEach(searchTerm -> {
+                descriptionTerms.forEach(searchTerm -> {
                     Query wildcardQuery =
                             WildcardQuery.of(w -> w.field("node.description").value(searchTerm))._toQuery();
                     NestedQuery nestedQuery =
@@ -271,6 +274,15 @@ public class SearchUtil {
 
         return SearchRequest.of(s -> s.index(ES_TREE_INDEX)
                 .query(boolQueryBuilder.build()._toQuery())
+                .sort(SortOptions.of(o -> o
+                                .field(FieldSort.of(f -> f
+                                                .field("node.name.raw")
+                                                .nested(n -> n.path("node"))
+                                                .order(SortOrder.Asc)
+                                        )
+                                )
+                        )
+                )
                 .timeout("60s")
                 .size(Math.min(_searchResultSize, maxSearchSize))
                 .from(_from));
