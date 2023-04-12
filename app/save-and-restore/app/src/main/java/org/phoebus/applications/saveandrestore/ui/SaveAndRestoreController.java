@@ -1042,6 +1042,12 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         if (selectedItems.size() < 2) {
             return true;
         }
+        List<Node> sourceNodes =
+                selectedItems.stream().map(TreeItem::getValue).collect(Collectors.toList());
+        if(sourceNodes.stream().filter(n -> n.getNodeType().equals(NodeType.FOLDER) ||
+                n.getNodeType().equals(NodeType.CONFIGURATION)).findFirst().isEmpty()){
+            return true;
+        }
         TreeItem<Node> parent = selectedItems.get(0).getParent();
         NodeType nodeType = selectedItems.get(0).getValue().getNodeType();
         return selectedItems.stream().filter(item -> !item.getParent().equals(parent) || !item.getValue().getNodeType().equals(nodeType)).findFirst().isEmpty();

@@ -103,6 +103,10 @@ public class BrowserTreeCell extends TreeCell<Node> {
                 event.acceptTransferModes(event.getTransferMode());
                 setBorder(BORDER);
             }
+            else if(node != null && node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)){
+                event.acceptTransferModes(event.getTransferMode());
+                setBorder(BORDER);
+            }
             event.consume();
         });
 
@@ -116,29 +120,64 @@ public class BrowserTreeCell extends TreeCell<Node> {
         {
             Node targetNode = getItem();
             if (targetNode != null) {
+                TransferMode transferMode = event.getTransferMode();
                 List<Node> sourceNodes = (List<Node>) event.getDragboard().getContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT);
-                // If the drop target is contained in the selection, return silently...
-                if (!mayDrop(targetNode, sourceNodes)) {
+                if (!mayDrop(transferMode, targetNode, sourceNodes)) {
                     return;
                 }
-                // If selection contains a snapshot or composite snapshot node, return silently...
-                TransferMode transferMode = event.getTransferMode();
-                getTreeView().getSelectionModel().clearSelection(); // This is needed to help controller implement selection restrictions
-                saveAndRestoreController.performCopyOrMove(sourceNodes, targetNode, transferMode);
+                if(snapshotsOrCompositeSnapshotsOnly(sourceNodes)){
+                    if(targetNode.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)){
+                        saveAndRestoreController.editCompositeSnapshot(targetNode, sourceNodes);
+                    }
+                    else if(targetNode.getNodeType().equals(NodeType.FOLDER)){
+                        saveAndRestoreController.launchTabForNewCompositeSnapshot(targetNode, sourceNodes);
+                    }
+                }
+                else{
+                    getTreeView().getSelectionModel().clearSelection(); // This is needed to help controller implement selection restrictions
+                    saveAndRestoreController.performCopyOrMove(sourceNodes, targetNode, transferMode);
+                }
             }
             event.setDropCompleted(true);
             event.consume();
         });
     }
 
-    private boolean mayDrop(Node targetNode, List<Node> sourceNodes) {
+    /**
+     * Implements business rules for dropping a {@link Node}s selection onto an item in the tree view:
+     * <ul>
+     *     <li>Target {@link Node} may not be contained in list of source {@link Node}s.</li>
+     *     <li>If target {@link Node} is if {@link NodeType#COMPOSITE_SNAPSHOT}, then source node
+     *     list items must all be of type {@link NodeType#COMPOSITE_SNAPSHOT} or {@link NodeType#SNAPSHOT}</li>
+     *     <li>If target {@link Node} is if {@link NodeType#FOLDER} and source node list
+     *     items are all of type {@link NodeType#COMPOSITE_SNAPSHOT} or {@link NodeType#SNAPSHOT}, then
+     *     the transfer mode must be {@link TransferMode#LINK}. If not, then source node list must not
+     *     contain items of type {@link NodeType#COMPOSITE_SNAPSHOT} or {@link NodeType#SNAPSHOT}.</li>
+     * </ul>
+     * @param targetNode The drop target
+     * @param sourceNodes Selection of {@link Node}s
+     * @return <code>true</code> if the selection (source nodes) may be dropped on the target, otherwise <code>false</code>.
+     */
+    private boolean mayDrop(TransferMode transferMode, Node targetNode, List<Node> sourceNodes) {
+        // Source nodes list may not contain target node.
         if (sourceNodes.contains(targetNode)) {
             return false;
         }
-        if (sourceNodes.stream().filter(n -> n.getNodeType().equals(NodeType.SNAPSHOT) ||
-                n.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)).findFirst().isEmpty()) {
+        boolean snapshotsOrCompositeSnapshotsOnly = snapshotsOrCompositeSnapshotsOnly(sourceNodes);
+        // A list of snapshots and composite snapshots may be dropped onto a composite snapshot node
+        if (targetNode.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT) && snapshotsOrCompositeSnapshotsOnly) {
             return true;
         }
+        if(targetNode.getNodeType().equals(NodeType.FOLDER)){
+            /*
+            if(snapshotsOrCompositeSnapshotsOnly){
+                return transferMode.equals(TransferMode.LINK);
+            }
+
+             */
+            return true;
+        }
+
         return false;
     }
 
@@ -228,5 +267,10 @@ public class BrowserTreeCell extends TreeCell<Node> {
             return TransferMode.COPY;
         }
         return TransferMode.MOVE;
+    }
+
+    private boolean snapshotsOrCompositeSnapshotsOnly(List<Node> sourceNodes){
+        return sourceNodes.stream().filter(n -> n.getNodeType().equals(NodeType.FOLDER) ||
+                n.getNodeType().equals(NodeType.CONFIGURATION)).findFirst().isEmpty();
     }
 }

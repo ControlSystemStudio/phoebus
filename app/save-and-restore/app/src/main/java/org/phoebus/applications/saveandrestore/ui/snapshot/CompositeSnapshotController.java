@@ -62,6 +62,7 @@ import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
@@ -384,7 +385,7 @@ public class CompositeSnapshotController {
                     lastUpdatedProperty.set(compositeSnapshotNode.getLastModified() != null ?
                             TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(compositeSnapshotNode.getLastModified().getTime())) : null);
                     createdByProperty.set(compositeSnapshotNode.getUserName());
-
+                    addToCompositeSnapshot(snapshotNodes);
                     addListeners();
 
                 });
@@ -485,7 +486,9 @@ public class CompositeSnapshotController {
                     alert.setTitle(Messages.errorGeneric);
                     alert.setHeaderText(Messages.duplicatePVNamesFoundInSelection);
                     alert.setContentText(stringBuilder.toString());
+                    DialogHelper.positionDialog(alert, snapshotTable, -300, -300);
                     alert.showAndWait();
+
                 });
             }
         });

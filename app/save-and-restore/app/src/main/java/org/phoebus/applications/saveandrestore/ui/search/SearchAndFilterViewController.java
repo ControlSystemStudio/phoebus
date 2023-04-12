@@ -53,7 +53,10 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.TransferMode;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
@@ -415,14 +418,6 @@ public class SearchAndFilterViewController implements Initializable {
         addTagWithCommentMenuItem.setOnAction(event -> TagUtil.addTag(resultTableView.getSelectionModel().getSelectedItems()));
         tagMenu.getItems().add(addTagWithCommentMenuItem);
 
-        MenuItem addToCompositeSnapshotMenuItem = new MenuItem(Messages.contextMenuAddToCompositeSnapshot,
-                new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
-        addToCompositeSnapshotMenuItem.setOnAction(event -> createOrAddToCompositeSnapshot());
-        addToCompositeSnapshotMenuItem.disableProperty().bind(Bindings.createBooleanBinding(() ->
-                        resultTableView.getSelectionModel().getSelectedItems()
-                                .stream().anyMatch(i -> !i.getNodeType().equals(NodeType.SNAPSHOT)  && !i.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)),
-                resultTableView.getSelectionModel().getSelectedItems()));
-
         contextMenu.setOnShowing(event -> {
             TagUtil.tagWithComment(tagMenu,
                     resultTableView.getSelectionModel().getSelectedItems(),
@@ -431,7 +426,7 @@ public class SearchAndFilterViewController implements Initializable {
             TagUtil.configureGoldenItem(resultTableView.getSelectionModel().getSelectedItems(), tagGoldenMenuItem);
         });
 
-        contextMenu.getItems().addAll(tagGoldenMenuItem, tagMenu, addToCompositeSnapshotMenuItem);
+        contextMenu.getItems().addAll(tagGoldenMenuItem, tagMenu);
 
 
         resultTableView.setContextMenu(contextMenu);
@@ -468,7 +463,7 @@ public class SearchAndFilterViewController implements Initializable {
         // This is to accept numerical input only, and at most 3 digits (maximizing search to 999 hits).
         pageSizeTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (DIGIT_PATTERN.matcher(newValue).matches()) {
-                if ("" .equals(newValue)) {
+                if ("".equals(newValue)) {
                     pageSizeProperty.set(Preferences.search_result_page_size);
                 } else if (newValue.length() > 3) {
                     pageSizeTextField.setText(oldValue);
@@ -495,6 +490,15 @@ public class SearchAndFilterViewController implements Initializable {
         });
 
         resultTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        resultTableView.setOnDragDetected(e -> {
+            final ClipboardContent content = new ClipboardContent();
+            final List<Node> nodes = new ArrayList<>();
+            resultTableView.getSelectionModel().getSelectedItems().forEach(i -> nodes.add(i));
+            content.put(SaveAndRestoreApplication.NODE_SELECTION_FORMAT, nodes);
+            final Dragboard db = resultTableView.startDragAndDrop(TransferMode.LINK);
+            db.setContent(content);
+            e.consume();
+        });
 
         loadFilters();
     }
@@ -817,39 +821,6 @@ public class SearchAndFilterViewController implements Initializable {
             if (node.getUniqueId().equals(updatedNode.getUniqueId())) {
                 node.setTags(updatedNode.getTags());
                 resultTableView.refresh();
-            }
-        }
-    }
-
-    /**
-     * Launches UI to create a new composite snapshot, or to edit an existing
-     */
-    private void createOrAddToCompositeSnapshot(){
-        List<Node> selectedSnapshots = resultTableView.getSelectionModel().getSelectedItems();
-        FXMLLoader loader = new FXMLLoader();
-        Stage dialog = new Stage();
-        dialog.setTitle(Messages.nodeSelectionForCompositeSnapshot);
-        dialog.getIcons().add(ImageCache.getImage(ImageCache.class, "/icons/logo.png"));
-        dialog.initModality(Modality.APPLICATION_MODAL);
-        loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/NodeSelector.fxml"));
-        try {
-            dialog.setScene(new Scene(loader.load()));
-        } catch (IOException e) {
-            LOGGER.log(Level.WARNING, "Unable to launch UI", e);
-            return;
-        }
-
-        final NodeSelectionController nodeSelectionController = loader.getController();
-        nodeSelectionController.setHiddenNodeTypes(Arrays.asList(NodeType.SNAPSHOT, NodeType.CONFIGURATION));
-        dialog.showAndWait();
-
-        final Node targetNode = nodeSelectionController.getSelectedNode();
-        if (targetNode != null) {
-            if(targetNode.getNodeType().equals(NodeType.FOLDER)){
-                saveAndRestoreController.launchTabForNewCompositeSnapshot(targetNode, selectedSnapshots);
-            }
-            else if(targetNode.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)){
-                saveAndRestoreController.editCompositeSnapshot(targetNode, selectedSnapshots);
             }
         }
     }
