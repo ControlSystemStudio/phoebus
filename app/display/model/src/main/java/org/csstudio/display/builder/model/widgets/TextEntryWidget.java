@@ -42,6 +42,7 @@ import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.properties.HorizontalAlignment;
+import org.csstudio.display.builder.model.properties.StringWidgetProperty;
 import org.csstudio.display.builder.model.properties.VerticalAlignment;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
@@ -92,7 +93,7 @@ public class TextEntryWidget extends WritablePVWidget
             if (xml_version.getMajor() < 3)
             {
                 final TextEntryWidget text_widget = (TextEntryWidget)widget;
-                TextUpdateWidget.readLegacyFormat(xml, text_widget.format, text_widget.precision, text_widget.propPVName());
+                TextEntryWidget.readLegacyFormat(xml, text_widget.format, text_widget.precision, text_widget.propPVName());
 
                 Optional<String> text = XMLUtil.getChildString(xml, "multiline_input");
                 if (text.isPresent()  &&  Boolean.parseBoolean(text.get()))
@@ -199,6 +200,74 @@ public class TextEntryWidget extends WritablePVWidget
             logger.log(Level.WARNING, text_widget + ": Support for Date/Time selector not implemented");
             // Enforce String format
             text_widget.propFormat().setValue(FormatOption.STRING);
+        }
+    }
+
+    /** Read legacy widget's format
+     *  @param xml Widget XML
+     *  @param format Format property to update
+     *  @param precision Precision property to update
+     *  @param pv_name PV name property to update
+     */
+    // package-level access for TextEntryWidget
+    static void readLegacyFormat(final Element xml, final WidgetProperty<FormatOption> format,
+                                 final WidgetProperty<Integer> precision,
+                                 final WidgetProperty<String> pv_name) throws Exception
+    {
+        XMLUtil.getChildInteger(xml, "format_type").ifPresent(legacy_format ->
+        {
+            switch (legacy_format)
+            {
+            case 1: // DECIMAL
+                format.setValue(FormatOption.DECIMAL);
+                break;
+            case 2: // EXP
+                format.setValue(FormatOption.EXPONENTIAL);
+                break;
+            case 3: // HEX (32)
+                format.setValue(FormatOption.HEX);
+                precision.setValue(8);
+                break;
+            case 4: // STRING
+                format.setValue(FormatOption.STRING);
+                break;
+            case 5: // HEX64
+                format.setValue(FormatOption.HEX);
+                precision.setValue(16);
+                break;
+            case 6: // COMPACT
+                format.setValue(FormatOption.COMPACT);
+                break;
+            case 7: // ENG (since Aug. 2016)
+                format.setValue(FormatOption.ENGINEERING);
+                break;
+            case 8: // SEXA (since Dec. 2016)
+                format.setValue(FormatOption.SEXAGESIMAL);
+                break;
+            case 9: // SEXA_HMS (since Dec. 2016)
+                format.setValue(FormatOption.SEXAGESIMAL_HMS);
+                break;
+            case 10: // SEXA_DMS (since Dec. 2016)
+                format.setValue(FormatOption.SEXAGESIMAL_DMS);
+                break;
+            default:
+                format.setValue(FormatOption.DEFAULT);
+            }
+        });
+
+        // If legacy requested precision-from-PV, mark that in precision
+        final Element element = XMLUtil.getChildElement(xml, "precision_from_pv");
+        if (element != null  &&  Boolean.parseBoolean(XMLUtil.getString(element)))
+            precision.setValue(-1);
+
+        // Remove legacy longString attribute from PV,
+        // instead use STRING formatting
+        String pv = ((StringWidgetProperty)pv_name).getSpecification();
+        if (pv.endsWith(" {\"longString\":true}"))
+        {
+            pv = pv.substring(0, pv.length() - 20);
+            ((StringWidgetProperty)pv_name).setSpecification(pv);
+            format.setValue(FormatOption.STRING);
         }
     }
 
