@@ -186,7 +186,7 @@ public class FileUtil {
      */
     public static String saveFileDialog(Widget widget, String initial_value)
     {
-	    return ScriptUtil.showSaveAsDialog(widget, initial_value);
+        return ScriptUtil.showSaveAsDialog(widget, initial_value);
     }
 
 
