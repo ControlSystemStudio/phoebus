@@ -175,14 +175,18 @@ public class FileUtil {
         return selected.getPath();
     }
 
-    /**Open a file save dialog.
-     * @param inWorkspace true if it is a workspace file dialog; Otherwise, it is a local
-     * file system file dialog.
-     * @return the full file path. Or null if it is cancelled.
+    /** Show file "Save As" dialog for selecting/entering a new file name
+     *
+     *  <p>Call blocks until the user closes the dialog
+     *  by either either entering/selecting a file name, or pressing "Cancel".
+     *
+     *  @param widget Widget, used to create and position the dialog
+     *  @param initial_value Initial path and file name
+     *  @return Path and file name or <code>null</code>
      */
-    public static String saveFileDialog(boolean inWorkspace)
+    public static String saveFileDialog(Widget widget, String initial_value)
     {
-	return ScriptUtil.showSaveAsDialog(null, null);
+        return ScriptUtil.showSaveAsDialog(widget, initial_value);
     }
 
 
