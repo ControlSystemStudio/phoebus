@@ -48,7 +48,9 @@ import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.logbook.SearchResult;
 import org.phoebus.logbook.olog.ui.query.OlogQuery;
 import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
+import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
+import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -69,6 +71,9 @@ import java.util.stream.Collectors;
  * @author Kunal Shroff
  */
 public class LogEntryTableViewController extends LogbookSearchController {
+
+    @FXML
+    private Node topLevelNode;
 
     @FXML
     private Button resize;
@@ -160,7 +165,13 @@ public class LogEntryTableViewController extends LogbookSearchController {
             tableView.getItems().forEach(item -> item.setShowDetails(!item.isShowDetails().get()));
         });
 
-        contextMenu.getItems().addAll(groupSelectedEntries, menuItemShowHideAll);
+        MenuItem menuItemNewLogEntry = new MenuItem(Messages.NewLogEntry);
+        menuItemNewLogEntry.acceleratorProperty().setValue(new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN));
+        menuItemNewLogEntry.setOnAction(ae -> {
+            new LogEntryEditorStage(new OlogLog(),  null, null).show();
+        });
+
+        contextMenu.getItems().addAll(groupSelectedEntries, menuItemShowHideAll, menuItemNewLogEntry);
         contextMenu.setOnShowing(e -> {
             try {
                 SecureStore store = new SecureStore();
