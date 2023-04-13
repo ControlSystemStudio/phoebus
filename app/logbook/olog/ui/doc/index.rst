@@ -23,9 +23,15 @@ Features
 
 Launching the log entry editor
 ------------------------------
-To launch the log entry editor, the user may select Applications -> Utility -> Send to Logbook from the menu:
+The log entry editor is launched as a non-modal window using one of the following methods:
 
-.. image:: images/SendToLogbook.png
+- From the dedicated button in the application toolbar.
+
+- From application menu Applications -> Utility -> Send to Logbook.
+
+- Using the New Log Entry button in the log entry details view of the logbook application.
+
+- Using the New Log Entry context menu item in the search result list view of the logbook application. This option also supports the keyboard combination CTRL+N.
 
 The log entry editor may also be launched from context menus, where applicable. For instance, with a right click on
 the background of an OPI the launched context menu will include the Create Log item:
@@ -80,6 +86,10 @@ for details on how to do this. In general, users should use the Embed Image butt
 External image resources may be edited manually, e.g.:
 ``![alt-text](https://foo.com/bar.jpg)``. 
 File URLs are not supported.
+
+Links
+-----
+Links contained in a log entry will be opened in the default browser rather than in the view showing the log entry.
 
 Properties
 ----------
@@ -203,10 +213,18 @@ feature user can choose to:
 
 .. image:: images/ContextMenuLogEntryTable.png
 
-Log entries that are contained in a log entry group are rendered with a grey background in the search result table view.
+Log entries that are contained in a log entry group are rendered with a "reply" icon in the search result table view:
+
+.. image:: images/ReplyAnnotation.png
+
 In the log entry view, the "Show/Hide Group" button (see screen shot above) can be used to show all log entries of a group sequentially,
 ordered on created date with oldest log entry on top. In this merged view attachments and properties are not shown.
 Clicking on a header in the merged view will show that log entry in full.
+
+**NOTE**: To be able to group log entries user must be authenticated in one of the following manners:
+
+* Use "credentials caching" through preference setting ``org.phoebus.logbook.olog.ui/save_credentials``. Once a log entry has been created, credentials will be reused when creating a group.
+* Use the Credentials Management app to sign in to the logbook context.
 
 Limitations
 ^^^^^^^^^^^

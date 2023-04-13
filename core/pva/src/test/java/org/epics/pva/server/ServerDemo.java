@@ -94,7 +94,7 @@ public class ServerDemo
             catch (Exception ex)
             {
                 // Expected
-                if (! ex.getMessage().toLowerCase().contains("incompatibl"))
+                if (! ex.getMessage().toLowerCase().contains("incompatible"))
                     throw ex;
             }
         }

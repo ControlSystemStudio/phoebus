@@ -49,8 +49,9 @@ public class UpdateDemo
             }
         };
 
-        final Instant new_version = Update.checkForUpdate(monitor);
+        final var updater = new URLUpdate();
+        final Instant new_version = updater.checkForUpdate(monitor);
         if (new_version != null)
-            Update.downloadAndUpdate(monitor, install_location);
+            updater.downloadAndUpdate(monitor, install_location);
     }
 }

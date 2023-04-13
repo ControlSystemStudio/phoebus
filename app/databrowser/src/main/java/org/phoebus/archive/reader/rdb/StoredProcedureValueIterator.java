@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,6 +18,7 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -219,7 +220,7 @@ public class StoredProcedureValueIterator extends AbstractRDBValueIterator
             // WB==-1 indicates a String sample
             final VType value;
             if (result.getInt(1) < 0)
-                value = VString.of(result.getString(8), alarm, time);
+                value = VString.of(Objects.toString(result.getString(8)), alarm, time);
             else
             {   // Only one value within averaging bucket?
                 final int cnt = result.getInt(9);

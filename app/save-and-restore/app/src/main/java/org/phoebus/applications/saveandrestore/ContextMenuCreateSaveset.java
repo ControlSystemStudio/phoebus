@@ -30,9 +30,11 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
-import org.phoebus.applications.saveandrestore.ui.saveset.SaveSetFromSelectionController;
+import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationFromSelectionController;
 import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.ContextMenuEntry;
@@ -41,6 +43,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -57,8 +60,6 @@ public class ContextMenuCreateSaveset implements ContextMenuEntry
 
     private static final Class<?> supportedTypes = ProcessVariable.class;
 
-    private static final Image icon = ImageCache.getImage(ImageCache.class, "/icons/save-and-restore/saveset.png");
-
     private static final DateTimeFormatter savesetTimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
 
     private SaveAndRestoreService saveAndRestoreService = null;
@@ -66,13 +67,13 @@ public class ContextMenuCreateSaveset implements ContextMenuEntry
     @Override
     public String getName()
     {
-        return "Create/add to a Saveset";
+        return "Create/add to a Configuration";
     }
 
     @Override
     public Image getIcon()
     {
-        return icon;
+        return ImageRepository.CONFIGURATION;
     }
 
     @Override
@@ -92,7 +93,9 @@ public class ContextMenuCreateSaveset implements ContextMenuEntry
 
         try {
             FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/saveset/SaveSetFromSelection.fxml"));
+            ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
+            loader.setResources(resourceBundle);
+            loader.setLocation(SaveAndRestoreApplication.class.getResource("ui/configuration/ConfigurationFromSelection.fxml"));
             Parent root = loader.load();
             Stage dialog = new Stage();
             dialog.setTitle(getName());
@@ -100,11 +103,11 @@ public class ContextMenuCreateSaveset implements ContextMenuEntry
             dialog.getIcons().add(ImageCache.getImage(ImageCache.class, "/icons/logo.png"));
             dialog.setScene(new Scene(root));
 
-            final SaveSetFromSelectionController controller = loader.getController();
+            final ConfigurationFromSelectionController controller = loader.getController();
             controller.setSelection(pvs);
             dialog.show();
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Cannot load SaveSetFromSelection.fxml file!", e);
+            LOGGER.log(Level.SEVERE, "Cannot load ConfigurationFromSelection.fxml file!", e);
         }
     }
 

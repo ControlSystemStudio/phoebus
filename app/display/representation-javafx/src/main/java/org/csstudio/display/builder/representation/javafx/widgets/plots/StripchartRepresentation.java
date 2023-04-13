@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,7 +19,6 @@ import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.widgets.plots.StripchartWidget;
-import org.csstudio.display.builder.model.widgets.plots.StripchartWidget.AxisWidgetProperty;
 import org.csstudio.display.builder.model.widgets.plots.StripchartWidget.TraceWidgetProperty;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.csstudio.display.builder.representation.javafx.widgets.RegionBaseRepresentation;
@@ -201,7 +200,6 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
         axis.grid().removePropertyListener(modelChangedListener);
         axis.visible().removePropertyListener(modelChangedListener);
         axis.color().removePropertyListener(modelChangedListener);
-
     }
 
 
@@ -350,9 +348,6 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
 
         for (TraceWidgetProperty trace : model_widget.propTraces().getValue())
         {
-            if (! trace.traceVisible().getValue())
-                continue;
-
             final PVItem item = new PVItem(trace.traceYPV().getValue(), 0.0);
             item.setDisplayName(trace.traceName().getValue());
             item.setAxis(model.getAxis(trace.traceYAxis().getValue()));
@@ -361,6 +356,7 @@ public class StripchartRepresentation extends RegionBaseRepresentation<Pane, Str
             item.setLineWidth(trace.traceWidth().getValue());
             item.setPointType(XYPlotRepresentation.map(trace.tracePointType().getValue()));
             item.setPointSize(trace.tracePointSize().getValue());
+            item.setVisible(trace.traceVisible().getValue());
             item.useDefaultArchiveDataSources();
             try
             {

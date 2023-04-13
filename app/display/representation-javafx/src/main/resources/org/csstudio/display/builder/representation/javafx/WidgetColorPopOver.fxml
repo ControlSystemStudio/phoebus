@@ -20,6 +20,7 @@
 <?import javafx.scene.text.Font?>
 <?import org.phoebus.ui.javafx.ClearingTextField?>
 
+<?import javafx.scene.control.TextField?>
 <GridPane fx:id="root" hgap="12.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="455.0" prefWidth="637.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.csstudio.display.builder.representation.javafx.WidgetColorPopOverController">
   <columnConstraints>
     <ColumnConstraints hgrow="NEVER" percentWidth="50.0" />
@@ -87,6 +88,10 @@
                   <Label text="%WidgetColorPopOver_Alpha" GridPane.halignment="RIGHT" GridPane.rowIndex="6" />
                   <Slider fx:id="alphaSlider" max="255.0" GridPane.columnIndex="1" GridPane.rowIndex="6" />
                   <Spinner fx:id="alphaSpinner" editable="true" GridPane.columnIndex="2" GridPane.rowIndex="6" />
+
+                   <Label text="%WidgetColorPopOver_Hex" GridPane.halignment="RIGHT" GridPane.rowIndex="7" />
+                   <TextField promptText="000000" fx:id="hexField" GridPane.halignment="RIGHT" GridPane.columnIndex="1" GridPane.rowIndex="7" GridPane.hgrow="ALWAYS" />
+
                </children>
             </GridPane>
          </content>

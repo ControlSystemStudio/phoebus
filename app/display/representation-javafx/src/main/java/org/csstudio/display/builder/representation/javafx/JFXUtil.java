@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx;
 
+import java.text.DecimalFormat;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -32,6 +33,7 @@ import javafx.scene.text.FontWeight;
 public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
 {
     private static double font_calibration = 1.0;
+    private static final DecimalFormat RGBA_ALPHA_DECIMAL_FORMAT = new DecimalFormat("0.00");
 
     static
     {
@@ -65,10 +67,22 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
     }
 
     /** Convert model color into web-type RGB text
+     *  @param col {@link WidgetColor}
+     *  @return RGB text of the form "#FF8080"
+     */
+    public static String webHex(final WidgetColor col) {
+        if(col != null) {
+            return String.format((Locale) null, "#%02X%02X%02X", col.getRed(), col.getGreen(), col.getBlue());
+        } else {
+            return "";
+        }
+    }
+
+    /** Convert model color into web-type RGB text if transparent; otherwise converts to hex.
      *  @param color {@link WidgetColor}
      *  @return RGB text of the form "#FF8080"
      */
-    public static String webRGB(final WidgetColor color)
+    public static String webRgbOrHex(final WidgetColor color)
     {
         return webRGBCache.computeIfAbsent(color, col ->
         {
@@ -76,10 +90,18 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
                 return "rgba(" + col.getRed() + ',' +
                                  col.getGreen() + ',' +
                                  col.getBlue() + ',' +
-                                 col.getAlpha()/255f + ')';
+                                 RGBA_ALPHA_DECIMAL_FORMAT.format(col.getAlpha()/255f) + ')';
             else
-                return String.format((Locale) null, "#%02X%02X%02X", col.getRed(), col.getGreen(), col.getBlue());
+                return webHex(col);
         });
+    }
+
+    /**
+     * Extract alpha value, formatted as expected for e.g. an RGBA function
+     * @return alpha value in decimal form, from 0.00 to 1.00
+     */
+    public static String webAlpha(final WidgetColor color) {
+        return RGBA_ALPHA_DECIMAL_FORMAT.format(color.getAlpha()/255f);
     }
 
     /** Convert model color into web-type RGB text
@@ -89,7 +111,7 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
      */
     public static StringBuilder appendWebRGB(final StringBuilder buf, final WidgetColor color)
     {
-        return buf.append(webRGB(color));
+        return buf.append(webRgbOrHex(color));
     }
 
     /** Convert model color into CSS style string for shading tabs, buttons, etc
@@ -117,7 +139,7 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
             // The .button.armed state uses
             //   -fx-pressed-base: derive(-fx-base,-6%);
             // which we change into a more obvious variant.
-            final String bg = webRGB(col);
+            final String bg = webRgbOrHex(col);
             return "-fx-base: " + bg + "; " +
                    "-fx-pressed-base: derive(-fx-base,-25%);";
         });

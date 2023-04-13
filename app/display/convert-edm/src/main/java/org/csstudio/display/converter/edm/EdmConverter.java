@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import org.csstudio.display.builder.editor.util.GeometryTools;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
@@ -419,9 +420,31 @@ public class EdmConverter
                 final ActionButtonWidget b = (ActionButtonWidget) widget;
                 if (b.propTransparent().getValue())
                 {
-                    logger.log(Level.INFO, "Raising transparent " + b);
-                    children.removeChild(widget);
-                    children.addChild(widget);
+                    try
+                    {
+                        // Get absolute widget coords and check if widget is inside a group
+                        final DisplayModel display = widget.getDisplayModel();
+                        final javafx.geometry.Rectangle2D bounds = GeometryTools.getDisplayBounds(widget);
+                        final boolean top_level = widget.getParent().get() == display;
+                        // Remove from its parent
+                        children.removeChild(widget);
+                        // If it was a top-level widget, just add back to display
+                        if (top_level)
+                            logger.log(Level.INFO, "Raising transparent " + b);
+                        else
+                        {   // If widget was in group, raising it within the group could still mean
+                            // that group is covered by something else.
+                            // So place at absolute coords and then place in display, not original group
+                            logger.log(Level.INFO, "Raising transparent " + b + " and moving from group to top");
+                            widget.propX().setValue((int)bounds.getMinX());
+                            widget.propY().setValue((int)bounds.getMinY());
+                        }
+                        display.runtimeChildren().addChild(widget);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.log(Level.WARNING, "Failed to raise transparent " + b, ex);
+                    }
                 }
             }
         }

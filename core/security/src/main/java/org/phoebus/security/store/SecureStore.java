@@ -7,40 +7,23 @@
  *******************************************************************************/
 package org.phoebus.security.store;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.security.KeyStore;
-import java.security.KeyStore.ProtectionParameter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-
-import org.phoebus.framework.workbench.Locations;
+import org.phoebus.security.PhoebusSecurity;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
-/** Secure Store
- *
- *  <p>Writes tag/value pairs into an encrypted file.
- *
- *  <p>Does depend on a password to read and write the file.
- *
- *  @author Kay Kasemir
+/**
+ * Handles reading/writing username, passsword, and token data. Internally delegates to
+ * a Store implementation that handles storage of that data.
  */
 @SuppressWarnings("nls")
 public class SecureStore
 {
-    private final SecretKeyFactory kf = SecretKeyFactory.getInstance("PBE");
-    private final KeyStore store;
-    private final File secure_file;
-    private final char[] store_pass;
-    private final ProtectionParameter pp;
+
+    private final Store<String, String> store;
 
     /** Tags */
     public static final String USERNAME_TAG = "username",
@@ -48,46 +31,34 @@ public class SecureStore
 
     private static final Logger LOGGER = Logger.getLogger(SecureStore.class.getName());
 
-    /** Create with default file in 'user' location
-     *  @throws Exception on error
+    /**
+     * Default constructor, self-initializes underlying store based on
+     * security preferences.
+     *
+     * @see {@link org.phoebus.security.PhoebusSecurity}
+     *
+     * @throws Exception if underlying store isn't configured, configured incorrectly.
+     * See javadocs for underlying implementations for details.
      */
     public SecureStore() throws Exception
     {
-        this(new File(Locations.user(), "secure_store.dat"));
+        switch(PhoebusSecurity.secure_store_target) {
+            case FILE:
+            default:
+                store = new FileBasedStore();
+                break;
+            case IN_MEMORY:
+                store = MemoryBasedStore.getInstance();
+                break;
+        }
     }
 
-    /** Create with default password.
-     *
-     *  <p>Knowledge of this code would allow reading the file
-     *
-     *  @param secure_file File to read or write
-     *  @throws Exception on error
+    /**
+     * Initialize with specified store implementation.
+     * @param store Underlying store implementation.
      */
-    public SecureStore(final File secure_file) throws Exception
-    {
-        this(secure_file, Integer.toString(secure_file.getAbsolutePath().hashCode()).toCharArray());
-    }
-
-    /** Create
-     *  @param secure_file File to read or write
-     *  @param store_pass Password for encoding/decoding entries
-     *  @throws Exception on error
-     */
-    public SecureStore(final File secure_file, final char[] store_pass) throws Exception
-    {
-        this.secure_file = secure_file;
-        this.store_pass = store_pass;
-
-        store = KeyStore.getInstance(KeyStore.getDefaultType());
-
-        pp = new KeyStore.PasswordProtection(store_pass);
-
-
-        // Load existing file or initialize as empty
-        if (secure_file.canRead())
-            store.load(new FileInputStream(secure_file), store_pass);
-        else
-            store.load(null, store_pass);
+    SecureStore(Store<String, String> store) {
+        this.store = store;
     }
 
     /** Read an entry from the store
@@ -97,12 +68,7 @@ public class SecureStore
      */
     public String get(final String tag) throws Exception
     {
-        final KeyStore.SecretKeyEntry entry = (KeyStore.SecretKeyEntry) store.getEntry(tag, pp);
-        if (entry == null)
-            return null;
-
-        final PBEKeySpec key = (PBEKeySpec) kf.getKeySpec(entry.getSecretKey(), PBEKeySpec.class);
-        return new String(key.getPassword());
+        return store.get(tag);
     }
 
     /** Write an entry to the store. If the entry already exists, it will be overwritten.
@@ -112,25 +78,19 @@ public class SecureStore
      */
     public void set(final String tag, final String value) throws Exception
     {
-        final SecretKey skey = kf.generateSecret(new PBEKeySpec(value.toCharArray()));
-        store.setEntry(tag, new KeyStore.SecretKeyEntry(skey), pp);
-
-        // Write file whenever an entry is changed
-        store.store(new FileOutputStream(secure_file), store_pass);
+        store.set(tag, value);
     }
 
     /** Deletes an entry in the secure store.
-     *  @param tag The tag to delete, must not be <code>null</code>.
+     *  @param tag The tag to delete.
      *  @throws Exception on error
      */
     public void delete(String tag) throws Exception{
-        store.deleteEntry(tag);
         LOGGER.log(Level.INFO, "Deleting entry " + tag + " from secure store");
-        // Write file whenever an entry is changed
-        store.store(new FileOutputStream(secure_file), store_pass);
+        store.delete(tag);
     }
 
-    /** @param scope Scope
+    /** @param scope Scope identifier, will be converted to lower case, see {@link ScopedAuthenticationToken}
      *  @return Token for that scope
      *  @throws Exception on error
      */
@@ -142,6 +102,7 @@ public class SecureStore
             password = get(PASSWORD_TAG);
         }
         else{
+            scope = scope.toLowerCase();
             username = get(scope + "." + USERNAME_TAG);
             password = get(scope + "." + PASSWORD_TAG);
         }
@@ -151,7 +112,7 @@ public class SecureStore
         return new ScopedAuthenticationToken(scope, username, password);
     }
 
-    /** @param scope Scope
+    /** @param scope Scope identifier, will be converted to lower case, see {@link ScopedAuthenticationToken}
      *  @throws Exception on error
      */
     public void deleteScopedAuthenticationToken(String scope) throws Exception{
@@ -196,8 +157,7 @@ public class SecureStore
             set(scope + "." + USERNAME_TAG, username);
             set(scope + "." + PASSWORD_TAG, password);
         }
-        LOGGER.log(Level.INFO, "Storing scoped authentication token " + scopedAuthenticationToken.toString());
-        store.store(new FileOutputStream(secure_file), store_pass);
+        LOGGER.log(Level.INFO, "Storing scoped authentication token " + scopedAuthenticationToken);
     }
 
     /**
@@ -208,7 +168,7 @@ public class SecureStore
      * @throws Exception on error
      */
     public List<ScopedAuthenticationToken> getAuthenticationTokens() throws Exception{
-        List<String> allAliases = Collections.list(store.aliases());
+        List<String> allAliases = new ArrayList<>(store.getKeys());
         List<ScopedAuthenticationToken> allScopedAuthenticationTokens = matchEntries(allAliases);
 
         return allScopedAuthenticationTokens;
@@ -221,7 +181,7 @@ public class SecureStore
      * {@link #PASSWORD_TAG} item can be found.
      * @param aliases All aliases in the secure store.
      * @return List of {@link ScopedAuthenticationToken}s.
-     * @throws Exception
+     * @throws Exception If interaction with the underlying store implementation fails.
      */
     private List<ScopedAuthenticationToken> matchEntries(List<String> aliases) throws Exception{
         List<ScopedAuthenticationToken> allScopedAuthenticationTokens

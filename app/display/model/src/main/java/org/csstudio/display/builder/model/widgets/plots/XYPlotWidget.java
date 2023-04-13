@@ -168,6 +168,13 @@ public class XYPlotWidget extends VisibleWidget
 
                 handleLegacyYAxes(model_reader, widget, xml, pv_macro);
 
+		// Map BOY 'plot_area_background_color' to 'background_color'
+		final Element plotAreaColor = XMLUtil.getChildElement(xml, "plot_area_background_color");
+		if (plotAreaColor != null)
+		    plot.propBackground().readFromXML(model_reader, plotAreaColor);
+		else
+                    plot.propBackground().setValue(WidgetColorService.getColor(NamedWidgetColors.BACKGROUND));
+
                 // Turn 'transparent' flag into transparent background color
                 if (XMLUtil.getChildBoolean(xml, "transparent").orElse(false))
                     plot.propBackground().setValue(NamedWidgetColors.TRANSPARENT);
@@ -316,6 +323,9 @@ public class XYPlotWidget extends VisibleWidget
 
                 XMLUtil.getChildInteger(xml, "trace_" + legacy_trace + "_point_style")
                        .ifPresent(style -> trace.tracePointType().setValue(StripchartWidget.mapPointType(style)));
+
+                XMLUtil.getChildInteger(xml, "trace_" + legacy_trace + "_line_width")
+                       .ifPresent(width -> trace.traceWidth().setValue(width));
 
                 // Name
                 String name = XMLUtil.getChildString(xml, "trace_" + legacy_trace + "_name").orElse("");

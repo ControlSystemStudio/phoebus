@@ -36,8 +36,12 @@ import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
+import org.phoebus.applications.saveandrestore.model.Configuration;
+import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.Snapshot;
+import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
@@ -55,10 +59,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Migrates save sets and snapshots from a (cloned) git repository. The migration process makes some assumptions with
+ * Migrates configurations and snapshots from a (cloned) git repository. The migration process makes some assumptions with
  * regards to the file and directory structure of the repository:
  * <ul>
- *     <li>Save set (aka beamline set) files - named *.bms - are found in directories named BeamlineSets.</li>
+ *     <li>Configuration (aka beamline set) files - named *.bms - are found in directories named BeamlineSets.</li>
  *     <li>Snapshots files - named *.snp - are found in directories Snapshots.</li>
  *     <li>There is a one-to-one relation between a bms file and a snp file. The snp file must exist in the Snapshots
  *      directory having same parent as the BeamlineSets directory where the bms file is found.</li>
@@ -85,21 +89,21 @@ import java.util.Map;
  * Add the following setting to the setting file to ignore duplicate snapshots (same commit time)
  * org.phoebus.applications.saveandrestore.datamigration.git/ignoreDuplicateSnapshots=true
  * <p>
- * Add the following setting to the setting file to add PVs for incompatible saveset to correclt migrate snapshots
+ * Add the following setting to the setting file to add PVs for incompatible configuration to correctly migrate snapshots
  * with the newer version of saveset modified by user after older snapshots are taken with older version of saveset
  * org.phoebus.applications.saveandrestore.datamigration.git/addPVsForIncompatibleSaveset=true
  */
 public class GitMigrator {
 
-    private SaveAndRestoreService saveAndRestoreService;
+    private final SaveAndRestoreService saveAndRestoreService;
 
-    private Boolean useMultipleTag;
+    private final Boolean useMultipleTag;
 
-    private Boolean keepSavesetWithNoSnapshot;
+    private final Boolean keepSavesetWithNoSnapshot;
 
-    private Boolean ignoreDuplicateSnapshots;
+    private final Boolean ignoreDuplicateSnapshots;
 
-    private Boolean addPVsForIncompatibleSaveset;
+    private final Boolean addPVsForIncompatibleSaveset;
 
     private Git git;
     private File gitRoot;
@@ -146,7 +150,7 @@ public class GitMigrator {
         List<FilePair> bmsFiles = new ArrayList<>();
         bmsFiles = findBeamlineSetFiles(bmsFiles, gitRoot);
 
-        bmsFiles.stream().forEach(f -> {
+        bmsFiles.forEach(f -> {
             try {
                 createSaveSetAndAssociatedSnapshots(f);
             } catch (Exception e) {
@@ -155,8 +159,6 @@ public class GitMigrator {
         });
 
         System.exit(0);
-
-
     }
 
     /**
@@ -257,7 +259,8 @@ public class GitMigrator {
     }
 
     private Node createSaveSetNode(Node parentNode, FilePair filePair) {
-        Node saveSetNode = null;
+        Node saveSetNode;
+        Configuration configuration = new Configuration();
         try {
             List<RevCommit> commits = findCommitsFor(filePair.bms);
             // Only latest commit considered for bms files
@@ -265,27 +268,32 @@ public class GitMigrator {
             String author = commit.getAuthorIdent().getName();
             String commitMessage = commit.getFullMessage();
             Date commitDate = new Date(commit.getCommitTime() * 1000L);
-            Map<String, String> properties = new HashMap<>();
-            properties.put("description", commitMessage);
             saveSetNode = Node.builder()
                     .name(filePair.bms.substring(filePair.bms.lastIndexOf("/") + 1).replace(".bms", ""))
                     .nodeType(NodeType.CONFIGURATION)
                     .userName(author)
                     .created(commitDate)
                     .lastModified(commitDate)
-                    .properties(properties)
+                    .description(commitMessage)
                     .build();
-            saveSetNode = saveAndRestoreService.createNode(parentNode.getUniqueId(), saveSetNode);
+
             String fullPath = gitRoot.getAbsolutePath() + "/" + filePair.bms;
             List<ConfigPv> configPvs = FileReaderHelper.readSaveSet(new FileInputStream(fullPath));
-            saveAndRestoreService.updateSaveSet(saveSetNode, configPvs);
+            ConfigurationData configurationData = new ConfigurationData();
+            configurationData.setPvList(configPvs);
+
+            configuration.setConfigurationNode(saveSetNode);
+            configuration.setConfigurationData(configurationData);
+
+            configuration = saveAndRestoreService.createConfiguration(parentNode, configuration);
+            saveSetNode = configuration.getConfigurationNode();
             if (!filePair.snp.isEmpty()) {
                 createSnapshots(saveSetNode, filePair.snp);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return saveSetNode;
+        return configuration.getConfigurationNode();
     }
 
     private void createSnapshots(Node saveSetNode, String relativeSnpFilePath) {
@@ -316,7 +324,7 @@ public class GitMigrator {
                                 System.out.println(" Check if PV names are the same in saveset and snapshot!");
                                 System.out.println("------------------------------------------------------------------------------------");
                                 System.out.println("    Commit: " + commit.getName());
-                                System.out.println("   Saveset: " + DirectoryUtilities.CreateLocationString(saveSetNode, false));
+                                System.out.println("   Configuration: " + DirectoryUtilities.CreateLocationString(saveSetNode, false));
                                 System.out.println(" Timestamp: " + snapshotName);
                                 System.out.println("------------------------------------------------------------------------------------");
 
@@ -338,24 +346,23 @@ public class GitMigrator {
                                 System.out.println(" Duplicate snapshot found!");
                                 System.out.println("------------------------------------------------------------------------------------");
                                 System.out.println("   Commit: " + commit.getName());
-                                System.out.println("  Saveset: " + DirectoryUtilities.CreateLocationString(saveSetNode, false));
-                                System.out.println(" Snapshot: " + snapshotName);
+                                System.out.println("  Configuration: " + DirectoryUtilities.CreateLocationString(saveSetNode, false));
+                                System.out.println(" SnapshotData: " + snapshotName);
                                 System.out.println(" New name: " + newSnapshotName);
                                 System.out.println("------------------------------------------------------------------------------------");
 
                                 snapshotName = newSnapshotName;
                             }
 
-                            Node snapshotNode = saveAndRestoreService.saveSnapshot(saveSetNode,
-                                    snapshotItems,
-                                    snapshotName,
-                                    commit.getFullMessage());
+                            Snapshot snapshot = new Snapshot();
+                            snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).name(snapshotName).description(commit.getFullMessage()).build());
+                            SnapshotData snapshotData = new SnapshotData();
+                            snapshotData.setSnasphotItems(snapshotItems);
+                            snapshot.setSnapshotData(snapshotData);
+
+                            Node snapshotNode = saveAndRestoreService.saveSnapshot(saveSetNode, snapshot).getSnapshotNode();
 
                             snapshotNode = saveAndRestoreService.getNode(snapshotNode.getUniqueId());
-                            Map<String, String> properties = snapshotNode.getProperties();
-                            if (properties == null) {
-                                properties = new HashMap<>();
-                            }
                             if (tag != null) {
                                 if (useMultipleTag) {
                                     String fullTagName = tag.getTagName();
@@ -367,14 +374,12 @@ public class GitMigrator {
                                             .name(tagName)
                                             .comment(tag.getFullMessage())
                                             .userName(tag.getTaggerIdent().getName())
-                                            .snapshotId(snapshotNode.getUniqueId())
                                             .created(tag.getTaggerIdent().getWhen())
                                             .build();
 
                                     snapshotNode.addTag(snapshotTag);
                                 } else {
-                                    properties.put("golden", "true");
-                                    snapshotNode.setProperties(properties);
+                                    snapshotNode.addTag(Tag.goldenTag(commit.getCommitterIdent().getName()));
                                 }
                             }
                             snapshotNode.setUserName(commit.getCommitterIdent().getName());
@@ -419,15 +424,15 @@ public class GitMigrator {
         return ret;
     }
 
-    private List<SnapshotItem> setConfigPvIds(Node saveSetNode, List<SnapshotItem> snapshotItems) throws Exception {
-        List<ConfigPv> configPvs = saveAndRestoreService.getConfigPvs(saveSetNode.getUniqueId());
+    private List<SnapshotItem> setConfigPvIds(Node saveSetNode, List<SnapshotItem> snapshotItems) {
+        List<ConfigPv> configPvs = saveAndRestoreService.getConfiguration(saveSetNode.getUniqueId()).getPvList();
         snapshotItems.forEach(snapshotItem -> configPvs.stream().filter(configPv -> configPv.equals(snapshotItem.getConfigPv())).findFirst().ifPresent(snapshotItem::setConfigPv));
 
         return snapshotItems;
     }
 
     private boolean isSnapshotCompatibleWithSaveSet(Node saveSetNode, List<SnapshotItem> snapshotItems) throws Exception {
-        List<ConfigPv> configPvs = saveAndRestoreService.getConfigPvs(saveSetNode.getUniqueId());
+        List<ConfigPv> configPvs = saveAndRestoreService.getConfiguration(saveSetNode.getUniqueId()).getPvList();
 
         if (addPVsForIncompatibleSaveset) {
             List<ConfigPv> newConfigPvs = new ArrayList<>();
@@ -439,8 +444,12 @@ public class GitMigrator {
             });
 
             if (!newConfigPvs.isEmpty()) {
-                configPvs.addAll(newConfigPvs);
-                saveAndRestoreService.updateSaveSet(saveSetNode, configPvs);
+                ConfigurationData configurationData = saveAndRestoreService.getConfiguration(saveSetNode.getUniqueId());
+                configurationData.getPvList().addAll(newConfigPvs);
+                Configuration configuration = new Configuration();
+                configuration.setConfigurationData(configurationData);
+                configuration.setConfigurationNode(saveSetNode);
+                saveAndRestoreService.updateConfiguration(configuration);
             }
 
             return true;
@@ -458,7 +467,7 @@ public class GitMigrator {
         }
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         if (args.length < 1) {
             System.out.println("Usage: java -jar /path/to/phoebus/product-launcher.jar -settings <myPhoebusIniFile> -main org.phoebus.applications.saveandrestore.datamigration.git.GitMigrator /path/to/git/working/directory");
             System.out.println("The ini file must specify org.phoebus.applications.saveandrestore.datamigration.git/jmasar.service.url=<saveAndRestoreServiceUrl>");

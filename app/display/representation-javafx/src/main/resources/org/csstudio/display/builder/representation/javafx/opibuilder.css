@@ -237,14 +237,15 @@
 {
     -db-toggle-switch-off: #f5f5f5;
     -db-toggle-switch-on: #0b99c9;
+    -db-transparent-text-box-border: rgba(236, 236, 236, 0.50);
 }
 .toggle-switch .thumb-area
 {
     -fx-background-radius: 1em;
     -fx-background-color: linear-gradient(
             to bottom,
-            derive(-fx-text-box-border, -20%),
-            derive(-fx-text-box-border, -30%)
+            derive(-db-transparent-text-box-border, -20%),
+            derive(-db-transparent-text-box-border, -30%)
         ),
         -db-toggle-switch-off;
     -fx-background-insets: 0, 1;
@@ -254,8 +255,8 @@
 {
     -fx-background-color: linear-gradient(
             to bottom,
-            derive(-fx-text-box-border, -20%),
-            derive(-fx-text-box-border, -30%)
+            derive(-db-transparent-text-box-border, -20%),
+            derive(-db-transparent-text-box-border, -30%)
         ),
         linear-gradient(
             to bottom,

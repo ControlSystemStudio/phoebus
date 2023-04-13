@@ -202,7 +202,7 @@ public class PVUtil
 
     /** Get alarm severity of the PV as an integer value.
      *  @param pv PV
-     *  @return 0: OK;  1: Major; 2:Minor, -1: Invalid or Undefined
+     *  @return 0: OK; 1: Minor; 2: Major; 3: Invalid; 4: Undefined
      */
     public final static int getSeverity(final RuntimePV pv)
     {

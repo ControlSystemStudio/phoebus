@@ -44,13 +44,15 @@ of the rule are accessible in the expression.
 
 - A PV severity value is referenced using the syntax pvSev{index}, e.g. pvSev0 == 1. Severity values are:
 
-    - -1 - Invalid
-
     - 0 - OK
 
     - 1 - Minor
 
     - 2 - Major
+
+    - 3 - Invalid
+
+    - 4 - Undefined
 
 Value as Expression
 -------------------

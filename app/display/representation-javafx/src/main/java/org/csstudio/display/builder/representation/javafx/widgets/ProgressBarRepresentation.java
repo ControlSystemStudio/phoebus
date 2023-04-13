@@ -49,6 +49,7 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
     {
         super.registerListeners();
         model_widget.propFillColor().addUntypedPropertyListener(lookChangedListener);
+        model_widget.propBackgroundColor().addUntypedPropertyListener(lookChangedListener);
         model_widget.propWidth().addUntypedPropertyListener(lookChangedListener);
         model_widget.propHeight().addUntypedPropertyListener(lookChangedListener);
         model_widget.propLimitsFromPV().addUntypedPropertyListener(valueChangedListener);
@@ -64,6 +65,7 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
     protected void unregisterListeners()
     {
         model_widget.propFillColor().removePropertyListener(lookChangedListener);
+        model_widget.propBackgroundColor().removePropertyListener(lookChangedListener);
         model_widget.propWidth().removePropertyListener(lookChangedListener);
         model_widget.propHeight().removePropertyListener(lookChangedListener);
         model_widget.propLimitsFromPV().removePropertyListener(valueChangedListener);
@@ -181,8 +183,36 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
             // Tweaking the color used by CSS keeps overall style.
             // See also http://stackoverflow.com/questions/13467259/javafx-how-to-change-progressbar-color-dynamically
             final StringBuilder style = new StringBuilder();
-            style.append("-fx-accent: ").append(JFXUtil.webRGB(model_widget.propFillColor().getValue())).append(';');
-            style.append("-fx-control-inner-background: ").append(JFXUtil.webRGB(model_widget.propBackgroundColor().getValue())).append(';');
+
+            // Color of the progress bar / foreground
+            style.append("-fx-accent: ").append(JFXUtil.webRGB(
+                    JFXUtil.convert(
+                            model_widget.propFillColor().getValue()
+                    )
+            )).append(" !important; ");
+
+            // Color of the background underneath the progress bar
+            // Note per moderna.css the background is actually three layers of color
+            // with fx-shadow-highlight-color on the bottom,
+            // then fx-text-box-border,
+            // and finally fx-control-inner-background on top, all stacked in place with offsets.
+            // This gives the illusion of having a bordered box with a shadow instead of actually being a
+            // bordered box with a shadow...
+            // Fortunately, the bottom-most color (the 'shadow') is already transparent so we can leave it alone
+            // Unfortunately, the middle color (the "border" color) is a solid gray color (#ececec), so we must
+            // override it with its rgba equivalent so that it has transparency matching the picked background color.
+            style.append("-fx-control-inner-background: ")
+                    .append(JFXUtil.webRGB(
+                            JFXUtil.convert(
+                                    model_widget.propBackgroundColor().getValue()))
+                            )
+                    .append(";");
+            style.append("-fx-text-box-border: rgba(236, 236, 236, ")
+                    .append(JFXUtil.webAlpha(model_widget.propBackgroundColor().getValue()))
+                    .append(");");
+            style.append("-fx-shadow-highlight-color: rgba(236, 236, 236, ")
+                    .append(JFXUtil.webAlpha(model_widget.propBackgroundColor().getValue()))
+                    .append(");");
             jfx_node.setStyle(style.toString());
         }
         if (dirty_value.checkAndClear())

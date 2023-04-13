@@ -18,6 +18,7 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.ConfirmDialog;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.VTypeUtil;
@@ -122,6 +123,13 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
         return pane;
     }
 
+    @Override
+    protected void attachTooltip()
+    {
+        model_widget.checkProperty(CommonWidgetProperties.propTooltip)
+                .ifPresent(prop -> TooltipSupport.attach(button, prop));
+    }
+
     /** Respond to button press
      *  @param pressed Was button pressed or released?
      */
@@ -223,7 +231,7 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
         model_widget.propBit().removePropertyListener(bitChangedListener);
         model_widget.runtimePropValue().removePropertyListener(valueChangedListener);
         model_widget.propMode().removePropertyListener(modeChangeListener);
-        model_widget.propMode().removePropertyListener(confirmDialogWidgetPropertyListener);
+        model_widget.propConfirmDialog().removePropertyListener(confirmDialogWidgetPropertyListener);
         super.unregisterListeners();
     }
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,7 +7,9 @@
  *******************************************************************************/
 package org.phoebus.ui.docking;
 
+import static org.phoebus.ui.docking.DockPane.getActiveDockPane;
 import static org.phoebus.ui.docking.DockPane.logger;
+import static org.phoebus.ui.docking.DockStage.getDockPanes;
 
 import java.awt.MouseInfo;
 import java.awt.Point;
@@ -20,12 +22,14 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.application.Messages;
+import org.phoebus.ui.application.SaveLayoutHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Styles;
@@ -93,6 +97,7 @@ public class DockItem extends Tab
                                detach_icon = ImageCache.getImage(DockItem.class, "/icons/detach.png"),
                                split_horiz_icon = ImageCache.getImage(DockItem.class, "/icons/split_horiz.png"),
                                split_vert_icon = ImageCache.getImage(DockItem.class, "/icons/split_vert.png"),
+                               save_window_layout_icon = ImageCache.getImage(DockItem.class, "/icons/new_layout.png"),
                                close_many_icon = ImageCache.getImage(DockItem.class, "/icons/remove_multiple.png");
 
 
@@ -113,7 +118,7 @@ public class DockItem extends Tab
      *
      *  Custom format to prevent dropping a tab into e.g. a text editor
      */
-    private static final DataFormat DOCK_ITEM = new DataFormat("dock_item.custom");
+    protected static final DataFormat DOCK_ITEM = new DataFormat("dock_item.custom");
 
     /** Name of the tab */
     protected String name;
@@ -198,6 +203,21 @@ public class DockItem extends Tab
         final MenuItem split_vert = new MenuItem(Messages.DockSplitV, new ImageView(split_vert_icon));
         split_vert.setOnAction(event -> split(false));
 
+        final MenuItem save_window = new MenuItem(Messages.SaveLayoutOfContainingWindowAs, new ImageView(save_window_layout_icon));
+        save_window.setOnAction(event -> {
+            DockPane activeDockPane = getActiveDockPane();
+            List<Stage> stagesContainingActiveDockPane = DockStage.getDockStages().stream().filter(stage -> getDockPanes(stage).contains(activeDockPane)).collect(Collectors.toList());
+            if (stagesContainingActiveDockPane.size() == 1) {
+                SaveLayoutHelper.saveLayout(stagesContainingActiveDockPane, Messages.SaveLayoutOfContainingWindowAs);
+            }
+            else if (stagesContainingActiveDockPane.size() == 1) {
+                logger.log(Level.SEVERE, "No stage contains the active dock pane!");
+            }
+            else {
+                logger.log(Level.SEVERE, "More than one stage contains the active dock pane!");
+            }
+        });
+
         final MenuItem close = new MenuItem(Messages.DockClose, new ImageView(DockPane.close_icon));
         close.setOnAction(event -> close(List.of(this)));
 
@@ -207,7 +227,7 @@ public class DockItem extends Tab
             // Close all other tabs in non-fixed panes of this window
             final Stage stage = (Stage) getDockPane().getScene().getWindow();
             final List<DockItem> tabs = new ArrayList<>();
-            for (DockPane pane : DockStage.getDockPanes(stage))
+            for (DockPane pane : getDockPanes(stage))
                 if (! pane.isFixed())
                     for (Tab tab : new ArrayList<>(pane.getTabs()))
                         if ((tab instanceof DockItem)  &&  tab != DockItem.this)
@@ -221,7 +241,7 @@ public class DockItem extends Tab
             // Close all tabs in non-fixed panes of this window
             final Stage stage = (Stage) getDockPane().getScene().getWindow();
             final List<DockItem> tabs = new ArrayList<>();
-            for (DockPane pane : DockStage.getDockPanes(stage))
+            for (DockPane pane : getDockPanes(stage))
                 if (! pane.isFixed())
                     for (Tab tab : new ArrayList<>(pane.getTabs()))
                         if ((tab instanceof DockItem))
@@ -258,6 +278,7 @@ public class DockItem extends Tab
                                        new SeparatorMenuItem(),
                                        close_all);
             }
+            menu.getItems().addAll(new SeparatorMenuItem(), save_window);
         });
 
         name_tab.setContextMenu(menu);
@@ -404,7 +425,7 @@ public class DockItem extends Tab
     /** Accept a dropped tab */
     private void handleDrop(final DragEvent event)
     {
-        if (getDockPane().isFixed())
+        if (getDockPane().isFixed() || !event.getDragboard().hasContent(DOCK_ITEM))
             return;
 
         final DockItem item = dragged_item.getAndSet(null);
@@ -605,23 +626,33 @@ public class DockItem extends Tab
             logger.log(Level.SEVERE, "'prepareToClose' must not be called on UI thread because it can block/deadlock", new Exception("Stack Trace"));
 
         if (close_check != null)
-            for (Supplier<Future<Boolean>> check : close_check)
-            {
-                final CompletableFuture<Boolean> result = new CompletableFuture<>();
-                JobManager.schedule("Check if OK to close", monitor -> {
-                    try
+            try
+            {    // Allow DockItem to close gracefully. It may ask to defer closing
+                for (Supplier<Future<Boolean>> check : close_check)
+                {
+                    final CompletableFuture<Boolean> result = new CompletableFuture<>();
+                    JobManager.schedule("Check if OK to close", monitor ->
                     {
-                        result.complete(check.get().get());
-                    }
-                    catch (Exception ex)
-                    {
-                        result.completeExceptionally(ex);
-                    }
-                });
-                if (! result.get())
-                    return false;
+                        try
+                        {
+                            result.complete(check.get().get());
+                        }
+                        catch (Exception ex)
+                        {
+                            result.completeExceptionally(ex);
+                        }
+                    });
+                    if (! result.get())
+                        return false;
+                }
             }
-
+            catch (Exception ex)
+            {   // Internal error prevented an orderly shutdown.
+                // Log, but don't allow a crashing part to prevent shutdown
+                // of other parts and overall application
+                logger.log(Level.SEVERE, this + " failed to shut down cleanly, forcing to close", ex);
+            }
+        
         prepared_do_close = true;
         return true;
     }

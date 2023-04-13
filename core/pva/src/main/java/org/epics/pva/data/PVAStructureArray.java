@@ -72,11 +72,36 @@ public class PVAStructureArray extends PVADataWithID implements PVAArray
         return elements;
     }
 
+    /**
+     * Set the array of elements
+     *
+     * @param elements Desired new set of elements */
+    public void set(final PVAStructure[] elements) throws ElementTypeException {
+        for (PVAStructure element: elements) {
+            if (!element.cloneType(this.getElementType().getName()).equals(this.getElementType())) {
+                throw new ElementTypeException(element, this.getElementType());
+            }
+        }
+        this.elements = elements;
+    }
+
     @Override
     public void setValue(final Object new_value) throws Exception
     {
-        // Cannot set structure, only individual elements
-        throw new Exception("Cannot set " + getStructureName() + " " + name + " to " + new_value);
+        if (new_value instanceof PVAStructureArray)
+        {
+            PVAStructureArray newValueArray = (PVAStructureArray) new_value;
+            if (newValueArray.getElementType().equals(this.element_type)) {
+                final PVAStructure[] other = newValueArray.elements;
+                elements = Arrays.copyOf(other, other.length);
+            } else {
+                throw new ElementTypeException(newValueArray.getElementType(), this.element_type);
+            }
+        }
+        else if (new_value instanceof PVAStructure[])
+            set(((PVAStructure[]) new_value));
+        else
+            throw new Exception("Cannot set " + formatType() + " to " + new_value);
     }
 
     /** @return Structure type name */
@@ -184,6 +209,7 @@ public class PVAStructureArray extends PVADataWithID implements PVAArray
                 final PVAStructure[] copy = new PVAStructure[other.elements.length];
                 for (int i=0; i<copy.length; ++i)
                     copy[i] = other.elements[i].cloneData();
+                this.elements = copy;
                 changes.set(index);
             }
         }
@@ -191,13 +217,16 @@ public class PVAStructureArray extends PVADataWithID implements PVAArray
     }
 
     @Override
+    public String getType()
+    {
+        return "structure[]";
+    }
+
+    @Override
     public void formatType(int level, StringBuilder buffer)
     {
         indent(level, buffer);
-        if (getStructureName().isEmpty())
-            buffer.append("structure[]");
-        else
-            buffer.append(getStructureName()).append("[] ");
+        buffer.append(getStructureName().isEmpty() ? getType() : getStructureName() + "[]").append(" ");
         buffer.append(name);
         if (type_id > 0)
             buffer.append(" [#").append(type_id).append("]");
@@ -227,6 +256,6 @@ public class PVAStructureArray extends PVADataWithID implements PVAArray
         if (! (obj instanceof PVAStructureArray))
             return false;
         final PVAStructureArray other = (PVAStructureArray) obj;
-        return other.elements.equals(elements);
+        return Arrays.equals(other.elements, elements);
     }
 }

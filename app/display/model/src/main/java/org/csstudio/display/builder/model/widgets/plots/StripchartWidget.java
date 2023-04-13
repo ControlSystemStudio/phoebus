@@ -339,6 +339,13 @@ public class StripchartWidget extends VisibleWidget
 
                 handleLegacyAxes(model_reader, strip, xml, pv_macro);
 
+		// Map BOY 'plot_area_background_color' to 'background_color'
+		final Element plotAreaColor = XMLUtil.getChildElement(xml, "plot_area_background_color");
+		if (plotAreaColor != null)
+		    strip.propBackground().readFromXML(model_reader, plotAreaColor);
+		else
+                    strip.propBackground().setValue(WidgetColorService.getColor(NamedWidgetColors.BACKGROUND));
+
                 // Turn 'transparent' flag into transparent background color
                 if (XMLUtil.getChildBoolean(xml, "transparent").orElse(false))
                     strip.propBackground().setValue(NamedWidgetColors.TRANSPARENT);
@@ -353,6 +360,12 @@ public class StripchartWidget extends VisibleWidget
 
                 if (! handleLegacyTraces(model_reader, strip, xml, pv_macro))
                     return false;
+		    
+		// If legend was turned off, clear the trace names since they would
+                // otherwise show on the Y axes
+                if (! strip.propLegend().getValue())
+                    for (TraceWidgetProperty trace : strip.propTraces().getValue())
+                        trace.traceName().setValue("");
                 
             }
             // Stripchart V2.1.0
@@ -448,6 +461,9 @@ public class StripchartWidget extends VisibleWidget
 
 		XMLUtil.getChildString(xml, "trace_" + legacy_trace + "_visible")
 		       .ifPresent(show -> trace.traceVisible().setValue(Boolean.parseBoolean(show)) );
+
+                XMLUtil.getChildInteger(xml, "trace_" + legacy_trace + "_line_width")
+                       .ifPresent(width -> trace.traceWidth().setValue(width));
 
                 // Name
                 String name = XMLUtil.getChildString(xml, "trace_" + legacy_trace + "_name").orElse("");

@@ -52,6 +52,9 @@
     <classpathentry combineaccessrules="false" kind="src" path="/app-perfmon"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-pace"/>
     <classpathentry combineaccessrules="false" kind="src" path="/app-diag"/>
+    <!-- These have incomplete eclipse build files
     <classpathentry combineaccessrules="false" kind="src" path="/app-credentials-management"/>
+    <classpathentry combineaccessrules="false" kind="src" path="/app-eslog"/>
+    -->
     <classpathentry kind="output" path="target/classes"/>
 </classpath>

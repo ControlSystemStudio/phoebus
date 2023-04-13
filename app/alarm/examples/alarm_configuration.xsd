@@ -56,7 +56,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element ref="title" />
-                <xs:element ref="detail" />
+                <xs:element ref="details" />
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -64,7 +64,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element ref="title" />
-                <xs:element ref="detail" />
+                <xs:element ref="details" />
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -72,7 +72,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element ref="title" />
-                <xs:element ref="detail" />
+                <xs:element ref="details" />
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -80,7 +80,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element ref="title" />
-                <xs:element ref="detail" />
+                <xs:element ref="details" />
                 <xs:element ref="delay" />
             </xs:sequence>
         </xs:complexType>

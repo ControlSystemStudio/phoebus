@@ -21,11 +21,16 @@
  */
 package org.phoebus.service.saveandrestore.web.controllers;
 
+import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.service.saveandrestore.services.IServices;
+import org.phoebus.applications.saveandrestore.model.TagData;
+import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -37,18 +42,48 @@ import java.util.List;
  */
 
 @RestController
+@SuppressWarnings("unused")
 public class TagController extends BaseController {
 
     @Autowired
-    private IServices services;
+    private NodeDAO nodeDAO;
 
     @GetMapping("/tags")
     public List<Tag> getTags() {
-        return services.getAllTags();
+        return nodeDAO.getAllTags();
     }
 
-    @GetMapping("/tag/{snapshotUniqueId}")
-    public List<Tag> getTag(@PathVariable String snapshotUniqueId) {
-        return services.getTags(snapshotUniqueId);
+    /**
+     * Adds a {@link Tag} to specified list of target {@link Node}s. The {@link Tag} contained
+     * in tagData must be non-null, and its name must be non-null and non-empty.
+     * @param tagData See {@link TagData}
+     * @return The list of updated {@link Node}s
+     */
+    @PostMapping("/tags")
+    public List<Node> addTag(@RequestBody TagData tagData){
+        if(tagData.getTag() == null ||
+                tagData.getTag().getName() == null ||
+                tagData.getTag().getName().isEmpty() ||
+                tagData.getUniqueNodeIds() == null){
+            throw new IllegalArgumentException("Cannot add tag, data invalid");
+        }
+        return nodeDAO.addTag(tagData);
+    }
+
+    /**
+     * Removes a {@link Tag} from specified list of target {@link Node}s. The {@link Tag} contained
+     *      * in tagData must be non-null, and its name must be non-null and non-empty.
+     * @param tagData See {@link TagData}
+     * @return The list of updated {@link Node}s
+     */
+    @DeleteMapping("/tags")
+    public List<Node> deleteTag(@RequestBody TagData tagData){
+        if(tagData.getTag() == null ||
+                tagData.getTag().getName() == null ||
+                tagData.getTag().getName().isEmpty() ||
+                tagData.getUniqueNodeIds() == null){
+            throw new IllegalArgumentException("Cannot add tag, data invalid");
+        }
+        return nodeDAO.deleteTag(tagData);
     }
 }

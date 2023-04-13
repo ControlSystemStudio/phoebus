@@ -18,42 +18,51 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.TreeView;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.ui.javafx.ImageCache;
 
 public class ContextMenuFolder extends ContextMenuBase {
 
-    public ContextMenuFolder(SaveAndRestoreController saveAndRestoreController, boolean csvImportEnabled, SimpleBooleanProperty multipleItemsSelected) {
-        super(saveAndRestoreController, multipleItemsSelected);
-        MenuItem newFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(folderIcon));
-        newFolderMenuItem.disableProperty().bind(multipleItemsSelected);
-        newFolderMenuItem.setOnAction(ae -> {
-            saveAndRestoreController.createNewFolder();
-        });
+    public ContextMenuFolder(SaveAndRestoreController saveAndRestoreController, TreeView<Node> treeView) {
+        super(saveAndRestoreController, treeView);
 
-        MenuItem newSaveSetMenuItem = new MenuItem(Messages.contextMenuNewSaveSet, new ImageView(saveSetIcon));
-        newSaveSetMenuItem.disableProperty().bind(multipleItemsSelected);
-        newSaveSetMenuItem.setOnAction(ae -> {
-            saveAndRestoreController.createNewSaveSet();
-        });
+        Image renameIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/rename_col.png");
 
-        getItems().addAll(newFolderMenuItem, renameNodeMenuItem, deleteNodesMenuItem, newSaveSetMenuItem, copyUniqueIdToClipboardMenuItem);
+        MenuItem renameNodeMenuItem = new MenuItem(Messages.contextMenuRename, new ImageView(renameIcon));
+        renameNodeMenuItem.setOnAction(ae -> saveAndRestoreController.renameNode());
+        renameNodeMenuItem.disableProperty().bind(multipleSelection);
 
-        if (csvImportEnabled) {
+        MenuItem newFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(ImageRepository.FOLDER));
+        newFolderMenuItem.disableProperty().bind(multipleSelection);
+        newFolderMenuItem.setOnAction(ae -> saveAndRestoreController.createNewFolder());
 
-            ImageView importSaveSetIconImageView = new ImageView(csvImportIcon);
-            importSaveSetIconImageView.setFitWidth(18);
-            importSaveSetIconImageView.setFitHeight(18);
+        MenuItem newConfigurationMenuItem = new MenuItem(Messages.contextMenuNewConfiguration, new ImageView(ImageRepository.CONFIGURATION));
+        newConfigurationMenuItem.disableProperty().bind(multipleSelection);
+        newConfigurationMenuItem.setOnAction(ae -> saveAndRestoreController.createNewConfiguration());
 
-            MenuItem importSaveSetMenuItem = new MenuItem(Messages.importSaveSetLabel, importSaveSetIconImageView);
-            importSaveSetMenuItem.disableProperty().bind(multipleItemsSelected);
-            importSaveSetMenuItem.setOnAction(ae -> {
-                saveAndRestoreController.importSaveSet();
-            });
+        MenuItem newCompositeSnapshotMenuItem = new MenuItem(Messages.contextMenuNewCompositeSnapshot, new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
+        newCompositeSnapshotMenuItem.disableProperty().bind(multipleSelection);
+        newCompositeSnapshotMenuItem.setOnAction(ae -> saveAndRestoreController.createNewCompositeSnapshot());
 
-            getItems().add(importSaveSetMenuItem);
-        }
+        ImageView importConfigurationIconImageView = new ImageView(csvImportIcon);
+        importConfigurationIconImageView.setFitWidth(18);
+        importConfigurationIconImageView.setFitHeight(18);
+
+        MenuItem importConfigurationMenuItem = new MenuItem(Messages.importConfigurationLabel, importConfigurationIconImageView);
+        importConfigurationMenuItem.disableProperty().bind(multipleSelection);
+        importConfigurationMenuItem.setOnAction(ae -> saveAndRestoreController.importConfiguration());
+
+        getItems().addAll(newFolderMenuItem,
+                renameNodeMenuItem,
+                deleteNodesMenuItem,
+                newConfigurationMenuItem,
+                newCompositeSnapshotMenuItem,
+                copyUniqueIdToClipboardMenuItem,
+                importConfigurationMenuItem);
     }
 }

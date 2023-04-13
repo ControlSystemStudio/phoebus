@@ -1,1 +1,0 @@
-ALTER TABLE snapshot_node ADD golden BOOLEAN DEFAULT FALSE;

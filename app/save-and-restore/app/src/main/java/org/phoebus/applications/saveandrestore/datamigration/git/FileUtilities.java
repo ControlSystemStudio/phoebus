@@ -62,7 +62,7 @@ import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
-import org.phoebus.applications.saveandrestore.ui.model.SnapshotEntry;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -84,7 +84,7 @@ import java.util.regex.Pattern;
 
 
 /**
- * <code>FileUtilities</code> provides utility methods for reading and writing snapshot and save set files. All methods
+ * <code>FileUtilities</code> provides utility methods for reading and writing snapshot and configuration files. All methods
  * in this class are thread safe.
  *
  * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
@@ -93,7 +93,7 @@ public final class FileUtilities {
 
     // the date tag for the snapshot files
     private static final String DATE_TAG = "Date:";
-    // the description tag for the save set files
+    // the description tag for the configuration files
     private static final String DESCRIPTION_TAG = "Description:";
     // the names of the headers in the csv files
     public static final String H_PV_NAME = "PV";
@@ -118,7 +118,7 @@ public final class FileUtilities {
     private static final String ENUM_VALUE_SPLITTER = "\\~";
     // proposed length of snapshot file data line entry (pv name only)
     private static final int SNP_ENTRY_LENGTH = 700;
-    // proposed length of save set data line entry (pv name only)
+    // proposed length of configuration data line entry (pv name only)
     private static final int BSD_ENTRY_LENGTH = 250;
     // the format used to store the timestamp of when the snapshot was taken
     private static final ThreadLocal<DateFormat> TIMESTAMP_FORMATTER = ThreadLocal
@@ -142,7 +142,7 @@ public final class FileUtilities {
     public static SnapshotContent readFromSnapshot(InputStream stream) throws IOException, ParseException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
         String date = null;
-        List<SnapshotEntry> entries = new ArrayList<>();
+        List<SnapshotItem> entries = new ArrayList<>();
         String line;
         String[] header = null;
         Map<String, Integer> headerMap = new HashMap<>();
@@ -189,7 +189,7 @@ public final class FileUtilities {
                 idx = headerMap.get(H_READBACK_VALUE);
                 String readbackValue = idx == null || idx > length ? null : trim(split[idx]);
                 idx = headerMap.get(H_DELTA);
-                String delta = idx == null || idx > length ? "" : trim(split[idx]);
+                //String delta = idx == null || idx > length ? "" : trim(split[idx]);
                 idx = headerMap.get(H_READ_ONLY);
                 Boolean readOnly = idx == null || idx > length ? Boolean.FALSE : Boolean.valueOf(trim(split[idx]));
 
@@ -207,14 +207,13 @@ public final class FileUtilities {
                     readbackData = VDisconnectedData.INSTANCE;
                 }
 
-                boolean selected = true;
-                try {
-                    selected = Integer.parseInt(sel) != 0;
-                } catch (NumberFormatException e) {
-                    // ignore
-                }
                 ConfigPv configPv = ConfigPv.builder().pvName(name).readbackPvName(readback).build();
-                entries.add(new SnapshotEntry(configPv, data, selected, readback, readbackData, delta, readOnly));
+                SnapshotItem snapshotItem = new SnapshotItem();
+                snapshotItem.setConfigPv(configPv);
+                snapshotItem.setValue(data);
+                snapshotItem.setReadbackValue(readbackData);
+
+                entries.add(snapshotItem);
             }
         }
         if (date == null || date.isEmpty()) {
@@ -271,11 +270,18 @@ public final class FileUtilities {
 
         String[] valueAndLabels = value.split(ENUM_VALUE_SPLITTER);
         if (valueAndLabels.length > 0) {
-            if (valueAndLabels[0].charAt(0) == '[') {
-                valueAndLabels[0] = valueAndLabels[0].substring(1, valueAndLabels[0].length() - 1);
-            }
-            if (valueAndLabels.length > 1) {
-                valueAndLabels[1] = valueAndLabels[1].substring(1, valueAndLabels[1].length() - 1);
+            try {
+                if(valueAndLabels[0].isEmpty()){
+                    valueAndLabels[0] = "";
+                }
+                else if (valueAndLabels[0].charAt(0) == '[') {
+                    valueAndLabels[0] = valueAndLabels[0].substring(1, valueAndLabels[0].length() - 1);
+                }
+                if (valueAndLabels.length > 1) {
+                    valueAndLabels[1] = valueAndLabels[1].substring(1, valueAndLabels[1].length() - 1);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         }
         String theValue = valueAndLabels[0];
@@ -423,15 +429,15 @@ public final class FileUtilities {
 
 
     /**
-     * Read the contents of the save set from the input stream.
+     * Read the contents of the configuration from the input stream.
      *
      * @param stream the source of data
      * @return the data, where the description is the description read from the file and there are no data, just names
      * @throws IOException if there was an error reading the file content
      */
-    public static SaveSetContent readFromSaveSet(InputStream stream) throws IOException {
+    public static ConfigurationContent readFromConfiguration(InputStream stream) throws IOException {
         StringBuilder description = new StringBuilder(400);
-        List<SaveSetEntry> entries = new ArrayList<>();
+        List<ConfigurationEntry> entries = new ArrayList<>();
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
         boolean isDescriptionLine = false;
         String line;
@@ -490,10 +496,10 @@ public final class FileUtilities {
                 if (readOnlyIndex != -1) {
                     readOnly = Boolean.valueOf(trim(split[readOnlyIndex]));
                 }
-                entries.add(new SaveSetEntry(name, readback, delta, readOnly));
+                entries.add(new ConfigurationEntry(name, readback, delta, readOnly));
             }
         }
-        return new SaveSetContent(description.toString().trim(), entries);
+        return new ConfigurationContent(description.toString().trim(), entries);
     }
 
     /**

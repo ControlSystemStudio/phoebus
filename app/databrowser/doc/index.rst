@@ -35,11 +35,35 @@ To create a new plot:
 .. |databrowser| image:: images/icon_databrowser.png
 .. |add| image:: images/icon_add.png
 
-A plot may be saved to disk by selecting ``Save Snapshot`` context menu item, or by using keyboard shortcut
-CTRL + S (CMD + S on Mac OS). The default file extension for plot files is .plt.
+Plot Configuration ``.plt`` Files
+---------------------------------
 
-Note however that the Data Browser may be launched using an existing plot file which may be read-only (e.g. a
-remote file accessed over HTTP). In such cases a save operation will offer the user the option to save to a new file.
+Use the ``File``, ``Save`` menu entry or the keyboard shortcut
+CTRL + S (CMD + S on Mac OS) to save the plot settings, which include
+PV names, trace colors and axis arrangements.
+The default file extension for plot files is ``.plt``.
+You can later re-open the configuration by opening the ``.plt`` file,
+adjust settings, for example axis ranges, and save the updated configuration.
+
+The ``.plt`` files store the configuration of a plot, but no data.
+To save an image of the current plot, use ``Save Snapshot`` from the plot context menu item.
+To save the data shown in the plot, refer to the "Exporting Data" section below.
+
+Note that any zooming or panning of a plot changes the plot settings,
+so when then closing the plot, you will be prompted to save the updated settings.
+This may not be desirable in an operational setup. For example, assume a ``.plt`` file was
+created with a time axis range that displays the last 6 hours. When users
+open this configuration, they are free to zoom in or out, even add or remove traces,
+but when they close the plot, you may not want them to overwrite the original settings.
+
+There are two ways to accomplish this.
+One is the "Save Changes" option in the plot's "Properties Panel" described below.
+The other is making the ``.plt`` file read-only using operating system file tools
+or the CS-Studio File Browser. Configuration files can also be loaded via HTTP links,
+which are always read-only. When trying to close a plot with modified configuration,
+the Data Browser noticed if the original file cannot be written and will prompt
+with a "Save-As" dialog to offer saving to a new file.
+
 
 Toolbar
 -------
@@ -102,8 +126,8 @@ to zoom in or out of an axis or the plot.
 
 
 
-Property Panel
---------------
+Properties Panel
+----------------
 
 Open the plot's property panel by right-clicking into the plot,
 then invoke |properties| ``Open Properties Panel``.
@@ -112,6 +136,23 @@ then invoke |properties| ``Open Properties Panel``.
 
 The panel allows you to configure each trace, the time axis, the value axes,
 and miscellaneous settings. Changes performed in this panel will be persisted when the plot (.plt) file is saved.
+
+The meaning of most options should become evident by simply using them, with a few exceptions.
+
+On the "Misc." tab, "Plot redraw period" and "Scroll Step" control how the plot updates and scrolls.
+For example, a redraw period of 1 and a scroll step of 10 refreshes the plot every second, while scrolling the
+time axis every 10 seconds. This makes for a plot that mostly stands still, only moving every 10 seconds.
+Larger redraw periods can be useful to reduce CPU usage.
+
+The "Save Changes" option on the "Misc." tab controls how the plot behaves when closed.
+By default, the option is checked, and trying to close a modified plot will open a "Save before closing?" prompt.
+In an operational scenario, certain plots may be provided with default settings that are not meant
+to be overwritten. For those, un-check the "Save Changes" option. Users can now open the plot,
+zoom, pan, even add or remove traces, and then simply close the plot without a prompt, preserving
+the desired default settings. Note that when you un-check the "Save Changes" option to get this
+behavior, you already activated it, so you need to use "Save As" from the File menu to save
+the ``*.plt`` file with the un-checked "Save Changes" option.
+
 
 Runtime Properties Dialog
 -------------------------
@@ -429,3 +470,18 @@ To see available options, run phoebus like this::
 
     File names ending in *.m or *.mat generate Matlab files.
     All other file name endings create tab-separated data files.
+
+
+
+The Statistics-tab
+------------------
+Under the Statistics-tab, some basic statistical measures of the plotted data-points can be viewed.
+
+It is important to note that the statistics are calculated only on the data values themselves *without taking into
+account the timestamps of data-points*: in the calculation of the statistical measures, only the value of data-points
+and the total number of data-points are taken into account, while neither the time interval under consideration (except
+indirectly for determining the subset of data-points to calculate the statistical measures for), nor the timestamps of
+individual data-points are part of the calculation.
+
+For instance, in a plot based on both archived and live samples, the mean value will be skewed towards the live data
+portion if live data is sampled at a higher frequency than archived data.

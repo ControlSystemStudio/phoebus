@@ -18,7 +18,6 @@
 
 package org.phoebus.service.saveandrestore.web.controllers;
 
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
@@ -40,31 +39,31 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author georgweiss
  * Created 16 May 2019
  */
-@ExtendWith(SpringExtension.class)
-@ContextHierarchy({ @ContextConfiguration(classes = { ControllersTestConfig.class }) })
+@ContextHierarchy({@ContextConfiguration(classes = {ControllersTestConfig.class})})
 @WebMvcTest(AppMetaDataControllerTest.class)
+@ExtendWith(SpringExtension.class)
 @SuppressWarnings("unused")
 public class AppMetaDataControllerTest {
-	
 
-	@Autowired
-	private MockMvc mockMvc;
-	
-	@Value("${app.name}")
-	private String appName;
 
-	@Value("${app.version}")
-	private String appVersion;
+    @Autowired
+    private MockMvc mockMvc;
 
-	@Test
-	public void testGetAppVersion() throws Exception{
-		MockHttpServletRequestBuilder request = get("/version");
-		
-		MvcResult result = mockMvc.perform(request).andExpect(status().isOk())
-				.andReturn();
-		
-		String responseString = result.getResponse().getContentAsString();
-		assertTrue(responseString.contains(appName));
-		assertTrue(responseString.contains(appVersion));
-	}
+    @Value("${app.name}")
+    private String appName;
+
+    @Value("${app.version}")
+    private String appVersion;
+
+    @Test
+    public void testGetAppVersion() throws Exception {
+        MockHttpServletRequestBuilder request = get("/version");
+
+        MvcResult result = mockMvc.perform(request).andExpect(status().isOk())
+                .andReturn();
+
+        String responseString = result.getResponse().getContentAsString();
+        assertTrue(responseString.contains(appName));
+        assertTrue(responseString.contains(appVersion));
+    }
 }

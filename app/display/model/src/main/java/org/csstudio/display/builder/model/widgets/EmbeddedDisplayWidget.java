@@ -160,6 +160,9 @@ public class EmbeddedDisplayWidget extends MacroWidget
                         widget.setPropertyValue(propFile, opi_file.get());
                 }
 
+		// BOY linking containers are transparent by default
+		widget.setPropertyValue(propTransparent, true);
+
                 // Transition legacy "resize_behaviour"
                 Element element = XMLUtil.getChildElement(xml, "resize_behaviour");
                 if (element != null)
@@ -176,8 +179,10 @@ public class EmbeddedDisplayWidget extends MacroWidget
                             widget.setPropertyValue(propResize, Resize.ResizeContent);
                         else if (old_resize == 1)
                             widget.setPropertyValue(propResize, Resize.SizeToContent);
-                        else // 'scroll' or 'crop' -> crop
+                        else if (old_resize == 2) //'crop' -> crop
                             widget.setPropertyValue(propResize, Resize.Crop);
+			else
+			    widget.setPropertyValue(propResize, Resize.None);
                     }
                     catch (NumberFormatException ex)
                     {

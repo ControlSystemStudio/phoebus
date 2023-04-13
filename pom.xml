@@ -41,6 +41,12 @@
       <organization>European Spallation Source</organization>
       <organizationUrl>https://github.com/georgweiss</organizationUrl>
     </developer>
+    <developer>
+      <name>Katy Saintin</name>
+      <email>katy.saintin@cea.fr</email>
+      <organization>CEA Paris-Saclay</organization>
+      <organizationUrl>https://github.com/katysaintin</organizationUrl>
+    </developer>
   </developers>
 
   <distributionManagement>
@@ -78,6 +84,7 @@
     <guava.version>31.0.1-jre</guava.version>
     <log4j-to-slf4j.version>2.17.1</log4j-to-slf4j.version>
     <derby.version>10.16.1.1</derby.version>
+    <jython.version>2.7.3</jython.version>
   </properties>
   <build>
     <plugins>
@@ -361,7 +368,7 @@
   </profiles>
 
   <repositories>
-    <!-- The Nexus snapshot repository hosting the latest diirt modules -->
+    <!-- The Nexus snapshotData repository hosting the latest diirt modules -->
     <repository>
       <id>sonatype-nexus-snapshots</id>
       <name>sonatype-nexus-snapshots</name>
@@ -369,7 +376,7 @@
     </repository>
     <repository>
       <id>es-snapshots</id>
-      <name>elasticsearch snapshot repo</name>
+      <name>elasticsearch snapshotData repo</name>
       <url>https://snapshots.elastic.co/maven/</url>
     </repository>
   </repositories>

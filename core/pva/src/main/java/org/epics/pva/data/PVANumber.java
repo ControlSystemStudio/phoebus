@@ -11,7 +11,7 @@ package org.epics.pva.data;
  *   @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-abstract public class PVANumber extends PVAData
+abstract public class PVANumber extends PVAData implements PVAValue
 {
     /** @param name Name for data item */
     protected PVANumber(final String name)
@@ -66,4 +66,10 @@ abstract public class PVANumber extends PVAData
 
     /** @return Current value */
     abstract public Number getNumber();
+
+    @Override
+    public String formatValue() {
+        return getNumber().toString();
+    }
+
 }

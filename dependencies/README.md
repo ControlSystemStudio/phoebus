@@ -45,7 +45,7 @@ no additional network access is required to download more dependencies.
 
 As an alternative to using Maven, the `target/lib` files could also
 be copied from another build setup,
-including the snapshot from a nightly build server.
+including the snapshotData from a nightly build server.
 It could even be collected manually based on the
 information in the `dependencies/**/pom.xml` files.
 

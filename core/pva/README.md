@@ -46,6 +46,9 @@ Both Ant and Maven are supported:
     ant clean core-pva
     mvn clean install javadoc:javadoc
 
+To check JDK8 compatibility:
+
+    mvn clean install -P jdk8
 
 Configuration
 -------------

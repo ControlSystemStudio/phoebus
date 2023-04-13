@@ -7,7 +7,14 @@
  *******************************************************************************/
 package org.phoebus.framework.preferences;
 
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Properties;
 import java.util.prefs.Preferences;
 
@@ -44,5 +51,35 @@ public class PropertyPreferenceLoader
             prefs.put(name, value);
             // System.out.println(pack + "/" + name + "=" + value);
         }
+    }
+
+    /**
+     * Loads settings from file or remote URL.
+     * @param location Location speciifying a file name or a remote http(s) URL.
+     * @throws Exception If settings cannot be loaded, e.g. file not found or invalid URL.
+     */
+    public static void load(String location) throws Exception{
+        if(location.substring(0, 4).equalsIgnoreCase("http")){
+            loadFromRemoteURL(location);
+        }
+        else{
+            load(new FileInputStream(location));
+        }
+    }
+
+    /**
+     * Load settings from remote URL.
+     * @param uri A remote URL.
+     * @throws Exception If settings cannot be loaded, e.g. invalid URL.
+     */
+    private static void loadFromRemoteURL(final String uri) throws Exception{
+
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(uri))
+                .build();
+        HttpResponse<String> response =
+                httpClient.send(httpRequest, BodyHandlers.ofString());
+        load(new ByteArrayInputStream(response.body().getBytes()));
     }
 }

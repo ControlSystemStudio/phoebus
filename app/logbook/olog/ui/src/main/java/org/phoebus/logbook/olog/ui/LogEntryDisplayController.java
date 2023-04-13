@@ -106,6 +106,12 @@ public class LogEntryDisplayController {
         new LogEntryEditorStage(new OlogLog(),  logEntryProperty.get(), null).show();
     }
 
+    @FXML
+    public void newLogEntry(){
+        // Show a new editor dialog.
+        new LogEntryEditorStage(new OlogLog(),  null, null).show();
+    }
+
     public void setLogEntry(LogEntry logEntry) {
         if(logEntry == null){
             currentViewProperty.set(EMPTY);

@@ -41,7 +41,7 @@ import java.util.Optional;
 
 /**
  * <code>TableEntry</code> represents a single line in the snapshot viewer table. It provides values for all columns in
- * the table, be it a single snapshot table or a multi snapthos table.
+ * the table, be it a single snapshot table or a multi snapshots table.
  *
  * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
  * <p>
@@ -55,7 +55,17 @@ public class TableEntry {
     private final ObjectProperty<Instant> timestamp = new SimpleObjectProperty<>(this, "timestamp");
     private final StringProperty status = new SimpleStringProperty(this, "status", AlarmStatus.UNDEFINED.name());
     private final StringProperty severity = new SimpleStringProperty(this, "severity", AlarmSeverity.UNDEFINED.name());
+    /**
+     * Snapshot value set either when user takes snapshot, or when snapshot data is loaded from remote service. Note that this
+     * can be modified if user chooses to use a multiplier before triggering a restore operation.
+     */
     private final ObjectProperty<VType> snapshotVal = new SimpleObjectProperty<>(this, "snapshotValue", VNoData.INSTANCE);
+
+    /**
+     * Snapshot value as loaded from remote service
+     */
+    private final ObjectProperty<VType> storedSnapshotValue = new SimpleObjectProperty<>(VNoData.INSTANCE);
+
 
     private final ObjectProperty<VTypePair> value = new SimpleObjectProperty<>(this, "value",
             new VTypePair(VDisconnectedData.INSTANCE, VDisconnectedData.INSTANCE, Optional.empty()));
@@ -76,9 +86,6 @@ public class TableEntry {
     private Optional<Threshold<?>> threshold = Optional.empty();
     private final BooleanProperty readOnly = new SimpleBooleanProperty(this, "readOnly", false);
 
-    private final BooleanProperty readonlyOverride = new SimpleBooleanProperty(false);
-
-    //private final ObjectProperty<ConfigPv> configPvObjectProperty = new SimpleObjectProperty<>(this, "configPv", null);
 
     private ConfigPv configPv;
 
@@ -215,13 +222,6 @@ public class TableEntry {
     }
 
     /**
-     * @return the property indicating the the PV has read only setting overriden
-     */
-    public BooleanProperty readonlyOverrideProperty() {
-        return readonlyOverride;
-    }
-
-    /**
      * @param index the index of the compared value (starts with 1)
      * @return the property providing the compared value for the given index
      */
@@ -258,31 +258,30 @@ public class TableEntry {
             if (val instanceof VNumber) {
                 status.set(((VNumber) val).getAlarm().getStatus().name());
                 severity.set(((VNumber) val).getAlarm().getSeverity().name());
+                timestamp.set(((VNumber) val).getTime().getTimestamp());
             } else if (val instanceof VNumberArray) {
                 status.set(((VNumberArray) val).getAlarm().getStatus().name());
                 severity.set(((VNumberArray) val).getAlarm().getSeverity().name());
+                timestamp.set(((VNumberArray) val).getTime().getTimestamp());
             } else if (val instanceof VEnum) {
                 status.set(((VEnum) val).getAlarm().getStatus().name());
                 severity.set(((VEnum) val).getAlarm().getSeverity().name());
+                timestamp.set(((VEnum) val).getTime().getTimestamp());
             } else if (val instanceof VEnumArray) {
                 status.set(((VEnumArray) val).getAlarm().getStatus().name());
                 severity.set(((VEnumArray) val).getAlarm().getSeverity().name());
+                timestamp.set(((VEnumArray) val).getTime().getTimestamp());
+            } else if (val instanceof VNoData) {
+                severity.set("---");
+                status.set("---");
+                timestamp.set(null);
             } else {
                 severity.set(AlarmSeverity.NONE.name());
                 status.set("---");
-            }
-            if (val instanceof VNumber) {
-                timestamp.set(((VNumber) val).getTime().getTimestamp());
-            } else if (val instanceof VNumberArray) {
-                timestamp.set(((VNumberArray) val).getTime().getTimestamp());
-            } else if (val instanceof VEnum) {
-                timestamp.set(((VEnum) val).getTime().getTimestamp());
-            } else if (val instanceof VEnumArray) {
-                timestamp.set(((VEnumArray) val).getTime().getTimestamp());
-            } else {
                 timestamp.set(null);
             }
             snapshotVal.set(val);
+            storedSnapshotValue.set(val);
             value.set(new VTypePair(liveValue.get(), val, threshold));
             compareValues.forEach(o -> o.set(new VTypePair(val, o.get().value, threshold)));
             liveStoredEqual.set(Utilities.areValuesEqual(liveValue.get(), val, threshold));
@@ -387,5 +386,9 @@ public class TableEntry {
                     .set(new VTypePair(this.storedReadback.get().base, this.storedReadback.get().value, threshold));
             this.compareStoredReadbacks.forEach(e -> e.set(new VTypePair(e.get().base, e.get().value, threshold)));
         }
+    }
+
+    public ObjectProperty<VType> getStoredSnapshotValue(){
+        return storedSnapshotValue;
     }
 }

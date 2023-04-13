@@ -19,7 +19,7 @@ import org.epics.pva.PVASettings;
  *   @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVAStringArray extends PVAData implements PVAArray
+public class PVAStringArray extends PVAData implements PVAArray, PVAValue
 {
     private volatile String[] value = new String[0];
 
@@ -109,7 +109,7 @@ public class PVAStringArray extends PVAData implements PVAArray
     @Override
     protected int update(final int index, final PVAData new_value, final BitSet changes) throws Exception
     {
-        if (new_value instanceof PVALongArray)
+        if (new_value instanceof PVAStringArray)
         {
             final PVAStringArray other = (PVAStringArray) new_value;
             if (! Arrays.equals(other.value, value))
@@ -122,10 +122,9 @@ public class PVAStringArray extends PVAData implements PVAArray
     }
 
     @Override
-    protected void formatType(final int level, final StringBuilder buffer)
+    public String getType()
     {
-        indent(level, buffer);
-        buffer.append("string[] ").append(name);
+        return "string[]";
     }
 
     @Override
@@ -148,6 +147,11 @@ public class PVAStringArray extends PVAData implements PVAArray
                 buffer.append(", ...");
         }
         buffer.append("]");
+    }
+
+    @Override
+    public String formatValue() {
+        return Arrays.toString(get());
     }
 
     @Override

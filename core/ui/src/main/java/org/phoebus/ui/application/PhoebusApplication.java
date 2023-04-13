@@ -2,17 +2,10 @@ package org.phoebus.ui.application;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.lang.ref.WeakReference;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -102,7 +95,7 @@ public class PhoebusApplication extends Application {
      * <p>Set on {@link #start(Stage)},
      * may be used to for example get HostServices
      */
-    public static Application INSTANCE;
+    public static PhoebusApplication INSTANCE;
 
     /**
      * Application parameters
@@ -164,7 +157,7 @@ public class PhoebusApplication extends Application {
     /**
      * Menu item to save layout
      */
-    private SaveLayoutMenuItem save_layout;
+    private MenuItem save_layout;
 
     /**
      * Menu item to delete layouts
@@ -177,13 +170,18 @@ public class PhoebusApplication extends Application {
     private final Menu load_layout = new Menu(Messages.LoadLayout, ImageCache.getImageView(ImageCache.class, "/icons/layouts.png"));
 
     /**
+     * Menu to add a layout to the current layout
+     */
+    private final Menu add_layout = new Menu(Messages.AddLayout, ImageCache.getImageView(ImageCache.class, "/icons/layouts.png"));
+    
+    /**
      * List of memento names
      *
      * <p>This list contains the basic layout name,
      * without the ".memento" suffix and without the 'user'
      * location path.
      */
-    private final List<String> memento_files = new CopyOnWriteArrayList<>();
+    public final List<String> memento_files = new CopyOnWriteArrayList<>();
 
     /**
      * Toolbar button for top resources
@@ -527,8 +525,10 @@ public class PhoebusApplication extends Application {
         show_statusbar = new CheckMenuItem(Messages.ShowStatusbar);
         show_statusbar.setOnAction(event -> showStatusbar(show_statusbar.isSelected()));
 
-        save_layout = new SaveLayoutMenuItem(this, memento_files);
-        delete_layouts = new DeleteLayoutsMenuItem(this, memento_files);
+        save_layout = new MenuItem(Messages.SaveLayoutAs, ImageCache.getImageView(getClass(), "/icons/new_layout.png"));
+        save_layout.setOnAction(event -> SaveLayoutHelper.saveLayout(DockStage.getDockStages(), Messages.SaveLayoutAs));
+
+        delete_layouts = new DeleteLayoutsMenuItem();
 
         final Menu menu = new Menu(Messages.Window, null,
                 show_tabs,
@@ -540,6 +540,7 @@ public class PhoebusApplication extends Application {
                 new SeparatorMenuItem(),
                 save_layout,
                 load_layout,
+                add_layout,
                 delete_layouts,
                 new SeparatorMenuItem(),
                 /* Full Screen placeholder */
@@ -592,6 +593,7 @@ public class PhoebusApplication extends Application {
 
             final List<MenuItem> menuItemList = new ArrayList<>();
             final List<MenuItem> toolbarMenuItemList = new ArrayList<>();
+            final List<MenuItem> addLayoutMenuItemList = new ArrayList<>();
 
             final Map<String, File> layoutFiles = new HashMap<String, File>();
 
@@ -646,6 +648,12 @@ public class PhoebusApplication extends Application {
                                 toolbarMenuItem.setMnemonicParsing(false);
                                 toolbarMenuItem.setOnAction(event -> startLayoutReplacement(file));
                                 toolbarMenuItemList.add(toolbarMenuItem);
+
+                                // Create menu for adding a layout:
+                                final MenuItem addLayoutMenuItem = new MenuItem(filename);
+                                addLayoutMenuItem.setMnemonicParsing(false);
+                                addLayoutMenuItem.setOnAction(event -> startAddingLayout(file));
+                                addLayoutMenuItemList.add(addLayoutMenuItem);
                             }
                         });
             }
@@ -654,6 +662,7 @@ public class PhoebusApplication extends Application {
             Platform.runLater(() ->
             {
                 load_layout.getItems().setAll(menuItemList);
+                add_layout.getItems().setAll(addLayoutMenuItemList);
                 layout_menu_button.getItems().setAll(toolbarMenuItemList);
                 delete_layouts.setDisable(memento_files.isEmpty());
             });
@@ -1012,6 +1021,28 @@ public class PhoebusApplication extends Application {
     }
 
     /**
+     * Initiate adding a layout to the current layout
+     *
+     * @param mementoFile Memento for the desired layout
+     */
+    private void startAddingLayout(File mementoFile) {
+        JobManager.schedule(mementoFile.getName(), monitor ->
+        {
+            MementoTree mementoTree;
+            try {
+                mementoTree = loadMemento(mementoFile);
+            } catch (FileNotFoundException fileNotFoundException) {
+                logger.log(Level.SEVERE, "Unable to add a layout to the existing layout due to an error when opening the file '" + mementoFile.getAbsolutePath() + "'.");
+                return;
+            } catch (Exception exception) {
+                logger.log(Level.SEVERE, "Unable to add a layout to the existing layout due to an error when parsing the file '" + mementoFile.getAbsolutePath() + "'.");
+                return;
+            }
+            Platform.runLater(() -> addLayoutToCurrentLayout(mementoTree));
+        });
+    }
+
+    /**
      * @param memento Memento for new layout that should replace current one
      */
     private void replaceLayout(final MementoTree memento) {
@@ -1094,6 +1125,41 @@ public class PhoebusApplication extends Application {
      */
     private MementoTree loadMemento(final File memfile) throws Exception {
         return XMLMementoTree.read(new FileInputStream(memfile));
+    }
+
+    /**
+     * Adds a layout from a MementoTree to the current layout.
+     */
+    private void addLayoutToCurrentLayout(MementoTree mementoTree) {
+
+        List<Runnable> restoreSelectedTabFunctions = new LinkedList<>();
+        for (Stage stage : DockStage.getDockStages()) {
+            for (DockPane pane : DockStage.getDockPanes(stage)) {
+                DockItem tab = (DockItem) pane.getSelectionModel().getSelectedItem();
+                restoreSelectedTabFunctions.add(() -> tab.select());
+            }
+        }
+
+        List<Runnable> focusNewlyCreatedStageFunctions = new LinkedList<>();
+        for (MementoTree childMementoTree : mementoTree.getChildren()) {
+            Stage stage = new Stage();
+            DockStage.configureStage(stage);
+            MementoHelper.restoreStage(childMementoTree, stage);
+
+            DockStage.deferUntilAllPanesOfStageHaveScenes(stage, () ->
+            {
+                long numberOfRestoredTabsInStage = DockStage.getDockPanes(stage).stream()
+                                                            .flatMap(pane -> pane.getTabs().stream())
+                                                            .count();
+                if (numberOfRestoredTabsInStage > 0) {
+                    focusNewlyCreatedStageFunctions.add(() -> stage.requestFocus());
+                } else {
+                    stage.close();
+                }
+                restoreSelectedTabFunctions.forEach(f -> f.run());
+                focusNewlyCreatedStageFunctions.forEach(f -> f.run());
+            });
+        }
     }
 
     /**
@@ -1187,7 +1253,7 @@ public class PhoebusApplication extends Application {
         // Save current state, _before_ tabs are closed and thus
         // there's nothing left to save
         final File memfile = XMLMementoTree.getDefaultFile();
-        MementoHelper.saveState(memfile, last_opened_file, default_application, isMenuVisible(), isToolbarVisible(), isStatusbarVisible());
+        MementoHelper.saveState(DockStage.getDockStages(), memfile, last_opened_file, default_application, isMenuVisible(), isToolbarVisible(), isStatusbarVisible());
 
         // TODO Necessary to close main_stage last?
         if (stages.contains(main_stage)) {

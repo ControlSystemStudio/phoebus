@@ -38,7 +38,7 @@ Date: Nov 16, 2020
 * Number of undo/redo actions in display editor configurable (org.csstudio.display.builder.editor/undo_stack_size)
 * Save & Restore enhancements
     * Set point may be edited prior to restore.
-    * Display filter in snapshot view.
+    * Display filter in snapshotData view.
     * Integration with Channel Finder.
     * Support for additional data types.
     * Extended server API to enable use of "file paths".

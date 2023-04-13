@@ -186,6 +186,11 @@
       <artifactId>app-imageviewer</artifactId>
       <version>4.7.2-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>app-eslog</artifactId>
+      <version>4.7.2-SNAPSHOT</version>
+    </dependency>
 
     <!-- A default implementation of contribututions db context menu -->
     <dependency>

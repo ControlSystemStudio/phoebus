@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,6 +15,7 @@ import java.sql.ResultSet;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.epics.util.array.ArrayDouble;
 import org.epics.util.stats.Range;
@@ -224,7 +225,7 @@ abstract class AbstractRDBValueIterator implements ValueIterator
 
         // Default to string
         final String txt = result.getString(6);
-        return VString.of(txt, alarm, time);
+        return VString.of(Objects.toString(txt), alarm, time);
     }
 
     /** @param severity Original severity

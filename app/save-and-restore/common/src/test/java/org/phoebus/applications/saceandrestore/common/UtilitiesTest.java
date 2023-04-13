@@ -207,16 +207,16 @@ public class UtilitiesTest {
         VType val = VDouble.of(5d, alarm, time, display);
         VType result = Utilities.valueFromString("5.0", val);
         assertTrue(result instanceof VDouble);
-        assertEquals(5.0, ((VDouble) result).getValue().doubleValue(), 0);
+        assertEquals(5.0, ((VDouble) result).getValue(), 0);
 
         result = Utilities.valueFromString("", val);
         assertTrue(result instanceof VDouble);
-        assertEquals(5.0, ((VDouble) result).getValue().doubleValue(), 0);
+        assertEquals(5.0, ((VDouble) result).getValue(), 0);
 
         val = VFloat.of(5f, alarm, time, display);
         result = Utilities.valueFromString("5.0", val);
         assertTrue(result instanceof VFloat);
-        assertEquals(5.0f, ((VFloat) result).getValue().floatValue(), 0);
+        assertEquals(5.0f, ((VFloat) result).getValue(), 0);
 
         val = VLong.of(5L, alarm, time, display);
         result = Utilities.valueFromString("5", val);
@@ -268,6 +268,7 @@ public class UtilitiesTest {
             Utilities.valueFromString("invalid", val);
             fail("Should throw exception");
         } catch (IllegalArgumentException e) {
+            e.printStackTrace();
         }
 
         val = VBoolean.of(false, alarm, time);
@@ -347,7 +348,7 @@ public class UtilitiesTest {
 
         result = Utilities.valueFromString("5.1", val);
         assertTrue(result instanceof VDouble);
-        assertEquals(5.1, ((VDouble) result).getValue().doubleValue(), 0);
+        assertEquals(5.1, ((VDouble) result).getValue(), 0);
 
         result = Utilities.valueFromString("string", val);
         assertTrue(result instanceof VString);

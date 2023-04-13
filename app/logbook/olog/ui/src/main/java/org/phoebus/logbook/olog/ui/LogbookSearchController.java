@@ -27,7 +27,7 @@ public abstract class LogbookSearchController {
 
     private Job logbookSearchJob;
     protected LogClient client;
-    private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture<?> runningTask;
     protected final SimpleBooleanProperty searchInProgress = new SimpleBooleanProperty(false);
     private static final int SEARCH_JOB_INTERVAL = 30; // seconds
@@ -62,15 +62,13 @@ public abstract class LogbookSearchController {
      */
     public void periodicSearch(Map<String, String> searchParams, final Consumer<SearchResult> resultHandler) {
         cancelPeriodSearch();
-        runningTask = executor.scheduleAtFixedRate(() -> {
-            logbookSearchJob = LogbookSearchJob.submit(this.client,
-                    searchParams,
-                    resultHandler,
-                    (url, ex) -> {
-                        searchInProgress.set(false);
-                        cancelPeriodSearch();
-                    });
-        }, 0, SEARCH_JOB_INTERVAL, TimeUnit.SECONDS);
+        runningTask = executor.scheduleAtFixedRate(() -> logbookSearchJob = LogbookSearchJob.submit(this.client,
+                searchParams,
+                resultHandler,
+                (url, ex) -> {
+                    searchInProgress.set(false);
+                    cancelPeriodSearch();
+                }), SEARCH_JOB_INTERVAL, SEARCH_JOB_INTERVAL, TimeUnit.SECONDS);
     }
 
     @Deprecated

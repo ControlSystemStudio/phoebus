@@ -111,10 +111,9 @@ public class PVADouble extends PVANumber
     }
 
     @Override
-    protected void formatType(final int level, final StringBuilder buffer)
+    public String getType()
     {
-        indent(level, buffer);
-        buffer.append("double ").append(name);
+        return "double";
     }
 
     @Override

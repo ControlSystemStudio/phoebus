@@ -64,6 +64,14 @@ public class AlarmModelReaderTest
 	+ "         <title>a1pv1 Command Title 1</title>\n"
 	+ "         <details>a1pv1 Command Detail 1</details>\n"
 	+ "       </command>\n"
+	+ "       <guidance>\n"
+	+ "         <title>a1pv1 Guidance Title 1</title>\n"
+	+ "         <details>a1pv1 Guidance Detail 1</details>\n"
+	+ "       </guidance>\n"
+	+ "       <display>\n"
+	+ "         <title>a1pv1 Display Title 1</title>\n"
+	+ "         <details>a1pv1 Display Detail 1</details>\n"
+	+ "       </display>\n"
 	+ "    </pv>"
 	+ "    <pv name=\"a1pv2\">\n"
 	+ "      <description>a1pv2 description</description>\n"
@@ -153,6 +161,20 @@ public class AlarmModelReaderTest
 
 		assertEquals("a1pv1 Command Title 1", a1pv1_commands.get(0).title);
 		assertEquals("a1pv1 Command Detail 1", a1pv1_commands.get(0).detail);
+
+		final List<TitleDetail> a1pv1_guidance = ((AlarmTreeItem<?>)a1pv1).getGuidance();
+
+		assertEquals(1, a1pv1_guidance.size());
+
+		assertEquals("a1pv1 Guidance Title 1", a1pv1_guidance.get(0).title);
+		assertEquals("a1pv1 Guidance Detail 1", a1pv1_guidance.get(0).detail);
+
+		final List<TitleDetail> a1pv1_displays = ((AlarmTreeItem<?>)a1pv1).getDisplays();
+
+		assertEquals(1, a1pv1_displays.size());
+
+		assertEquals("a1pv1 Display Title 1", a1pv1_displays.get(0).title);
+		assertEquals("a1pv1 Display Detail 1", a1pv1_displays.get(0).detail);
 
 		final AlarmTreeLeaf a1pv2 = (AlarmTreeLeaf) area1.getChild("a1pv2");
 

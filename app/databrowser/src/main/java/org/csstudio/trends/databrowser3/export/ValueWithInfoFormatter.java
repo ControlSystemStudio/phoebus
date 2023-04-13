@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,8 +8,6 @@
 package org.csstudio.trends.databrowser3.export;
 
 import org.csstudio.trends.databrowser3.Messages;
-import org.epics.vtype.VString;
-import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
 import org.phoebus.archive.vtype.Style;
 import org.phoebus.archive.vtype.VTypeHelper;
@@ -40,12 +38,6 @@ public class ValueWithInfoFormatter extends ValueFormatter
     @Override
     public String format(final VType value)
     {
-        if (value instanceof VString
-                || value instanceof VStringArray
-                || Double.isNaN(VTypeHelper.toDouble(value)))
-            return super.format(value) +
-                Messages.Export_Delimiter + Messages.Export_NoValueMarker +
-                Messages.Export_Delimiter + Messages.Export_NoValueMarker;
         return super.format(value) + Messages.Export_Delimiter +
             org.phoebus.core.vtypes.VTypeHelper.getSeverity(value) + Messages.Export_Delimiter +
             VTypeHelper.getMessage(value);

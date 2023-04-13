@@ -24,6 +24,7 @@
       <xs:element name="simulation_hook" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="macros" type="xs:string" minOccurs="0" maxOccurs="1"/>
       <xs:element name="old_scan_removal_threadhold" type="xs:double" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="log_limit" type="xs:decimal" minOccurs="0" maxOccurs="1"/>
       <xs:element name="pv" type="pv" minOccurs="0" maxOccurs="unbounded"/>
 	</xs:sequence>
    </xs:complexType>
@@ -45,6 +46,9 @@
 	    </xs:element>
 	    <!-- Slew rate (value change per second) for simulation -->
         <xs:element name="slew_rate" type="xs:double" minOccurs="0"/>
+        <!-- Name of PV with min and max value for simulation -->
+        <xs:element name="minimum" type="xs:string" minOccurs="0"/>
+        <xs:element name="maximum" type="xs:string" minOccurs="0"/>
 	</xs:sequence>
 </xs:complexType>
 

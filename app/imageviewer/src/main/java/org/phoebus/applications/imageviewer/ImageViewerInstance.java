@@ -25,35 +25,27 @@ import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
-import org.phoebus.ui.docking.DockStage;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ImageViewerInstance implements AppInstance {
 
-    public static final String NAME = "Image Viewer";
-
-    public enum ViewMode{
+    public enum ViewMode {
         TAB,
         DIALOG
-    };
+    }
 
     private DockItem dockItem;
 
-    private AppDescriptor appDescriptor;
+    private final AppDescriptor appDescriptor;
 
-    public ImageViewerInstance(AppDescriptor appDescriptor, URI uri, ViewMode viewMode){
+    public ImageViewerInstance(AppDescriptor appDescriptor, URI uri, ViewMode viewMode) {
         this.appDescriptor = appDescriptor;
 
-        if(viewMode == ViewMode.TAB){
-            final DockItemWithInput existing = DockStage.getDockItemWithInput(NAME, uri);
+        if (viewMode == ViewMode.TAB) {
             FXMLLoader fxmlLoader = new FXMLLoader();
             ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
             fxmlLoader.setResources(resourceBundle);
@@ -61,23 +53,27 @@ public class ImageViewerInstance implements AppInstance {
             try {
                 fxmlLoader.load();
                 ImageViewerController imageViewerController = fxmlLoader.getController();
-                imageViewerController.setImage(uri.toURL());
                 dockItem = new DockItemWithInput(this, imageViewerController.getRoot(), uri, null, null);
                 DockPane.getActiveDockPane().addTab(dockItem);
+                boolean showWatermark = false;
+                String queryParams = uri.getQuery();
+                if (queryParams != null && queryParams.contains("watermark=true")) {
+                    showWatermark = true;
+                }
+                imageViewerController.setImage(uri.toURL(), showWatermark);
             } catch (Exception e) {
                 Logger.getLogger(ImageViewerInstance.class.getName())
-                    .log(Level.WARNING, "Unable to load fxml", e);
+                        .log(Level.WARNING, "Unable to load fxml", e);
             }
         }
     }
 
     @Override
-    public AppDescriptor getAppDescriptor()
-    {
+    public AppDescriptor getAppDescriptor() {
         return appDescriptor;
     }
 
-    public void raise(){
+    public void raise() {
         dockItem.select();
     }
 }

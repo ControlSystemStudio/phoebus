@@ -19,12 +19,13 @@
 package org.phoebus.applications.saveandrestore.model;
 
 /**
- * Describes the type of node id the tree structure.
+ * Describes the type of node in the tree structure.
  * @author georgweiss
  * Created 14 Nov 2018
  */
 public enum NodeType {
 	FOLDER,
 	CONFIGURATION,
-	SNAPSHOT;
+	SNAPSHOT,
+	COMPOSITE_SNAPSHOT;
 }

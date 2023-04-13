@@ -83,6 +83,15 @@
     -->
   <old_scan_removal_threadhold>50</old_scan_removal_threadhold>
   
+  
+  <!-- Limit for number of completed scans to keep
+       In addition to basing the list on memory (old_scan_removal_threadhold),
+       this parameter can further limit the number of logs that are kept,
+       because a long list of entries eventually takes considerable time
+       to fetch and show in the Scan Monitor.
+    -->
+  <log_limit>0</log_limit>  
+
   <!-- Simulation information for a PV
 
        Slew rate is in [units of the device] / second

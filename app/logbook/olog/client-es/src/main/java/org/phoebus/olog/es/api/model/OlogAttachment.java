@@ -5,19 +5,18 @@
 
 package org.phoebus.olog.es.api.model;
 
-import java.io.File;
-import java.util.UUID;
-
-import org.phoebus.logbook.Attachment;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.phoebus.logbook.Attachment;
+
+import java.io.File;
+import java.util.UUID;
 
 /**
  * Attachment object that can be represented as XML/JSON in payload data. TODO:
  * pass attachments over XML / without webdav? make log entries with attachments
  * atomic?
- * 
+ *
  * @author Kunal Shroff
  */
 
@@ -44,7 +43,7 @@ public class OlogAttachment implements Attachment {
      * Creates a new instance of XmlAttachment
      */
     public OlogAttachment() {
-       this(UUID.randomUUID().toString());
+        this(UUID.randomUUID().toString());
     }
 
     public OlogAttachment(String id) {
@@ -60,26 +59,10 @@ public class OlogAttachment implements Attachment {
     }
 
     /**
-     * @param fileName
-     *            the fileName to set
+     * @param fileName the fileName to set
      */
     public void setFileName(String fileName) {
         this.fileName = fileName;
-    }
-
-    /**
-     * @return the fileSize
-     */
-    public Long getFileSize() {
-        return fileSize;
-    }
-
-    /**
-     * @param fileSize
-     *            the fileSize to set
-     */
-    public void setFileSize(Long fileSize) {
-        this.fileSize = fileSize;
     }
 
     /**
@@ -91,8 +74,7 @@ public class OlogAttachment implements Attachment {
     }
 
     /**
-     * @param contentType
-     *            the contentType to set
+     * @param contentType the contentType to set
      */
     public void setContentType(String contentType) {
         this.contentType = contentType;
@@ -106,8 +88,7 @@ public class OlogAttachment implements Attachment {
     }
 
     /**
-     * @param thumbnail
-     *            name the contentType to set
+     * @param thumbnail name the contentType to set
      */
     public void setThumbnail(Boolean thumbnail) {
         this.thumbnail = thumbnail;
@@ -119,7 +100,7 @@ public class OlogAttachment implements Attachment {
     }
 
     @Override
-    public void setId(String id){
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -135,7 +116,7 @@ public class OlogAttachment implements Attachment {
 
 
     @Override
-    public String getId(){
+    public String getId() {
         return id;
     }
 

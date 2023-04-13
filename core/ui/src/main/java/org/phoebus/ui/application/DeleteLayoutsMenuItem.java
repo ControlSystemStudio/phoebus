@@ -37,9 +37,6 @@ import javafx.stage.Stage;
 @SuppressWarnings("nls")
 class DeleteLayoutsMenuItem extends MenuItem
 {
-    private final PhoebusApplication phoebus;
-    private final List<String> memento_files;
-
     /** Dialog that lists layouts and allows user to select what should be deleted */
     private class DeleteLayoutsDialog extends Dialog<Boolean>
     {
@@ -50,7 +47,7 @@ class DeleteLayoutsMenuItem extends MenuItem
             setTitle(Messages.DeleteLayouts);
             setHeaderText(Messages.DeleteLayoutsInfo);
 
-            list.getItems().setAll(memento_files);
+            list.getItems().setAll(PhoebusApplication.INSTANCE.memento_files);
             list.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
             getDialogPane().setContent(list);
             getDialogPane().setMinSize(280, 500);
@@ -80,11 +77,9 @@ class DeleteLayoutsMenuItem extends MenuItem
     }
 
     /** Save layout menu item */
-    public DeleteLayoutsMenuItem(final PhoebusApplication phoebus, final List<String> memento_files)
+    public DeleteLayoutsMenuItem()
     {
         super(Messages.DeleteLayouts, ImageCache.getImageView(ImageCache.class, "/icons/delete_layout.png"));
-        this.phoebus = phoebus;
-        this.memento_files = memento_files;
         setOnAction(event ->  run());
     }
 
@@ -119,7 +114,7 @@ class DeleteLayoutsMenuItem extends MenuItem
                 ExceptionDetailsErrorDialog.openError(Messages.DeleteLayouts, "Error while deleting memento", ex);
             }
             // Update menu to list remaining layouts
-            phoebus.createLoadLayoutsMenu();
+            PhoebusApplication.INSTANCE.createLoadLayoutsMenu();
         });
     }
 }

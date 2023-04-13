@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,7 +7,7 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.server;
 
-import static org.phoebus.applications.alarm.AlarmSystem.logger;
+import static org.phoebus.applications.alarm.AlarmSystemConstants.logger;
 
 import java.io.FileInputStream;
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.prefs.Preferences;
 
-import org.phoebus.applications.alarm.AlarmSystem;
+import org.phoebus.applications.alarm.AlarmSystemConstants;
 import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
@@ -87,7 +87,9 @@ public class AlarmServerMain implements ServerModelListener
             {
                 logger.info("Fetching past alarm states...");
                 final AlarmStateInitializer init = new AlarmStateInitializer(server, config, kafka_props_file);
-                if (! init.awaitCompleteStates())
+                if (init.awaitCompleteStates())
+                    logger.log(Level.INFO, "Alarm state stabilized");
+                else
                     logger.log(Level.WARNING, "Keep receiving state updates, may have incomplete initial set of alarm states");
                 final ConcurrentHashMap<String, ClientState> initial_states = init.shutdown();
 
@@ -542,6 +544,8 @@ public class AlarmServerMain implements ServerModelListener
         System.out.println("-export             config.xml          - Export alarm configuration to file");
         System.out.println("-import             config.xml          - Import alarm configruation from file");
         System.out.println("-logging            logging.properties  - Load log settings");
+        System.out.println("-connect_secs       10                  - Time alarm server and config import/export waits for connection");
+        System.out.println("-stable_secs         4                  - Time alarm server and config import/export waits for stable configuration");
         System.out.println("-kafka_properties   client.properties   - Load kafka client settings from file");
         System.out.println();
     }
@@ -573,6 +577,8 @@ public class AlarmServerMain implements ServerModelListener
             String export_arg           = "-export";
             String import_arg           = "-import";
             String logging_arg          = "-logging";
+            String connect_secs_arg     = "-connect_secs";
+            String stable_secs_arg      = "-stable_secs";
             String kafka_props_arg      = "-kafka_properties";
 
             Set<String> options = Set.of(
@@ -582,6 +588,8 @@ public class AlarmServerMain implements ServerModelListener
                 export_arg,
                 import_arg,
                 logging_arg,
+                connect_secs_arg,
+                stable_secs_arg,
                 kafka_props_arg);
 
             Set<String> flags = Set.of(
@@ -602,45 +610,46 @@ public class AlarmServerMain implements ServerModelListener
             while (iter.hasNext())
             {
                 final String cmd = iter.next();
-                if (options.contains(cmd)) {
+                if (options.contains(cmd))
+                {
                     if (! iter.hasNext())
                         throw new Exception("Missing argument for " +  cmd);
                     final String arg = iter.next();
                     parsed_args.put(cmd, arg);
                 }
-                else if (flags.contains(cmd)) {
+                else if (flags.contains(cmd))
                     parsed_args.put(cmd, "");
-                }
-                else {
+                else
                     throw new Exception("Unknown option " + cmd);
-                }
             }
 
-            if (parsed_args.containsKey(help_arg) || parsed_args.containsKey(help_alt_arg)){
+            if (parsed_args.containsKey(help_arg) || parsed_args.containsKey(help_alt_arg))
+            {
                 help();
                 return;
             }
-            if (parsed_args.containsKey(logging_arg)) {
+            if (parsed_args.containsKey(logging_arg))
                 LogManager.getLogManager().readConfiguration(new FileInputStream(parsed_args.get(logging_arg)));
-            }
-            if (parsed_args.containsKey(settings_arg)){
+            if (parsed_args.containsKey(settings_arg))
+            {
                 final String filename = parsed_args.get(settings_arg);
                 logger.info("Loading settings from " + filename);
                 PropertyPreferenceLoader.load(new FileInputStream(filename));
-                Preferences userPrefs  = Preferences.userRoot().node("org/phoebus/applications/alarm");
+                final Preferences userPrefs  = Preferences.userRoot().node("org/phoebus/applications/alarm");
 
-                for (Map.Entry<String, String> entry: args_to_prefs.entrySet()) {
+                for (Map.Entry<String, String> entry: args_to_prefs.entrySet())
+                {
                     final String prefKey = entry.getValue();
                     final String arg = entry.getKey();
     
-                    if (parsed_args.containsKey(arg)){
+                    if (parsed_args.containsKey(arg))
+                    {
                         logger.log(Level.WARNING,"Potentially conflicting setting: -settings/"+prefKey+": " + userPrefs.get(prefKey, "") + " and " + arg + ":" + parsed_args.get(arg));
                         logger.log(Level.WARNING,"Using argument " + arg + " instead of -settings");
                         logger.log(Level.WARNING,prefKey + ": " + parsed_args.get(arg));
                     }
-                    else if (Set.of(userPrefs.keys()).contains(prefKey)){
+                    else if (Set.of(userPrefs.keys()).contains(prefKey))
                         parsed_args.put(arg, userPrefs.get(prefKey, ""));
-                    }
                 }
             }
 
@@ -648,27 +657,37 @@ public class AlarmServerMain implements ServerModelListener
             server = parsed_args.getOrDefault(server_arg, server);
             kafka_properties = parsed_args.getOrDefault(kafka_props_arg, kafka_properties);
             use_shell = !parsed_args.containsKey(noshell_arg);
+            
+            if (parsed_args.containsKey(connect_secs_arg))
+                AlarmStateInitializer.CONNECTION_SECS = AlarmConfigTool.CONNECTION_SECS
+                                                      = Long.parseLong(parsed_args.get(connect_secs_arg));
 
-            if (parsed_args.containsKey(create_topics_arg)){
+            if (parsed_args.containsKey(stable_secs_arg))
+                AlarmStateInitializer.STABILIZATION_SECS = AlarmConfigTool.STABILIZATION_SECS
+                                                         = Long.parseLong(parsed_args.get(stable_secs_arg));
+
+            if (parsed_args.containsKey(create_topics_arg))
+            {
                 logger.info("Discovering and creating any missing topics at " + server);
                 CreateTopics.discoverAndCreateTopics(server, true, List.of(config,
-                                                     config + AlarmSystem.COMMAND_TOPIC_SUFFIX,
-                                                     config + AlarmSystem.TALK_TOPIC_SUFFIX),
+                                                     config + AlarmSystemConstants.COMMAND_TOPIC_SUFFIX,
+                                                     config + AlarmSystemConstants.TALK_TOPIC_SUFFIX),
                                                      kafka_properties);
             }
-            if (parsed_args.containsKey(export_arg)){
+            if (parsed_args.containsKey(export_arg))
+            {
                 final String filename = parsed_args.get(export_arg);
                 logger.info("Exporting model to " + filename);
                 new AlarmConfigTool().exportModel(filename, server, config, kafka_properties);
             }
-            if (parsed_args.containsKey(import_arg)){
+            if (parsed_args.containsKey(import_arg))
+            {
                 final String filename = parsed_args.get(import_arg);
                 logger.info("Import model from " + filename);
                 new AlarmConfigTool().importModel(filename, server, config, kafka_properties);
             }
-            if (parsed_args.containsKey(export_arg) || parsed_args.containsKey(import_arg)){
+            if (parsed_args.containsKey(export_arg) || parsed_args.containsKey(import_arg))
                 return;
-            }
         }
         catch (final Exception ex)
         {

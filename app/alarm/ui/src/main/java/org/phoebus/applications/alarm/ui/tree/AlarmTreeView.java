@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,7 @@ package org.phoebus.applications.alarm.ui.tree;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -41,7 +42,6 @@ import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.ToolbarHelper;
-import org.phoebus.ui.javafx.TreeHelper;
 import org.phoebus.ui.javafx.UpdateThrottle;
 import org.phoebus.ui.selection.AppSelection;
 import org.phoebus.ui.spi.ContextMenuEntry;
@@ -228,7 +228,12 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         show_alarms.setTooltip(new Tooltip("Expand alarm tree to show active alarms"));
         show_alarms.setOnAction(event -> expandAlarms(tree_view.getRoot()));
 
-        return new ToolBar(no_server, changing, ToolbarHelper.createSpring(), collapse, show_alarms);
+        final Button show_disabled = new Button("",
+                ImageCache.getImageView(AlarmUI.class, "/icons/expand_disabled.png"));
+        show_disabled.setTooltip(new Tooltip("Expand alarm tree to show disabled PVs"));
+        show_disabled.setOnAction(event -> expandDisabledPVs(tree_view.getRoot()));
+
+        return new ToolBar(no_server, changing, ToolbarHelper.createSpring(), collapse, show_alarms, show_disabled);
     }
 
     ToolBar getToolbar()
@@ -249,6 +254,29 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         node.setExpanded(expand);
         for (TreeItem<AlarmTreeItem<?>> sub : node.getChildren())
             expandAlarms(sub);
+    }
+
+    /** @param node Subtree node where to expand disabled PVs
+     *  @return Does subtree contain disabled PVs?
+     */
+    private boolean expandDisabledPVs(final TreeItem<AlarmTreeItem<?>> node)
+    {
+        if (node != null  &&  (node.getValue() instanceof AlarmClientLeaf))
+        {
+            AlarmClientLeaf pv = (AlarmClientLeaf) node.getValue();
+            if (! pv.isEnabled())
+                return true;
+        }
+
+        // Always expand the root, which itself is not visible,
+        // but this will show all the top-level elements.
+        // In addition, expand those items which contain disabled PV.
+        boolean expand = node == tree_view.getRoot();
+        for (TreeItem<AlarmTreeItem<?>> sub : node.getChildren())
+            if (expandDisabledPVs(sub))
+                expand = true;
+        node.setExpanded(expand);
+        return expand;
     }
 
     private TreeItem<AlarmTreeItem<?>> createViewItem(final AlarmTreeItem<?> model_item)
@@ -466,9 +494,10 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     }
 
     /** Called by throttle to perform accumulated updates */
+    @SuppressWarnings("unchecked")
     private void performUpdates()
     {
-        final TreeItem<?>[] view_items;
+        final TreeItem<AlarmTreeItem<?>>[] view_items;
         synchronized (items_to_update)
         {
             // Creating a direct copy, i.e. another new LinkedHashSet<>(items_to_update),
@@ -480,8 +509,38 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             items_to_update.clear();
         }
 
-        for (final TreeItem<?> view_item : view_items)
-            TreeHelper.triggerTreeItemRefresh(view_item);
+        // How to update alarm tree cells when data changed?
+        // `setValue()` with a truly new value (not 'equal') should suffice,
+        // but there are two problems:
+        // Since we're currently using the alarm tree model item as a value,
+        // the value as seen by the TreeView remains the same.
+        // We could use a model item wrapper class as the cell value
+        // and replace it (while still holding the same model item!)
+        // for the TreeView to see a different wrapper value, but
+        // as shown in org.phoebus.applications.alarm.TreeItemUpdateDemo,
+        // replacing a tree cell value fails to trigger refreshes
+        // for certain hidden items.
+        // Only replacing the TreeItem gives reliable refreshes.
+        for (final TreeItem<AlarmTreeItem<?>> view_item : view_items)
+            // Top-level item has no parent, and is not visible, so we keep it
+            if (view_item.getParent() != null)
+            {
+                // Locate item in tree parent
+                final TreeItem<AlarmTreeItem<?>> parent = view_item.getParent();
+                final int index = parent.getChildren().indexOf(view_item);
+
+                // Create new TreeItem for that value
+                final AlarmTreeItem<?> value = view_item.getValue();
+                final TreeItem<AlarmTreeItem<?>> update = new TreeItem<>(value);
+                // Move child links to new item
+                final ArrayList<TreeItem<AlarmTreeItem<?>>> children = new ArrayList<>(view_item.getChildren());
+                view_item.getChildren().clear();
+                update.getChildren().addAll(children);
+                update.setExpanded(view_item.isExpanded());
+
+                path2view.put(value.getPathName(), update);
+                parent.getChildren().set(index, update);
+            }
     }
 
     /** Context menu, details depend on selected items */

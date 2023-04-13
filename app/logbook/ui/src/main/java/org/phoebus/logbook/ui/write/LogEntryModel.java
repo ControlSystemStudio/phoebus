@@ -196,7 +196,7 @@ public class LogEntryModel {
                 // Let anyone listening know that their credentials are now out of date.
                 updateCredentials.set(true);
             } catch (Exception ex) {
-                logger.log(Level.WARNING, "Secure Store file not found.", ex);
+                logger.log(Level.WARNING, "Unable to fetch credentials from secure store.", ex);
             }
         });
     }

@@ -18,7 +18,7 @@ import org.epics.pva.PVASettings;
  *   @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVALongArray extends PVAData implements PVAArray
+public class PVALongArray extends PVAData implements PVAArray, PVAValue
 {
     private final boolean unsigned;
     private volatile long[] value;
@@ -142,12 +142,11 @@ public class PVALongArray extends PVAData implements PVAArray
     }
 
     @Override
-    protected void formatType(final int level, final StringBuilder buffer)
+    public String getType()
     {
-        indent(level, buffer);
         if (unsigned)
-            buffer.append('u');
-        buffer.append("long[] ").append(name);
+            return "ulong[]";
+        return "long[]";
     }
 
     @Override
@@ -174,6 +173,11 @@ public class PVALongArray extends PVAData implements PVAArray
                 buffer.append(", ...");
         }
         buffer.append("]");
+    }
+
+    @Override
+    public String formatValue() {
+        return Arrays.toString(get());
     }
 
     @Override

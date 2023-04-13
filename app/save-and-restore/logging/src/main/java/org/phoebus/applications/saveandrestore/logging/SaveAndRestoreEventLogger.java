@@ -20,6 +20,7 @@ package org.phoebus.applications.saveandrestore.logging;
 
 import javafx.application.Platform;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.framework.workbench.ApplicationService;
@@ -58,7 +59,7 @@ public class SaveAndRestoreEventLogger implements SaveAndRestoreEventReceiver {
         saveSnapshotActionInfo.setSnapshotUniqueId(node.getUniqueId());
         saveSnapshotActionInfo.setSnapshotCreatedDate(node.getCreated());
         saveSnapshotActionInfo.setActionPerformedBy(System.getProperty("user.name"));
-        saveSnapshotActionInfo.setComment(node.getProperty("comment"));
+        saveSnapshotActionInfo.setComment(node.getDescription());
         saveSnapshotActionInfo.setSnapshotName(node.getName());
         SelectionService.getInstance().setSelection("SaveAndRestoreLogging", List.of(saveSnapshotActionInfo));
         Platform.runLater(() -> ApplicationService.createInstance("logbook"));
@@ -68,7 +69,7 @@ public class SaveAndRestoreEventLogger implements SaveAndRestoreEventReceiver {
      * Called when a snapshot has been restored.
      *
      * @param node         The restored snapshot {@link Node}
-     * @param failedPVs    List of PV names that could not be restored. Empty if all PVs in the save set were
+     * @param failedPVs    List of PV names that could not be restored. Empty if all PVs in the configuration were
      *                     restored successfully.
      * @param errorHandler An error handler callback.
      */
@@ -83,8 +84,8 @@ public class SaveAndRestoreEventLogger implements SaveAndRestoreEventReceiver {
         restoreSnapshotActionInfo.setSnapshotUniqueId(node.getUniqueId());
         restoreSnapshotActionInfo.setSnapshotCreatedDate(node.getCreated());
         restoreSnapshotActionInfo.setActionPerformedBy(System.getProperty("user.name"));
-        restoreSnapshotActionInfo.setComment(node.getProperty("comment"));
-        restoreSnapshotActionInfo.setGolden("true".equals(node.getProperty("golden")));
+        restoreSnapshotActionInfo.setComment(node.getDescription());
+        restoreSnapshotActionInfo.setGolden(node.hasTag(Tag.GOLDEN));
         restoreSnapshotActionInfo.setSnapshotName(node.getName());
         restoreSnapshotActionInfo.setFailedPVs(failedPVs);
         SelectionService.getInstance().setSelection("SaveAndRestoreLogging", List.of(restoreSnapshotActionInfo));

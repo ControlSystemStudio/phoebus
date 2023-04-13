@@ -19,6 +19,7 @@ import com.sun.jersey.multipart.impl.MultiPartWriter;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
+import org.phoebus.logbook.LogService;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookException;
 import org.phoebus.logbook.Messages;
@@ -28,6 +29,8 @@ import org.phoebus.logbook.Tag;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.olog.es.api.model.OlogObjectMappers;
 import org.phoebus.olog.es.api.model.OlogSearchResult;
+import org.phoebus.security.store.SecureStore;
+import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
 import javax.net.ssl.SSLContext;
 import javax.ws.rs.core.MediaType;
@@ -145,8 +148,22 @@ public class OlogClient implements LogClient {
                     this.clientConfig = new DefaultClientConfig();
                 }
             }
-            this.username = ifNullReturnPreferenceValue(this.username, "username");
-            this.password = ifNullReturnPreferenceValue(this.password, "password");
+            // Check if cached credentials are available.
+            ScopedAuthenticationToken scopedAuthenticationToken = null;
+            try {
+                SecureStore store = new SecureStore();
+                scopedAuthenticationToken = store.getScopedAuthenticationToken(LogService.AUTHENTICATION_SCOPE);
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Unable to query for scoped authentication token");
+            }
+            if(scopedAuthenticationToken != null){
+                this.username = scopedAuthenticationToken.getUsername();
+                this.password = scopedAuthenticationToken.getPassword();
+            }
+            else{
+                this.username = ifNullReturnPreferenceValue(this.username, "username");
+                this.password = ifNullReturnPreferenceValue(this.password, "password");
+            }
             this.connectTimeoutAsString = ifNullReturnPreferenceValue(this.connectTimeoutAsString, "connectTimeout");
             int connectTimeout = 0;
             try {

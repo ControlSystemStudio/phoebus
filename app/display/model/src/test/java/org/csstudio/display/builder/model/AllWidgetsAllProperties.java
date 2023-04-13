@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,24 +19,31 @@ import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.phoebus.framework.macros.Macros;
 
 /** Tool that creates demo file with all widget types and all properties
+ *
+ *  Invoke from IDE or via `ant all_widgets`
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class AllWidgetsAllProperties
 {
-    private static final String EXAMPLE_FILE = "../org.csstudio.display.builder.runtime.test/examples/all_widgets.opi";
-
     public static void main(String[] args) throws Exception
     {
+        if (args.length != 1)
+            throw new Exception("Usage: AllWidgetsAllProperties /path/to/all_widgets.bob");
+
+        final String filename = args[0];
+        System.out.println("Writing " + filename + " ...");
+
         final DisplayModel model = new DisplayModel();
         for (final WidgetDescriptor widget_type : WidgetFactory.getInstance().getWidgetDescriptions())
         {
-            Widget widget = widget_type.createWidget();
+            final Widget widget = widget_type.createWidget();
             widget.setPropertyValue("name", widget_type.getName() + " 1");
 
             // For some widgets, adjust default values
             if (widget_type == ActionButtonWidget.WIDGET_DESCRIPTOR)
-            {
+            {   // Action Button: Add open-display example
                 ActionButtonWidget button = (ActionButtonWidget) widget;
                 final Macros macros = new Macros();
                 macros.add("S", "Test");
@@ -47,16 +54,19 @@ public class AllWidgetsAllProperties
 
             model.runtimeChildren().addChild(widget);
         }
+        ModelWriter.with_comments = true;
         ModelWriter.skip_defaults = false;
         try
         {
-            final ModelWriter writer = new ModelWriter(new FileOutputStream(EXAMPLE_FILE));
+            final ModelWriter writer = new ModelWriter(new FileOutputStream(filename));
             writer.writeModel(model);
             writer.close();
         }
         finally
         {
+            ModelWriter.with_comments = false;
             ModelWriter.skip_defaults = true;
         }
+        System.out.println("Done.");
     }
 }

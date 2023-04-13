@@ -54,6 +54,7 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javax.imageio.ImageIO;
+import javax.ws.rs.core.UriBuilder;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -105,6 +106,9 @@ public class AttachmentsViewController {
 
     private final ObservableList<Attachment> attachments = FXCollections.observableArrayList();
 
+    public AttachmentsViewController(){
+    }
+
     @FXML
     public void initialize() {
 
@@ -141,7 +145,9 @@ public class AttachmentsViewController {
                         }
                     }
                 }
-                ApplicationLauncherService.openFile(attachment.getFile(), false, null);
+                else {
+                   showImageAttachment();
+                }
             }
         });
 
@@ -184,11 +190,20 @@ public class AttachmentsViewController {
 
         imagePreview.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
             if (selectedAttachment.get() != null && selectedAttachment.get().getContentType().startsWith("image")) {
-                ApplicationLauncherService.openFile(selectedAttachment.get().getFile(),
-                        false, null);
+                showImageAttachment();
             }
             event.consume();
         });
+    }
+
+    /**
+     * Launches the Image Viewer application to show the selected image attachment with a watermark.
+     */
+    private void showImageAttachment(){
+        URI uri = selectedAttachment.get().getFile().toURI();
+        URI withWatermark = UriBuilder.fromUri(uri).queryParam("watermark", "true").build();
+        ApplicationLauncherService.openResource(withWatermark,
+                false, null);
     }
 
     public ObservableList<Attachment> getSelectedAttachments() {

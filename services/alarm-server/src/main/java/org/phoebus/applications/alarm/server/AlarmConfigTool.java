@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,14 +28,17 @@ import org.phoebus.util.time.SecondsParser;
 @SuppressWarnings("nls")
 public class AlarmConfigTool
 {
+    /** Timeout for receiving the first config update, a quasi connection timeout. Default is 10 seconds. */
+    public static long CONNECTION_SECS = 10;
+
     /** Time the model must be stable for. Unit is seconds. Default is 4 seconds. */
-    private static final long STABILIZATION_SECS = 4;
+    public static long STABILIZATION_SECS = 4;
 
-    	// Export an alarm system model to an xml file.
+        // Export an alarm system model to an xml file.
     public void exportModel(String filename, String server, String config, String kafka_properties_file) throws Exception
-	{
+    {
         final XmlModelWriter xmlWriter;
-
+        
         // Write to stdout or to file.
         if (filename.equals("stdout"))
             xmlWriter = new XmlModelWriter(System.out);
@@ -54,10 +57,11 @@ public class AlarmConfigTool
         final AlarmClient client = new AlarmClient(server, config, kafka_properties_file);
         client.start();
 
-        System.out.printf("Writing file after model is stable for %d seconds:\n", STABILIZATION_SECS);
+        System.out.printf("Writing file after %d second connection timeout, then waiting until model is stable for %d seconds:\n",
+                          CONNECTION_SECS, STABILIZATION_SECS);
         System.out.println("Monitoring changes...");
 
-        final AlarmConfigMonitor updateMonitor = new AlarmConfigMonitor(STABILIZATION_SECS, client);
+        final AlarmConfigMonitor updateMonitor = new AlarmConfigMonitor(CONNECTION_SECS, STABILIZATION_SECS, client);
         updateMonitor.waitForPauseInUpdates(30);
 
         System.out.printf("Received no more updates for %d seconds, I think I have a stable configuration\n", STABILIZATION_SECS);
@@ -75,18 +79,18 @@ public class AlarmConfigTool
         updateMonitor.dispose();
 
         client.shutdown();
-	}
+    }
 
-	// Import an alarm system model from an xml file.
-	public void importModel(final String filename, final String server, final String config, String kafka_properties_file) throws InterruptedException, Exception
-	{
-	    System.out.println("Reading new configuration from " + filename);
-	    final long start = System.currentTimeMillis();
-		final File file = new File(filename);
-		final FileInputStream fileInputStream = new FileInputStream(file);
+    // Import an alarm system model from an xml file.
+    public void importModel(final String filename, final String server, final String config, String kafka_properties_file) throws InterruptedException, Exception
+    {
+        System.out.println("Reading new configuration from " + filename);
+        final long start = System.currentTimeMillis();
+        final File file = new File(filename);
+        final FileInputStream fileInputStream = new FileInputStream(file);
 
-		final XmlModelReader xmlModelReader = new XmlModelReader();
-		xmlModelReader.load(fileInputStream);
+        final XmlModelReader xmlModelReader = new XmlModelReader();
+        xmlModelReader.load(fileInputStream);
 
         final AlarmClientNode new_root = xmlModelReader.getRoot();
         // Check that the configs match.
@@ -97,13 +101,14 @@ public class AlarmConfigTool
         }
         final long got_xml = System.currentTimeMillis();
 
-		// Connect to the server.
-		final AlarmClient client = new AlarmClient(server, config, kafka_properties_file);
+        // Connect to the server.
+        final AlarmClient client = new AlarmClient(server, config, kafka_properties_file);
         client.start();
         try
         {
-            System.out.println("Fetching existing alarm configuration for \"" + config + "\", then waiting for it to remain stable for " + STABILIZATION_SECS + " seconds...");
-            final AlarmConfigMonitor updateMonitor = new AlarmConfigMonitor(STABILIZATION_SECS, client);
+            System.out.println("Fetching existing alarm configuration for \"" + config + "\" with " + CONNECTION_SECS +
+                               " connection timeout, then waiting for it to remain stable for " + STABILIZATION_SECS + " seconds...");
+            final AlarmConfigMonitor updateMonitor = new AlarmConfigMonitor(CONNECTION_SECS, STABILIZATION_SECS, client);
             updateMonitor.waitForPauseInUpdates(30);
             updateMonitor.dispose();
             final long got_old_config = System.currentTimeMillis();
@@ -116,7 +121,7 @@ public class AlarmConfigTool
             // Delete the old model. Leave the root node.
             final List<AlarmTreeItem<?>> root_children = root.getChildren();
             for (final AlarmTreeItem<?> child : root_children)
-            	client.removeComponent(child);
+                client.removeComponent(child);
             final long deleted_old = System.currentTimeMillis();
 
             System.out.println("Loading new " + new_root.getName() + " ...");
@@ -124,7 +129,7 @@ public class AlarmConfigTool
             // For every child of the new root, add them and their descendants to the old root.
             final List<AlarmTreeItem<?>> new_root_children = new_root.getChildren();
             for (final AlarmTreeItem<?> child : new_root_children)
-				addNodes(client, root, child);
+                addNodes(client, root, child);
             final long loaded_new = System.currentTimeMillis();
 
             System.out.println("Time to read XML                     : " + SecondsParser.formatSeconds((got_xml - start) / 1000.0));
@@ -138,16 +143,16 @@ public class AlarmConfigTool
         {
             client.shutdown();
         }
-	}
+    }
 
-	private void addNodes(final AlarmClient client, final AlarmTreeItem<?> parent, final AlarmTreeItem<?> tree_item) throws Exception
-	{
-		// Send the configuration for the newly created node.
-		client.sendItemConfigurationUpdate(tree_item.getPathName(), tree_item);
+    private void addNodes(final AlarmClient client, final AlarmTreeItem<?> parent, final AlarmTreeItem<?> tree_item) throws Exception
+    {
+        // Send the configuration for the newly created node.
+        client.sendItemConfigurationUpdate(tree_item.getPathName(), tree_item);
 
-		// Recurse over children.
-		final List<AlarmTreeItem<?>> children = tree_item.getChildren();
-		for (final AlarmTreeItem<?> child : children)
-			addNodes(client, tree_item, child);
-	}
+        // Recurse over children.
+        final List<AlarmTreeItem<?>> children = tree_item.getChildren();
+        for (final AlarmTreeItem<?> child : children)
+            addNodes(client, tree_item, child);
+    }
 }

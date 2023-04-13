@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Save-and-restore Search Help</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Save-and-restore Search Help Reference</h2>
+    <p>This document details the search capabilities supported by the save-and-restore service. Users are encouraged
+        to familiarize themselves with this content in order to be able to construct efficient queries.
+    </p>
+    <p>
+        The query as edited in the save-and-restore application consists of a list of key/value pairs separated by an
+        ampersand (&amp;)
+        character. Keys identify the various elements - i.e. text and meta-data - of a log entry. Key names
+        are <b>case insensitive</b>.
+    </p>
+    <p>
+        Search in save-and-restore is based on the concept of a "node". A node is an object representing an item (e.g.
+        folder, configuration, snapshot or composite snapshot) in the tree view of the save-and-restore application.
+        In other words, a search result will contain a matching list of node objects. By default search is performed on all
+        save-and-restore node types. To restrict the search to specific type
+        of nodes, the <code>type</code> search parameter must be used, see below for details.
+    </p>
+
+    <h2>How to use search parameter keys</h2>
+
+
+    <h3>start and end</h3>
+
+    These are used to search for nodes' last modified date in the date/time range start - end. There are several ways
+    to specify a date/time value:
+    <ul>
+        <li>Date/time on any of the following formats:
+            <ul>
+                <li><code>yyyy-MM-dd HH:mm:ss</code></li>
+                <li><code>yyyy-MM-dd HH:mm</code></li>
+                <li><code>yyyy-MM-dd</code> - the time portion will be set to 00:00:00</li>
+                <li><code>HH:mm:ss</code> - the date portion will be set to current date</li>
+            </ul>
+        </li>
+        <li>A relative time specifier using any of the following <b>case insensitive</b> formats:
+            <ul>
+                <li><code>X w</code> - i.e. X weeks</li>
+                <li><code>X d</code> - i.e. X days</li>
+                <li><code>X h</code> - i.e. X hours</li>
+                <li><code>X m</code> - i.e. X minutes</li>
+                <li><code>X s</code> - i.e. X seconds</li>
+                <li><code>now</code> - i.e. the current date/time</li>
+            </ul>
+            For the sake of clarity user may specify the full wording, e.g. weeks, days etc. It is also possible
+            to combine w(eeks) and d(ays), e.g. <code>10 w 4 d</code>, but any additional elements will be ignored.
+        </li>
+    </ul>
+    If a time specifier cannot be parsed, or if it is omitted, the start date/time defaults to <code>1970-01-01
+    00:00:00</code>,
+    while the end date/time defaults to <code>now</code>.<br>
+
+    An invalid time range - e.g. start date/time after end date/time - will trigger an error. In such cases no search
+    is performed, i.e. the service will not fall back to a default time range.<br>
+
+    <h3>name</h3>
+    A search for nodes by name will match on the name as specified by the user when the node was created or updated.
+    The value for this key is <b>case insensitive</b>.
+
+    <h3>user</h3>
+    This is the username associated with a node when it was saved. The value for this key is <b>case insensitive</b>.
+    Wildcards can be used to match on first or last name, e.g. <code>user=John*</code>, or <code>user=*Doe</code>.<br>
+
+    Multiple values can be specified using a comma separator, e.g. <code>user=John*,*Doe</code>. This will match
+    nodes saved by any of the users.
+
+    <h3>description/desc</h3>
+    This is the description on a configuration node <b>or</b> comment on a snapshot node.
+    The value for this key is <b>case insensitive</b>.<br>
+
+    <h3>tags</h3>
+    This is the tags meta-data of a snapshot or composite snapshot node. A node may contain zero or multiple
+    tags. The value for this key is <b>case insensitive</b>.<br>
+
+    Multiple values can be specified using a comma separator, e.g. <code>tags=value1,value2</code>. This will
+    match nodes tagged with any of the tags.
+
+    To limit search on snapshots tagged with the "golden" tag, user should check the dedicated checkbox.
+
+    <p>
+    <b>NOTE 1</b>: A save-and-restore tag is composed of both a name and a comment. By default, an expression like <code>tags=foo</code>
+    will search for nodes where the <i>name</i> matches the value "foo". To search for tags where the comment matches "bar",
+    use <code>tags=comment.bar</code>. An expression like <code>tags=name.foo</code> is equivalent to <code>tags=foo</code>.
+    </p>
+
+    <p>
+    <b>NOTE 2</b>: Search for nodes by name or description works on sub-strings, but search on tags works differently.
+    To match a sub-string of a tag name or comment, one must use wildcards. For instance, to find nodes tagged with a tag named <code>Beam60mA</code>,
+    <code>tags=Beam*</code> will work, while <code>tags=Beam</code> will not.
+    </p>
+
+    <h3>Combining keys</h3>
+    If multiple keys are used in a search query, the service will consider all (valid) keys and return nodes
+    matching all criteria. In other words, search criteria are and:ed. However, as mentioned above,
+    the value string for keys name, user and tags will - if it contains multiple elements - be used to
+    create an or:ed query for those keys.<br>
+    </span>
+</div>
+</body>
+<style type="text/css">
+/*! normalize.css v3.0.2 | MIT License | git.io/normalize */
+
+/**
+ * 1. Set default font family to sans-serif.
+ * 2. Prevent iOS text size adjust after orientation change, without disabling
+ *    user zoom.
+ */
+
+ html {
+  font-family: sans-serif; /* 1 */
+  -ms-text-size-adjust: 100%; /* 2 */
+  -webkit-text-size-adjust: 100%; /* 2 */
+}
+
+/**
+ * Remove default margin.
+ */
+
+body {
+  margin: 8px;
+}
+
+a {
+  background-color: transparent;
+}
+
+/**
+ * Improve readability when focused and also mouse hovered in all browsers.
+ */
+
+a:active,
+a:hover {
+  outline: 0;
+}
+
+b,
+strong {
+  font-weight: bold;
+}
+
+h1 {
+  font-size: 2em;
+  margin: 0.67em 0;
+}
+
+img {
+  border: 0;
+}
+
+/**
+ * Contain overflow in all browsers.
+ */
+
+pre {
+  overflow: auto;
+}
+
+button,
+input,
+optgroup,
+select,
+textarea {
+  color: inherit; /* 1 */
+  font: inherit; /* 2 */
+  margin: 0; /* 3 */
+}
+
+/* Tables
+   ========================================================================== */
+
+/**
+ * Remove most spacing between table cells.
+ */
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+td,
+th {
+  padding: 0;
+}
+
+
+/* Grid
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+.container {
+  position: relative;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 20px;
+  box-sizing: border-box; }
+.column,
+.columns {
+  width: 100%;
+  float: left;
+  box-sizing: border-box; }
+
+/* For devices larger than 400px */
+@media (min-width: 400px) {
+  .container {
+    width: 85%;
+    padding: 0; }
+}
+
+/* For devices larger than 550px */
+@media (min-width: 550px) {
+  .container {
+    width: 80%; }
+}
+
+
+/* Base Styles
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+/* NOTE
+html is set to 62.5% so that all the REM measurements throughout Skeleton
+are based on 10px sizing. So basically 1.5rem = 15px :) */
+html {
+  font-size: 62.5%; }
+body {
+  font-size: 1.5em; /* currently ems cause chrome bug misinterpreting rems on body element */
+  line-height: 1.6;
+  font-weight: 400;
+  font-family: "Roboto", Helvetica, Arial, sans-serif;
+  color: #222; }
+
+
+/* Typography
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 1rem;
+  margin-bottom: 0rem;
+  font-weight: 300; }
+h1 { font-size: 4.0rem; line-height: 1.2;  letter-spacing: -.1rem;}
+h2 { font-size: 3.3rem; line-height: 1.25; letter-spacing: -.1rem; }
+h3 { font-size: 2.8rem; line-height: 1.3;  letter-spacing: -.1rem; }
+h4 { font-size: 2.4rem; line-height: 1.35; letter-spacing: -.08rem; }
+h5 { font-size: 1.9rem; line-height: 1.5;  letter-spacing: -.05rem; }
+h6 { font-size: 1.2rem; line-height: 1.6;  letter-spacing: 0; }
+
+p {
+  margin-top: 0; }
+
+
+/* Links
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+a {
+  color: #1EAEDB; }
+a:hover {
+  color: #0FA0CE; }
+
+/* Lists
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+ol, ul {
+  padding-left: 1.8em;
+  margin-top:0.5em;
+}
+
+/* Code
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+code {
+  padding: .2rem .5rem;
+  margin: 0 .2rem;
+  font-size: 110%;
+  white-space: nowrap;
+  background: #F1F1F1;
+  border: 1px solid #E1E1E1;
+  border-radius: 4px; }
+pre > code {
+  display: block;
+  padding: 1rem 1.5rem;
+  white-space: pre; }
+
+html,body {
+  height: 97%;
+  margin: 0;
+}
+
+p {
+	margin-bottom: 1.5em;
+}
+
+.container {
+	margin-top: 2em;
+}
+/* mobile modifications */
+@media (max-width: 737px) {
+	.editor {
+		height: 9em;
+        font-size: 0.9em;
+	}
+	.render-pad, .html-pad {
+		height: 10em;
+	}
+   
+    .rowspacer {
+        display: none;
+    }
+    .container {
+        margin-top: 0.5em;
+        padding: 0 10px;
+    }
+    h1 {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    h2 {        
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+    .generated-check {
+        display: none;
+    }
+    .button-answer {
+        margin-top: 1em;
+        margin-bottom: -1em;
+    }
+    .button-reset {
+        margin-top: 1em;
+        margin-bottom: -1em;
+    }
+    .row.exercise-instructions p {
+        margin-bottom: 0.4em;
+    }
+    .cd-container {
+        margin: 0;
+    }
+    .second-example {
+        display: none;
+    }
+}
+
+.markdown-reference {
+    width: 100%;
+}
+
+
+</style>
+</html>

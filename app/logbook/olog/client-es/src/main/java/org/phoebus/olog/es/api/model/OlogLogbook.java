@@ -5,11 +5,8 @@
  */
 package org.phoebus.olog.es.api.model;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
-import org.phoebus.logbook.Logbook;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.phoebus.logbook.Logbook;
 
 /**
  * Logbook object that can be represented as XML/JSON in payload data.
@@ -18,8 +15,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@XmlRootElement(name = "logbook")
-public class OlogLogbook implements Logbook{
+public class OlogLogbook implements Logbook {
 
     private String name = null;
     private String owner = null;
@@ -27,7 +23,6 @@ public class OlogLogbook implements Logbook{
 
     /**
      * Creates a new instance of OlogLogbook.
-     *
      */
     public OlogLogbook() {
     }
@@ -60,7 +55,7 @@ public class OlogLogbook implements Logbook{
     /**
      * Setter for logbook id.
      *
-     * @param name logbook id
+     * @param id logbook id
      */
     public void setId(Long id) {
         this.id = id;

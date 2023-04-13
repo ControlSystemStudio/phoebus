@@ -7,12 +7,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.phoebus.alarm.logging.AlarmLoggingService;
 import org.phoebus.alarm.logging.ElasticClientHelper;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -28,6 +30,7 @@ import java.util.logging.Logger;
  * @author Kunal Shroff
  */
 @RestController
+@SuppressWarnings("unused")
 public class SearchController {
 
     static final Logger logger = Logger.getLogger(SearchController.class.getName());
@@ -81,9 +84,15 @@ public class SearchController {
         return result;
     }
 
-    @RequestMapping(value = "/search/alarm/config/{config}", method = RequestMethod.GET)
-    public List<AlarmLogMessage> searchConfig(@PathVariable String config) {
-        List<AlarmLogMessage> result = AlarmLogSearchUtil.searchConfig(ElasticClientHelper.getInstance().getClient(), config);
+    @RequestMapping(value = "/search/alarm/config", method = RequestMethod.GET)
+    public List<AlarmLogMessage> searchConfig(@RequestParam Map<String, String> allRequestParams) {
+        if(allRequestParams == null ||
+                allRequestParams.isEmpty() ||
+                !allRequestParams.containsKey("config") ||
+                allRequestParams.get("config").isEmpty()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        List<AlarmLogMessage> result = AlarmLogSearchUtil.searchConfig(ElasticClientHelper.getInstance().getClient(), allRequestParams);
         return result;
     }
 

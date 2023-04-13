@@ -9,15 +9,15 @@ package org.phoebus.ui.docking;
 
 import java.lang.ref.WeakReference;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -394,38 +394,58 @@ public class DockPane extends TabPane
         return null;
     }
 
-    /** Somewhat hacky:
-     *  Need the scene of this dock pane to adjust the style sheet
+    private Deque<Consumer<Scene>> functionsDeferredUntilInScene = new LinkedList<>();
+    private boolean changeListenerAdded = false;
+    /** Need the scene of this dock pane to adjust the style sheet
      *  or to interact with the Window.
      *
      *  We _have_ added this DockPane to a scene graph, so getScene() should
      *  return the scene.
      *  But if this dock pane is nested inside a newly created {@link SplitDock},
      *  it will not have a scene until it is rendered.
-     *  So keep deferring to the next UI pulse until there is a scene.
-     *  @param user_of_scene Something that needs to run once there is a scene
+     *
+     *  If calls to deferUntilInScene() are not nested (i.e., there is no
+     *  call of the form deferUntilInScene(f) where f() in turn contains further
+     *  calls of the form deferUntilInScene(g) for some g), then the relative
+     *  ordering in time of deferred function calls is preserved: if f1() is
+     *  deferred before f2() is deferred, then f1() will be invoked before f2()
+     *  is invoked.
+     *
+     *  If, on the other hand, there *is* a call of the form deferUntilInScene(f)
+     *  where f() in turn contains a nested call of the form deferUntilInScene(g),
+     *  then the invocation of g() that is deferred by the call deferUntilInScene(g)
+     *  will occur as part of the (possibly deferred) invocation of f(). I.e.,  it
+     *  will *not* be deferred until after all other deferred function invocations
+     *  have completed, but will be invoked as part of the (possibly deferred)
+     *  invocation of f().
+     *
+     *  @param function Something that needs to run once there is a scene
      */
-    public void deferUntilInScene(final Consumer<Scene> user_of_scene)
-    {
-        // Tried to optimize this based on
-        //     sceneProperty().addListener(...),
-        // creating list of registered users_of_scene,
-        // invoking once the scene property changes to != null,
-        // then deleting the list and removing the listener,
-        // but that added quite some code and failed for
-        // strange endless-loop type reasons.
-        deferUntilInScene(0, user_of_scene);
-    }
+    public void deferUntilInScene(Consumer<Scene> function) {
+        Scene scene = sceneProperty().get();
+        if (scene != null) {
+            function.accept(scene);
+        }
+        else {
+            functionsDeferredUntilInScene.addLast(function);
 
-    // See deferUntilInScene, giving up after 10 attempts
-    private void deferUntilInScene(final int level, final Consumer<Scene> user_of_scene)
-    {
-        if (getScene() != null)
-            user_of_scene.accept(getScene());
-        else if (level < 10)
-            Platform.runLater(() -> deferUntilInScene(level+1, user_of_scene));
-        else
-            logger.log(Level.WARNING, this + " has no scene for deferred call to " + user_of_scene);
+            if (!changeListenerAdded) {
+                ChangeListener changeListener = new ChangeListener() {
+                    @Override
+                    public void changed(ObservableValue observableValue, Object oldValue, Object newValue) {
+                        if (newValue != null) {
+                            while(!functionsDeferredUntilInScene.isEmpty()) {
+                                Consumer<Scene> f = functionsDeferredUntilInScene.removeFirst();
+                                f.accept((Scene) newValue);
+                            }
+                            sceneProperty().removeListener(this);
+                        }
+                    }
+                };
+                sceneProperty().addListener(changeListener);
+                changeListenerAdded = true;
+            }
+        }
     }
 
     /** Hide or show tabs
@@ -523,6 +543,9 @@ public class DockPane extends TabPane
     /** Accept a dropped tab */
     private void handleDrop(final DragEvent event)
     {
+        if (!event.getDragboard().hasContent(DockItem.DOCK_ITEM)){
+            return;
+        }
         final DockItem item = DockItem.dragged_item.getAndSet(null);
         if (item == null)
             logger.log(Level.SEVERE, "Empty drop, " + event);
@@ -576,7 +599,7 @@ public class DockPane extends TabPane
     public SplitDock split(final boolean horizontally)
     {
         final SplitDock split;
-            if (dock_parent instanceof BorderPane)
+        if (dock_parent instanceof BorderPane)
         {
             final BorderPane parent = (BorderPane) dock_parent;
             // Remove this dock pane from BorderPane
