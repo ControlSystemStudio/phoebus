@@ -35,7 +35,6 @@
     <classpathentry exported="true" kind="lib" path="target/lib/cal10n-api-0.8.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/cglib-full-2.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/checker-qual-3.12.0.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/commonj.sdo-2.1.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/commonmark-0.15.2.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/commonmark-ext-gfm-tables-0.15.2.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/commonmark-ext-image-attributes-0.15.2.jar"/>
@@ -86,10 +85,8 @@
     <classpathentry exported="true" kind="lib" path="target/lib/jakarta.json-api-2.0.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/java_cup-0.9e.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/javax.activation-1.2.0.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javax.json-1.0.4.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/javax.json-api-1.1.4.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/javax.mail-1.6.1.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javax.persistence-2.2.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/javax.servlet-api-3.1.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/javax.ws.rs-api-2.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jaxb-api-2.3.0.jar"/>
@@ -204,53 +201,69 @@
 
 
     <!-- On Windows, need to add this:
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-19-win.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-19-win.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-19-win.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-19-win.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-19-win.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-19-win.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-19-win.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-20-win.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-20-win.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-20-win.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-20-win.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-20-win.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-20-win.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-20-win.jar"/>
     -->
     <!-- On Linux, need to add this:
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-19-linux.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-19-linux.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-19-linux.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-19-linux.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-19-linux.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-19-linux.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-19-linux.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-20-linux.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-20-linux.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-20-linux.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-20-linux.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-20-linux.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-20-linux.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-20-linux.jar"/>
     -->
-    <!-- On Mac, need to add this:
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-19-mac.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-19-mac.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-19-mac.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-19-mac.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-19-mac.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-19-mac.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-19-mac.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-19.jar"/>
+    <!-- On Intel Mac, need to add this:
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-20-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-20-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-20-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-20-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-20-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-20-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-20-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-20.jar"/>
     -->
+    <!-- On Apple Silicon Mac, need to add this:
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-20-mac-aarch64.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-20-mac-aarch64.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-20-mac-aarch64.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-20-mac-aarch64.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-20-mac-aarch64.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-20-mac-aarch64.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-20.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-20-mac-aarch64.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-20.jar"/>
+     -->
 
     <classpathentry kind="output" path="target/classes"/>
 </classpath>
