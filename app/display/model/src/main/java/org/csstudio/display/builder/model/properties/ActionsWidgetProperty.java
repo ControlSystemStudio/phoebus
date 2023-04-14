@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Oak Ridge National Laboratory.
+ * Copyright (c) 2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,6 +19,7 @@ import java.util.logging.Level;
 
 import javax.xml.stream.XMLStreamWriter;
 
+import org.csstudio.display.builder.model.Messages;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
@@ -216,7 +217,7 @@ public class ActionsWidgetProperty extends WidgetProperty<ActionInfos>
                 action_xml.appendChild(target);
             }
 
-            final String description = XMLUtil.getChildString(action_xml, XMLTags.DESCRIPTION).orElse("");
+            String description = XMLUtil.getChildString(action_xml, XMLTags.DESCRIPTION).orElse("");
             if (OPEN_DISPLAY.equalsIgnoreCase(type)) // legacy used uppercase type name
             {   // Use <file>, falling back to legacy <path>
                 final String file = XMLUtil.getChildString(action_xml, XMLTags.FILE)
@@ -251,7 +252,8 @@ public class ActionsWidgetProperty extends WidgetProperty<ActionInfos>
                     macros = new Macros();
 
                 final String pane = XMLUtil.getChildString(action_xml, XMLTags.NAME).orElse("");
-
+                if (description.isEmpty())
+                    description = Messages.ActionOpenDisplay;
                 actions.add(new OpenDisplayActionInfo(description, file, macros, target, pane));
             }
             else if (WRITE_PV.equalsIgnoreCase(type)) // legacy used uppercase type name
@@ -274,6 +276,8 @@ public class ActionsWidgetProperty extends WidgetProperty<ActionInfos>
                 // In contrast to legacy opibuilder the value is _not_ trimmed,
                 // so it's possible to write "   " (which opibuilder wrote as "")
                 final String value = XMLUtil.getChildString(action_xml, XMLTags.VALUE).orElse("");
+                if (description.isEmpty())
+                    description = Messages.ActionWritePV;
                 actions.add(new WritePVActionInfo(description, pv_name, value));
             }
             else if (EXECUTE_SCRIPT.equals(type))
@@ -289,6 +293,8 @@ public class ActionsWidgetProperty extends WidgetProperty<ActionInfos>
                     final String path = el.getAttribute(XMLTags.FILE);
                     final String text = XMLUtil.getChildString(el, XMLTags.TEXT).orElse(null);
                     final ScriptInfo info = new ScriptInfo(path, text, false, Collections.emptyList());
+                    if (description.isEmpty())
+                        description = Messages.ActionExecuteScript;
                     actions.add(new ExecuteScriptActionInfo(description, info));
                 }
             }
@@ -314,6 +320,8 @@ public class ActionsWidgetProperty extends WidgetProperty<ActionInfos>
                 }
                 else
                     info = new ScriptInfo(path, null, false, Collections.emptyList());
+                if (description.isEmpty())
+                    description = Messages.ActionExecuteScript;
                 actions.add(new ExecuteScriptActionInfo(description, info));
             }
             else if (OPEN_FILE.equalsIgnoreCase(type)) // legacy used uppercase type name
@@ -321,6 +329,8 @@ public class ActionsWidgetProperty extends WidgetProperty<ActionInfos>
                 final String file = XMLUtil.getChildString(action_xml, XMLTags.FILE)
                                            .orElse(XMLUtil.getChildString(action_xml, XMLTags.PATH)
                                            .orElse(""));
+                if (description.isEmpty())
+                    description = Messages.ActionOpenFile;
                 actions.add(new OpenFileActionInfo(description, file));
             }
             else if (OPEN_WEBPAGE.equalsIgnoreCase(type)) // legacy used uppercase type name
@@ -328,6 +338,8 @@ public class ActionsWidgetProperty extends WidgetProperty<ActionInfos>
                 final String url = XMLUtil.getChildString(action_xml, XMLTags.URL)
                                            .orElse(XMLUtil.getChildString(action_xml, "hyperlink")
                                            .orElse(""));
+                if (description.isEmpty())
+                    description = Messages.ActionOpenWebPage;
                 actions.add(new OpenWebpageActionInfo(description, url));
             }
             else if (EXECUTE_COMMAND.equalsIgnoreCase(type) ||
@@ -360,6 +372,8 @@ public class ActionsWidgetProperty extends WidgetProperty<ActionInfos>
                 // If a legacy directory was provided, locate command there
                 if (directory != null  &&  !directory.isEmpty())
                     command = directory + "/" + command;
+                if (description.isEmpty())
+                    description = Messages.ActionExecuteCommand;
                 actions.add(new ExecuteCommandActionInfo(description, command));
             }
             else
