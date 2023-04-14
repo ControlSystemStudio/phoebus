@@ -64,6 +64,7 @@
   </distributionManagement>
 
   <properties>
+    <project.build.outputTimestamp>2022-11-07T10:03:00Z</project.build.outputTimestamp>
     <epics.version>7.0.8</epics.version>
     <vtype.version>1.0.5</vtype.version>
     <openjfx.version>19</openjfx.version>
@@ -148,6 +149,13 @@
           <autoVersionSubmodules>true</autoVersionSubmodules>
           <releaseProfiles>releases</releaseProfiles>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <!-- Use a version > 3.2.0 by default for reproducible builds.
+          See: https://maven.apache.org/guides/mini/guide-reproducible-builds.html -->
+        <version>3.3.0</version>
       </plugin>
     </plugins>
   </build>
