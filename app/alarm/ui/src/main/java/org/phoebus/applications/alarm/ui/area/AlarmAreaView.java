@@ -235,12 +235,10 @@ public class AlarmAreaView extends StackPane implements AlarmClientListener
             return;
         }
         final SeverityLevel severity = areaFilter.getSeverity(item_name);
-        final Color color = AlarmUI.getColor(severity);
-        view_item.setBackground(new Background(new BackgroundFill(color, radii, Insets.EMPTY)));
-        if (color.getBrightness() >= 0.5)
-            view_item.setTextFill(Color.BLACK);
-        else
-            view_item.setTextFill(Color.WHITE);
+        final Background background = AlarmUI.getAlarmAreaPanelBackground(severity);
+        view_item.setBackground(background);
+        Color foregroundColor = AlarmUI.getAlarmAreaPanelColor(severity);
+        view_item.setTextFill(foregroundColor);
     }
 
     private void createContextMenu()

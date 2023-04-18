@@ -50,6 +50,19 @@ public class AlarmUI
         createColor(Preferences.undefined_severity_text_color)                                   // UNDEFINED
     };
 
+    private static final Color[] alarm_area_panel_severity_colors = new Color[]
+            {
+                    createColor(Preferences.alarm_area_panel_ok_severity_text_color),                                         // OK
+                    createColor(Preferences.alarm_area_panel_minor_severity_text_color)    .deriveColor(0, 1.0, ADJUST, 1.0), // MINOR_ACK
+                    createColor(Preferences.alarm_area_panel_major_severity_text_color)    .deriveColor(0, 1.0, ADJUST, 1.0), // MAJOR_ACK
+                    createColor(Preferences.alarm_area_panel_invalid_severity_text_color)  .deriveColor(0, 1.0, ADJUST, 1.0), // INVALID_ACK
+                    createColor(Preferences.alarm_area_panel_undefined_severity_text_color).deriveColor(0, 1.0, ADJUST, 1.0), // UNDEFINED_ACK
+                    createColor(Preferences.alarm_area_panel_minor_severity_text_color),                                      // MINOR
+                    createColor(Preferences.alarm_area_panel_major_severity_text_color),                                      // MAJOR
+                    createColor(Preferences.alarm_area_panel_invalid_severity_text_color),                                    // INVALID
+                    createColor(Preferences.alarm_area_panel_undefined_severity_text_color)                                   // UNDEFINED
+            };
+
     private static Color createColor(int[] rgb)
     {
         if (rgb.length == 3)
@@ -85,6 +98,19 @@ public class AlarmUI
         new Background(new BackgroundFill(createColor(Preferences.undefined_severity_background_color),                                  CornerRadii.EMPTY, Insets.EMPTY)), // UNDEFINED
     };
 
+    private static final Background[] alarm_area_panel_severity_backgrounds = new Background[]
+            {
+                    new Background(new BackgroundFill(createColor(Preferences.alarm_area_panel_ok_severity_background_color), CornerRadii.EMPTY, Insets.EMPTY)), // OK
+                    new Background(new BackgroundFill(createColor(Preferences.alarm_area_panel_minor_severity_background_color)    .deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // MINOR_ACK
+                    new Background(new BackgroundFill(createColor(Preferences.alarm_area_panel_major_severity_background_color)    .deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // MAJOR_ACK
+                    new Background(new BackgroundFill(createColor(Preferences.alarm_area_panel_invalid_severity_background_color)  .deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // INVALID_ACK
+                    new Background(new BackgroundFill(createColor(Preferences.alarm_area_panel_undefined_severity_background_color).deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // UNDEFINED_ACK
+                    new Background(new BackgroundFill(createColor(Preferences.alarm_area_panel_minor_severity_background_color),                                      CornerRadii.EMPTY, Insets.EMPTY)), // MINOR
+                    new Background(new BackgroundFill(createColor(Preferences.alarm_area_panel_major_severity_background_color),                                      CornerRadii.EMPTY, Insets.EMPTY)), // MAJOR
+                    new Background(new BackgroundFill(createColor(Preferences.alarm_area_panel_invalid_severity_background_color),                                    CornerRadii.EMPTY, Insets.EMPTY)), // INVALID
+                    new Background(new BackgroundFill(createColor(Preferences.alarm_area_panel_undefined_severity_background_color),                                  CornerRadii.EMPTY, Insets.EMPTY)), // UNDEFINED
+            };
+
     private static final Background[] legacy_table_severity_backgrounds = new Background[]
     {
         new Background(new BackgroundFill(createColor(Preferences.ok_severity_text_color), CornerRadii.EMPTY, Insets.EMPTY)), // OK
@@ -108,7 +134,14 @@ public class AlarmUI
     public static Color getColor(final SeverityLevel severity)
     {
         return severity_colors[severity.ordinal()];
+    }
 
+    /** @param severity {@link SeverityLevel}
+     *  @return Color
+     */
+    public static Color getAlarmAreaPanelColor(final SeverityLevel severity)
+    {
+        return alarm_area_panel_severity_colors[severity.ordinal()];
     }
 
     /** @param severity {@link SeverityLevel}
@@ -133,6 +166,14 @@ public class AlarmUI
     public static Background getLegacyTableBackground(final SeverityLevel severity)
     {
         return legacy_table_severity_backgrounds[severity.ordinal()];
+    }
+
+    /** @param severity {@link SeverityLevel}
+     *  @return Background, may be <code>null</code>
+     */
+    public static Background getAlarmAreaPanelBackground(final SeverityLevel severity)
+    {
+        return alarm_area_panel_severity_backgrounds[severity.ordinal()];
     }
 
     /** Verify authorization, qualified by model's current config
