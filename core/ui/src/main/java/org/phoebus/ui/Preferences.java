@@ -41,6 +41,17 @@ public class Preferences
     @Preference public static int[] major_severity_background_color;
     @Preference public static int[] invalid_severity_background_color;
     @Preference public static int[] undefined_severity_background_color;
+    // Alarm Area Panel Configuration:
+    @Preference public static int[] alarm_area_panel_ok_severity_text_color;
+    @Preference public static int[] alarm_area_panel_minor_severity_text_color;
+    @Preference public static int[] alarm_area_panel_major_severity_text_color;
+    @Preference public static int[] alarm_area_panel_invalid_severity_text_color;
+    @Preference public static int[] alarm_area_panel_undefined_severity_text_color;
+    @Preference public static int[] alarm_area_panel_ok_severity_background_color;
+    @Preference public static int[] alarm_area_panel_minor_severity_background_color;
+    @Preference public static int[] alarm_area_panel_major_severity_background_color;
+    @Preference public static int[] alarm_area_panel_invalid_severity_background_color;
+    @Preference public static int[] alarm_area_panel_undefined_severity_background_color;
 
     static
     {
