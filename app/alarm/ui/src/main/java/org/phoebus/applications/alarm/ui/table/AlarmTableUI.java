@@ -17,6 +17,12 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
@@ -68,10 +74,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 
@@ -221,7 +223,7 @@ public class AlarmTableUI extends BorderPane
                 }
                 else
                 {
-                    setBackground(AlarmUI.getBackground(item));
+                    setBackground(new Background(new BackgroundFill(AlarmUI.getBackgroundColor(item), CornerRadii.EMPTY, Insets.EMPTY)));
                     setTextFill(AlarmUI.getColor(item));
                 }
             }

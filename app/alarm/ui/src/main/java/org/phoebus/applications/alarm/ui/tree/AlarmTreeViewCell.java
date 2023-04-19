@@ -7,10 +7,13 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.tree;
 
+import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.TreeCell;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 
@@ -89,7 +92,7 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                                 .append(")");
                     }
                     label.setTextFill(AlarmUI.getColor(state.severity));
-                    label.setBackground(AlarmUI.getBackground(state.severity));
+                    label.setBackground(new Background(new BackgroundFill(AlarmUI.getBackgroundColor(state.severity), CornerRadii.EMPTY, Insets.EMPTY)));
                     image.setImage(AlarmUI.getIcon(state.severity));
                 }
                 else
@@ -108,7 +111,7 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
 
                 severity = node.getState().severity;
                 label.setTextFill(AlarmUI.getColor(severity));
-                label.setBackground(AlarmUI.getBackground(severity));
+                label.setBackground(new Background(new BackgroundFill(AlarmUI.getBackgroundColor(severity), CornerRadii.EMPTY, Insets.EMPTY)));
                 image.setImage(AlarmUI.getIcon(severity));
             }
             // Profiler showed small advantage when skipping redundant 'setGraphic' call
