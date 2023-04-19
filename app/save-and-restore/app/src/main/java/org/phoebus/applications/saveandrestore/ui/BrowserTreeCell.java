@@ -141,6 +141,15 @@ public class BrowserTreeCell extends TreeCell<Node> {
             event.setDropCompleted(true);
             event.consume();
         });
+
+        visibleProperty().addListener((a, b, c) -> {
+            if(!c){
+                System.out.println();
+            }
+            else {
+                System.out.println();
+            }
+        });
     }
 
     /**
@@ -186,6 +195,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
         super.updateItem(node, empty);
         if (empty) {
             setGraphic(null);
+            setTooltip(null);
             getStyleClass().remove("filter-match");
             return;
         }
