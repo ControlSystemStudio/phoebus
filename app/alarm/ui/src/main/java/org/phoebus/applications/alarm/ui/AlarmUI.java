@@ -99,17 +99,17 @@ public class AlarmUI
     };
 
     private static final Color[] alarm_area_panel_severity_backgrounds = new Color[]
-            {
-                    createColor(Preferences.alarm_area_panel_ok_severity_background_color),                                                                            // OK
-                    createColor(Preferences.alarm_area_panel_minor_severity_background_color)    .deriveColor(0, ADJUST, 1.0, 1.0), // MINOR_ACK
-                    createColor(Preferences.alarm_area_panel_major_severity_background_color)    .deriveColor(0, ADJUST, 1.0, 1.0), // MAJOR_ACK
-                    createColor(Preferences.alarm_area_panel_invalid_severity_background_color)  .deriveColor(0, ADJUST, 1.0, 1.0), // INVALID_ACK
-                    createColor(Preferences.alarm_area_panel_undefined_severity_background_color).deriveColor(0, ADJUST, 1.0, 1.0), // UNDEFINED_ACK
-                    createColor(Preferences.alarm_area_panel_minor_severity_background_color),                                                                         // MINOR
-                    createColor(Preferences.alarm_area_panel_major_severity_background_color),                                                                         // MAJOR
-                    createColor(Preferences.alarm_area_panel_invalid_severity_background_color),                                                                       // INVALID
-                    createColor(Preferences.alarm_area_panel_undefined_severity_background_color),                                                                     // UNDEFINED
-            };
+    {
+        createColor(Preferences.alarm_area_panel_ok_severity_background_color),                                                                            // OK
+        createColor(Preferences.alarm_area_panel_minor_severity_background_color)    .deriveColor(0, ADJUST, 1.0, 1.0), // MINOR_ACK
+        createColor(Preferences.alarm_area_panel_major_severity_background_color)    .deriveColor(0, ADJUST, 1.0, 1.0), // MAJOR_ACK
+        createColor(Preferences.alarm_area_panel_invalid_severity_background_color)  .deriveColor(0, ADJUST, 1.0, 1.0), // INVALID_ACK
+        createColor(Preferences.alarm_area_panel_undefined_severity_background_color).deriveColor(0, ADJUST, 1.0, 1.0), // UNDEFINED_ACK
+        createColor(Preferences.alarm_area_panel_minor_severity_background_color),                                                                         // MINOR
+        createColor(Preferences.alarm_area_panel_major_severity_background_color),                                                                         // MAJOR
+        createColor(Preferences.alarm_area_panel_invalid_severity_background_color),                                                                       // INVALID
+        createColor(Preferences.alarm_area_panel_undefined_severity_background_color),                                                                     // UNDEFINED
+    };
 
     private static final Background[] legacy_table_severity_backgrounds = new Background[]
     {
