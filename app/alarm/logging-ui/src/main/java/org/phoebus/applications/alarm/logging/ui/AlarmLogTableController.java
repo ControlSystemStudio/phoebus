@@ -40,13 +40,13 @@ import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.javafx.JFXUtil;
 import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -175,7 +175,8 @@ public class AlarmLogTableController {
                 else
                 {
                     setText(item);
-                    setTextFill(AlarmUI.getColor(parseSeverityLevel(item)));
+                    SeverityLevel severityLevel = parseSeverityLevel(item);
+                    setStyle("-fx-alignment: center; -fx-border-color: transparent; -fx-border-width: 2 0 2 0; -fx-background-insets: 2 0 2 0; -fx-text-fill: " + JFXUtil.webRGB(AlarmUI.getColor(severityLevel)) + ";  -fx-background-color: " + JFXUtil.webRGB(AlarmUI.getBackgroundColor(severityLevel)));
                 }
             }
         });
@@ -247,7 +248,8 @@ public class AlarmLogTableController {
                 else
                 {
                     setText(item);
-                    setTextFill(AlarmUI.getColor(parseSeverityLevel(item)));
+                    SeverityLevel severityLevel = parseSeverityLevel(item);
+                    setStyle("-fx-alignment: center; -fx-border-color: transparent; -fx-border-width: 2 0 2 0; -fx-background-insets: 2 0 2 0; -fx-text-fill: " + JFXUtil.webRGB(AlarmUI.getColor(severityLevel)) + ";  -fx-background-color: " + JFXUtil.webRGB(AlarmUI.getBackgroundColor(severityLevel)));
                 }
             }
         });
