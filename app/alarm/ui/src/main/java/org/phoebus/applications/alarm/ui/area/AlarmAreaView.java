@@ -17,12 +17,21 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmUI;
+import org.phoebus.ui.javafx.JFXUtil;
 import org.phoebus.ui.javafx.UpdateThrottle;
 
 import javafx.application.Platform;
@@ -32,16 +41,6 @@ import javafx.geometry.Pos;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
@@ -234,11 +233,8 @@ public class AlarmAreaView extends StackPane implements AlarmClientListener
             logger.log(Level.WARNING, "Cannot update unknown alarm area item " + item_name);
             return;
         }
-        final SeverityLevel severity = areaFilter.getSeverity(item_name);
-        final Background background = AlarmUI.getAlarmAreaPanelBackground(severity);
-        view_item.setBackground(background);
-        Color foregroundColor = AlarmUI.getAlarmAreaPanelColor(severity);
-        view_item.setTextFill(foregroundColor);
+        SeverityLevel severityLevel = areaFilter.getSeverity(item_name);
+        view_item.setStyle("-fx-alignment: center; -fx-border-color: black; -fx-border-width: 2; -fx-border-radius: 10; -fx-background-insets: 1; -fx-background-radius: 10; -fx-text-fill: " + JFXUtil.webRGB(AlarmUI.getAlarmAreaPanelColor(severityLevel)) + ";  -fx-background-color: " + JFXUtil.webRGB(AlarmUI.getAlarmAreaPanelBackgroundColor(severityLevel)));
     }
 
     private void createContextMenu()
