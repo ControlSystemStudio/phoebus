@@ -23,7 +23,6 @@ import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.common.VNoData;
 import org.phoebus.applications.saveandrestore.impl.SaveAndRestoreJerseyClient;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
-import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -55,6 +54,8 @@ public class SaveAndRestoreService {
 
     private final List<NodeChangedListener> nodeChangeListeners = Collections.synchronizedList(new ArrayList<>());
     private final List<NodeAddedListener> nodeAddedListeners = Collections.synchronizedList(new ArrayList<>());
+
+    private final List<FilterChangeListener> filterChangeListeners = Collections.synchronizedList(new ArrayList<>());
 
     private static final Logger LOG = Logger.getLogger(SaveAndRestoreService.class.getName());
 
@@ -281,7 +282,7 @@ public class SaveAndRestoreService {
      * @return A list of PV names that occur more than once across the list of {@link Node}s corresponding
      * to the input. Empty if no duplicates are found.
      */
-    public List<String> checkCompositeSnapshotConsistency(List<String> snapshotNodeIds) throws Exception {
+    public List<String> checkCompositeSnapshotConsistency(List<String> snapshotNodeIds) {
         return saveAndRestoreClient.checkCompositeSnapshotConsistency(snapshotNodeIds);
     }
 
@@ -304,7 +305,9 @@ public class SaveAndRestoreService {
     public Filter saveFilter(Filter filter) throws Exception {
         Future<Filter> future =
                 executor.submit(() -> saveAndRestoreClient.saveFilter(filter));
-        return future.get();
+        Filter addedOrUpdatedFilter = future.get();
+        notifyFilterAddedOrUpdated(addedOrUpdatedFilter);
+        return addedOrUpdatedFilter;
     }
 
     /**
@@ -319,10 +322,11 @@ public class SaveAndRestoreService {
     /**
      * Deletes a {@link Filter} based on its name.
      *
-     * @param name
+     * @param filter The filter to be deleted.
      */
-    public void deleteFilter(final String name) throws Exception {
-        executor.submit(() -> saveAndRestoreClient.deleteFilter(name)).get();
+    public void deleteFilter(final Filter filter) throws Exception {
+        executor.submit(() -> saveAndRestoreClient.deleteFilter(filter.getName())).get();
+        notifyFilterDeleted(filter);
     }
 
     /**
@@ -353,5 +357,21 @@ public class SaveAndRestoreService {
         List<Node> updatedNodes = future.get();
         updatedNodes.forEach(n -> notifyNodeChangeListeners(n));
         return updatedNodes;
+    }
+
+    public void addFilterChangeListener(FilterChangeListener filterChangeListener) {
+        filterChangeListeners.add(filterChangeListener);
+    }
+
+    public void removeFilterChangeListener(FilterChangeListener filterChangeListener) {
+        filterChangeListeners.remove(filterChangeListener);
+    }
+
+    private void notifyFilterAddedOrUpdated(Filter filter) {
+        filterChangeListeners.forEach(l -> l.filterAddedOrUpdated(filter));
+    }
+
+    private void notifyFilterDeleted(Filter filter) {
+        filterChangeListeners.forEach(l -> l.filterRemoved(filter));
     }
 }

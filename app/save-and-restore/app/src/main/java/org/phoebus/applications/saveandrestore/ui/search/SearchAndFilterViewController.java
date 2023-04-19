@@ -58,6 +58,7 @@ import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
+import org.phoebus.applications.saveandrestore.ui.FilterChangeListener;
 import org.phoebus.applications.saveandrestore.ui.HelpViewer;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
@@ -87,7 +88,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class SearchAndFilterViewController implements Initializable {
+public class SearchAndFilterViewController implements Initializable, FilterChangeListener {
 
     private final SaveAndRestoreController saveAndRestoreController;
 
@@ -451,6 +452,8 @@ public class SearchAndFilterViewController implements Initializable {
         });
 
         loadFilters();
+
+        saveAndRestoreService.addFilterChangeListener(this);
     }
 
     private void setFilter(Filter filter) {
@@ -500,7 +503,6 @@ public class SearchAndFilterViewController implements Initializable {
         try {
             JobManager.schedule("Save Filter", monitor -> {
                 saveAndRestoreService.saveFilter(filter);
-                loadFilters();
             });
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to save filter." + (e.getMessage() != null ? ("Cause: " + e.getMessage()) : ""));
@@ -679,8 +681,8 @@ public class SearchAndFilterViewController implements Initializable {
                 button.setTooltip(new Tooltip(Messages.deleteFilter));
                 button.setOnAction(event -> {
                     try {
-                        saveAndRestoreService.deleteFilter(filter.getName());
-                        loadFilters();
+                        saveAndRestoreService.deleteFilter(filter);
+                        //loadFilters();
                         clearFilter(filter);
                     } catch (Exception e) {
                         LOGGER.log(Level.SEVERE, "Failed to delete filter", e);
@@ -758,5 +760,19 @@ public class SearchAndFilterViewController implements Initializable {
                 searchParams.get(Keys.TAGS.getName()).contains(Tag.GOLDEN));
 
         searchDisabled = false;
+    }
+
+    @Override
+    public void filterAddedOrUpdated(Filter filter){
+        loadFilters();
+    }
+
+    @Override
+    public void filterRemoved(Filter filter){
+        loadFilters();
+    }
+
+    public void handleSaveAndFilterTabClosed(){
+        saveAndRestoreService.removeFilterChangeListener(this);
     }
 }

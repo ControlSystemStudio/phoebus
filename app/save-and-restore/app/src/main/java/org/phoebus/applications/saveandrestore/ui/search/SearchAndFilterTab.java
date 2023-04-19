@@ -21,6 +21,7 @@ package org.phoebus.applications.saveandrestore.ui.search;
 
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.image.ImageView;
@@ -28,8 +29,6 @@ import javafx.scene.layout.HBox;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
-import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationController;
-import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationTab;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -63,7 +62,10 @@ public class SearchAndFilterTab extends Tab {
         });
 
         try {
-            setContent(loader.load());
+            Node node = loader.load();
+            setContent(node);
+            SearchAndFilterViewController controller = loader.getController();
+            setOnCloseRequest(event -> controller.handleSaveAndFilterTabClosed());
         } catch (IOException e) {
             Logger.getLogger(SearchAndFilterTab.class.getName())
                     .log(Level.SEVERE, "Unable to load search tab content fxml", e);
