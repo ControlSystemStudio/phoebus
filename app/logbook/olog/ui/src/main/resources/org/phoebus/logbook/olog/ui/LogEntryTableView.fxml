@@ -50,7 +50,7 @@
                                         <Insets bottom="6.0" left="5.0" top="10.0"/>
                                     </GridPane.margin>
                                 </ComboBox>
-                                <Button fx:id="helpButton" minWidth="70.0" mnemonicParsing="false" onAction="#showHelp"
+                                <Button fx:id="helpButton" mnemonicParsing="false" onAction="#showHelp"
                                         text="%Help" GridPane.columnIndex="1">
                                     <tooltip>
                                         <Tooltip text="%ShowHelp"/>
