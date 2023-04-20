@@ -169,8 +169,8 @@ public class AlarmLogTableController {
 
                 if (empty  ||  item == null)
                 {
+                    setStyle("-fx-text-fill: black;  -fx-background-color: transparent");
                     setText("");
-                    setTextFill(Color.BLACK);
                 }
                 else
                 {
@@ -242,8 +242,8 @@ public class AlarmLogTableController {
 
                 if (empty  ||  item == null)
                 {
+                    setStyle("-fx-text-fill: black;  -fx-background-color: transparent");
                     setText("");
-                    setTextFill(Color.BLACK);
                 }
                 else
                 {
