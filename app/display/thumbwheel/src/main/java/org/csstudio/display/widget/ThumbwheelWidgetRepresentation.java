@@ -12,6 +12,7 @@ import org.csstudio.display.builder.representation.javafx.widgets.RegionBaseRepr
 import org.epics.vtype.Display;
 import org.epics.vtype.VType;
 
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
@@ -27,7 +28,6 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
     private final UntypedWidgetPropertyListener limitsChangedListener = this::limitsChanged;
 
     private final WidgetPropertyListener<Boolean> enablementChangedListener = this::enablementChanged;
-    private final ChangeListener<Number> thumbwheelValueChangedListener = this::thumbwheelValueChanged;
     private final WidgetPropertyListener<VType> valueChangedListener = this::valueChanged;
 
     private volatile boolean enabled = false;
@@ -37,7 +37,7 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
 
     @Override
     protected ThumbWheel createJFXNode() throws Exception {
-        final ThumbWheel thumbWheel = new ThumbWheel();
+        final ThumbWheel thumbWheel = new ThumbWheel(this::thumbwheelValueChanged);
         return thumbWheel;
     }
 
@@ -68,7 +68,6 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
         model_widget.propScrollEnabled().addUntypedPropertyListener(styleListener);
         model_widget.propSpinnerShaped().addUntypedPropertyListener(styleListener);
 
-        jfx_node.valueProperty().addListener(thumbwheelValueChangedListener);
         model_widget.runtimePropValue().addPropertyListener(valueChangedListener);
 
         enablementChanged(null, null, null);
@@ -103,7 +102,6 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
         model_widget.propScrollEnabled().removePropertyListener(styleListener);
         model_widget.propSpinnerShaped().removePropertyListener(styleListener);
 
-        jfx_node.valueProperty().removeListener(thumbwheelValueChangedListener);
         model_widget.runtimePropValue().removePropertyListener(valueChangedListener);
 
     }
@@ -158,7 +156,7 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
 
     // Thumbwheel value changes when the user interacts with it directly, such as
     // incrementing or decrementing the values via buttons
-    private void thumbwheelValueChanged(final ObservableValue<? extends Number> property, final Number old_value, final Number new_value)
+    private void thumbwheelValueChanged(final Number new_value)
     {
         toolkit.fireWrite(model_widget, new_value);
     }

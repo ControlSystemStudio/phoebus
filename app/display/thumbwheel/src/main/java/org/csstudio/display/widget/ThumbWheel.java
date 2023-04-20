@@ -65,6 +65,11 @@ import static javafx.scene.layout.Priority.SOMETIMES;
 @SuppressWarnings( "ClassWithoutLogger" )
 public class ThumbWheel extends GridPane {
 
+    public ThumbWheel(Consumer<Number> thumbwheelValueChangedListener) {
+        this.thumbwheelValueChangedListener = thumbwheelValueChangedListener;
+    }
+
+    private Consumer<Number> thumbwheelValueChangedListener;
     private static final Color DEFAULT_DECREMENT_BUTTON_COLOR = Color.web("#d7d7ec");
     private static final Font DEFAULT_FONT = new Label().getFont();
     private static final double DEFAULT_HGAP = 2.0;
@@ -100,7 +105,9 @@ public class ThumbWheel extends GridPane {
      */
     private final EventHandler<ActionEvent> buttonPressedHandler = event -> {
         try {
-            setValue(valueFormat.parse(valueFormat.format(getValue() + (double) ((Button) event.getSource()).getUserData())).doubleValue());
+            var new_value = valueFormat.parse(valueFormat.format(getValue() + (double) ((Button) event.getSource()).getUserData())).doubleValue();
+            setValue(new_value);
+            thumbwheelValueChangedListener.accept(new_value);
         } catch ( ParseException ex ) {
             LOGGER.throwing(ThumbWheel.class.getSimpleName(), "labelScrollHandler", ex);
         }
