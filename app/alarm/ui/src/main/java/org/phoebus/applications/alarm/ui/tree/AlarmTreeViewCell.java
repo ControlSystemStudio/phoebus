@@ -92,7 +92,7 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
                                 .append(")");
                     }
                     label.setTextFill(AlarmUI.getColor(state.severity));
-                    label.setBackground(new Background(new BackgroundFill(AlarmUI.getBackgroundColor(state.severity), CornerRadii.EMPTY, Insets.EMPTY)));
+                    label.setBackground(AlarmUI.getBackground(state.severity));
                     image.setImage(AlarmUI.getIcon(state.severity));
                 }
                 else
@@ -111,7 +111,7 @@ class AlarmTreeViewCell extends TreeCell<AlarmTreeItem<?>>
 
                 severity = node.getState().severity;
                 label.setTextFill(AlarmUI.getColor(severity));
-                label.setBackground(new Background(new BackgroundFill(AlarmUI.getBackgroundColor(severity), CornerRadii.EMPTY, Insets.EMPTY)));
+                label.setBackground(AlarmUI.getBackground(severity));
                 image.setImage(AlarmUI.getIcon(severity));
             }
             // Profiler showed small advantage when skipping redundant 'setGraphic' call
