@@ -12,9 +12,9 @@ import org.phoebus.framework.nls.NLS;
 public class Messages
 {
     public static String Add_Tooltip,
+                         AdvancedSearchOpen,
+                         AdvancedSearchHide,
                          Apply,
-                         Clear,                                
-                         Clear_Tooltip,
                          CloseRequestHeader,
                          CloseRequestButtonContinue,
                          CloseRequestButtonDiscard,
@@ -40,18 +40,9 @@ public class Messages
                          NoSearchResults,
                          PreviewOpenErrorBody,
                          PreviewOpenErrorTitle,
-                         Remove_Tooltip,
-                         SearchAvailableItems,
                          SelectFile,
                          SelectFolder,
-                         ServiceConnectionErrorTitle,
-                         ServiceConnectionErrorBody,
-                         ShowHideDetails,
-                         Tags,
-                         TagsTitle,
-                         TagsTooltip,
-                         HtmlPreview,
-                         HtmlPreviewToolTip;
+                         ShowHideDetails;
     static
     {
         // initialize resource bundle
