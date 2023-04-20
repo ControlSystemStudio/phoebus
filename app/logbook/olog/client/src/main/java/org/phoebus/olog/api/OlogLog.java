@@ -134,7 +134,7 @@ public class OlogLog implements LogEntry {
 
     @Override
     public String getTitle() {
-        return getSource().substring(0, getSource().length() < 50 ? getSource().length() : 50);
+        return getSource().substring(0, getSource().length() < 50 ? getSource().length() : (getSource().substring(0, 50).contains(" ") ? getSource().substring(0, 50).lastIndexOf(" ") : 50));
     }
 
     /**
