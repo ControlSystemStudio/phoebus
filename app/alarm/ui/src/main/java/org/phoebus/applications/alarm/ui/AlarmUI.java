@@ -85,7 +85,7 @@ public class AlarmUI
         ImageCache.getImage(AlarmUI.class, "/icons/undefined.png")
     };
 
-    private static final Color[] severity_backgrounds = new Color[]
+    private static final Color[] severity_background_colors = new Color[]
     {
         createColor(Preferences.ok_severity_background_color),                                                                            // OK
         createColor(Preferences.minor_severity_background_color)    .deriveColor(0, ADJUST, 1.0, 1.0), // MINOR_ACK
@@ -157,7 +157,7 @@ public class AlarmUI
      */
     public static Color getBackgroundColor(final SeverityLevel severity)
     {
-        return severity_backgrounds[severity.ordinal()];
+        return severity_background_colors[severity.ordinal()];
     }
 
     /** @param severity {@link SeverityLevel}
