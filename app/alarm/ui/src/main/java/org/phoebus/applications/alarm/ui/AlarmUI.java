@@ -85,6 +85,19 @@ public class AlarmUI
         ImageCache.getImage(AlarmUI.class, "/icons/undefined.png")
     };
 
+    private static final Background[] severity_backgrounds = new Background[]
+    {
+        new Background(new BackgroundFill(createColor(Preferences.ok_severity_background_color), CornerRadii.EMPTY, Insets.EMPTY)), // OK
+        new Background(new BackgroundFill(createColor(Preferences.minor_severity_background_color).deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // MINOR_ACK
+        new Background(new BackgroundFill(createColor(Preferences.major_severity_background_color).deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // MAJOR_ACK
+        new Background(new BackgroundFill(createColor(Preferences.invalid_severity_background_color).deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // INVALID_ACK
+        new Background(new BackgroundFill(createColor(Preferences.undefined_severity_background_color).deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // UNDEFINED_ACK
+        new Background(new BackgroundFill(createColor(Preferences.minor_severity_background_color), CornerRadii.EMPTY, Insets.EMPTY)), // MINOR
+        new Background(new BackgroundFill(createColor(Preferences.major_severity_background_color), CornerRadii.EMPTY, Insets.EMPTY)), // MAJOR
+        new Background(new BackgroundFill(createColor(Preferences.invalid_severity_background_color), CornerRadii.EMPTY, Insets.EMPTY)), // INVALID
+        new Background(new BackgroundFill(createColor(Preferences.undefined_severity_background_color), CornerRadii.EMPTY, Insets.EMPTY)), // UNDEFINED
+    };
+
     private static final Color[] severity_background_colors = new Color[]
     {
         createColor(Preferences.ok_severity_background_color),                                                                            // OK
@@ -159,6 +172,15 @@ public class AlarmUI
     {
         return severity_background_colors[severity.ordinal()];
     }
+
+    /** @param severity {@link SeverityLevel}
+     *  @return Background, may be <code>null</code>
+     */
+    public static Background getBackground(final SeverityLevel severity)
+    {
+        return severity_backgrounds[severity.ordinal()];
+    }
+
 
     /** @param severity {@link SeverityLevel}
      *  @return Background, may be <code>null</code>
