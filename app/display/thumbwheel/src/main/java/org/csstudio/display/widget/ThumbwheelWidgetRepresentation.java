@@ -1,7 +1,5 @@
 package org.csstudio.display.widget;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -12,7 +10,6 @@ import org.csstudio.display.builder.representation.javafx.widgets.RegionBaseRepr
 import org.epics.vtype.Display;
 import org.epics.vtype.VType;
 
-import java.util.function.Consumer;
 import java.util.logging.Level;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
@@ -37,7 +34,7 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
 
     @Override
     protected ThumbWheel createJFXNode() throws Exception {
-        final ThumbWheel thumbWheel = new ThumbWheel(this::thumbwheelValueChanged);
+        final ThumbWheel thumbWheel = new ThumbWheel(this::writeValueToPV);
         return thumbWheel;
     }
 
@@ -154,9 +151,10 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
         toolkit.scheduleUpdate(this);
     }
 
-    // Thumbwheel value changes when the user interacts with it directly, such as
-    // incrementing or decrementing the values via buttons
-    private void thumbwheelValueChanged(final Number new_value)
+    // Thumbwheel value is written to the PV when the user
+    // interacts with it directly, by incrementing or
+    // decrementing the values via buttons
+    private void writeValueToPV(final Number new_value)
     {
         toolkit.fireWrite(model_widget, new_value);
     }
