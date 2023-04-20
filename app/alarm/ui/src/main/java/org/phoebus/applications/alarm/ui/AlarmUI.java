@@ -153,7 +153,7 @@ public class AlarmUI
     }
 
     /** @param severity {@link SeverityLevel}
-     *  @return Background, may be <code>null</code>
+     *  @return Color, may be <code>null</code>
      */
     public static Color getBackgroundColor(final SeverityLevel severity)
     {
