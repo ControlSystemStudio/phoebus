@@ -11,54 +11,45 @@ import org.phoebus.framework.nls.NLS;
 
 public class Messages
 {
-    public static String Add_Tooltip,
-                         Apply,
-                         Clear,                                
-                         Clear_Tooltip,
-                         CloseRequestHeader,
-                         CloseRequestButtonContinue,
-                         CloseRequestButtonDiscard,
-                         DownloadSelected,
-                         DownloadingAttachments,
-                         EmbedImageDialogTitle,
-                         File,
-                         FileSave,
-                         FileSaveFailed,
-                         GroupingFailed,
-                         GroupSelectedEntries,
-                         Level,
-                         Logbooks,
-                         LogbooksSearchFailTitle,
-                         LogbookServiceUnavailableTitle,
-                         LogbookServiceHasNoLogbooks,
-                         LogbooksTitle,
-                         LogbooksTooltip,
-                         NewLogEntry,
-                         NoAttachments,
-                         NoClipboardContent,
-                         Normal,
-                         NoSearchResults,
-                         PreviewOpenErrorBody,
-                         PreviewOpenErrorTitle,
-                         Remove_Tooltip,
-                         SearchAvailableItems,
-                         SelectFile,
-                         SelectFolder,
-                         ServiceConnectionErrorTitle,
-                         ServiceConnectionErrorBody,
-                         ShowHideDetails,
-                         Tags,
-                         TagsTitle,
-                         TagsTooltip,
-                         HtmlPreview,
-                         HtmlPreviewToolTip;
+    public static String
+            AdvancedSearchOpen,
+            AdvancedSearchHide,
+            Apply,
+            CloseRequestHeader,
+            CloseRequestButtonContinue,
+            CloseRequestButtonDiscard,
+            DownloadSelected,
+            DownloadingAttachments,
+            EmbedImageDialogTitle,
+            File,
+            FileSave,
+            FileSaveFailed,
+            GroupingFailed,
+            GroupSelectedEntries,
+            Level,
+            Logbooks,
+            LogbooksSearchFailTitle,
+            LogbookServiceUnavailableTitle,
+            LogbookServiceHasNoLogbooks,
+            LogbooksTitle,
+            LogbooksTooltip,
+            NewLogEntry,
+            NoAttachments,
+            NoClipboardContent,
+            Normal,
+            NoSearchResults,
+            PreviewOpenErrorBody,
+            PreviewOpenErrorTitle,
+            SelectFile,
+            SelectFolder,
+            ShowHideDetails;
     static
     {
         // initialize resource bundle
         NLS.initializeMessages(Messages.class);
     }
 
-    private Messages() 
+    private Messages()
     {
         // prevent instantiation
     }
