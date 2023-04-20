@@ -202,9 +202,8 @@ public class AlarmTableUI extends BorderPane
 
             if (empty  ||  severityLevel == null)
             {
+                setStyle("-fx-text-fill: black;  -fx-background-color: transparent");
                 setText("");
-                setBackground(null);
-                setTextFill(Color.BLACK);
             }
             else
             {
