@@ -14,24 +14,20 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
  */
 
-package org.phoebus.applications.alarm.logging.ui;
+package org.phoebus.applications.saveandrestore.ui;
 
-import org.phoebus.framework.nls.NLS;
+import org.phoebus.applications.saveandrestore.model.search.Filter;
 
-public class Messages {
-    public static String AlarmInformation;
-    public static String ConfigurationInfo;
-    public static String ConfigurationInfoNotFound;
+/**
+ * Interface to handle changes in save-n-restore {@link Filter}s.
+ */
+public interface FilterChangeListener {
 
-    static
-    {
-        // initialize resource bundle
-        NLS.initializeMessages(Messages.class);
-    }
+    void filterAddedOrUpdated(Filter filter);
 
-    private Messages()
-    {
-    }
+    void filterRemoved(Filter filter);
+
 }
