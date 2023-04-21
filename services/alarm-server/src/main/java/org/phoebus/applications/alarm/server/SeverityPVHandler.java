@@ -10,8 +10,8 @@ package org.phoebus.applications.alarm.server;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.util.Iterator;
-import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
@@ -46,7 +46,16 @@ public class SeverityPVHandler
     // Map coalesces multiple updates to a PV between writes,
     // and writes to missing PVs are repeated until they succeed.
 
-    /** Pending updates */
+    /** PVs that are currently handled */
+    private static final Set<String> handled_pvs = ConcurrentHashMap.newKeySet();
+
+    /** Pending updates
+     *
+     *  Updates are added, removed to be handled, re-added on errors to try again.
+     *
+     *  Entry in the map means PV has a severity to be written.
+     *  PV not in map means either PV isn't in use, or there is no need to write a new value.
+     */
     private static final ConcurrentHashMap<String, SeverityLevel> updates = new ConcurrentHashMap<>();
 
     /** Map of PVs by name */
@@ -119,28 +128,27 @@ public class SeverityPVHandler
     /** Perform all requested updates, clearing the 'updates' map */
     private static void performUpdates()
     {
-        final Iterator<Entry<String, SeverityLevel>> entries = updates.entrySet().iterator();
-        while (entries.hasNext())
+        for (String pv_name : updates.keySet())
         {
-            final Entry<String, SeverityLevel> entry = entries.next();
-            final String pv_name = entry.getKey();
-            final SeverityLevel severity = entry.getValue();
-
+            // Atomically remove severity for this PV from accumulated updates
+            final SeverityLevel severity = updates.remove(pv_name);
             logger.log(Level.FINE, "Should update PV '" + pv_name + "' to " + severity.name());
             try
             {
                 final PV pv = getConnectedPV(pv_name);
+                // null? Cannot create PV, forget about it. Else write...
                 if (pv != null)
                     pv.write(severity.ordinal());
-
-                // Remove request on success. Otherwise will try again
-                entries.remove();
             }
             catch (Exception ex)
             {
-                // Warn if PV is still listed, suppress if 'clear()' has removed it
-                if (updates.containsKey(pv_name))
+                // Cannot connect, put back into `updates` for another attempt.
+                // put-if-absent because update() could by now have registered a _new_ severity that we must preserve
+                if (handled_pvs.contains(pv_name))
+                {
                     logger.log(Level.WARNING, "Cannot set severity PV '" + pv_name + "' to " + severity.ordinal(), ex);
+                    updates.putIfAbsent(pv_name, severity);
+                }
             }
         }
     }
@@ -183,6 +191,7 @@ public class SeverityPVHandler
         // Write to map, handle in SeverityPVUpdater thread
         // If SeverityPVUpdater is slow, and several updates arrive for the same PV,
         // this will place the most recent severity for that PV in the map.
+        handled_pvs.add(severity_pv_name);
         updates.put(severity_pv_name, severity);
     }
 
@@ -192,9 +201,11 @@ public class SeverityPVHandler
     public static void clear(final String severity_pv_name)
     {
         if (severity_pv_name != null)
+        {
+            // Mark to be cleared, and remove from 'updates' in case one is pending..
+            handled_pvs.remove(severity_pv_name);
             updates.remove(severity_pv_name);
-        // An ongoing update attempt in performUpdates might continue,
-        // but errors won't be logged
+        }
     }
 
     /** Release all PVs */
