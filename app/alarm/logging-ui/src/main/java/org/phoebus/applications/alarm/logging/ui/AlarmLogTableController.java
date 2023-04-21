@@ -35,7 +35,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
-import javafx.scene.paint.Color;
 import javafx.util.Duration;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.logging.ui.AlarmLogTableQueryUtil.Keys;
@@ -46,6 +45,7 @@ import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.JFXUtil;
 import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -164,11 +164,12 @@ public class AlarmLogTableController {
                 super.updateItem(item, empty);
 
                 if (empty || item == null) {
+                    setStyle("-fx-text-fill: black;  -fx-background-color: transparent");
                     setText("");
-                    setTextFill(Color.BLACK);
                 } else {
                     setText(item);
-                    setTextFill(AlarmUI.getColor(parseSeverityLevel(item)));
+                    SeverityLevel severityLevel = parseSeverityLevel(item);
+                    setStyle("-fx-alignment: center; -fx-border-color: transparent; -fx-border-width: 2 0 2 0; -fx-background-insets: 2 0 2 0; -fx-text-fill: " + JFXUtil.webRGB(AlarmUI.getColor(severityLevel)) + ";  -fx-background-color: " + JFXUtil.webRGB(AlarmUI.getBackgroundColor(severityLevel)));
                 }
             }
         });
@@ -217,11 +218,13 @@ public class AlarmLogTableController {
                 super.updateItem(item, empty);
 
                 if (empty || item == null) {
+                    setStyle("-fx-text-fill: black;  -fx-background-color: transparent");
                     setText("");
-                    setTextFill(Color.BLACK);
                 } else {
+
                     setText(item);
-                    setTextFill(AlarmUI.getColor(parseSeverityLevel(item)));
+                    SeverityLevel severityLevel = parseSeverityLevel(item);
+                    setStyle("-fx-alignment: center; -fx-border-color: transparent; -fx-border-width: 2 0 2 0; -fx-background-insets: 2 0 2 0; -fx-text-fill: " + JFXUtil.webRGB(AlarmUI.getColor(severityLevel)) + ";  -fx-background-color: " + JFXUtil.webRGB(AlarmUI.getBackgroundColor(severityLevel)));
                 }
             }
         });
@@ -402,7 +405,7 @@ public class AlarmLogTableController {
      * A Helper method which returns the appropriate {@link SeverityLevel} matching the
      * string level
      *
-     * @param level
+     * @param level Severity level 
      */
     private static SeverityLevel parseSeverityLevel(String level) {
         switch (level.toUpperCase()) {

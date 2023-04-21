@@ -83,7 +83,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-		<version>3.1.0</version>
+        <version>3.3.0</version>
         <configuration>
           <archive>
             <manifest>
@@ -103,7 +103,7 @@
         -->
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>3.1.1</version>
+        <version>3.5.0</version>
         <configuration>
           <tarLongFileMode>posix</tarLongFileMode>
           <descriptors>
@@ -116,42 +116,6 @@
             <phase>package</phase>
             <goals>
               <goal>single</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>verify</phase>
-            <configuration>
-              <failOnError>true</failOnError>
-              <tasks>
-                <echo message="Adding dependencies to product" />
-                <manifestclasspath property="manifest-classpath" jarfile="${project.build.directory}/service-alarm-server-${project.version}.jar">
-                  <classpath>
-                    <path>
-                      <fileset dir="${project.build.directory}/lib">
-                        <include name="*.jar" />
-                      </fileset>
-                    </path>
-                  </classpath>
-                </manifestclasspath>
-
-                <!--
-                 -->
-                 <echo message="Manifest classpath: ${manifest-classpath}" />
-
-                <jar update="true" destfile="${project.build.directory}/service-alarm-server-${project.version}.jar">
-                  <manifest>
-                    <attribute name="Class-Path" value="${manifest-classpath}" />
-                  </manifest>
-                </jar>
-              </tasks>
-            </configuration>
-            <goals>
-              <goal>run</goal>
             </goals>
           </execution>
         </executions>

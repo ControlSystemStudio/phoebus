@@ -7,10 +7,13 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.tree;
 
+import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.TreeCell;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 

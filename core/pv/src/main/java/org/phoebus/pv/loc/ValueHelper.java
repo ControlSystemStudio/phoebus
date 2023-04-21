@@ -122,8 +122,19 @@ public class ValueHelper
                 items.add(text.substring(pos, end+1));
                 pos = end + 1;
                 // Advance to comma at end of string
-                while (pos < text.length() && text.charAt(pos) != ',')
-                    ++pos;
+                while (pos < text.length()) {
+                    char currentChar = text.charAt(pos);
+                    
+                    if (currentChar == ',') {
+                        break;
+                    }
+                    else if (currentChar != ' ' && currentChar != '\t') {
+                        throw new Exception("A character that is not a space or a tab appeared after a closing quote");
+                    }
+                    else {
+                        pos++;
+                    }
+                }
                 ++pos;
             }
 

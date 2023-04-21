@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -228,7 +228,12 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         show_alarms.setTooltip(new Tooltip("Expand alarm tree to show active alarms"));
         show_alarms.setOnAction(event -> expandAlarms(tree_view.getRoot()));
 
-        return new ToolBar(no_server, changing, ToolbarHelper.createSpring(), collapse, show_alarms);
+        final Button show_disabled = new Button("",
+                ImageCache.getImageView(AlarmUI.class, "/icons/expand_disabled.png"));
+        show_disabled.setTooltip(new Tooltip("Expand alarm tree to show disabled PVs"));
+        show_disabled.setOnAction(event -> expandDisabledPVs(tree_view.getRoot()));
+
+        return new ToolBar(no_server, changing, ToolbarHelper.createSpring(), collapse, show_alarms, show_disabled);
     }
 
     ToolBar getToolbar()
@@ -249,6 +254,29 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         node.setExpanded(expand);
         for (TreeItem<AlarmTreeItem<?>> sub : node.getChildren())
             expandAlarms(sub);
+    }
+
+    /** @param node Subtree node where to expand disabled PVs
+     *  @return Does subtree contain disabled PVs?
+     */
+    private boolean expandDisabledPVs(final TreeItem<AlarmTreeItem<?>> node)
+    {
+        if (node != null  &&  (node.getValue() instanceof AlarmClientLeaf))
+        {
+            AlarmClientLeaf pv = (AlarmClientLeaf) node.getValue();
+            if (! pv.isEnabled())
+                return true;
+        }
+
+        // Always expand the root, which itself is not visible,
+        // but this will show all the top-level elements.
+        // In addition, expand those items which contain disabled PV.
+        boolean expand = node == tree_view.getRoot();
+        for (TreeItem<AlarmTreeItem<?>> sub : node.getChildren())
+            if (expandDisabledPVs(sub))
+                expand = true;
+        node.setExpanded(expand);
+        return expand;
     }
 
     private TreeItem<AlarmTreeItem<?>> createViewItem(final AlarmTreeItem<?> model_item)
