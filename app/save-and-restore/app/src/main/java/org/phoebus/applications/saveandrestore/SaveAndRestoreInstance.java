@@ -20,7 +20,6 @@ package org.phoebus.applications.saveandrestore;
 
 import javafx.fxml.FXMLLoader;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
-import org.phoebus.applications.saveandrestore.ui.search.SearchToolbarController;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
@@ -53,9 +52,6 @@ public class SaveAndRestoreInstance implements AppInstance {
                     if (clazz.isAssignableFrom(SaveAndRestoreController.class)) {
                         return clazz.getConstructor(URI.class).newInstance(uri);
                     }
-                    else if(clazz.isAssignableFrom(SearchToolbarController.class)){
-                        return clazz.getConstructor().newInstance();
-                    }
                 } catch (Exception e) {
                     Logger.getLogger(SaveAndRestoreInstance.class.getName()).log(Level.WARNING, "Failed to load Save & Restore UI", e);
                 }
@@ -68,7 +64,7 @@ public class SaveAndRestoreInstance implements AppInstance {
 
         controller = loader.getController();
 
-        tab.setOnCloseRequest(event -> controller.saveLocalState());
+        tab.setOnCloseRequest(event -> controller.handleTabClosed());
 
         DockPane.getActiveDockPane().addTab(tab);
     }
