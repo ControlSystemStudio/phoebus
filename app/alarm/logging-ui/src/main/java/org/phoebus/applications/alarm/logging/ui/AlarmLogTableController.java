@@ -405,7 +405,7 @@ public class AlarmLogTableController {
      * A Helper method which returns the appropriate {@link SeverityLevel} matching the
      * string level
      *
-     * @param level Severity level 
+     * @param level Severity level
      */
     private static SeverityLevel parseSeverityLevel(String level) {
         switch (level.toUpperCase()) {
