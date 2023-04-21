@@ -74,7 +74,7 @@ public class ThumbWheel extends GridPane {
     private static final Font DEFAULT_FONT = new Label().getFont();
     private static final double DEFAULT_HGAP = 2.0;
     private static final Color DEFAULT_INCREMENT_BUTTON_COLOR = Color.web("#ecd7d7");
-    private static final char INVALID_MARK = '\u00D7';
+    private static final String INVALID_MARK = "\u00D7";
     private static final Logger LOGGER = Logger.getLogger(ThumbWheel.class.getName());
     private static final char SIGN_MARK = '\u2013';
     private static final char SIGN_SPACE = '\u2002';
@@ -88,8 +88,6 @@ public class ThumbWheel extends GridPane {
     private final List<Button> decimalDecrementButtons = new ArrayList<>(3);
     private final List<Button> decimalIncrementButtons = new ArrayList<>(3);
     private final List<Label> decimalLabels = new ArrayList<>(2);
-    private double effectiveMax = 100;
-    private double effectiveMin = 0;
     private boolean hasNegativeSign = false;
     private boolean hasDotSeparator = true;
     private String integerRepresentation = "0";
@@ -449,92 +447,6 @@ public class ThumbWheel extends GridPane {
     }
 
     /*
-     * ---- maxValue -----------------------------------------------------------
-     */
-    private final DoubleProperty maxValue = new SimpleDoubleProperty(this, "maxValue", effectiveMax) {
-        @Override
-        protected void invalidated() {
-
-            double val = get();
-            double min = getMinValue();
-
-            if ( needsClamping(val, min, Double.MAX_VALUE) ) {
-
-                val = clamp(val, min, Double.MAX_VALUE);
-
-                set(val);
-
-            } else {
-
-                double cur = getValue();
-
-                if ( needsClamping(cur, min, val) ) {
-                    setValue(clamp(cur, min, val));
-                } else {
-                    update(false);
-                }
-
-            }
-
-        }
-    };
-
-    public DoubleProperty maxValueProperty() {
-        return maxValue;
-    }
-
-    public double getMaxValue() {
-        return maxValue.get();
-    }
-
-    public void setMaxValue( double maxValue ) {
-        this.maxValue.set(maxValue);
-    }
-
-    /*
-     * ---- minValue -----------------------------------------------------------
-     */
-    private final DoubleProperty minValue = new SimpleDoubleProperty(this, "minValue", effectiveMin) {
-        @Override
-        protected void invalidated() {
-
-            double val = get();
-            double max = getMaxValue();
-
-            if ( needsClamping(val, - Double.MAX_VALUE, max) ) {
-
-                val = clamp(val, - Double.MAX_VALUE, max);
-
-                set(val);
-
-            } else {
-
-                double cur = getValue();
-
-                if ( needsClamping(cur, val, max) ) {
-                    setValue(clamp(cur, val, max));
-                } else {
-                    update(true);
-                }
-
-            }
-
-        }
-    };
-
-    public DoubleProperty minValueProperty() {
-        return minValue;
-    }
-
-    public double getMinValue() {
-        return minValue.get();
-    }
-
-    public void setMinValue( double minValue ) {
-        this.minValue.set(minValue);
-    }
-
-    /*
      * ---- scrollEnabled ------------------------------------------------------
      */
     private final BooleanProperty scrollEnabled = new SimpleBooleanProperty(this, "scrollEnabled", false);
@@ -603,21 +515,8 @@ public class ThumbWheel extends GridPane {
     private final DoubleProperty value = new SimpleDoubleProperty(this, "value", 0) {
         @Override
         protected void invalidated() {
-
+            updateValue();
             double val = get();
-            double min = getMinValue();
-            double max = getMaxValue();
-
-            if ( needsClamping(val, min, max) ) {
-
-                val = clamp(val, min, max);
-
-                set(val);
-
-            } else {
-                updateValue();
-            }
-
         }
     };
 
@@ -957,18 +856,7 @@ public class ThumbWheel extends GridPane {
 
         valueFormat = new DecimalFormat(format);
 
-        double min = getMinValue();
-        double max = getMaxValue();
 
-        hasNegativeSign = ( min < 0 );
-
-        double eMax = Double.parseDouble(extremaBuilder.toString());
-
-        effectiveMax = Math.min(max, eMax);
-
-        double eMin = hasNegativeSign ? -eMax : 0;
-
-        effectiveMin = Math.max(min, eMin);
 
 //        LOGGER.info(MessageFormat.format(
 //            "Something updated"
@@ -1136,74 +1024,69 @@ public class ThumbWheel extends GridPane {
         double val = getValue();
         int iDigits = getIntegerDigits();
         int dDigits = getDecimalDigits();
-        StringBuilder builder = new StringBuilder(iDigits + 1 + dDigits);
 
-        setInvalid(val > effectiveMax || val < effectiveMin);
+        try {
 
-        if ( isInvalid() ) {
+            double fValue = valueFormat.parse(valueFormat.format(val)).doubleValue();
+            String sValue = valueFormat.format(Math.abs(fValue));
 
-            builder = new StringBuilder(iDigits);
-
-            for ( int i = 0; i < iDigits; i++ ) {
-                builder.append(INVALID_MARK);
-            }
-
-            integerRepresentation = builder.toString();
 
             if ( hasDotSeparator ) {
 
-                builder = new StringBuilder(dDigits);
+                int dotIndex = sValue.indexOf(valueFormat.getDecimalFormatSymbols().getDecimalSeparator());
 
-                for ( int i = 0; i < dDigits; i++ ) {
-                    builder.append(INVALID_MARK);
-                }
-
-                decimalRepresentation = builder.toString();
+                integerRepresentation = sValue.substring(0, dotIndex);
+                decimalRepresentation = sValue .substring(1 + dotIndex);
 
             } else {
+                integerRepresentation = sValue;
                 decimalRepresentation = "";
             }
 
-        } else {
-
-            try {
-
-                double fValue = valueFormat.parse(valueFormat.format(val)).doubleValue();
-                String sValue = valueFormat.format(Math.abs(fValue));
-
-                if ( hasDotSeparator ) {
-
-                    int dotIndex = sValue.indexOf(valueFormat.getDecimalFormatSymbols().getDecimalSeparator());
-
-                    integerRepresentation = sValue.substring(0, dotIndex);
-                    decimalRepresentation = sValue .substring(1 + dotIndex);
-
-                } else {
-                    integerRepresentation = sValue;
-                    decimalRepresentation = "";
-                }
-
-            } catch ( ParseException ex ) {
-                LOGGER.throwing(ThumbWheel.class.getSimpleName(), "updateValue", ex);
-            }
-
+        } catch ( ParseException ex ) {
+            LOGGER.throwing(ThumbWheel.class.getSimpleName(), "updateValue", ex);
         }
 
         //  --------------------------------------------------------------------
         //  Update labels.
         //
-        if ( hasNegativeSign ) {
-            signLabel.setText(String.valueOf(( val < 0 ) ? SIGN_MARK : SIGN_SPACE));
-        }
 
-        for ( int i = 0; i < iDigits; i++ ) {
-            integerLabels.get(i).setText(String.valueOf(integerRepresentation.charAt(i)));
-        }
+        if (integerRepresentation.length() > integerLabels.size() || (!hasNegativeSign && val < 0)) {
+            // Value cannot be represented:
+            if (hasNegativeSign) {
+                signLabel.setTextFill(invalidColor.getValue());
+                signLabel.setText(String.valueOf(( val < 0 ) ? SIGN_MARK : SIGN_SPACE));
+            }
 
-        for ( int i = 0; i < dDigits; i++ ) {
-            decimalLabels.get(i).setText(String.valueOf(decimalRepresentation.charAt(i)));
-        }
+            for (int i = 0; i < iDigits; i++) {
+                Label integerLabel = integerLabels.get(i);
+                integerLabel.setTextFill(invalidColor.get());
+                integerLabel.setText(INVALID_MARK);
+            }
 
+            for (int i = 0; i < dDigits; i++) {
+                Label decimalLabel = decimalLabels.get(i);
+                decimalLabel.setTextFill(invalidColor.getValue());
+                decimalLabel.setText(INVALID_MARK);
+            }
+        }
+        else {
+            if ( hasNegativeSign ) {
+                signLabel.setTextFill(foregroundColor.getValue());
+                signLabel.setText(String.valueOf(( val < 0 ) ? SIGN_MARK : SIGN_SPACE));
+            }
+
+            for ( int i = 0; i < iDigits; i++ ) {
+                Label integerLabel = integerLabels.get(i);
+                integerLabel.setTextFill(foregroundColor.getValue());
+                integerLabel.setText(String.valueOf(integerRepresentation.charAt(i)));
+            }
+
+            for ( int i = 0; i < dDigits; i++ ) {
+                Label decimalLabel = decimalLabels.get(i);
+                decimalLabel.setTextFill(foregroundColor.getValue());
+                decimalLabel.setText(String.valueOf(decimalRepresentation.charAt(i)));
+            }
+        }
     }
-
 }

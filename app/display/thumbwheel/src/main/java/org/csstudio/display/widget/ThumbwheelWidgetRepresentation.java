@@ -133,10 +133,6 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
 
 
         }
-        if(dirty_behavior.checkAndClear()) {
-            jfx_node.setMinValue(min);
-            jfx_node.setMaxValue(max);
-        }
         // If the value has changed,
         // Then get the runtime value from the PV
         if (dirty_value.checkAndClear()) {
