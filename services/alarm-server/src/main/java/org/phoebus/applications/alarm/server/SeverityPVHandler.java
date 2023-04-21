@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -32,6 +32,20 @@ import org.phoebus.pv.PVPool;
 @SuppressWarnings("nls")
 public class SeverityPVHandler
 {
+    // When alarm server calls update(severity_pv_name, severity),
+    // this value is not written to the PV right away for two reasons:
+    //
+    // 1) This could result in many updates. Channel Access/PV Access might
+    //    suppress intermediate values and so will displays, but we want to coalesce
+    //    multiple updates to the same PV.
+    // 2) For alarm with few changes, imagine that the IOC hosting the PV is down so PV cannot be written,
+    //    Once IOC then comes back up, severity PV would have wrong value until the alarm state changes.
+    //
+    // 'updates' thus tracks the most recent value for each PV.
+    // Separate thread writes them to PVs and - on success - removes from 'updates'.
+    // Map coalesces multiple updates to a PV between writes,
+    // and writes to missing PVs are repeated until they succeed.
+
     /** Pending updates */
     private static final ConcurrentHashMap<String, SeverityLevel> updates = new ConcurrentHashMap<>();
 
@@ -124,7 +138,9 @@ public class SeverityPVHandler
             }
             catch (Exception ex)
             {
-                logger.log(Level.WARNING, "Cannot set severity PV '" + pv_name + "' to " + severity.ordinal(), ex);
+                // Warn if PV is still listed, suppress if 'clear()' has removed it
+                if (updates.containsKey(pv_name))
+                    logger.log(Level.WARNING, "Cannot set severity PV '" + pv_name + "' to " + severity.ordinal(), ex);
             }
         }
     }
@@ -146,7 +162,7 @@ public class SeverityPVHandler
         }));
 
         // Assert connection
-        int timeout = AlarmSystem.connection_timeout;
+        int timeout = AlarmSystem.severity_pv_timeout;
         while (PV.isDisconnected(pv.read()))
         {
             if (abort.poll(1, TimeUnit.SECONDS) == Boolean.TRUE)
@@ -168,6 +184,17 @@ public class SeverityPVHandler
         // If SeverityPVUpdater is slow, and several updates arrive for the same PV,
         // this will place the most recent severity for that PV in the map.
         updates.put(severity_pv_name, severity);
+    }
+
+    /** Clear all entries for a PV
+     *  @param severity_pv_name PV that should no longer be updated
+     */
+    public static void clear(final String severity_pv_name)
+    {
+        if (severity_pv_name != null)
+            updates.remove(severity_pv_name);
+        // An ongoing update attempt in performUpdates might continue,
+        // but errors won't be logged
     }
 
     /** Release all PVs */
