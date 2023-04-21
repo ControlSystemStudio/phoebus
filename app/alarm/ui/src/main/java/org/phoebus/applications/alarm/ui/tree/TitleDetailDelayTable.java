@@ -92,7 +92,7 @@ public class TitleDetailDelayTable extends BorderPane
     class DelayTableCell extends TableCell<TitleDetailDelay, Integer>
     {
         private final Spinner<Integer> spinner;
-        
+
         public DelayTableCell()
         {
             this.spinner = new Spinner<>(0, 10000, 1);
@@ -124,7 +124,7 @@ public class TitleDetailDelayTable extends BorderPane
                 spinner.getEditor().setStyle("-fx-text-inner-color: lightgray;");
                 //spinner.getEditor().setTextFill(Color.LIGHTGRAY);
             }
-            
+
             this.spinner.getValueFactory().setValue(item);
             setGraphic(spinner);
         }
@@ -216,7 +216,7 @@ public class TitleDetailDelayTable extends BorderPane
 
     /**
      * This function extracts the option from detail "option:info"
-     * 
+     *
      * @param titleDetailDelay
      * @return enum Option_d (mailto, cmd, sevrpv)
      */
@@ -241,7 +241,7 @@ public class TitleDetailDelayTable extends BorderPane
 
     /**
      * This function extracts the info from detail "option:info"
-     * 
+     *
      * @param titleDetailDelay
      * @return information eg : mail, command, PV
      */
