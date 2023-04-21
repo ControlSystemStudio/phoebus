@@ -36,14 +36,15 @@ public class SeverityPVHandler
     // this value is not written to the PV right away for two reasons:
     //
     // 1) This could result in many updates. Channel Access/PV Access might
-    //    suppress intermediate values and so will displays, but we want to coalesce
-    //    multiple updates to the same PV.
-    // 2) For alarm with few changes, imagine that the IOC hosting the PV is down so PV cannot be written,
-    //    Once IOC then comes back up, severity PV would have wrong value until the alarm state changes.
+    //    suppress intermediate values and displays also tend to throttle updates,
+    //    but we want to coalesce updates at the source to reduce overall traffic.
+    // 2) For alarms with few changes, imagine that the IOC hosting the PV is down so PV cannot be written.
+    //    Once the IOC reappears on the network, severity PV would have wrong value
+    //    until the alarm state changes and the PV is then written.
     //
-    // 'updates' thus tracks the most recent value for each PV.
-    // Separate thread writes them to PVs and - on success - removes from 'updates'.
-    // Map coalesces multiple updates to a PV between writes,
+    // To avoid both issues, 'updates' tracks the most recent value for each PV,
+    // and a separate thread 'updates' to PVs and - on success - removes from 'updates'.
+    // The map coalesces multiple updates to a PV between writes,
     // and writes to missing PVs are repeated until they succeed.
 
     /** PVs that are currently handled */
