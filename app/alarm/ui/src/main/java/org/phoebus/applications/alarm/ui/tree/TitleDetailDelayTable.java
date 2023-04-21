@@ -223,19 +223,19 @@ public class TitleDetailDelayTable extends BorderPane
     private Option_d getOptionFromDetail(final TitleDetailDelay titleDetailDelay)
     {
         if (titleDetailDelay == null)
-        	return null;
+            return null;
 
         final int sep = titleDetailDelay.detail.indexOf(':');
         if (sep < 0)
-        	return Option_d.mailto;
+            return Option_d.mailto;
 
         try
         {
-        	return Option_d.valueOf(titleDetailDelay.detail.substring(0, sep));
+            return Option_d.valueOf(titleDetailDelay.detail.substring(0, sep));
         }
         catch (Exception e)
         {
-        	return Option_d.mailto;
+            return Option_d.mailto;
         }
     }
 
@@ -248,11 +248,11 @@ public class TitleDetailDelayTable extends BorderPane
     private String getInfoFromDetail(final TitleDetailDelay titleDetailDelay)
     {
         if (titleDetailDelay == null)
-        	return null;
+            return "";
 
         final int sep = titleDetailDelay.detail.indexOf(':');
         if (sep < 0)
-        	return "";
+            return "";
 
         return titleDetailDelay.detail.substring(sep+1);
     }
