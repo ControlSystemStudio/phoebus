@@ -107,7 +107,7 @@ import java.util.stream.Collectors;
 /**
  * Main controller for the save & restore UI.
  */
-public class SaveAndRestoreController implements Initializable, NodeChangedListener, NodeAddedListener {
+public class SaveAndRestoreController implements Initializable, NodeChangedListener, NodeAddedListener, FilterChangeListener {
 
     @FXML
     protected TreeView<Node> treeView;
@@ -222,6 +222,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         saveAndRestoreService.addNodeChangeListener(this);
         saveAndRestoreService.addNodeAddedListener(this);
+        saveAndRestoreService.addFilterChangeListener(this);
 
         treeView.setCellFactory(p -> new BrowserTreeCell(folderContextMenu,
                 configurationContextMenu, snapshotContextMenu, rootFolderContextMenu, compositeSnapshotContextMenu,
@@ -874,7 +875,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     /**
-     * Self explanatory
+     * Self-explanatory
      */
     public void saveLocalState() {
         // If root item is null, then there is no data in the TreeView
@@ -885,12 +886,20 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         findExpandedNodes(expandedNodes, treeView.getRoot());
         try {
             PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).put(TREE_STATE, objectMapper.writeValueAsString(expandedNodes));
-            if (filterEnabledProperty.get()) {
-                PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).put(FILTER_NAME, objectMapper.writeValueAsString(filtersComboBox.getSelectionModel().getSelectedItem().getName()));
+            if (filterEnabledProperty.get() && filtersComboBox.getSelectionModel().getSelectedItem() != null) {
+                PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).put(FILTER_NAME,
+                        objectMapper.writeValueAsString(filtersComboBox.getSelectionModel().getSelectedItem().getName()));
             }
         } catch (JsonProcessingException e) {
             LOG.log(Level.WARNING, "Failed to persist tree state");
         }
+    }
+
+    public void handleTabClosed(){
+        saveLocalState();
+        saveAndRestoreService.removeNodeChangeListener(this);
+        saveAndRestoreService.removeNodeAddedListener(this);
+        saveAndRestoreService.removeFilterChangeListener(this);
     }
 
     /**
@@ -1005,6 +1014,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         List<Node> selectedNodes =
                 browserSelectionModel.getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
+
         TagUtil.tagWithComment(tagWithCommentMenu, selectedNodes, updatedNodes -> updatedNodes.forEach(this::nodeChanged));
     }
 
@@ -1202,6 +1212,11 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
     }
 
+    /**
+     * Applies a {@link Filter} selected by user. The service will be queries for {@link Node}s matching
+     * the {@link Filter}, then the {@link TreeView} is updated based on the search result.
+     * @param filter {@link Filter} selected by user.
+     */
     private void applyFilter(Filter filter) {
         treeView.getSelectionModel().clearSelection();
         Map<String, String> searchParams =
@@ -1220,32 +1235,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 LOG.log(Level.SEVERE, "Failed to perform search when applying filter", e);
             }
         });
-    }
-
-    /**
-     * Takes action to update the view when a {@link Filter} has been deleted, i.e. remove
-     * from drop-down list and clear highlighted nodes.
-     *
-     * @param filter The deleted {@link Filter}.
-     */
-    public void filterDeleted(Filter filter) {
-        filtersList.remove(filter);
-        searchResultNodes.clear();
-        treeView.refresh();
-        if (filtersList.isEmpty()) {
-            filterEnabledProperty.set(false);
-        }
-    }
-
-    public void filterAddedOrUpdated(Filter filter) {
-        Filter selectedFilter = filtersComboBox.getSelectionModel().getSelectedItem();
-        boolean selectFilterAfterRefresh =
-                selectedFilter != null &&
-                        selectedFilter.getName().equals(filter.getName());
-        loadFilters();
-        if (selectFilterAfterRefresh) {
-            filtersComboBox.getSelectionModel().select(filter);
-        }
     }
 
     private void filterEnabledChanged(boolean enabled) {
@@ -1280,5 +1269,35 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);
+    }
+
+    @Override
+    public void filterAddedOrUpdated(Filter filter){
+        if(!filtersList.contains(filter)){
+            filtersList.add(filter);
+        }
+        else{
+            final int index = filtersList.indexOf(filter);
+            Platform.runLater(() -> {
+                filtersList.set(index, filter);
+                filtersComboBox.valueProperty().set(filter);
+                // If this is the active filter, update the tree view
+                if(filter.equals(filtersComboBox.getSelectionModel().getSelectedItem())){
+                    applyFilter(filter);
+                }
+            });
+        }
+    }
+
+    @Override
+    public void filterRemoved(Filter filter){
+        if(filtersList.contains(filter)){
+            filtersList.remove(filter);
+            // If this is the active filter, de-select filter completely
+            filterEnabledProperty.set(false);
+            filtersComboBox.getSelectionModel().select(null);
+            // And refresh tree view
+            Platform.runLater(() -> treeView.refresh());
+        }
     }
 }

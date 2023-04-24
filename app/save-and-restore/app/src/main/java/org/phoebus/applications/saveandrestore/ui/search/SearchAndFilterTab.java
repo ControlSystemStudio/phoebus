@@ -21,13 +21,13 @@ package org.phoebus.applications.saveandrestore.ui.search;
 
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
-import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
@@ -66,7 +66,10 @@ public class SearchAndFilterTab extends Tab implements NodeChangedListener {
         });
 
         try {
-            setContent(loader.load());
+            Node node = loader.load();
+            setContent(node);
+            SearchAndFilterViewController controller = loader.getController();
+            setOnCloseRequest(event -> controller.handleSaveAndFilterTabClosed());
         } catch (IOException e) {
             Logger.getLogger(SearchAndFilterTab.class.getName())
                     .log(Level.SEVERE, "Unable to load search tab content fxml", e);
@@ -85,9 +88,7 @@ public class SearchAndFilterTab extends Tab implements NodeChangedListener {
 
         setGraphic(container);
 
-        setOnCloseRequest(event -> {
-            SaveAndRestoreService.getInstance().removeNodeChangeListener(this);
-        });
+        setOnCloseRequest(event -> SaveAndRestoreService.getInstance().removeNodeChangeListener(this));
 
         SaveAndRestoreService.getInstance().addNodeChangeListener(this);
     }
@@ -97,7 +98,7 @@ public class SearchAndFilterTab extends Tab implements NodeChangedListener {
     }
 
     @Override
-    public void nodeChanged(Node updatedNode) {
+    public void nodeChanged(org.phoebus.applications.saveandrestore.model.Node updatedNode) {
         searchAndFilterViewController.nodeChanged(updatedNode);
     }
 }

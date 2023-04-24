@@ -16,7 +16,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -48,7 +47,9 @@ import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.logbook.SearchResult;
 import org.phoebus.logbook.olog.ui.query.OlogQuery;
 import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
+import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
+import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -70,8 +71,6 @@ import java.util.stream.Collectors;
  */
 public class LogEntryTableViewController extends LogbookSearchController {
 
-    @FXML
-    private Button resize;
     @FXML
     private ComboBox<OlogQuery> query;
 
@@ -100,6 +99,9 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     @FXML
     private TextField pageSizeTextField;
+
+    @FXML
+    private Label openAdvancedSearchLabel;
     // Model
     private SearchResult searchResult;
     /**
@@ -109,6 +111,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
     private final Logger logger = Logger.getLogger(LogEntryTableViewController.class.getName());
 
     private final SimpleBooleanProperty showDetails = new SimpleBooleanProperty();
+
+    private final SimpleBooleanProperty advancedSearchVisibile = new SimpleBooleanProperty(false);
 
     /**
      * Constructor.
@@ -160,7 +164,11 @@ public class LogEntryTableViewController extends LogbookSearchController {
             tableView.getItems().forEach(item -> item.setShowDetails(!item.isShowDetails().get()));
         });
 
-        contextMenu.getItems().addAll(groupSelectedEntries, menuItemShowHideAll);
+        MenuItem menuItemNewLogEntry = new MenuItem(Messages.NewLogEntry);
+        menuItemNewLogEntry.acceleratorProperty().setValue(new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN));
+        menuItemNewLogEntry.setOnAction(ae -> new LogEntryEditorStage(new OlogLog(), null, null).show());
+
+        contextMenu.getItems().addAll(groupSelectedEntries, menuItemShowHideAll, menuItemNewLogEntry);
         contextMenu.setOnShowing(e -> {
             try {
                 SecureStore store = new SecureStore();
@@ -238,7 +246,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         // This is to accept numerical input only, and at most 3 digits (maximizing search to 999 hits).
         pageSizeTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (DIGIT_PATTERN.matcher(newValue).matches()) {
-                if ("" .equals(newValue)) {
+                if ("".equals(newValue)) {
                     pageSizeProperty.set(LogbookUIPreferences.search_result_page_size);
                 } else if (newValue.length() > 3) {
                     pageSizeTextField.setText(oldValue);
@@ -267,6 +275,13 @@ public class LogEntryTableViewController extends LogbookSearchController {
         query.getSelectionModel().select(ologQueries.get(0));
         searchParameters.setQuery(ologQueries.get(0).getQuery());
 
+        openAdvancedSearchLabel.setOnMouseClicked(e -> resize());
+
+        openAdvancedSearchLabel.textProperty()
+                .bind(Bindings.createStringBinding(() -> advancedSearchVisibile.get() ?
+                                Messages.AdvancedSearchHide : Messages.AdvancedSearchOpen,
+                        advancedSearchVisibile));
+
         search();
     }
 
@@ -277,33 +292,31 @@ public class LogEntryTableViewController extends LogbookSearchController {
     @FXML
     public void resize() {
         if (!moving.compareAndExchangeAcquire(false, true)) {
-            if (resize.getText().equals("<")) {
+            Duration cycleDuration = Duration.millis(400);
+            Timeline timeline;
+            if (advancedSearchVisibile.get()) {
                 query.disableProperty().set(false);
-                Duration cycleDuration = Duration.millis(400);
                 KeyValue kv = new KeyValue(advancedSearchViewController.getPane().minWidthProperty(), 0);
                 KeyValue kv2 = new KeyValue(advancedSearchViewController.getPane().maxWidthProperty(), 0);
-                Timeline timeline = new Timeline(new KeyFrame(cycleDuration, kv, kv2));
-                timeline.play();
+                timeline = new Timeline(new KeyFrame(cycleDuration, kv, kv2));
                 timeline.setOnFinished(event -> {
-                    resize.setText(">");
+                    advancedSearchVisibile.set(false);
                     moving.set(false);
-                    //advancedSearchViewController.updateSearchParametersFromInput();
                     search();
                 });
             } else {
                 searchParameters.setQuery(query.getEditor().getText());
-                Duration cycleDuration = Duration.millis(400);
                 double width = ViewSearchPane.getWidth() / 2.5;
                 KeyValue kv = new KeyValue(advancedSearchViewController.getPane().minWidthProperty(), width);
                 KeyValue kv2 = new KeyValue(advancedSearchViewController.getPane().prefWidthProperty(), width);
-                Timeline timeline = new Timeline(new KeyFrame(cycleDuration, kv, kv2));
-                timeline.play();
+                timeline = new Timeline(new KeyFrame(cycleDuration, kv, kv2));
                 timeline.setOnFinished(event -> {
-                    resize.setText("<");
+                    advancedSearchVisibile.set(true);
                     moving.set(false);
                     query.disableProperty().set(true);
                 });
             }
+            timeline.play();
         }
     }
 
@@ -314,7 +327,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
      */
     public void search() {
         // In case the page size text field is empty, or the value is zero, set the page size to the default
-        if ("" .equals(pageSizeTextField.getText()) || Integer.parseInt(pageSizeTextField.getText()) == 0) {
+        if ("".equals(pageSizeTextField.getText()) || Integer.parseInt(pageSizeTextField.getText()) == 0) {
             pageSizeTextField.setText(Integer.toString(LogbookUIPreferences.search_result_page_size));
         }
 

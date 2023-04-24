@@ -3,6 +3,7 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
 <!--
   ~ Copyright (C) 2020 European Spallation Source ERIC.
@@ -31,6 +32,7 @@
                     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                 </columnConstraints>
                 <rowConstraints>
+                    <RowConstraints vgrow="NEVER" />
                     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
                     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
                     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
@@ -52,25 +54,33 @@
             <RowConstraints />
                 </rowConstraints>
                 <children>
-                    <Label text="%Title" GridPane.rowIndex="0" />
-                    <TextField fx:id="searchTitle" GridPane.columnSpan="2" GridPane.rowIndex="1" />
-                    <Label text="%Text" GridPane.rowIndex="2" />
-                    <TextField fx:id="searchText" GridPane.columnSpan="2" GridPane.rowIndex="3" />
-                    <Label fx:id="levelLabel" text="Level:" GridPane.rowIndex="4" />
-                    <ComboBox fx:id="levelSelector" prefWidth="150.0" GridPane.columnSpan="2" GridPane.rowIndex="5" />
-                    <Label text="%Logbooks" GridPane.rowIndex="6" />
-                    <TextField fx:id="searchLogbooks" editable="false" GridPane.columnSpan="2" GridPane.rowIndex="7" />
+                    <Label text="%AdvancedSearch" GridPane.columnSpan="2">
+                        <font>
+                            <Font size="20.0" />
+                        </font>
+               <GridPane.margin>
+                  <Insets bottom="5.0" top="5.0" />
+               </GridPane.margin>
+                    </Label>
+                    <Label text="%Title" GridPane.rowIndex="1" />
+                    <TextField fx:id="searchTitle" GridPane.columnSpan="2" GridPane.rowIndex="2" />
+                    <Label text="%Text" GridPane.rowIndex="3" />
+                    <TextField fx:id="searchText" GridPane.columnSpan="2" GridPane.rowIndex="4" />
+                    <Label fx:id="levelLabel" text="Level:" GridPane.rowIndex="5" />
+                    <ComboBox fx:id="levelSelector" prefWidth="150.0" GridPane.columnSpan="2" GridPane.rowIndex="6" />
+                    <Label text="%Logbooks" GridPane.rowIndex="7" />
+                    <TextField fx:id="searchLogbooks" editable="false" GridPane.columnSpan="2" GridPane.rowIndex="8" />
                     <Label text="%Tags" GridPane.rowIndex="8" />
-                    <TextField fx:id="searchTags" editable="false" GridPane.columnSpan="2" GridPane.rowIndex="9" />
-                    <Label text="%Author" GridPane.rowIndex="10" />
-                    <TextField fx:id="searchAuthor" GridPane.columnSpan="2" GridPane.rowIndex="11" />
-                    <Label text="%Time" GridPane.columnSpan="2" GridPane.rowIndex="12">
+                    <TextField fx:id="searchTags" editable="false" GridPane.columnSpan="2" GridPane.rowIndex="10" />
+                    <Label text="%Author" GridPane.rowIndex="11" />
+                    <TextField fx:id="searchAuthor" GridPane.columnSpan="2" GridPane.rowIndex="12" />
+                    <Label text="%Time" GridPane.columnSpan="2" GridPane.rowIndex="13">
                         <GridPane.margin>
                             <Insets top="5.0" />
                         </GridPane.margin>
                     </Label>
 
-                    <GridPane fx:id="timePane" GridPane.columnSpan="2" GridPane.rowIndex="13">
+                    <GridPane fx:id="timePane" GridPane.columnSpan="2" GridPane.rowIndex="14">
                         <columnConstraints>
                             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -95,22 +105,23 @@
                                 </GridPane.margin></TextField>
                         </children>
                     </GridPane>
-                    <RadioButton fx:id="sortDescRadioButton" selected="true" text="%SortDescending" textAlignment="RIGHT" GridPane.columnSpan="2" GridPane.rowIndex="14">
+                    <RadioButton fx:id="sortDescRadioButton" selected="true" text="%SortDescending" textAlignment="RIGHT" GridPane.columnSpan="2" GridPane.rowIndex="15">
                         <padding>
                             <Insets bottom="5.0" right="5.0" top="10.0" />
                         </padding>
                     </RadioButton>
-                    <RadioButton fx:id="sortAscRadioButton" text="%SortAscending" textAlignment="RIGHT" GridPane.columnSpan="2" GridPane.rowIndex="15">
+                    <RadioButton fx:id="sortAscRadioButton" text="%SortAscending" textAlignment="RIGHT" GridPane.columnSpan="2" GridPane.rowIndex="16">
                         <padding>
                             <Insets bottom="5.0" right="5.0" top="5.0" />
                         </padding>
                     </RadioButton>
-                    <Label text="%AttachmentsSearchProperty" GridPane.columnSpan="2" GridPane.rowIndex="16">
+                    <Label text="%AttachmentsSearchProperty" GridPane.columnSpan="2" GridPane.rowIndex="17">
                         <GridPane.margin>
                             <Insets />
                         </GridPane.margin>
                     </Label>
-                    <TextField fx:id="attachmentTypes" GridPane.columnSpan="2" GridPane.rowIndex="17" />
+                    <TextField fx:id="attachmentTypes" GridPane.columnSpan="2" GridPane.rowIndex="18" />
+
                 </children>
             </GridPane>
         </children>

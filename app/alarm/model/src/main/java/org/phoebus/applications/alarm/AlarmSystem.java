@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -47,6 +47,9 @@ public class AlarmSystem extends AlarmSystemConstants
 
     /** Timeout in seconds for initial PV connection */
     @Preference public static int connection_timeout;
+
+    /** Timeout in seconds for "sevrpv:" updates */
+    @Preference public static int severity_pv_timeout;
 
     /** Item level of alarm area. A level of 2 would show all the root levels children. */
     @Preference public static int alarm_area_level;

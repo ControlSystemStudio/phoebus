@@ -28,6 +28,7 @@
     <top>
         <ToolBar fx:id="toolBar">
             <items>
+                <Button fx:id="newLogEntryButton" mnemonicParsing="false" onAction="#newLogEntry" text="%NewLogEntry"/>
                 <Button fx:id="replyButton" mnemonicParsing="false" onAction="#reply" text="%Reply" disable="true"/>
                 <ToggleButton fx:id="showHideLogEntryGroupButton" contentDisplay="RIGHT" mnemonicParsing="false"
                               text="%ShowHideLogEntryGroup" disable="true" onAction="#showHideLogEntryGroup"/>

@@ -31,9 +31,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -57,8 +55,6 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.TransferMode;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.Preferences;
@@ -70,9 +66,9 @@ import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
+import org.phoebus.applications.saveandrestore.ui.FilterChangeListener;
 import org.phoebus.applications.saveandrestore.ui.HelpViewer;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
-import org.phoebus.applications.saveandrestore.ui.NodeSelectionController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
@@ -86,7 +82,6 @@ import org.phoebus.util.time.TimestampFormats;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
-import java.io.IOException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -103,7 +98,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class SearchAndFilterViewController implements Initializable {
+public class SearchAndFilterViewController implements Initializable, FilterChangeListener {
 
     private final SaveAndRestoreController saveAndRestoreController;
 
@@ -501,6 +496,8 @@ public class SearchAndFilterViewController implements Initializable {
         });
 
         loadFilters();
+
+        saveAndRestoreService.addFilterChangeListener(this);
     }
 
     private void setFilter(Filter filter) {
@@ -548,10 +545,7 @@ public class SearchAndFilterViewController implements Initializable {
         filter.setName(filterNameProperty.get());
         filter.setQueryString(queryLabel.getText());
         try {
-            JobManager.schedule("Save Filter", monitor -> {
-                saveAndRestoreService.saveFilter(filter);
-                loadFilters();
-            });
+            JobManager.schedule("Save Filter", monitor -> saveAndRestoreService.saveFilter(filter));
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to save filter." + (e.getMessage() != null ? ("Cause: " + e.getMessage()) : ""));
             Platform.runLater(() -> ExceptionDetailsErrorDialog.openError(Messages.errorGeneric, Messages.failedSaveFilter, e));
@@ -587,8 +581,7 @@ public class SearchAndFilterViewController implements Initializable {
                 SearchResult searchResult = saveAndRestoreService.search(map);
                 if (searchResult.getHitCount() > 0) {
                     Platform.runLater(() -> {
-                        List<Node> sorted = searchResult.getNodes().stream().sorted(nodeComparator()).collect(Collectors.toList());
-                        tableEntries.setAll(sorted);
+                        tableEntries.setAll(searchResult.getNodes());
                         hitCountProperty.set(searchResult.getHitCount());
                     });
                 } else {
@@ -611,11 +604,6 @@ public class SearchAndFilterViewController implements Initializable {
                 tableEntries.clear();
             }
         });
-    }
-
-    private Comparator<Node> nodeComparator() {
-        return Comparator.comparing(Node::getNodeType)
-                .thenComparing((Node n) -> n.getName().toLowerCase());
     }
 
     @FXML
@@ -735,8 +723,8 @@ public class SearchAndFilterViewController implements Initializable {
                 button.setTooltip(new Tooltip(Messages.deleteFilter));
                 button.setOnAction(event -> {
                     try {
-                        saveAndRestoreService.deleteFilter(filter.getName());
-                        loadFilters();
+                        saveAndRestoreService.deleteFilter(filter);
+                        //loadFilters();
                         clearFilter(filter);
                     } catch (Exception e) {
                         LOGGER.log(Level.SEVERE, "Failed to delete filter", e);
@@ -823,5 +811,19 @@ public class SearchAndFilterViewController implements Initializable {
                 resultTableView.refresh();
             }
         }
+    }
+
+    @Override
+    public void filterAddedOrUpdated(Filter filter) {
+        loadFilters();
+    }
+
+    @Override
+    public void filterRemoved(Filter filter) {
+        loadFilters();
+    }
+
+    public void handleSaveAndFilterTabClosed() {
+        saveAndRestoreService.removeFilterChangeListener(this);
     }
 }

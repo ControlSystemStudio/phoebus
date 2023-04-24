@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -48,7 +48,7 @@ import javafx.scene.text.Font;
  *  @author Amanda Carpenter original RadioButton implementation
  */
 @SuppressWarnings("nls")
-public class ChoiceButtonRepresentation extends JFXBaseRepresentation<TilePane, ChoiceButtonWidget>
+public class ChoiceButtonRepresentation extends RegionBaseRepresentation<TilePane, ChoiceButtonWidget>
 {
     private volatile boolean active = false;
     private final ToggleGroup toggle = new ToggleGroup();
@@ -154,13 +154,19 @@ public class ChoiceButtonRepresentation extends JFXBaseRepresentation<TilePane, 
                 {
                     final Object value;
                     final VType pv_value = model_widget.runtimePropValue().getValue();
-                    if (pv_value instanceof VEnum  ||  pv_value instanceof VNumber)
-                        // PV uses enumerated or numeric type, so write the index
+                    if (pv_value instanceof VNumber)
+                        // PV uses numeric type, so write the index
                         value = toggle.getToggles().indexOf(newval);
-                    else // PV uses text
+                    else
+                    {   // Use the text of selected option.
+                        // For pv_value of type VEnum, this will attempt
+                        // to match the correct enum option and provide the enum index
+                        // (which may be different from the index within the toggles!)
+                        // Otherwise fall back to writing the option as text.
                         value = FormatOptionHandler.parse(pv_value,
                                                           ((ButtonBase) newval).getText(),
                                                           FormatOption.DEFAULT);
+                    }
                     logger.log(Level.FINE, "Writing " + value);
                     Platform.runLater(() -> confirm(value));
                 }
@@ -220,10 +226,10 @@ public class ChoiceButtonRepresentation extends JFXBaseRepresentation<TilePane, 
 
     private int determineIndex(final List<String> labels, final VType value)
     {
-        if (value instanceof VEnum)
-            return ((VEnum)value).getIndex();
         if (value instanceof VNumber)
             return ((VNumber)value).getValue().intValue();
+        // For VEnum, PV labels may differ from choice button options,
+        // so locate toggle by text, not PV's enum index
         return labels.indexOf(VTypeUtil.getValueString(value, false));
     }
 
@@ -293,9 +299,14 @@ public class ChoiceButtonRepresentation extends JFXBaseRepresentation<TilePane, 
                 sizeButtons();
 
                 // Select one of the buttons
-                toggle.selectToggle(save_index < 0 || save_index >= buttons.size()
-                                    ? null
-                                    : (Toggle) buttons.get(save_index));
+                final Toggle selected = save_index < 0 || save_index >= buttons.size()
+                                      ? null
+                                      : (Toggle) buttons.get(save_index);
+                toggle.selectToggle(selected);
+                // If current value does not match any of the button options,
+                // indicate just like disconnected.
+                // If option matches, we do have a valid value and are thus connected
+                model_widget.runtimePropConnected().setValue(selected != null);
             }
             finally
             {

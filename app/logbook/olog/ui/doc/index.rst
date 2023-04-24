@@ -23,9 +23,15 @@ Features
 
 Launching the log entry editor
 ------------------------------
-To launch the log entry editor, the user may select Applications -> Utility -> Send to Logbook from the menu:
+The log entry editor is launched as a non-modal window using one of the following methods:
 
-.. image:: images/SendToLogbook.png
+- From the dedicated button in the application toolbar.
+
+- From application menu Applications -> Utility -> Send to Logbook.
+
+- Using the New Log Entry button in the log entry details view of the logbook application.
+
+- Using the New Log Entry context menu item in the search result list view of the logbook application. This option also supports the keyboard combination CTRL+N.
 
 The log entry editor may also be launched from context menus, where applicable. For instance, with a right click on
 the background of an OPI the launched context menu will include the Create Log item:
