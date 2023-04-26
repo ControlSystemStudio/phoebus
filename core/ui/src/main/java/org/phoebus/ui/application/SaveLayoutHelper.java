@@ -12,7 +12,11 @@ import java.text.MessageFormat;
 import java.util.LinkedList;
 import java.util.List;
 
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.TextInputDialog;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.dialog.DialogHelper;
