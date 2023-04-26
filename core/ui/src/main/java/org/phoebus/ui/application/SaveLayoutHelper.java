@@ -9,6 +9,7 @@ package org.phoebus.ui.application;
 
 import java.io.File;
 import java.text.MessageFormat;
+import java.util.LinkedList;
 import java.util.List;
 
 import javafx.scene.control.*;
@@ -46,32 +47,36 @@ public class SaveLayoutHelper
      */
     public static boolean saveLayout(List<Stage> stagesToSave, String titleText)
     {
+        List<String> applicationsWithNoAssociatedSaveFile = new LinkedList<>();
         for (Stage stage : stagesToSave) {
             for (DockPane dockPane : DockStage.getDockPanes(stage)) {
                 for (DockItem dockItem : dockPane.getDockItems()) {
                     if (dockItem instanceof DockItemWithInput) {
                         DockItemWithInput dockItemWithInput = (DockItemWithInput) dockItem;
                         if (dockItemWithInput.getInput() == null) {
-                            String warningText = String.format(Messages.SaveLayoutWarningApplicationNoSaveFile, dockItemWithInput.getApplication().getAppDescriptor().getDisplayName());
-                            final Alert dialog = new Alert(AlertType.CONFIRMATION, warningText, ButtonType.YES, ButtonType.NO);
-                            ((Button) dialog.getDialogPane().lookupButton(ButtonType.YES)).setDefaultButton(false);
-                            ((Button) dialog.getDialogPane().lookupButton(ButtonType.NO)).setDefaultButton(true);
-                            dialog.setTitle(Messages.SaveLayoutWarningApplicationNoSaveFileHeader);
-                            dialog.getDialogPane().setPrefSize(550, 220);
-                            dialog.setResizable(true);
-                            positionDialog(dialog, stagesToSave.get(0));
-
-                            final ButtonType response = dialog.showAndWait().orElse(ButtonType.CANCEL);
-
-                            if (response == ButtonType.NO) {
-                                return false;
-                            }
-                            else {
-                                continue;
-                            }
+                            applicationsWithNoAssociatedSaveFile.add(dockItemWithInput.getApplication().getAppDescriptor().getDisplayName());
                         }
                     }
                 }
+            }
+        }
+        if (applicationsWithNoAssociatedSaveFile.size() > 0) {
+            String warningText = Messages.SaveLayoutWarningApplicationNoSaveFile;
+            for (String applicationName : applicationsWithNoAssociatedSaveFile) {
+                warningText += "\n - " + applicationName;
+            }
+            final Alert dialog = new Alert(AlertType.CONFIRMATION, warningText, ButtonType.YES, ButtonType.NO);
+            ((Button) dialog.getDialogPane().lookupButton(ButtonType.YES)).setDefaultButton(false);
+            ((Button) dialog.getDialogPane().lookupButton(ButtonType.NO)).setDefaultButton(true);
+            dialog.setTitle(Messages.SaveLayoutWarningApplicationNoSaveFileHeader);
+            dialog.getDialogPane().setPrefSize(550, 320);
+            dialog.setResizable(true);
+            positionDialog(dialog, stagesToSave.get(0));
+
+            final ButtonType response = dialog.showAndWait().orElse(ButtonType.CANCEL);
+
+            if (response == ButtonType.NO) {
+                return false;
             }
         }
 
