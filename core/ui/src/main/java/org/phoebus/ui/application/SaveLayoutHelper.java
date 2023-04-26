@@ -77,7 +77,7 @@ public class SaveLayoutHelper
             dialog.setResizable(true);
             positionDialog(dialog, stagesToSave.get(0));
 
-            final ButtonType response = dialog.showAndWait().orElse(ButtonType.CANCEL);
+            final ButtonType response = dialog.showAndWait().orElse(ButtonType.NO);
 
             if (response == ButtonType.NO) {
                 return false;
