@@ -15,6 +15,10 @@ import javafx.scene.control.*;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.docking.DockItem;
+import org.phoebus.ui.docking.DockItemWithInput;
+import org.phoebus.ui.docking.DockPane;
+import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.internal.MementoHelper;
 
 import javafx.scene.control.Alert.AlertType;
@@ -42,6 +46,38 @@ public class SaveLayoutHelper
      */
     public static boolean saveLayout(List<Stage> stagesToSave, String titleText)
     {
+        for (Stage stage : stagesToSave) {
+            for (DockPane dockPane : DockStage.getDockPanes(stage)) {
+                for (DockItem dockItem : dockPane.getDockItems()) {
+                    if (dockItem instanceof DockItemWithInput) {
+                        DockItemWithInput dockItemWithInput = (DockItemWithInput) dockItem;
+                        if (dockItemWithInput.getInput() == null) {
+                            String warningText = "An instance of the application '" + dockItemWithInput.getApplication().getAppDescriptor().getDisplayName() + "' is not associated " +
+                                                 "with a save file. No save file association will be stored for the application instance in question when proceeding to save the layout. " +
+                                                 "Proceed?";
+                            final Alert dialog = new Alert(AlertType.CONFIRMATION, warningText, ButtonType.YES, ButtonType.NO);
+                            ((Button) dialog.getDialogPane().lookupButton(ButtonType.YES)).setDefaultButton(false);
+                            ((Button) dialog.getDialogPane().lookupButton(ButtonType.NO)).setDefaultButton(true);
+                            dialog.setTitle("Warning: application is not associated with a save file");
+                            dialog.setContentText(warningText);
+                            dialog.getDialogPane().setPrefSize(550, 220);
+                            dialog.setResizable(true);
+                            positionDialog(dialog, stagesToSave.get(0));
+
+                            final ButtonType response = dialog.showAndWait().orElse(ButtonType.CANCEL);
+
+                            if (response == ButtonType.NO) {
+                                return false;
+                            }
+                            else {
+                                continue;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         final TextInputDialog prompt = new TextInputDialog();
         prompt.setTitle(titleText);
         prompt.setHeaderText(Messages.SaveDlgHdr);
