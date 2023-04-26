@@ -52,13 +52,11 @@ public class SaveLayoutHelper
                     if (dockItem instanceof DockItemWithInput) {
                         DockItemWithInput dockItemWithInput = (DockItemWithInput) dockItem;
                         if (dockItemWithInput.getInput() == null) {
-                            String warningText = "An instance of the application '" + dockItemWithInput.getApplication().getAppDescriptor().getDisplayName() + "' is not associated " +
-                                                 "with a save file. No save file association will be stored for the application instance in question when proceeding to save the layout. " +
-                                                 "Proceed?";
+                            String warningText = String.format(Messages.SaveLayoutWarningApplicationNoSaveFile, dockItemWithInput.getApplication().getAppDescriptor().getDisplayName());
                             final Alert dialog = new Alert(AlertType.CONFIRMATION, warningText, ButtonType.YES, ButtonType.NO);
                             ((Button) dialog.getDialogPane().lookupButton(ButtonType.YES)).setDefaultButton(false);
                             ((Button) dialog.getDialogPane().lookupButton(ButtonType.NO)).setDefaultButton(true);
-                            dialog.setTitle("Warning: application is not associated with a save file");
+                            dialog.setTitle(Messages.SaveLayoutWarningApplicationNoSaveFileHeader);
                             dialog.getDialogPane().setPrefSize(550, 220);
                             dialog.setResizable(true);
                             positionDialog(dialog, stagesToSave.get(0));
