@@ -59,7 +59,6 @@ public class SaveLayoutHelper
                             ((Button) dialog.getDialogPane().lookupButton(ButtonType.YES)).setDefaultButton(false);
                             ((Button) dialog.getDialogPane().lookupButton(ButtonType.NO)).setDefaultButton(true);
                             dialog.setTitle("Warning: application is not associated with a save file");
-                            dialog.setContentText(warningText);
                             dialog.getDialogPane().setPrefSize(550, 220);
                             dialog.setResizable(true);
                             positionDialog(dialog, stagesToSave.get(0));
