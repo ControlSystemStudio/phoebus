@@ -72,7 +72,7 @@ public class SaveLayoutHelper
             final Alert dialog = new Alert(AlertType.CONFIRMATION, warningText, ButtonType.YES, ButtonType.NO);
             ((Button) dialog.getDialogPane().lookupButton(ButtonType.YES)).setDefaultButton(false);
             ((Button) dialog.getDialogPane().lookupButton(ButtonType.NO)).setDefaultButton(true);
-            dialog.setTitle(Messages.SaveLayoutWarningApplicationNoSaveFileHeader);
+            dialog.setTitle(Messages.SaveLayoutWarningApplicationNoSaveFileTitle);
             dialog.getDialogPane().setPrefSize(550, 320);
             dialog.setResizable(true);
             positionDialog(dialog, stagesToSave.get(0));

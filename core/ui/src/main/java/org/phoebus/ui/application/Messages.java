@@ -116,7 +116,7 @@ public class Messages
     public static String SaveLayoutAs;
     public static String SaveLayoutOfContainingWindowAs;
     public static String SaveLayoutWarningApplicationNoSaveFile;
-    public static String SaveLayoutWarningApplicationNoSaveFileHeader;
+    public static String SaveLayoutWarningApplicationNoSaveFileTitle;
     public static String SaveSnapshot;
     public static String SaveSnapshotSelectFilename;
     public static String Saving;
