@@ -69,7 +69,7 @@ public class SaveLayoutHelper
             for (String applicationName : applicationsWithNoAssociatedSaveFile) {
                 warningText += "\n - " + applicationName;
             }
-            final Alert dialog = new Alert(AlertType.CONFIRMATION, warningText, ButtonType.YES, ButtonType.NO);
+            Alert dialog = new Alert(AlertType.CONFIRMATION, warningText, ButtonType.YES, ButtonType.NO);
             ((Button) dialog.getDialogPane().lookupButton(ButtonType.YES)).setDefaultButton(false);
             ((Button) dialog.getDialogPane().lookupButton(ButtonType.NO)).setDefaultButton(true);
             dialog.setTitle(Messages.SaveLayoutWarningApplicationNoSaveFileTitle);
@@ -77,7 +77,7 @@ public class SaveLayoutHelper
             dialog.setResizable(true);
             positionDialog(dialog, stagesToSave.get(0));
 
-            final ButtonType response = dialog.showAndWait().orElse(ButtonType.NO);
+            ButtonType response = dialog.showAndWait().orElse(ButtonType.NO);
 
             if (response == ButtonType.NO) {
                 return false;
