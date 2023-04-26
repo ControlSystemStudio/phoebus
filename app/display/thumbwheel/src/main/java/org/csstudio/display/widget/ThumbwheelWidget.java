@@ -55,6 +55,7 @@ public class ThumbwheelWidget extends WritablePVWidget {
     public static final WidgetPropertyDescriptor<Boolean> propGraphicVisible = newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "graphic_visible", "Graphic Visible");
     public static final WidgetPropertyDescriptor<Integer> propIntegerDigits = newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "integer_digits", "Integer Digits");
     public static final WidgetPropertyDescriptor<Integer> propDecimalDigits = newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "decimal_digits", "Decimal Digits");
+    public static final WidgetPropertyDescriptor<Boolean> propNegativeNumbers = newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "negative_numbers", "Enable Negative Numbers");
     public static final WidgetPropertyDescriptor<WidgetColor> propInvalidColor = newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "invalid_color", "Invalid Color");
     public static final WidgetPropertyDescriptor<Boolean> propScrollEnabled = newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "scroll_enabled", "Scroll Enabled");
     public static final WidgetPropertyDescriptor<Boolean> propSpinnerShaped = newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "spinner_shaped", "Spinner Shaped");
@@ -72,6 +73,7 @@ public class ThumbwheelWidget extends WritablePVWidget {
     private volatile WidgetProperty<WidgetColor> decrement_color;
     private volatile WidgetProperty<Integer> integer_digits;
     private volatile WidgetProperty<Integer> decimal_digits;
+    private volatile WidgetProperty<Boolean> negative_numbers;
     private volatile WidgetProperty<WidgetFont> font;
     private volatile WidgetProperty<Boolean> enabled;
     private volatile WidgetProperty<Boolean> graphic_visible;
@@ -99,6 +101,7 @@ public class ThumbwheelWidget extends WritablePVWidget {
         properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(decimal_digits = propDecimalDigits.createProperty(this, 2));
         properties.add(integer_digits = propIntegerDigits.createProperty(this, 3));
+        properties.add(negative_numbers = propNegativeNumbers.createProperty(this, true));
         properties.add(minimum = propMinimum.createProperty(this, DEFAULT_MIN));
         properties.add(maximum = propMaximum.createProperty(this, DEFAULT_MAX));
 
@@ -143,6 +146,11 @@ public class ThumbwheelWidget extends WritablePVWidget {
     public WidgetProperty<Integer> propDecimalDigits()
     {
         return decimal_digits;
+    }
+
+    /** @return 'negative_numbers' property */
+    public WidgetProperty<Boolean> propNegativeNumbers() {
+        return negative_numbers;
     }
 
     /** @return 'font' property */

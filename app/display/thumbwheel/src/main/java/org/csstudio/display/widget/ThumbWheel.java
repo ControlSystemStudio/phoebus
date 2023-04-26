@@ -66,8 +66,10 @@ import static javafx.scene.layout.Priority.SOMETIMES;
 public class ThumbWheel extends GridPane {
 
     public ThumbWheel(boolean isEditMode,
+                      boolean hasNegativeSign,
                       Consumer<Number> writeValueToPV) {
         this.isEditMode = isEditMode;
+        this.hasNegativeSign = hasNegativeSign;
         this.writeValueToPV = writeValueToPV;
         initialize();
     }
@@ -92,7 +94,12 @@ public class ThumbWheel extends GridPane {
     private final List<Button> decimalDecrementButtons = new ArrayList<>(3);
     private final List<Button> decimalIncrementButtons = new ArrayList<>(3);
     private final List<Label> decimalLabels = new ArrayList<>(2);
-    private boolean hasNegativeSign = false;
+    private boolean hasNegativeSign;
+
+    public void setHasNegativeSign(boolean hasNegativeSign) {
+        this.hasNegativeSign = hasNegativeSign;
+    }
+
     private boolean hasDotSeparator = true;
     private String integerRepresentation = "0";
     private final List<Button> integerDecrementButtons = new ArrayList<>(3);
@@ -825,7 +832,7 @@ public class ThumbWheel extends GridPane {
      *
      * @param updateChildren {@code true} if the children must be updated too.
      */
-    private void update( boolean updateChildren ) {
+    protected void update( boolean updateChildren ) {
 
         int iDigits = getIntegerDigits();
         int dDigits = getDecimalDigits();

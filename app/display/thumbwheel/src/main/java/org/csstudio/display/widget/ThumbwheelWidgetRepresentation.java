@@ -23,6 +23,7 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
 
     private final UntypedWidgetPropertyListener styleListener = this::styleChanged;
     private final UntypedWidgetPropertyListener limitsChangedListener = this::limitsChanged;
+    private final WidgetPropertyListener<Boolean> negativeNumbersChangedListener = this::negativeNumbersChanged;
 
     private final WidgetPropertyListener<Boolean> enablementChangedListener = this::enablementChanged;
     private final WidgetPropertyListener<VType> valueChangedListener = this::valueChanged;
@@ -34,7 +35,9 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
 
     @Override
     protected ThumbWheel createJFXNode() throws Exception {
-        final ThumbWheel thumbWheel = new ThumbWheel(toolkit.isEditMode(), this::writeValueToPV);
+        final ThumbWheel thumbWheel = new ThumbWheel(toolkit.isEditMode(),
+                                                     model_widget.propNegativeNumbers().getValue(),
+                                                     this::writeValueToPV);
         return thumbWheel;
     }
 
@@ -53,6 +56,7 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
         model_widget.propFont().addUntypedPropertyListener(styleListener);
         model_widget.propDecimalDigits().addUntypedPropertyListener(styleListener);
         model_widget.propIntegerDigits().addUntypedPropertyListener(styleListener);
+        model_widget.propNegativeNumbers().addPropertyListener(negativeNumbersChangedListener);
 
         model_widget.propMinimum().addUntypedPropertyListener(limitsChangedListener);
         model_widget.propMaximum().addUntypedPropertyListener(limitsChangedListener);
@@ -87,6 +91,7 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
         model_widget.propFont().removePropertyListener(styleListener);
         model_widget.propDecimalDigits().removePropertyListener(styleListener);
         model_widget.propIntegerDigits().removePropertyListener(styleListener);
+        model_widget.propNegativeNumbers().removePropertyListener(negativeNumbersChangedListener);
 
         model_widget.propMinimum().removePropertyListener(limitsChangedListener);
         model_widget.propMaximum().removePropertyListener(limitsChangedListener);
@@ -236,5 +241,8 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
 
     }
 
-
+    private void negativeNumbersChanged(WidgetProperty<Boolean> widgetProperty, Boolean old_value, Boolean new_value) {
+        jfx_node.setHasNegativeSign(new_value);
+        jfx_node.update(true);
+    }
 }
