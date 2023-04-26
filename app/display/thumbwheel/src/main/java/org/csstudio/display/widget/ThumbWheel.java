@@ -65,10 +65,14 @@ import static javafx.scene.layout.Priority.SOMETIMES;
 @SuppressWarnings( "ClassWithoutLogger" )
 public class ThumbWheel extends GridPane {
 
-    public ThumbWheel(Consumer<Number> writeValueToPV) {
+    public ThumbWheel(boolean isEditMode,
+                      Consumer<Number> writeValueToPV) {
+        this.isEditMode = isEditMode;
         this.writeValueToPV = writeValueToPV;
+        initialize();
     }
 
+    private boolean isEditMode;
     private Consumer<Number> writeValueToPV;
     private static final Color DEFAULT_DECREMENT_BUTTON_COLOR = Color.web("#d7d7ec");
     private static final Font DEFAULT_FONT = new Label().getFont();
@@ -532,13 +536,6 @@ public class ThumbWheel extends GridPane {
         this.value.set(currentValue);
     }
 
-    /*
-     * ---- instance initializer -----------------------------------------------
-     */
-    {
-        initialize();
-    }
-
     /**
      * Updates the labels color.
      *
@@ -664,6 +661,10 @@ public class ThumbWheel extends GridPane {
 
         if ( isSpinnerShaped() ) {
             button.getStyleClass().add(incrementButton ? "thumb-wheel-increment-spinner-button" : "thumb-wheel-decrement-spinner-button");
+        }
+
+        if (isEditMode) {
+            button.setDisable(true);
         }
 
         return button;

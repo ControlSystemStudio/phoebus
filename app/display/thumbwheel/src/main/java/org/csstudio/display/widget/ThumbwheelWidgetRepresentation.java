@@ -34,7 +34,7 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
 
     @Override
     protected ThumbWheel createJFXNode() throws Exception {
-        final ThumbWheel thumbWheel = new ThumbWheel(this::writeValueToPV);
+        final ThumbWheel thumbWheel = new ThumbWheel(toolkit.isEditMode(), this::writeValueToPV);
         return thumbWheel;
     }
 
