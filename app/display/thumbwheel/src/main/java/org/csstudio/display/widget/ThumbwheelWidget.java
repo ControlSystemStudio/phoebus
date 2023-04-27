@@ -9,7 +9,9 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
+import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
+import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
@@ -57,11 +59,6 @@ public class ThumbwheelWidget extends WritablePVWidget {
     public static final WidgetPropertyDescriptor<Boolean> propScrollEnabled = newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "scroll_enabled", "Scroll Enabled");
     public static final WidgetPropertyDescriptor<Boolean> propSpinnerShaped = newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "spinner_shaped", "Spinner Shaped");
 
-    public static final WidgetColor THUMBWHEEL_BACKGROUND_COLOR = new WidgetColor(26, 26, 26);
-    public static final WidgetColor THUMBWHEEL_FOREGROUND_COLOR = new WidgetColor(242, 242, 242);
-    public static final WidgetColor THUMBWHEEL_BUTTON_COLOR = new WidgetColor(0, 0, 0);
-    public static final WidgetColor THUMBWHEEL_INVALID_COLOR = new WidgetColor(255, 0, 0);
-
     private volatile WidgetProperty<WidgetColor> background;
     private volatile WidgetProperty<WidgetColor> foreground;
     private volatile WidgetProperty<WidgetColor> increment_color;
@@ -84,11 +81,11 @@ public class ThumbwheelWidget extends WritablePVWidget {
     @Override
     protected void defineProperties(List<WidgetProperty<?>> properties) {
         super.defineProperties(properties);
-        properties.add(background = propBackgroundColor.createProperty(this, THUMBWHEEL_BACKGROUND_COLOR));
-        properties.add(foreground = propForegroundColor.createProperty(this, THUMBWHEEL_FOREGROUND_COLOR));
-        properties.add(increment_color = propIncrementColor.createProperty(this, THUMBWHEEL_BUTTON_COLOR));
-        properties.add(decrement_color = propDecrementColor.createProperty(this, THUMBWHEEL_BUTTON_COLOR));
-        properties.add(invalid_color = propInvalidColor.createProperty(this, THUMBWHEEL_INVALID_COLOR));
+        properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.WRITE_BACKGROUND)));
+        properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
+        properties.add(increment_color = propIncrementColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BUTTON_BACKGROUND)));
+        properties.add(decrement_color = propDecrementColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BUTTON_BACKGROUND)));
+        properties.add(invalid_color = propInvalidColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.ALARM_INVALID)));
 
         properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(decimal_digits = propDecimalDigits.createProperty(this, 2));
