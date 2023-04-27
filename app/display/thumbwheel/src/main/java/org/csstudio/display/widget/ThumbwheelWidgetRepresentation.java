@@ -7,7 +7,6 @@ import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.csstudio.display.builder.representation.javafx.widgets.RegionBaseRepresentation;
-import org.epics.vtype.Display;
 import org.epics.vtype.VType;
 
 import java.util.logging.Level;
@@ -22,7 +21,6 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
     private final DirtyFlag dirty_behavior = new DirtyFlag();
 
     private final UntypedWidgetPropertyListener styleListener = this::styleChanged;
-    private final UntypedWidgetPropertyListener limitsChangedListener = this::limitsChanged;
     private final WidgetPropertyListener<Boolean> negativeNumbersChangedListener = this::negativeNumbersChanged;
 
     private final WidgetPropertyListener<Boolean> enablementChangedListener = this::enablementChanged;
@@ -30,8 +28,6 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
 
     private volatile boolean enabled = false;
     private volatile double value = 0.0;
-    private volatile double min = ThumbwheelWidget.DEFAULT_MIN;
-    private volatile double max = ThumbwheelWidget.DEFAULT_MAX;
 
     @Override
     protected ThumbWheel createJFXNode() throws Exception {
@@ -57,10 +53,6 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
         model_widget.propDecimalDigits().addUntypedPropertyListener(styleListener);
         model_widget.propIntegerDigits().addUntypedPropertyListener(styleListener);
         model_widget.propNegativeNumbers().addPropertyListener(negativeNumbersChangedListener);
-
-        model_widget.propMinimum().addUntypedPropertyListener(limitsChangedListener);
-        model_widget.propMaximum().addUntypedPropertyListener(limitsChangedListener);
-        model_widget.propLimitsFromPV().addUntypedPropertyListener(limitsChangedListener);
 
         model_widget.propEnabled().addPropertyListener(enablementChangedListener);
         model_widget.runtimePropPVWritable().addPropertyListener(enablementChangedListener);
@@ -92,10 +84,6 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
         model_widget.propDecimalDigits().removePropertyListener(styleListener);
         model_widget.propIntegerDigits().removePropertyListener(styleListener);
         model_widget.propNegativeNumbers().removePropertyListener(negativeNumbersChangedListener);
-
-        model_widget.propMinimum().removePropertyListener(limitsChangedListener);
-        model_widget.propMaximum().removePropertyListener(limitsChangedListener);
-        model_widget.propLimitsFromPV().removePropertyListener(limitsChangedListener);
 
         model_widget.propEnabled().removePropertyListener(enablementChangedListener);
         model_widget.runtimePropPVWritable().removePropertyListener(enablementChangedListener);
@@ -163,11 +151,6 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
     // Value change is triggered when the PV value changes
     private void valueChanged(final WidgetProperty<? extends VType> property, final VType old_value, final VType new_value)
     {
-        // If the widget is getting limits from the PV, then they may have changed
-        if (model_widget.propLimitsFromPV().getValue()) {
-            limitsChanged(null, null, null);
-        }
-
         final VType vtype = model_widget.runtimePropValue().getValue();
         double newval = VTypeUtil.getValueNumber(vtype).doubleValue();
 
@@ -193,52 +176,6 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
                     model_widget.runtimePropPVWritable().getValue();
         dirty_enablement.mark();
         toolkit.scheduleUpdate(this);
-    }
-
-    // Determine the new limits, and mark the behavior as changed
-    private void limitsChanged(WidgetProperty<?> widgetProperty, Object old_value, Object new_value) {
-
-        // Initialize to default values
-        double new_min = ThumbwheelWidget.DEFAULT_MIN;
-        double new_max = ThumbwheelWidget.DEFAULT_MAX;
-
-        // If the widget is using PV limits, attempt to use those values
-        if (model_widget.propLimitsFromPV().getValue()) {
-
-            // Try to get display range from PV
-            final Display display_info = Display.displayOf(model_widget.runtimePropValue().getValue());
-            if (display_info != null) {
-
-                // Should use the 'control' range but fall back to 'display' range
-                if (display_info.getControlRange().isFinite()) {
-                    new_min = display_info.getControlRange().getMinimum();
-                    new_max = display_info.getControlRange().getMaximum();
-                }
-                else {
-                    new_min = display_info.getDisplayRange().getMinimum();
-                    new_max = display_info.getDisplayRange().getMaximum();
-                }
-            }
-            // Else do nothing; use the defaults above.
-
-        }
-        // Else, use the limits defined on the widget
-        else {
-            new_min = model_widget.propMinimum().getValue();
-            new_max = model_widget.propMaximum().getValue();
-        }
-
-        // Finally, set the min and max if they've changed,
-        // and mark as having changed
-        if (Double.compare(min, new_min) != 0) {
-            min = new_min;
-            dirty_behavior.mark();
-        }
-        if (Double.compare(max, new_max) != 0) {
-            max = new_max;
-            dirty_behavior.mark();
-        }
-
     }
 
     private void negativeNumbersChanged(WidgetProperty<Boolean> widgetProperty, Boolean old_value, Boolean new_value) {
