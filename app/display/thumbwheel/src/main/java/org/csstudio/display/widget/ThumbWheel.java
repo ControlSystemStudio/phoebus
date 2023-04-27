@@ -864,36 +864,6 @@ public class ThumbWheel extends GridPane {
 
         valueFormat = new DecimalFormat(format);
 
-
-
-//        LOGGER.info(MessageFormat.format(
-//            "Something updated"
-//                + "\n         Value: {0,number,###############0.###############}"
-//                + "\n           Min: {1,number,###############0.###############}"
-//                + "\n           Max: {2,number,###############0.###############}"
-//                + "\nInteger Digits: {3,number,###############0}"
-//                + "\nDecimal Digits: {4,number,###############0}"
-//                + "\n Negative Sign: {5}"
-//                + "\n Dot Separator: {6}"
-//                + "\n        Format: {7}"
-//                + "\n Effective Min: {8,number,###############0.###############}"
-//                + "\n Effective Max: {9,number,###############0.###############}"
-//                + "\nInteger String: {10}"
-//                + "\nDecimal String: {11}",
-//            getValue(),
-//            min,
-//            max,
-//            iDigits,
-//            dDigits,
-//            hasNegativeSign,
-//            hasDotSeparator,
-//            format,
-//            effectiveMin,
-//            effectiveMax,
-//            integerRepresentation,
-//            decimalRepresentation
-//        ));
-
         if ( updateChildren ) {
             updateLayout();
         }

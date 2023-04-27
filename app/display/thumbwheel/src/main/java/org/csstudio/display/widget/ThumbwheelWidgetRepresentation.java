@@ -117,9 +117,6 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
             jfx_node.setDecimalDigits(model_widget.propDecimalDigits().getValue());
             jfx_node.setIntegerDigits(model_widget.propIntegerDigits().getValue());
 
-//            jfx_node.setEditable(!toolkit.isEditMode() && enabled);
-//            jfx_node.getEditor().setCursor(enabled ? Cursor.DEFAULT : Cursors.NO_WRITE);
-
             jfx_node.setGraphicVisible(model_widget.propGraphicVisible().getValue());
             jfx_node.setScrollEnabled(model_widget.propScrollEnabled().getValue());
             jfx_node.setSpinnerShaped(model_widget.propSpinnerShaped().getValue());
