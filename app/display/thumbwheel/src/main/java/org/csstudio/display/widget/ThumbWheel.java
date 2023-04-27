@@ -129,9 +129,9 @@ public class ThumbWheel extends GridPane {
         if ( isScrollEnabled() ) {
             try {
                 if ( index >= 0 ) {
-                    if ( deltaY > 0 ) {
+                    if ( deltaY < 0 ) {
                         setValue(valueFormat.parse(valueFormat.format(getValue() + (double) integerDecrementButtons.get(index).getUserData())).doubleValue());
-                    } else {
+                    } else if (deltaY > 0) {
                         setValue(valueFormat.parse(valueFormat.format(getValue() + (double) integerIncrementButtons.get(index).getUserData())).doubleValue());
                     }
                 } else {
@@ -139,9 +139,9 @@ public class ThumbWheel extends GridPane {
                     index = decimalLabels.indexOf(event.getSource());
 
                     if ( index >= 0 ) {
-                        if ( deltaY > 0 ) {
+                        if ( deltaY < 0 ) {
                             setValue(valueFormat.parse(valueFormat.format(getValue() + (double) decimalDecrementButtons.get(index).getUserData())).doubleValue());
-                        } else {
+                        } else if (deltaY > 0) {
                             setValue(valueFormat.parse(valueFormat.format(getValue() + (double) decimalIncrementButtons.get(index).getUserData())).doubleValue());
                         }
                     }
