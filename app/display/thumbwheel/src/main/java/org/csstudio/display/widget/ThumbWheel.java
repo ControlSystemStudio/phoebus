@@ -173,10 +173,6 @@ public class ThumbWheel extends GridPane {
         }
     };
 
-    public ObjectProperty<Color> backgroundColorProperty() {
-        return backgroundColor;
-    }
-
     public Color getBackgroundColor() {
         return backgroundColor.get();
     }
@@ -204,10 +200,6 @@ public class ThumbWheel extends GridPane {
         }
     };
 
-    public ObjectProperty<Color> decrementButtonsColorProperty() {
-        return decrementButtonsColor;
-    }
-
     public Color getDecrementButtonsColor() {
         return decrementButtonsColor.get();
     }
@@ -222,25 +214,9 @@ public class ThumbWheel extends GridPane {
     private final IntegerProperty decimalDigits = new SimpleIntegerProperty(this, "decimalDigits", 2) {
         @Override
         protected void invalidated() {
-
-            int val = get();
-
-            if ( needsClamping(val, 0, Byte.MAX_VALUE) ) {
-
-                val = clamp(get(), 0, Byte.MAX_VALUE);
-
-                set(val);
-
-            } else {
-                update(true);
-            }
-
+            update(true);
         }
     };
-
-    public IntegerProperty decimalDigitsProperty() {
-        return decimalDigits;
-    }
 
     public int getDecimalDigits() {
         return decimalDigits.get();
@@ -263,10 +239,6 @@ public class ThumbWheel extends GridPane {
             }
         }
     };
-
-    public ObjectProperty<Color> foregroundColorProperty() {
-        return foregroundColor;
-    }
 
     public Color getForegroundColor() {
         return foregroundColor.get();
@@ -303,10 +275,6 @@ public class ThumbWheel extends GridPane {
         }
     };
 
-    public ObjectProperty<Font> fontProperty() {
-        return font;
-    }
-
     public Font getFont() {
         return font.get();
     }
@@ -331,10 +299,6 @@ public class ThumbWheel extends GridPane {
 
         }
     };
-
-    public BooleanProperty graphicVisibleProperty() {
-        return graphicVisible;
-    }
 
     public boolean isGraphicVisible() {
         return graphicVisible.get();
@@ -363,10 +327,6 @@ public class ThumbWheel extends GridPane {
         }
     };
 
-    public ObjectProperty<Color> incrementButtonsColorProperty() {
-        return incrementButtonsColor;
-    }
-
     public Color getIncrementButtonsColor() {
         return incrementButtonsColor.get();
     }
@@ -381,25 +341,9 @@ public class ThumbWheel extends GridPane {
     private final IntegerProperty integerDigits = new SimpleIntegerProperty(this, "integerDigits", 3) {
         @Override
         protected void invalidated() {
-
-            int val = get();
-
-            if ( needsClamping(val, 1, Byte.MAX_VALUE) ) {
-
-                val = clamp(get(), 1, Byte.MAX_VALUE);
-
-                set(val);
-
-            } else {
-                update(true);
-            }
-
+            update(true);
         }
     };
-
-    public IntegerProperty integerDigitsProperty() {
-        return integerDigits;
-    }
 
     public int getIntegerDigits() {
         return integerDigits.get();
@@ -419,16 +363,8 @@ public class ThumbWheel extends GridPane {
         }
     };
 
-    public ReadOnlyBooleanProperty invalidProperty() {
-        return invalid;
-    }
-
     public boolean isInvalid() {
         return invalid.get();
-    }
-
-    private void setInvalid( boolean invalid ) {
-        this.invalid.set(invalid);
     }
 
     /*
@@ -445,10 +381,6 @@ public class ThumbWheel extends GridPane {
         }
     };
 
-    public ObjectProperty<Color> invalidColorProperty() {
-        return invalidColor;
-    }
-
     public Color getInvalidColor() {
         return invalidColor.get();
     }
@@ -461,10 +393,6 @@ public class ThumbWheel extends GridPane {
      * ---- scrollEnabled ------------------------------------------------------
      */
     private final BooleanProperty scrollEnabled = new SimpleBooleanProperty(this, "scrollEnabled", false);
-
-    public BooleanProperty scrollEnabledProperty() {
-        return scrollEnabled;
-    }
 
     public boolean isScrollEnabled() {
         return scrollEnabled.get();
@@ -508,10 +436,6 @@ public class ThumbWheel extends GridPane {
         }
     };
 
-    public BooleanProperty spinnerShapedProperty() {
-        return spinnerShaped;
-    }
-
     public boolean isSpinnerShaped() {
         return spinnerShaped.get();
     }
@@ -530,10 +454,6 @@ public class ThumbWheel extends GridPane {
             double val = get();
         }
     };
-
-    public DoubleProperty valueProperty() {
-        return value;
-    }
 
     public double getValue() {
         return value.get();
@@ -561,46 +481,6 @@ public class ThumbWheel extends GridPane {
         integerLabels.stream().forEach(label -> label.setTextFill(color));
         decimalLabels.stream().forEach(label -> label.setTextFill(color));
 
-    }
-
-    /**
-     * Clamp the given {@code value} inside a range defined by the given minimum
-     * and maximum values.
-     *
-     * @param value The value to be clamped.
-     * @param min   The clamp range minimum value.
-     * @param max   The clamp range maximum value.
-     * @return {@code value} if it's inside the range, otherwise {@code min} if
-     *         {@code value} is below the range, or {@code max} if above the range.
-     */
-    private double clamp ( final double value, final double min, final double max ) {
-        if ( value < min ) {
-            return min;
-        } else if ( value > max ) {
-            return max;
-        } else {
-            return value;
-        }
-    }
-
-    /**
-     * Clamp the given {@code value} inside a range defined by the given minimum
-     * and maximum values.
-     *
-     * @param value The value to be clamped.
-     * @param min   The clamp range minimum value.
-     * @param max   The clamp range maximum value.
-     * @return {@code value} if it's inside the range, otherwise {@code min} if
-     *         {@code value} is below the range, or {@code max} if above the range.
-     */
-    private int clamp ( final int value, final int min, final int max ) {
-        if ( value < min ) {
-            return min;
-        } else if ( value > max ) {
-            return max;
-        } else {
-            return value;
-        }
     }
 
     /**
@@ -797,34 +677,6 @@ public class ThumbWheel extends GridPane {
 
         update(true);
 
-    }
-
-    /**
-     * Tell if the given {@code value} needs to be clamped into the range defined
-     * by the given minimum and maximum values.
-     *
-     * @param value The value to be tested.
-     * @param min   The clamp range minimum value.
-     * @param max   The clamp range maximum value.
-     * @return {@code false} if the given value is inside the range, {@code true}
-     *         if it needs to be clamped.
-     */
-    private boolean needsClamping ( final double value, final double min, final double max ) {
-        return ( value < min ||  value > max );
-    }
-
-    /**
-     * Tell if the given {@code value} needs to be clamped into the range defined
-     * by the given minimum and maximum values.
-     *
-     * @param value The value to be tested.
-     * @param min   The clamp range minimum value.
-     * @param max   The clamp range maximum value.
-     * @return {@code false} if the given value is inside the range, {@code true}
-     *         if it needs to be clamped.
-     */
-    private boolean needsClamping ( final int value, final int min, final int max ) {
-        return ( value < min ||  value > max );
     }
 
     /**
