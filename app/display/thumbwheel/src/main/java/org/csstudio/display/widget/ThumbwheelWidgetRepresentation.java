@@ -18,7 +18,6 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
     private final DirtyFlag dirty_style = new DirtyFlag();
     private final DirtyFlag dirty_enablement = new DirtyFlag();
     private final DirtyFlag dirty_value = new DirtyFlag();
-    private final DirtyFlag dirty_behavior = new DirtyFlag();
 
     private final UntypedWidgetPropertyListener styleListener = this::styleChanged;
     private final WidgetPropertyListener<Boolean> negativeNumbersChangedListener = this::negativeNumbersChanged;
