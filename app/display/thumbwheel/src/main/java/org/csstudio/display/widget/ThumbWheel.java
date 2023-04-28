@@ -549,11 +549,6 @@ public class ThumbWheel extends GridPane {
         if ( isSpinnerShaped() ) {
             button.getStyleClass().add(incrementButton ? "thumb-wheel-increment-spinner-button" : "thumb-wheel-decrement-spinner-button");
         }
-
-        if (isEditMode) {
-            button.setDisable(true);
-        }
-
         return button;
 
     }

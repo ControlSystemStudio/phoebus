@@ -1,5 +1,6 @@
 package org.csstudio.display.widget;
 
+import javafx.scene.layout.Region;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -33,6 +34,10 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
         final ThumbWheel thumbWheel = new ThumbWheel(toolkit.isEditMode(),
                                                      model_widget.propNegativeNumbers().getValue(),
                                                      this::writeValueToPV);
+        if (toolkit.isEditMode()) {
+            // A transparent "Region" covering the widget in edit mode prevents the buttons from being clickable in edit mode:
+            thumbWheel.add(new Region(),0, 0, thumbWheel.getColumnCount(), thumbWheel.getRowCount());
+        }
         return thumbWheel;
     }
 
