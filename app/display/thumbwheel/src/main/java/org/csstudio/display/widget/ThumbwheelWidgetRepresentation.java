@@ -31,8 +31,7 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
 
     @Override
     protected ThumbWheel createJFXNode() throws Exception {
-        final ThumbWheel thumbWheel = new ThumbWheel(toolkit.isEditMode(),
-                                                     model_widget.propNegativeNumbers().getValue(),
+        final ThumbWheel thumbWheel = new ThumbWheel(model_widget.propNegativeNumbers().getValue(),
                                                      this::writeValueToPV);
         if (toolkit.isEditMode()) {
             // A transparent "Region" covering the widget in edit mode prevents the buttons from being clickable in edit mode:

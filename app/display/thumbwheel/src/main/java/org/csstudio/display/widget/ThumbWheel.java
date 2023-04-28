@@ -65,16 +65,13 @@ import static javafx.scene.layout.Priority.SOMETIMES;
 @SuppressWarnings( "ClassWithoutLogger" )
 public class ThumbWheel extends GridPane {
 
-    public ThumbWheel(boolean isEditMode,
-                      boolean hasNegativeSign,
+    public ThumbWheel(boolean hasNegativeSign,
                       Consumer<Number> writeValueToPV) {
-        this.isEditMode = isEditMode;
         this.hasNegativeSign = hasNegativeSign;
         this.writeValueToPV = writeValueToPV;
         initialize();
     }
 
-    private boolean isEditMode;
     private Consumer<Number> writeValueToPV;
     private static final Color DEFAULT_DECREMENT_BUTTON_COLOR = Color.web("#d7d7ec");
     private static final Font DEFAULT_FONT = new Label().getFont();
