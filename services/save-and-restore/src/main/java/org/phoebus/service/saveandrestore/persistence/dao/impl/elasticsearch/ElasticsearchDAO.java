@@ -284,6 +284,11 @@ public class ElasticsearchDAO implements NodeDAO {
             throw new IllegalArgumentException("At least one unique node id not found.");
         }
 
+        // TODO: Remove when copy of composite snapshots is supported
+        if(sourceNodes.stream().filter(n -> n.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)).findFirst().isPresent()){
+            throw new IllegalArgumentException("Copy composite snapshot not supported");
+        }
+
         if (!isMoveOrCopyAllowed(sourceNodes, targetNode.get().getNode())) {
             throw new IllegalArgumentException("Prerequisites for copying source node(s) not met.");
         }

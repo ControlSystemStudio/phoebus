@@ -118,7 +118,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
             if (targetNode != null) {
                 List<Node> sourceNodes = (List<Node>) event.getDragboard().getContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT);
                 // If the drop target is contained in the selection, return silently...
-                if (!mayDrop(targetNode, sourceNodes)) {
+                if (!mayDrop(event.getTransferMode(), targetNode, sourceNodes)) {
                     return;
                 }
                 // If selection contains a snapshot or composite snapshot node, return silently...
@@ -131,13 +131,18 @@ public class BrowserTreeCell extends TreeCell<Node> {
         });
     }
 
-    private boolean mayDrop(Node targetNode, List<Node> sourceNodes) {
+    private boolean mayDrop(TransferMode transferMode, Node targetNode, List<Node> sourceNodes) {
         if (sourceNodes.contains(targetNode)) {
             return false;
         }
-        if (sourceNodes.stream().filter(n -> n.getNodeType().equals(NodeType.SNAPSHOT) ||
-                n.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)).findFirst().isEmpty()) {
-            return true;
+        if (sourceNodes.stream().filter(n -> n.getNodeType().equals(NodeType.SNAPSHOT)).findFirst().isEmpty()) {
+            // Composite snapshot (temporarily?) supports only move.
+            if(sourceNodes.stream().filter(n -> n.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)).findFirst().isPresent()) {
+                return transferMode.equals(TransferMode.MOVE);
+            }
+            else {
+                return true;
+            }
         }
         return false;
     }
