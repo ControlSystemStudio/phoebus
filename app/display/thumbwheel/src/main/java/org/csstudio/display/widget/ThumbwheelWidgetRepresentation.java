@@ -1,7 +1,6 @@
 package org.csstudio.display.widget;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
+import javafx.scene.layout.Region;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -9,7 +8,6 @@ import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.csstudio.display.builder.representation.javafx.widgets.RegionBaseRepresentation;
-import org.epics.vtype.Display;
 import org.epics.vtype.VType;
 
 import java.util.logging.Level;
@@ -21,23 +19,28 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
     private final DirtyFlag dirty_style = new DirtyFlag();
     private final DirtyFlag dirty_enablement = new DirtyFlag();
     private final DirtyFlag dirty_value = new DirtyFlag();
-    private final DirtyFlag dirty_behavior = new DirtyFlag();
 
     private final UntypedWidgetPropertyListener styleListener = this::styleChanged;
-    private final UntypedWidgetPropertyListener limitsChangedListener = this::limitsChanged;
+    private final WidgetPropertyListener<Boolean> negativeNumbersChangedListener = this::negativeNumbersChanged;
+    private final WidgetPropertyListener<Integer> widgetWidthChangedListener = this::widgetWidthChanged;
+    private final WidgetPropertyListener<Integer> widgetHeightChangedListener = this::widgetHeightChanged;
 
     private final WidgetPropertyListener<Boolean> enablementChangedListener = this::enablementChanged;
-    private final ChangeListener<Number> thumbwheelValueChangedListener = this::thumbwheelValueChanged;
     private final WidgetPropertyListener<VType> valueChangedListener = this::valueChanged;
 
     private volatile boolean enabled = false;
     private volatile double value = 0.0;
-    private volatile double min = ThumbwheelWidget.DEFAULT_MIN;
-    private volatile double max = ThumbwheelWidget.DEFAULT_MAX;
 
     @Override
     protected ThumbWheel createJFXNode() throws Exception {
-        final ThumbWheel thumbWheel = new ThumbWheel();
+        final ThumbWheel thumbWheel = new ThumbWheel(model_widget.propWidth().getValue(),
+                                                     model_widget.propHeight().getValue(),
+                                                     model_widget.propNegativeNumbers().getValue(),
+                                                     this::writeValueToPV);
+        if (toolkit.isEditMode()) {
+            // A transparent "Region" covering the widget in edit mode prevents the buttons from being clickable in edit mode:
+            thumbWheel.add(new Region(),0, 0, thumbWheel.getColumnCount(), thumbWheel.getRowCount());
+        }
         return thumbWheel;
     }
 
@@ -45,7 +48,9 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
     protected void registerListeners() {
         super.registerListeners();
         model_widget.propWidth().addUntypedPropertyListener(styleListener);
+        model_widget.propWidth().addPropertyListener(widgetWidthChangedListener);
         model_widget.propHeight().addUntypedPropertyListener(styleListener);
+        model_widget.propHeight().addPropertyListener(widgetHeightChangedListener);
 
         model_widget.propForegroundColor().addUntypedPropertyListener(styleListener);
         model_widget.propBackgroundColor().addUntypedPropertyListener(styleListener);
@@ -56,19 +61,14 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
         model_widget.propFont().addUntypedPropertyListener(styleListener);
         model_widget.propDecimalDigits().addUntypedPropertyListener(styleListener);
         model_widget.propIntegerDigits().addUntypedPropertyListener(styleListener);
-
-        model_widget.propMinimum().addUntypedPropertyListener(limitsChangedListener);
-        model_widget.propMaximum().addUntypedPropertyListener(limitsChangedListener);
-        model_widget.propLimitsFromPV().addUntypedPropertyListener(limitsChangedListener);
+        model_widget.propNegativeNumbers().addPropertyListener(negativeNumbersChangedListener);
 
         model_widget.propEnabled().addPropertyListener(enablementChangedListener);
         model_widget.runtimePropPVWritable().addPropertyListener(enablementChangedListener);
 
         model_widget.propGraphicVisible().addUntypedPropertyListener(styleListener);
-        model_widget.propScrollEnabled().addUntypedPropertyListener(styleListener);
         model_widget.propSpinnerShaped().addUntypedPropertyListener(styleListener);
 
-        jfx_node.valueProperty().addListener(thumbwheelValueChangedListener);
         model_widget.runtimePropValue().addPropertyListener(valueChangedListener);
 
         enablementChanged(null, null, null);
@@ -80,7 +80,9 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
         super.unregisterListeners();
 
         model_widget.propWidth().removePropertyListener(styleListener);
+        model_widget.propWidth().removePropertyListener(widgetWidthChangedListener);
         model_widget.propHeight().removePropertyListener(styleListener);
+        model_widget.propHeight().removePropertyListener(widgetHeightChangedListener);
 
         model_widget.propForegroundColor().removePropertyListener(styleListener);
         model_widget.propBackgroundColor().removePropertyListener(styleListener);
@@ -91,19 +93,14 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
         model_widget.propFont().removePropertyListener(styleListener);
         model_widget.propDecimalDigits().removePropertyListener(styleListener);
         model_widget.propIntegerDigits().removePropertyListener(styleListener);
-
-        model_widget.propMinimum().removePropertyListener(limitsChangedListener);
-        model_widget.propMaximum().removePropertyListener(limitsChangedListener);
-        model_widget.propLimitsFromPV().removePropertyListener(limitsChangedListener);
+        model_widget.propNegativeNumbers().removePropertyListener(negativeNumbersChangedListener);
 
         model_widget.propEnabled().removePropertyListener(enablementChangedListener);
         model_widget.runtimePropPVWritable().removePropertyListener(enablementChangedListener);
 
         model_widget.propGraphicVisible().removePropertyListener(styleListener);
-        model_widget.propScrollEnabled().removePropertyListener(styleListener);
         model_widget.propSpinnerShaped().removePropertyListener(styleListener);
 
-        jfx_node.valueProperty().removeListener(thumbwheelValueChangedListener);
         model_widget.runtimePropValue().removePropertyListener(valueChangedListener);
 
     }
@@ -129,18 +126,10 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
             jfx_node.setDecimalDigits(model_widget.propDecimalDigits().getValue());
             jfx_node.setIntegerDigits(model_widget.propIntegerDigits().getValue());
 
-//            jfx_node.setEditable(!toolkit.isEditMode() && enabled);
-//            jfx_node.getEditor().setCursor(enabled ? Cursor.DEFAULT : Cursors.NO_WRITE);
-
             jfx_node.setGraphicVisible(model_widget.propGraphicVisible().getValue());
-            jfx_node.setScrollEnabled(model_widget.propScrollEnabled().getValue());
             jfx_node.setSpinnerShaped(model_widget.propSpinnerShaped().getValue());
 
 
-        }
-        if(dirty_behavior.checkAndClear()) {
-            jfx_node.setMinValue(min);
-            jfx_node.setMaxValue(max);
         }
         // If the value has changed,
         // Then get the runtime value from the PV
@@ -156,9 +145,10 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
         toolkit.scheduleUpdate(this);
     }
 
-    // Thumbwheel value changes when the user interacts with it directly, such as
-    // incrementing or decrementing the values via buttons
-    private void thumbwheelValueChanged(final ObservableValue<? extends Number> property, final Number old_value, final Number new_value)
+    // Thumbwheel value is written to the PV when the user
+    // interacts with it directly, by incrementing or
+    // decrementing the values via buttons
+    private void writeValueToPV(final Number new_value)
     {
         toolkit.fireWrite(model_widget, new_value);
     }
@@ -166,11 +156,6 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
     // Value change is triggered when the PV value changes
     private void valueChanged(final WidgetProperty<? extends VType> property, final VType old_value, final VType new_value)
     {
-        // If the widget is getting limits from the PV, then they may have changed
-        if (model_widget.propLimitsFromPV().getValue()) {
-            limitsChanged(null, null, null);
-        }
-
         final VType vtype = model_widget.runtimePropValue().getValue();
         double newval = VTypeUtil.getValueNumber(vtype).doubleValue();
 
@@ -198,51 +183,16 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
         toolkit.scheduleUpdate(this);
     }
 
-    // Determine the new limits, and mark the behavior as changed
-    private void limitsChanged(WidgetProperty<?> widgetProperty, Object old_value, Object new_value) {
-
-        // Initialize to default values
-        double new_min = ThumbwheelWidget.DEFAULT_MIN;
-        double new_max = ThumbwheelWidget.DEFAULT_MAX;
-
-        // If the widget is using PV limits, attempt to use those values
-        if (model_widget.propLimitsFromPV().getValue()) {
-
-            // Try to get display range from PV
-            final Display display_info = Display.displayOf(model_widget.runtimePropValue().getValue());
-            if (display_info != null) {
-
-                // Should use the 'control' range but fall back to 'display' range
-                if (display_info.getControlRange().isFinite()) {
-                    new_min = display_info.getControlRange().getMinimum();
-                    new_max = display_info.getControlRange().getMaximum();
-                }
-                else {
-                    new_min = display_info.getDisplayRange().getMinimum();
-                    new_max = display_info.getDisplayRange().getMaximum();
-                }
-            }
-            // Else do nothing; use the defaults above.
-
-        }
-        // Else, use the limits defined on the widget
-        else {
-            new_min = model_widget.propMinimum().getValue();
-            new_max = model_widget.propMaximum().getValue();
-        }
-
-        // Finally, set the min and max if they've changed,
-        // and mark as having changed
-        if (Double.compare(min, new_min) != 0) {
-            min = new_min;
-            dirty_behavior.mark();
-        }
-        if (Double.compare(max, new_max) != 0) {
-            max = new_max;
-            dirty_behavior.mark();
-        }
-
+    private void negativeNumbersChanged(WidgetProperty<Boolean> widgetProperty, Boolean old_value, Boolean new_value) {
+        jfx_node.setHasNegativeSign(new_value);
+        jfx_node.update(true);
     }
 
+    private void widgetWidthChanged(WidgetProperty<Integer> widgetProperty, Integer old_value, Integer new_value) {
+        jfx_node.setWidgetWidth(new_value);
+    }
 
+    private void widgetHeightChanged(WidgetProperty<Integer> widgetProperty, Integer old_value, Integer new_value) {
+        jfx_node.setWidgetHeight(new_value);
+    }
 }

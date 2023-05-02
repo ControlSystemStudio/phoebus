@@ -21,7 +21,6 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -36,7 +35,6 @@ import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
@@ -65,15 +63,28 @@ import static javafx.scene.layout.Priority.SOMETIMES;
 @SuppressWarnings( "ClassWithoutLogger" )
 public class ThumbWheel extends GridPane {
 
+    public ThumbWheel(double widgetWidth,
+                      double widgetHeight,
+                      boolean hasNegativeSign,
+                      Consumer<Number> writeValueToPV) {
+        this.widgetWidth = widgetWidth;
+        this.widgetHeight = widgetHeight;
+        this.hasNegativeSign = hasNegativeSign;
+        this.writeValueToPV = writeValueToPV;
+        initialize();
+    }
+
+    private double widgetWidth;
+    private double widgetHeight;
+    private Consumer<Number> writeValueToPV;
     private static final Color DEFAULT_DECREMENT_BUTTON_COLOR = Color.web("#d7d7ec");
     private static final Font DEFAULT_FONT = new Label().getFont();
-    private static final double DEFAULT_HGAP = 2.0;
+    private static final double DEFAULT_MARGIN = 2.0;
     private static final Color DEFAULT_INCREMENT_BUTTON_COLOR = Color.web("#ecd7d7");
-    private static final char INVALID_MARK = '\u00D7';
+    private static final String INVALID_MARK = "\u00D7";
     private static final Logger LOGGER = Logger.getLogger(ThumbWheel.class.getName());
     private static final char SIGN_MARK = '\u2013';
     private static final char SIGN_SPACE = '\u2002';
-    private static final double SPINNER_HGAP = 0;
     private static final Consumer<? super Button> STYLE_CLASS_REMOVER = button -> {
         button.getStyleClass().remove("thumb-wheel-increment-spinner-button");
         button.getStyleClass().remove("thumb-wheel-decrement-spinner-button");
@@ -83,9 +94,12 @@ public class ThumbWheel extends GridPane {
     private final List<Button> decimalDecrementButtons = new ArrayList<>(3);
     private final List<Button> decimalIncrementButtons = new ArrayList<>(3);
     private final List<Label> decimalLabels = new ArrayList<>(2);
-    private double effectiveMax = 100;
-    private double effectiveMin = 0;
-    private boolean hasNegativeSign = false;
+    private boolean hasNegativeSign;
+
+    public void setHasNegativeSign(boolean hasNegativeSign) {
+        this.hasNegativeSign = hasNegativeSign;
+    }
+
     private boolean hasDotSeparator = true;
     private String integerRepresentation = "0";
     private final List<Button> integerDecrementButtons = new ArrayList<>(3);
@@ -100,43 +114,24 @@ public class ThumbWheel extends GridPane {
      */
     private final EventHandler<ActionEvent> buttonPressedHandler = event -> {
         try {
-            setValue(valueFormat.parse(valueFormat.format(getValue() + (double) ((Button) event.getSource()).getUserData())).doubleValue());
+            var new_value = valueFormat.parse(valueFormat.format(getValue() + (double) ((Button) event.getSource()).getUserData())).doubleValue();
+            writeValueToPV.accept(new_value);
         } catch ( ParseException ex ) {
-            LOGGER.throwing(ThumbWheel.class.getSimpleName(), "labelScrollHandler", ex);
+            LOGGER.throwing(ThumbWheel.class.getSimpleName(), "buttonPressedHandler", ex);
         }
     };
-    private final EventHandler<ScrollEvent> labelScrollHandler = event -> {
 
-        int index = integerLabels.indexOf(event.getSource());
-        double deltaY = event.getDeltaY();
+    protected void setWidgetWidth(Integer new_value) {
+        widgetWidth = new_value;
+        setMargins();
+        updateGraphics();
+    }
 
-        if ( isScrollEnabled() ) {
-            try {
-                if ( index >= 0 ) {
-                    if ( deltaY > 0 ) {
-                        setValue(valueFormat.parse(valueFormat.format(getValue() + (double) integerDecrementButtons.get(index).getUserData())).doubleValue());
-                    } else {
-                        setValue(valueFormat.parse(valueFormat.format(getValue() + (double) integerIncrementButtons.get(index).getUserData())).doubleValue());
-                    }
-                } else {
-
-                    index = decimalLabels.indexOf(event.getSource());
-
-                    if ( index >= 0 ) {
-                        if ( deltaY > 0 ) {
-                            setValue(valueFormat.parse(valueFormat.format(getValue() + (double) decimalDecrementButtons.get(index).getUserData())).doubleValue());
-                        } else {
-                            setValue(valueFormat.parse(valueFormat.format(getValue() + (double) decimalIncrementButtons.get(index).getUserData())).doubleValue());
-                        }
-                    }
-
-                }
-            } catch ( ParseException ex ) {
-                LOGGER.throwing(ThumbWheel.class.getSimpleName(), "labelScrollHandler", ex);
-            }
-        }
-
-    };
+    protected void setWidgetHeight(Integer new_value) {
+        widgetHeight = new_value;
+        setMargins();
+        updateGraphics();
+    }
 
     /*
      * ---- backgroundColor ----------------------------------------------------
@@ -156,10 +151,6 @@ public class ThumbWheel extends GridPane {
             }
         }
     };
-
-    public ObjectProperty<Color> backgroundColorProperty() {
-        return backgroundColor;
-    }
 
     public Color getBackgroundColor() {
         return backgroundColor.get();
@@ -188,10 +179,6 @@ public class ThumbWheel extends GridPane {
         }
     };
 
-    public ObjectProperty<Color> decrementButtonsColorProperty() {
-        return decrementButtonsColor;
-    }
-
     public Color getDecrementButtonsColor() {
         return decrementButtonsColor.get();
     }
@@ -206,25 +193,9 @@ public class ThumbWheel extends GridPane {
     private final IntegerProperty decimalDigits = new SimpleIntegerProperty(this, "decimalDigits", 2) {
         @Override
         protected void invalidated() {
-
-            int val = get();
-
-            if ( needsClamping(val, 0, Byte.MAX_VALUE) ) {
-
-                val = clamp(get(), 0, Byte.MAX_VALUE);
-
-                set(val);
-
-            } else {
-                update(true);
-            }
-
+            update(true);
         }
     };
-
-    public IntegerProperty decimalDigitsProperty() {
-        return decimalDigits;
-    }
 
     public int getDecimalDigits() {
         return decimalDigits.get();
@@ -247,10 +218,6 @@ public class ThumbWheel extends GridPane {
             }
         }
     };
-
-    public ObjectProperty<Color> foregroundColorProperty() {
-        return foregroundColor;
-    }
 
     public Color getForegroundColor() {
         return foregroundColor.get();
@@ -287,10 +254,6 @@ public class ThumbWheel extends GridPane {
         }
     };
 
-    public ObjectProperty<Font> fontProperty() {
-        return font;
-    }
-
     public Font getFont() {
         return font.get();
     }
@@ -307,18 +270,10 @@ public class ThumbWheel extends GridPane {
         protected void invalidated() {
 
             boolean gVisible = get();
-
-            integerIncrementButtons.stream().forEach(button -> button.setGraphic(gVisible ? createButtonGraphic(true) : null));
-            integerDecrementButtons.stream().forEach(button -> button.setGraphic(gVisible ? createButtonGraphic(false) : null));
-            decimalIncrementButtons.stream().forEach(button -> button.setGraphic(gVisible ? createButtonGraphic(true) : null));
-            decimalDecrementButtons.stream().forEach(button -> button.setGraphic(gVisible ? createButtonGraphic(false) : null));
+            updateGraphics();
 
         }
     };
-
-    public BooleanProperty graphicVisibleProperty() {
-        return graphicVisible;
-    }
 
     public boolean isGraphicVisible() {
         return graphicVisible.get();
@@ -326,6 +281,19 @@ public class ThumbWheel extends GridPane {
 
     public void setGraphicVisible( boolean graphicVisible ) {
         this.graphicVisible.set(graphicVisible);
+    }
+
+    public void updateGraphics() {
+        int iDigits = integerIncrementButtons.size();
+        int dDigits = decimalDecrementButtons.size();
+        double numberOfButtons = (iDigits + dDigits + (hasNegativeSign ? 0.5 : 0) + (hasDotSeparator ? 0.5 : 0));
+        double buttonWidgetWidthFraction = numberOfButtons != 0 ? 1.0 / numberOfButtons : 1.0;
+        double buttonWidgetHeightFraction = 0.25;
+
+        integerIncrementButtons.stream().forEach(button -> button.setGraphic(isGraphicVisible() ? createButtonGraphic(true, widgetWidth * buttonWidgetWidthFraction, widgetHeight * buttonWidgetHeightFraction) : null));
+        integerDecrementButtons.stream().forEach(button -> button.setGraphic(isGraphicVisible() ? createButtonGraphic(false, widgetWidth * buttonWidgetWidthFraction, widgetHeight * buttonWidgetHeightFraction) : null));
+        decimalIncrementButtons.stream().forEach(button -> button.setGraphic(isGraphicVisible() ? createButtonGraphic(true, widgetWidth * buttonWidgetWidthFraction, widgetHeight * buttonWidgetHeightFraction) : null));
+        decimalDecrementButtons.stream().forEach(button -> button.setGraphic(isGraphicVisible() ? createButtonGraphic(false, widgetWidth * buttonWidgetWidthFraction, widgetHeight * buttonWidgetHeightFraction) : null));
     }
 
     /*
@@ -347,10 +315,6 @@ public class ThumbWheel extends GridPane {
         }
     };
 
-    public ObjectProperty<Color> incrementButtonsColorProperty() {
-        return incrementButtonsColor;
-    }
-
     public Color getIncrementButtonsColor() {
         return incrementButtonsColor.get();
     }
@@ -365,25 +329,9 @@ public class ThumbWheel extends GridPane {
     private final IntegerProperty integerDigits = new SimpleIntegerProperty(this, "integerDigits", 3) {
         @Override
         protected void invalidated() {
-
-            int val = get();
-
-            if ( needsClamping(val, 1, Byte.MAX_VALUE) ) {
-
-                val = clamp(get(), 1, Byte.MAX_VALUE);
-
-                set(val);
-
-            } else {
-                update(true);
-            }
-
+            update(true);
         }
     };
-
-    public IntegerProperty integerDigitsProperty() {
-        return integerDigits;
-    }
 
     public int getIntegerDigits() {
         return integerDigits.get();
@@ -403,16 +351,8 @@ public class ThumbWheel extends GridPane {
         }
     };
 
-    public ReadOnlyBooleanProperty invalidProperty() {
-        return invalid;
-    }
-
     public boolean isInvalid() {
         return invalid.get();
-    }
-
-    private void setInvalid( boolean invalid ) {
-        this.invalid.set(invalid);
     }
 
     /*
@@ -429,119 +369,12 @@ public class ThumbWheel extends GridPane {
         }
     };
 
-    public ObjectProperty<Color> invalidColorProperty() {
-        return invalidColor;
-    }
-
     public Color getInvalidColor() {
         return invalidColor.get();
     }
 
     public void setInvalidColor( Color invalidColor ) {
         this.invalidColor.set(invalidColor);
-    }
-
-    /*
-     * ---- maxValue -----------------------------------------------------------
-     */
-    private final DoubleProperty maxValue = new SimpleDoubleProperty(this, "maxValue", effectiveMax) {
-        @Override
-        protected void invalidated() {
-
-            double val = get();
-            double min = getMinValue();
-
-            if ( needsClamping(val, min, Double.MAX_VALUE) ) {
-
-                val = clamp(val, min, Double.MAX_VALUE);
-
-                set(val);
-
-            } else {
-
-                double cur = getValue();
-
-                if ( needsClamping(cur, min, val) ) {
-                    setValue(clamp(cur, min, val));
-                } else {
-                    update(false);
-                }
-
-            }
-
-        }
-    };
-
-    public DoubleProperty maxValueProperty() {
-        return maxValue;
-    }
-
-    public double getMaxValue() {
-        return maxValue.get();
-    }
-
-    public void setMaxValue( double maxValue ) {
-        this.maxValue.set(maxValue);
-    }
-
-    /*
-     * ---- minValue -----------------------------------------------------------
-     */
-    private final DoubleProperty minValue = new SimpleDoubleProperty(this, "minValue", effectiveMin) {
-        @Override
-        protected void invalidated() {
-
-            double val = get();
-            double max = getMaxValue();
-
-            if ( needsClamping(val, - Double.MAX_VALUE, max) ) {
-
-                val = clamp(val, - Double.MAX_VALUE, max);
-
-                set(val);
-
-            } else {
-
-                double cur = getValue();
-
-                if ( needsClamping(cur, val, max) ) {
-                    setValue(clamp(cur, val, max));
-                } else {
-                    update(true);
-                }
-
-            }
-
-        }
-    };
-
-    public DoubleProperty minValueProperty() {
-        return minValue;
-    }
-
-    public double getMinValue() {
-        return minValue.get();
-    }
-
-    public void setMinValue( double minValue ) {
-        this.minValue.set(minValue);
-    }
-
-    /*
-     * ---- scrollEnabled ------------------------------------------------------
-     */
-    private final BooleanProperty scrollEnabled = new SimpleBooleanProperty(this, "scrollEnabled", false);
-
-    public BooleanProperty scrollEnabledProperty() {
-        return scrollEnabled;
-    }
-
-    public boolean isScrollEnabled() {
-        return scrollEnabled.get();
-    }
-
-    public void setScrollEnabled( boolean scrollEnabled ) {
-        this.scrollEnabled.set(scrollEnabled);
     }
 
     /*
@@ -559,28 +392,16 @@ public class ThumbWheel extends GridPane {
             decimalDecrementButtons.stream().forEach(STYLE_CLASS_REMOVER);
 
             if ( sShaped ) {
-                setHgap(SPINNER_HGAP);
                 integerIncrementButtons.stream().forEach(button -> button.getStyleClass().add("thumb-wheel-increment-spinner-button"));
                 integerDecrementButtons.stream().forEach(button -> button.getStyleClass().add("thumb-wheel-decrement-spinner-button"));
                 decimalIncrementButtons.stream().forEach(button -> button.getStyleClass().add("thumb-wheel-increment-spinner-button"));
                 decimalDecrementButtons.stream().forEach(button -> button.getStyleClass().add("thumb-wheel-decrement-spinner-button"));
-            } else {
-                setHgap(DEFAULT_HGAP);
             }
 
-            if ( isGraphicVisible() ) {
-                integerIncrementButtons.stream().forEach(button -> button.setGraphic(createButtonGraphic(true)));
-                integerDecrementButtons.stream().forEach(button -> button.setGraphic(createButtonGraphic(false)));
-                decimalIncrementButtons.stream().forEach(button -> button.setGraphic(createButtonGraphic(true)));
-                decimalDecrementButtons.stream().forEach(button -> button.setGraphic(createButtonGraphic(false)));
-            }
+            updateGraphics();
 
         }
     };
-
-    public BooleanProperty spinnerShapedProperty() {
-        return spinnerShaped;
-    }
 
     public boolean isSpinnerShaped() {
         return spinnerShaped.get();
@@ -596,27 +417,10 @@ public class ThumbWheel extends GridPane {
     private final DoubleProperty value = new SimpleDoubleProperty(this, "value", 0) {
         @Override
         protected void invalidated() {
-
+            updateValue();
             double val = get();
-            double min = getMinValue();
-            double max = getMaxValue();
-
-            if ( needsClamping(val, min, max) ) {
-
-                val = clamp(val, min, max);
-
-                set(val);
-
-            } else {
-                updateValue();
-            }
-
         }
     };
-
-    public DoubleProperty valueProperty() {
-        return value;
-    }
 
     public double getValue() {
         return value.get();
@@ -624,13 +428,6 @@ public class ThumbWheel extends GridPane {
 
     public void setValue( double currentValue ) {
         this.value.set(currentValue);
-    }
-
-    /*
-     * ---- instance initializer -----------------------------------------------
-     */
-    {
-        initialize();
     }
 
     /**
@@ -651,46 +448,6 @@ public class ThumbWheel extends GridPane {
         integerLabels.stream().forEach(label -> label.setTextFill(color));
         decimalLabels.stream().forEach(label -> label.setTextFill(color));
 
-    }
-
-    /**
-     * Clamp the given {@code value} inside a range defined by the given minimum
-     * and maximum values.
-     *
-     * @param value The value to be clamped.
-     * @param min   The clamp range minimum value.
-     * @param max   The clamp range maximum value.
-     * @return {@code value} if it's inside the range, otherwise {@code min} if
-     *         {@code value} is below the range, or {@code max} if above the range.
-     */
-    private double clamp ( final double value, final double min, final double max ) {
-        if ( value < min ) {
-            return min;
-        } else if ( value > max ) {
-            return max;
-        } else {
-            return value;
-        }
-    }
-
-    /**
-     * Clamp the given {@code value} inside a range defined by the given minimum
-     * and maximum values.
-     *
-     * @param value The value to be clamped.
-     * @param min   The clamp range minimum value.
-     * @param max   The clamp range maximum value.
-     * @return {@code value} if it's inside the range, otherwise {@code min} if
-     *         {@code value} is below the range, or {@code max} if above the range.
-     */
-    private int clamp ( final int value, final int min, final int max ) {
-        if ( value < min ) {
-            return min;
-        } else if ( value > max ) {
-            return max;
-        } else {
-            return value;
-        }
     }
 
     /**
@@ -726,13 +483,12 @@ public class ThumbWheel extends GridPane {
      * Return a configured {@link Button}, taking it from the given {@code pool}
      * or creating it from scratch.
      *
-     * @param incrementButton {@code true} if the {@link Button} is for increment.
      * @param color           The button {@link Color}.
      * @param valueOffset     The value to be added to current value.
      * @param pool            The pool of already existing {@link Button}s to be recycled.
      * @return A configured {@link Button}.
      */
-    private Button createButton( boolean incrementButton, Color color, double valueOffset, Stack<Button> pool ) {
+    private Button createButton(Color color, double valueOffset, Stack<Button> pool ) {
 
         Button button;
 
@@ -752,16 +508,10 @@ public class ThumbWheel extends GridPane {
         button.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         button.setStyle(createColorStyle("-fx-base", color));
         button.setUserData(valueOffset);
-        button.setGraphic(isGraphicVisible() ? createButtonGraphic(incrementButton) : null);
         button.getStyleClass().remove("thumb-wheel-increment-spinner-button");
         button.getStyleClass().remove("thumb-wheel-decrement-spinner-button");
 
-        if ( isSpinnerShaped() ) {
-            button.getStyleClass().add(incrementButton ? "thumb-wheel-increment-spinner-button" : "thumb-wheel-decrement-spinner-button");
-        }
-
         return button;
-
     }
 
     /**
@@ -770,29 +520,33 @@ public class ThumbWheel extends GridPane {
      * @param incrementButton {@code true} if the {@link Button} is for increment.
      * @return A proper mark {@code node}.
      */
-    private Node createButtonGraphic ( boolean incrementButton ) {
+    private Node createButtonGraphic (boolean incrementButton, double buttonWidth, double buttonHeight) {
 
         Region node = new Region();
 
         node.setMinSize(USE_PREF_SIZE, USE_PREF_SIZE);
         node.setMaxSize(USE_PREF_SIZE, USE_PREF_SIZE);
 
-        if ( isSpinnerShaped() ) {
+        double buttonSize = Math.min(buttonWidth, buttonHeight);
+        // If the buttons are perfectly square, the graphics-width and -height are 1/3 of the buttons' width and height;
+        // if the buttons are not square, the graphics-width and -height tend towards 2/3 of the buttons' width and height
+        // as the buttons' width and height tend toward a less and less balanced ratio:
+        double graphicsProportion = ((buttonWidth + buttonHeight) / (3.0 * Math.abs(buttonWidth - buttonHeight) + (buttonWidth + buttonHeight))) * ((1.0 / 3.0) + (3.0 * Math.abs(buttonWidth - buttonHeight) / (buttonWidth + buttonHeight)) * (2.0 / 3.0));
 
-            node.setPrefSize(9, 5);
-
-            if ( incrementButton ) {
+        if (isSpinnerShaped()) {
+            node.setPrefSize(buttonSize * graphicsProportion, buttonSize * graphicsProportion);
+            if (incrementButton) {
                 node.getStyleClass().add("thumb-wheel-increment-arrow");
             } else {
                 node.getStyleClass().add("thumb-wheel-decrement-arrow");
             }
 
         } else {
-            if ( incrementButton ) {
-                node.setPrefSize(5, 5);
+            if (incrementButton) {
+                node.setPrefSize(buttonSize * graphicsProportion, buttonSize * graphicsProportion);
                 node.getStyleClass().add("thumb-wheel-increment-mark");
             } else {
-                node.setPrefSize(5, 2);
+                node.setPrefSize(buttonSize * graphicsProportion, (2.0/5.0) * buttonSize * graphicsProportion);
                 node.getStyleClass().add("thumb-wheel-decrement-mark");
             }
         }
@@ -845,8 +599,6 @@ public class ThumbWheel extends GridPane {
 
             label = new Label();
 
-            label.setOnScroll(labelScrollHandler);
-
         } else {
             label = pool.pop();
         }
@@ -872,8 +624,7 @@ public class ThumbWheel extends GridPane {
         getStyleClass().add("thumb-wheel");
         setStyle(createColorStyle("-se-thumbwheel-inner-background", getBackgroundColor()));
 
-        setHgap(isSpinnerShaped() ? SPINNER_HGAP : DEFAULT_HGAP);
-        setPadding(new Insets(3));
+        setMargins();
 
         ObservableList<RowConstraints> rowConstraints = getRowConstraints();
 
@@ -885,32 +636,13 @@ public class ThumbWheel extends GridPane {
 
     }
 
-    /**
-     * Tell if the given {@code value} needs to be clamped into the range defined
-     * by the given minimum and maximum values.
-     *
-     * @param value The value to be tested.
-     * @param min   The clamp range minimum value.
-     * @param max   The clamp range maximum value.
-     * @return {@code false} if the given value is inside the range, {@code true}
-     *         if it needs to be clamped.
-     */
-    private boolean needsClamping ( final double value, final double min, final double max ) {
-        return ( value < min ||  value > max );
-    }
+    private void setMargins() {
+        double widgetDimension = Math.min(widgetWidth, widgetHeight);
+        double margin = Math.max(DEFAULT_MARGIN, 0.01 * widgetDimension);
 
-    /**
-     * Tell if the given {@code value} needs to be clamped into the range defined
-     * by the given minimum and maximum values.
-     *
-     * @param value The value to be tested.
-     * @param min   The clamp range minimum value.
-     * @param max   The clamp range maximum value.
-     * @return {@code false} if the given value is inside the range, {@code true}
-     *         if it needs to be clamped.
-     */
-    private boolean needsClamping ( final int value, final int min, final int max ) {
-        return ( value < min ||  value > max );
+        setHgap(margin);
+        setVgap(margin);
+        setPadding(new Insets(margin + 1));
     }
 
     /**
@@ -918,7 +650,7 @@ public class ThumbWheel extends GridPane {
      *
      * @param updateChildren {@code true} if the children must be updated too.
      */
-    private void update( boolean updateChildren ) {
+    protected void update( boolean updateChildren ) {
 
         int iDigits = getIntegerDigits();
         int dDigits = getDecimalDigits();
@@ -950,47 +682,6 @@ public class ThumbWheel extends GridPane {
 
         valueFormat = new DecimalFormat(format);
 
-        double min = getMinValue();
-        double max = getMaxValue();
-
-        hasNegativeSign = ( min < 0 );
-
-        double eMax = Double.parseDouble(extremaBuilder.toString());
-
-        effectiveMax = Math.min(max, eMax);
-
-        double eMin = hasNegativeSign ? -eMax : 0;
-
-        effectiveMin = Math.max(min, eMin);
-
-//        LOGGER.info(MessageFormat.format(
-//            "Something updated"
-//                + "\n         Value: {0,number,###############0.###############}"
-//                + "\n           Min: {1,number,###############0.###############}"
-//                + "\n           Max: {2,number,###############0.###############}"
-//                + "\nInteger Digits: {3,number,###############0}"
-//                + "\nDecimal Digits: {4,number,###############0}"
-//                + "\n Negative Sign: {5}"
-//                + "\n Dot Separator: {6}"
-//                + "\n        Format: {7}"
-//                + "\n Effective Min: {8,number,###############0.###############}"
-//                + "\n Effective Max: {9,number,###############0.###############}"
-//                + "\nInteger String: {10}"
-//                + "\nDecimal String: {11}",
-//            getValue(),
-//            min,
-//            max,
-//            iDigits,
-//            dDigits,
-//            hasNegativeSign,
-//            hasDotSeparator,
-//            format,
-//            effectiveMin,
-//            effectiveMax,
-//            integerRepresentation,
-//            decimalRepresentation
-//        ));
-
         if ( updateChildren ) {
             updateLayout();
         }
@@ -1007,7 +698,7 @@ public class ThumbWheel extends GridPane {
         //
         Stack<Label> labelsPool = new Stack<>();
 
-        if ( signLabel != null ) {
+        if (signLabel != null) {
 
             labelsPool.add(signLabel);
 
@@ -1015,7 +706,7 @@ public class ThumbWheel extends GridPane {
 
         }
 
-        if ( separatorLabel != null ) {
+        if (separatorLabel != null) {
 
             labelsPool.add(separatorLabel);
 
@@ -1058,10 +749,10 @@ public class ThumbWheel extends GridPane {
         //
         int iDigits = getIntegerDigits();
         int dDigits = getDecimalDigits();
-        double digitPercentWidth = 100.0 / ( iDigits + dDigits + ( hasNegativeSign ? .5 : 0) + ( hasDotSeparator ? .5 : 0));
+        double digitPercentWidth = 100.0 / (iDigits + dDigits + (hasNegativeSign ? .5 : 0) + (hasDotSeparator ? .5 : 0));
         int columnIndex = 0;
 
-        if ( hasNegativeSign ) {
+        if (hasNegativeSign) {
 
             signLabel = createLabel(SIGN_SPACE, labelsPool);
 
@@ -1070,12 +761,12 @@ public class ThumbWheel extends GridPane {
 
         }
 
-        for ( int i = 0; i < iDigits; i++ ) {
+        for (int i = 0; i < iDigits; i++) {
 
             double valueOffset = Math.pow(10, iDigits - i - 1);
-            Button iButton = createButton(true, getIncrementButtonsColor(), valueOffset, buttonsPool);
+            Button iButton = createButton(getIncrementButtonsColor(), valueOffset, buttonsPool);
             Label label = createLabel('0', labelsPool);
-            Button dButton = createButton(false, getDecrementButtonsColor(), - valueOffset, buttonsPool);
+            Button dButton = createButton(getDecrementButtonsColor(), -valueOffset, buttonsPool);
 
             integerIncrementButtons.add(iButton);
             integerLabels.add(label);
@@ -1086,23 +777,27 @@ public class ThumbWheel extends GridPane {
             add(label, columnIndex, 1);
             add(dButton, columnIndex, 2);
 
-            columnIndex++;
+            if (isSpinnerShaped()) {
+                iButton.getStyleClass().add(true ? "thumb-wheel-increment-spinner-button" : "thumb-wheel-decrement-spinner-button");
+                dButton.getStyleClass().add(false ? "thumb-wheel-increment-spinner-button" : "thumb-wheel-decrement-spinner-button");
+            }
 
+            columnIndex++;
         }
 
-        if ( hasDotSeparator ) {
+        if (hasDotSeparator) {
 
             separatorLabel = createLabel(valueFormat.getDecimalFormatSymbols().getDecimalSeparator(), labelsPool);
 
             columnConstraints.add(createColumnConstraints(SOMETIMES, -1));
             add(separatorLabel, columnIndex++, 1);
 
-            for ( int i = 0; i < dDigits; i++ ) {
+            for (int i = 0; i < dDigits; i++) {
 
-                double valueOffset = Math.pow(10, - i - 1);
-                Button iButton = createButton(true, getIncrementButtonsColor(), valueOffset, buttonsPool);
+                double valueOffset = Math.pow(10, -i - 1);
+                Button iButton = createButton(getIncrementButtonsColor(), valueOffset, buttonsPool);
                 Label label = createLabel('0', labelsPool);
-                Button dButton = createButton(false, getDecrementButtonsColor(), - valueOffset, buttonsPool);
+                Button dButton = createButton(getDecrementButtonsColor(), -valueOffset, buttonsPool);
 
                 decimalIncrementButtons.add(iButton);
                 decimalLabels.add(label);
@@ -1113,11 +808,18 @@ public class ThumbWheel extends GridPane {
                 add(label, columnIndex, 1);
                 add(dButton, columnIndex, 2);
 
+                if (isSpinnerShaped()) {
+                    iButton.getStyleClass().add(true ? "thumb-wheel-increment-spinner-button" : "thumb-wheel-decrement-spinner-button");
+                    dButton.getStyleClass().add(false ? "thumb-wheel-increment-spinner-button" : "thumb-wheel-decrement-spinner-button");
+                }
+
                 columnIndex++;
 
             }
 
         }
+
+        updateGraphics();
 
     }
 
@@ -1129,74 +831,69 @@ public class ThumbWheel extends GridPane {
         double val = getValue();
         int iDigits = getIntegerDigits();
         int dDigits = getDecimalDigits();
-        StringBuilder builder = new StringBuilder(iDigits + 1 + dDigits);
 
-        setInvalid(val > effectiveMax || val < effectiveMin);
+        try {
 
-        if ( isInvalid() ) {
+            double fValue = valueFormat.parse(valueFormat.format(val)).doubleValue();
+            String sValue = valueFormat.format(Math.abs(fValue));
 
-            builder = new StringBuilder(iDigits);
-
-            for ( int i = 0; i < iDigits; i++ ) {
-                builder.append(INVALID_MARK);
-            }
-
-            integerRepresentation = builder.toString();
 
             if ( hasDotSeparator ) {
 
-                builder = new StringBuilder(dDigits);
+                int dotIndex = sValue.indexOf(valueFormat.getDecimalFormatSymbols().getDecimalSeparator());
 
-                for ( int i = 0; i < dDigits; i++ ) {
-                    builder.append(INVALID_MARK);
-                }
-
-                decimalRepresentation = builder.toString();
+                integerRepresentation = sValue.substring(0, dotIndex);
+                decimalRepresentation = sValue .substring(1 + dotIndex);
 
             } else {
+                integerRepresentation = sValue;
                 decimalRepresentation = "";
             }
 
-        } else {
-
-            try {
-
-                double fValue = valueFormat.parse(valueFormat.format(val)).doubleValue();
-                String sValue = valueFormat.format(Math.abs(fValue));
-
-                if ( hasDotSeparator ) {
-
-                    int dotIndex = sValue.indexOf(valueFormat.getDecimalFormatSymbols().getDecimalSeparator());
-
-                    integerRepresentation = sValue.substring(0, dotIndex);
-                    decimalRepresentation = sValue .substring(1 + dotIndex);
-
-                } else {
-                    integerRepresentation = sValue;
-                    decimalRepresentation = "";
-                }
-
-            } catch ( ParseException ex ) {
-                LOGGER.throwing(ThumbWheel.class.getSimpleName(), "updateValue", ex);
-            }
-
+        } catch ( ParseException ex ) {
+            LOGGER.throwing(ThumbWheel.class.getSimpleName(), "updateValue", ex);
         }
 
         //  --------------------------------------------------------------------
         //  Update labels.
         //
-        if ( hasNegativeSign ) {
-            signLabel.setText(String.valueOf(( val < 0 ) ? SIGN_MARK : SIGN_SPACE));
-        }
 
-        for ( int i = 0; i < iDigits; i++ ) {
-            integerLabels.get(i).setText(String.valueOf(integerRepresentation.charAt(i)));
-        }
+        if (integerRepresentation.length() > integerLabels.size() || (!hasNegativeSign && val < 0)) {
+            // Value cannot be represented:
+            if (hasNegativeSign) {
+                signLabel.setTextFill(invalidColor.getValue());
+                signLabel.setText(String.valueOf(( val < 0 ) ? SIGN_MARK : SIGN_SPACE));
+            }
 
-        for ( int i = 0; i < dDigits; i++ ) {
-            decimalLabels.get(i).setText(String.valueOf(decimalRepresentation.charAt(i)));
-        }
+            for (int i = 0; i < iDigits; i++) {
+                Label integerLabel = integerLabels.get(i);
+                integerLabel.setTextFill(invalidColor.get());
+                integerLabel.setText(INVALID_MARK);
+            }
 
+            for (int i = 0; i < dDigits; i++) {
+                Label decimalLabel = decimalLabels.get(i);
+                decimalLabel.setTextFill(invalidColor.getValue());
+                decimalLabel.setText(INVALID_MARK);
+            }
+        }
+        else {
+            if ( hasNegativeSign ) {
+                signLabel.setTextFill(foregroundColor.getValue());
+                signLabel.setText(String.valueOf(( val < 0 ) ? SIGN_MARK : SIGN_SPACE));
+            }
+
+            for ( int i = 0; i < iDigits; i++ ) {
+                Label integerLabel = integerLabels.get(i);
+                integerLabel.setTextFill(foregroundColor.getValue());
+                integerLabel.setText(String.valueOf(integerRepresentation.charAt(i)));
+            }
+
+            for ( int i = 0; i < dDigits; i++ ) {
+                Label decimalLabel = decimalLabels.get(i);
+                decimalLabel.setTextFill(foregroundColor.getValue());
+                decimalLabel.setText(String.valueOf(decimalRepresentation.charAt(i)));
+            }
+        }
     }
-
 }

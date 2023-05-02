@@ -9,7 +9,9 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
+import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
+import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
@@ -28,9 +30,6 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propEnabled;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLimitsFromPV;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMaximum;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMinimum;
 
 public class ThumbwheelWidget extends WritablePVWidget {
 
@@ -55,16 +54,9 @@ public class ThumbwheelWidget extends WritablePVWidget {
     public static final WidgetPropertyDescriptor<Boolean> propGraphicVisible = newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "graphic_visible", "Graphic Visible");
     public static final WidgetPropertyDescriptor<Integer> propIntegerDigits = newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "integer_digits", "Integer Digits");
     public static final WidgetPropertyDescriptor<Integer> propDecimalDigits = newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "decimal_digits", "Decimal Digits");
+    public static final WidgetPropertyDescriptor<Boolean> propNegativeNumbers = newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "negative_numbers", "Enable Negative Numbers");
     public static final WidgetPropertyDescriptor<WidgetColor> propInvalidColor = newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "invalid_color", "Invalid Color");
-    public static final WidgetPropertyDescriptor<Boolean> propScrollEnabled = newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "scroll_enabled", "Scroll Enabled");
     public static final WidgetPropertyDescriptor<Boolean> propSpinnerShaped = newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "spinner_shaped", "Spinner Shaped");
-
-    public static final WidgetColor THUMBWHEEL_BACKGROUND_COLOR = new WidgetColor(26, 26, 26);
-    public static final WidgetColor THUMBWHEEL_FOREGROUND_COLOR = new WidgetColor(242, 242, 242);
-    public static final WidgetColor THUMBWHEEL_BUTTON_COLOR = new WidgetColor(0, 0, 0);
-    public static final WidgetColor THUMBWHEEL_INVALID_COLOR = new WidgetColor(255, 0, 0);
-    public static final double DEFAULT_MIN = 0.0;
-    public static final double DEFAULT_MAX = 100.0;
 
     private volatile WidgetProperty<WidgetColor> background;
     private volatile WidgetProperty<WidgetColor> foreground;
@@ -72,14 +64,11 @@ public class ThumbwheelWidget extends WritablePVWidget {
     private volatile WidgetProperty<WidgetColor> decrement_color;
     private volatile WidgetProperty<Integer> integer_digits;
     private volatile WidgetProperty<Integer> decimal_digits;
+    private volatile WidgetProperty<Boolean> negative_numbers;
     private volatile WidgetProperty<WidgetFont> font;
     private volatile WidgetProperty<Boolean> enabled;
     private volatile WidgetProperty<Boolean> graphic_visible;
     private volatile WidgetProperty<WidgetColor> invalid_color;
-    private volatile WidgetProperty<Double> minimum;
-    private volatile WidgetProperty<Double> maximum;
-    private volatile WidgetProperty<Boolean> limits_from_pv;
-    private volatile WidgetProperty<Boolean> scroll_enabled;
     private volatile WidgetProperty<Boolean> spinner_shaped;
 
     public ThumbwheelWidget()
@@ -90,23 +79,20 @@ public class ThumbwheelWidget extends WritablePVWidget {
     @Override
     protected void defineProperties(List<WidgetProperty<?>> properties) {
         super.defineProperties(properties);
-        properties.add(background = propBackgroundColor.createProperty(this, THUMBWHEEL_BACKGROUND_COLOR));
-        properties.add(foreground = propForegroundColor.createProperty(this, THUMBWHEEL_FOREGROUND_COLOR));
-        properties.add(increment_color = propIncrementColor.createProperty(this, THUMBWHEEL_BUTTON_COLOR));
-        properties.add(decrement_color = propDecrementColor.createProperty(this, THUMBWHEEL_BUTTON_COLOR));
-        properties.add(invalid_color = propInvalidColor.createProperty(this, THUMBWHEEL_INVALID_COLOR));
+        properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.WRITE_BACKGROUND)));
+        properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
+        properties.add(increment_color = propIncrementColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BUTTON_BACKGROUND)));
+        properties.add(decrement_color = propDecrementColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BUTTON_BACKGROUND)));
+        properties.add(invalid_color = propInvalidColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.ALARM_INVALID)));
 
         properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(decimal_digits = propDecimalDigits.createProperty(this, 2));
         properties.add(integer_digits = propIntegerDigits.createProperty(this, 3));
-        properties.add(minimum = propMinimum.createProperty(this, DEFAULT_MIN));
-        properties.add(maximum = propMaximum.createProperty(this, DEFAULT_MAX));
+        properties.add(negative_numbers = propNegativeNumbers.createProperty(this, true));
 
         properties.add(enabled = propEnabled.createProperty(this, true));
         properties.add(graphic_visible = propGraphicVisible.createProperty(this, true));
-        properties.add(scroll_enabled = propScrollEnabled.createProperty(this, false));
         properties.add(spinner_shaped = propSpinnerShaped.createProperty(this, false));
-        properties.add(limits_from_pv = propLimitsFromPV.createProperty(this, true));
     }
 
     /** @return 'background_color' property */
@@ -145,6 +131,11 @@ public class ThumbwheelWidget extends WritablePVWidget {
         return decimal_digits;
     }
 
+    /** @return 'negative_numbers' property */
+    public WidgetProperty<Boolean> propNegativeNumbers() {
+        return negative_numbers;
+    }
+
     /** @return 'font' property */
     public WidgetProperty<WidgetFont> propFont()
     {
@@ -169,31 +160,7 @@ public class ThumbwheelWidget extends WritablePVWidget {
         return invalid_color;
     }
 
-    /** @return 'minimum' property */
-    public WidgetProperty<Double> propMinimum()
-    {
-        return minimum;
-    }
-
-    /** @return 'maximum' property */
-    public WidgetProperty<Double> propMaximum()
-    {
-        return maximum;
-    }
-
-    /** @return 'limits_from_pv' property */
-    public WidgetProperty<Boolean> propLimitsFromPV()
-    {
-        return limits_from_pv;
-    }
-
-    /** @return 'enabled' property */
-    public WidgetProperty<Boolean> propScrollEnabled()
-    {
-        return scroll_enabled;
-    }
-
-    /** @return 'enabled' property */
+    /** @return 'spinner_shaped' property */
     public WidgetProperty<Boolean> propSpinnerShaped()
     {
         return spinner_shaped;
