@@ -117,7 +117,7 @@ public class ThumbWheel extends GridPane {
             var new_value = valueFormat.parse(valueFormat.format(getValue() + (double) ((Button) event.getSource()).getUserData())).doubleValue();
             writeValueToPV.accept(new_value);
         } catch ( ParseException ex ) {
-            LOGGER.throwing(ThumbWheel.class.getSimpleName(), "labelScrollHandler", ex);
+            LOGGER.throwing(ThumbWheel.class.getSimpleName(), "buttonPressedHandler", ex);
         }
     };
 
