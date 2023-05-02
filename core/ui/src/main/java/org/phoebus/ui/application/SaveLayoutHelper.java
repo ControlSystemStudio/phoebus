@@ -9,12 +9,21 @@ package org.phoebus.ui.application;
 
 import java.io.File;
 import java.text.MessageFormat;
+import java.util.LinkedList;
 import java.util.List;
 
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.TextInputDialog;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.docking.DockItem;
+import org.phoebus.ui.docking.DockItemWithInput;
+import org.phoebus.ui.docking.DockPane;
+import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.internal.MementoHelper;
 
 import javafx.scene.control.Alert.AlertType;
@@ -42,6 +51,39 @@ public class SaveLayoutHelper
      */
     public static boolean saveLayout(List<Stage> stagesToSave, String titleText)
     {
+        List<String> applicationsWithNoAssociatedSaveFile = new LinkedList<>();
+        for (Stage stage : stagesToSave) {
+            for (DockPane dockPane : DockStage.getDockPanes(stage)) {
+                for (DockItem dockItem : dockPane.getDockItems()) {
+                    if (dockItem instanceof DockItemWithInput) {
+                        DockItemWithInput dockItemWithInput = (DockItemWithInput) dockItem;
+                        if (dockItemWithInput.getInput() == null) {
+                            applicationsWithNoAssociatedSaveFile.add(dockItemWithInput.getApplication().getAppDescriptor().getDisplayName());
+                        }
+                    }
+                }
+            }
+        }
+        if (applicationsWithNoAssociatedSaveFile.size() > 0) {
+            String warningText = Messages.SaveLayoutWarningApplicationNoSaveFile;
+            for (String applicationName : applicationsWithNoAssociatedSaveFile) {
+                warningText += "\n - " + applicationName;
+            }
+            Alert dialog = new Alert(AlertType.CONFIRMATION, warningText, ButtonType.YES, ButtonType.NO);
+            ((Button) dialog.getDialogPane().lookupButton(ButtonType.YES)).setDefaultButton(false);
+            ((Button) dialog.getDialogPane().lookupButton(ButtonType.NO)).setDefaultButton(true);
+            dialog.setTitle(Messages.SaveLayoutWarningApplicationNoSaveFileTitle);
+            dialog.getDialogPane().setPrefSize(550, 320);
+            dialog.setResizable(true);
+            positionDialog(dialog, stagesToSave.get(0));
+
+            ButtonType response = dialog.showAndWait().orElse(ButtonType.NO);
+
+            if (response == ButtonType.NO) {
+                return false;
+            }
+        }
+
         final TextInputDialog prompt = new TextInputDialog();
         prompt.setTitle(titleText);
         prompt.setHeaderText(Messages.SaveDlgHdr);
