@@ -56,7 +56,6 @@ public class ThumbwheelWidget extends WritablePVWidget {
     public static final WidgetPropertyDescriptor<Integer> propDecimalDigits = newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "decimal_digits", "Decimal Digits");
     public static final WidgetPropertyDescriptor<Boolean> propNegativeNumbers = newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "negative_numbers", "Enable Negative Numbers");
     public static final WidgetPropertyDescriptor<WidgetColor> propInvalidColor = newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "invalid_color", "Invalid Color");
-    public static final WidgetPropertyDescriptor<Boolean> propScrollEnabled = newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "scroll_enabled", "Scroll Enabled");
     public static final WidgetPropertyDescriptor<Boolean> propSpinnerShaped = newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "spinner_shaped", "Spinner Shaped");
 
     private volatile WidgetProperty<WidgetColor> background;
@@ -70,7 +69,6 @@ public class ThumbwheelWidget extends WritablePVWidget {
     private volatile WidgetProperty<Boolean> enabled;
     private volatile WidgetProperty<Boolean> graphic_visible;
     private volatile WidgetProperty<WidgetColor> invalid_color;
-    private volatile WidgetProperty<Boolean> scroll_enabled;
     private volatile WidgetProperty<Boolean> spinner_shaped;
 
     public ThumbwheelWidget()
@@ -94,7 +92,6 @@ public class ThumbwheelWidget extends WritablePVWidget {
 
         properties.add(enabled = propEnabled.createProperty(this, true));
         properties.add(graphic_visible = propGraphicVisible.createProperty(this, true));
-        properties.add(scroll_enabled = propScrollEnabled.createProperty(this, false));
         properties.add(spinner_shaped = propSpinnerShaped.createProperty(this, false));
     }
 
@@ -161,12 +158,6 @@ public class ThumbwheelWidget extends WritablePVWidget {
     public WidgetProperty<WidgetColor> propInvalidColor()
     {
         return invalid_color;
-    }
-
-    /** @return 'enabled' property */
-    public WidgetProperty<Boolean> propScrollEnabled()
-    {
-        return scroll_enabled;
     }
 
     /** @return 'enabled' property */

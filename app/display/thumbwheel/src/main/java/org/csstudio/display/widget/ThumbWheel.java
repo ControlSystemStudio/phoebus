@@ -35,7 +35,6 @@ import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
@@ -120,38 +119,6 @@ public class ThumbWheel extends GridPane {
         } catch ( ParseException ex ) {
             LOGGER.throwing(ThumbWheel.class.getSimpleName(), "labelScrollHandler", ex);
         }
-    };
-    private final EventHandler<ScrollEvent> labelScrollHandler = event -> {
-
-        int index = integerLabels.indexOf(event.getSource());
-        double deltaY = event.getDeltaY();
-
-        if ( isScrollEnabled() ) {
-            try {
-                if ( index >= 0 ) {
-                    if ( deltaY < 0 ) {
-                        setValue(valueFormat.parse(valueFormat.format(getValue() + (double) integerDecrementButtons.get(index).getUserData())).doubleValue());
-                    } else if (deltaY > 0) {
-                        setValue(valueFormat.parse(valueFormat.format(getValue() + (double) integerIncrementButtons.get(index).getUserData())).doubleValue());
-                    }
-                } else {
-
-                    index = decimalLabels.indexOf(event.getSource());
-
-                    if ( index >= 0 ) {
-                        if ( deltaY < 0 ) {
-                            setValue(valueFormat.parse(valueFormat.format(getValue() + (double) decimalDecrementButtons.get(index).getUserData())).doubleValue());
-                        } else if (deltaY > 0) {
-                            setValue(valueFormat.parse(valueFormat.format(getValue() + (double) decimalIncrementButtons.get(index).getUserData())).doubleValue());
-                        }
-                    }
-
-                }
-            } catch ( ParseException ex ) {
-                LOGGER.throwing(ThumbWheel.class.getSimpleName(), "labelScrollHandler", ex);
-            }
-        }
-
     };
 
     protected void setWidgetWidth(Integer new_value) {
@@ -411,19 +378,6 @@ public class ThumbWheel extends GridPane {
     }
 
     /*
-     * ---- scrollEnabled ------------------------------------------------------
-     */
-    private final BooleanProperty scrollEnabled = new SimpleBooleanProperty(this, "scrollEnabled", false);
-
-    public boolean isScrollEnabled() {
-        return scrollEnabled.get();
-    }
-
-    public void setScrollEnabled( boolean scrollEnabled ) {
-        this.scrollEnabled.set(scrollEnabled);
-    }
-
-    /*
      * ---- spinnerShaped ------------------------------------------------------
      */
     private final BooleanProperty spinnerShaped = new SimpleBooleanProperty(this, "spinnerShaped", false) {
@@ -644,8 +598,6 @@ public class ThumbWheel extends GridPane {
         if ( pool.isEmpty() ) {
 
             label = new Label();
-
-            label.setOnScroll(labelScrollHandler);
 
         } else {
             label = pool.pop();

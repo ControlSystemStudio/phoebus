@@ -67,7 +67,6 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
         model_widget.runtimePropPVWritable().addPropertyListener(enablementChangedListener);
 
         model_widget.propGraphicVisible().addUntypedPropertyListener(styleListener);
-        model_widget.propScrollEnabled().addUntypedPropertyListener(styleListener);
         model_widget.propSpinnerShaped().addUntypedPropertyListener(styleListener);
 
         model_widget.runtimePropValue().addPropertyListener(valueChangedListener);
@@ -100,7 +99,6 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
         model_widget.runtimePropPVWritable().removePropertyListener(enablementChangedListener);
 
         model_widget.propGraphicVisible().removePropertyListener(styleListener);
-        model_widget.propScrollEnabled().removePropertyListener(styleListener);
         model_widget.propSpinnerShaped().removePropertyListener(styleListener);
 
         model_widget.runtimePropValue().removePropertyListener(valueChangedListener);
@@ -129,7 +127,6 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
             jfx_node.setIntegerDigits(model_widget.propIntegerDigits().getValue());
 
             jfx_node.setGraphicVisible(model_widget.propGraphicVisible().getValue());
-            jfx_node.setScrollEnabled(model_widget.propScrollEnabled().getValue());
             jfx_node.setSpinnerShaped(model_widget.propSpinnerShaped().getValue());
 
 
