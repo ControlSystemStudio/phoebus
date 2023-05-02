@@ -80,13 +80,12 @@ public class ThumbWheel extends GridPane {
     private Consumer<Number> writeValueToPV;
     private static final Color DEFAULT_DECREMENT_BUTTON_COLOR = Color.web("#d7d7ec");
     private static final Font DEFAULT_FONT = new Label().getFont();
-    private static final double DEFAULT_HGAP = 2.0;
+    private static final double DEFAULT_MARGIN = 2.0;
     private static final Color DEFAULT_INCREMENT_BUTTON_COLOR = Color.web("#ecd7d7");
     private static final String INVALID_MARK = "\u00D7";
     private static final Logger LOGGER = Logger.getLogger(ThumbWheel.class.getName());
     private static final char SIGN_MARK = '\u2013';
     private static final char SIGN_SPACE = '\u2002';
-    private static final double SPINNER_HGAP = 2.0;
     private static final Consumer<? super Button> STYLE_CLASS_REMOVER = button -> {
         button.getStyleClass().remove("thumb-wheel-increment-spinner-button");
         button.getStyleClass().remove("thumb-wheel-decrement-spinner-button");
@@ -158,11 +157,13 @@ public class ThumbWheel extends GridPane {
 
     protected void setWidgetWidth(Integer new_value) {
         widgetWidth = new_value;
+        setMargins();
         updateGraphics();
     }
 
     protected void setWidgetHeight(Integer new_value) {
         widgetHeight = new_value;
+        setMargins();
         updateGraphics();
     }
 
@@ -438,13 +439,10 @@ public class ThumbWheel extends GridPane {
             decimalDecrementButtons.stream().forEach(STYLE_CLASS_REMOVER);
 
             if ( sShaped ) {
-                setHgap(SPINNER_HGAP);
                 integerIncrementButtons.stream().forEach(button -> button.getStyleClass().add("thumb-wheel-increment-spinner-button"));
                 integerDecrementButtons.stream().forEach(button -> button.getStyleClass().add("thumb-wheel-decrement-spinner-button"));
                 decimalIncrementButtons.stream().forEach(button -> button.getStyleClass().add("thumb-wheel-increment-spinner-button"));
                 decimalDecrementButtons.stream().forEach(button -> button.getStyleClass().add("thumb-wheel-decrement-spinner-button"));
-            } else {
-                setHgap(DEFAULT_HGAP);
             }
 
             updateGraphics();
@@ -675,8 +673,7 @@ public class ThumbWheel extends GridPane {
         getStyleClass().add("thumb-wheel");
         setStyle(createColorStyle("-se-thumbwheel-inner-background", getBackgroundColor()));
 
-        setHgap(isSpinnerShaped() ? SPINNER_HGAP : DEFAULT_HGAP);
-        setPadding(new Insets(3));
+        setMargins();
 
         ObservableList<RowConstraints> rowConstraints = getRowConstraints();
 
@@ -686,6 +683,15 @@ public class ThumbWheel extends GridPane {
 
         update(true);
 
+    }
+
+    private void setMargins() {
+        double widgetDimension = Math.min(widgetWidth, widgetHeight);
+        double margin = Math.max(DEFAULT_MARGIN, 0.01 * widgetDimension);
+
+        setHgap(margin);
+        setVgap(margin);
+        setPadding(new Insets(margin + 1));
     }
 
     /**
