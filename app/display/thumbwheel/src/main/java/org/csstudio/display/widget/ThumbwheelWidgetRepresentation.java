@@ -22,6 +22,8 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
 
     private final UntypedWidgetPropertyListener styleListener = this::styleChanged;
     private final WidgetPropertyListener<Boolean> negativeNumbersChangedListener = this::negativeNumbersChanged;
+    private final WidgetPropertyListener<Integer> widgetWidthChangedListener = this::widgetWidthChanged;
+    private final WidgetPropertyListener<Integer> widgetHeightChangedListener = this::widgetHeightChanged;
 
     private final WidgetPropertyListener<Boolean> enablementChangedListener = this::enablementChanged;
     private final WidgetPropertyListener<VType> valueChangedListener = this::valueChanged;
@@ -31,7 +33,9 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
 
     @Override
     protected ThumbWheel createJFXNode() throws Exception {
-        final ThumbWheel thumbWheel = new ThumbWheel(model_widget.propNegativeNumbers().getValue(),
+        final ThumbWheel thumbWheel = new ThumbWheel(model_widget.propWidth().getValue(),
+                                                     model_widget.propHeight().getValue(),
+                                                     model_widget.propNegativeNumbers().getValue(),
                                                      this::writeValueToPV);
         if (toolkit.isEditMode()) {
             // A transparent "Region" covering the widget in edit mode prevents the buttons from being clickable in edit mode:
@@ -44,7 +48,9 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
     protected void registerListeners() {
         super.registerListeners();
         model_widget.propWidth().addUntypedPropertyListener(styleListener);
+        model_widget.propWidth().addPropertyListener(widgetWidthChangedListener);
         model_widget.propHeight().addUntypedPropertyListener(styleListener);
+        model_widget.propHeight().addPropertyListener(widgetHeightChangedListener);
 
         model_widget.propForegroundColor().addUntypedPropertyListener(styleListener);
         model_widget.propBackgroundColor().addUntypedPropertyListener(styleListener);
@@ -75,7 +81,9 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
         super.unregisterListeners();
 
         model_widget.propWidth().removePropertyListener(styleListener);
+        model_widget.propWidth().removePropertyListener(widgetWidthChangedListener);
         model_widget.propHeight().removePropertyListener(styleListener);
+        model_widget.propHeight().removePropertyListener(widgetHeightChangedListener);
 
         model_widget.propForegroundColor().removePropertyListener(styleListener);
         model_widget.propBackgroundColor().removePropertyListener(styleListener);
@@ -181,5 +189,13 @@ public class ThumbwheelWidgetRepresentation extends RegionBaseRepresentation<Thu
     private void negativeNumbersChanged(WidgetProperty<Boolean> widgetProperty, Boolean old_value, Boolean new_value) {
         jfx_node.setHasNegativeSign(new_value);
         jfx_node.update(true);
+    }
+
+    private void widgetWidthChanged(WidgetProperty<Integer> widgetProperty, Integer old_value, Integer new_value) {
+        jfx_node.setWidgetWidth(new_value);
+    }
+
+    private void widgetHeightChanged(WidgetProperty<Integer> widgetProperty, Integer old_value, Integer new_value) {
+        jfx_node.setWidgetHeight(new_value);
     }
 }
