@@ -35,6 +35,7 @@ public class Messages {
     public static String contextMenuCompareSnapshots;
     public static String contextMenuDelete;
     public static String Edit;
+    public static String contextMenuAddToCompositeSnapshot;
     public static String contextMenuNewFolder;
     public static String contextMenuNewCompositeSnapshot;
     public static String contextMenuNewConfiguration;
@@ -99,6 +100,8 @@ public class Messages {
     public static String promptRenameNodeContent;
 
     public static String pvName;
+    public static String nodeSelectionForCompositeSnapshot;
+    public static String nodeSelectionForConfiguration;
     public static String noValueAvailable;
     public static String readbackPVName;
     public static String saveFilter;

@@ -38,6 +38,8 @@ File ../../app/alarm/model/src/main/resources/alarm_preferences.properties::
    # Timeout in seconds for initial PV connection
    connection_timeout=30
    
+   # Timeout in seconds for "sevrpv:" updates
+   severity_pv_timeout=5
    
    ## Area Panel
    
@@ -615,6 +617,9 @@ File ../../app/display/model/src/main/resources/display_model_preferences.proper
    # and aborts.
    max_reparse_iterations=5000
    
+   # Create display file with comments?
+   with_comments=false
+   
    # When writing a display file, skip properties that are still at default values?
    skip_defaults=true
 
@@ -970,6 +975,19 @@ File ../../core/framework/src/main/resources/workbench_preferences.properties::
    # Directory where external applications are started
    # May use system properties
    external_apps_directory=$(user.home)
+
+
+imageviewer
+-----------
+
+File ../../app/imageviewer/src/main/resources/image_viewer_preferences.properties::
+
+   # --------------------------------------------
+   # Package org.phoebus.applications.imageviewer
+   # --------------------------------------------
+   
+   # Watermark text
+   watermark_text=W A T E R M A R K
 
 
 javafx.rtplot
@@ -1731,6 +1749,22 @@ File ../../core/ui/src/main/resources/phoebus_ui_preferences.properties::
    # Color for text and the background for 'UNDEFINED' alarm severity
    undefined_severity_text_color=200,0,200,200
    undefined_severity_background_color=255,255,255
+   
+   # Color Configuration for the application "Alarm Area Panel" (R,G,B or R,G,B,A values in range 0..255):
+   alarm_area_panel_ok_severity_text_color=255,255,255
+   alarm_area_panel_ok_severity_background_color=0,255,0
+   
+   alarm_area_panel_minor_severity_text_color=255,255,255
+   alarm_area_panel_minor_severity_background_color=255,128,0
+   
+   alarm_area_panel_major_severity_text_color=255,255,255
+   alarm_area_panel_major_severity_background_color=255,0,0
+   
+   alarm_area_panel_invalid_severity_text_color=255,255,255
+   alarm_area_panel_invalid_severity_background_color=255,0,255
+   
+   alarm_area_panel_undefined_severity_text_color=192,192,192
+   alarm_area_panel_undefined_severity_background_color=200,0,200,200
 
 
 update

@@ -41,7 +41,6 @@ import org.phoebus.ui.javafx.ImageCache;
 public class ContextMenuSnapshot extends ContextMenuBase {
 
     protected Image compareSnapshotIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/compare.png");
-    protected Image snapshotTagsWithCommentIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-tags.png");
     protected Image csvExportIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_export.png");
 
     private MenuItem compareSnapshotsMenuItem;
@@ -55,9 +54,7 @@ public class ContextMenuSnapshot extends ContextMenuBase {
         compareSnapshotsMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, new ImageView(compareSnapshotIcon));
         compareSnapshotsMenuItem.setOnAction(ae -> saveAndRestoreController.compareSnapshot());
 
-        ImageView snapshotTagsWithCommentIconImage = new ImageView(snapshotTagsWithCommentIcon);
-        snapshotTagsWithCommentIconImage.setFitHeight(22);
-        snapshotTagsWithCommentIconImage.setFitWidth(22);
+        ImageView snapshotTagsWithCommentIconImage = new ImageView(ImageRepository.SNAPSHOT_ADD_TAG_WITH_COMMENT);
 
         tagWithComment = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
         tagWithComment.setOnShowing(event -> saveAndRestoreController.tagWithComment(tagWithComment));

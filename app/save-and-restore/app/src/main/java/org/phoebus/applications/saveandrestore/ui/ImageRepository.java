@@ -48,4 +48,6 @@ public class ImageRepository {
 
     public static final Image SNAPSHOT_REMOVE_TAG_WITH_COMMENT =
             ImageCache.getImage(ImageRepository.class, "/icons/save-and-restore/snapshot-remove_tag.png");
+
+    public static final Image DELETE = ImageCache.getImage(SaveAndRestoreController.class, "/icons/delete.png");
 }

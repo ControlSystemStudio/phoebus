@@ -215,6 +215,12 @@ The composite snapshot can be saved when a case sensitive name and a description
 
 * Snapshots and composite snapshots cannot be deleted if referenced in a composite snapshot.
 
+Edit Composite Snapshot using drag-n-drop
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+From the Search And Filter view (see below) user may select snapshots or composite snapshots and then drag-n-drop
+the selection onto an existing composite snapshot in the left-hand side tree view.
+
 
 Restore Snapshot View
 ---------------------
@@ -350,6 +356,13 @@ Deleting tags on multiple snapshots
 
 If user selects multiple snapshot nodes, tags may be deleted on all of the nodes in one single operation. Note however
 that the context menu will only show tags common to all selected nodes.
+
+Tagging from search view
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+The search result table of the Search And Filter view also supports a contect menu for the purpose of managing tags:
+
+.. image:: images/search-result-context-menu.png
 
 Snapshot View Context Menu
 --------------------------
