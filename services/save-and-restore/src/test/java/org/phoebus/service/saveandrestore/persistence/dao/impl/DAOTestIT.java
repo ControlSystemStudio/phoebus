@@ -1364,14 +1364,23 @@ public class DAOTestIT {
         folderNode2.setNodeType(NodeType.FOLDER);
         folderNode2 = nodeDAO.createNode(folderNode.getUniqueId(), folderNode2);
 
+        Node folderNode3 = new Node();
+        folderNode3.setName("Folder 3");
+        folderNode3.setNodeType(NodeType.FOLDER);
+        // Create node, but do not include in move
+        nodeDAO.createNode(folderNode.getUniqueId(), folderNode3);
+
         assertEquals(1, nodeDAO.getChildNodes(rootNode.getUniqueId()).size());
 
         rootNode = nodeDAO.moveNodes(Arrays.asList(folderNode1.getUniqueId(), folderNode2.getUniqueId()), rootNode.getUniqueId(), "user");
 
+        // Target node now has 3 child elements
         assertEquals(3, nodeDAO.getChildNodes(rootNode.getUniqueId()).size());
 
-        clearAllData();
+        // After move parent of source nodes should now have only one element
+        assertEquals(1, nodeDAO.getChildNodes(folderNode.getUniqueId()).size());
 
+        clearAllData();
     }
 
     @Test
@@ -1638,6 +1647,60 @@ public class DAOTestIT {
         String uniqueId = folderNode1.getUniqueId();
         assertThrows(IllegalArgumentException.class,
                 () -> nodeDAO.copyNodes(List.of(snapshotId), uniqueId, "username"));
+
+        clearAllData();
+    }
+
+    @Test
+    public void testCopyCompositeSnapshot() {
+
+        Node rootNode = nodeDAO.getRootNode();
+        Node folderNode = nodeDAO.createNode(rootNode.getUniqueId(),
+                Node.builder().name("Folder").build());
+
+        Node config = Node.builder().name("My config 3").nodeType(NodeType.CONFIGURATION).build();
+
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(config);
+        ConfigurationData configurationData = new ConfigurationData();
+        configurationData.setPvList(List.of(ConfigPv.builder().pvName("whatever").build()));
+        configuration.setConfigurationData(configurationData);
+
+        configuration = nodeDAO.createConfiguration(folderNode.getUniqueId(), configuration);
+
+        SnapshotItem item1 = SnapshotItem.builder().configPv(configuration.getConfigurationData().getPvList().get(0))
+                .value(VDouble.of(7.7, alarm, time, display)).readbackValue(VDouble.of(7.7, alarm, time, display))
+                .build();
+
+        Snapshot snapshot = new Snapshot();
+        snapshot.setSnapshotNode(Node.builder().name("snapshotName").description("comment").userName("userName").build());
+        SnapshotData snapshotData = new SnapshotData();
+        snapshotData.setSnasphotItems(List.of(item1));
+        snapshot.setSnapshotData(snapshotData);
+
+        snapshot = nodeDAO.saveSnapshot(configuration.getConfigurationNode().getUniqueId(), snapshot);
+
+
+        Node folderNode1 = nodeDAO.createNode(rootNode.getUniqueId(),
+                Node.builder().name("Folder 1").build());
+
+        Node node = Node.builder().name("My composite snapshot").nodeType(NodeType.COMPOSITE_SNAPSHOT).build();
+
+        CompositeSnapshotData compositeSnapshotData = new CompositeSnapshotData();
+        compositeSnapshotData.setReferencedSnapshotNodes(List.of(snapshot.getSnapshotNode().getUniqueId()));
+
+        CompositeSnapshot compositeSnapshot = new CompositeSnapshot();
+        compositeSnapshot.setCompositeSnapshotNode(node);
+        compositeSnapshot.setCompositeSnapshotData(compositeSnapshotData);
+
+        compositeSnapshot = nodeDAO.createCompositeSnapshot(folderNode.getUniqueId(), compositeSnapshot);
+
+        String compositeSnapshotId = compositeSnapshot.getCompositeSnapshotNode().getUniqueId();
+
+        assertThrows(IllegalArgumentException.class,
+            () -> nodeDAO.copyNodes(List.of(compositeSnapshotId), folderNode1.getUniqueId(), "user"));
+
+        nodeDAO.deleteNode(compositeSnapshotId);
 
         clearAllData();
     }

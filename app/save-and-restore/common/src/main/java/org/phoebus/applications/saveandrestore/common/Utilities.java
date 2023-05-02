@@ -375,20 +375,7 @@ public final class Utilities {
         } else if (type instanceof VNumber) {
             return ((VNumber) type).getValue();
         } else if (type instanceof VEnum) {
-            VEnum en = (VEnum) type;
-            String val = en.getValue();
-            if (val.isEmpty()) {
-                // if all labels are empty, return the index as a string, otherwise return the label
-                List<String> labels = en.getDisplay().getChoices();
-                for (String s : labels) {
-                    if (!s.isEmpty()) {
-                        return val;
-                    }
-                }
-                return String.valueOf(en.getIndex());
-            } else {
-                return val;
-            }
+            return ((VEnum) type).getIndex();
         } else if (type instanceof VString) {
             return ((VString) type).getValue();
         } else if (type instanceof VBoolean) {

@@ -374,19 +374,38 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     /**
-     * Expands the specified node by clearing its list of child nodes and then fetching the
-     * list of child nodes from the service. This is typically applied if one wishes to
-     * refresh a node as a consequence of structural changes (e.g. node deleted).
+     * Expands the specified {@link Node}. In order to maintain the list of child {@link Node}s between repeated
+     * expand/collapse actions, this method will query the service for the current list of child {@link Node}s and
+     * then update the tree view accordingly, i.e. add {@link Node}s that are not yet present, and remove those that
+     * have been removed.
      *
      * @param targetItem {@link TreeItem<Node>} on which the operation is performed.
      */
     protected void expandTreeNode(TreeItem<Node> targetItem) {
-        targetItem.getChildren().clear();
-        List<Node> childNodes = saveAndRestoreService.getChildNodes(targetItem.getValue());
-        Collections.sort(childNodes);
-        targetItem.getChildren().addAll(childNodes.stream().map(this::createTreeItem).collect(Collectors.toList()));
-        targetItem.getChildren().sort(treeNodeComparator);
-        targetItem.setExpanded(true);
+        JobManager.schedule("Expand Tree Node", monitor -> {
+            List<Node> childNodes = saveAndRestoreService.getChildNodes(targetItem.getValue());
+            List<String> childNodeIds = childNodes.stream().map(Node::getUniqueId).collect(Collectors.toList());
+            List<String> existingNodeIds =
+                    targetItem.getChildren().stream().map(item -> item.getValue().getUniqueId()).collect(Collectors.toList());
+            List<TreeItem<Node>> itemsToAdd = new ArrayList<>();
+            childNodes.forEach(n -> {
+                if (!existingNodeIds.contains(n.getUniqueId())) {
+                    itemsToAdd.add(createTreeItem(n));
+                }
+            });
+            List<TreeItem<Node>> itemsToRemove = new ArrayList<>();
+            targetItem.getChildren().forEach(item -> {
+                if (!childNodeIds.contains(item.getValue().getUniqueId())) {
+                    itemsToRemove.add(item);
+                }
+            });
+            Platform.runLater(() -> {
+                targetItem.getChildren().addAll(itemsToAdd);
+                targetItem.getChildren().removeAll(itemsToRemove);
+                targetItem.getChildren().sort(treeNodeComparator);
+                targetItem.setExpanded(true);
+            });
+        });
     }
 
     /**
@@ -895,7 +914,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
     }
 
-    public void handleTabClosed(){
+    public void handleTabClosed() {
         saveLocalState();
         saveAndRestoreService.removeNodeChangeListener(this);
         saveAndRestoreService.removeNodeAddedListener(this);
@@ -1215,6 +1234,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     /**
      * Applies a {@link Filter} selected by user. The service will be queries for {@link Node}s matching
      * the {@link Filter}, then the {@link TreeView} is updated based on the search result.
+     *
      * @param filter {@link Filter} selected by user.
      */
     private void applyFilter(Filter filter) {
@@ -1272,17 +1292,16 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     @Override
-    public void filterAddedOrUpdated(Filter filter){
-        if(!filtersList.contains(filter)){
+    public void filterAddedOrUpdated(Filter filter) {
+        if (!filtersList.contains(filter)) {
             filtersList.add(filter);
-        }
-        else{
+        } else {
             final int index = filtersList.indexOf(filter);
             Platform.runLater(() -> {
                 filtersList.set(index, filter);
                 filtersComboBox.valueProperty().set(filter);
                 // If this is the active filter, update the tree view
-                if(filter.equals(filtersComboBox.getSelectionModel().getSelectedItem())){
+                if (filter.equals(filtersComboBox.getSelectionModel().getSelectedItem())) {
                     applyFilter(filter);
                 }
             });
@@ -1290,8 +1309,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     @Override
-    public void filterRemoved(Filter filter){
-        if(filtersList.contains(filter)){
+    public void filterRemoved(Filter filter) {
+        if (filtersList.contains(filter)) {
             filtersList.remove(filter);
             // If this is the active filter, de-select filter completely
             filterEnabledProperty.set(false);
