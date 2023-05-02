@@ -116,7 +116,6 @@ public class ThumbWheel extends GridPane {
     private final EventHandler<ActionEvent> buttonPressedHandler = event -> {
         try {
             var new_value = valueFormat.parse(valueFormat.format(getValue() + (double) ((Button) event.getSource()).getUserData())).doubleValue();
-            setValue(new_value);
             writeValueToPV.accept(new_value);
         } catch ( ParseException ex ) {
             LOGGER.throwing(ThumbWheel.class.getSimpleName(), "labelScrollHandler", ex);
