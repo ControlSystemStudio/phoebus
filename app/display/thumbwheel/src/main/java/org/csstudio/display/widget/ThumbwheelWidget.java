@@ -160,7 +160,7 @@ public class ThumbwheelWidget extends WritablePVWidget {
         return invalid_color;
     }
 
-    /** @return 'enabled' property */
+    /** @return 'spinner_shaped' property */
     public WidgetProperty<Boolean> propSpinnerShaped()
     {
         return spinner_shaped;
