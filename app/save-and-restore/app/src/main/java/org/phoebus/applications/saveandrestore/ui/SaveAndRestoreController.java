@@ -382,30 +382,27 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * @param targetItem {@link TreeItem<Node>} on which the operation is performed.
      */
     protected void expandTreeNode(TreeItem<Node> targetItem) {
-        JobManager.schedule("Expand Tree Node", monitor -> {
-            List<Node> childNodes = saveAndRestoreService.getChildNodes(targetItem.getValue());
-            List<String> childNodeIds = childNodes.stream().map(Node::getUniqueId).collect(Collectors.toList());
-            List<String> existingNodeIds =
-                    targetItem.getChildren().stream().map(item -> item.getValue().getUniqueId()).collect(Collectors.toList());
-            List<TreeItem<Node>> itemsToAdd = new ArrayList<>();
-            childNodes.forEach(n -> {
-                if (!existingNodeIds.contains(n.getUniqueId())) {
-                    itemsToAdd.add(createTreeItem(n));
-                }
-            });
-            List<TreeItem<Node>> itemsToRemove = new ArrayList<>();
-            targetItem.getChildren().forEach(item -> {
-                if (!childNodeIds.contains(item.getValue().getUniqueId())) {
-                    itemsToRemove.add(item);
-                }
-            });
-            Platform.runLater(() -> {
-                targetItem.getChildren().addAll(itemsToAdd);
-                targetItem.getChildren().removeAll(itemsToRemove);
-                targetItem.getChildren().sort(treeNodeComparator);
-                targetItem.setExpanded(true);
-            });
+        List<Node> childNodes = saveAndRestoreService.getChildNodes(targetItem.getValue());
+        List<String> childNodeIds = childNodes.stream().map(Node::getUniqueId).collect(Collectors.toList());
+        List<String> existingNodeIds =
+                targetItem.getChildren().stream().map(item -> item.getValue().getUniqueId()).collect(Collectors.toList());
+        List<TreeItem<Node>> itemsToAdd = new ArrayList<>();
+        childNodes.forEach(n -> {
+            if (!existingNodeIds.contains(n.getUniqueId())) {
+                itemsToAdd.add(createTreeItem(n));
+            }
         });
+        List<TreeItem<Node>> itemsToRemove = new ArrayList<>();
+        targetItem.getChildren().forEach(item -> {
+            if (!childNodeIds.contains(item.getValue().getUniqueId())) {
+                itemsToRemove.add(item);
+            }
+        });
+
+        targetItem.getChildren().addAll(itemsToAdd);
+        targetItem.getChildren().removeAll(itemsToRemove);
+        targetItem.getChildren().sort(treeNodeComparator);
+        targetItem.setExpanded(true);
     }
 
     /**
@@ -628,18 +625,18 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     /**
      * Launches the composite snapshot editor view for the purpose of editing an existing
      * composite snapshot.
+     *
      * @param compositeSnapshotNode A non-null {@link Node} of type {@link NodeType#COMPOSITE_SNAPSHOT}
-     * @param snapshotNodes A potentially empty (but non-null) list of snapshot nodes to include in
-     *                      a new or existing composite snapshot.
+     * @param snapshotNodes         A potentially empty (but non-null) list of snapshot nodes to include in
+     *                              a new or existing composite snapshot.
      */
     public void editCompositeSnapshot(Node compositeSnapshotNode, List<Node> snapshotNodes) {
         CompositeSnapshotTab compositeSnapshotTab;
         Tab tab = getTab("edit_" + compositeSnapshotNode.getUniqueId());
         if (tab != null) {
-            compositeSnapshotTab = (CompositeSnapshotTab)tab;
+            compositeSnapshotTab = (CompositeSnapshotTab) tab;
             compositeSnapshotTab.addToCompositeSnapshot(snapshotNodes);
-        }
-        else{
+        } else {
             compositeSnapshotTab = new CompositeSnapshotTab(this);
             compositeSnapshotTab.editCompositeSnapshot(compositeSnapshotNode, snapshotNodes);
             tabPane.getTabs().add(compositeSnapshotTab);
@@ -649,6 +646,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     /**
      * Launches a {@link Tab} for the purpose of creating a new configuration.
+     *
      * @param parentNode A non-null parent {@link Node} that must be of type
      *                   {@link NodeType#FOLDER}.
      */
@@ -661,8 +659,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     /**
      * Launches a {@link Tab} for the purpose of creating a new composite snapshot.
-     * @param parentNode A non-null parent {@link Node} that must be of type
-     *                   {@link NodeType#FOLDER}.
+     *
+     * @param parentNode    A non-null parent {@link Node} that must be of type
+     *                      {@link NodeType#FOLDER}.
      * @param snapshotNodes A potentially empty list of snapshot nodes
      *                      added to the composite snapshot.
      */
@@ -675,6 +674,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     /**
      * Locates a {@link Tab} in the {@link TabPane }and returns it if it exists.
+     *
      * @param id Unique id of a {@link Tab}, which is based on the id of the {@link Node} it
      *           is associated with.
      * @return A non-null {@link Tab} if one is found, otherwise <code>null</code>.
@@ -822,8 +822,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * @return The located {@link TreeItem}, or <code>null</code> if not found.
      */
     protected TreeItem<Node> recursiveSearch(String nodeIdToLocate, TreeItem<Node> node) {
-        if (node.getValue().getUniqueId().equals(nodeIdToLocate))
+        if (node.getValue().getUniqueId().equals(nodeIdToLocate)) {
             return node;
+        }
         List<TreeItem<Node>> childNodes = node.getChildren();
         TreeItem<Node> result = null;
         for (int i = 0; result == null && i < childNodes.size(); i++) {
@@ -838,7 +839,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         while (nodeStack.size() > 0) {
             Node currentNode = nodeStack.pop();
             TreeItem<Node> currentTreeItem = recursiveSearch(currentNode.getUniqueId(), parentTreeItem);
-            currentTreeItem.setExpanded(true);
+            expandTreeNode(currentTreeItem);
             parentTreeItem = currentTreeItem;
         }
 
@@ -1073,8 +1074,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
         List<Node> sourceNodes =
                 selectedItems.stream().map(TreeItem::getValue).collect(Collectors.toList());
-        if(sourceNodes.stream().filter(n -> n.getNodeType().equals(NodeType.FOLDER) ||
-                n.getNodeType().equals(NodeType.CONFIGURATION)).findFirst().isEmpty()){
+        if (sourceNodes.stream().filter(n -> n.getNodeType().equals(NodeType.FOLDER) ||
+                n.getNodeType().equals(NodeType.CONFIGURATION)).findFirst().isEmpty()) {
             return true;
         }
         TreeItem<Node> parent = selectedItems.get(0).getParent();
@@ -1319,4 +1320,74 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             Platform.runLater(() -> treeView.refresh());
         }
     }
+
+    /*
+
+    private static class ExpandTreeItemJob extends JobRunnableWithCancel {
+
+        private TreeItem<Node> treeItem;
+        private Consumer<Void> completionHandler;
+
+        private SaveAndRestoreService saveAndRestoreService;
+
+        public static void requestExpandTreeNode(SaveAndRestoreService saveAndRestoreService, TreeItem<Node> treeItem, Consumer<Void> completionHandler){
+            JobManager.schedule("Expanding node " + treeItem.getValue().getName(),
+                    new ExpandTreeItemJob(saveAndRestoreService, treeItem, completionHandler));
+        }
+
+        public static void requestExpandTreeNode(SaveAndRestoreService saveAndRestoreService, TreeItem<Node> treeItem){
+            JobManager.schedule("Expanding node " + treeItem.getValue().getName(),
+                    new ExpandTreeItemJob(saveAndRestoreService, treeItem, null));
+        }
+
+        public ExpandTreeItemJob(SaveAndRestoreService saveAndRestoreService, TreeItem<Node> treeItem, Consumer<Void> completionHandler){
+            this.treeItem = treeItem;
+            this.completionHandler = completionHandler;
+            this.saveAndRestoreService = saveAndRestoreService;
+        }
+        @Override
+        public Runnable getRunnable() {
+            return () -> {
+                List<Node> childNodes = saveAndRestoreService.getChildNodes(treeItem.getValue());
+                List<String> childNodeIds = childNodes.stream().map(Node::getUniqueId).collect(Collectors.toList());
+                List<String> existingNodeIds =
+                        treeItem.getChildren().stream().map(item -> item.getValue().getUniqueId()).collect(Collectors.toList());
+                List<TreeItem<Node>> itemsToAdd = new ArrayList<>();
+                childNodes.forEach(n -> {
+                    if (!existingNodeIds.contains(n.getUniqueId())) {
+                        itemsToAdd.add(createTreeItem(n));
+                    }
+                });
+                List<TreeItem<Node>> itemsToRemove = new ArrayList<>();
+                targetItem.getChildren().forEach(item -> {
+                    if (!childNodeIds.contains(item.getValue().getUniqueId())) {
+                        itemsToRemove.add(item);
+                    }
+                });
+                Platform.runLater(() -> {
+                    targetItem.getChildren().addAll(itemsToAdd);
+                    targetItem.getChildren().removeAll(itemsToRemove);
+                    targetItem.getChildren().sort(treeNodeComparator);
+                    targetItem.setExpanded(true);
+                    if(completionHandler != null){
+                        completionHandler.accept(null);
+                    }
+                });
+                if(completionHandler != null){
+                    completionHandler.accept(null);
+                }
+                try {
+                    SearchResult searchResult = client.search(searchMap);
+                    logEntryHandler.accept(searchResult);
+                } catch (Exception exception) {
+                    Logger.getLogger(LogbookSearchJob.class.getName())
+                            .log(Level.SEVERE, "Failed to obtain logs", exception);
+                    errorHandler.accept(null, exception);
+                }
+            };
+        }
+
+    }
+
+     */
 }
