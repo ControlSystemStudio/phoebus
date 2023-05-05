@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,8 +10,8 @@ package org.epics.pva.client;
 import static org.epics.pva.PVASettings.logger;
 
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -21,6 +21,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
+
+import javax.net.SocketFactory;
 
 import org.epics.pva.PVASettings;
 import org.epics.pva.common.CommandHandlers;
@@ -116,12 +118,11 @@ class ClientTCPHandler extends TCPHandler
         // it's started when server confirms the connection.
     }
 
-    private static SocketChannel createSocket(InetSocketAddress address) throws Exception
+    private static Socket createSocket(InetSocketAddress address) throws Exception
     {
-        final SocketChannel socket = SocketChannel.open(address);
-        socket.configureBlocking(true);
-        socket.socket().setTcpNoDelay(true);
-        socket.socket().setKeepAlive(true);
+        final Socket socket = SocketFactory.getDefault().createSocket(address.getAddress(), address.getPort());
+        socket.setTcpNoDelay(true);
+        socket.setKeepAlive(true);
         return socket;
     }
 

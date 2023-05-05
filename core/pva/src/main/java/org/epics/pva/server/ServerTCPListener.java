@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,13 +12,15 @@ import static org.epics.pva.PVASettings.logger;
 import java.net.BindException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+
+import javax.net.ServerSocketFactory;
 
 import org.epics.pva.PVASettings;
 
@@ -42,7 +44,7 @@ class ServerTCPListener
     private final PVAServer server;
 
     /** TCP channel on which we listen for connections */
-    private final ServerSocketChannel server_socket;
+    private final ServerSocket server_socket;
 
     /** Server's TCP address on which clients can connect */
     private final InetSocketAddress local_address;
@@ -56,7 +58,7 @@ class ServerTCPListener
 
         server_socket = createSocket();
 
-        local_address = (InetSocketAddress) server_socket.getLocalAddress();
+        local_address = (InetSocketAddress) server_socket.getLocalSocketAddress();
         logger.log(Level.CONFIG, "Listening on TCP " + local_address);
 
         // Start accepting connections
@@ -123,7 +125,7 @@ class ServerTCPListener
      *  @return Socket bound to EPICS_PVA_SERVER_PORT or unused port
      *  @throws Exception on error
      */
-    private static ServerSocketChannel createSocket() throws Exception
+    private static ServerSocket createSocket() throws Exception
     {
         if (checkForIPv4Server(PVASettings.EPICS_PVA_SERVER_PORT))
             logger.log(Level.FINE, "Found existing IPv4 server on port " + PVASettings.EPICS_PVA_SERVER_PORT);
@@ -156,13 +158,12 @@ class ServerTCPListener
      *  @return {@link ServerSocketChannel}
      *  @throws Exception on error
      */
-    private static ServerSocketChannel createBoundSocket(final InetSocketAddress addr) throws Exception
+    private static ServerSocket createBoundSocket(final InetSocketAddress addr) throws Exception
     {
-        ServerSocketChannel socket = ServerSocketChannel.open();
+        final ServerSocket socket = ServerSocketFactory.getDefault().createServerSocket();
         try
         {
-            socket.configureBlocking(true);
-            socket.socket().setReuseAddress(true);
+            socket.setReuseAddress(true);
             socket.bind(addr);
         }
         catch (Exception ex)
@@ -180,7 +181,7 @@ class ServerTCPListener
             logger.log(Level.FINER, Thread.currentThread().getName() + " started");
             while (running)
             {
-                final SocketChannel client = server_socket.accept();
+                final Socket client = server_socket.accept();
                 new ServerTCPHandler(server, client);
             }
         }
