@@ -281,8 +281,7 @@ public class Macros implements MacroValueProvider
             {
                 final String orig = macros.get(name);
                 final String expanded = MacroHandler.replace(input, orig);
-                if (! expanded.equals(orig))
-                    macros.put(name, expanded);
+                macros.put(name, expanded);
             }
         }
     }
