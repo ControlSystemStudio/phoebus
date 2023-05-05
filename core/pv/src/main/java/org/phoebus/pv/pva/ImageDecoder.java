@@ -202,7 +202,7 @@ public class ImageDecoder
         if (codec_info != null)
         {
             final PVAString name = codec_info.get("name");
-            if (name != null  &&  !name.get().isBlank())
+            if (name != null  &&  name.get() != null && !name.get().isBlank())
             {
                 // For compressed data, values is ubyte[] and
                 // codec.parameters holds original data type code
