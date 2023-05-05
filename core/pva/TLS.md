@@ -99,5 +99,30 @@ Then run a demo client
 java -cp target/classes org/epics/pva/client/PVAClientMain monitor demo
 ```
 
+
+More
+----
+
 Add `-Djavax.net.debug=all` to see encryption information.
+
+For example, when receiving subscription updates for a string PV with status and timestamp,
+the log messages indicate that the encrypted data size of 74 bytes is almost twice the size
+of the decrypted payload of 41 bytes: 
+
+```
+javax.net.ssl|DEBUG|91|TCP receiver /127.0.0.1|2023-05-05 15:57:37.299 EDT|SSLSocketInputRecord.java:214|READ: TLSv1.2 application_data, length = 74
+javax.net.ssl|DEBUG|91|TCP receiver /127.0.0.1|2023-05-05 15:57:37.299 EDT|SSLSocketInputRecord.java:493|Raw read (
+  0000: 65 27 79 1D 33 5D 7C AB   A6 06 86 31 0D 9C 10 70  e'y.3].....1...p
+  0010: 3C 85 58 D3 FD AA 81 57   00 0A 04 DF 37 3D EE 31  <.X....W....7=.1
+  0020: C4 2A CE E5 24 A3 E8 F3   F2 B6 7E 64 BE 32 9E 71  .*..$......d.2.q
+  0030: F8 29 81 C4 3F 61 D0 E4   D1 D5 A7 BC 5A 21 D0 B8  .)..?a......Z!..
+  0040: F5 5F DD 5E DE 59 79 F8   45 86                    ._.^.Yy.E.
+)
+javax.net.ssl|DEBUG|91|TCP receiver /127.0.0.1|2023-05-05 15:57:37.300 EDT|SSLCipher.java:1935|Plaintext after DECRYPTION (
+  0000: CA 02 40 0D 21 00 00 00   01 00 00 00 00 02 02 03  ..@.!...........
+  0010: 0B 56 61 6C 75 65 20 69   73 20 38 33 B1 5F 55 64  .Value is 83._Ud
+  0020: 00 00 00 00 10 0E AD 11   00                       .........
+```
+
+
 
