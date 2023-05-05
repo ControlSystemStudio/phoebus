@@ -89,7 +89,7 @@ Step 4: Configure and run the demo client
 Set environment variables to inform the server about its keystore:
 
 ```
-export EPICS_PVA_SERVER_KEYSTORE=/path/to/KEYSTORE
+export EPICS_PVA_CLIENT_TRUSTSTORE=/path/to/TRUSTSTORE
 export EPICS_PVA_STOREPASS=changeit
 ```
 
