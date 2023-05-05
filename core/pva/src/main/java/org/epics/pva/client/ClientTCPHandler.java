@@ -22,12 +22,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
-import javax.net.SocketFactory;
-
 import org.epics.pva.PVASettings;
 import org.epics.pva.common.CommandHandlers;
 import org.epics.pva.common.PVAHeader;
 import org.epics.pva.common.RequestEncoder;
+import org.epics.pva.common.SecureSockets;
 import org.epics.pva.common.TCPHandler;
 import org.epics.pva.data.PVATypeRegistry;
 import org.epics.pva.server.Guid;
@@ -120,7 +119,7 @@ class ClientTCPHandler extends TCPHandler
 
     private static Socket createSocket(InetSocketAddress address) throws Exception
     {
-        final Socket socket = SocketFactory.getDefault().createSocket(address.getAddress(), address.getPort());
+        final Socket socket = SecureSockets.getClientFactory().createSocket(address.getAddress(), address.getPort());
         socket.setTcpNoDelay(true);
         socket.setKeepAlive(true);
         return socket;

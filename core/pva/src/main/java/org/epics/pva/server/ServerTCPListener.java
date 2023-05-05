@@ -20,9 +20,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-import javax.net.ServerSocketFactory;
-
 import org.epics.pva.PVASettings;
+import org.epics.pva.common.SecureSockets;
 
 /** Listen to TCP connections
  *
@@ -160,7 +159,7 @@ class ServerTCPListener
      */
     private static ServerSocket createBoundSocket(final InetSocketAddress addr) throws Exception
     {
-        final ServerSocket socket = ServerSocketFactory.getDefault().createServerSocket();
+        final ServerSocket socket = SecureSockets.getServerFactory().createServerSocket();
         try
         {
             socket.setReuseAddress(true);
