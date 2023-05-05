@@ -368,15 +368,7 @@ public class DisplayRuntimeInstance implements AppInstance
             ? ModelLoader.resolveAndLoadModel(null, info.getPath())
             : ModelLoader.loadModel(info.getPath());
 
-        // This code is called
-        // 1) When opening a new display
-        //    No macros in info.
-        // 2) On application restart with DisplayInfo from memento
-        //    Info contains snapshot of macros from last run
-        //    Could simply use info's macros if they are non-empty,
-        //    but merging macros with those loaded from model file
-        //    allows for newly added macros in the display file.
-        final Macros macros = Macros.merge(model.propMacros().getValue(), info.getMacros());
+        final Macros macros = model.propMacros().getValue();
         model.propMacros().setValue(macros);
 
         // For runtime, expand macros
