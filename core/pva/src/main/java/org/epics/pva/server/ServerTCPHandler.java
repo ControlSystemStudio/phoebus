@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,8 +10,8 @@ package org.epics.pva.server;
 import static org.epics.pva.PVASettings.logger;
 
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 import java.util.logging.Level;
 
 import org.epics.pva.common.CommandHandlers;
@@ -53,7 +53,7 @@ class ServerTCPHandler extends TCPHandler
     /** Auth info, e.g. client user info and his/her permissions */
     private volatile ServerAuth auth = ServerAuth.Anonymous;
 
-    public ServerTCPHandler(final PVAServer server, final SocketChannel client) throws Exception
+    public ServerTCPHandler(final PVAServer server, final Socket client) throws Exception
     {
         super(client, false);
         this.server = server;
