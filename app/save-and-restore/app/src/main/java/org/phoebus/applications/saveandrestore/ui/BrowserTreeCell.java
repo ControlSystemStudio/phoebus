@@ -26,7 +26,6 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
@@ -39,7 +38,6 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.ui.javafx.ImageCache;
-import org.phoebus.ui.javafx.PlatformInfo;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.util.ArrayList;
@@ -90,7 +88,8 @@ public class BrowserTreeCell extends TreeCell<Node> {
                     nodes.add(sel.getValue());
                 }
                 content.put(SaveAndRestoreApplication.NODE_SELECTION_FORMAT, nodes);
-                final Dragboard db = startDragAndDrop(getTransferMode(event));
+                // Only move supported!
+                final Dragboard db = startDragAndDrop(TransferMode.MOVE);
                 db.setContent(content);
             }
             event.consume();
@@ -102,8 +101,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
             if (node != null && node.getNodeType().equals(NodeType.FOLDER)) {
                 event.acceptTransferModes(event.getTransferMode());
                 setBorder(BORDER);
-            }
-            else if(node != null && node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)){
+            } else if (node != null && node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)) {
                 event.acceptTransferModes(event.getTransferMode());
                 setBorder(BORDER);
             }
@@ -125,10 +123,9 @@ public class BrowserTreeCell extends TreeCell<Node> {
                 if (!DragNDropUtil.mayDrop(transferMode, targetNode, sourceNodes)) {
                     return;
                 }
-                if(DragNDropUtil.snapshotsOrCompositeSnapshotsOnly(sourceNodes) && targetNode.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)){
+                if (DragNDropUtil.snapshotsOrCompositeSnapshotsOnly(sourceNodes) && targetNode.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)) {
                     saveAndRestoreController.editCompositeSnapshot(targetNode, sourceNodes);
-                }
-                else{
+                } else {
                     getTreeView().getSelectionModel().clearSelection(); // This is needed to help controller implement selection restrictions
                     saveAndRestoreController.performCopyOrMove(sourceNodes, targetNode, transferMode);
                 }
@@ -158,7 +155,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
         if (comment != null && !comment.isEmpty()) {
             stringBuffer.append(comment).append(System.lineSeparator());
         }
-        if(node.getCreated() != null){ // Happens if configuration management is accessed from context menu
+        if (node.getCreated() != null) { // Happens if configuration management is accessed from context menu
             stringBuffer.append(TimestampFormats.SECONDS_FORMAT.format(node.getCreated().toInstant())).append(" (").append(node.getUserName()).append(")");
         }
         // Tooltip with at least date and user id is set on all tree items
@@ -208,22 +205,5 @@ public class BrowserTreeCell extends TreeCell<Node> {
                 break;
         }
         setGraphic(hBox);
-    }
-
-    /**
-     * Determines the {@link TransferMode} based on the state of the modifier key.
-     * This method must consider the
-     * operating system as the identity of the modifier key varies (alt/option on Mac OS, ctrl on the rest).
-     *
-     * @param event The mouse event containing information on key press.
-     * @return {@link TransferMode#COPY} if modifier key is pressed, otherwise {@link TransferMode#MOVE}.
-     */
-    private TransferMode getTransferMode(MouseEvent event) {
-        if (event.isControlDown() && (PlatformInfo.is_linux || PlatformInfo.isWindows || PlatformInfo.isUnix)) {
-            return TransferMode.COPY;
-        } else if (event.isAltDown() && PlatformInfo.is_mac_os_x) {
-            return TransferMode.COPY;
-        }
-        return TransferMode.MOVE;
     }
 }

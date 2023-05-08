@@ -64,10 +64,10 @@ deleting or moving nodes.
 Drag-n-drop
 -----------
 
-Nodes in the tree can be copied (mouse + modifier key) or moved using drag-n-drop. The following restrictions apply:
-* Only folder and configuration nodes can be copied or moved.
-* Configuration nodes cannot be copied or moved to the root folder node.
-* Target node (i.e. drop target) must be a folder.
+Nodes in the tree can be moved using drag-n-drop. The following restrictions apply:
+* Only folder and configuration nodes can be moved.
+* Configuration nodes cannot be moved to the root folder node.
+* Drop target must be a folder.
 
 Checks are performed on the service to enforce the above restrictions. If pre-conditions are not met when the selection
 is dropped, the application will present an error dialog.
@@ -76,10 +76,7 @@ Drag-n-drop is disabled if multiple nodes are selected and if:
 * Selection contains a combination of folder and configuration nodes. Selected nodes must be of same type.
 * Selection contains nodes with different parent nodes. Selected nodes must have the same parent node.
 
-Once a selection of nodes have been copied or moved successfully, the target folder is refreshed to reflect the change.
-
-**NOTE**: Copying a large number of nodes and/or nodes with deep sub-trees is discouraged as this is an "expensive" operation.
-Moving nodes on the other hand is lightweight as only references in the tree structure are updated.
+Once a selection of nodes have been moved successfully, the target folder is refreshed to reflect the change.
 
 Logging
 -------
