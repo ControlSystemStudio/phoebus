@@ -5,6 +5,7 @@
 /*************************************************************************/
 package org.csstudio.opibuilder.adl2boy.translator;
 
+import org.csstudio.display.builder.model.Widget;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
 import org.csstudio.utility.adlparser.fileParser.WrongADLFormatException;
 import org.csstudio.utility.adlparser.fileParser.widgetParts.ADLBasicAttribute;
@@ -37,5 +38,13 @@ public class TranslatorUtils
             child.setType("dynamic attribute");
             defaultDynamicAttribute = new ADLDynamicAttribute(child);
         }
+    }
+
+    public static void copyPosAndSize(Widget source, Widget dest)
+    {
+        dest.propX().setValue(source.propX().getValue());
+        dest.propY().setValue(source.propY().getValue());
+        dest.propWidth().setValue(source.propWidth().getValue());
+        dest.propHeight().setValue(source.propHeight().getValue());
     }
 }
