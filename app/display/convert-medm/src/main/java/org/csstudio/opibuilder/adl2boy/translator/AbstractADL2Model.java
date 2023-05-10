@@ -177,7 +177,7 @@ public abstract class AbstractADL2Model<WM extends Widget>
         if (dynAttr.getClrMode().equals("alarm")  &&  dynAttr.get_chan() != null)
         {
             // Attach script that sets background color based on alarm severity
-            final String embedded_script =
+            String embedded_script =
                 "from org.csstudio.display.builder.runtime.script import PVUtil\n" +
                 "from org.csstudio.display.builder.model.persist import WidgetColorService\n" +
                 "sevr = PVUtil.getSeverity(pvs[0])\n" +
@@ -193,6 +193,9 @@ public abstract class AbstractADL2Model<WM extends Widget>
                 "    name = 'OK'\n" +
                 "color = WidgetColorService.getColor(name)\n" +
                 "widget.setPropertyValue('background_color', color)\n";
+            // Also set optional line color
+            if (widgetModel.checkProperty("line_color").isPresent())
+                embedded_script += "widget.setPropertyValue('line_color', color)\n";
             final ScriptInfo script = new ScriptInfo(ScriptInfo.EMBEDDED_PYTHON,
                                                      embedded_script,
                                                      true,
