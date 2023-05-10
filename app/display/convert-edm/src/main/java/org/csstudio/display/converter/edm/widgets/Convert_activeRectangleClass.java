@@ -18,6 +18,8 @@ import java.util.regex.Pattern;
 
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.persist.NamedWidgetColors;
+import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.BaseLEDWidget;
 import org.csstudio.display.builder.model.widgets.LEDWidget;
@@ -69,18 +71,18 @@ public class Convert_activeRectangleClass extends ConverterBase<Widget>
             convertColor(r.getFillColor(), r.getAlarmPv(), rect.propBackgroundColor());
 
         // Convert to LED?
-        widget = convertShapeToLED(widget, r, r.getFillColor(), r.getAlarmPv());
+        widget = convertShapeToLED(widget, r, r.isFillAlarm(), r.getFillColor(), r.getAlarmPv());
     }
 
     /** Can original widget be replaced with LED because shape uses dynamic color? */
-    protected static Widget convertShapeToLED(final Widget widget, final EdmWidget edm, final EdmColor fillColor, final String pv_spec)
+    protected static Widget convertShapeToLED(final Widget widget, final EdmWidget edm, final boolean fill_alarm, final EdmColor fillColor, final String pv_spec)
     {
-        if (!fillColor.isDynamic()  ||   pv_spec == null   ||  pv_spec.isBlank())
+        if (!(fill_alarm || fillColor.isDynamic())  ||   pv_spec == null   ||  pv_spec.isBlank())
             return widget;
 
         logger.log(Level.INFO, "Checking " + edm.getType() + " with dynamic color for LED conversion");
 
-        final String pv = convertPVName(pv_spec);
+        String pv = convertPVName(pv_spec);
 
         // EDM dynamic colors are defined as ranges like this:
         // >=-0.5 && <0.5: "color0"
@@ -98,40 +100,54 @@ public class Convert_activeRectangleClass extends ConverterBase<Widget>
         // this will fail.
         // 1.9 that was resulting in color2 for EDM will now show color1...
         final List<WidgetColor> colors = new ArrayList<>();
-        int index = 0;
-        for (Entry<String, String> entry : fillColor.getRuleMap().entrySet())
-        {
-            final double[] start_end = parseColorRange(entry.getKey());
-            if (// start...end surrounds   index +- 1
-                ((index-1) <  start_end[0]  &&  start_end[0] <= index  &&
-                 index     <= start_end[1]  &&  start_end[1] < (index+1))
 
-                // Or just start and open end
-                ||
-                ((index-1) <  start_end[0]  &&  start_end[0] <= index  &&
-                 Double.isNaN(start_end[1]))
-               )
+
+        if (fill_alarm)
+        {   // Use alarm severity of the PV and alarm colors
+            pv = "=highestSeverity(`" + pv + "`)";
+            colors.add(WidgetColorService.getColor(NamedWidgetColors.ALARM_OK));
+            colors.add(WidgetColorService.getColor(NamedWidgetColors.ALARM_MINOR));
+            colors.add(WidgetColorService.getColor(NamedWidgetColors.ALARM_MAJOR));
+            colors.add(WidgetColorService.getColor(NamedWidgetColors.ALARM_INVALID));
+            colors.add(WidgetColorService.getColor(NamedWidgetColors.ALARM_DISCONNECTED));
+        }
+        else
+        {
+            int index = 0;
+            for (Entry<String, String> entry : fillColor.getRuleMap().entrySet())
             {
-                final EdmColor edm_color = EdmModel.getColorsList().getColor(entry.getValue());
-                if (edm_color == null)
+                final double[] start_end = parseColorRange(entry.getKey());
+                if (// start...end surrounds   index +- 1
+                    ((index-1) <  start_end[0]  &&  start_end[0] <= index  &&
+                     index     <= start_end[1]  &&  start_end[1] < (index+1))
+
+                    // Or just start and open end
+                    ||
+                    ((index-1) <  start_end[0]  &&  start_end[0] <= index  &&
+                     Double.isNaN(start_end[1]))
+                   )
                 {
-                    logger.log(Level.WARNING, "Dynamic color uses unknown color " + entry.getValue());
+                    final EdmColor edm_color = EdmModel.getColorsList().getColor(entry.getValue());
+                    if (edm_color == null)
+                    {
+                        logger.log(Level.WARNING, "Dynamic color uses unknown color " + entry.getValue());
+                        return widget;
+                    }
+                    final WidgetColor color = convertStaticColor(edm_color);
+                    logger.log(Level.INFO, String.format("State %d (%6.3f to %6.3f) --> %s",
+                                                         index,
+                                                         start_end[0], start_end[1],
+                                                         color.toString()));
+                    colors.add(color);
+                }
+                else
+                {
+                    logger.log(Level.INFO, "Colors don't map to integer state ranges");
                     return widget;
                 }
-                final WidgetColor color = convertStaticColor(edm_color);
-                logger.log(Level.INFO, String.format("State %d (%6.3f to %6.3f) --> %s",
-                                                     index,
-                                                     start_end[0], start_end[1],
-                                                     color.toString()));
-                colors.add(color);
-            }
-            else
-            {
-                logger.log(Level.INFO, "Colors don't map to integer state ranges");
-                return widget;
-            }
 
-            ++index;
+                ++index;
+            }
         }
 
         BaseLEDWidget replacement = null;
