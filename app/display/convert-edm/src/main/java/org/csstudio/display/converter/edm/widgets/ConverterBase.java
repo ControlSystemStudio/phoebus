@@ -200,8 +200,11 @@ public abstract class ConverterBase<W extends Widget>
     }
 
 
-    /** Find a '=' that is neither preceded by '<', '>', '=' nor followed by '=' */
-    private static final Pattern expand_equal = Pattern.compile("(?<![<>=])=(?!=)");
+    /** Find a single '=' that is neither preceded by '!', '<', '>', '=' nor followed by '='
+     *
+     *  Used to turn '=' into '==' but keep '!=', '<=', '>=', '==' unchanged
+     */
+    private static final Pattern expand_equal = Pattern.compile("(?<![<>=!])=(?!=)");
 
     /** @param expression EDM color rule expression like ">=5 && <10"
      *  @return Display Builder rule expression like "pv0>=5 && pv0<10"
