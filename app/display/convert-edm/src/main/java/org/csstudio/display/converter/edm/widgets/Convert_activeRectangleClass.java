@@ -80,7 +80,7 @@ public class Convert_activeRectangleClass extends ConverterBase<Widget>
         if (!(fill_alarm || fillColor.isDynamic())  ||   pv_spec == null   ||  pv_spec.isBlank())
             return widget;
 
-        logger.log(Level.INFO, "Checking " + edm.getType() + " with dynamic color for LED conversion");
+        logger.log(Level.FINE, "Checking " + edm.getType() + " with dynamic color for LED conversion");
 
         String pv = convertPVName(pv_spec);
 
@@ -134,7 +134,7 @@ public class Convert_activeRectangleClass extends ConverterBase<Widget>
                         return widget;
                     }
                     final WidgetColor color = convertStaticColor(edm_color);
-                    logger.log(Level.INFO, String.format("State %d (%6.3f to %6.3f) --> %s",
+                    logger.log(Level.FINE, String.format("State %d (%6.3f to %6.3f) --> %s",
                                                          index,
                                                          start_end[0], start_end[1],
                                                          color.toString()));
@@ -142,7 +142,7 @@ public class Convert_activeRectangleClass extends ConverterBase<Widget>
                 }
                 else
                 {
-                    logger.log(Level.INFO, "Colors don't map to integer state ranges");
+                    logger.log(Level.FINE, "Colors don't map to integer state ranges");
                     return widget;
                 }
 
