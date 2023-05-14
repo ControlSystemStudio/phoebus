@@ -54,4 +54,10 @@ public class CompositeSnapshotData {
     public void setReferencedSnapshotNodes(List<String> referencedSnapshotNodes) {
         this.referencedSnapshotNodes = referencedSnapshotNodes;
     }
+
+    public static CompositeSnapshotData clone(CompositeSnapshotData compositeSnapshotData){
+        CompositeSnapshotData clonedCompositeSnapshotData = new CompositeSnapshotData();
+        clonedCompositeSnapshotData.setReferencedSnapshotNodes(clonedCompositeSnapshotData.referencedSnapshotNodes);
+        return clonedCompositeSnapshotData;
+    }
 }

@@ -96,8 +96,8 @@ public interface NodeDAO {
     /**
      * Copies {@link Node}s (folder or config) to some parent node.
      *
-     * @param nodeIds  List of unique node ids subject to move
-     * @param targetId Unique id of target node
+     * @param nodeIds  Non-null and non-empty list of unique node ids subject to move
+     * @param targetId Non-null and non-empty unique id of target node
      * @param userName The (account) name of the user performing the operation.
      * @return The target {@link Node} object that is the new parent of the moved source {@link Node}
      */
