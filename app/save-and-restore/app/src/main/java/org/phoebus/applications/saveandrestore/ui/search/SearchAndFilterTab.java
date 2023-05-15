@@ -21,15 +21,16 @@ package org.phoebus.applications.saveandrestore.ui.search;
 
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
+import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
-import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationController;
-import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationTab;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -38,8 +39,10 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SearchAndFilterTab extends Tab {
+public class SearchAndFilterTab extends Tab implements NodeChangedListener {
     public static final String SEARCH_AND_FILTER_TAB_ID = "SearchAndFilterTab";
+
+    private SearchAndFilterViewController searchAndFilterViewController;
 
     public SearchAndFilterTab(SaveAndRestoreController saveAndRestoreController) {
 
@@ -63,12 +66,17 @@ public class SearchAndFilterTab extends Tab {
         });
 
         try {
-            setContent(loader.load());
+            Node node = loader.load();
+            setContent(node);
+            SearchAndFilterViewController controller = loader.getController();
+            setOnCloseRequest(event -> controller.handleSaveAndFilterTabClosed());
         } catch (IOException e) {
             Logger.getLogger(SearchAndFilterTab.class.getName())
                     .log(Level.SEVERE, "Unable to load search tab content fxml", e);
             return;
         }
+
+        searchAndFilterViewController = loader.getController();
 
         HBox container = new HBox();
         ImageView imageView = new ImageView(ImageCache.getImage(ImageCache.class, "/icons/sar-search.png"));
@@ -79,5 +87,18 @@ public class SearchAndFilterTab extends Tab {
         container.getChildren().addAll(imageView, label);
 
         setGraphic(container);
+
+        setOnCloseRequest(event -> SaveAndRestoreService.getInstance().removeNodeChangeListener(this));
+
+        SaveAndRestoreService.getInstance().addNodeChangeListener(this);
+    }
+
+    public void search() {
+        searchAndFilterViewController.search();
+    }
+
+    @Override
+    public void nodeChanged(org.phoebus.applications.saveandrestore.model.Node updatedNode) {
+        searchAndFilterViewController.nodeChanged(updatedNode);
     }
 }

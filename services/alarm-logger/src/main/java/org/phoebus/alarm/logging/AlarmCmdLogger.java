@@ -89,7 +89,7 @@ public class AlarmCmdLogger implements Runnable {
                 }));
 
         final String indexDateSpanUnits = props.getProperty("date_span_units");
-        final boolean useDatedIndexNames = Boolean.getBoolean(props.getProperty("use_dated_index_names"));
+        final boolean useDatedIndexNames = Boolean.parseBoolean(props.getProperty("use_dated_index_names"));
 
         try {
             indexNameHelper = new IndexNameHelper(topic + INDEX_FORMAT, useDatedIndexNames, indexDateSpanUnits);

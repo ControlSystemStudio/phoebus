@@ -103,6 +103,10 @@ public class BrowserTreeCell extends TreeCell<Node> {
                 event.acceptTransferModes(event.getTransferMode());
                 setBorder(BORDER);
             }
+            else if(node != null && node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)){
+                event.acceptTransferModes(event.getTransferMode());
+                setBorder(BORDER);
+            }
             event.consume();
         });
 
@@ -116,30 +120,22 @@ public class BrowserTreeCell extends TreeCell<Node> {
         {
             Node targetNode = getItem();
             if (targetNode != null) {
+                TransferMode transferMode = event.getTransferMode();
                 List<Node> sourceNodes = (List<Node>) event.getDragboard().getContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT);
-                // If the drop target is contained in the selection, return silently...
-                if (!mayDrop(targetNode, sourceNodes)) {
+                if (!DragNDropUtil.mayDrop(transferMode, targetNode, sourceNodes)) {
                     return;
                 }
-                // If selection contains a snapshot or composite snapshot node, return silently...
-                TransferMode transferMode = event.getTransferMode();
-                getTreeView().getSelectionModel().clearSelection(); // This is needed to help controller implement selection restrictions
-                saveAndRestoreController.performCopyOrMove(sourceNodes, targetNode, transferMode);
+                if(DragNDropUtil.snapshotsOrCompositeSnapshotsOnly(sourceNodes) && targetNode.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)){
+                    saveAndRestoreController.editCompositeSnapshot(targetNode, sourceNodes);
+                }
+                else{
+                    getTreeView().getSelectionModel().clearSelection(); // This is needed to help controller implement selection restrictions
+                    saveAndRestoreController.performCopyOrMove(sourceNodes, targetNode, transferMode);
+                }
             }
             event.setDropCompleted(true);
             event.consume();
         });
-    }
-
-    private boolean mayDrop(Node targetNode, List<Node> sourceNodes) {
-        if (sourceNodes.contains(targetNode)) {
-            return false;
-        }
-        if (sourceNodes.stream().filter(n -> n.getNodeType().equals(NodeType.SNAPSHOT) ||
-                n.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)).findFirst().isEmpty()) {
-            return true;
-        }
-        return false;
     }
 
     @Override
@@ -147,6 +143,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
         super.updateItem(node, empty);
         if (empty) {
             setGraphic(null);
+            setTooltip(null);
             getStyleClass().remove("filter-match");
             return;
         }

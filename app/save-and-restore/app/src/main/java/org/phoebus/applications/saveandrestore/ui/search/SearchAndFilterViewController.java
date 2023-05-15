@@ -38,8 +38,12 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Pagination;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -47,10 +51,14 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.TransferMode;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.Preferences;
+import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
@@ -58,10 +66,13 @@ import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
+import org.phoebus.applications.saveandrestore.ui.FilterChangeListener;
 import org.phoebus.applications.saveandrestore.ui.HelpViewer;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
+import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -87,7 +98,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class SearchAndFilterViewController implements Initializable {
+public class SearchAndFilterViewController implements Initializable, FilterChangeListener {
 
     private final SaveAndRestoreController saveAndRestoreController;
 
@@ -392,6 +403,29 @@ public class SearchAndFilterViewController implements Initializable {
             }
         });
 
+        ContextMenu contextMenu = new ContextMenu();
+        MenuItem tagGoldenMenuItem = new MenuItem(Messages.contextMenuTagAsGolden, new ImageView(ImageRepository.SNAPSHOT));
+
+        ImageView snapshotTagsWithCommentIconImage = new ImageView(ImageRepository.SNAPSHOT_ADD_TAG_WITH_COMMENT);
+        Menu tagMenu = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
+
+        MenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
+        addTagWithCommentMenuItem.setOnAction(event -> TagUtil.addTag(resultTableView.getSelectionModel().getSelectedItems()));
+        tagMenu.getItems().add(addTagWithCommentMenuItem);
+
+        contextMenu.setOnShowing(event -> {
+            TagUtil.tagWithComment(tagMenu,
+                    resultTableView.getSelectionModel().getSelectedItems(),
+                    updatedNodes -> { // Callback, any extra handling added here
+                    });
+            TagUtil.configureGoldenItem(resultTableView.getSelectionModel().getSelectedItems(), tagGoldenMenuItem);
+        });
+
+        contextMenu.getItems().addAll(tagGoldenMenuItem, tagMenu);
+
+
+        resultTableView.setContextMenu(contextMenu);
+
         // Bind search result table to tableEntries observable
         Property<ObservableList<Node>> authorListProperty = new SimpleObjectProperty<>(tableEntries);
         resultTableView.itemsProperty().bind(authorListProperty);
@@ -416,7 +450,7 @@ public class SearchAndFilterViewController implements Initializable {
 
         tagsColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getTags() == null ?
                 "" :
-                cell.getValue().getTags().stream().map(Tag::getName).collect(Collectors.joining(System.lineSeparator()))));
+                cell.getValue().getTags().stream().map(Tag::getName).filter(name -> !name.equals(Tag.GOLDEN)).collect(Collectors.joining(System.lineSeparator()))));
         tagsColumn.getStyleClass().add("leftAlignedTableColumnHeader");
 
         pageSizeTextField.setText(Integer.toString(pageSizeProperty.get()));
@@ -450,7 +484,20 @@ public class SearchAndFilterViewController implements Initializable {
             }
         });
 
+        resultTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        resultTableView.setOnDragDetected(e -> {
+            final ClipboardContent content = new ClipboardContent();
+            final List<Node> nodes = new ArrayList<>();
+            resultTableView.getSelectionModel().getSelectedItems().forEach(i -> nodes.add(i));
+            content.put(SaveAndRestoreApplication.NODE_SELECTION_FORMAT, nodes);
+            final Dragboard db = resultTableView.startDragAndDrop(TransferMode.LINK);
+            db.setContent(content);
+            e.consume();
+        });
+
         loadFilters();
+
+        saveAndRestoreService.addFilterChangeListener(this);
     }
 
     private void setFilter(Filter filter) {
@@ -498,10 +545,7 @@ public class SearchAndFilterViewController implements Initializable {
         filter.setName(filterNameProperty.get());
         filter.setQueryString(queryLabel.getText());
         try {
-            JobManager.schedule("Save Filter", monitor -> {
-                saveAndRestoreService.saveFilter(filter);
-                loadFilters();
-            });
+            JobManager.schedule("Save Filter", monitor -> saveAndRestoreService.saveFilter(filter));
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to save filter." + (e.getMessage() != null ? ("Cause: " + e.getMessage()) : ""));
             Platform.runLater(() -> ExceptionDetailsErrorDialog.openError(Messages.errorGeneric, Messages.failedSaveFilter, e));
@@ -679,8 +723,8 @@ public class SearchAndFilterViewController implements Initializable {
                 button.setTooltip(new Tooltip(Messages.deleteFilter));
                 button.setOnAction(event -> {
                     try {
-                        saveAndRestoreService.deleteFilter(filter.getName());
-                        loadFilters();
+                        saveAndRestoreService.deleteFilter(filter);
+                        //loadFilters();
                         clearFilter(filter);
                     } catch (Exception e) {
                         LOGGER.log(Level.SEVERE, "Failed to delete filter", e);
@@ -758,5 +802,28 @@ public class SearchAndFilterViewController implements Initializable {
                 searchParams.get(Keys.TAGS.getName()).contains(Tag.GOLDEN));
 
         searchDisabled = false;
+    }
+
+    public void nodeChanged(Node updatedNode) {
+        for (Node node : resultTableView.getItems()) {
+            if (node.getUniqueId().equals(updatedNode.getUniqueId())) {
+                node.setTags(updatedNode.getTags());
+                resultTableView.refresh();
+            }
+        }
+    }
+
+    @Override
+    public void filterAddedOrUpdated(Filter filter) {
+        loadFilters();
+    }
+
+    @Override
+    public void filterRemoved(Filter filter) {
+        loadFilters();
+    }
+
+    public void handleSaveAndFilterTabClosed() {
+        saveAndRestoreService.removeFilterChangeListener(this);
     }
 }

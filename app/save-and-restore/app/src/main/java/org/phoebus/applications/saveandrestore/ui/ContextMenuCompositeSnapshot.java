@@ -39,7 +39,8 @@ public class ContextMenuCompositeSnapshot extends ContextMenuBase {
 
         MenuItem editCompositeSnapshotMenuItem = new MenuItem(Messages.Edit, new ImageView(ImageRepository.EDIT_CONFIGURATION));
         editCompositeSnapshotMenuItem.disableProperty().bind(multipleSelection);
-        editCompositeSnapshotMenuItem.setOnAction(ae -> saveAndRestoreController.editCompositeSnapshot());
+        editCompositeSnapshotMenuItem.setOnAction(ae ->
+                saveAndRestoreController.editCompositeSnapshot());
 
         ImageView snapshotTagsWithCommentIconImage = new ImageView(snapshotTagsWithCommentIcon);
         snapshotTagsWithCommentIconImage.setFitHeight(22);

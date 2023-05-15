@@ -158,5 +158,6 @@ public class HistoricSamples extends PlotSamples
     {
         visible_size = 0;
         samples = new PlotSample[0];
+        border_time = Optional.empty();
     }
 }

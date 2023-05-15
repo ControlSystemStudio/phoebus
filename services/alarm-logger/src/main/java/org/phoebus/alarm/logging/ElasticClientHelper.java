@@ -5,11 +5,8 @@ package org.phoebus.alarm.logging;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.Refresh;
-import co.elastic.clients.elasticsearch._types.Result;
 import co.elastic.clients.elasticsearch.core.BulkRequest;
 import co.elastic.clients.elasticsearch.core.BulkResponse;
-import co.elastic.clients.elasticsearch.core.IndexRequest;
-import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.elasticsearch.indices.ExistsIndexTemplateRequest;
 import co.elastic.clients.elasticsearch.indices.PutIndexTemplateRequest;
 import co.elastic.clients.elasticsearch.indices.PutIndexTemplateResponse;
@@ -47,7 +44,6 @@ import static org.phoebus.alarm.logging.AlarmLoggingService.logger;
  * A Utility service to allow for batched indexing of alarm state, config, and command messages to an elastic backend
  *
  * @author Kunal Shroff {@literal <kunalshroff9@gmail.gov>}
- *
  */
 public class ElasticClientHelper {
     Properties props = PropertiesHelper.getProperties();
@@ -65,9 +61,11 @@ public class ElasticClientHelper {
     private static final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(4);
     ScheduledFuture<?> job;
     // State messages to be indexed
-    BlockingQueue<SimpleImmutableEntry<String,AlarmStateMessage>> stateMessagedQueue = new LinkedBlockingDeque<>();
+    BlockingQueue<SimpleImmutableEntry<String, AlarmStateMessage>> stateMessagedQueue = new LinkedBlockingDeque<>();
     // State messages to be indexed
-    BlockingQueue<SimpleImmutableEntry<String,AlarmConfigMessage>> configMessagedQueue = new LinkedBlockingDeque<>();
+    BlockingQueue<SimpleImmutableEntry<String, AlarmConfigMessage>> configMessagedQueue = new LinkedBlockingDeque<>();
+
+    BlockingQueue<SimpleImmutableEntry<String, AlarmCommandMessage>> commandMessagedQueue = new LinkedBlockingDeque<>();
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -80,8 +78,7 @@ public class ElasticClientHelper {
                         client.shutdown();
                         transport.close();
                         restClient.close();
-                    }
-                    catch (IOException ex){
+                    } catch (IOException ex) {
                         logger.log(Level.WARNING, "Failed to close the elastic client.", ex);
                     }
                 }
@@ -89,7 +86,7 @@ public class ElasticClientHelper {
 
             // Create the low-level client
             restClient = RestClient.builder(
-                            new HttpHost(props.getProperty("es_host"),Integer.parseInt(props.getProperty("es_port")))).build();
+                    new HttpHost(props.getProperty("es_host"), Integer.parseInt(props.getProperty("es_port")))).build();
 
             mapper.registerModule(new JavaTimeModule());
             transport = new RestClientTransport(
@@ -105,7 +102,7 @@ public class ElasticClientHelper {
             esInitialized.set(!Boolean.parseBoolean(props.getProperty("es_create_templates")));
 
             // Start the executor for periodically logging into es
-            job = scheduledExecutorService.scheduleAtFixedRate(new flush2Elastic(stateMessagedQueue, configMessagedQueue),
+            job = scheduledExecutorService.scheduleAtFixedRate(new flush2Elastic(stateMessagedQueue, configMessagedQueue, commandMessagedQueue),
                     0, 250, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             try {
@@ -133,12 +130,13 @@ public class ElasticClientHelper {
 
     /**
      * Index an alarm state message
-     * @param indexName
-     * @param alarmStateMessage
+     *
+     * @param indexName Name of Elasticsearch index, e.g. myConfig_alarms_state_yyyy-MM-dd
+     * @param alarmStateMessage Object holding alarm state message
      */
     public void indexAlarmStateDocuments(String indexName, AlarmStateMessage alarmStateMessage) {
         try {
-            stateMessagedQueue.put(new SimpleImmutableEntry<>(indexName,alarmStateMessage));
+            stateMessagedQueue.put(new SimpleImmutableEntry<>(indexName, alarmStateMessage));
         } catch (InterruptedException e) {
             logger.log(Level.SEVERE, "failed to log message " + alarmStateMessage + " to index " + indexName, e);
         }
@@ -146,32 +144,27 @@ public class ElasticClientHelper {
 
     /**
      * Index an alarm command message
-     * @param indexName
-     * @param alarmCommandMessage
-     * @return
+     *
+     * @param indexName Name of Elasticsearch index, e.g. myConfig_alarms_cmd_yyyy-MM-dd
+     * @param alarmCommandMessage Object holding alarm command message
      */
-    public boolean indexAlarmCmdDocument(String indexName, AlarmCommandMessage alarmCommandMessage) {
-        IndexRequest<AlarmCommandMessage> indexRequest = new IndexRequest.Builder<AlarmCommandMessage>()
-                .index(indexName.toLowerCase())
-                .document(alarmCommandMessage)
-                .build();
+    public void indexAlarmCmdDocument(String indexName, AlarmCommandMessage alarmCommandMessage) {
         try {
-            IndexResponse indexResponse = client.index(indexRequest);
-            return indexResponse.result().equals(Result.Created);
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "failed to log message " + alarmCommandMessage + " to index " + indexName, e);
-            return false;
+            commandMessagedQueue.put(new SimpleImmutableEntry<>(indexName, alarmCommandMessage));
+        } catch (InterruptedException e) {
+            logger.log(Level.SEVERE, "failed to log command message " + alarmCommandMessage + " to index " + indexName, e);
         }
     }
 
     /**
      * Index an alarm config message
-     * @param indexName
-     * @param alarmConfigMessage
+     *
+     * @param indexName Name of Elasticsearch index, e.g. myConfig_alarms_config_yyyy-MM-dd
+     * @param alarmConfigMessage Object holding alarm config message
      */
     public void indexAlarmConfigDocuments(String indexName, AlarmConfigMessage alarmConfigMessage) {
         try {
-            configMessagedQueue.put(new SimpleImmutableEntry<>(indexName,alarmConfigMessage));
+            configMessagedQueue.put(new SimpleImmutableEntry<>(indexName, alarmConfigMessage));
         } catch (InterruptedException e) {
             logger.log(Level.SEVERE, "failed to log message " + alarmConfigMessage + " to index " + indexName, e);
         }
@@ -182,13 +175,16 @@ public class ElasticClientHelper {
      */
     private static class flush2Elastic implements Runnable {
 
-        private final BlockingQueue<SimpleImmutableEntry<String,AlarmStateMessage>> stateMessagedQueue;
-        private final BlockingQueue<SimpleImmutableEntry<String,AlarmConfigMessage>> configMessagedQueue;
+        private final BlockingQueue<SimpleImmutableEntry<String, AlarmStateMessage>> stateMessagedQueue;
+        private final BlockingQueue<SimpleImmutableEntry<String, AlarmConfigMessage>> configMessagedQueue;
+        private final BlockingQueue<SimpleImmutableEntry<String, AlarmCommandMessage>> commandMessagedQueue;
 
-        public flush2Elastic(BlockingQueue<SimpleImmutableEntry<String,AlarmStateMessage>> stateMessagedQueue,
-                             BlockingQueue<SimpleImmutableEntry<String,AlarmConfigMessage>> configMessagedQueue) {
+        public flush2Elastic(BlockingQueue<SimpleImmutableEntry<String, AlarmStateMessage>> stateMessagedQueue,
+                             BlockingQueue<SimpleImmutableEntry<String, AlarmConfigMessage>> configMessagedQueue,
+                             BlockingQueue<SimpleImmutableEntry<String, AlarmCommandMessage>> commandMessagedQueue) {
             this.stateMessagedQueue = stateMessagedQueue;
             this.configMessagedQueue = configMessagedQueue;
+            this.commandMessagedQueue = commandMessagedQueue;
         }
 
         @Override
@@ -200,51 +196,61 @@ public class ElasticClientHelper {
                     logger.log(Level.SEVERE, "failed to create the alarm log indices ", e);
                 }
             }
-            if(stateMessagedQueue.size() + configMessagedQueue.size() > 0){
+            if (stateMessagedQueue.size() + configMessagedQueue.size() > 0) {
                 logger.log(Level.INFO, "batch execution of : " + stateMessagedQueue.size() + " state messages and " + configMessagedQueue.size() + " config messages");
                 BulkRequest.Builder bulkRequest = new BulkRequest.Builder().refresh(Refresh.True);
-                Collection<SimpleImmutableEntry<String,AlarmStateMessage>> statePairs = new ArrayList<>();
+                Collection<SimpleImmutableEntry<String, AlarmStateMessage>> statePairs = new ArrayList<>();
                 stateMessagedQueue.drainTo(statePairs);
-                Collection<SimpleImmutableEntry<String,AlarmConfigMessage>> configPairs = new ArrayList<>();
+                Collection<SimpleImmutableEntry<String, AlarmConfigMessage>> configPairs = new ArrayList<>();
                 configMessagedQueue.drainTo(configPairs);
-                statePairs.forEach( pair -> bulkRequest.operations(op -> op
+                Collection<SimpleImmutableEntry<String, AlarmCommandMessage>> commandPairs = new ArrayList<>();
+                commandMessagedQueue.drainTo(commandPairs);
+                statePairs.forEach(pair -> bulkRequest.operations(op -> op
                         .index(idx -> idx
                                 .index(pair.getKey().toLowerCase())
                                 .document(pair.getValue().sourceMap()))));
-                configPairs.forEach( pair -> bulkRequest.operations(op->op
-                        .index(idx->idx
+                configPairs.forEach(pair -> bulkRequest.operations(op -> op
+                        .index(idx -> idx
+                                .index(pair.getKey().toLowerCase())
+                                .document(pair.getValue().sourceMap()))));
+                commandPairs.forEach(pair -> bulkRequest.operations(op -> op
+                        .index(idx -> idx
                                 .index(pair.getKey().toLowerCase())
                                 .document(pair.getValue().sourceMap()))));
                 try {
                     BulkResponse bulkResponse = client.bulk(bulkRequest.build());
-                        bulkResponse.items().forEach(item -> {
-                                    if (item.error()!=null) {
-                                        logger.log(Level.SEVERE, "Failed while indexing to " + item.index() + " type "
-                                                + item.operationType() + item.error().reason() + "]");
-                                    }
+                    bulkResponse.items().forEach(item -> {
+                                if (item.error() != null) {
+                                    logger.log(Level.SEVERE, "Failed while indexing to " + item.index() + " type "
+                                            + item.operationType() + item.error().reason() + "]");
                                 }
-                        );
+                            }
+                    );
                 } catch (IOException e) {
                     logger.log(Level.SEVERE, "failed to log messages to index ", e);
                 }
             }
         }
-        private static Properties props = new Properties();
-        {
+
+        private static final Properties props = new Properties();
+
+        static {
             props.putAll(PropertiesHelper.getProperties());
         }
-        private String ALARM_STATE_TEMPLATE = props.getProperty("elasticsearch.alarm.state.template","alarms_state_template");
-        private String ALARM_STATE_TEMPLATE_PATTERN = props.getProperty("elasticsearch.alarm.state.template.pattern","*_alarms_state*");
 
-        private String ALARM_CMD_TEMPLATE = props.getProperty("elasticsearch.alarm.cmd.template","alarms_cmd_template");
-        private String ALARM_CMD_TEMPLATE_PATTERN = props.getProperty("elasticsearch.alarm.cmd.template.pattern","*_alarms_cmd*");
+        private final String ALARM_STATE_TEMPLATE = props.getProperty("elasticsearch.alarm.state.template", "alarms_state_template");
+        private final String ALARM_STATE_TEMPLATE_PATTERN = props.getProperty("elasticsearch.alarm.state.template.pattern", "*_alarms_state*");
 
-        private String ALARM_CONFIG_TEMPLATE = props.getProperty("elasticsearch.alarm.config.template","alarms_config_template");
-        private String ALARM_CONFIG_TEMPLATE_PATTERN = props.getProperty("elasticsearch.alarm.config.template.pattern","*_alarms_config*");
+        private final String ALARM_CMD_TEMPLATE = props.getProperty("elasticsearch.alarm.cmd.template", "alarms_cmd_template");
+        private final String ALARM_CMD_TEMPLATE_PATTERN = props.getProperty("elasticsearch.alarm.cmd.template.pattern", "*_alarms_cmd*");
+
+        private final String ALARM_CONFIG_TEMPLATE = props.getProperty("elasticsearch.alarm.config.template", "alarms_config_template");
+        private final String ALARM_CONFIG_TEMPLATE_PATTERN = props.getProperty("elasticsearch.alarm.config.template.pattern", "*_alarms_config*");
 
         /**
          * Check if the required templated for the phoebus alarm logs exists, if not create them.
-         * @throws IOException
+         *
+         * @throws IOException if Elasticsearch interaction fails
          */
         public void initializeIndices() throws IOException {
             // Create the alarm state messages index template

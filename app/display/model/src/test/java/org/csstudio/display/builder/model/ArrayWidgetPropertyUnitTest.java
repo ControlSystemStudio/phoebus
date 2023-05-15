@@ -148,7 +148,7 @@ public class ArrayWidgetPropertyUnitTest
         // Set value to non-default
         widget.propItems().getValue().get(1).setValue("Another (2)");
         // Persist to XML
-        final String xml = ModelWriter.getXML(List.of(widget));
+        final String xml = removeSavedOn(ModelWriter.getXML(List.of(widget)));
         System.out.println(xml);
         assertThat(xml, containsString("<items>"));
         assertThat(xml, containsString("<item>Another"));
@@ -156,9 +156,14 @@ public class ArrayWidgetPropertyUnitTest
         // Read from XML
         WidgetFactory.getInstance().addWidgetType(DemoWidget.WIDGET_DESCRIPTOR);
         final List<Widget> read_back = ModelReader.parseXML(xml).getChildren();
-        final String xml2 = ModelWriter.getXML(read_back);
+        final String xml2 = removeSavedOn(ModelWriter.getXML(read_back));
         System.out.println(xml2);
         assertThat(xml2, equalTo(xml));
+    }
+
+    private String removeSavedOn(final String xml)
+    {
+        return xml.replaceFirst("<!--Saved on.*-->", "<!--Saved on ____ -->");
     }
 
     @Test

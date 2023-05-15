@@ -37,7 +37,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
@@ -45,7 +44,6 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -61,9 +59,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
-import javafx.stage.Modality;
 import javafx.util.Callback;
-import javafx.util.Pair;
 import javafx.util.StringConverter;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
@@ -73,7 +69,6 @@ import org.phoebus.applications.saveandrestore.filehandler.csv.CSVImporter;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.applications.saveandrestore.model.TagData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
@@ -81,14 +76,10 @@ import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationTab;
 import org.phoebus.applications.saveandrestore.ui.search.SearchAndFilterTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.CompositeSnapshotTab;
-import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotNewTagDialog;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
-import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
-import org.phoebus.framework.autocomplete.ProposalService;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
-import org.phoebus.ui.autocomplete.AutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
@@ -103,14 +94,12 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Stack;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -118,7 +107,7 @@ import java.util.stream.Collectors;
 /**
  * Main controller for the save & restore UI.
  */
-public class SaveAndRestoreController implements Initializable, NodeChangedListener, NodeAddedListener {
+public class SaveAndRestoreController implements Initializable, NodeChangedListener, NodeAddedListener, FilterChangeListener {
 
     @FXML
     protected TreeView<Node> treeView;
@@ -224,7 +213,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             if (item == null) {
                 return;
             }
-            if(me.getClickCount() == 2){
+            if (me.getClickCount() == 2) {
                 nodeDoubleClicked(item.getValue());
             }
         });
@@ -233,6 +222,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         saveAndRestoreService.addNodeChangeListener(this);
         saveAndRestoreService.addNodeAddedListener(this);
+        saveAndRestoreService.addFilterChangeListener(this);
 
         treeView.setCellFactory(p -> new BrowserTreeCell(folderContextMenu,
                 configurationContextMenu, snapshotContextMenu, rootFolderContextMenu, compositeSnapshotContextMenu,
@@ -384,17 +374,33 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     /**
-     * Expands the specified node by clearing its list of child nodes and then fetching the
-     * list of child nodes from the service. This is typically applied if one wishes to
-     * refresh a node as a consequence of structural changes (e.g. node deleted).
+     * Expands the specified {@link Node}. In order to maintain the list of child {@link Node}s between repeated
+     * expand/collapse actions, this method will query the service for the current list of child {@link Node}s and
+     * then update the tree view accordingly, i.e. add {@link Node}s that are not yet present, and remove those that
+     * have been removed.
      *
      * @param targetItem {@link TreeItem<Node>} on which the operation is performed.
      */
     protected void expandTreeNode(TreeItem<Node> targetItem) {
-        targetItem.getChildren().clear();
         List<Node> childNodes = saveAndRestoreService.getChildNodes(targetItem.getValue());
-        Collections.sort(childNodes);
-        targetItem.getChildren().addAll(childNodes.stream().map(this::createTreeItem).collect(Collectors.toList()));
+        List<String> childNodeIds = childNodes.stream().map(Node::getUniqueId).collect(Collectors.toList());
+        List<String> existingNodeIds =
+                targetItem.getChildren().stream().map(item -> item.getValue().getUniqueId()).collect(Collectors.toList());
+        List<TreeItem<Node>> itemsToAdd = new ArrayList<>();
+        childNodes.forEach(n -> {
+            if (!existingNodeIds.contains(n.getUniqueId())) {
+                itemsToAdd.add(createTreeItem(n));
+            }
+        });
+        List<TreeItem<Node>> itemsToRemove = new ArrayList<>();
+        targetItem.getChildren().forEach(item -> {
+            if (!childNodeIds.contains(item.getValue().getUniqueId())) {
+                itemsToRemove.add(item);
+            }
+        });
+
+        targetItem.getChildren().addAll(itemsToAdd);
+        targetItem.getChildren().removeAll(itemsToRemove);
         targetItem.getChildren().sort(treeNodeComparator);
         targetItem.setExpanded(true);
     }
@@ -414,7 +420,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      */
     protected void compareSnapshot(Node node) {
         Tab tab = tabPane.getSelectionModel().getSelectedItem();
-        if(tab == null){
+        if (tab == null) {
             return;
         }
         if (tab instanceof SnapshotTab) {
@@ -581,7 +587,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * @param node The double click source
      */
     public void nodeDoubleClicked(Node node) {
-        if(highlightTab(node.getUniqueId())){
+        if (getTab(node.getUniqueId()) != null) {
             return;
         }
         Tab tab;
@@ -611,17 +617,39 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * Launches the composite snapshot editor view. Note that a tab showing this view uses the "edit_" prefix
      * for the id since it would otherwise clash with a restore view of a composite snapshot.
      */
-    public void editCompositeSnapshot(){
+    public void editCompositeSnapshot() {
         Node compositeSnapshotNode = browserSelectionModel.getSelectedItem().getValue();
-        if(highlightTab("edit_" + compositeSnapshotNode.getUniqueId())){
-            return;
-        }
-        Tab tab = new CompositeSnapshotTab(this);
-        ((CompositeSnapshotTab) tab).editCompositeSnapshot(compositeSnapshotNode);
-        tabPane.getTabs().add(tab);
-        tabPane.getSelectionModel().select(tab);
+        editCompositeSnapshot(compositeSnapshotNode, Collections.emptyList());
     }
 
+    /**
+     * Launches the composite snapshot editor view for the purpose of editing an existing
+     * composite snapshot.
+     *
+     * @param compositeSnapshotNode A non-null {@link Node} of type {@link NodeType#COMPOSITE_SNAPSHOT}
+     * @param snapshotNodes         A potentially empty (but non-null) list of snapshot nodes to include in
+     *                              a new or existing composite snapshot.
+     */
+    public void editCompositeSnapshot(Node compositeSnapshotNode, List<Node> snapshotNodes) {
+        CompositeSnapshotTab compositeSnapshotTab;
+        Tab tab = getTab("edit_" + compositeSnapshotNode.getUniqueId());
+        if (tab != null) {
+            compositeSnapshotTab = (CompositeSnapshotTab) tab;
+            compositeSnapshotTab.addToCompositeSnapshot(snapshotNodes);
+        } else {
+            compositeSnapshotTab = new CompositeSnapshotTab(this);
+            compositeSnapshotTab.editCompositeSnapshot(compositeSnapshotNode, snapshotNodes);
+            tabPane.getTabs().add(compositeSnapshotTab);
+        }
+        tabPane.getSelectionModel().select(compositeSnapshotTab);
+    }
+
+    /**
+     * Launches a {@link Tab} for the purpose of creating a new configuration.
+     *
+     * @param parentNode A non-null parent {@link Node} that must be of type
+     *                   {@link NodeType#FOLDER}.
+     */
     private void launchTabForNewConfiguration(Node parentNode) {
         ConfigurationTab tab = new ConfigurationTab();
         tab.configureForNewConfiguration(parentNode);
@@ -629,21 +657,36 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         tabPane.getSelectionModel().select(tab);
     }
 
-    private void launchTabForNewCompositeSnapshot(Node parentNode) {
+    /**
+     * Launches a {@link Tab} for the purpose of creating a new composite snapshot.
+     *
+     * @param parentNode    A non-null parent {@link Node} that must be of type
+     *                      {@link NodeType#FOLDER}.
+     * @param snapshotNodes A potentially empty list of snapshot nodes
+     *                      added to the composite snapshot.
+     */
+    public void launchTabForNewCompositeSnapshot(Node parentNode, List<Node> snapshotNodes) {
         CompositeSnapshotTab tab = new CompositeSnapshotTab(this);
-        tab.configureForNewCompositeSnapshot(parentNode);
+        tab.configureForNewCompositeSnapshot(parentNode, snapshotNodes);
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);
     }
 
-    private boolean highlightTab(String id) {
+    /**
+     * Locates a {@link Tab} in the {@link TabPane }and returns it if it exists.
+     *
+     * @param id Unique id of a {@link Tab}, which is based on the id of the {@link Node} it
+     *           is associated with.
+     * @return A non-null {@link Tab} if one is found, otherwise <code>null</code>.
+     */
+    private Tab getTab(String id) {
         for (Tab tab : tabPane.getTabs()) {
             if (tab.getId() != null && tab.getId().equals(id)) {
                 tabPane.getSelectionModel().select(tab);
-                return true;
+                return tab;
             }
         }
-        return false;
+        return null;
     }
 
     /**
@@ -654,7 +697,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     protected void createNewCompositeSnapshot() {
-        launchTabForNewCompositeSnapshot(browserSelectionModel.getSelectedItems().get(0).getValue());
+        launchTabForNewCompositeSnapshot(browserSelectionModel.getSelectedItems().get(0).getValue(),
+                Collections.emptyList());
     }
 
     /**
@@ -778,8 +822,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * @return The located {@link TreeItem}, or <code>null</code> if not found.
      */
     protected TreeItem<Node> recursiveSearch(String nodeIdToLocate, TreeItem<Node> node) {
-        if (node.getValue().getUniqueId().equals(nodeIdToLocate))
+        if (node.getValue().getUniqueId().equals(nodeIdToLocate)) {
             return node;
+        }
         List<TreeItem<Node>> childNodes = node.getChildren();
         TreeItem<Node> result = null;
         for (int i = 0; result == null && i < childNodes.size(); i++) {
@@ -794,7 +839,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         while (nodeStack.size() > 0) {
             Node currentNode = nodeStack.pop();
             TreeItem<Node> currentTreeItem = recursiveSearch(currentNode.getUniqueId(), parentTreeItem);
-            currentTreeItem.setExpanded(true);
+            expandTreeNode(currentTreeItem);
             parentTreeItem = currentTreeItem;
         }
 
@@ -821,7 +866,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             List<TreeItem<Node>> childItems = allItems.get(parentItem.getValue().getUniqueId());
             parentItem.getChildren().setAll(childItems);
             parentItem.getChildren().sort(treeNodeComparator);
-            childItems.forEach(ci -> setChildItems(allItems, ci));
+            Platform.runLater(() -> childItems.forEach(ci -> setChildItems(allItems, ci)));
         }
     }
 
@@ -842,7 +887,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     /**
      * Tag comparator using the tags' created date.
      */
-    protected static class TagComparator implements Comparator<Tag> {
+    public static class TagComparator implements Comparator<Tag> {
         @Override
         public int compare(Tag tag1, Tag tag2) {
             return -tag1.getCreated().compareTo(tag2.getCreated());
@@ -850,7 +895,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     /**
-     * Self explanatory
+     * Self-explanatory
      */
     public void saveLocalState() {
         // If root item is null, then there is no data in the TreeView
@@ -861,12 +906,20 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         findExpandedNodes(expandedNodes, treeView.getRoot());
         try {
             PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).put(TREE_STATE, objectMapper.writeValueAsString(expandedNodes));
-            if (filterEnabledProperty.get()) {
-                PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).put(FILTER_NAME, objectMapper.writeValueAsString(filtersComboBox.getSelectionModel().getSelectedItem().getName()));
+            if (filterEnabledProperty.get() && filtersComboBox.getSelectionModel().getSelectedItem() != null) {
+                PhoebusPreferenceService.userNodeForClass(SaveAndRestoreApplication.class).put(FILTER_NAME,
+                        objectMapper.writeValueAsString(filtersComboBox.getSelectionModel().getSelectedItem().getName()));
             }
         } catch (JsonProcessingException e) {
             LOG.log(Level.WARNING, "Failed to persist tree state");
         }
+    }
+
+    public void handleTabClosed() {
+        saveLocalState();
+        saveAndRestoreService.removeNodeChangeListener(this);
+        saveAndRestoreService.removeNodeAddedListener(this);
+        saveAndRestoreService.removeFilterChangeListener(this);
     }
 
     /**
@@ -966,38 +1019,10 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      */
     protected void addTagToSnapshots() {
         ObservableList<TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
-        List<String> selectedNodeIds =
-                selectedItems.stream().map(treeItem -> treeItem.getValue().getUniqueId()).collect(Collectors.toList());
-        SnapshotNewTagDialog snapshotNewTagDialog =
-                new SnapshotNewTagDialog(selectedItems.stream().map(TreeItem::getValue).collect(Collectors.toList()));
-        snapshotNewTagDialog.initModality(Modality.APPLICATION_MODAL);
-
-        ProposalService proposalService = new ProposalService(new TagProposalProvider(saveAndRestoreService));
-        AutocompleteMenu autocompleteMenu = new AutocompleteMenu(proposalService);
-        snapshotNewTagDialog.configureAutocompleteMenu(autocompleteMenu);
-
-        Optional<Pair<String, String>> result = snapshotNewTagDialog.showAndWait();
-        result.ifPresent(items -> {
-            Tag aNewTag = Tag.builder()
-                    .name(items.getKey())
-                    .comment(items.getValue())
-                    .created(new Date())
-                    .userName(System.getProperty("user.name"))
-                    .build();
-            try {
-                TagData tagData = new TagData();
-                tagData.setTag(aNewTag);
-                tagData.setUniqueNodeIds(selectedNodeIds);
-                List<Node> updatedNodes = saveAndRestoreService.addTag(tagData);
-                for (Node node : updatedNodes) {
-                    nodeChanged(node);
-                }
-            } catch (Exception e) {
-                LOG.log(Level.WARNING, "Failed to add tag to snapshot");
-            }
-        });
+        List<Node> selectedNodes = selectedItems.stream().map(TreeItem::getValue).collect(Collectors.toList());
+        List<Node> updatedNodes = TagUtil.addTag(selectedNodes);
+        updatedNodes.forEach(this::nodeChanged);
     }
-
 
     /**
      * Configures the "tag with comment" sub-menu. Items are added based on existing {@link Tag}s on the
@@ -1009,43 +1034,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         List<Node> selectedNodes =
                 browserSelectionModel.getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
-        ObservableList<MenuItem> items = tagWithCommentMenu.getItems();
-        if (items.size() > 1) {
-            items.remove(1, items.size());
-        }
-        // For a single Node this list should be the same as the Node's (potentially empty) tag list, though not null.
-        List<Tag> commonTags = TagUtil.getCommonTags(selectedNodes);
-        // Exclude golden tag as it is removed in separate context menu item.
-        commonTags.remove(Tag.builder().name(Tag.GOLDEN).build());
-        List<MenuItem> additionalItems = new ArrayList<>();
-        if (!commonTags.isEmpty()) {
-            additionalItems.add(new SeparatorMenuItem());
-            commonTags.sort(new TagComparator());
-            commonTags.forEach(tag -> {
-                CustomMenuItem tagItem = TagWidget.TagWithCommentMenuItem(tag);
-                tagItem.setOnAction(actionEvent -> {
-                    Alert confirmation = new Alert(AlertType.CONFIRMATION);
-                    confirmation.setTitle(Messages.tagRemoveConfirmationTitle);
-                    confirmation.setContentText(Messages.tagRemoveConfirmationContent);
-                    Optional<ButtonType> result = confirmation.showAndWait();
-                    result.ifPresent(buttonType -> {
-                        if (buttonType == ButtonType.OK) {
-                            try {
-                                TagData tagData = new TagData();
-                                tagData.setTag(tag);
-                                tagData.setUniqueNodeIds(selectedNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
-                                List<Node> updatedNodes = saveAndRestoreService.deleteTag(tagData);
-                                updatedNodes.forEach(n -> nodeChanged(n));
-                            } catch (Exception e) {
-                                LOG.log(Level.WARNING, "Failed to remove tag from snapshot", e);
-                            }
-                        }
-                    });
-                });
-                additionalItems.add(tagItem);
-            });
-        }
-        items.addAll(additionalItems);
+
+        TagUtil.tagWithComment(tagWithCommentMenu, selectedNodes, updatedNodes -> updatedNodes.forEach(this::nodeChanged));
     }
 
     /**
@@ -1064,43 +1054,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     public void configureGoldenItem(MenuItem menuItem) {
         List<Node> selectedNodes =
                 browserSelectionModel.getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
-        AtomicInteger goldenTagCount = new AtomicInteger(0);
-        selectedNodes.forEach(node -> {
-            if (node.hasTag(Tag.GOLDEN)) {
-                goldenTagCount.incrementAndGet();
-            }
-        });
-        if (goldenTagCount.get() == selectedNodes.size()) {
-            menuItem.disableProperty().set(false);
-            menuItem.setText(Messages.contextMenuRemoveGoldenTag);
-            menuItem.setGraphic(new ImageView(ImageRepository.SNAPSHOT));
-            menuItem.setOnAction(event -> {
-                TagData tagData = new TagData();
-                tagData.setTag(Tag.builder().name(Tag.GOLDEN).build());
-                tagData.setUniqueNodeIds(selectedNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
-                try {
-                    saveAndRestoreService.deleteTag(tagData);
-                } catch (Exception e) {
-                    LOG.log(Level.SEVERE, "Failed to delete tag");
-                }
-            });
-        } else if (goldenTagCount.get() == 0) {
-            menuItem.disableProperty().set(false);
-            menuItem.setText(Messages.contextMenuTagAsGolden);
-            menuItem.setGraphic(new ImageView(ImageRepository.GOLDEN_SNAPSHOT));
-            menuItem.setOnAction(event -> {
-                TagData tagData = new TagData();
-                tagData.setTag(Tag.builder().name(Tag.GOLDEN).build());
-                tagData.setUniqueNodeIds(selectedNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
-                try {
-                    saveAndRestoreService.addTag(tagData);
-                } catch (Exception e) {
-                    LOG.log(Level.SEVERE, "Failed to add tag");
-                }
-            });
-        } else {
-            menuItem.disableProperty().set(true);
-        }
+        TagUtil.configureGoldenItem(selectedNodes, menuItem);
     }
 
 
@@ -1116,6 +1070,12 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     protected boolean checkMultipleSelection() {
         ObservableList<TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
         if (selectedItems.size() < 2) {
+            return true;
+        }
+        List<Node> sourceNodes =
+                selectedItems.stream().map(TreeItem::getValue).collect(Collectors.toList());
+        if (sourceNodes.stream().filter(n -> n.getNodeType().equals(NodeType.FOLDER) ||
+                n.getNodeType().equals(NodeType.CONFIGURATION)).findFirst().isEmpty()) {
             return true;
         }
         TreeItem<Node> parent = selectedItems.get(0).getParent();
@@ -1272,6 +1232,12 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
     }
 
+    /**
+     * Applies a {@link Filter} selected by user. The service will be queries for {@link Node}s matching
+     * the {@link Filter}, then the {@link TreeView} is updated based on the search result.
+     *
+     * @param filter {@link Filter} selected by user.
+     */
     private void applyFilter(Filter filter) {
         treeView.getSelectionModel().clearSelection();
         Map<String, String> searchParams =
@@ -1290,32 +1256,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 LOG.log(Level.SEVERE, "Failed to perform search when applying filter", e);
             }
         });
-    }
-
-    /**
-     * Takes action to update the view when a {@link Filter} has been deleted, i.e. remove
-     * from drop-down list and clear highlighted nodes.
-     *
-     * @param filter The deleted {@link Filter}.
-     */
-    public void filterDeleted(Filter filter) {
-        filtersList.remove(filter);
-        searchResultNodes.clear();
-        treeView.refresh();
-        if (filtersList.isEmpty()) {
-            filterEnabledProperty.set(false);
-        }
-    }
-
-    public void filterAddedOrUpdated(Filter filter) {
-        Filter selectedFilter = filtersComboBox.getSelectionModel().getSelectedItem();
-        boolean selectFilterAfterRefresh =
-                selectedFilter != null &&
-                        selectedFilter.getName().equals(filter.getName());
-        loadFilters();
-        if (selectFilterAfterRefresh) {
-            filtersComboBox.getSelectionModel().select(filter);
-        }
     }
 
     private void filterEnabledChanged(boolean enabled) {
@@ -1351,4 +1291,103 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         tabPane.getTabs().add(tab);
         tabPane.getSelectionModel().select(tab);
     }
+
+    @Override
+    public void filterAddedOrUpdated(Filter filter) {
+        if (!filtersList.contains(filter)) {
+            filtersList.add(filter);
+        } else {
+            final int index = filtersList.indexOf(filter);
+            Platform.runLater(() -> {
+                filtersList.set(index, filter);
+                filtersComboBox.valueProperty().set(filter);
+                // If this is the active filter, update the tree view
+                if (filter.equals(filtersComboBox.getSelectionModel().getSelectedItem())) {
+                    applyFilter(filter);
+                }
+            });
+        }
+    }
+
+    @Override
+    public void filterRemoved(Filter filter) {
+        if (filtersList.contains(filter)) {
+            filtersList.remove(filter);
+            // If this is the active filter, de-select filter completely
+            filterEnabledProperty.set(false);
+            filtersComboBox.getSelectionModel().select(null);
+            // And refresh tree view
+            Platform.runLater(() -> treeView.refresh());
+        }
+    }
+
+    /*
+
+    private static class ExpandTreeItemJob extends JobRunnableWithCancel {
+
+        private TreeItem<Node> treeItem;
+        private Consumer<Void> completionHandler;
+
+        private SaveAndRestoreService saveAndRestoreService;
+
+        public static void requestExpandTreeNode(SaveAndRestoreService saveAndRestoreService, TreeItem<Node> treeItem, Consumer<Void> completionHandler){
+            JobManager.schedule("Expanding node " + treeItem.getValue().getName(),
+                    new ExpandTreeItemJob(saveAndRestoreService, treeItem, completionHandler));
+        }
+
+        public static void requestExpandTreeNode(SaveAndRestoreService saveAndRestoreService, TreeItem<Node> treeItem){
+            JobManager.schedule("Expanding node " + treeItem.getValue().getName(),
+                    new ExpandTreeItemJob(saveAndRestoreService, treeItem, null));
+        }
+
+        public ExpandTreeItemJob(SaveAndRestoreService saveAndRestoreService, TreeItem<Node> treeItem, Consumer<Void> completionHandler){
+            this.treeItem = treeItem;
+            this.completionHandler = completionHandler;
+            this.saveAndRestoreService = saveAndRestoreService;
+        }
+        @Override
+        public Runnable getRunnable() {
+            return () -> {
+                List<Node> childNodes = saveAndRestoreService.getChildNodes(treeItem.getValue());
+                List<String> childNodeIds = childNodes.stream().map(Node::getUniqueId).collect(Collectors.toList());
+                List<String> existingNodeIds =
+                        treeItem.getChildren().stream().map(item -> item.getValue().getUniqueId()).collect(Collectors.toList());
+                List<TreeItem<Node>> itemsToAdd = new ArrayList<>();
+                childNodes.forEach(n -> {
+                    if (!existingNodeIds.contains(n.getUniqueId())) {
+                        itemsToAdd.add(createTreeItem(n));
+                    }
+                });
+                List<TreeItem<Node>> itemsToRemove = new ArrayList<>();
+                targetItem.getChildren().forEach(item -> {
+                    if (!childNodeIds.contains(item.getValue().getUniqueId())) {
+                        itemsToRemove.add(item);
+                    }
+                });
+                Platform.runLater(() -> {
+                    targetItem.getChildren().addAll(itemsToAdd);
+                    targetItem.getChildren().removeAll(itemsToRemove);
+                    targetItem.getChildren().sort(treeNodeComparator);
+                    targetItem.setExpanded(true);
+                    if(completionHandler != null){
+                        completionHandler.accept(null);
+                    }
+                });
+                if(completionHandler != null){
+                    completionHandler.accept(null);
+                }
+                try {
+                    SearchResult searchResult = client.search(searchMap);
+                    logEntryHandler.accept(searchResult);
+                } catch (Exception exception) {
+                    Logger.getLogger(LogbookSearchJob.class.getName())
+                            .log(Level.SEVERE, "Failed to obtain logs", exception);
+                    errorHandler.accept(null, exception);
+                }
+            };
+        }
+
+    }
+
+     */
 }

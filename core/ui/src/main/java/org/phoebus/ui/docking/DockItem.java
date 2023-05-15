@@ -210,11 +210,11 @@ public class DockItem extends Tab
             if (stagesContainingActiveDockPane.size() == 1) {
                 SaveLayoutHelper.saveLayout(stagesContainingActiveDockPane, Messages.SaveLayoutOfContainingWindowAs);
             }
-            else if (stagesContainingActiveDockPane.size() == 1) {
-                logger.log(Level.SEVERE, "No stage contains the active dock pane!");
+            else if (stagesContainingActiveDockPane.size() == 0) {
+                logger.log(Level.SEVERE, "No stage contains the active dock pane! Unable to save the layout of the containing window.");
             }
             else {
-                logger.log(Level.SEVERE, "More than one stage contains the active dock pane!");
+                logger.log(Level.SEVERE, "More than one stage contains the active dock pane! Unable to save the layout of the containing window.");
             }
         });
 

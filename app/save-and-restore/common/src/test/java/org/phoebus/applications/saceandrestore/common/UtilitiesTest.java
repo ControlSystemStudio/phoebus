@@ -398,18 +398,8 @@ public class UtilitiesTest {
 
         val = VEnum.of(1, EnumDisplay.of("first", "second", "third"), alarm, time);
         d = Utilities.toRawValue(val);
-        assertTrue(d instanceof String);
-        assertEquals("second", d);
-
-        val = VEnum.of(1, EnumDisplay.of("", "", ""), alarm, time);
-        d = Utilities.toRawValue(val);
-        assertTrue(d instanceof String);
-        assertEquals("1", d);
-
-        val = VEnum.of(1, EnumDisplay.of("a", "", ""), alarm, time);
-        d = Utilities.toRawValue(val);
-        assertTrue(d instanceof String);
-        assertEquals("", d);
+        assertTrue(d instanceof Integer);
+        assertEquals(1, d);
 
         val = VString.of("third", alarm, time);
         d = Utilities.toRawValue(val);

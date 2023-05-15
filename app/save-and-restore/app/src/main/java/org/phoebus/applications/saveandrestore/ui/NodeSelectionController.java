@@ -1,42 +1,42 @@
-/**
- * Copyright (C) 2020 Facility for Rare Isotope Beams
- * <p>
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * <p>
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * <p>
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- * <p>
- * Contact Information: Facility for Rare Isotope Beam,
- * Michigan State University,
- * East Lansing, MI 48824-1321
- * http://frib.msu.edu
+/*
+ * Copyright (C) 2020 European Spallation Source ERIC.
+ *
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License
+ *  as published by the Free Software Foundation; either version 2
+ *  of the License, or (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
  */
-package org.phoebus.applications.saveandrestore.ui.configuration;
+package org.phoebus.applications.saveandrestore.ui;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.ui.BrowserTreeCell;
-import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.framework.jobs.JobManager;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -44,15 +44,16 @@ import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
 /**
- * {@link Node} selection dialog controller.
- *
+ * {@link Node} selection dialog controller. This can be used whenever user needs a UI to select a {@link Node}
+ * in the save-and-restore data.
+ * <p>
  * A version with UI design complying the original version
  * :All {@link NodeType} are shown in a {@link TreeView}
  *
  * @author <a href="mailto:changj@frib.msu.edu">Genie Jhang</a>
  */
 
-public class ConfigurationSelectionController implements Initializable {
+public class NodeSelectionController implements Initializable {
 
     private final SaveAndRestoreService saveAndRestoreService = SaveAndRestoreService.getInstance();
 
@@ -65,7 +66,19 @@ public class ConfigurationSelectionController implements Initializable {
     @FXML
     private Button chooseButton;
 
+    @FXML
+    private ProgressIndicator progressIndicator;
+
+    @FXML
+    private VBox dialogContent;
+
     private Node selectedNode = null;
+
+
+    /**
+     * Specifies which {@link NodeType}s to hide from the tree view.
+     */
+    private List<NodeType> hiddenNodeTypes = new ArrayList<>();
 
     public Node getSelectedNode() {
         return selectedNode;
@@ -75,15 +88,6 @@ public class ConfigurationSelectionController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         treeView.setShowRoot(true);
         treeView.setCellFactory(cell -> new BrowserTreeCell());
-
-        Node rootNode = saveAndRestoreService.getRootNode();
-        TreeItem<Node> rootItem = createNode(rootNode);
-
-        rootItem.setExpanded(true);
-
-        RecursiveAddNode(rootItem);
-
-        treeView.setRoot(rootItem);
 
         treeView.getSelectionModel().selectedItemProperty().addListener((observableValue, nodeTreeItem, selectedTreeItem) -> {
             if (selectedTreeItem == null) {
@@ -110,12 +114,29 @@ public class ConfigurationSelectionController implements Initializable {
 
             close();
         });
+
+        initializeTreeView();
     }
+
+    private void initializeTreeView() {
+        JobManager.schedule("Initialize tree view", monitor -> {
+            Node rootNode = saveAndRestoreService.getRootNode();
+            TreeItem<Node> rootItem = createNode(rootNode);
+            Platform.runLater(() -> {
+                rootItem.setExpanded(true);
+                treeView.setRoot(rootItem);
+                RecursiveAddNode(rootItem);
+                dialogContent.disableProperty().set(false);
+                progressIndicator.visibleProperty().set(false);
+            });
+        });
+    }
+
 
     private void RecursiveAddNode(TreeItem<Node> parentItem) {
         List<Node> childNodes = saveAndRestoreService.getChildNodes(parentItem.getValue());
         List<TreeItem<Node>> childItems = childNodes.stream()
-                .filter(node -> isDisabledConfigurationSelection ? !(node.getNodeType().equals(NodeType.CONFIGURATION) || node.getNodeType().equals(NodeType.SNAPSHOT)) : !node.getNodeType().equals(NodeType.SNAPSHOT))
+                .filter(node -> !hiddenNodeTypes.contains(node.getNodeType()))
                 .map(node -> {
                     TreeItem<Node> treeItem = createNode(node);
                     RecursiveAddNode(treeItem);
@@ -123,6 +144,8 @@ public class ConfigurationSelectionController implements Initializable {
                 }).collect(Collectors.toList());
         List<TreeItem<Node>> sorted = childItems.stream().sorted(Comparator.comparing(TreeItem::getValue)).collect(Collectors.toList());
         parentItem.getChildren().addAll(sorted);
+        dialogContent.disableProperty().set(false);
+        progressIndicator.visibleProperty().set(false);
     }
 
     private TreeItem<Node> createNode(final Node node) {
@@ -179,9 +202,7 @@ public class ConfigurationSelectionController implements Initializable {
         ((Stage) treeView.getScene().getWindow()).close();
     }
 
-    protected boolean isDisabledConfigurationSelection;
-
-    protected void disableConfigurationSelection() {
-        isDisabledConfigurationSelection = true;
+    public void setHiddenNodeTypes(List<NodeType> nodeTypes) {
+        hiddenNodeTypes.addAll(nodeTypes);
     }
 }

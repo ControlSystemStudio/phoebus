@@ -126,7 +126,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
             }
             else
                 severity = AlarmSeverity.NONE;
-            text.setStyle("-fx-text-fill: " + JFXUtil.webRGB(SeverityColors.getTextColor(severity)));
+            text.setStyle("-fx-text-fill: " + JFXUtil.webRGB(SeverityColors.getTextColor(severity)) + "; -fx-control-inner-background: " + JFXUtil.webRGB(SeverityColors.getBackgroundColor(severity)));
         }
     }
 

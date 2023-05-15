@@ -8,10 +8,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
-import javafx.geometry.Insets;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.Display;
@@ -25,6 +21,7 @@ import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.javafx.JFXUtil;
 import org.phoebus.ui.pv.SeverityColors;
 import org.phoebus.ui.vtype.FormatOption;
 import org.phoebus.ui.vtype.FormatOptionHandler;
@@ -43,7 +40,6 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
-import javafx.scene.paint.Color;
 
 @SuppressWarnings("nls")
 public class ProbeController {
@@ -323,34 +319,9 @@ public class ProbeController {
 
     private void setAlarm(final Alarm alarm)
     {
-        if (alarm == null  ||  alarm.getSeverity() == AlarmSeverity.NONE)
-        {
-            txtAlarm.setText("");
-            final Color bk_col = SeverityColors.getBackgroundColor(alarm.getSeverity());
-//            txtAlarm.setStyle("-fx-control-inner-background: rgba(" + (int)(bk_col.getRed()*255) + ',' +
-//                    (int)(bk_col.getGreen()*255) + ',' +
-//                    (int)(bk_col.getBlue()*255) + ',' +
-//                    bk_col.getOpacity()*255 + ");");
-        }
-        else
-        {
-            final Color col = SeverityColors.getTextColor(alarm.getSeverity());
-            txtAlarm.setStyle("-fx-text-fill: rgba(" + (int)(col.getRed()*255) + ',' +
-                                                       (int)(col.getGreen()*255) + ',' +
-                                                       (int)(col.getBlue()*255) + ',' +
-                                                             col.getOpacity()*255 + ");");
-            // TODO: Setting both the text and the background color using the css property fails.
-            //  Setting one seems to override the other with a derived value. Tried creating a custom css with little
-            //  luck so using only the text alarm color for the time being.
-            //  https://stackoverflow.com/questions/67820776/whats-the-difference-between-fx-text-fill-and-fx-text-inner-color-in-javafx-c
-
-//            final Color bk_col = SeverityColors.getBackgroundColor(alarm.getSeverity());
-//            txtAlarm.setStyle("-fx-control-inner-background: rgba(" + (int)(bk_col.getRed()*255) + ',' +
-//                    (int)(bk_col.getGreen()*255) + ',' +
-//                    (int)(bk_col.getBlue()*255) + ',' +
-//                    bk_col.getOpacity()*255 + ");");
-            txtAlarm.setText(alarm.getSeverity() + " - " + alarm.getName());
-        }
+        AlarmSeverity alarmSeverity = alarm.getSeverity();
+        txtAlarm.setStyle("-fx-text-fill: " + JFXUtil.webRGB(SeverityColors.getTextColor(alarmSeverity)) + "; -fx-control-inner-background: " + JFXUtil.webRGB(SeverityColors.getBackgroundColor(alarmSeverity)));
+        txtAlarm.setText(alarm.getSeverity() + " - " + alarm.getName());
     }
 
     private void setMetadata(final VType value)

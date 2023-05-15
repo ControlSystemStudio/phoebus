@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -92,7 +92,7 @@ public class TitleDetailDelayTable extends BorderPane
     class DelayTableCell extends TableCell<TitleDetailDelay, Integer>
     {
         private final Spinner<Integer> spinner;
-        
+
         public DelayTableCell()
         {
             this.spinner = new Spinner<>(0, 10000, 1);
@@ -124,7 +124,7 @@ public class TitleDetailDelayTable extends BorderPane
                 spinner.getEditor().setStyle("-fx-text-inner-color: lightgray;");
                 //spinner.getEditor().setTextFill(Color.LIGHTGRAY);
             }
-            
+
             this.spinner.getValueFactory().setValue(item);
             setGraphic(spinner);
         }
@@ -215,36 +215,46 @@ public class TitleDetailDelayTable extends BorderPane
     }
 
     /**
-     * This function extract the command option from detail "option:info"
-     * 
+     * This function extracts the option from detail "option:info"
+     *
      * @param titleDetailDelay
-     * @return enum Option_d either mailto or cmd
+     * @return enum Option_d (mailto, cmd, sevrpv)
      */
-    private Option_d getOptionFromDetail(TitleDetailDelay titleDetailDelay) {
-        Option_d option = null;
-        String detail = titleDetailDelay != null ? titleDetailDelay.detail : null;
-        String[] split = detail != null ? detail.split(":") : null;
-        String optionString = split != null && split.length > 0 ? split[0] : null;
-        try {
-            option = optionString != null ? Option_d.valueOf(optionString) : Option_d.mailto;
-        } catch (Exception e) {
-            option = Option_d.mailto;
+    private Option_d getOptionFromDetail(final TitleDetailDelay titleDetailDelay)
+    {
+        if (titleDetailDelay == null)
+            return null;
+
+        final int sep = titleDetailDelay.detail.indexOf(':');
+        if (sep < 0)
+            return Option_d.mailto;
+
+        try
+        {
+            return Option_d.valueOf(titleDetailDelay.detail.substring(0, sep));
         }
-        return option;
+        catch (Exception e)
+        {
+            return Option_d.mailto;
+        }
     }
 
     /**
-     * This function extract the info from detail "option:info"
-     * 
+     * This function extracts the info from detail "option:info"
+     *
      * @param titleDetailDelay
-     * @return information eg : mail or command
+     * @return information eg : mail, command, PV
      */
-    private String getInfoFromDetail(TitleDetailDelay titleDetailDelay) {
-        String info = "";
-        String detail = titleDetailDelay != null ? titleDetailDelay.detail : null;
-        String[] split = detail != null ? detail.split(":") : null;
-        info = split != null && split.length > 1 ? split[1] : "";
-        return info;
+    private String getInfoFromDetail(final TitleDetailDelay titleDetailDelay)
+    {
+        if (titleDetailDelay == null)
+            return "";
+
+        final int sep = titleDetailDelay.detail.indexOf(':');
+        if (sep < 0)
+            return "";
+
+        return titleDetailDelay.detail.substring(sep+1);
     }
 
     /**

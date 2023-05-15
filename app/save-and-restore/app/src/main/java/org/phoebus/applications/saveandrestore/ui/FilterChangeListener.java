@@ -17,22 +17,17 @@
  *
  */
 
-package org.phoebus.archive.reader.appliance;
+package org.phoebus.applications.saveandrestore.ui;
 
-import java.time.Instant;
+import org.phoebus.applications.saveandrestore.model.search.Filter;
 
 /**
- * A {@link ApplianceValueIterator} used to indicate that no data was found.
+ * Interface to handle changes in save-n-restore {@link Filter}s.
  */
-public class EmptyRawValueIterator extends ApplianceValueIterator{
+public interface FilterChangeListener {
 
-    public EmptyRawValueIterator(ApplianceArchiveReader reader,
-                                            String name, Instant start, Instant end, IteratorListener listener){
-        super(reader, name, start, end, listener);
-    }
+    void filterAddedOrUpdated(Filter filter);
 
-    @Override
-    public boolean hasNext(){
-        return false;
-    }
+    void filterRemoved(Filter filter);
+
 }

@@ -17,6 +17,10 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
@@ -33,6 +37,7 @@ import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.javafx.Brightness;
 import org.phoebus.ui.javafx.ClearingTextField;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.JFXUtil;
 import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.ToolbarHelper;
@@ -68,10 +73,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 
@@ -195,22 +196,21 @@ public class AlarmTableUI extends BorderPane
         }
 
         @Override
-        protected void updateItem(final SeverityLevel item, final boolean empty)
+        protected void updateItem(final SeverityLevel severityLevel, final boolean empty)
         {
-            super.updateItem(item, empty);
+            super.updateItem(severityLevel, empty);
 
-            if (empty  ||  item == null)
+            if (empty  ||  severityLevel == null)
             {
+                setStyle("-fx-text-fill: black;  -fx-background-color: transparent");
                 setText("");
-                setBackground(null);
-                setTextFill(Color.BLACK);
             }
             else
             {
-                setText(item.toString());
+                setText(severityLevel.toString());
                 if (AlarmSystem.alarm_table_color_legacy_background)
                 {
-                    final Background bg = AlarmUI.getLegacyTableBackground(item);
+                    final Background bg = AlarmUI.getLegacyTableBackground(severityLevel);
                     setBackground(bg);
                     final Paint p = bg.getFills().get(0).getFill();
                     if (p instanceof Color &&
@@ -221,8 +221,7 @@ public class AlarmTableUI extends BorderPane
                 }
                 else
                 {
-                    setBackground(AlarmUI.getBackground(item));
-                    setTextFill(AlarmUI.getColor(item));
+                    setStyle("-fx-alignment: center; -fx-border-color: transparent; -fx-border-width: 2 0 2 0; -fx-background-insets: 2 0 2 0; -fx-text-fill: " + JFXUtil.webRGB(AlarmUI.getColor(severityLevel)) + ";  -fx-background-color: " + JFXUtil.webRGB(AlarmUI.getBackgroundColor(severityLevel)));
                 }
             }
         }
