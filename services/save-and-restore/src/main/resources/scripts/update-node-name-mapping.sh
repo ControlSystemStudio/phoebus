@@ -13,6 +13,10 @@ echo "Copying data to temporary index"
 curl -XPOST "http://localhost:9200/_reindex"  -H 'Content-Type: application/json' -d '{"source":{"index": "saveandrestore_tree"}, "dest":{"index":"saveandrestore_tree_tmp"}}'
 echo
 
+echo "Flushing data to temporary index"
+curl -XPOST "http://localhost:9200/saveandrestore_tree_tmp/_flush"
+echo
+
 echo "Delete original index"
 curl -XDELETE "http://localhost:9200/saveandrestore_tree"
 echo
@@ -23,6 +27,10 @@ echo
 
 echo "Copying data to original index"
 curl -XPOST "http://localhost:9200/_reindex"  -H 'Content-Type: application/json' -d '{"source":{"index": "saveandrestore_tree_tmp"}, "dest":{"index":"saveandrestore_tree"}}'
+echo
+
+echo "Flushing data to original index"
+curl -XPOST "http://localhost:9200/saveandrestore_tree/_flush"
 echo
 
 echo "Delete temporary index"
