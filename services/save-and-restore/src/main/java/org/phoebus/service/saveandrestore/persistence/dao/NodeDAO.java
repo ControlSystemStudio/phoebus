@@ -207,14 +207,6 @@ public interface NodeDAO {
      */
     SnapshotData getSnapshotData(String uniqueId);
 
-    /**
-     * Determines of a move or copy operation is allowed.
-     * @param nodesToMove List of {@link Node}s subject to move/copy.
-     * @param targetNode The target {@link Node} of the move/copy operation
-     * @return <code>true</code> if the list of {@link Node}s can be moved/copied,
-     * otherwise <code>false</code>.
-     */
-    boolean isMoveOrCopyAllowed(List<Node> nodesToMove, Node targetNode);
 
     /**
      * Finds the {@link Node} corresponding to the parent of last element in the split path. For instance, given a

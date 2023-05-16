@@ -279,5 +279,7 @@ public class ElasticsearchDAOTest {
         s1 = Node.builder().name("XYZ copy abc").build();
         assertEquals("XYZ copy abc copy", elasticsearchDAO.determineNewNodeName(s1, targetChildNodes));
 
+
+
     }
 }
