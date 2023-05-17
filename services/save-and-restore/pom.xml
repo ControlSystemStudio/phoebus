@@ -139,18 +139,6 @@
 		</resources>
 		<plugins>
 			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<version>2.7.9</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>repackage</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.8.5</version>
@@ -199,6 +187,32 @@
 								<goals>
 									<goal>integration-test</goal>
 									<goal>verify</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<!-- skip the creation of the fat jar during releases -->
+			<id>executable-jar</id>
+			<activation>
+				<property>
+					<name>!skip-executable-jar</name>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.springframework.boot</groupId>
+						<artifactId>spring-boot-maven-plugin</artifactId>
+						<version>2.7.9</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>repackage</goal>
 								</goals>
 							</execution>
 						</executions>
