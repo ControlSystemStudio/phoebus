@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,14 +7,14 @@
  *******************************************************************************/
 package org.phoebus.framework.macros;
 
-import org.junit.jupiter.api.Test;
-
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
+
+import org.junit.jupiter.api.Test;
 
 /** JUnit test of macro handling
  *  @author Kay Kasemir
@@ -26,14 +26,14 @@ public class MacrosUnitTest
     @Test
     public void testNames()
     {
-        assertThat(Macros.checkMacroName("ExampleMacro"), nullValue());
-        assertThat(Macros.checkMacroName("My_Macro"), nullValue());
-        assertThat(Macros.checkMacroName("My-Macro"), nullValue());
-        assertThat(Macros.checkMacroName("Macro2"), nullValue());
+        assertThat(MacroSpecs.checkMacroName("ExampleMacro"), nullValue());
+        assertThat(MacroSpecs.checkMacroName("My_Macro"), nullValue());
+        assertThat(MacroSpecs.checkMacroName("My-Macro"), nullValue());
+        assertThat(MacroSpecs.checkMacroName("Macro2"), nullValue());
 
-        assertThat(Macros.checkMacroName("2MustStartWithCharacter"), not(nullValue()));
-        assertThat(Macros.checkMacroName("-CannotHaveNon-CharacterAtStart"), not(nullValue()));
-        assertThat(Macros.checkMacroName("No Spaces"), not(nullValue()));
+        assertThat(MacroSpecs.checkMacroName("2MustStartWithCharacter"), not(nullValue()));
+        assertThat(MacroSpecs.checkMacroName("-CannotHaveNon-CharacterAtStart"), not(nullValue()));
+        assertThat(MacroSpecs.checkMacroName("No Spaces"), not(nullValue()));
     }
 
     /** Test check for unresolved macros
@@ -72,22 +72,20 @@ public class MacrosUnitTest
     public void testSimpleSpec() throws Exception
     {
         // Plain  NAME=VALUE with some spaces
-        Macros macros = Macros.fromSimpleSpec("A=1,  B = 2");
-        assertThat(macros.getNames().size(), equalTo(2));
-        assertThat(macros.getValue("A"), equalTo("1"));
-        assertThat(macros.getValue("B"), equalTo("2"));
+        MacroSpecs macros = MacroSpecs.fromSimpleSpec("A=1,  B = 2");
+        assertThat(macros.toString(), equalTo("[ A='1', B='2' ]"));
+
+        // Specifications hold the values as provided without expanding them
+        macros = MacroSpecs.fromSimpleSpec("A=a,  AA = $(A)$(A)");
+        assertThat(macros.toString(), equalTo("[ A='a', AA='$(A)$(A)' ]"));
 
         // Quoted value with spaces and comma
-        macros = Macros.fromSimpleSpec("MSG = \"Hello, Dolly\" , B=2");
-        assertThat(macros.getNames().size(), equalTo(2));
-        assertThat(macros.getValue("MSG"), equalTo("Hello, Dolly"));
-        assertThat(macros.getValue("B"), equalTo("2"));
+        macros = MacroSpecs.fromSimpleSpec("MSG = \"Hello, Dolly\" , B=2");
+        assertThat(macros.toString(), equalTo("[ MSG='Hello, Dolly', B='2' ]"));
 
         // Value with escaped quote
-        macros = Macros.fromSimpleSpec("MSG = \"This is a \\\"Message\\\" .. \" , B=2");
-        assertThat(macros.getNames().size(), equalTo(2));
-        assertThat(macros.getValue("MSG"), equalTo("This is a \"Message\" .. "));
-        assertThat(macros.getValue("B"), equalTo("2"));
+        macros = MacroSpecs.fromSimpleSpec("MSG = \"This is a \\\"Message\\\" .. \" , B=2");
+        assertThat(macros.toString(), equalTo("[ MSG='This is a \"Message\" .. ', B='2' ]"));
     }
 
     /** Test basic macro=value
@@ -96,7 +94,7 @@ public class MacrosUnitTest
     @Test
     public void testMacros() throws Exception
     {
-        final Macros macros = new Macros();
+        final MacroValues macros = new MacroValues();
         macros.add("S", "BL7");
         macros.add("NAME", "Flint, Eugene");
         macros.add("TAB", "    ");
@@ -121,6 +119,55 @@ public class MacrosUnitTest
         assertThat(MacroHandler.replace(macros, "Escaped \\\\$(S)"), equalTo("Escaped \\$(S)"));
     }
 
+    /** Test macro=$(other_macro)
+     *  @throws Exception on error
+     */
+    @Test
+    public void testMacrosInValue() throws Exception
+    {
+        final MacroValues macros = new MacroValues();
+        macros.add("A", "a");
+        macros.add("AA", "$(A)$(A)");
+        // MacroValues contain the expanded values
+        assertThat(macros.getValue("A"), equalTo("a"));
+        assertThat(macros.getValue("AA"), equalTo("aa"));
+
+        // Swap values
+        macros.add("B", "b");
+        assertThat(macros.getValue("A"), equalTo("a"));
+        assertThat(macros.getValue("B"), equalTo("b"));
+
+        macros.add("X", "$(A)");
+        macros.add("A", "$(B)");
+        macros.add("B", "$(X)");
+        assertThat(macros.getValue("A"), equalTo("b"));
+        assertThat(macros.getValue("B"), equalTo("a"));
+
+        // OK to define macro with what it is (just a special case of known macro)
+        macros.add("A", "a");
+        assertThat(macros.getValue("A"), equalTo("a"));
+        macros.add("A", "$(A)");
+        assertThat(macros.getValue("A"), equalTo("a"));
+
+        // When using unknown macro, it remains unresolved
+        // (with log message that's not tested here)
+        macros.add("A", "$(UNKNOWN)");
+        assertThat(macros.getValue("A"), equalTo("$(UNKNOWN)"));
+    }
+
+    /** Test macros from specs
+     *  @throws Exception on error
+     */
+    @Test
+    public void testMacrosFromSpecs() throws Exception
+    {
+        final MacroSpecs specs = MacroSpecs.fromSimpleSpec("A=a,B=b,X=$(A),A=$(B),B=$(X)");
+        final MacroValueProvider macros = new MacroValues(specs);
+        System.out.println(macros);
+        assertThat(macros.getValue("A"), equalTo("b"));
+        assertThat(macros.getValue("B"), equalTo("a"));
+    }
+
     /** Test special cases
      *  @throws Exception on error
      */
@@ -142,7 +189,7 @@ public class MacrosUnitTest
     @Test
     public void testDefaults() throws Exception
     {
-        Macros macros = new Macros();
+        MacroValues macros = new MacroValues();
         macros.add("A", "a");
         macros.add("B", "b");
         System.out.println(macros);
@@ -157,7 +204,7 @@ public class MacrosUnitTest
         // Default value itself can be a macro
         assertThat(MacroHandler.replace(macros, "$(A=$(B))"), equalTo("a"));
 
-        macros = new Macros();
+        macros = new MacroValues();
         macros.add("DERIVED", "$(MAIN=default)");
         System.out.println(macros);
 
@@ -165,6 +212,7 @@ public class MacrosUnitTest
         assertThat(MacroHandler.replace(macros, "/$(DERIVED)/$(DERIVED)/"), equalTo("/default/default/"));
 
         macros.add("MAIN", "main");
+        macros.add("DERIVED", "$(MAIN=default)");
         System.out.println(macros);
 
         assertThat(MacroHandler.replace(macros, "$(DERIVED)"), equalTo("main"));
@@ -182,7 +230,7 @@ public class MacrosUnitTest
     @Test
     public void testDefaults2() throws Exception
     {
-        final Macros macros = new Macros();
+        final MacroValues macros = new MacroValues();
         macros.add("FINAL", "$(MAY_NOT_BE_SET=default_value)");
         System.out.println(macros);
 
@@ -194,9 +242,9 @@ public class MacrosUnitTest
      *  @throws Exception on error
      */
     @Test
-    public void testRecursion()
+    public void testRecursion() throws Exception
     {
-        final Macros macros = new Macros();
+        final MacroValues macros = new MacroValues();
         macros.add("S", "$(S)");
         try
         {
@@ -210,6 +258,8 @@ public class MacrosUnitTest
 
         try
         {
+            // S is known, so $(S=a) is replaced with the value of S,
+            // but that's $(S), ending in recursion
             MacroHandler.replace(macros, "Recursive $(S=a) default");
         }
         catch (Exception ex)
