@@ -167,9 +167,12 @@ public class MacroValues implements MacroValueProvider
     @Override
     public String toString()
     {
-        return "[ " + getNames().stream()
-                                .map((macro) -> macro + " = '" + macros.get(macro) + "'")
-                                .collect(Collectors.joining(", ")) +
-               " ]";
+        synchronized (macros)
+        {
+            return "[ " + getNames().stream()
+                                    .map((macro) -> macro + " = '" + macros.get(macro) + "'")
+                                    .collect(Collectors.joining(", ")) +
+                   " ]";
+        }
     }
 }
