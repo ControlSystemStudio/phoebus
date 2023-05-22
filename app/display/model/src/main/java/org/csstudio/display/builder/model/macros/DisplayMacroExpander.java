@@ -28,20 +28,20 @@ public class DisplayMacroExpander
      */
     public static void expandDisplayMacros(final DisplayModel model) throws Exception
     {
-        expand(model.runtimeChildren(), model.getMacrosOrProperties());
+        expand(model.runtimeChildren());
     }
 
-    private static void expand(final ChildrenProperty widgets, MacroValueProvider input) throws Exception
+    private static void expand(final ChildrenProperty widgets) throws Exception
     {
         for (Widget widget : widgets.getValue())
         {
             final Optional<WidgetProperty<Macros>> macros = widget.checkProperty(CommonWidgetProperties.propMacros);
             if (macros.isPresent())
-                macros.get().getValue().expandValues(input);
+                macros.get().getValue().expandValues(widget.getMacrosOrProperties());
             // Recurse
             final ChildrenProperty children = ChildrenProperty.getChildren(widget);
             if (children != null)
-                expand(children, widget.getMacrosOrProperties());
+                expand(children);
         }
     }
 }
