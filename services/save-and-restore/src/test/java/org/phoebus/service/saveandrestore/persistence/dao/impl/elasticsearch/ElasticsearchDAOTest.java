@@ -29,6 +29,7 @@ import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.service.saveandrestore.model.ESTreeNode;
+import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchDAO.NodeNameComparator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Profile;
@@ -42,6 +43,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -152,7 +154,7 @@ public class ElasticsearchDAOTest {
         ConfigPv configPv4 = ConfigPv.builder().pvName("c").build();
 
         SnapshotData snapshotData = new SnapshotData();
-        snapshotData.setSnasphotItems(Arrays.asList(SnapshotItem.builder().configPv(configPv1).build(),
+        snapshotData.setSnapshotItems(Arrays.asList(SnapshotItem.builder().configPv(configPv1).build(),
                 SnapshotItem.builder().configPv(configPv2).build(),
                 SnapshotItem.builder().configPv(configPv3).build()));
 
@@ -162,7 +164,7 @@ public class ElasticsearchDAOTest {
         assertEquals("a", snapshotData.getSnapshotItems().get(0).getConfigPv().getPvName());
         assertEquals("b", snapshotData.getSnapshotItems().get(1).getConfigPv().getPvName());
 
-        snapshotData.setSnasphotItems(Arrays.asList(SnapshotItem.builder().configPv(configPv1).build(),
+        snapshotData.setSnapshotItems(Arrays.asList(SnapshotItem.builder().configPv(configPv1).build(),
                 SnapshotItem.builder().configPv(configPv3).build(),
                 SnapshotItem.builder().configPv(configPv4).build()));
 
@@ -183,7 +185,7 @@ public class ElasticsearchDAOTest {
         ConfigPv configPve= ConfigPv.builder().pvName("e").build();
 
         SnapshotData snapshotData = new SnapshotData();
-        snapshotData.setSnasphotItems(Arrays.asList(SnapshotItem.builder().configPv(configPva).build(),
+        snapshotData.setSnapshotItems(Arrays.asList(SnapshotItem.builder().configPv(configPva).build(),
                 SnapshotItem.builder().configPv(configPvb).build(),
                 SnapshotItem.builder().configPv(configPvc).build(),
                 SnapshotItem.builder().configPv(configPvd).build(),
@@ -207,14 +209,14 @@ public class ElasticsearchDAOTest {
 
         configurationData.setPvList(Arrays.asList(configPva, configPvb, configPvc, configPvd, configPve));
 
-        snapshotData.setSnasphotItems(Arrays.asList(SnapshotItem.builder().configPv(configPva).build(),
+        snapshotData.setSnapshotItems(Arrays.asList(SnapshotItem.builder().configPv(configPva).build(),
                 SnapshotItem.builder().configPv(configPvb).build(),
                 SnapshotItem.builder().configPv(configPvc).build(),
                 SnapshotItem.builder().configPv(configPvd).build()));
 
         assertFalse(elasticsearchDAO.mayMoveOrCopySnapshot(snapshotNode, configurationNode));
 
-        snapshotData.setSnasphotItems(Arrays.asList(SnapshotItem.builder().configPv(configPva).build(),
+        snapshotData.setSnapshotItems(Arrays.asList(SnapshotItem.builder().configPv(configPva).build(),
                 SnapshotItem.builder().configPv(configPvb).build(),
                 SnapshotItem.builder().configPv(configPvc).build(),
                 SnapshotItem.builder().configPv(configPvd).build(),
@@ -226,7 +228,7 @@ public class ElasticsearchDAOTest {
     @Test
     public void testDetermineNewNodeName(){
         Node n1 = Node.builder().uniqueId("abc").name("abc").build();
-        Node n2 = Node.builder().nodeType(NodeType.CONFIGURATION).uniqueId("def").name("def").build();
+        Node n2 = Node.builder().uniqueId("def").name("def").build();
         Node n3 = Node.builder().uniqueId("ABC copy").name("ABC copy").build();
         Node n4 = Node.builder().uniqueId("DEF copy 2").name("DEF copy 2").build();
         Node n5 = Node.builder().uniqueId("DEF copy 777").name("DEF copy 777").build();
@@ -258,28 +260,112 @@ public class ElasticsearchDAOTest {
         targetTreeNode.setNode(parentNode);
         when(elasticsearchTreeRepository.findById("parent")).thenReturn(Optional.of(targetTreeNode));
         when(elasticsearchTreeRepository.findAllById(nodeIds))
-                .thenReturn(Arrays.asList(es1, es2, es3, es4, es5, es6));
+                .thenReturn(Arrays.asList(es1, es2, es3, es4, es5, es6, es7));
 
         Node s1 = Node.builder().name("abc").build();
         List<Node> targetChildNodes = Arrays.asList(n1, n2, n3, n4, n5, n6, n7);
         assertEquals("abc copy", elasticsearchDAO.determineNewNodeName(s1, targetChildNodes));
 
         s1 = Node.builder().name("ABC").build();
-        assertEquals("ABC copy 2", elasticsearchDAO.determineNewNodeName(s1, targetChildNodes));
-
-        s1 = Node.builder().name("DEF").build();
-        assertEquals("DEF copy 778", elasticsearchDAO.determineNewNodeName(s1, targetChildNodes));
+        assertEquals("ABC", elasticsearchDAO.determineNewNodeName(s1, targetChildNodes));
 
         s1 = Node.builder().name("DEF copy 777").build();
         assertEquals("DEF copy 778", elasticsearchDAO.determineNewNodeName(s1, targetChildNodes));
 
         s1 = Node.builder().nodeType(NodeType.COMPOSITE_SNAPSHOT).name("def").build();
-        assertEquals("def", elasticsearchDAO.determineNewNodeName(s1, targetChildNodes));
+        assertEquals("def copy", elasticsearchDAO.determineNewNodeName(s1, targetChildNodes));
 
         s1 = Node.builder().name("XYZ copy abc").build();
         assertEquals("XYZ copy abc copy", elasticsearchDAO.determineNewNodeName(s1, targetChildNodes));
+    }
 
+    @Test
+    public void testDetermineNewNodeName2() {
+        Node n1 = Node.builder().uniqueId("abc").name("abc").build();
+        Node n2 = Node.builder().uniqueId("abc copy").name("abc copy").build();
+        Node n3 = Node.builder().uniqueId("abc copy 5").name("abc copy 5").build();
+        Node n4 = Node.builder().uniqueId("abc copy 10").name("abc copy 10").build();
 
+        ESTreeNode es1 = new ESTreeNode();
+        es1.setNode(n1);
+        ESTreeNode es2 = new ESTreeNode();
+        es2.setNode(n2);
+        ESTreeNode es3 = new ESTreeNode();
+        es3.setNode(n3);
+        ESTreeNode es4 = new ESTreeNode();
+        es4.setNode(n4);
 
+        List<String> nodeIds =
+                Arrays.asList(n1.getUniqueId(), n2.getUniqueId(), n3.getUniqueId(), n4.getUniqueId());
+
+        ESTreeNode targetTreeNode = new ESTreeNode();
+        Node parentNode =
+                Node.builder().uniqueId("parent").build();
+        targetTreeNode.setChildNodes(nodeIds);
+        targetTreeNode.setNode(parentNode);
+        when(elasticsearchTreeRepository.findById("parent")).thenReturn(Optional.of(targetTreeNode));
+        when(elasticsearchTreeRepository.findAllById(nodeIds))
+                .thenReturn(Arrays.asList(es1, es2, es3, es4));
+
+        Node s1 = Node.builder().name("abc").build();
+        List<Node> targetChildNodes = Arrays.asList(n1, n2, n3, n4);
+        assertEquals("abc copy 11", elasticsearchDAO.determineNewNodeName(s1, targetChildNodes));
+
+        s1 = Node.builder().name("abc copy").build();
+        assertEquals("abc copy 11", elasticsearchDAO.determineNewNodeName(s1, targetChildNodes));
+
+        s1 = Node.builder().name("abc copy 7").build();
+        assertEquals("abc copy 7", elasticsearchDAO.determineNewNodeName(s1, targetChildNodes));
+
+        when(elasticsearchTreeRepository.findAllById(nodeIds))
+                .thenReturn(Arrays.asList(es1, es4));
+
+        s1 = Node.builder().name("abc copy 7").build();
+        assertEquals("abc copy 7", elasticsearchDAO.determineNewNodeName(s1, targetChildNodes));
+
+        s1 = Node.builder().name("abc").build();
+        assertEquals("abc copy 11", elasticsearchDAO.determineNewNodeName(s1, targetChildNodes));
+    }
+
+    @Test
+    public void testDetermineNewNodeName3() {
+        Node n1 = Node.builder().uniqueId("abc").name("abc").build();
+        Node n2 = Node.builder().uniqueId("abc copy").name("abc copy").build();
+
+        ESTreeNode es1 = new ESTreeNode();
+        es1.setNode(n1);
+        ESTreeNode es2 = new ESTreeNode();
+        es2.setNode(n2);
+
+        List<String> nodeIds =
+                Arrays.asList(n1.getUniqueId(), n2.getUniqueId());
+
+        ESTreeNode targetTreeNode = new ESTreeNode();
+        Node parentNode =
+                Node.builder().uniqueId("parent").build();
+        targetTreeNode.setChildNodes(nodeIds);
+        targetTreeNode.setNode(parentNode);
+        when(elasticsearchTreeRepository.findById("parent")).thenReturn(Optional.of(targetTreeNode));
+        when(elasticsearchTreeRepository.findAllById(nodeIds))
+                .thenReturn(Arrays.asList(es1, es2));
+
+        Node s1 = Node.builder().name("abc copy").build();
+        List<Node> targetChildNodes = Arrays.asList(n1, n2);
+        assertEquals("abc copy 2", elasticsearchDAO.determineNewNodeName(s1, targetChildNodes));
+
+    }
+
+    @Test
+    public void nodeNameComparatorTest(){
+        List<String> sorted = Arrays.asList("abc", "abc copy").stream().sorted(new NodeNameComparator()).collect(Collectors.toList());
+        assertEquals("abc", sorted.get(0));
+        sorted = Arrays.asList("abc copy", "abc").stream().sorted(new NodeNameComparator()).collect(Collectors.toList());
+        assertEquals("abc", sorted.get(0));
+        sorted = Arrays.asList("abc copy", "abc copy 2").stream().sorted(new NodeNameComparator()).collect(Collectors.toList());
+        assertEquals("abc copy", sorted.get(0));
+        sorted = Arrays.asList("abc copy 3", "abc copy 2").stream().sorted(new NodeNameComparator()).collect(Collectors.toList());
+        assertEquals("abc copy 2", sorted.get(0));
+        sorted = Arrays.asList("abc copy", "abc copy").stream().sorted(new NodeNameComparator()).collect(Collectors.toList());
+        assertEquals("abc copy", sorted.get(0));
     }
 }

@@ -44,6 +44,7 @@ import org.springframework.util.MultiValueMap;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -292,12 +293,30 @@ public class ElasticsearchDAO implements NodeDAO {
             }
         }
 
-        // Remove source nodes from the list of child nodes in parent node.
         ESTreeNode parentNode = elasticsearchTreeRepository.getParentNode(sourceNodes.get(0).getUniqueId());
         if (parentNode == null) {
             throw new RuntimeException("Parent node of source node " + sourceNodes.get(0).getUniqueId() + " not found. Should not happen.");
         }
 
+        if (targetNode.getChildNodes() != null){
+            List<Node> targetsChildNodes = new ArrayList<>();
+            for(String parentChildNode : targetNode.getChildNodes()){
+                Optional<ESTreeNode> targetChildNodeOptional = elasticsearchTreeRepository.findById(parentChildNode);
+                if(targetChildNodeOptional.isEmpty()){ // Should not happen, but ignore if it does.
+                    continue;
+                }
+                targetsChildNodes.add(targetChildNodeOptional.get().getNode());
+            }
+            for(Node sourceNode : sourceNodes){
+                for(Node targetChildNode : targetsChildNodes) {
+                    if (targetChildNode.getName().equals(sourceNode.getName()) && targetChildNode.getNodeType().equals(sourceNode.getNodeType())) {
+                        throw new IllegalArgumentException("Cannot move, at least one source node has same name and type as a target child node");
+                    }
+                }
+            }
+        }
+
+        // Remove source nodes from the list of child nodes in parent node.
         parentNode.getChildNodes().removeAll(sourceNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
         elasticsearchTreeRepository.save(parentNode);
 
@@ -310,32 +329,6 @@ public class ElasticsearchDAO implements NodeDAO {
         ESTreeNode updatedTargetNode = elasticsearchTreeRepository.save(targetNode);
 
         return updatedTargetNode.getNode();
-
-
-        /*
-        if (!isMoveOrCopyAllowed(sourceNodes, targetNode)) {
-            throw new IllegalArgumentException("Prerequisites for moving source node(s) not met.");
-        }
-
-        // Remove source nodes from the list of child nodes in parent node.
-        ESTreeNode parentNode = elasticsearchTreeRepository.getParentNode(sourceNodes.get(0).getUniqueId());
-        if (parentNode == null) {
-            throw new RuntimeException("Parent node of source node " + sourceNodes.get(0).getUniqueId() + " not found. Should not happen.");
-        }
-        parentNode.getChildNodes().removeAll(sourceNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
-        elasticsearchTreeRepository.save(parentNode);
-
-        // Update the target node to include the source nodes in its list of child nodes
-        if (targetNode.get().getChildNodes() == null) {
-            targetNode.get().setChildNodes(new ArrayList<>());
-        }
-
-        targetNode.get().getChildNodes().addAll(sourceNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
-        ESTreeNode updatedTargetNode = elasticsearchTreeRepository.save(targetNode.get());
-
-        return updatedTargetNode.getNode();
-
-         */
     }
 
     @Override
@@ -407,7 +400,7 @@ public class ElasticsearchDAO implements NodeDAO {
         if (nodeTypeOfFirstSourceNode.equals(NodeType.SNAPSHOT)) {
             for (Node node : sourceNodes) {
                 if (!mayMoveOrCopySnapshot(node, targetNode)) {
-                    throw new IllegalArgumentException("At least one snapshot's PV list does not match target configuration's PV list");
+                    throw new IllegalArgumentException("Snapshot not compatible with configuration");
                 }
             }
         }
@@ -481,14 +474,15 @@ public class ElasticsearchDAO implements NodeDAO {
     }
 
     private void copySnapshotData(Node targetSnapshotNode, SnapshotData snapshotData) {
-        SnapshotData clonedSnapshotData = SnapshotData.clone(snapshotData);
+        SnapshotData clonedSnapshotData = new SnapshotData();
+        clonedSnapshotData.setSnapshotItems(snapshotData.getSnapshotItems());
         clonedSnapshotData.setUniqueId(targetSnapshotNode.getUniqueId());
         snapshotDataRepository.save(clonedSnapshotData);
     }
 
     private void copyCompositeSnapshotData(Node targetCompositeSnapshotNode, CompositeSnapshotData compositeSnapshotData) {
-        CompositeSnapshotData clonedCompositeSnapshotData =
-                CompositeSnapshotData.clone(compositeSnapshotData);
+        CompositeSnapshotData clonedCompositeSnapshotData = new CompositeSnapshotData();
+        clonedCompositeSnapshotData.setReferencedSnapshotNodes(compositeSnapshotData.getReferencedSnapshotNodes());
         clonedCompositeSnapshotData.setUniqueId(targetCompositeSnapshotNode.getUniqueId());
         compositeSnapshotDataRepository.save(clonedCompositeSnapshotData);
     }
@@ -845,7 +839,7 @@ public class ElasticsearchDAO implements NodeDAO {
         }
         SnapshotData sanitizedSnapshotData = new SnapshotData();
         List<SnapshotItem> sanitizedList = new ArrayList<>(sanitizedMap.values());
-        sanitizedSnapshotData.setSnasphotItems(sanitizedList);
+        sanitizedSnapshotData.setSnapshotItems(sanitizedList);
         return sanitizedSnapshotData;
     }
 
@@ -1088,11 +1082,6 @@ public class ElasticsearchDAO implements NodeDAO {
     }
 
     @Override
-    /**
-     * Adds a {@link Tag} to specified list of target {@link Node}s
-     * @param tagData See {@link TagData}
-     * @return The list of updated {@link Node}s
-     */
     public List<Node> addTag(TagData tagData) {
         List<Node> updatedNodes = new ArrayList<>();
         tagData.getUniqueNodeIds().forEach(nodeId -> {
@@ -1169,42 +1158,57 @@ public class ElasticsearchDAO implements NodeDAO {
      * @return A node name that does not clash with any existing node of same type in the target node.
      */
     protected String determineNewNodeName(Node sourceNode, List<Node> targetParentChildNodes) {
-        String newNodeName = sourceNode.getName();
-        Matcher matcher = NODE_NAME_PATTERN.matcher(newNodeName);
+        // Filter to make sure only nodes of same type are considered.
+        targetParentChildNodes = targetParentChildNodes.stream().filter(n -> n.getNodeType().equals(sourceNode.getNodeType())).collect(Collectors.toList());
+        List<String> targetParentChildNodeNames = targetParentChildNodes.stream().map(Node::getName).collect(Collectors.toList());
+        if(!targetParentChildNodeNames.contains(sourceNode.getName())){
+            return sourceNode.getName();
+        }
+        String newNodeBaseName = sourceNode.getName();
+        Matcher matcher = NODE_NAME_PATTERN.matcher(newNodeBaseName);
         if (matcher.matches()) { // If source node already contains "copy X", then calculate the "base name".
-            newNodeName = newNodeName.substring(0, (newNodeName.length() - matcher.group(1).length()));
+            newNodeBaseName = newNodeBaseName.substring(0, (newNodeBaseName.length() - matcher.group(1).length()));
         }
         List<String> nodeNameCopies = new ArrayList<>();
+        Pattern pattern = Pattern.compile(newNodeBaseName + "(\\scopy(\\s\\d*)?$)");
         for (Node targetChildNode : targetParentChildNodes) {
-            if (!targetChildNode.getNodeType().equals(sourceNode.getNodeType())) { // If different node types, skip as same name is allowed.
-                continue;
-            }
             String targetChildNodeName = targetChildNode.getName();
-            if (targetChildNodeName.startsWith(newNodeName)) {
-                matcher = NODE_NAME_PATTERN.matcher(targetChildNodeName);
-                if (matcher.matches()) {
-                    nodeNameCopies.add(targetChildNodeName);
-                } else {
-                    return newNodeName + " copy";
-                }
+            if(pattern.matcher(targetChildNodeName).matches()){
+                nodeNameCopies.add(targetChildNodeName);
             }
         }
+        // NOTE: nodeNameCopies may also contain an element with equal name as source node.
         if (nodeNameCopies.isEmpty()) {
-            return newNodeName;
+            return newNodeBaseName + " copy";
         } else {
-            Collections.sort(nodeNameCopies);
+            Collections.sort(nodeNameCopies, new NodeNameComparator());
             try {
                 String lastCopyName = nodeNameCopies.get(nodeNameCopies.size() - 1);
-                if (lastCopyName.equals(newNodeName + " copy")) {
-                    return newNodeName + " copy 2";
+                if (lastCopyName.equals(newNodeBaseName + " copy")) {
+                    return newNodeBaseName + " copy 2";
                 } else {
-                    int highestIndex = Integer.parseInt(nodeNameCopies.get(nodeNameCopies.size() - 1).substring((newNodeName + " copy ").length()));
-                    return newNodeName + " copy " + (highestIndex + 1);
+                    int highestIndex = Integer.parseInt(nodeNameCopies.get(nodeNameCopies.size() - 1).substring((newNodeBaseName + " copy ").length()));
+                    return newNodeBaseName + " copy " + (highestIndex + 1);
                 }
             } catch (NumberFormatException e) { // Should not happen...
                 logger.log(Level.WARNING, "Unable to determine copy name index from " + nodeNameCopies.get(nodeNameCopies.size() - 1));
                 return sourceNode.getUniqueId();
             }
+        }
+    }
+
+    public static class NodeNameComparator implements Comparator<String>{
+
+        @Override
+        public int compare(String s1, String s2){
+            if(s1.endsWith("copy") || s2.endsWith("copy")){
+                return s1.compareTo(s2);
+            }
+            int copyIndex1 = s1.indexOf("copy");
+            int copyIndex2 = s1.indexOf("copy");
+            int index1 = Integer.parseInt(s1.substring(copyIndex1 + 5));
+            int index2 = Integer.parseInt(s2.substring(copyIndex2 + 5));
+            return index1 - index2;
         }
     }
 }

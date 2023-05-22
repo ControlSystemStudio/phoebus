@@ -22,7 +22,9 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.Clipboard;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -57,8 +59,17 @@ public class ContextMenuFolder extends ContextMenuBase {
         importConfigurationMenuItem.disableProperty().bind(multipleSelection);
         importConfigurationMenuItem.setOnAction(ae -> saveAndRestoreController.importConfiguration());
 
+        Image pasteIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/paste.png");
+        MenuItem pasteMenuItem = new MenuItem(Messages.paste, new ImageView(pasteIcon));
+        pasteMenuItem.setOnAction(ae -> saveAndRestoreController.pasteFromClipboard());
+
+        setOnShowing(event -> {
+            pasteMenuItem.setDisable(!saveAndRestoreController.mayPaste());
+        });
+
         getItems().addAll(newFolderMenuItem,
                 renameNodeMenuItem,
+                pasteMenuItem,
                 deleteNodesMenuItem,
                 newConfigurationMenuItem,
                 newCompositeSnapshotMenuItem,

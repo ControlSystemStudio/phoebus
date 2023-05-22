@@ -48,7 +48,7 @@ Node names and ordering
 Node names are case sensitive. Within a parent node child node names must be unique between nodes of same type.
 
 Child nodes in the tree view are ordered first by type (folders, configurations, composite snapshots), then by name.
-Child nodes of configurations can only be of type snapshot, so these are ordered by name. The tooltip of a node
+Child nodes of configurations can only be of type snapshot and are ordered by name. The tooltip of a node
 will provide information on date created and user name:
 
 .. image:: images/tooltip-configuration.png
@@ -59,24 +59,38 @@ A word of caution
 Save-and-restore data is persisted in a central service and is therefore accessible by multiple
 clients. Users should keep in mind that changes (e.g. new or deleted nodes) are not pushed to all clients.
 Caution is therefore advocated when working on the nodes in the tree, in particular when changing the structure by
-deleting or moving nodes.
+copying, deleting or moving nodes.
 
 Drag-n-drop
 -----------
 
 Nodes in the tree can be moved using drag-n-drop. The following restrictions apply:
-* Only folder and configuration nodes can be moved.
-* Configuration nodes cannot be moved to the root folder node.
-* Drop target must be a folder.
+
+* Move operation is possible only if target node is a folder, i.e. snapshot nodes cannot be moved.
+* Configuration and composite snapshot nodes cannot be moved to the root folder.
+* Target folder may not contain nodes of same type and name as nodes subject to move.
 
 Checks are performed on the service to enforce the above restrictions. If pre-conditions are not met when the selection
 is dropped, the application will present an error dialog.
 
 Drag-n-drop is disabled if multiple nodes are selected and if:
+
 * Selection contains a combination of folder and configuration nodes. Selected nodes must be of same type.
 * Selection contains nodes with different parent nodes. Selected nodes must have the same parent node.
 
 Once a selection of nodes have been moved successfully, the target folder is refreshed to reflect the change.
+
+Copy/paste
+----------
+
+Nodes may be copy/pasted using the context menu. The following restrictions apply:
+
+* Folder nodes cannot be copied.
+* A copy operation of a configuration node will not copy its snapshot child nodes. These must be copied as a separate copy operation.
+* A snapshot node may be pasted into a configuration only if the list of PVs matches.
+* If the target node already contains a node of same type and name, the pasted node(s) will acquire the same base name, plus a suffix like "copy", "copy 2", "copy 3" etc.
+
+For a multi-selection of nodes the same restrictions apply as for a drag-n-drop move operation, see above.
 
 Logging
 -------
@@ -97,6 +111,7 @@ Folder
 Folder nodes can be created from the New Folder option of the folder node context menu:
 
 .. image:: images/context-menu-folder-new-folder.png
+    :width: 30%
 
 Folder names are case-sensitive and must be unique within the same parent folder.
 
@@ -106,6 +121,7 @@ Configuration View
 A new configuration is created from the context menu launched when right-clicking on a folder node in the tree view:
 
 .. image:: images/context-menu-folder-create-configuration.png
+    :width: 30%
 
 This will launch the configuration editor:
 
@@ -124,6 +140,7 @@ To add a very large number of PVs, user should consider the import feature avail
 option in the context menu of a folder node in the tree view:
 
 .. image:: images/context-menu-folder-import-configuration.png
+   :width: 30%
 
 The file format for such a file is::
 
@@ -195,6 +212,7 @@ To create a composite snapshot user must select the New Composite Snapshot conte
 which the composite snapshot will be saved:
 
 .. image:: images/context-menu-folder-new-composite-snapshot.png
+   :width: 30%
 
 This launches the composite snapshot editor:
 

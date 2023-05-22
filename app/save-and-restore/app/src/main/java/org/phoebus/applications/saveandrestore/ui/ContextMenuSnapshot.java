@@ -77,7 +77,10 @@ public class ContextMenuSnapshot extends ContextMenuBase {
 
         MenuItem tagGoldenMenuItem = new MenuItem(Messages.contextMenuTagAsGolden, new ImageView(ImageRepository.SNAPSHOT));
 
-        //
+        Image copyIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/copy.png");
+        MenuItem copyItem = new MenuItem(Messages.copy, new ImageView(copyIcon));
+        copyItem.setOnAction(action -> saveAndRestoreController.copySelectionToClipboard());
+
         setOnShowing(event -> {
             saveAndRestoreController.configureGoldenItem(tagGoldenMenuItem);
             runChecks();
@@ -87,6 +90,7 @@ public class ContextMenuSnapshot extends ContextMenuBase {
                 compareSnapshotsMenuItem,
                 tagGoldenMenuItem,
                 tagWithComment,
+                copyItem,
                 copyUniqueIdToClipboardMenuItem,
                 exportSnapshotMenuItem);
     }

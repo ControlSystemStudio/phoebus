@@ -14,38 +14,17 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
  */
 
 package org.phoebus.applications.saveandrestore.model;
 
-import java.util.List;
+import org.junit.jupiter.api.Test;
 
-/**
- * Class holding data particular to a save-n-restore snapshot {@link Node}.
- */
-public class SnapshotData {
+public class CompositeSnapshotDataTest {
 
-    /**
-     * This <b>must</b> be set to the same unique id as the {@link Node} object
-     * mapping to the snapshot {@link Node}.
-     */
-    private String uniqueId;
-
-    private List<SnapshotItem> snapshotItems;
-
-    public String getUniqueId() {
-        return uniqueId;
-    }
-
-    public void setUniqueId(String uniqueId) {
-        this.uniqueId = uniqueId;
-    }
-
-    public List<SnapshotItem> getSnapshotItems() {
-        return snapshotItems;
-    }
-
-    public void setSnapshotItems(List<SnapshotItem> snapshotItems) {
-        this.snapshotItems = snapshotItems;
+    @Test
+    public void testClone(){
+        
     }
 }

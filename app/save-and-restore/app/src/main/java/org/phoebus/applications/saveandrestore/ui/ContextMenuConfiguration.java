@@ -66,8 +66,22 @@ public class ContextMenuConfiguration extends ContextMenuBase{
             saveAndRestoreController.importSnapshot();
         });
 
+        Image copyIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/copy.png");
+        MenuItem copyItem = new MenuItem(Messages.copy, new ImageView(copyIcon));
+        copyItem.setOnAction(action -> saveAndRestoreController.copySelectionToClipboard());
+
+        Image pasteIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/paste.png");
+        MenuItem pasteMenuItem = new MenuItem(Messages.paste, new ImageView(pasteIcon));
+        pasteMenuItem.setOnAction(ae -> saveAndRestoreController.pasteFromClipboard());
+
+        setOnShowing(event -> {
+            pasteMenuItem.setDisable(!saveAndRestoreController.mayPaste());
+        });
+
         getItems().addAll(openConfigurationMenuItem,
                 editConfigurationMenuItem,
+                copyItem,
+                pasteMenuItem,
                 deleteNodesMenuItem,
                 copyUniqueIdToClipboardMenuItem,
                 exportConfigurationMenuItem,

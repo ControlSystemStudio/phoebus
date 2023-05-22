@@ -34,6 +34,7 @@ public class Messages {
     public static String contextMenuCreateSnapshot;
     public static String contextMenuCompareSnapshots;
     public static String contextMenuDelete;
+    public static String copy;
     public static String Edit;
     public static String contextMenuAddToCompositeSnapshot;
     public static String contextMenuNewFolder;
@@ -71,6 +72,7 @@ public class Messages {
     public static String exportSnapshotFailed;
     public static String faildDeleteFilter;
     public static String failedSaveFilter;
+    public static String failedToPasteObjects;
     public static String findSnapshotReferences;
     public static String importConfigurationLabel;
     public static String importSnapshotLabel;
@@ -90,6 +92,7 @@ public class Messages {
     public static String openResourceFailedHeader;
 
     public static String overwrite;
+    public static String paste;
     public static String promptCloseSnapshotTabContent;
     public static String promptDeleteSelectedTitle;
     public static String promptDeleteSelectedHeader;

@@ -61,6 +61,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
+import org.checkerframework.checker.units.qual.A;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
@@ -92,6 +93,7 @@ import java.net.URI;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -276,6 +278,10 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         filtersComboBox.itemsProperty().bind(new SimpleObjectProperty<>(filtersList));
 
         enableFilterCheckBox.disableProperty().bind(Bindings.createBooleanBinding(filtersList::isEmpty, filtersList));
+
+        // Clear clipboard to make sure that only custom data format is
+        // considered in paste actions.
+        Clipboard.getSystemClipboard().clear();
 
         loadTreeData();
     }
@@ -1103,21 +1109,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                         removeMovedNodes(sourceParentTreeItem, sourceNodes);
                         addMovedNodes(targetTreeItem, sourceNodes);
                     });
-                } else if (transferMode.equals(TransferMode.COPY)) {
-                    saveAndRestoreService.copyNode(sourceNodes, targetNode);
-                    List<Node> childNodes = saveAndRestoreService.getChildNodes(targetNode);
-                    Platform.runLater(() -> {
-                        List<TreeItem<Node>> existingChildItems = targetTreeItem.getChildren();
-                        List<Node> existingChildNodes = existingChildItems.stream().map(TreeItem::getValue).collect(Collectors.toList());
-                        childNodes.forEach(childNode -> {
-                            if (!existingChildNodes.contains(childNode)) {
-                                targetTreeItem.getChildren().add(createTreeItem(childNode));
-                            }
-                        });
-                        targetTreeItem.getChildren().sort(treeNodeComparator);
-                        targetTreeItem.setExpanded(true);
-                    });
-                }
+                } // TransferMode.COPY not supported
             } catch (Exception exception) {
                 Logger.getLogger(SaveAndRestoreController.class.getName())
                         .log(Level.SEVERE, "Failed to move or copy");
@@ -1125,7 +1117,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             } finally {
                 disabledUi.set(false);
             }
-
         });
     }
 
@@ -1320,73 +1311,58 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
     }
 
-    /*
-
-    private static class ExpandTreeItemJob extends JobRunnableWithCancel {
-
-        private TreeItem<Node> treeItem;
-        private Consumer<Void> completionHandler;
-
-        private SaveAndRestoreService saveAndRestoreService;
-
-        public static void requestExpandTreeNode(SaveAndRestoreService saveAndRestoreService, TreeItem<Node> treeItem, Consumer<Void> completionHandler){
-            JobManager.schedule("Expanding node " + treeItem.getValue().getName(),
-                    new ExpandTreeItemJob(saveAndRestoreService, treeItem, completionHandler));
-        }
-
-        public static void requestExpandTreeNode(SaveAndRestoreService saveAndRestoreService, TreeItem<Node> treeItem){
-            JobManager.schedule("Expanding node " + treeItem.getValue().getName(),
-                    new ExpandTreeItemJob(saveAndRestoreService, treeItem, null));
-        }
-
-        public ExpandTreeItemJob(SaveAndRestoreService saveAndRestoreService, TreeItem<Node> treeItem, Consumer<Void> completionHandler){
-            this.treeItem = treeItem;
-            this.completionHandler = completionHandler;
-            this.saveAndRestoreService = saveAndRestoreService;
-        }
-        @Override
-        public Runnable getRunnable() {
-            return () -> {
-                List<Node> childNodes = saveAndRestoreService.getChildNodes(treeItem.getValue());
-                List<String> childNodeIds = childNodes.stream().map(Node::getUniqueId).collect(Collectors.toList());
-                List<String> existingNodeIds =
-                        treeItem.getChildren().stream().map(item -> item.getValue().getUniqueId()).collect(Collectors.toList());
-                List<TreeItem<Node>> itemsToAdd = new ArrayList<>();
-                childNodes.forEach(n -> {
-                    if (!existingNodeIds.contains(n.getUniqueId())) {
-                        itemsToAdd.add(createTreeItem(n));
-                    }
-                });
-                List<TreeItem<Node>> itemsToRemove = new ArrayList<>();
-                targetItem.getChildren().forEach(item -> {
-                    if (!childNodeIds.contains(item.getValue().getUniqueId())) {
-                        itemsToRemove.add(item);
-                    }
-                });
-                Platform.runLater(() -> {
-                    targetItem.getChildren().addAll(itemsToAdd);
-                    targetItem.getChildren().removeAll(itemsToRemove);
-                    targetItem.getChildren().sort(treeNodeComparator);
-                    targetItem.setExpanded(true);
-                    if(completionHandler != null){
-                        completionHandler.accept(null);
-                    }
-                });
-                if(completionHandler != null){
-                    completionHandler.accept(null);
-                }
-                try {
-                    SearchResult searchResult = client.search(searchMap);
-                    logEntryHandler.accept(searchResult);
-                } catch (Exception exception) {
-                    Logger.getLogger(LogbookSearchJob.class.getName())
-                            .log(Level.SEVERE, "Failed to obtain logs", exception);
-                    errorHandler.accept(null, exception);
-                }
-            };
-        }
-
+    public void copySelectionToClipboard(){
+        List<TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
+        List<Node> selectedNodes = selectedItems.stream().map(TreeItem::getValue).collect(Collectors.toList());
+        ClipboardContent clipboardContent = new ClipboardContent();
+        clipboardContent.put(SaveAndRestoreApplication.NODE_SELECTION_FORMAT, selectedNodes);
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+        clipboard.setContent(clipboardContent);
     }
 
-     */
+    public boolean mayPaste(){
+        Object clipBoardContent = Clipboard.getSystemClipboard().getContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT);
+        if(clipBoardContent == null ||  browserSelectionModel.getSelectedItems().size() != 1){
+            return false;
+        }
+        // Checks are made when user copies to clipboard to ensure all selected
+        // nodes are of same type. So checking if selected nodes can be pasted is done using
+        // only first element's type.
+        List<Node> selectedNodes = (List<Node>)clipBoardContent;
+        NodeType nodeTypeOfFirst = selectedNodes.get(0).getNodeType();
+        NodeType nodeTypeOfTarget = browserSelectionModel.getSelectedItem().getValue().getNodeType();
+        if((nodeTypeOfFirst.equals(NodeType.COMPOSITE_SNAPSHOT) ||
+                nodeTypeOfFirst.equals(NodeType.CONFIGURATION)) && !nodeTypeOfTarget.equals(NodeType.FOLDER)){
+            return false;
+        }
+        else if(nodeTypeOfFirst.equals(NodeType.SNAPSHOT) && !nodeTypeOfTarget.equals(NodeType.CONFIGURATION)){
+            return false;
+        }
+        return true;
+    }
+
+    public void pasteFromClipboard(){
+        disabledUi.set(true);
+        Object selectedNodes = Clipboard.getSystemClipboard().getContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT);
+        if(selectedNodes == null || browserSelectionModel.getSelectedItems().size() != 1){
+            return;
+        }
+        List<String> selectedNodeIds =
+                ((List<Node>)selectedNodes).stream().map(Node::getUniqueId).collect(Collectors.toList());
+        JobManager.schedule("copy nodes", monitor -> {
+            try {
+                saveAndRestoreService.copyNodes(selectedNodeIds, browserSelectionModel.getSelectedItem().getValue().getUniqueId());
+                disabledUi.set(false);
+            } catch (Exception e) {
+                disabledUi.set(false);
+                ExceptionDetailsErrorDialog.openError(Messages.errorGeneric, Messages.failedToPasteObjects, e);
+                LOG.log(Level.WARNING, "Failed to paste nodes into target " + browserSelectionModel.getSelectedItem().getValue().getName());
+                return;
+            }
+            Platform.runLater(() -> {
+                expandTreeNode(browserSelectionModel.getSelectedItem());
+                treeView.refresh();
+            });
+        });
+    }
 }
