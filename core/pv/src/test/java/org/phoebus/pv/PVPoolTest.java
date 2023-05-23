@@ -57,14 +57,47 @@ public class PVPoolTest
         assertThat(pvs, hasItem("ca://ramp"));
         assertThat(pvs, hasItem("pva://ramp"));
 
+        // Repeat to verify trimming of pv name
+        pvs = PVPool.getNameVariants("pva://ramp\n", equivalent_pv_prefixes);
+        assertThat(pvs.size(), equalTo(3));
+        assertThat(pvs, hasItem("ramp"));
+        assertThat(pvs, hasItem("ca://ramp"));
+        assertThat(pvs, hasItem("pva://ramp"));
+
+        pvs = PVPool.getNameVariants("pva://ramp ", equivalent_pv_prefixes);
+        assertThat(pvs.size(), equalTo(3));
+        assertThat(pvs, hasItem("ramp"));
+        assertThat(pvs, hasItem("ca://ramp"));
+        assertThat(pvs, hasItem("pva://ramp"));
+
+
         // For loc or sim which are not in the equivalent list, pass name through
         pvs = PVPool.getNameVariants("loc://ramp", equivalent_pv_prefixes);
+        assertThat(pvs.size(), equalTo(1));
+        assertThat(pvs, hasItem("loc://ramp"));
+
+        // Repeat to verify trimming of pv name
+        pvs = PVPool.getNameVariants("loc://ramp\n", equivalent_pv_prefixes);
+        assertThat(pvs.size(), equalTo(1));
+        assertThat(pvs, hasItem("loc://ramp"));
+
+        pvs = PVPool.getNameVariants("loc://ramp ", equivalent_pv_prefixes);
         assertThat(pvs.size(), equalTo(1));
         assertThat(pvs, hasItem("loc://ramp"));
 
         pvs = PVPool.getNameVariants("sim://ramp", equivalent_pv_prefixes);
         assertThat(pvs.size(), equalTo(1));
         assertThat(pvs, hasItem("sim://ramp"));
+
+        // Repeat to verify trimming of pv name
+        pvs = PVPool.getNameVariants("sim://ramp\n", equivalent_pv_prefixes);
+        assertThat(pvs.size(), equalTo(1));
+        assertThat(pvs, hasItem("sim://ramp"));
+
+        pvs = PVPool.getNameVariants("sim://ramp ", equivalent_pv_prefixes);
+        assertThat(pvs.size(), equalTo(1));
+        assertThat(pvs, hasItem("sim://ramp"));
+
     }
 
 
