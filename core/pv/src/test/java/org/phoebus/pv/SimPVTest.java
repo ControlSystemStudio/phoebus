@@ -38,6 +38,42 @@ public class SimPVTest
     }
 
     @Test
+    public void demoSineWithTrimming1() throws Exception
+    {
+        final CountDownLatch done = new CountDownLatch(3);
+
+        System.out.println("Awaiting " + done.getCount() + " updates...");
+        final PV pv = PVPool.getPV("sim://sine\n");
+        final Disposable flow = pv.onValueEvent()
+                .subscribe(value ->
+                {
+                    System.out.println("Received update " + value);
+                    done.countDown();
+                });
+        done.await();
+        flow.dispose();
+        PVPool.releasePV(pv);
+    }
+
+    @Test
+    public void demoSineWithTrimming2() throws Exception
+    {
+        final CountDownLatch done = new CountDownLatch(3);
+
+        System.out.println("Awaiting " + done.getCount() + " updates...");
+        final PV pv = PVPool.getPV("sim://sine ");
+        final Disposable flow = pv.onValueEvent()
+                .subscribe(value ->
+                {
+                    System.out.println("Received update " + value);
+                    done.countDown();
+                });
+        done.await();
+        flow.dispose();
+        PVPool.releasePV(pv);
+    }
+
+    @Test
     public void demoConst() throws Exception
     {
         final PV pv = PVPool.getPV("sim://const(3.14)");
