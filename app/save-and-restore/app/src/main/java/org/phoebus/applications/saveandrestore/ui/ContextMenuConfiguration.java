@@ -36,15 +36,11 @@ public class ContextMenuConfiguration extends ContextMenuBase{
 
         MenuItem openConfigurationMenuItem = new MenuItem(Messages.contextMenuCreateSnapshot, new ImageView(ImageRepository.CONFIGURATION));
         openConfigurationMenuItem.disableProperty().bind(multipleSelection);
-        openConfigurationMenuItem.setOnAction(ae -> {
-            saveAndRestoreController.openConfigurationForSnapshot();
-        });
+        openConfigurationMenuItem.setOnAction(ae -> saveAndRestoreController.openConfigurationForSnapshot());
 
         MenuItem editConfigurationMenuItem = new MenuItem(Messages.Edit, new ImageView(ImageRepository.EDIT_CONFIGURATION));
         editConfigurationMenuItem.disableProperty().bind(multipleSelection);
-        editConfigurationMenuItem.setOnAction(ae -> {
-            saveAndRestoreController.nodeDoubleClicked();
-        });
+        editConfigurationMenuItem.setOnAction(ae -> saveAndRestoreController.nodeDoubleClicked());
 
         ImageView exportConfigurationIconImageView = new ImageView(csvExportIcon);
         exportConfigurationIconImageView.setFitWidth(18);
@@ -52,9 +48,7 @@ public class ContextMenuConfiguration extends ContextMenuBase{
 
         MenuItem exportConfigurationMenuItem = new MenuItem(Messages.exportConfigurationLabel, exportConfigurationIconImageView);
         exportConfigurationMenuItem.disableProperty().bind(multipleSelection);
-        exportConfigurationMenuItem.setOnAction(ae -> {
-            saveAndRestoreController.exportConfiguration();
-        });
+        exportConfigurationMenuItem.setOnAction(ae -> saveAndRestoreController.exportConfiguration());
 
         ImageView importSnapshotIconImageView = new ImageView(csvImportIcon);
         importSnapshotIconImageView.setFitWidth(18);
@@ -62,13 +56,11 @@ public class ContextMenuConfiguration extends ContextMenuBase{
 
         MenuItem importSnapshotMenuItem = new MenuItem(Messages.importSnapshotLabel, importSnapshotIconImageView);
         importSnapshotMenuItem.disableProperty().bind(multipleSelection);
-        importSnapshotMenuItem.setOnAction(ae -> {
-            saveAndRestoreController.importSnapshot();
-        });
+        importSnapshotMenuItem.setOnAction(ae -> saveAndRestoreController.importSnapshot());
 
         Image copyIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/copy.png");
-        MenuItem copyItem = new MenuItem(Messages.copy, new ImageView(copyIcon));
-        copyItem.setOnAction(action -> saveAndRestoreController.copySelectionToClipboard());
+        MenuItem copyMenuItem = new MenuItem(Messages.copy, new ImageView(copyIcon));
+        copyMenuItem.setOnAction(action -> saveAndRestoreController.copySelectionToClipboard());
 
         Image pasteIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/paste.png");
         MenuItem pasteMenuItem = new MenuItem(Messages.paste, new ImageView(pasteIcon));
@@ -76,11 +68,12 @@ public class ContextMenuConfiguration extends ContextMenuBase{
 
         setOnShowing(event -> {
             pasteMenuItem.setDisable(!saveAndRestoreController.mayPaste());
+            copyMenuItem.setDisable(!saveAndRestoreController.mayCopy());
         });
 
         getItems().addAll(openConfigurationMenuItem,
                 editConfigurationMenuItem,
-                copyItem,
+                copyMenuItem,
                 pasteMenuItem,
                 deleteNodesMenuItem,
                 copyUniqueIdToClipboardMenuItem,

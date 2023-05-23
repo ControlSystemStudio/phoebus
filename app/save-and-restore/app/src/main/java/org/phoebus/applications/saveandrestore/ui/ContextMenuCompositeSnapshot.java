@@ -55,11 +55,15 @@ public class ContextMenuCompositeSnapshot extends ContextMenuBase {
         tagWithComment.getItems().addAll(addTagWithCommentMenuItem, new SeparatorMenuItem());
 
         Image copyIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/copy.png");
-        MenuItem copyItem = new MenuItem(Messages.copy, new ImageView(copyIcon));
-        copyItem.setOnAction(action -> saveAndRestoreController.copySelectionToClipboard());
+        MenuItem copyMenuItem = new MenuItem(Messages.copy, new ImageView(copyIcon));
+        copyMenuItem.setOnAction(action -> saveAndRestoreController.copySelectionToClipboard());
+
+        setOnShowing(event -> {
+            copyMenuItem.setDisable(!saveAndRestoreController.mayCopy());
+        });
 
         getItems().addAll(editCompositeSnapshotMenuItem,
-                copyItem,
+                copyMenuItem,
                 deleteNodesMenuItem,
                 copyUniqueIdToClipboardMenuItem,
                 tagWithComment);

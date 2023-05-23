@@ -74,6 +74,17 @@ public class BrowserTreeCell extends TreeCell<Node> {
         this.compositeSnapshotContextMenu = compositeSnapshotContextMenu;
         this.saveAndRestoreController = saveAndRestoreController;
 
+        // This is need in order to suppress the context menu when right-clicking in a portion of the
+        // tree view where no tree items are rendered.
+        setOnMousePressed(event -> {
+            if (event.isSecondaryButtonDown() && event.getTarget() instanceof TreeCell) {
+                TreeCell<Node> treeCell = ((TreeCell<Node>) event.getTarget());
+                if (treeCell.getTreeItem() == null) {
+                    setContextMenu(null);
+                }
+            }
+        });
+
         setOnDragDetected(event -> {
             if (!saveAndRestoreController.checkMultipleSelection()) {
                 return;
@@ -81,7 +92,9 @@ public class BrowserTreeCell extends TreeCell<Node> {
             final ClipboardContent content = new ClipboardContent();
             Node node = getItem();
             // Drag-n-drop not supported for root node
-            if (node != null && !node.getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)) {
+            if (node != null &&
+                    !node.getNodeType().equals(NodeType.FOLDER) &&
+                    !node.getNodeType().equals(NodeType.SNAPSHOT)) {
                 final List<Node> nodes = new ArrayList<>();
 
                 for (TreeItem<Node> sel : getTreeView().getSelectionModel().getSelectedItems()) {
@@ -127,7 +140,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
                     saveAndRestoreController.editCompositeSnapshot(targetNode, sourceNodes);
                 } else {
                     getTreeView().getSelectionModel().clearSelection(); // This is needed to help controller implement selection restrictions
-                    saveAndRestoreController.performCopyOrMove(sourceNodes, targetNode, transferMode);
+                    saveAndRestoreController.moveNodes(sourceNodes, targetNode, transferMode);
                 }
             }
             event.setDropCompleted(true);
@@ -150,16 +163,16 @@ public class BrowserTreeCell extends TreeCell<Node> {
         if (saveAndRestoreController != null && !saveAndRestoreController.matchesFilter(node)) {
             hBox.setOpacity(0.4);
         }
-        StringBuffer stringBuffer = new StringBuffer();
+        StringBuilder stringBuilder = new StringBuilder();
         String comment = node.getDescription();
         if (comment != null && !comment.isEmpty()) {
-            stringBuffer.append(comment).append(System.lineSeparator());
+            stringBuilder.append(comment).append(System.lineSeparator());
         }
         if (node.getCreated() != null) { // Happens if configuration management is accessed from context menu
-            stringBuffer.append(TimestampFormats.SECONDS_FORMAT.format(node.getCreated().toInstant())).append(" (").append(node.getUserName()).append(")");
+            stringBuilder.append(TimestampFormats.SECONDS_FORMAT.format(node.getCreated().toInstant())).append(" (").append(node.getUserName()).append(")");
         }
         // Tooltip with at least date and user id is set on all tree items
-        setTooltip(new Tooltip(stringBuffer.toString()));
+        setTooltip(new Tooltip(stringBuilder.toString()));
         switch (node.getNodeType()) {
             case SNAPSHOT:
                 if (node.hasTag(Tag.GOLDEN)) {

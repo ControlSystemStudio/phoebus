@@ -61,7 +61,6 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
-import org.checkerframework.checker.units.qual.A;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
@@ -93,7 +92,6 @@ import java.net.URI;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -1095,7 +1093,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * @param targetNode   Target {@link Node}, which must be a folder.
      * @param transferMode Must be {@link TransferMode#MOVE} or {@link TransferMode#COPY}.
      */
-    protected void performCopyOrMove(List<Node> sourceNodes, Node targetNode, TransferMode transferMode) {
+    protected void moveNodes(List<Node> sourceNodes, Node targetNode, TransferMode transferMode) {
         disabledUi.set(true);
         JobManager.schedule("Copy Or Move save&restore node(s)", monitor -> {
             TreeItem<Node> rootTreeItem = treeView.getRoot();
@@ -1320,14 +1318,43 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         clipboard.setContent(clipboardContent);
     }
 
+    /**
+     * Checks if tree selection is valid for a copy operation:
+     * <ul>
+     *     <li>All selected nodes must be of same type.</li>
+     *     <li>All selected nodes must have same parent.</li>
+     * </ul>
+     * @return <code>true</code> if selection may be copied to clipboard, otherwise <code>false</code>.
+     */
+    public boolean mayCopy(){
+        List<Node> selectedNodes = browserSelectionModel.getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
+        if(selectedNodes.size() == 1){
+            return true;
+        }
+        NodeType nodeTypeOfFirst = selectedNodes.get(0).getNodeType();
+        if(selectedNodes.stream().filter(n -> !n.getNodeType().equals(nodeTypeOfFirst)).findFirst().isPresent()){
+            return false;
+        }
+        TreeItem<Node> parentOfFirst = browserSelectionModel.getSelectedItems().get(0).getParent();
+        return browserSelectionModel.getSelectedItems().stream().filter(t -> !t.getParent().equals(parentOfFirst)).findFirst().isEmpty();
+    }
+
+    /**
+     * Checks if the clipboard content may be pasted onto a target node:
+     * <ul>
+     *     <li>Clipboard c  ontent must be of {@link SaveAndRestoreApplication#NODE_SELECTION_FORMAT}.</li>
+     *     <li>Selected node for paste (target) must be single node.</li>
+     *     <li>Configurations and composite snapshots may be pasted only onto folder.</li>
+     *     <li>Snapshot may be pasted only onto configuration.</li>
+     * </ul>
+     * @return  <code>true</code> if selection may be pasted, otherwise <code>false</code>.
+     */
     public boolean mayPaste(){
         Object clipBoardContent = Clipboard.getSystemClipboard().getContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT);
         if(clipBoardContent == null ||  browserSelectionModel.getSelectedItems().size() != 1){
             return false;
         }
-        // Checks are made when user copies to clipboard to ensure all selected
-        // nodes are of same type. So checking if selected nodes can be pasted is done using
-        // only first element's type.
+        // Check is made if target node is of supported type for the clipboard content.
         List<Node> selectedNodes = (List<Node>)clipBoardContent;
         NodeType nodeTypeOfFirst = selectedNodes.get(0).getNodeType();
         NodeType nodeTypeOfTarget = browserSelectionModel.getSelectedItem().getValue().getNodeType();
@@ -1339,6 +1366,10 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             return false;
         }
         return true;
+    }
+
+    public List<TreeItem<Node>> getSelectedItems(){
+        return treeView.getSelectionModel().getSelectedItems();
     }
 
     public void pasteFromClipboard(){
