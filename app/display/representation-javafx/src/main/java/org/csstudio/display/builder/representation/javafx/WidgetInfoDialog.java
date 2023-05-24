@@ -210,7 +210,13 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         buffer.append("PVS (name, state, value, widget path)").append(System.lineSeparator())
                 .append(horizontalRuler).append(System.lineSeparator());
         pvs.stream().sorted(Comparator.comparing(pv -> pv.name)).forEach(pv -> {
-            buffer.append(pv.name).append(itemSeparator).append(pv.state).append(itemSeparator).append(getPVValue(pv.value)).append(System.lineSeparator());
+            buffer.append(pv.name).append(itemSeparator)
+                    .append(pv.state)
+                    .append(itemSeparator)
+                    .append(getPVValue(pv.value))
+                    .append(itemSeparator)
+                    .append(pv.path)
+                    .append(System.lineSeparator());
         });
         buffer.append(System.lineSeparator());
 
