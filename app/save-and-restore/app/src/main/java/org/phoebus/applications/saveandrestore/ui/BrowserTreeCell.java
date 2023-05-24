@@ -93,8 +93,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
             Node node = getItem();
             // Drag-n-drop not supported for root node
             if (node != null &&
-                    !node.getNodeType().equals(NodeType.FOLDER) &&
-                    !node.getNodeType().equals(NodeType.SNAPSHOT)) {
+                    !node.getNodeType().equals(NodeType.FOLDER)) {
                 final List<Node> nodes = new ArrayList<>();
 
                 for (TreeItem<Node> sel : getTreeView().getSelectionModel().getSelectedItems()) {
@@ -111,12 +110,12 @@ public class BrowserTreeCell extends TreeCell<Node> {
         setOnDragOver(event ->
         {
             final Node node = getItem();
-            if (node != null && node.getNodeType().equals(NodeType.FOLDER)) {
-                event.acceptTransferModes(event.getTransferMode());
-                setBorder(BORDER);
-            } else if (node != null && node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)) {
-                event.acceptTransferModes(event.getTransferMode());
-                setBorder(BORDER);
+            if(node != null){
+                List<Node> sourceNodes = (List<Node>) event.getDragboard().getContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT);
+                if(DragNDropUtil.mayDrop(event.getTransferMode(), node, sourceNodes)){
+                    event.acceptTransferModes(event.getTransferMode());
+                    setBorder(BORDER);
+                }
             }
             event.consume();
         });

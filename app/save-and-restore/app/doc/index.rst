@@ -66,8 +66,10 @@ Drag-n-drop
 
 Nodes in the tree can be moved using drag-n-drop. The following restrictions apply:
 
-* Move operation is possible only if target node is a folder, i.e. snapshot nodes cannot be moved.
+* Configuration and folder nodes may be moved if target is a folder.
 * Configuration and composite snapshot nodes cannot be moved to the root folder.
+* A move operation on snapshot nodes is supported only if the target is a composite snapshot node. This
+will launch the editor for that composite snapshot. The source nodes are of course not removed from their parent node.
 * Target folder may not contain nodes of same type and name as nodes subject to move.
 
 Checks are performed on the service to enforce the above restrictions. If pre-conditions are not met when the selection
