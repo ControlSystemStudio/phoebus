@@ -5,11 +5,15 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app</artifactId>
-    <version>4.7.2-SNAPSHOT</version>
+    <version>4.7.2</version>
   </parent>
   <modules>
     <module>model</module>
     <module>client</module>
     <module>ui</module>
   </modules>
+
+  <scm>
+    <tag>v4.7.2</tag>
+  </scm>
 </project>

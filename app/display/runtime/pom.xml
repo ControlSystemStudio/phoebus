@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app-display</artifactId>
-    <version>4.7.2-SNAPSHOT</version>
+    <version>4.7.2</version>
   </parent>
   <artifactId>app-display-runtime</artifactId>
   <dependencies>
@@ -37,22 +37,26 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-types</artifactId>
-      <version>4.7.2-SNAPSHOT</version>
+      <version>4.7.2</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-ui</artifactId>
-      <version>4.7.2-SNAPSHOT</version>
+      <version>4.7.2</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-pv</artifactId>
-      <version>4.7.2-SNAPSHOT</version>
+      <version>4.7.2</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-display-representation-javafx</artifactId>
-      <version>4.7.2-SNAPSHOT</version>
+      <version>4.7.2</version>
     </dependency>
   </dependencies>
+
+  <scm>
+    <tag>v4.7.2</tag>
+  </scm>
 </project>

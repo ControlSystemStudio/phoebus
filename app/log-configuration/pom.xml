@@ -4,14 +4,18 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app</artifactId>
-    <version>4.7.2-SNAPSHOT</version>
+    <version>4.7.2</version>
   </parent>
   <dependencies>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-ui</artifactId>
-      <version>4.7.2-SNAPSHOT</version>
+      <version>4.7.2</version>
     </dependency>
 
   </dependencies>
+
+  <scm>
+    <tag>v4.7.2</tag>
+  </scm>
 </project>
