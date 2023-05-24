@@ -54,7 +54,7 @@ public class TableEntry {
     private final StringProperty pvName = new SimpleStringProperty(this, "pvName");
     private final ObjectProperty<Instant> timestamp = new SimpleObjectProperty<>(this, "timestamp");
     private final StringProperty status = new SimpleStringProperty(this, "status", AlarmStatus.UNDEFINED.name());
-    private final StringProperty severity = new SimpleStringProperty(this, "severity", AlarmSeverity.UNDEFINED.name());
+    private final SimpleObjectProperty severity = new SimpleObjectProperty(this, "severity", AlarmSeverity.UNDEFINED);
     /**
      * Snapshot value set either when user takes snapshot, or when snapshot data is loaded from remote service. Note that this
      * can be modified if user chooses to use a multiplier before triggering a restore operation.
@@ -175,7 +175,7 @@ public class TableEntry {
     /**
      * @return the property providing the alarm severity of the PV value
      */
-    public StringProperty severityProperty() {
+    public SimpleObjectProperty severityProperty() {
         return severity;
     }
 
@@ -257,26 +257,26 @@ public class TableEntry {
         if (index == 0) {
             if (val instanceof VNumber) {
                 status.set(((VNumber) val).getAlarm().getStatus().name());
-                severity.set(((VNumber) val).getAlarm().getSeverity().name());
+                severity.set(((VNumber) val).getAlarm().getSeverity());
                 timestamp.set(((VNumber) val).getTime().getTimestamp());
             } else if (val instanceof VNumberArray) {
                 status.set(((VNumberArray) val).getAlarm().getStatus().name());
-                severity.set(((VNumberArray) val).getAlarm().getSeverity().name());
+                severity.set(((VNumberArray) val).getAlarm().getSeverity());
                 timestamp.set(((VNumberArray) val).getTime().getTimestamp());
             } else if (val instanceof VEnum) {
                 status.set(((VEnum) val).getAlarm().getStatus().name());
-                severity.set(((VEnum) val).getAlarm().getSeverity().name());
+                severity.set(((VEnum) val).getAlarm().getSeverity());
                 timestamp.set(((VEnum) val).getTime().getTimestamp());
             } else if (val instanceof VEnumArray) {
                 status.set(((VEnumArray) val).getAlarm().getStatus().name());
-                severity.set(((VEnumArray) val).getAlarm().getSeverity().name());
+                severity.set(((VEnumArray) val).getAlarm().getSeverity());
                 timestamp.set(((VEnumArray) val).getTime().getTimestamp());
             } else if (val instanceof VNoData) {
-                severity.set("---");
+                severity.set(null);
                 status.set("---");
                 timestamp.set(null);
             } else {
-                severity.set(AlarmSeverity.NONE.name());
+                severity.set(AlarmSeverity.NONE);
                 status.set("---");
                 timestamp.set(null);
             }
@@ -352,18 +352,18 @@ public class TableEntry {
         liveStoredEqual.set(Utilities.areValuesEqual(val, stored, threshold));
         if (val instanceof VNumber) {
             status.set(((VNumber) val).getAlarm().getStatus().name());
-            severity.set(((VNumber) val).getAlarm().getSeverity().name());
+            severity.set(((VNumber) val).getAlarm().getSeverity());
         } else if (val instanceof VNumberArray) {
             status.set(((VNumberArray) val).getAlarm().getStatus().name());
-            severity.set(((VNumberArray) val).getAlarm().getSeverity().name());
+            severity.set(((VNumberArray) val).getAlarm().getSeverity());
         } else if (val instanceof VEnum) {
             status.set(((VEnum) val).getAlarm().getStatus().name());
-            severity.set(((VEnum) val).getAlarm().getSeverity().name());
+            severity.set(((VEnum) val).getAlarm().getSeverity());
         } else if (val instanceof VEnumArray) {
             status.set(((VEnumArray) val).getAlarm().getStatus().name());
-            severity.set(((VEnumArray) val).getAlarm().getSeverity().name());
+            severity.set(((VEnumArray) val).getAlarm().getSeverity());
         } else {
-            severity.set(AlarmSeverity.NONE.name());
+            severity.set(AlarmSeverity.NONE);
             status.set("---");
         }
     }

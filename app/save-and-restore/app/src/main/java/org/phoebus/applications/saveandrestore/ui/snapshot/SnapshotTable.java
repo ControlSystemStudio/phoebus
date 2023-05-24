@@ -36,6 +36,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.util.StringConverter;
 import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.EnumDisplay;
 import org.epics.vtype.Time;
 import org.epics.vtype.VEnum;
@@ -54,6 +55,8 @@ import org.phoebus.applications.saveandrestore.ui.MultitypeTableCell;
 import org.phoebus.core.types.TimeStampedProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.javafx.JFXUtil;
+import org.phoebus.ui.pv.SeverityColors;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.lang.reflect.Field;
@@ -171,10 +174,6 @@ class SnapshotTable extends TableView<TableEntry> {
                     }
                 }
             });
-            // FX does not provide any facilities to get the column index at mouse position, so use this hack, to know
-            // where the mouse is located
-            setOnMouseEntered(e -> ((SnapshotTable) getTableView()).setColumnAndRowAtMouse(getTableColumn(), getIndex()));
-            setOnMouseExited(e -> ((SnapshotTable) getTableView()).setColumnAndRowAtMouse(null, -1));
         }
 
         @SuppressWarnings("unchecked")
@@ -398,11 +397,6 @@ class SnapshotTable extends TableView<TableEntry> {
 
     private CheckBox selectAllCheckBox;
 
-    private TableColumn<TableEntry, ?> columnAtMouse;
-    private int rowAtMouse = -1;
-    private int clickedColumn = -1;
-    private int clickedRow = -1;
-
     /**
      * Constructs a new table.
      *
@@ -418,37 +412,6 @@ class SnapshotTable extends TableView<TableEntry> {
         setMaxWidth(Double.MAX_VALUE);
         setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         getStylesheets().add(SnapshotTable.class.getResource("/save-and-restore-style.css").toExternalForm());
-
-        setOnMouseClicked(e -> {
-            if (getSelectionModel().getSelectedCells() != null && !getSelectionModel().getSelectedCells().isEmpty()) {
-                if (columnAtMouse == null) {
-                    clickedColumn = getSelectionModel().getSelectedCells().get(0).getColumn();
-                } else {
-                    int idx = getColumns().indexOf(columnAtMouse);
-                    if (uiSnapshots.size() > 1) {
-                        int i = showReadbacks ? 4 : 3;
-                        if (idx < 0) {
-                            // it is one of the grouped stored values columns
-                            idx = getColumns().get(i).getColumns().indexOf(columnAtMouse);
-                            if (idx >= 0) {
-                                idx += i;
-                            }
-                        } else {
-                            // it is either one of the first 3 columns (do nothing) or one of the live columns
-                            if (idx > i) {
-                                idx = getColumns().get(i).getColumns().size() + idx - 1;
-                            }
-                        }
-                    }
-                    if (idx < 0) {
-                        clickedColumn = getSelectionModel().getSelectedCells().get(0).getColumn();
-                    } else {
-                        clickedColumn = idx;
-                    }
-                }
-                clickedRow = rowAtMouse == -1 ? getSelectionModel().getSelectedCells().get(0).getRow() : rowAtMouse;
-            }
-        });
 
         addEventHandler(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() != KeyCode.SPACE) {
@@ -511,17 +474,6 @@ class SnapshotTable extends TableView<TableEntry> {
         });
     }
 
-    /**
-     * Set the column and row number at current mouse position.
-     *
-     * @param column the column at mouse cursor (null if none)
-     * @param row    the row index at mouse cursor
-     */
-    private void setColumnAndRowAtMouse(TableColumn<TableEntry, ?> column, int row) {
-        this.columnAtMouse = column;
-        this.rowAtMouse = row;
-    }
-
     private int measureStringWidth(String text, Font font) {
         Text mText = new Text(text);
         if (font != null) {
@@ -574,9 +526,24 @@ class SnapshotTable extends TableView<TableEntry> {
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
         snapshotTableEntries.add(statusColumn);
 
-        TableColumn<TableEntry, String> severityColumn = new TooltipTableColumn<>("Severity",
+        TableColumn<TableEntry, AlarmSeverity> severityColumn = new TooltipTableColumn<>("Severity",
                 Messages.toolTipTableColumnAlarmSeverity, 100, 100, true);
         severityColumn.setCellValueFactory(new PropertyValueFactory<>("severity"));
+        severityColumn.setCellFactory(alarmLogTableTypeStringTableColumn -> new TableCell<>() {
+            @Override
+            protected void updateItem(AlarmSeverity item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (empty || item == null) {
+                    setStyle("-fx-text-fill: black;  -fx-background-color: transparent");
+                    setText("");
+                } else {
+                    setText(item.toString());
+                    setStyle("-fx-alignment: center; -fx-border-color: transparent; -fx-border-width: 2 0 2 0; -fx-background-insets: 2 0 2 0; -fx-text-fill: " + JFXUtil.webRGB(SeverityColors.getTextColor(item)) + ";  -fx-background-color: " + JFXUtil.webRGB(SeverityColors.getBackgroundColor(item)));
+                }
+            }
+        });
+
         snapshotTableEntries.add(severityColumn);
 
         TableColumn<TableEntry, ?> storedValueBaseColumn = new TooltipTableColumn<>(
@@ -671,10 +638,9 @@ class SnapshotTable extends TableView<TableEntry> {
         this.showReadbacks = showLiveReadback;
         this.showDeltaPercentage = showDeltaPercentage;
         uiSnapshots.addAll(snapshots);
-        if(snapshots.size() == 1){
+        if (snapshots.size() == 1) {
             createTableForSingleSnapshot(showLiveReadback, showStoredReadback);
-        }
-        else{
+        } else {
             createTableForMultipleSnapshots(snapshots);
         }
         updateTableColumnTitles();
