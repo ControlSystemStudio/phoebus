@@ -35,7 +35,6 @@
     <classpathentry exported="true" kind="lib" path="target/lib/cal10n-api-0.8.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/cglib-full-2.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/checker-qual-3.12.0.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/commonj.sdo-2.1.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/commonmark-0.15.2.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/commonmark-ext-gfm-tables-0.15.2.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/commonmark-ext-image-attributes-0.15.2.jar"/>
@@ -47,7 +46,7 @@
     <classpathentry exported="true" kind="lib" path="target/lib/commons-math3-3.6.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/connect-api-2.0.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/connect-json-2.0.0.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/controlsfx-11.0.3.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/controlsfx-11.1.2.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/derby-10.16.1.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/derbyshared-10.16.1.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/derbytools-10.16.1.1.jar"/>
@@ -55,9 +54,9 @@
     <classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-java-8.2.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-rest-client-8.2.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/elasticsearch-rest-client-sniffer-8.2.0.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/epics-ntypes-0.3.7.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/epics-pvaccess-5.1.7.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/epics-pvdata-6.1.7.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/epics-ntypes-0.3.8.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/epics-pvaccess-5.1.8.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/epics-pvdata-6.1.8.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/epics-util-1.0.6.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/error_prone_annotations-2.7.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/failureaccess-1.0.1.jar"/>
@@ -86,16 +85,14 @@
     <classpathentry exported="true" kind="lib" path="target/lib/jakarta.json-api-2.0.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/java_cup-0.9e.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/javax.activation-1.2.0.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javax.json-1.0.4.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/javax.json-api-1.1.4.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/javax.mail-1.6.1.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javax.persistence-2.2.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/javax.servlet-api-3.1.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/javax.ws.rs-api-2.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jaxb-api-2.3.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jaxb-core-2.3.0.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jaxb-runtime-2.3.0.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/jca-2.4.7.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/jca-2.4.8.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jeromq-0.5.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jersey-client-1.19.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jersey-core-1.19.jar"/>
@@ -235,22 +232,21 @@
     <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-19.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-19-linux.jar"/>
     -->
-    <!-- On Mac, need to add this:
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-19-mac.jar"/>
+    <!-- On Mac, need to add this, using "mac" or "mac-aarch64" depending on CPU -->
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-19-mac-aarch64.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/javafx-base-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-19-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-19-mac-aarch64.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/javafx-controls-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-19-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-19-mac-aarch64.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/javafx-fxml-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-19-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-19-mac-aarch64.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/javafx-graphics-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-19-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-19-mac-aarch64.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/javafx-media-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-19-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-19-mac-aarch64.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/javafx-swing-19.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-19-mac.jar"/>
+    <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-19-mac-aarch64.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/javafx-web-19.jar"/>
-    -->
 
     <classpathentry kind="output" path="target/classes"/>
 </classpath>
