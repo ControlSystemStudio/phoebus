@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -34,6 +34,7 @@ import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.EnumWidgetProperty;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 
@@ -221,6 +222,18 @@ public class GroupWidget extends MacroWidget
             throws Exception
     {
         return new GroupWidgetConfigurator(persisted_version);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void expandMacros(final Macros input)
+    {
+        // Expand the group's macros
+        super.expandMacros(input);
+
+        // Expand child widget macros using the group macros as input
+        for (Widget child : runtimeChildren().getValue())
+            child.expandMacros(propMacros().getValue());
     }
 
     /** @return Runtime 'children' property */

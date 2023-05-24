@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -88,17 +88,7 @@ public class DisplayModel extends Widget
      *  this user data element of the model points to the embedding widget.
      */
     public static final String USER_DATA_EMBEDDING_WIDGET = "_embedding_widget";
-
-    /** Macros set in preferences
-     *
-     *  <p>Fetched once on display creation to
-     *  use latest preference settings on newly opened display,
-     *  while not fetching preferences for each macro evaluation
-     *  within a running display to improve performance
-     */
-    private final Macros preference_macros = Preferences.getMacros();
-
-
+    
 
     /** Custom configurator to read legacy *.opi files */
     private static class CustomConfigurator extends WidgetConfigurator
@@ -293,6 +283,7 @@ public class DisplayModel extends Widget
      */
     public List<Widget> getChildren()
     {
+        // TODO Should wrap in Collections.unmodifiableList(...) ?
         return children.getValue();
     }
 
@@ -302,25 +293,32 @@ public class DisplayModel extends Widget
         throw new IllegalStateException("Display cannot have parent widget " + parent);
     }
 
+    /** Expand macros for this display
+     *  @param input Input from preferences and launcher info
+     */
+    @Override
+    public void expandMacros(final Macros input)
+    {
+        // TODO Do the embedder handling in embedded widget's expandMacros?
+//        final Widget embedder = getUserData(DisplayModel.USER_DATA_EMBEDDING_WIDGET);
+//        if (embedder != null)
+//            propMacros().getValue().expand(Arrays.append(input, embedder.getEffectiveMacros()));
+
+        // Expand the display macros
+        propMacros().getValue().expand(input);
+
+        // Recurse into child widgets
+        for (Widget child: getChildren())
+            child.expandMacros(propMacros().getValue());
+    }
+
     /** Display model provides macros for all its widgets.
      *  @return {@link Macros}
      */
     @Override
     public Macros getEffectiveMacros()
     {
-        // 1) Lowest priority are either
-        // 1.a) .. global macros from preferences
-        // 1.b) .. macros from embedding widget,
-        //      which may in turn be embedded elsewhere,
-        //      ultimately fetching the macros from preferences.
-        final Widget embedder = getUserData(DisplayModel.USER_DATA_EMBEDDING_WIDGET);
-        Macros result = (embedder == null)
-            ? preference_macros
-            : embedder.getEffectiveMacros();
-
-        // 2) This display may provide added macros or replacement values
-        result = Macros.merge(result, propMacros().getValue());
-        return result;
+        return propMacros().getValue();
     }
 
     /** @return 'background_color' property */
