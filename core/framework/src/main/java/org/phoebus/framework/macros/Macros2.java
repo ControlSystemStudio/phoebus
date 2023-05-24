@@ -326,12 +326,10 @@ public class Macros2 implements MacroValueProvider
     @Override
     public String toString()
     {
-        if (specs.isEmpty())
-            return "[]";
-        return "[ " + specs.stream()
-                           .map(entry -> entry.getKey() + "='" + entry.getValue() + "'")
-                           .collect(Collectors.joining(", ")) +
-               " ]";
+        return "[" + specs.stream()
+                          .map(entry -> entry.getKey() + "='" + entry.getValue() + "'")
+                          .collect(Collectors.joining(",")) +
+               "]";
     }
 
     /** @return String representation of expanded macros for debugging
@@ -339,12 +337,10 @@ public class Macros2 implements MacroValueProvider
      */
     public String toExpandedString()
     {
-        if (values.isEmpty())
-            return "[]";
-        return "[ " + getNames().stream()
-                                .map((macro) -> macro + "='" + getValue(macro) + "'")
-                                .collect(Collectors.joining(", ")) +
-               " ]";
+        return "[" + getNames().stream()
+                               .map((macro) -> macro + "='" + getValue(macro) + "'")
+                               .collect(Collectors.joining(",")) +
+               "]";
     }
 
 }

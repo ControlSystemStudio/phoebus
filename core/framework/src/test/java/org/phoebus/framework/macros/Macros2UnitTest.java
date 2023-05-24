@@ -73,19 +73,19 @@ public class Macros2UnitTest
     {
         // Plain  NAME=VALUE with some spaces
         Macros2 macros = Macros2.fromSimpleSpec("A=1,  B = 2");
-        assertThat(macros.toString(), equalTo("[ A='1', B='2' ]"));
+        assertThat(macros.toString(), equalTo("[A='1',B='2']"));
 
         // Specifications hold the values as provided without expanding them
         macros = Macros2.fromSimpleSpec("A=a,  AA = $(A)$(A)");
-        assertThat(macros.toString(), equalTo("[ A='a', AA='$(A)$(A)' ]"));
+        assertThat(macros.toString(), equalTo("[A='a',AA='$(A)$(A)']"));
 
         // Quoted value with spaces and comma
         macros = Macros2.fromSimpleSpec("MSG = \"Hello, Dolly\" , B=2");
-        assertThat(macros.toString(), equalTo("[ MSG='Hello, Dolly', B='2' ]"));
+        assertThat(macros.toString(), equalTo("[MSG='Hello, Dolly',B='2']"));
 
         // Value with escaped quote
         macros = Macros2.fromSimpleSpec("MSG = \"This is a \\\"Message\\\" .. \" , B=2");
-        assertThat(macros.toString(), equalTo("[ MSG='This is a \"Message\" .. ', B='2' ]"));
+        assertThat(macros.toString(), equalTo("[MSG='This is a \"Message\" .. ',B='2']"));
     }
 
     /** Test basic macro=value
