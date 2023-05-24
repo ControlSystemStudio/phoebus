@@ -313,7 +313,7 @@ public class Macros implements MacroValueProvider
     /** Visit a thread-safe snapshot of all expanded macro values
      *  @param action Invoked with each macro name and expanded value
      */
-    public void forEachValue(final BiConsumer<String, String> action)
+    public void forEach(final BiConsumer<String, String> action)
     {
         values.forEach(action);
     }
