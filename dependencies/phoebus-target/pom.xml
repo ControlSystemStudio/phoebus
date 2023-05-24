@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>dependencies</artifactId>
-    <version>4.7.2</version>
+    <version>4.7.3-SNAPSHOT</version>
   </parent>
   <artifactId>phoebus-target</artifactId>
 
@@ -65,7 +65,7 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>install-jars</artifactId>
-      <version>4.7.2</version>
+      <version>4.7.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -590,8 +590,4 @@
       </plugin>
     </plugins>
   </build>
-
-  <scm>
-    <tag>v4.7.2</tag>
-  </scm>
 </project>

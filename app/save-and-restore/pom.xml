@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app</artifactId>
-    <version>4.7.2</version>
+    <version>4.7.3-SNAPSHOT</version>
   </parent>
   <modules>
     <module>model</module>
@@ -14,8 +14,4 @@
     <module>common</module>
     <module>logging</module>
   </modules>
-
-  <scm>
-    <tag>v4.7.2</tag>
-  </scm>
 </project>
