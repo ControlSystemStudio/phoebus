@@ -58,7 +58,7 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
         final ImageView iv = new ImageView();
         iv.setSmooth(true);
         iv.setCache(true);
-        iv.setCacheHint(CacheHint.SCALE);
+        iv.setCacheHint(CacheHint.SCALE);  // Prevents excessive VRAM usage when zooming in using the D3D library for rendering under Windows.
         iv.getTransforms().addAll(translate, rotation);
         return iv;
     }
