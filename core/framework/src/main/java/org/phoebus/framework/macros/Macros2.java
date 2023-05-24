@@ -222,12 +222,15 @@ public class Macros2 implements MacroValueProvider
         if (error != null)
             throw new IllegalArgumentException(error);
         specs.add(new SimpleImmutableEntry<>(name, spec));
+        // Expand this name=spec right away so getValue() won't return null.
+        // Complete expansion typically requires calling expand(base)
+        expandSpec(name, spec);
     }
 
     /** Expand macro specs into values
      *  @param base Base values to import before expanding specs
      */
-    public void expand(final Macros2 base)
+    public void expand(final Macros2 base) // TODO Rename expandValues?
     {
         values.clear();
 
@@ -238,35 +241,38 @@ public class Macros2 implements MacroValueProvider
         // Add expanded specs
         for (AbstractMap.SimpleImmutableEntry<String, String> spec : specs)
         {
-            try
+            final String name = spec.getKey();
+            final String expanded = expandSpec(name, spec.getValue());
+            if (MacroHandler.containsMacros(expanded))
             {
-                expandSpec(spec.getKey(), spec.getValue());
-            }
-            catch (Exception ex)
-            {
-                logger.log(Level.WARNING, "Failed to expand " + spec.getKey() + "='" + spec.getValue() + "'", ex);
+                // Not fatal, in fact common when creating displays,
+                // but log with exception to get stack trace in case
+                // origin of macro needs to be debugged
+                logger.log(Level.WARNING, "Incomplete macro expansion " + name + "='" + expanded + "'",
+                           new Exception("Macro spec " + name + "='" + spec + "' does not fully resolve"));
             }
         }
     }
 
     /** Expand a macro spec
      *  @param name Name of the macro
-     *  @param spec Sepcification of the macro, may contain macros "$(NAME)" or "${NAME}" which will be expanded
-     *  @throws Exception on error
-     *  @see MacroSpecs#checkMacroName(String)
+     *  @param spec Specification of the macro, may contain macros "$(NAME)" or "${NAME}" which will be expanded
+     *  @return Expanded value
      */
-    private void expandSpec(final String name, final String spec) throws Exception
+    private String expandSpec(final String name, final String spec)
     {
-        final String expanded = MacroHandler.replace(this, spec);
-        if (MacroHandler.containsMacros(expanded))
+        String expanded;
+        try
         {
-            // Not fatal, in fact common when creating displays,
-            // but log with exception to get stack trace in case
-            // origin of macro needs to be debugged
-            logger.log(Level.WARNING, "Incomplete macro expansion " + name + "='" + expanded + "'",
-                       new Exception("Macro spec " + name + "='" + spec + "' does not fully resolve"));
+            expanded = MacroHandler.replace(this, spec);
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Failed to expand " + name + "='" + spec + "'", ex);
+            expanded = spec;
         }
         values.put(name, expanded);
+        return expanded;
     }
 
     /** @return Names of expanded macros, sorted alphabetically */

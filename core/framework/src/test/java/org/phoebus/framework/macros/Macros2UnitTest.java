@@ -101,8 +101,6 @@ public class Macros2UnitTest
         macros.add("MACRO", "S");
         macros.add("traces[0].y_pv", "TheValueWaveform");
 
-        macros.expand(null);
-
         assertThat(MacroHandler.replace(macros, "Plain Text"), equalTo("Plain Text"));
         assertThat(MacroHandler.replace(macros, "${S}"), equalTo("BL7"));
         assertThat(MacroHandler.replace(macros, "This is $(S)"), equalTo("This is BL7"));
@@ -130,7 +128,6 @@ public class Macros2UnitTest
         final Macros2 macros = new Macros2();
         macros.add("A", "a");
         macros.add("AA", "$(A)$(A)");
-        macros.expand(null);
 
         // MacroValues contain the expanded values
         assertThat(macros.getValue("A"), equalTo("a"));
@@ -138,29 +135,29 @@ public class Macros2UnitTest
 
         // Swap values
         macros.add("B", "b");
-        macros.expand(null);
         assertThat(macros.getValue("A"), equalTo("a"));
         assertThat(macros.getValue("B"), equalTo("b"));
 
         macros.add("X", "$(A)");
         macros.add("A", "$(B)");
         macros.add("B", "$(X)");
-        macros.expand(null);
+        // Values have been swapped
         assertThat(macros.getValue("A"), equalTo("b"));
         assertThat(macros.getValue("B"), equalTo("a"));
+        // Specs contain the history of how values were defined
+        assertThat(macros.toString(), equalTo("[A='a',AA='$(A)$(A)',B='b',X='$(A)',A='$(B)',B='$(X)']"));
+        // Values hold each macro with only one, the effective value
+        assertThat(macros.toExpandedString(), equalTo("[A='b',AA='aa',B='a',X='a']"));
 
         // OK to define macro with what it is (just a special case of known macro)
         macros.add("A", "a");
-        macros.expand(null);
         assertThat(macros.getValue("A"), equalTo("a"));
         macros.add("A", "$(A)");
-        macros.expand(null);
         assertThat(macros.getValue("A"), equalTo("a"));
 
         // When using unknown macro, it remains unresolved
         // (with log message that's not tested here)
         macros.add("A", "$(UNKNOWN)");
-        macros.expand(null);
         assertThat(macros.getValue("A"), equalTo("$(UNKNOWN)"));
     }
 
@@ -172,7 +169,6 @@ public class Macros2UnitTest
     {
         final Macros2 macros = Macros2.fromSimpleSpec("A=a,B=b,X=$(A),A=$(B),B=$(X)");
         System.out.println(macros);
-        macros.expand(null);
         assertThat(macros.getValue("A"), equalTo("b"));
         assertThat(macros.getValue("B"), equalTo("a"));
     }
@@ -185,7 +181,6 @@ public class Macros2UnitTest
     {
         final Macros2 macros = new Macros2();
         assertThat(macros.toString(), equalTo("[]"));
-        macros.expand(null);
 
         assertThat(MacroHandler.replace(macros, "Plain Text"), equalTo("Plain Text"));
         assertThat(MacroHandler.replace(macros, "Nothing for ${S} <-- this one"), equalTo("Nothing for ${S} <-- this one"));
@@ -202,7 +197,6 @@ public class Macros2UnitTest
         macros.add("A", "a");
         macros.add("B", "b");
         System.out.println(macros);
-        macros.expand(null);
 
         assertThat(MacroHandler.replace(macros, "Empty default ${S=} value"), equalTo("Empty default  value"));
         // Name cannot include spaces
@@ -217,7 +211,6 @@ public class Macros2UnitTest
         macros = new Macros2();
         macros.add("DERIVED", "$(MAIN=default)");
         System.out.println(macros);
-        macros.expand(null);
 
         assertThat(MacroHandler.replace(macros, "$(DERIVED)"), equalTo("default"));
         assertThat(MacroHandler.replace(macros, "/$(DERIVED)/$(DERIVED)/"), equalTo("/default/default/"));
@@ -225,7 +218,6 @@ public class Macros2UnitTest
         macros.add("MAIN", "main");
         macros.add("DERIVED", "$(MAIN=default)");
         System.out.println(macros);
-        macros.expand(null);
 
         assertThat(MacroHandler.replace(macros, "$(DERIVED)"), equalTo("main"));
         assertThat(MacroHandler.replace(macros, "/$(DERIVED)/$(DERIVED)/"), equalTo("/main/main/"));
@@ -245,7 +237,6 @@ public class Macros2UnitTest
         final Macros2 macros = new Macros2();
         macros.add("FINAL", "$(MAY_NOT_BE_SET=default_value)");
         System.out.println(macros);
-        macros.expand(null);
 
         assertThat(MacroHandler.replace(macros, "${FINAL}"), equalTo("default_value"));
         assertThat(MacroHandler.replace(macros, "${FINAL}/${FINAL}"), equalTo("default_value/default_value"));
@@ -261,7 +252,6 @@ public class Macros2UnitTest
         macros.add("S", "$(S)");
         try
         {
-            macros.expand(null);
             MacroHandler.replace(macros, "Never ending $(S)");
             fail("Didn't detect recursive macro");
         }
@@ -280,5 +270,30 @@ public class Macros2UnitTest
         {
             assertThat(ex.getMessage(), containsString(/* [Rr] */ "ecursive"));
         }
+    }
+
+    @Test
+    public void testHierarchy() throws Exception
+    {
+        // Macro specs provided by the launcher
+        final Macros2 launcher = new Macros2();
+        launcher.add("L", "launcher");
+
+        // Macro specs provided by the display
+        final Macros2 display = new Macros2();
+        display.add("T", "display");
+
+        // Macro specs provided by a group inside the display
+        final Macros2 group = new Macros2();
+        group.add("T", "group");
+
+        // Hierarchically expand specs
+        display.expand(launcher);
+        group.expand(display);
+        System.out.println(group);
+
+        // MacroValues contain the expanded values
+        assertThat(display.getValue("T"), equalTo("display"));
+        assertThat(group.getValue("T"), equalTo("group"));
     }
 }
