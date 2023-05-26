@@ -148,22 +148,8 @@ public class OlogClient implements LogClient {
                     this.clientConfig = new DefaultClientConfig();
                 }
             }
-            // Check if cached credentials are available.
-            ScopedAuthenticationToken scopedAuthenticationToken = null;
-            try {
-                SecureStore store = new SecureStore();
-                scopedAuthenticationToken = store.getScopedAuthenticationToken(LogService.AUTHENTICATION_SCOPE);
-            } catch (Exception e) {
-                logger.log(Level.SEVERE, "Unable to query for scoped authentication token");
-            }
-            if(scopedAuthenticationToken != null){
-                this.username = scopedAuthenticationToken.getUsername();
-                this.password = scopedAuthenticationToken.getPassword();
-            }
-            else{
-                this.username = ifNullReturnPreferenceValue(this.username, "username");
-                this.password = ifNullReturnPreferenceValue(this.password, "password");
-            }
+            this.username = ifNullReturnPreferenceValue(this.username, "username");
+            this.password = ifNullReturnPreferenceValue(this.password, "password");
             this.connectTimeoutAsString = ifNullReturnPreferenceValue(this.connectTimeoutAsString, "connectTimeout");
             int connectTimeout = 0;
             try {
