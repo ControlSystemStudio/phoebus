@@ -251,7 +251,7 @@ public class TreeTableEntry {
         return tableEntry.statusProperty();
     }
 
-    public SimpleObjectProperty severityProperty() {
+    public StringProperty severityProperty() {
         if (folder) {
             return null;
         }

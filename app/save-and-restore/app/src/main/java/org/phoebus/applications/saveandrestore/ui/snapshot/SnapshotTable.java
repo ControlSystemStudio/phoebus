@@ -99,7 +99,7 @@ class SnapshotTable extends TableView<TableEntry> {
                 setText(null);
                 setStyle("");
             } else if (item == null) {
-                setText("---");
+                setText(null);
                 setStyle("");
             } else {
                 setText(TimestampFormats.SECONDS_FORMAT.format((item)));
@@ -526,22 +526,26 @@ class SnapshotTable extends TableView<TableEntry> {
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
         snapshotTableEntries.add(statusColumn);
 
-        TableColumn<TableEntry, AlarmSeverity> severityColumn = new TooltipTableColumn<>("Severity",
+        TableColumn<TableEntry, String> severityColumn = new TooltipTableColumn<>("Severity",
                 Messages.toolTipTableColumnAlarmSeverity, 100, 100, true);
         severityColumn.setCellValueFactory(new PropertyValueFactory<>("severity"));
         severityColumn.setCellFactory(alarmLogTableTypeStringTableColumn -> new TableCell<>() {
             @Override
-            protected void updateItem(AlarmSeverity item, boolean empty) {
+            protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
 
                 if (empty || item == null) {
                     setStyle("-fx-text-fill: black;  -fx-background-color: transparent");
-                    setText("");
+                    setText(null);
                 } else {
-                    setText(item.toString());
-                    setStyle("-fx-alignment: center; -fx-border-color: transparent; -fx-border-width: 2 0 2 0; -fx-background-insets: 2 0 2 0; -fx-text-fill: " + JFXUtil.webRGB(SeverityColors.getTextColor(item)) + ";  -fx-background-color: " + JFXUtil.webRGB(SeverityColors.getBackgroundColor(item)));
+                    setText(item);
+                    AlarmSeverity alarmSeverity = AlarmSeverity.valueOf(item);
+                    setStyle("-fx-alignment: center; -fx-border-color: transparent; -fx-border-width: 2 0 2 0; -fx-background-insets: 2 0 2 0; -fx-text-fill: " +
+                            JFXUtil.webRGB(SeverityColors.getTextColor(alarmSeverity)) + ";  -fx-background-color: " + JFXUtil.webRGB(SeverityColors.getBackgroundColor(alarmSeverity)));
                 }
             }
+
+
         });
 
         snapshotTableEntries.add(severityColumn);
