@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -56,7 +56,7 @@ import org.phoebus.core.vtypes.VTypeHelper;
 @SuppressWarnings("nls")
 public abstract class ConverterBase<W extends Widget>
 {
-    protected final W widget;
+    protected W widget;
 
     public ConverterBase(final EdmConverter converter, final Widget parent, final EdmWidget t)
     {
@@ -200,8 +200,11 @@ public abstract class ConverterBase<W extends Widget>
     }
 
 
-    /** Find a '=' that is neither preceded by '<', '>', '=' nor followed by '=' */
-    private static final Pattern expand_equal = Pattern.compile("(?<![<>=])=(?!=)");
+    /** Find a single '=' that is neither preceded by '!', '<', '>', '=' nor followed by '='
+     *
+     *  Used to turn '=' into '==' but keep '!=', '<=', '>=', '==' unchanged
+     */
+    private static final Pattern expand_equal = Pattern.compile("(?<![<>=!])=(?!=)");
 
     /** @param expression EDM color rule expression like ">=5 && <10"
      *  @return Display Builder rule expression like "pv0>=5 && pv0<10"
@@ -245,7 +248,7 @@ public abstract class ConverterBase<W extends Widget>
     /** @param edm Static EDM color
      *  @return {@link WidgetColor}
      */
-    private static WidgetColor convertStaticColor(final EdmColor edm)
+    protected static WidgetColor convertStaticColor(final EdmColor edm)
     {
         // EDM uses 16 bit color values
         final int red   = edm.getRed()   >> 8,

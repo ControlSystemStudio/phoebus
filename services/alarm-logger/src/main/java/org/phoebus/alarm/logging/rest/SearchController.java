@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.phoebus.alarm.logging.AlarmLoggingService;
 import org.phoebus.alarm.logging.ElasticClientHelper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,6 +38,9 @@ public class SearchController {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
+    @Value("${version:1.0.0}")
+    private String version;
+
     /**
      * @return Information about the alarm logging service
      */
@@ -45,7 +49,7 @@ public class SearchController {
 
         Map<String, Object> alarmLoggingServiceInfo = new LinkedHashMap<String, Object>();
         alarmLoggingServiceInfo.put("name", "Alarm logging Service");
-        //alarmLoggingServiceInfo.put("version", version);
+        alarmLoggingServiceInfo.put("version", version);
 
         Map<String, String> elasticInfo = new LinkedHashMap<String, String>();
         try {

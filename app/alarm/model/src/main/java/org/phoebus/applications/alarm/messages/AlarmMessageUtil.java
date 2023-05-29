@@ -45,6 +45,9 @@ public class AlarmMessageUtil implements Serializable{
     // Object mapper for all other alarm messages
     @JsonIgnore
     static final ObjectMapper objectMapper = new ObjectMapper();
+    static {
+        objectMapper.registerModule(new JavaTimeModule());
+    }
 
     private static class AlarmStateJsonMessage {
         @JsonIgnore

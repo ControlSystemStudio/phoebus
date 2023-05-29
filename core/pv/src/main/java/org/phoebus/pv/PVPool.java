@@ -153,12 +153,13 @@ public class PVPool
      */
     public static Set<String> getNameVariants(final String name, final String [] equivalent_pv_prefixes)
     {
+        final String _name = name.trim();
         // First, look for name as given
         final Set<String> variants = new LinkedHashSet<>();
-        variants.add(name);
+        variants.add(_name);
         if (equivalent_pv_prefixes != null  &&  equivalent_pv_prefixes.length > 0)
         {   // Optionally, if the original name is one of the equivalent types ...
-            final TypedName typed = TypedName.analyze(name);
+            final TypedName typed = TypedName.analyze(_name);
             for (String type : equivalent_pv_prefixes)
                 if (type.equals(typed.type))
                 {
@@ -201,15 +202,16 @@ public class PVPool
      */
     public static PV getPV(final String name) throws Exception
     {
-        if (name.isBlank())
+        final String _name = name.trim();
+        if (_name.isBlank())
             throw new Exception("Empty PV name");
-        final TypedName type_name = TypedName.analyze(name);
+        final TypedName type_name = TypedName.analyze(_name);
         final PVFactory factory = factories.get(type_name.type);
         if (factory == null)
-            throw new Exception(name + " has unknown PV type '" + type_name.type + "'");
+            throw new Exception(_name + " has unknown PV type '" + type_name.type + "'");
 
-        final String core_name = factory.getCoreName(name);
-        final ReferencedEntry<PV> ref = pool.createOrGet(core_name, () -> createPV(factory, name, type_name.name));
+        final String core_name = factory.getCoreName(_name);
+        final ReferencedEntry<PV> ref = pool.createOrGet(core_name, () -> createPV(factory, _name, type_name.name));
         logger.log(Level.CONFIG, () -> "PV '" + ref.getEntry().getName() + "' references: " + ref.getReferences());
         return ref.getEntry();
     }

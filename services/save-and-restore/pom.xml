@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>org.phoebus</groupId>
 		<artifactId>services</artifactId>
-		<version>4.7.2-SNAPSHOT</version>
+		<version>4.7.3-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.phoebus</groupId>
 	<artifactId>service-save-and-restore</artifactId>
-	<version>4.7.2-SNAPSHOT</version>
+	<version>4.7.3-SNAPSHOT</version>
 
 	<properties>
 		<spring.boot.version>2.7.3</spring.boot.version>
@@ -55,13 +55,13 @@
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>save-and-restore-model</artifactId>
-			<version>4.7.2-SNAPSHOT</version>
+			<version>4.7.3-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>core-util</artifactId>
-			<version>4.7.2-SNAPSHOT</version>
+			<version>4.7.3-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
@@ -139,18 +139,6 @@
 		</resources>
 		<plugins>
 			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<version>2.7.9</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>repackage</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.8.5</version>
@@ -199,6 +187,32 @@
 								<goals>
 									<goal>integration-test</goal>
 									<goal>verify</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<!-- skip the creation of the fat jar during releases -->
+			<id>executable-jar</id>
+			<activation>
+				<property>
+					<name>!skip-executable-jar</name>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.springframework.boot</groupId>
+						<artifactId>spring-boot-maven-plugin</artifactId>
+						<version>2.7.9</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>repackage</goal>
 								</goals>
 							</execution>
 						</executions>

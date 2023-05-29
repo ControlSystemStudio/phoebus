@@ -166,10 +166,12 @@ public class MacroHierarchyUnitTest
         // When macros are expanded as the runtime starts..
         DisplayMacroExpander.expandDisplayMacros(model);
 
-        // ..you get $(P)="display"
+        // ..you get $(P)="group", since 'subgroup' defines 'P' as
+        // '$(SAVE)', and 'group' defines 'SAVE' as '$(P)' and
+        // 'P' as 'group'.
         macros = label.getEffectiveMacros();
         System.out.println(macros);
-        assertThat(macros.getValue("P"), equalTo("display"));
-        assertThat(MacroHandler.replace(macros, "$(P)"), equalTo("display"));
+        assertThat(macros.getValue("P"), equalTo("group"));
+        assertThat(MacroHandler.replace(macros, "$(P)"), equalTo("group"));
     }
 }
