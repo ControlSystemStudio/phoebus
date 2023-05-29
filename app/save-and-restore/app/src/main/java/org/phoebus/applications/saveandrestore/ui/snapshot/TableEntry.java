@@ -367,7 +367,7 @@ public class TableEntry {
             severity.set(((VEnumArray) val).getAlarm().getSeverity().toString());
             timestamp.set(((VEnumArray) val).getTime().getTimestamp());
         } else if(val instanceof VDisconnectedData){
-            severity.set("---");
+            severity.set(null);
             status.set("---");
             timestamp.set(null);
         }

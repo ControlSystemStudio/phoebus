@@ -97,10 +97,8 @@ class SnapshotTable extends TableView<TableEntry> {
             super.updateItem(item, empty);
             if (empty) {
                 setText(null);
-                setStyle("");
             } else if (item == null) {
-                setText(null);
-                setStyle("");
+                setText("---");
             } else {
                 setText(TimestampFormats.SECONDS_FORMAT.format((item)));
             }
@@ -534,9 +532,13 @@ class SnapshotTable extends TableView<TableEntry> {
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
 
-                if (empty || item == null) {
+                if (empty) {
                     setStyle("-fx-text-fill: black;  -fx-background-color: transparent");
                     setText(null);
+                }
+                else if(item == null){
+                    setStyle("-fx-text-fill: black;  -fx-background-color: transparent");
+                    setText("---");
                 } else {
                     setText(item);
                     AlarmSeverity alarmSeverity = AlarmSeverity.valueOf(item);
