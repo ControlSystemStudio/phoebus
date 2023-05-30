@@ -408,8 +408,6 @@ public class DisplayRuntimeInstance implements AppInstance
         final DisplayInfo old_info = display_info.orElse(null);
         final DisplayInfo info = DisplayInfo.forModel(model);
 
-        // TODO Check this
-
         // A display might be loaded without macros,
         // but the DisplayModel may then have macros configured in the display itself.
         //
