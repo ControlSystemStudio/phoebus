@@ -754,6 +754,13 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             node.setName(result.get());
             try {
                 saveAndRestoreService.updateNode(node);
+                // Since a changed node name may push the node to a different location in the tree view,
+                // we need to locate it to keep it selected. The tree view will otherwise "select" the node
+                // at the previous position of the renamed node. This is standard JavaFX TreeView behavior
+                // where TreeItems are "recycled", and updated by the cell renderer.
+                Stack<Node> copiedStack = new Stack<>();
+                DirectoryUtilities.CreateLocationStringAndNodeStack(node, false).getValue().forEach(copiedStack::push);
+                locateNode(copiedStack);
             } catch (Exception e) {
                 Alert alert = new Alert(AlertType.ERROR);
                 alert.setTitle(Messages.errorActionFailed);

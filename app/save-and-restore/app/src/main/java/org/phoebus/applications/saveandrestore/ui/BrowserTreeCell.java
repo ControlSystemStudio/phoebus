@@ -93,7 +93,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
             Node node = getItem();
             // Drag-n-drop not supported for root node
             if (node != null &&
-                    !node.getNodeType().equals(NodeType.FOLDER)) {
+                    !node.getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)) {
                 final List<Node> nodes = new ArrayList<>();
 
                 for (TreeItem<Node> sel : getTreeView().getSelectionModel().getSelectedItems()) {
