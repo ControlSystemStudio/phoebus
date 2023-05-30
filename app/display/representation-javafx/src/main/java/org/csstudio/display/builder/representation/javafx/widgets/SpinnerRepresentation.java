@@ -95,10 +95,12 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
                         setActive(false);
                     }
                     break;
-                case ENTER:
+                case ENTER: // ENTER event is triggered twice by native JavaFX Spinner
                     // Submit value, leave active state
-                    submit();
-                    setActive(false);
+                    if(active){
+                        submit();
+                        setActive(false);
+                    }
                     break;
                 //incrementing by keyboard
                 case UP:
