@@ -88,7 +88,7 @@ public class DisplayModel extends Widget
      *  this user data element of the model points to the embedding widget.
      */
     public static final String USER_DATA_EMBEDDING_WIDGET = "_embedding_widget";
-    
+
 
     /** Custom configurator to read legacy *.opi files */
     private static class CustomConfigurator extends WidgetConfigurator
@@ -293,11 +293,11 @@ public class DisplayModel extends Widget
         throw new IllegalStateException("Display cannot have parent widget " + parent);
     }
 
-    /** Expand macros for this display
-     *  @param input Input from preferences and launcher info
+    /** Expand macros for this display's widget hierarchy
+     *  @param base Base macros from preferences, launcher, parent container
      */
     @Override
-    public void expandMacros(final Macros input)
+    public void expandMacros(final Macros base)
     {
         // TODO Do the embedder handling in embedded widget's expandMacros?
 //        final Widget embedder = getUserData(DisplayModel.USER_DATA_EMBEDDING_WIDGET);
@@ -305,7 +305,7 @@ public class DisplayModel extends Widget
 //            propMacros().getValue().expand(Arrays.append(input, embedder.getEffectiveMacros()));
 
         // Expand the display macros
-        propMacros().getValue().expand(input);
+        propMacros().getValue().expand(base);
 
         // Recurse into child widgets
         for (Widget child: getChildren())

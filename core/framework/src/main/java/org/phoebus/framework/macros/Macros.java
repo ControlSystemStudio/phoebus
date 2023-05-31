@@ -237,15 +237,19 @@ public class Macros implements MacroValueProvider
     }
 
     /** Expand macro specs into values
-     *  @param input Base values (already expanded) to import before expanding specs
+     *
+     *  <p>The macro specifications remain unchanged,
+     *  while the values are set to the input's values,
+     *  then adding the expanded specs.
+     *  @param base Base values (already expanded) to import before expanding specs
      */
-    public void expand(final Macros input)
+    public void expand(final Macros base)
     {
         values.clear();
 
         // Add all base values (already expanded)
-        if (input != null)
-            values.putAll(input.values);
+        if (base != null)
+            values.putAll(base.values);
 
         // Add expanded specs
         for (AbstractMap.SimpleImmutableEntry<String, String> spec : specs)
