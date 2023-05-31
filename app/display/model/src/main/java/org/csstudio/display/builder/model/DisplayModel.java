@@ -299,11 +299,6 @@ public class DisplayModel extends Widget
     @Override
     public void expandMacros(final Macros base)
     {
-        // TODO Do the embedder handling in embedded widget's expandMacros?
-//        final Widget embedder = getUserData(DisplayModel.USER_DATA_EMBEDDING_WIDGET);
-//        if (embedder != null)
-//            propMacros().getValue().expand(Arrays.append(input, embedder.getEffectiveMacros()));
-
         // Expand the display macros
         propMacros().getValue().expand(base);
 

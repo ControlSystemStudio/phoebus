@@ -212,9 +212,6 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
             {   // Load new model (potentially slow)
                 final DisplayModel new_model = loadDisplayModel(model_widget, handle);
 
-                // Expand macros down the new model's widget hierarchy
-                new_model.expandMacros(model_widget.getEffectiveMacros());
-
                 // Atomically update the 'active' model
                 final DisplayModel old_model = active_content_model.getAndSet(new_model);
                 if (old_model != null)
