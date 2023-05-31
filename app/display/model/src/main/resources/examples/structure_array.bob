@@ -21,7 +21,7 @@
 The Array Widget is configured with the name of an array PV
 and one child widget.
 At runtime, it creates one copy of the child widget for each array element.
-The child widgets this display the array elements, and control widgets
+The child widgets thus display the array elements, and control widgets
 can also write to their respective array element.</text>
   </widget>
   <widget type="array" version="2.0.0">
