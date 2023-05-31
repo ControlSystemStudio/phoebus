@@ -134,7 +134,7 @@ public class DisplayInfo
         // (which are sorted) to assert we identify a display with macros
         // no matter in which order they were spec'ed
         this.macros = new Macros();
-        macros.forEachSpec(this.macros::add);
+        macros.forEach(this.macros::add);
         this.resolve = resolve;
     }
 
