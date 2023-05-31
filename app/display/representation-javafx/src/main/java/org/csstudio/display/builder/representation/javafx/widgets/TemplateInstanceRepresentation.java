@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2021-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -127,7 +127,6 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
         model_widget.propFile().addPropertyListener(fileChangedListener);
 
         // Initial updates
-        instancesChanged(model_widget.propInstances(), null, model_widget.propInstances().getValue());
         fileChanged(null, null, null);
     }
 
@@ -351,6 +350,7 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
                 {
                     final DisplayModel inst = ModelReader.parseXML(template_xml);
                     final GroupWidget wrapper = new GroupWidget();
+                    wrapper.propName().setValue("Instance " + i);
                     wrapper.propStyle().setValue(Style.NONE);
                     wrapper.propX().setValue(x);
                     wrapper.propY().setValue(y);
@@ -384,6 +384,9 @@ public class TemplateInstanceRepresentation extends RegionBaseRepresentation<Pan
                         }
                 }
             }
+
+            // Expand macros, which includes the 'groups' created for the 'instances'
+            new_model.expandMacros(model_widget.getEffectiveMacros());
 
             // Stop (old) runtime
             // TemplateInstanceRuntime tracks this property to start/stop the embedded model's runtime
