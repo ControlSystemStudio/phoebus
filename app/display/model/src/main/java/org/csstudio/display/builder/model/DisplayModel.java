@@ -283,7 +283,6 @@ public class DisplayModel extends Widget
      */
     public List<Widget> getChildren()
     {
-        // TODO Should wrap in Collections.unmodifiableList(...) ?
         return children.getValue();
     }
 

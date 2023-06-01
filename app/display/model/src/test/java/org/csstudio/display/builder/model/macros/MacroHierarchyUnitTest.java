@@ -27,8 +27,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 @SuppressWarnings("nls")
 public class MacroHierarchyUnitTest
 {
-    /** Test Macro Hierarchy
-     */
+    /** Test Macro Hierarchy */
     @Test
     public void testMacroHierarchy()
     {
@@ -75,8 +74,7 @@ public class MacroHierarchyUnitTest
         assertThat(macros.getValue("TITLE"), equalTo("Display Title"));
     }
 
-    /** Test access to widget properties, Java properties and environment
-     */
+    /** Test access to widget properties, Java properties and environment */
     @Test
     public void testPropertiesAndEnvironment()
     {
