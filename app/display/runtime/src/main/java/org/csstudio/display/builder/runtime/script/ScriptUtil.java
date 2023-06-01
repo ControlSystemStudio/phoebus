@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2016-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -132,15 +132,10 @@ public class ScriptUtil
             the_target = OpenDisplayActionInfo.Target.TAB;
         }
 
-        final Macros the_macros;
-        if (macros == null  ||  macros.isEmpty())
-            the_macros = null;
-        else
-        {
-            the_macros = new Macros();
+        final Macros the_macros = new Macros();
+        if (macros != null)
             for (String name : macros.keySet())
                 the_macros.add(name, macros.get(name));
-        }
 
         final OpenDisplayActionInfo open = new OpenDisplayActionInfo("Open from script", file, the_macros, the_target, pane);
         ActionUtil.handleAction(widget, open);
