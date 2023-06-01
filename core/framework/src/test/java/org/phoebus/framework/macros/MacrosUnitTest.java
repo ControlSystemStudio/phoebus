@@ -280,7 +280,6 @@ public class MacrosUnitTest
         prefs.add("P1", "p1");
         prefs.add("P2", "p2");
 
-
         // Macro specs provided by the launcher
         final Macros launcher = new Macros();
         launcher.add("L", "launcher");
@@ -295,8 +294,9 @@ public class MacrosUnitTest
         group.add("T", "group");
 
         // Hierarchically expand specs
-        display.expand(prefs, launcher);
-        group.expand(display);
+        launcher.expand(prefs);
+        display .expand(launcher);
+        group   .expand(display);
         System.out.println("Group specs : " + group);
         System.out.println("Group values: " + group.toExpandedString());
 
