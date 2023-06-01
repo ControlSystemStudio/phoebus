@@ -118,7 +118,6 @@
     <classpathentry exported="true" kind="lib" path="target/lib/jsonassert-1.5.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jsr305-3.0.2.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/jsr311-api-1.1.1.jar"/>
-    <classpathentry exported="true" kind="lib" path="target/lib/junit-3.8.1.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/junit-jupiter-5.8.2.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/junit-jupiter-api-5.8.2.jar"/>
     <classpathentry exported="true" kind="lib" path="target/lib/junit-jupiter-engine-5.8.2.jar"/>
