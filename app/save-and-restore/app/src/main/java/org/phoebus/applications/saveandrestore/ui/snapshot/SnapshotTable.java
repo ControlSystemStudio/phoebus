@@ -512,71 +512,22 @@ class SnapshotTable extends TableView<TableEntry> {
 
         width = measureStringWidth("MM:MM:MM.MMM MMM MM M", null);
 
-        TableColumn<TableEntry, ?> timestampBaseColumn = new TooltipTableColumn<>(
-                "Timestamp", "", -1);
+        /********************************************************************************************************/
 
-        TableColumn<TableEntry, Instant> timestampLiveColumn = new TooltipTableColumn<>("Live",
-                Messages.toolTipTableColumnTimestamp, width, width, true);
-        timestampLiveColumn.setCellValueFactory(new PropertyValueFactory<>("liveTimestamp"));
-        timestampLiveColumn.setCellFactory(c -> new TimestampTableCell());
-        timestampLiveColumn.getStyleClass().add("timestamp-column");
-        timestampLiveColumn.setPrefWidth(width);
+        TableColumn<TableEntry, ?> storedDataTableColumn = new TooltipTableColumn<>("Stored", "Stored Data", -1);
 
-        TableColumn<TableEntry, Instant> timestampStoredColumn = new TooltipTableColumn<>("Stored",
+        TableColumn<TableEntry, Instant> timestampStoredColumn = new TooltipTableColumn<>("Time",
                 Messages.toolTipTableColumnTimestamp, width, width, true);
         timestampStoredColumn.setCellValueFactory(new PropertyValueFactory<>("storedTimestamp"));
         timestampStoredColumn.setCellFactory(c -> new TimestampTableCell());
         timestampStoredColumn.getStyleClass().add("timestamp-column");
         timestampStoredColumn.setPrefWidth(width);
 
-        timestampBaseColumn.getColumns().addAll(timestampLiveColumn, timestampStoredColumn);
-
-        snapshotTableEntries.add(timestampBaseColumn);
-
-        TableColumn<TableEntry, ?> statusBaseColumn = new TooltipTableColumn<>(
-                "Status", "", -1);
-
-        TableColumn<TableEntry, String> statusLiveColumn = new TooltipTableColumn<>("Live",
-                Messages.toolTipTableColumnAlarmStatus, 100, 100, true);
-        statusLiveColumn.setCellValueFactory(new PropertyValueFactory<>("liveStatus"));
-
-
-        TableColumn<TableEntry, String> statusStoredColumn = new TooltipTableColumn<>("Stored",
+        TableColumn<TableEntry, String> statusStoredColumn = new TooltipTableColumn<>("Status",
                 Messages.toolTipTableColumnAlarmStatus, 100, 100, true);
         statusStoredColumn.setCellValueFactory(new PropertyValueFactory<>("storedStatus"));
-        statusBaseColumn.getColumns().addAll(statusLiveColumn, statusStoredColumn);
-        snapshotTableEntries.add(statusBaseColumn);
 
-        TableColumn<TableEntry, ?> severityBaseColumn = new TooltipTableColumn<>(
-                "Severity", "", -1);
-
-        TableColumn<TableEntry, String> severityLiveColumn = new TooltipTableColumn<>("Live",
-                Messages.toolTipTableColumnAlarmSeverity, 100, 100, true);
-        severityLiveColumn.setCellValueFactory(new PropertyValueFactory<>("liveSeverity"));
-        severityLiveColumn.setCellFactory(alarmLogTableTypeStringTableColumn -> new TableCell<>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-
-                if (empty) {
-                    setStyle("-fx-text-fill: black;  -fx-background-color: transparent");
-                    setText(null);
-                }
-                else if(item == null){
-                    setStyle("-fx-text-fill: black;  -fx-background-color: transparent");
-                    setText("---");
-                } else {
-                    setText(item);
-                    AlarmSeverity alarmSeverity = AlarmSeverity.valueOf(item);
-                    setStyle("-fx-alignment: center; -fx-border-color: transparent; -fx-border-width: 2 0 2 0; -fx-background-insets: 2 0 2 0; -fx-text-fill: " +
-                            JFXUtil.webRGB(SeverityColors.getTextColor(alarmSeverity)) + ";  -fx-background-color: " + JFXUtil.webRGB(SeverityColors.getBackgroundColor(alarmSeverity)));
-                }
-            }
-
-
-        });
-
-        TableColumn<TableEntry, String> severityStoredColumn = new TooltipTableColumn<>("Stored",
+        TableColumn<TableEntry, String> severityStoredColumn = new TooltipTableColumn<>("Severity",
                 Messages.toolTipTableColumnAlarmSeverity, 100, 100, true);
         severityStoredColumn.setCellValueFactory(new PropertyValueFactory<>("storedSeverity"));
         severityStoredColumn.setCellFactory(alarmLogTableTypeStringTableColumn -> new TableCell<>() {
@@ -598,15 +549,7 @@ class SnapshotTable extends TableView<TableEntry> {
                             JFXUtil.webRGB(SeverityColors.getTextColor(alarmSeverity)) + ";  -fx-background-color: " + JFXUtil.webRGB(SeverityColors.getBackgroundColor(alarmSeverity)));
                 }
             }
-
-
         });
-
-        severityBaseColumn.getColumns().addAll(severityLiveColumn, severityStoredColumn);
-        snapshotTableEntries.add(severityBaseColumn);
-
-        TableColumn<TableEntry, ?> storedValueBaseColumn = new TooltipTableColumn<>(
-                "Stored Setpoint", "", -1);
 
         TableColumn<TableEntry, VType> storedValueColumn = new TooltipTableColumn<>(
                 "Stored Setpoint",
@@ -622,8 +565,10 @@ class SnapshotTable extends TableView<TableEntry> {
             controller.updateLoadedSnapshot(0, e.getRowValue(), updatedValue);
         });
 
-        storedValueBaseColumn.getColumns().add(storedValueColumn);
-        // show deltas in separate column
+        storedDataTableColumn.getColumns().addAll(timestampStoredColumn, statusStoredColumn, severityStoredColumn, storedValueColumn);
+
+        snapshotTableEntries.add(storedDataTableColumn);
+
         TableColumn<TableEntry, VTypePair> delta = new TooltipTableColumn<>(
                 Utilities.DELTA_CHAR + " Live Setpoint",
                 "", 100);
@@ -638,7 +583,6 @@ class SnapshotTable extends TableView<TableEntry> {
         });
         delta.setEditable(false);
 
-
         delta.setComparator((pair1, pair2) -> {
             Utilities.VTypeComparison vtc1 = Utilities.valueToCompareString(pair1.value, pair1.base, pair1.threshold);
             Utilities.VTypeComparison vtc2 = Utilities.valueToCompareString(pair2.value, pair2.base, pair2.threshold);
@@ -646,9 +590,106 @@ class SnapshotTable extends TableView<TableEntry> {
             return Double.compare(vtc1.getAbsoluteDelta(), vtc2.getAbsoluteDelta());
         });
 
-        storedValueBaseColumn.getColumns().add(delta);
+        snapshotTableEntries.add(delta);
 
-        snapshotTableEntries.add(storedValueBaseColumn);
+
+        TableColumn<TableEntry, ?> liveDataTableColumn = new TooltipTableColumn<>("Live", "Live Data", -1);
+
+        TableColumn<TableEntry, Instant> timestampLiveColumn = new TooltipTableColumn<>("Time",
+                Messages.toolTipTableColumnTimestamp, width, width, true);
+        timestampLiveColumn.setCellValueFactory(new PropertyValueFactory<>("liveTimestamp"));
+        timestampLiveColumn.setCellFactory(c -> new TimestampTableCell());
+        timestampLiveColumn.getStyleClass().add("timestamp-column");
+        timestampLiveColumn.setPrefWidth(width);
+
+        TableColumn<TableEntry, String> statusLiveColumn = new TooltipTableColumn<>("Status",
+                Messages.toolTipTableColumnAlarmStatus, 100, 100, true);
+        statusLiveColumn.setCellValueFactory(new PropertyValueFactory<>("liveStatus"));
+
+        TableColumn<TableEntry, String> severityLiveColumn = new TooltipTableColumn<>("Severity",
+                Messages.toolTipTableColumnAlarmSeverity, 100, 100, true);
+        severityLiveColumn.setCellValueFactory(new PropertyValueFactory<>("liveSeverity"));
+        severityLiveColumn.setCellFactory(alarmLogTableTypeStringTableColumn -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (empty) {
+                    setStyle("-fx-text-fill: black;  -fx-background-color: transparent");
+                    setText(null);
+                }
+                else if(item == null){
+                    setStyle("-fx-text-fill: black;  -fx-background-color: transparent");
+                    setText("---");
+                } else {
+                    setText(item);
+                    AlarmSeverity alarmSeverity = AlarmSeverity.valueOf(item);
+                    setStyle("-fx-alignment: center; -fx-border-color: transparent; -fx-border-width: 2 0 2 0; -fx-background-insets: 2 0 2 0; -fx-text-fill: " +
+                            JFXUtil.webRGB(SeverityColors.getTextColor(alarmSeverity)) + ";  -fx-background-color: " + JFXUtil.webRGB(SeverityColors.getBackgroundColor(alarmSeverity)));
+                }
+            }
+        });
+
+        TableColumn<TableEntry, VType> liveValueColumn = new TooltipTableColumn<>("Live Setpoint", "Current PV Value",
+                100);
+        liveValueColumn.setCellValueFactory(new PropertyValueFactory<>("liveValue"));
+        liveValueColumn.setCellFactory(e -> new VTypeCellEditor<>());
+        liveValueColumn.setEditable(false);
+
+
+        liveDataTableColumn.getColumns().addAll(timestampLiveColumn, statusLiveColumn, severityLiveColumn, liveValueColumn);
+
+        snapshotTableEntries.add(liveDataTableColumn);
+
+        //getColumns().addAll(storedDataTableColumn, delta, liveDataTableColumn);
+
+        //snapshotTableEntries.add(storedDataTableColumn);
+        //snapshotTableEntries.add(delta);
+        //snapshotTableEntries.add(liveDataTableColumn);
+
+        /********************************************************************************************************/
+
+        //TableColumn<TableEntry, ?> timestampBaseColumn = new TooltipTableColumn<>(
+        //        "Timestamp", "", -1);
+
+
+
+
+
+        //timestampBaseColumn.getColumns().addAll(timestampLiveColumn, timestampStoredColumn);
+
+        //snapshotTableEntries.add(timestampBaseColumn);
+
+        //TableColumn<TableEntry, ?> statusBaseColumn = new TooltipTableColumn<>(
+        //        "Status", "", -1);
+
+
+
+
+
+        //snapshotTableEntries.add(statusBaseColumn);
+
+        //TableColumn<TableEntry, ?> severityBaseColumn = new TooltipTableColumn<>(
+        //        "Severity", "", -1);
+
+
+
+
+        //severityBaseColumn.getColumns().addAll(severityLiveColumn, severityStoredColumn);
+        //snapshotTableEntries.add(severityBaseColumn);
+
+        //TableColumn<TableEntry, ?> storedValueBaseColumn = new TooltipTableColumn<>(
+        //        "Stored Setpoint", "", -1);
+
+
+
+        //storedValueBaseColumn.getColumns().add(storedValueColumn);
+        // show deltas in separate column
+
+
+        //storedValueBaseColumn.getColumns().add(delta);
+
+        //snapshotTableEntries.add(storedValueBaseColumn);
 
         if (showStoredReadback) {
             TableColumn<TableEntry, VType> storedReadbackColumn = new TooltipTableColumn<>(
@@ -659,12 +700,6 @@ class SnapshotTable extends TableView<TableEntry> {
             snapshotTableEntries.add(storedReadbackColumn);
         }
 
-        TableColumn<TableEntry, VType> liveValueColumn = new TooltipTableColumn<>("Live Setpoint", "Current PV Value",
-                100);
-        liveValueColumn.setCellValueFactory(new PropertyValueFactory<>("liveValue"));
-        liveValueColumn.setCellFactory(e -> new VTypeCellEditor<>());
-        liveValueColumn.setEditable(false);
-        snapshotTableEntries.add(liveValueColumn);
 
 
         if (showLiveReadback) {
@@ -739,6 +774,7 @@ class SnapshotTable extends TableView<TableEntry> {
      */
     private void updateTableColumnTitles() {
         // add the * to the title of the column if the snapshot is not saved
+        /*
         if (uiSnapshots.size() == 1) {
             ((TooltipTableColumn<?>) getColumns().get(6)).setSaved(true);
         } else {
@@ -751,6 +787,8 @@ class SnapshotTable extends TableView<TableEntry> {
                 ((TooltipTableColumn<?>) tableColumn).setSaved(true);
             }
         }
+
+         */
     }
 
     /**
