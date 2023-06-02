@@ -71,6 +71,7 @@ import java.util.stream.Collectors;
 class SnapshotTable extends TableView<TableEntry> {
 
     protected static boolean resizePolicyNotInitialized = true;
+
     protected static PrivilegedAction<Object> resizePolicyAction = () -> {
         try {
             // Java FX bugfix: the table columns are not properly resized for the first table
@@ -86,307 +87,7 @@ class SnapshotTable extends TableView<TableEntry> {
         return null;
     };
 
-    /**
-     * <code>TimestampTableCell</code> is a table cell for rendering the {@link Instant} objects in the table.
-     *
-     * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
-     */
-    private static class TimestampTableCell extends TableCell<TableEntry, Instant> {
-        @Override
-        protected void updateItem(Instant item, boolean empty) {
-            super.updateItem(item, empty);
-            if (empty) {
-                setText(null);
-            } else if (item == null) {
-                setText("---");
-            } else {
-                setText(TimestampFormats.SECONDS_FORMAT.format((item)));
-            }
-        }
-    }
 
-    /**
-     * <code>VTypeCellEditor</code> is an editor type for {@link org.epics.vtype.VType} or {@link VTypePair}, which allows editing the
-     * value as a string.
-     *
-     * @param <T> {@link org.epics.vtype.VType} or {@link VTypePair}
-     * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
-     */
-    protected static class VTypeCellEditor<T> extends MultitypeTableCell<TableEntry, T> {
-        private static final Image DISCONNECTED_IMAGE = new Image(
-                SnapshotController.class.getResourceAsStream("/icons/showerr_tsk.png"));
-        private final Tooltip tooltip = new Tooltip();
-
-        VTypeCellEditor() {
-
-            setConverter(new StringConverter<>() {
-                @Override
-                public String toString(T item) {
-                    if (item == null) {
-                        return "";
-                    } else if (item instanceof VNumber) {
-                        return ((VNumber) item).getValue().toString();
-                    } else if (item instanceof VNumberArray) {
-                        return ((VNumberArray) item).getData().toString();
-                    } else if (item instanceof VEnum) {
-                        return ((VEnum) item).getValue();
-                    } else if (item instanceof VTypePair) {
-                        VType value = ((VTypePair) item).value;
-                        if (value instanceof VNumber) {
-                            return ((VNumber) value).getValue().toString();
-                        } else if (value instanceof VNumberArray) {
-                            return ((VNumberArray) value).getData().toString();
-                        } else if (value instanceof VEnum) {
-                            return ((VEnum) value).getValue();
-                        } else {
-                            return value.toString();
-                        }
-                    } else {
-                        return item.toString();
-                    }
-                }
-
-                @SuppressWarnings("unchecked")
-                @Override
-                public T fromString(String string) {
-                    T item = getItem();
-                    try {
-                        if (string == null) {
-                            return item;
-                        } else if (item instanceof VType) {
-                            return (T) Utilities.valueFromString(string, (VType) item);
-                        } else if (item instanceof VTypePair) {
-                            VTypePair t = (VTypePair) item;
-                            if (t.value instanceof VDisconnectedData) {
-                                return (T) new VTypePair(t.base, Utilities.valueFromString(string, t.base),
-                                        t.threshold);
-                            } else {
-                                return (T) new VTypePair(t.base, Utilities.valueFromString(string, t.value),
-                                        t.threshold);
-                            }
-                        } else {
-                            return item;
-                        }
-                    } catch (IllegalArgumentException e) {
-                        return item;
-                    }
-                }
-            });
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public boolean isTextFieldType() {
-            T item = getItem();
-            if (item instanceof VEnum) {
-                getItems().clear();
-
-                VEnum value = (VEnum) item;
-                List<String> labels = value.getDisplay().getChoices();
-                List<T> values = new ArrayList<>(labels.size());
-                for (int i = 0; i < labels.size(); i++) {
-                    values.add((T) VEnum.of(i, EnumDisplay.of(labels), Alarm.none(), Time.now()));
-                }
-                setItems(values);
-
-                return false;
-            } else if (item instanceof VTypePair) {
-                VTypePair v = ((VTypePair) item);
-                VType type = v.value;
-                if (type instanceof VEnum) {
-                    getItems().clear();
-
-                    VEnum value = (VEnum) type;
-                    List<String> labels = value.getDisplay().getChoices();
-                    List<T> values = new ArrayList<>(labels.size());
-                    for (int i = 0; i < labels.size(); i++) {
-                        values.add(
-                                (T) new VTypePair(v.base, VEnum.of(i, EnumDisplay.of(labels), Alarm.none(), Time.now()), v.threshold));
-                    }
-                    setItems(values);
-
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        @Override
-        public void cancelEdit() {
-            super.cancelEdit();
-            updateItem(getItem(), isEmpty());
-        }
-
-        @Override
-        public void updateItem(T item, boolean empty) {
-            super.updateItem(item, empty);
-            getStyleClass().remove("diff-cell");
-            if (item == null || empty) {
-                setText("");
-                setTooltip(null);
-                setGraphic(null);
-            } else {
-                if (item == VDisconnectedData.INSTANCE) {
-                    setText(VDisconnectedData.DISCONNECTED);
-                    setGraphic(new ImageView(DISCONNECTED_IMAGE));
-                    tooltip.setText("No Value Available");
-                    setTooltip(tooltip);
-                    getStyleClass().add("diff-cell");
-                } else if (item == VNoData.INSTANCE) {
-                    setText(item.toString());
-                    tooltip.setText("No Value Available");
-                    setTooltip(tooltip);
-                } else if (item instanceof VType) {
-                    setText(Utilities.valueToString((VType) item));
-                    setGraphic(null);
-                    tooltip.setText(item.toString());
-                    setTooltip(tooltip);
-                } else if (item instanceof VTypePair) {
-                    VTypePair pair = (VTypePair) item;
-                    if (pair.value == VDisconnectedData.INSTANCE) {
-                        setText(VDisconnectedData.DISCONNECTED);
-                        if (pair.base != VDisconnectedData.INSTANCE) {
-                            getStyleClass().add("diff-cell");
-                        }
-                        setGraphic(new ImageView(DISCONNECTED_IMAGE));
-                    } else if (pair.value == VNoData.INSTANCE) {
-                        setText(pair.value.toString());
-                    } else {
-                        setText(Utilities.valueToString(pair.value));
-                    }
-
-                    tooltip.setText(item.toString());
-                    setTooltip(tooltip);
-                }
-            }
-        }
-    }
-
-    /**
-     * A dedicated CellEditor for displaying delta only.
-     * TODO can be simplified further
-     *
-     * @param <T>
-     * @author Kunal Shroff
-     */
-    protected static class VDeltaCellEditor<T> extends VTypeCellEditor<T> {
-
-        private static final Image WARNING_IMAGE = new Image(
-                SnapshotController.class.getResourceAsStream("/icons/hprio_tsk.png"));
-        private static final Image DISCONNECTED_IMAGE = new Image(
-                SnapshotController.class.getResourceAsStream("/icons/showerr_tsk.png"));
-        private final Tooltip tooltip = new Tooltip();
-
-        private boolean showDeltaPercentage = false;
-
-        protected void setShowDeltaPercentage() {
-            showDeltaPercentage = true;
-        }
-
-        VDeltaCellEditor() {
-            super();
-        }
-
-        @Override
-        public void updateItem(T item, boolean empty) {
-            super.updateItem(item, empty);
-            getStyleClass().remove("diff-cell");
-            if (item == null || empty) {
-                setText("");
-                setTooltip(null);
-                setGraphic(null);
-            } else {
-                if (item == VDisconnectedData.INSTANCE) {
-                    setText(VDisconnectedData.DISCONNECTED);
-                    setGraphic(new ImageView(DISCONNECTED_IMAGE));
-                    tooltip.setText("No Value Available");
-                    setTooltip(tooltip);
-                    getStyleClass().add("diff-cell");
-                } else if (item == VNoData.INSTANCE) {
-                    setText(item.toString());
-                    tooltip.setText("No Value Available");
-                    setTooltip(tooltip);
-                } else if (item instanceof VTypePair) {
-                    VTypePair pair = (VTypePair) item;
-                    if (pair.value == VDisconnectedData.INSTANCE) {
-                        setText(VDisconnectedData.DISCONNECTED);
-                        if (pair.base != VDisconnectedData.INSTANCE) {
-                            getStyleClass().add("diff-cell");
-                        }
-                        setGraphic(new ImageView(DISCONNECTED_IMAGE));
-                    } else if (pair.value == VNoData.INSTANCE) {
-                        setText(pair.value.toString());
-                    } else {
-                        Utilities.VTypeComparison vtc = Utilities.deltaValueToString(pair.value, pair.base, pair.threshold);
-                        String percentage = Utilities.deltaValueToPercentage(pair.value, pair.base);
-                        if (!percentage.isEmpty() && showDeltaPercentage) {
-                            Formatter formatter = new Formatter();
-                            setText(formatter.format("%g", Double.parseDouble(vtc.getString())) + " (" + percentage + ")");
-                        } else {
-                            setText(vtc.getString());
-                        }
-                        if (!vtc.isWithinThreshold()) {
-                            getStyleClass().add("diff-cell");
-                            setGraphic(new ImageView(WARNING_IMAGE));
-                        }
-                    }
-
-                    tooltip.setText(item.toString());
-                    setTooltip(tooltip);
-                }
-            }
-        }
-    }
-
-    /**
-     * <code>TooltipTableColumn</code> is the common table column implementation, which can also provide the tooltip.
-     *
-     * @param <T> the type of the values displayed by this column
-     * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
-     */
-    protected static class TooltipTableColumn<T> extends TableColumn<TableEntry, T> {
-        private String text;
-        private Label label;
-
-        TooltipTableColumn(String text, String tooltip, int minWidth) {
-            setup(text, tooltip, minWidth, -1, true);
-        }
-
-        TooltipTableColumn(String text, String tooltip, int minWidth, int prefWidth, boolean resizable) {
-            setup(text, tooltip, minWidth, prefWidth, resizable);
-        }
-
-        private void setup(String text, String tooltip, int minWidth, int prefWidth, boolean resizable) {
-            label = new Label(text);
-            label.setTooltip(new Tooltip(tooltip));
-            label.setTextAlignment(TextAlignment.CENTER);
-            setGraphic(label);
-
-            if (minWidth != -1) {
-                setMinWidth(minWidth);
-            }
-            if (prefWidth != -1) {
-                setPrefWidth(prefWidth);
-            }
-            setResizable(resizable);
-
-            this.text = text;
-        }
-
-        void setSaved(boolean saved) {
-            if (saved) {
-                label.setText(text);
-            } else {
-                String t = this.text;
-                if (text.indexOf('\n') > 0) {
-                    t = "*" + t.replaceFirst("\n", "*\n");
-                } else {
-                    t = "*" + t + "*";
-                }
-                label.setText(t);
-            }
-        }
-    }
 
     private final List<Snapshot> uiSnapshots = new ArrayList<>();
     private boolean showReadbacks;
@@ -484,7 +185,7 @@ class SnapshotTable extends TableView<TableEntry> {
     private void createTableForSingleSnapshot(boolean showLiveReadback, boolean showStoredReadback) {
         List<TableColumn<TableEntry, ?>> snapshotTableEntries = new ArrayList<>(12);
 
-        TableColumn<TableEntry, Boolean> selectedColumn = new SelectionTableColumn();
+        TableColumn<TableEntry, Boolean> selectedColumn = new SelectionTableColumn(this);
         snapshotTableEntries.add(selectedColumn);
 
         int width = measureStringWidth("000", Font.font(20));
@@ -641,55 +342,9 @@ class SnapshotTable extends TableView<TableEntry> {
 
         snapshotTableEntries.add(liveDataTableColumn);
 
-        //getColumns().addAll(storedDataTableColumn, delta, liveDataTableColumn);
-
-        //snapshotTableEntries.add(storedDataTableColumn);
-        //snapshotTableEntries.add(delta);
-        //snapshotTableEntries.add(liveDataTableColumn);
 
         /********************************************************************************************************/
 
-        //TableColumn<TableEntry, ?> timestampBaseColumn = new TooltipTableColumn<>(
-        //        "Timestamp", "", -1);
-
-
-
-
-
-        //timestampBaseColumn.getColumns().addAll(timestampLiveColumn, timestampStoredColumn);
-
-        //snapshotTableEntries.add(timestampBaseColumn);
-
-        //TableColumn<TableEntry, ?> statusBaseColumn = new TooltipTableColumn<>(
-        //        "Status", "", -1);
-
-
-
-
-
-        //snapshotTableEntries.add(statusBaseColumn);
-
-        //TableColumn<TableEntry, ?> severityBaseColumn = new TooltipTableColumn<>(
-        //        "Severity", "", -1);
-
-
-
-
-        //severityBaseColumn.getColumns().addAll(severityLiveColumn, severityStoredColumn);
-        //snapshotTableEntries.add(severityBaseColumn);
-
-        //TableColumn<TableEntry, ?> storedValueBaseColumn = new TooltipTableColumn<>(
-        //        "Stored Setpoint", "", -1);
-
-
-
-        //storedValueBaseColumn.getColumns().add(storedValueColumn);
-        // show deltas in separate column
-
-
-        //storedValueBaseColumn.getColumns().add(delta);
-
-        //snapshotTableEntries.add(storedValueBaseColumn);
 
         if (showStoredReadback) {
             TableColumn<TableEntry, VType> storedReadbackColumn = new TooltipTableColumn<>(
@@ -815,65 +470,9 @@ class SnapshotTable extends TableView<TableEntry> {
         }
     }
 
-    /**
-     * <code>SelectionTableColumn</code> is the table column for the first column in the table, which displays
-     * a checkbox, whether the PV should be selected or not.
-     *
-     * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
-     */
-    private class SelectionTableColumn extends TooltipTableColumn<Boolean> {
-        SelectionTableColumn() {
-            super("", "Include this PV when restoring values", 30, 30, false);
-            setCellValueFactory(new PropertyValueFactory<>("selected"));
-            //for those entries, which have a read-only property, disable the checkbox
-            setCellFactory(column -> {
-                TableCell<TableEntry, Boolean> cell = new CheckBoxTableCell<>(null, null);
-                // initialize the checkbox
-                UpdateCheckboxState(cell);
-                cell.itemProperty().addListener((a, o, n) -> {
-                    UpdateCheckboxState(cell);
-                });
-                return cell;
-            });
-            setEditable(true);
-            setSortable(false);
-            selectAllCheckBox = new CheckBox();
-            selectAllCheckBox.setSelected(false);
-            selectAllCheckBox.setOnAction(e -> getItems().stream().filter(te -> !te.readOnlyProperty().get())
-                    .forEach(te -> te.selectedProperty().setValue(selectAllCheckBox.isSelected())));
-            setGraphic(selectAllCheckBox);
-            MenuItem inverseMI = new MenuItem("Inverse Selection");
-            inverseMI.setOnAction(e -> getItems().stream().filter(te -> !te.readOnlyProperty().get())
-                    .forEach(te -> te.selectedProperty().setValue(!te.selectedProperty().get())));
-            final ContextMenu contextMenu = new ContextMenu(inverseMI);
-            selectAllCheckBox.setOnMouseReleased(e -> {
-                if (e.getButton() == MouseButton.SECONDARY) {
-                    contextMenu.show(selectAllCheckBox, e.getScreenX(), e.getScreenY());
-                }
-            });
-        }
-
-        private void UpdateCheckboxState(TableCell<TableEntry, Boolean> cell) {
-            cell.getStyleClass().remove("check-box-table-cell-disabled");
-
-            TableRow<?> row = cell.getTableRow();
-            if (row != null) {
-                TableEntry item = (TableEntry) row.getItem();
-                if (item != null) {
-                    cell.setEditable(!item.readOnlyProperty().get());
-                    if (item.readOnlyProperty().get()) {
-                        cell.getStyleClass().add("check-box-table-cell-disabled");
-                    } else if (item.valueProperty().get().value.equals(VNoData.INSTANCE)) {
-                        item.selectedProperty().set(false);
-                    }
-                }
-            }
-        }
-    }
-
     private void createTableForMultipleSnapshots(List<Snapshot> snapshots) {
         List<TableColumn<TableEntry, ?>> list = new ArrayList<>(7);
-        TableColumn<TableEntry, Boolean> selectedColumn = new SelectionTableColumn();
+        TableColumn<TableEntry, Boolean> selectedColumn = new SelectionTableColumn(this);
         list.add(selectedColumn);
 
         int width = measureStringWidth("000", Font.font(20));
@@ -1023,5 +622,24 @@ class SnapshotTable extends TableView<TableEntry> {
         list.add(liveValueColumn);
 
         getColumns().addAll(list);
+    }
+
+    /**
+     * <code>TimestampTableCell</code> is a table cell for rendering the {@link Instant} objects in the table.
+     *
+     * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
+     */
+    private static class TimestampTableCell extends TableCell<TableEntry, Instant> {
+        @Override
+        protected void updateItem(Instant item, boolean empty) {
+            super.updateItem(item, empty);
+            if (empty) {
+                setText(null);
+            } else if (item == null) {
+                setText("---");
+            } else {
+                setText(TimestampFormats.SECONDS_FORMAT.format((item)));
+            }
+        }
     }
 }
