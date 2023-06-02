@@ -122,11 +122,11 @@ class SnapshotTreeTable extends TreeTableView<TreeTableEntry> {
                     setText(null);
                     setStyle("");
                 } else {
-                    Instant instant = item.tableEntry.timestampProperty().get();
+                    Instant instant = item.tableEntry.liveTimestampProperty().get();
                     if (instant == null) {
                         setText("---");
                     } else {
-                        setText(TimestampFormats.SECONDS_FORMAT.format(item.tableEntry.timestampProperty().get()));
+                        setText(TimestampFormats.SECONDS_FORMAT.format(item.tableEntry.liveTimestampProperty().get()));
                     }
                 }
             }

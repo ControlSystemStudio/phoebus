@@ -442,8 +442,8 @@ class SnapshotTable extends TableView<TableEntry> {
                         List<TimeStampedProcessVariable> selectedPVList = getSelectionModel().getSelectedItems().stream()
                                 .map(tableEntry -> {
                                     Instant time = Instant.now();
-                                    if (tableEntry.timestampProperty().getValue() != null) {
-                                        time = tableEntry.timestampProperty().getValue();
+                                    if (tableEntry.liveTimestampProperty().getValue() != null) {
+                                        time = tableEntry.liveTimestampProperty().getValue();
                                     }
                                     return new TimeStampedProcessVariable(tableEntry.pvNameProperty().get(), time);
                                 })
@@ -511,23 +511,49 @@ class SnapshotTable extends TableView<TableEntry> {
         }
 
         width = measureStringWidth("MM:MM:MM.MMM MMM MM M", null);
-        TableColumn<TableEntry, Instant> timestampColumn = new TooltipTableColumn<>("Timestamp",
+
+        TableColumn<TableEntry, ?> timestampBaseColumn = new TooltipTableColumn<>(
+                "Timestamp", "", -1);
+
+        TableColumn<TableEntry, Instant> timestampLiveColumn = new TooltipTableColumn<>("Live",
                 Messages.toolTipTableColumnTimestamp, width, width, true);
-        timestampColumn.setCellValueFactory(new PropertyValueFactory<>("timestamp"));
-        timestampColumn.setCellFactory(c -> new TimestampTableCell());
-        timestampColumn.getStyleClass().add("timestamp-column");
-        timestampColumn.setPrefWidth(width);
-        snapshotTableEntries.add(timestampColumn);
+        timestampLiveColumn.setCellValueFactory(new PropertyValueFactory<>("liveTimestamp"));
+        timestampLiveColumn.setCellFactory(c -> new TimestampTableCell());
+        timestampLiveColumn.getStyleClass().add("timestamp-column");
+        timestampLiveColumn.setPrefWidth(width);
 
-        TableColumn<TableEntry, String> statusColumn = new TooltipTableColumn<>("Status",
+        TableColumn<TableEntry, Instant> timestampStoredColumn = new TooltipTableColumn<>("Stored",
+                Messages.toolTipTableColumnTimestamp, width, width, true);
+        timestampStoredColumn.setCellValueFactory(new PropertyValueFactory<>("storedTimestamp"));
+        timestampStoredColumn.setCellFactory(c -> new TimestampTableCell());
+        timestampStoredColumn.getStyleClass().add("timestamp-column");
+        timestampStoredColumn.setPrefWidth(width);
+
+        timestampBaseColumn.getColumns().addAll(timestampLiveColumn, timestampStoredColumn);
+
+        snapshotTableEntries.add(timestampBaseColumn);
+
+        TableColumn<TableEntry, ?> statusBaseColumn = new TooltipTableColumn<>(
+                "Status", "", -1);
+
+        TableColumn<TableEntry, String> statusLiveColumn = new TooltipTableColumn<>("Live",
                 Messages.toolTipTableColumnAlarmStatus, 100, 100, true);
-        statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
-        snapshotTableEntries.add(statusColumn);
+        statusLiveColumn.setCellValueFactory(new PropertyValueFactory<>("liveStatus"));
 
-        TableColumn<TableEntry, String> severityColumn = new TooltipTableColumn<>("Severity",
+
+        TableColumn<TableEntry, String> statusStoredColumn = new TooltipTableColumn<>("Stored",
+                Messages.toolTipTableColumnAlarmStatus, 100, 100, true);
+        statusStoredColumn.setCellValueFactory(new PropertyValueFactory<>("storedStatus"));
+        statusBaseColumn.getColumns().addAll(statusLiveColumn, statusStoredColumn);
+        snapshotTableEntries.add(statusBaseColumn);
+
+        TableColumn<TableEntry, ?> severityBaseColumn = new TooltipTableColumn<>(
+                "Severity", "", -1);
+
+        TableColumn<TableEntry, String> severityLiveColumn = new TooltipTableColumn<>("Live",
                 Messages.toolTipTableColumnAlarmSeverity, 100, 100, true);
-        severityColumn.setCellValueFactory(new PropertyValueFactory<>("severity"));
-        severityColumn.setCellFactory(alarmLogTableTypeStringTableColumn -> new TableCell<>() {
+        severityLiveColumn.setCellValueFactory(new PropertyValueFactory<>("liveSeverity"));
+        severityLiveColumn.setCellFactory(alarmLogTableTypeStringTableColumn -> new TableCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
@@ -550,7 +576,34 @@ class SnapshotTable extends TableView<TableEntry> {
 
         });
 
-        snapshotTableEntries.add(severityColumn);
+        TableColumn<TableEntry, String> severityStoredColumn = new TooltipTableColumn<>("Stored",
+                Messages.toolTipTableColumnAlarmSeverity, 100, 100, true);
+        severityStoredColumn.setCellValueFactory(new PropertyValueFactory<>("storedSeverity"));
+        severityStoredColumn.setCellFactory(alarmLogTableTypeStringTableColumn -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (empty) {
+                    setStyle("-fx-text-fill: black;  -fx-background-color: transparent");
+                    setText(null);
+                }
+                else if(item == null || "---".equals(item)){
+                    setStyle("-fx-text-fill: black;  -fx-background-color: transparent");
+                    setText("---");
+                } else {
+                    setText(item);
+                    AlarmSeverity alarmSeverity = AlarmSeverity.valueOf(item);
+                    setStyle("-fx-alignment: center; -fx-border-color: transparent; -fx-border-width: 2 0 2 0; -fx-background-insets: 2 0 2 0; -fx-text-fill: " +
+                            JFXUtil.webRGB(SeverityColors.getTextColor(alarmSeverity)) + ";  -fx-background-color: " + JFXUtil.webRGB(SeverityColors.getBackgroundColor(alarmSeverity)));
+                }
+            }
+
+
+        });
+
+        severityBaseColumn.getColumns().addAll(severityLiveColumn, severityStoredColumn);
+        snapshotTableEntries.add(severityBaseColumn);
 
         TableColumn<TableEntry, ?> storedValueBaseColumn = new TooltipTableColumn<>(
                 "Stored Setpoint", "", -1);

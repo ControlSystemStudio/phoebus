@@ -52,9 +52,12 @@ public class TableEntry {
     private final IntegerProperty id = new SimpleIntegerProperty(this, "id");
     private final SingleListenerBooleanProperty selected = new SingleListenerBooleanProperty(this, "selected", true);
     private final StringProperty pvName = new SimpleStringProperty(this, "pvName");
-    private final ObjectProperty<Instant> timestamp = new SimpleObjectProperty<>(this, "timestamp");
-    private final StringProperty status = new SimpleStringProperty(this, "status", AlarmStatus.UNDEFINED.name());
-    private final StringProperty severity = new SimpleStringProperty(this, "severity", AlarmSeverity.UNDEFINED.toString());
+    private final ObjectProperty<Instant> liveTimestamp = new SimpleObjectProperty<>(this, "liveTimestamp");
+    private final ObjectProperty<Instant> storedTimestamp = new SimpleObjectProperty<>(this, "storedTimestamp");
+    private final StringProperty liveStatus = new SimpleStringProperty(this, "liveStatus", null);
+    private final StringProperty storedStatus = new SimpleStringProperty(this, "storedStatus", AlarmStatus.UNDEFINED.name());
+    private final StringProperty liveSeverity = new SimpleStringProperty(this, "liveSeverity", null);
+    private final StringProperty storedSeverity = new SimpleStringProperty(this, "storedSeverity", AlarmSeverity.UNDEFINED.toString());
     /**
      * Snapshot value set either when user takes snapshot, or when snapshot data is loaded from remote service. Note that this
      * can be modified if user chooses to use a multiplier before triggering a restore operation.
@@ -161,22 +164,22 @@ public class TableEntry {
     /**
      * @return the property providing the timestamp of the primary snapshot value
      */
-    public ObjectProperty<Instant> timestampProperty() {
-        return timestamp;
+    public ObjectProperty<Instant> liveTimestampProperty() {
+        return liveTimestamp;
     }
 
     /**
      * @return the property providing the alarm status of the PV value
      */
-    public StringProperty statusProperty() {
-        return status;
+    public StringProperty liveStatusProperty() {
+        return liveStatus;
     }
 
     /**
      * @return the property providing the alarm severity of the PV value
      */
-    public StringProperty severityProperty() {
-        return severity;
+    public StringProperty liveSeverityProperty() {
+        return liveSeverity;
     }
 
     /**
@@ -221,6 +224,42 @@ public class TableEntry {
         return readOnly;
     }
 
+    public Instant getStoredTimestamp() {
+        return storedTimestamp.get();
+    }
+
+    public ObjectProperty<Instant> storedTimestampProperty() {
+        return storedTimestamp;
+    }
+
+    public void setStoredTimestamp(Instant storedTimestamp) {
+        this.storedTimestamp.set(storedTimestamp);
+    }
+
+    public String getStoredStatus() {
+        return storedStatus.get();
+    }
+
+    public StringProperty storedStatusProperty() {
+        return storedStatus;
+    }
+
+    public void setStoredStatus(String storedStatus) {
+        this.storedStatus.set(storedStatus);
+    }
+
+    public String getStoredSeverity() {
+        return storedSeverity.get();
+    }
+
+    public StringProperty storedSeverityProperty() {
+        return storedSeverity;
+    }
+
+    public void setStoredSeverity(String storedSeverity) {
+        this.storedSeverity.set(storedSeverity);
+    }
+
     /**
      * @param index the index of the compared value (starts with 1)
      * @return the property providing the compared value for the given index
@@ -256,29 +295,29 @@ public class TableEntry {
         final VType val = snapshotValue == null ? VDisconnectedData.INSTANCE : snapshotValue;
         if (index == 0) {
             if (val instanceof VNumber) {
-                status.set(((VNumber) val).getAlarm().getStatus().name());
-                severity.set(((VNumber) val).getAlarm().getSeverity().toString());
-                timestamp.set(((VNumber) val).getTime().getTimestamp());
+                storedStatus.set(((VNumber) val).getAlarm().getStatus().name());
+                storedSeverity.set(((VNumber) val).getAlarm().getSeverity().toString());
+                storedTimestamp.set(((VNumber) val).getTime().getTimestamp());
             } else if (val instanceof VNumberArray) {
-                status.set(((VNumberArray) val).getAlarm().getStatus().name());
-                severity.set(((VNumberArray) val).getAlarm().getSeverity().toString());
-                timestamp.set(((VNumberArray) val).getTime().getTimestamp());
+                storedStatus.set(((VNumberArray) val).getAlarm().getStatus().name());
+                storedSeverity.set(((VNumberArray) val).getAlarm().getSeverity().toString());
+                storedTimestamp.set(((VNumberArray) val).getTime().getTimestamp());
             } else if (val instanceof VEnum) {
-                status.set(((VEnum) val).getAlarm().getStatus().name());
-                severity.set(((VEnum) val).getAlarm().getSeverity().toString());
-                timestamp.set(((VEnum) val).getTime().getTimestamp());
+                storedStatus.set(((VEnum) val).getAlarm().getStatus().name());
+                storedSeverity.set(((VEnum) val).getAlarm().getSeverity().toString());
+                storedTimestamp.set(((VEnum) val).getTime().getTimestamp());
             } else if (val instanceof VEnumArray) {
-                status.set(((VEnumArray) val).getAlarm().getStatus().name());
-                severity.set(((VEnumArray) val).getAlarm().getSeverity().toString());
-                timestamp.set(((VEnumArray) val).getTime().getTimestamp());
+                storedStatus.set(((VEnumArray) val).getAlarm().getStatus().name());
+                storedSeverity.set(((VEnumArray) val).getAlarm().getSeverity().toString());
+                storedTimestamp.set(((VEnumArray) val).getTime().getTimestamp());
             } else if (val instanceof VNoData) {
-                severity.set(null);
-                status.set("---");
-                timestamp.set(null);
+                storedStatus.set(null);
+                storedSeverity.set("---");
+                storedTimestamp.set(null);
             } else {
-                severity.set(AlarmSeverity.NONE.toString());
-                status.set("---");
-                timestamp.set(null);
+                storedStatus.set(AlarmSeverity.NONE.toString());
+                storedSeverity.set("---");
+                storedTimestamp.set(null);
             }
             snapshotVal.set(val);
             storedSnapshotValue.set(val);
@@ -351,30 +390,30 @@ public class TableEntry {
         value.set(new VTypePair(val, stored, threshold));
         liveStoredEqual.set(Utilities.areValuesEqual(val, stored, threshold));
         if (val instanceof VNumber) {
-            status.set(((VNumber) val).getAlarm().getStatus().name());
-            severity.set(((VNumber) val).getAlarm().getSeverity().toString());
-            timestamp.set(((VNumber) val).getTime().getTimestamp());
+            liveStatus.set(((VNumber) val).getAlarm().getStatus().name());
+            liveSeverity.set(((VNumber) val).getAlarm().getSeverity().toString());
+            liveTimestamp.set(((VNumber) val).getTime().getTimestamp());
         } else if (val instanceof VNumberArray) {
-            status.set(((VNumberArray) val).getAlarm().getStatus().name());
-            severity.set(((VNumberArray) val).getAlarm().getSeverity().toString());
-            timestamp.set(((VNumberArray) val).getTime().getTimestamp());
+            liveStatus.set(((VNumberArray) val).getAlarm().getStatus().name());
+            liveSeverity.set(((VNumberArray) val).getAlarm().getSeverity().toString());
+            liveTimestamp.set(((VNumberArray) val).getTime().getTimestamp());
         } else if (val instanceof VEnum) {
-            status.set(((VEnum) val).getAlarm().getStatus().name());
-            severity.set(((VEnum) val).getAlarm().getSeverity().toString());
-            timestamp.set(((VEnum) val).getTime().getTimestamp());
+            liveStatus.set(((VEnum) val).getAlarm().getStatus().name());
+            liveSeverity.set(((VEnum) val).getAlarm().getSeverity().toString());
+            liveTimestamp.set(((VEnum) val).getTime().getTimestamp());
         } else if (val instanceof VEnumArray) {
-            status.set(((VEnumArray) val).getAlarm().getStatus().name());
-            severity.set(((VEnumArray) val).getAlarm().getSeverity().toString());
-            timestamp.set(((VEnumArray) val).getTime().getTimestamp());
+            liveStatus.set(((VEnumArray) val).getAlarm().getStatus().name());
+            liveSeverity.set(((VEnumArray) val).getAlarm().getSeverity().toString());
+            liveTimestamp.set(((VEnumArray) val).getTime().getTimestamp());
         } else if(val instanceof VDisconnectedData){
-            severity.set(null);
-            status.set("---");
-            timestamp.set(null);
+            liveSeverity.set(null);
+            liveStatus.set("---");
+            liveTimestamp.set(null);
         }
         else {
-            severity.set(AlarmSeverity.NONE.toString());
-            status.set("---");
-            timestamp.set(null);
+            liveSeverity.set(AlarmSeverity.NONE.toString());
+            liveStatus.set("---");
+            liveTimestamp.set(null);
         }
     }
 

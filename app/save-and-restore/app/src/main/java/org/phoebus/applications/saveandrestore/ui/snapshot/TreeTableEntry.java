@@ -24,7 +24,6 @@ package org.phoebus.applications.saveandrestore.ui.snapshot;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.control.CheckBox;
@@ -241,21 +240,21 @@ public class TreeTableEntry {
         if (folder) {
             return null;
         }
-        return tableEntry.timestampProperty();
+        return tableEntry.liveTimestampProperty();
     }
 
     public StringProperty statusProperty() {
         if (folder) {
             return null;
         }
-        return tableEntry.statusProperty();
+        return tableEntry.liveStatusProperty();
     }
 
     public StringProperty severityProperty() {
         if (folder) {
             return null;
         }
-        return tableEntry.severityProperty();
+        return tableEntry.liveSeverityProperty();
     }
 
     public ObjectProperty<VTypePair> storedReadbackProperty() {
