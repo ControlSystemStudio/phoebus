@@ -486,6 +486,13 @@ public class SearchAndFilterViewController implements Initializable, FilterChang
 
         resultTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         resultTableView.setOnDragDetected(e -> {
+            List<Node> selectedNodes = resultTableView.getSelectionModel().getSelectedItems();
+            if(selectedNodes.stream().filter(n ->
+                    !n.getNodeType().equals(NodeType.SNAPSHOT) &&
+                            !n.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)).findFirst().isPresent())
+            {
+                return;
+            }
             final ClipboardContent content = new ClipboardContent();
             final List<Node> nodes = new ArrayList<>();
             resultTableView.getSelectionModel().getSelectedItems().forEach(i -> nodes.add(i));
