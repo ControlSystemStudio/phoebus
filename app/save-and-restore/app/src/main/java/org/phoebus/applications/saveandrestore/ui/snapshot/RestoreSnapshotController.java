@@ -53,7 +53,6 @@ import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.Messages;
-import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.SafeMultiply;
 import org.phoebus.applications.saveandrestore.common.Threshold;
 import org.phoebus.applications.saveandrestore.common.Utilities;
@@ -108,9 +107,6 @@ public class RestoreSnapshotController extends SnapshotController {
     private ToggleButton showStoredReadbackButton;
 
     @FXML
-    private ToggleButton showTreeTableButton;
-
-    @FXML
     private Spinner<Double> thresholdSpinner;
 
     @FXML
@@ -121,9 +117,6 @@ public class RestoreSnapshotController extends SnapshotController {
 
     @FXML
     private CheckBox preserveSelectionCheckBox;
-
-    private SnapshotTreeTable snapshotTreeTable;
-
     private final SimpleStringProperty createdByTextProperty = new SimpleStringProperty();
     private final SimpleStringProperty createdDateTextProperty = new SimpleStringProperty();
 
@@ -137,8 +130,6 @@ public class RestoreSnapshotController extends SnapshotController {
     private final BooleanProperty showStoredReadbackProperty = new SimpleBooleanProperty(false);
 
     private final boolean showDeltaPercentage = false;
-
-    private final SimpleBooleanProperty showTreeTable = new SimpleBooleanProperty(false);
 
     /**
      * Property used to indicate if snapshot node has changed with respect to name or comment, or both.
@@ -179,20 +170,6 @@ public class RestoreSnapshotController extends SnapshotController {
 
         borderPane.setCenter(snapshotTable);
 
-        if (Preferences.tree_tableview_enable) {
-            snapshotTreeTable = new SnapshotTreeTable(this);
-
-            showTreeTable.addListener((observableValue, aBoolean, on) -> {
-                if (on) {
-                    borderPane.getChildren().remove(snapshotTable);
-                    borderPane.setCenter(snapshotTreeTable);
-                } else {
-                    borderPane.getChildren().remove(snapshotTreeTable);
-                    borderPane.setCenter(snapshotTable);
-                }
-            });
-        }
-
         saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
                         nodeMetaDataDirty.not().get() ||
                                 snapshotNameProperty.isEmpty().get() ||
@@ -203,17 +180,7 @@ public class RestoreSnapshotController extends SnapshotController {
         showStoredReadbackButton.selectedProperty().addListener((a, o, n) -> Platform.runLater(() -> {
             ArrayList<TableEntry> arrayList = new ArrayList<>(tableEntryItems.values());
             snapshotTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbackProperty.get(), showDeltaPercentage);
-            if (Preferences.tree_tableview_enable) {
-                snapshotTreeTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbackProperty.get(), showDeltaPercentage);
-            }
         }));
-
-        if (Preferences.tree_tableview_enable) {
-            showTreeTableButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/icons/show_tree_table_view.png"))));
-            showTreeTableButton.selectedProperty().bindBidirectional(showTreeTable);
-        } else {
-            showTreeTableButton.setVisible(false);
-        }
 
         SpinnerValueFactory<Double> thresholdSpinnerValueFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, 999.0, 0.0, 0.01);
         thresholdSpinnerValueFactory.setConverter(new DoubleStringConverter());
@@ -285,12 +252,7 @@ public class RestoreSnapshotController extends SnapshotController {
                             }
                         }).collect(Collectors.toList());
 
-                Platform.runLater(() -> {
-                    snapshotTable.updateTable(arrayList);
-                    if (Preferences.tree_tableview_enable) {
-                        snapshotTreeTable.updateTable(arrayList);
-                    }
-                });
+                Platform.runLater(() -> snapshotTable.updateTable(arrayList));
 
                 return;
             }
@@ -329,12 +291,7 @@ public class RestoreSnapshotController extends SnapshotController {
                         return matchEither;
                     }).collect(Collectors.toList());
 
-            Platform.runLater(() -> {
-                snapshotTable.updateTable(filteredEntries);
-                if (Preferences.tree_tableview_enable) {
-                    snapshotTreeTable.updateTable(filteredEntries);
-                }
-            });
+            Platform.runLater(() -> snapshotTable.updateTable(filteredEntries));
         });
 
         // Locate registered SaveAndRestoreEventReceivers
@@ -349,13 +306,10 @@ public class RestoreSnapshotController extends SnapshotController {
             }
         });
 
-        snapshotCommentProperty.addListener((observable, oldValue, newValue) -> {
-            if (oldValue != null && newValue != null && !oldValue.equals(newValue) && !newValue.equals(snapshotNode.getDescription())) {
-                nodeMetaDataDirty.set(true);
-            } else {
-                nodeMetaDataDirty.set(false);
-            }
-        });
+        snapshotCommentProperty.addListener((observable, oldValue, newValue) ->
+                nodeMetaDataDirty.set(oldValue != null && newValue != null &&
+                !oldValue.equals(newValue) &&
+                !newValue.equals(snapshotNode.getDescription())));
     }
 
     /**
@@ -383,9 +337,6 @@ public class RestoreSnapshotController extends SnapshotController {
             loadCompositeSnapshotInternal(snapshot -> Platform.runLater(() -> {
                 List<TableEntry> tableEntries = createTableEntries(snapshot);
                 snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
-                if (Preferences.tree_tableview_enable) {
-                    snapshotTreeTable.updateTable(tableEntries, snapshots, false, false, false);
-                }
                 snapshotRestorableProperty.set(true);
             }));
         }
@@ -409,7 +360,7 @@ public class RestoreSnapshotController extends SnapshotController {
                 this.configurationNode = SaveAndRestoreService.getInstance().getParentNode(snapshotNode.getUniqueId());
                 snapshotData = SaveAndRestoreService.getInstance().getSnapshot(snapshotNode.getUniqueId());
             } catch (Exception e) {
-                ExceptionDetailsErrorDialog.openError(snapshotTreeTable, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
+                ExceptionDetailsErrorDialog.openError(snapshotTable, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
                 LOGGER.log(Level.INFO, "Error loading snapshot", e);
                 return;
             } finally {
@@ -423,9 +374,6 @@ public class RestoreSnapshotController extends SnapshotController {
                 List<TableEntry> tableEntries = createTableEntries(snapshot);
 
                 snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
-                if (Preferences.tree_tableview_enable) {
-                    snapshotTreeTable.updateTable(tableEntries, snapshots, false, false, false);
-                }
                 snapshotRestorableProperty.set(true);
                 disabledUi.set(false);
             });
@@ -441,7 +389,7 @@ public class RestoreSnapshotController extends SnapshotController {
                 snapshotItems = SaveAndRestoreService.getInstance().getCompositeSnapshotItems(snapshotNode.getUniqueId());
             } catch (Exception e) {
                 LOGGER.log(Level.INFO, "Error loading composite snapshot for restore", e);
-                ExceptionDetailsErrorDialog.openError(snapshotTreeTable, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
+                ExceptionDetailsErrorDialog.openError(snapshotTable, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
                 return;
             } finally {
                 disabledUi.set(false);
