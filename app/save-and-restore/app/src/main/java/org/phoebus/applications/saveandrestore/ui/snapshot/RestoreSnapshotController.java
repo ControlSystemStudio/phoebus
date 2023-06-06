@@ -306,15 +306,10 @@ public class RestoreSnapshotController extends SnapshotController {
             }
         });
 
-        snapshotCommentProperty.addListener((observable, oldValue, newValue) -> {
-            if (oldValue != null && newValue != null &&
-                    !oldValue.equals(newValue) &&
-                    !newValue.equals(snapshotNode.getDescription())) {
-                nodeMetaDataDirty.set(true);
-            } else {
-                nodeMetaDataDirty.set(false);
-            }
-        });
+        snapshotCommentProperty.addListener((observable, oldValue, newValue) ->
+                nodeMetaDataDirty.set(oldValue != null && newValue != null &&
+                !oldValue.equals(newValue) &&
+                !newValue.equals(snapshotNode.getDescription())));
     }
 
     /**
