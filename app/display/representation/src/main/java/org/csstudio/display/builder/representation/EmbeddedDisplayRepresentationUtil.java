@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2016-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -75,7 +75,7 @@ public class EmbeddedDisplayRepresentationUtil
     }
 
     /** Load display model, optionally trimmed to group
-     *  @param model_widget Parent widget
+     *  @param model_widget Parent widget, provides basis for expanding macros in the loaded model
      *  @param display_and_group Display (and optional group) to load
      *  @return {@link DisplayModel}
      */
@@ -105,6 +105,11 @@ public class EmbeddedDisplayRepresentationUtil
                 // Tell embedded model that it is held by this widget,
                 // which provides access to macros of model_widget.
                 embedded_model.setUserData(DisplayModel.USER_DATA_EMBEDDING_WIDGET, model_widget);
+
+                // reduceDisplayModelToGroup() might need macros to resolve a group name,
+                // so expand macros down the embedded model
+                embedded_model.expandMacros(model_widget.getEffectiveMacros());
+
                 if (!display_and_group.getGroupName().isEmpty())
                     reduceDisplayModelToGroup(model_widget, embedded_model, display_and_group);
                 // Adjust model name to reflect source file
@@ -124,9 +129,9 @@ public class EmbeddedDisplayRepresentationUtil
 
 
     /** Reduce display model to content of one named group
-     *  @param display_file Name of the display file
+     *  @param model_widget Container widget
      *  @param model Model loaded from that file
-     *  @param group_name Name of group to use
+     *  @param display_and_group Name of display and the group to use
      */
     private static void reduceDisplayModelToGroup(final Widget model_widget, final DisplayModel model, final DisplayAndGroup display_and_group)
     {

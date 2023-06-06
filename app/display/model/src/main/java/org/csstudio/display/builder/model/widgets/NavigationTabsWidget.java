@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -213,8 +213,9 @@ public class NavigationTabsWidget extends VisibleWidget
             int index = active.getValue();
             if (index >= 0  &&  index < tabs.size())
             {
-                final TabProperty tab = tabs.getElement(index);
-                return Macros.merge(base, tab.macros().getValue());
+                final Macros selected = tabs.getElement(index).macros().getValue();
+                selected.expand(base);
+                return selected;
             }
         }
         catch (Throwable ex)
