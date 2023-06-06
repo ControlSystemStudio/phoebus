@@ -18,15 +18,18 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ContextMenuEvent;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.ui.javafx.ImageCache;
@@ -58,8 +61,16 @@ public abstract class ContextMenuBase extends ContextMenu {
                 .addListener((ListChangeListener<TreeItem<Node>>) c ->
                         multipleSelection.set(treeView.getSelectionModel().getSelectedItems().size() > 1));
 
-        setOnShowing(event -> runChecks());
+        setOnShowing(event -> {
+            if(!saveAndRestoreController.checkMultipleSelection()){
+                Platform.runLater(() -> hide());
+            }
+            else{
+                runChecks();
+            }
+        });
     }
+
 
     /**
      * Applies logic to determine which context menu items to disable as some actions (e.g. rename) do not

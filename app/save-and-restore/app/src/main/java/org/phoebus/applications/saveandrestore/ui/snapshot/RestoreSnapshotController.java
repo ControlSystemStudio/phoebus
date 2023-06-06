@@ -402,7 +402,7 @@ public class RestoreSnapshotController extends SnapshotController {
             Snapshot snapshot = new Snapshot();
             snapshot.setSnapshotNode(snapshotNode);
             SnapshotData snapshotData = new SnapshotData();
-            snapshotData.setSnasphotItems(snapshotItems);
+            snapshotData.setSnapshotItems(snapshotItems);
             snapshot.setSnapshotData(snapshotData);
             snapshots.add(0, snapshot);
             disabledUi.set(false);

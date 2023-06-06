@@ -277,6 +277,10 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
         enableFilterCheckBox.disableProperty().bind(Bindings.createBooleanBinding(filtersList::isEmpty, filtersList));
 
+        // Clear clipboard to make sure that only custom data format is
+        // considered in paste actions.
+        Clipboard.getSystemClipboard().clear();
+
         loadTreeData();
     }
 
@@ -750,6 +754,13 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             node.setName(result.get());
             try {
                 saveAndRestoreService.updateNode(node);
+                // Since a changed node name may push the node to a different location in the tree view,
+                // we need to locate it to keep it selected. The tree view will otherwise "select" the node
+                // at the previous position of the renamed node. This is standard JavaFX TreeView behavior
+                // where TreeItems are "recycled", and updated by the cell renderer.
+                Stack<Node> copiedStack = new Stack<>();
+                DirectoryUtilities.CreateLocationStringAndNodeStack(node, false).getValue().forEach(copiedStack::push);
+                locateNode(copiedStack);
             } catch (Exception e) {
                 Alert alert = new Alert(AlertType.ERROR);
                 alert.setTitle(Messages.errorActionFailed);
@@ -1072,15 +1083,14 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         if (selectedItems.size() < 2) {
             return true;
         }
-        List<Node> sourceNodes =
-                selectedItems.stream().map(TreeItem::getValue).collect(Collectors.toList());
-        if (sourceNodes.stream().filter(n -> n.getNodeType().equals(NodeType.FOLDER) ||
-                n.getNodeType().equals(NodeType.CONFIGURATION)).findFirst().isEmpty()) {
-            return true;
-        }
         TreeItem<Node> parent = selectedItems.get(0).getParent();
         NodeType nodeType = selectedItems.get(0).getValue().getNodeType();
-        return selectedItems.stream().filter(item -> !item.getParent().equals(parent) || !item.getValue().getNodeType().equals(nodeType)).findFirst().isEmpty();
+        for(int i = 1; i < selectedItems.size(); i++){
+            if(!selectedItems.get(i).getParent().equals(parent) || !selectedItems.get(i).getValue().getNodeType().equals(nodeType)){
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -1090,7 +1100,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * @param targetNode   Target {@link Node}, which must be a folder.
      * @param transferMode Must be {@link TransferMode#MOVE} or {@link TransferMode#COPY}.
      */
-    protected void performCopyOrMove(List<Node> sourceNodes, Node targetNode, TransferMode transferMode) {
+    protected void moveNodes(List<Node> sourceNodes, Node targetNode, TransferMode transferMode) {
         disabledUi.set(true);
         JobManager.schedule("Copy Or Move save&restore node(s)", monitor -> {
             TreeItem<Node> rootTreeItem = treeView.getRoot();
@@ -1104,21 +1114,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                         removeMovedNodes(sourceParentTreeItem, sourceNodes);
                         addMovedNodes(targetTreeItem, sourceNodes);
                     });
-                } else if (transferMode.equals(TransferMode.COPY)) {
-                    saveAndRestoreService.copyNode(sourceNodes, targetNode);
-                    List<Node> childNodes = saveAndRestoreService.getChildNodes(targetNode);
-                    Platform.runLater(() -> {
-                        List<TreeItem<Node>> existingChildItems = targetTreeItem.getChildren();
-                        List<Node> existingChildNodes = existingChildItems.stream().map(TreeItem::getValue).collect(Collectors.toList());
-                        childNodes.forEach(childNode -> {
-                            if (!existingChildNodes.contains(childNode)) {
-                                targetTreeItem.getChildren().add(createTreeItem(childNode));
-                            }
-                        });
-                        targetTreeItem.getChildren().sort(treeNodeComparator);
-                        targetTreeItem.setExpanded(true);
-                    });
-                }
+                } // TransferMode.COPY not supported
             } catch (Exception exception) {
                 Logger.getLogger(SaveAndRestoreController.class.getName())
                         .log(Level.SEVERE, "Failed to move or copy");
@@ -1126,7 +1122,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             } finally {
                 disabledUi.set(false);
             }
-
         });
     }
 
@@ -1321,73 +1316,91 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
     }
 
-    /*
-
-    private static class ExpandTreeItemJob extends JobRunnableWithCancel {
-
-        private TreeItem<Node> treeItem;
-        private Consumer<Void> completionHandler;
-
-        private SaveAndRestoreService saveAndRestoreService;
-
-        public static void requestExpandTreeNode(SaveAndRestoreService saveAndRestoreService, TreeItem<Node> treeItem, Consumer<Void> completionHandler){
-            JobManager.schedule("Expanding node " + treeItem.getValue().getName(),
-                    new ExpandTreeItemJob(saveAndRestoreService, treeItem, completionHandler));
-        }
-
-        public static void requestExpandTreeNode(SaveAndRestoreService saveAndRestoreService, TreeItem<Node> treeItem){
-            JobManager.schedule("Expanding node " + treeItem.getValue().getName(),
-                    new ExpandTreeItemJob(saveAndRestoreService, treeItem, null));
-        }
-
-        public ExpandTreeItemJob(SaveAndRestoreService saveAndRestoreService, TreeItem<Node> treeItem, Consumer<Void> completionHandler){
-            this.treeItem = treeItem;
-            this.completionHandler = completionHandler;
-            this.saveAndRestoreService = saveAndRestoreService;
-        }
-        @Override
-        public Runnable getRunnable() {
-            return () -> {
-                List<Node> childNodes = saveAndRestoreService.getChildNodes(treeItem.getValue());
-                List<String> childNodeIds = childNodes.stream().map(Node::getUniqueId).collect(Collectors.toList());
-                List<String> existingNodeIds =
-                        treeItem.getChildren().stream().map(item -> item.getValue().getUniqueId()).collect(Collectors.toList());
-                List<TreeItem<Node>> itemsToAdd = new ArrayList<>();
-                childNodes.forEach(n -> {
-                    if (!existingNodeIds.contains(n.getUniqueId())) {
-                        itemsToAdd.add(createTreeItem(n));
-                    }
-                });
-                List<TreeItem<Node>> itemsToRemove = new ArrayList<>();
-                targetItem.getChildren().forEach(item -> {
-                    if (!childNodeIds.contains(item.getValue().getUniqueId())) {
-                        itemsToRemove.add(item);
-                    }
-                });
-                Platform.runLater(() -> {
-                    targetItem.getChildren().addAll(itemsToAdd);
-                    targetItem.getChildren().removeAll(itemsToRemove);
-                    targetItem.getChildren().sort(treeNodeComparator);
-                    targetItem.setExpanded(true);
-                    if(completionHandler != null){
-                        completionHandler.accept(null);
-                    }
-                });
-                if(completionHandler != null){
-                    completionHandler.accept(null);
-                }
-                try {
-                    SearchResult searchResult = client.search(searchMap);
-                    logEntryHandler.accept(searchResult);
-                } catch (Exception exception) {
-                    Logger.getLogger(LogbookSearchJob.class.getName())
-                            .log(Level.SEVERE, "Failed to obtain logs", exception);
-                    errorHandler.accept(null, exception);
-                }
-            };
-        }
-
+    public void copySelectionToClipboard(){
+        List<TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
+        List<Node> selectedNodes = selectedItems.stream().map(TreeItem::getValue).collect(Collectors.toList());
+        ClipboardContent clipboardContent = new ClipboardContent();
+        clipboardContent.put(SaveAndRestoreApplication.NODE_SELECTION_FORMAT, selectedNodes);
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+        clipboard.setContent(clipboardContent);
     }
 
+    /**
+     * Checks if tree selection is valid for a copy operation:
+     * <ul>
+     *     <li>All selected nodes must be of same type.</li>
+     *     <li>All selected nodes must have same parent.</li>
+     * </ul>
+     * @return <code>true</code> if selection may be copied to clipboard, otherwise <code>false</code>.
      */
+    public boolean mayCopy(){
+        List<Node> selectedNodes = browserSelectionModel.getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
+        if(selectedNodes.size() == 1){
+            return true;
+        }
+        NodeType nodeTypeOfFirst = selectedNodes.get(0).getNodeType();
+        if(selectedNodes.stream().filter(n -> !n.getNodeType().equals(nodeTypeOfFirst)).findFirst().isPresent()){
+            return false;
+        }
+        TreeItem<Node> parentOfFirst = browserSelectionModel.getSelectedItems().get(0).getParent();
+        return browserSelectionModel.getSelectedItems().stream().filter(t -> !t.getParent().equals(parentOfFirst)).findFirst().isEmpty();
+    }
+
+    /**
+     * Checks if the clipboard content may be pasted onto a target node:
+     * <ul>
+     *     <li>Clipboard c  ontent must be of {@link SaveAndRestoreApplication#NODE_SELECTION_FORMAT}.</li>
+     *     <li>Selected node for paste (target) must be single node.</li>
+     *     <li>Configurations and composite snapshots may be pasted only onto folder.</li>
+     *     <li>Snapshot may be pasted only onto configuration.</li>
+     * </ul>
+     * @return  <code>true</code> if selection may be pasted, otherwise <code>false</code>.
+     */
+    public boolean mayPaste(){
+        Object clipBoardContent = Clipboard.getSystemClipboard().getContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT);
+        if(clipBoardContent == null ||  browserSelectionModel.getSelectedItems().size() != 1){
+            return false;
+        }
+        // Check is made if target node is of supported type for the clipboard content.
+        List<Node> selectedNodes = (List<Node>)clipBoardContent;
+        NodeType nodeTypeOfFirst = selectedNodes.get(0).getNodeType();
+        NodeType nodeTypeOfTarget = browserSelectionModel.getSelectedItem().getValue().getNodeType();
+        if((nodeTypeOfFirst.equals(NodeType.COMPOSITE_SNAPSHOT) ||
+                nodeTypeOfFirst.equals(NodeType.CONFIGURATION)) && !nodeTypeOfTarget.equals(NodeType.FOLDER)){
+            return false;
+        }
+        else if(nodeTypeOfFirst.equals(NodeType.SNAPSHOT) && !nodeTypeOfTarget.equals(NodeType.CONFIGURATION)){
+            return false;
+        }
+        return true;
+    }
+
+    public List<TreeItem<Node>> getSelectedItems(){
+        return treeView.getSelectionModel().getSelectedItems();
+    }
+
+    public void pasteFromClipboard(){
+        disabledUi.set(true);
+        Object selectedNodes = Clipboard.getSystemClipboard().getContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT);
+        if(selectedNodes == null || browserSelectionModel.getSelectedItems().size() != 1){
+            return;
+        }
+        List<String> selectedNodeIds =
+                ((List<Node>)selectedNodes).stream().map(Node::getUniqueId).collect(Collectors.toList());
+        JobManager.schedule("copy nodes", monitor -> {
+            try {
+                saveAndRestoreService.copyNodes(selectedNodeIds, browserSelectionModel.getSelectedItem().getValue().getUniqueId());
+                disabledUi.set(false);
+            } catch (Exception e) {
+                disabledUi.set(false);
+                ExceptionDetailsErrorDialog.openError(Messages.errorGeneric, Messages.failedToPasteObjects, e);
+                LOG.log(Level.WARNING, "Failed to paste nodes into target " + browserSelectionModel.getSelectedItem().getValue().getName());
+                return;
+            }
+            Platform.runLater(() -> {
+                expandTreeNode(browserSelectionModel.getSelectedItem());
+                treeView.refresh();
+            });
+        });
+    }
 }

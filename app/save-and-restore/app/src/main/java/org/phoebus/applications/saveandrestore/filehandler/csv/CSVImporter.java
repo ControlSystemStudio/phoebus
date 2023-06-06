@@ -294,7 +294,7 @@ public class CSVImporter extends CSVCommon {
         Snapshot snapshot = new Snapshot();
         snapshot.setSnapshotNode(snapshotNode);
         SnapshotData snapshotData = new SnapshotData();
-        snapshotData.setSnasphotItems(snapshotItems);
+        snapshotData.setSnapshotItems(snapshotItems);
         snapshot.setSnapshotData(snapshotData);
 
         snapshot = saveAndRestoreService.saveSnapshot(parentOfImport, snapshot);
