@@ -131,6 +131,7 @@ public class PVAStringArray extends PVAData implements PVAArray, PVAValue
     protected void format(final int level, final StringBuilder buffer)
     {
         formatType(level, buffer);
+        buffer.append(" [");
         final String[] safe = value;
         if (safe == null)
             buffer.append("null");
