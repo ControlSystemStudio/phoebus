@@ -23,7 +23,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import javafx.scene.CacheHint;
 import org.csstudio.display.builder.model.ArrayWidgetProperty;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
@@ -414,8 +413,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
     @Override
     protected StackPane createJFXNode ( ) throws Exception {
 
-        imageView.setCache(true);
-        imageView.setCacheHint(CacheHint.SCALE); // Prevents excessive VRAM usage when zooming in using the D3D library for rendering under Windows.
+        PictureRepresentation.setCacheHintAccordingToPreferences(imageView);
 
         autoSize = model_widget.propAutoSize().getValue();
         symbol = new Symbol(); //getDefaultSymbol();

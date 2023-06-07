@@ -12,6 +12,7 @@ import static org.csstudio.display.builder.representation.ToolkitRepresentation.
 import java.util.logging.Level;
 
 import javafx.scene.CacheHint;
+import javafx.scene.Node;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
@@ -22,6 +23,7 @@ import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.model.widgets.PictureWidget;
 import org.csstudio.display.builder.representation.javafx.SVGHelper;
+import org.phoebus.ui.Preferences;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.image.Image;
@@ -52,13 +54,46 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
     private volatile Rotate rotation = new Rotate(0);
     private volatile Translate translate = new Translate(0,0);
 
+    protected static void setCacheHintAccordingToPreferences(Node node) {
+        if (Preferences.cache_hint_for_picture_and_symbol_widgets.equals("") || Preferences.cache_hint_for_picture_and_symbol_widgets.equals("NONE")) {
+            // Use the default caching behavior.
+        }
+        else if (Preferences.cache_hint_for_picture_and_symbol_widgets.equals("DEFAULT")) {
+            node.setCache(true);
+            node.setCacheHint(CacheHint.DEFAULT);
+        }
+        else if (Preferences.cache_hint_for_picture_and_symbol_widgets.equals("SPEED")) {
+            node.setCache(true);
+            node.setCacheHint(CacheHint.SPEED);
+        }
+        else if (Preferences.cache_hint_for_picture_and_symbol_widgets.equals("QUALITY")) {
+            node.setCache(true);
+            node.setCacheHint(CacheHint.QUALITY);
+        }
+        else if (Preferences.cache_hint_for_picture_and_symbol_widgets.equals("SCALE")) {
+            node.setCache(true);
+            node.setCacheHint(CacheHint.SCALE);
+        }
+        else if (Preferences.cache_hint_for_picture_and_symbol_widgets.equals("ROTATE")) {
+            node.setCache(true);
+            node.setCacheHint(CacheHint.ROTATE);
+        }
+        else if (Preferences.cache_hint_for_picture_and_symbol_widgets.equals("SCALE_AND_ROTATE")) {
+            node.setCache(true);
+            node.setCacheHint(CacheHint.SCALE_AND_ROTATE);
+        }
+        else {
+            // Invalid option: log warning and use the default caching behavior.
+            logger.log(Level.WARNING, "The setting '" + Preferences.cache_hint_for_picture_and_symbol_widgets + "' is invalid for the setting 'caching_hint_for_picture_and_symbol_widgets' in the Phoebus initialization file! The default caching behavior will be used. Valid options are: 'NONE', 'DEFAULT', 'SPEED', 'QUALITY', 'SCALE', 'ROTATE', and 'SCALE_AND_ROTATE'.");
+        }
+    }
+
     @Override
     public ImageView createJFXNode() throws Exception
     {
         final ImageView iv = new ImageView();
         iv.setSmooth(true);
-        iv.setCache(true);
-        iv.setCacheHint(CacheHint.SCALE);  // Prevents excessive VRAM usage when zooming in using the D3D library for rendering under Windows.
+        setCacheHintAccordingToPreferences(iv);
         iv.getTransforms().addAll(translate, rotation);
         return iv;
     }
