@@ -58,33 +58,21 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
         if (Preferences.cache_hint_for_picture_and_symbol_widgets.equals("") || Preferences.cache_hint_for_picture_and_symbol_widgets.equals("NONE")) {
             // Use the default caching behavior.
         }
-        else if (Preferences.cache_hint_for_picture_and_symbol_widgets.equals("DEFAULT")) {
-            node.setCache(true);
-            node.setCacheHint(CacheHint.DEFAULT);
-        }
-        else if (Preferences.cache_hint_for_picture_and_symbol_widgets.equals("SPEED")) {
-            node.setCache(true);
-            node.setCacheHint(CacheHint.SPEED);
-        }
-        else if (Preferences.cache_hint_for_picture_and_symbol_widgets.equals("QUALITY")) {
-            node.setCache(true);
-            node.setCacheHint(CacheHint.QUALITY);
-        }
-        else if (Preferences.cache_hint_for_picture_and_symbol_widgets.equals("SCALE")) {
-            node.setCache(true);
-            node.setCacheHint(CacheHint.SCALE);
-        }
-        else if (Preferences.cache_hint_for_picture_and_symbol_widgets.equals("ROTATE")) {
-            node.setCache(true);
-            node.setCacheHint(CacheHint.ROTATE);
-        }
-        else if (Preferences.cache_hint_for_picture_and_symbol_widgets.equals("SCALE_AND_ROTATE")) {
-            node.setCache(true);
-            node.setCacheHint(CacheHint.SCALE_AND_ROTATE);
-        }
         else {
-            // Invalid option: log warning and use the default caching behavior.
-            logger.log(Level.WARNING, "The setting '" + Preferences.cache_hint_for_picture_and_symbol_widgets + "' is invalid for the setting 'caching_hint_for_picture_and_symbol_widgets' in the Phoebus initialization file! The default caching behavior will be used. Valid options are: 'NONE', 'DEFAULT', 'SPEED', 'QUALITY', 'SCALE', 'ROTATE', and 'SCALE_AND_ROTATE'.");
+            CacheHint cacheHint = null;
+            try
+            {
+                cacheHint = CacheHint.valueOf(Preferences.cache_hint_for_picture_and_symbol_widgets);
+            }
+            catch (IllegalArgumentException ex)
+            {
+                logger.log(Level.WARNING, "The setting '" + Preferences.cache_hint_for_picture_and_symbol_widgets + "' is invalid for the setting 'caching_hint_for_picture_and_symbol_widgets' in the Phoebus initialization file! The default caching behavior will be used. Valid options are: 'NONE', 'DEFAULT', 'SPEED', 'QUALITY', 'SCALE', 'ROTATE', and 'SCALE_AND_ROTATE'.");
+            }
+
+            if (cacheHint != null) {
+                node.setCache(true);
+                node.setCacheHint(cacheHint);
+            }
         }
     }
 
