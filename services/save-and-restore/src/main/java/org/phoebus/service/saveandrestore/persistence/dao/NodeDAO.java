@@ -96,8 +96,8 @@ public interface NodeDAO {
     /**
      * Copies {@link Node}s (folder or config) to some parent node.
      *
-     * @param nodeIds  List of unique node ids subject to move
-     * @param targetId Unique id of target node
+     * @param nodeIds  Non-null and non-empty list of unique node ids subject to move
+     * @param targetId Non-null and non-empty unique id of target node
      * @param userName The (account) name of the user performing the operation.
      * @return The target {@link Node} object that is the new parent of the moved source {@link Node}
      */
@@ -207,14 +207,6 @@ public interface NodeDAO {
      */
     SnapshotData getSnapshotData(String uniqueId);
 
-    /**
-     * Determines of a move or copy operation is allowed.
-     * @param nodesToMove List of {@link Node}s subject to move/copy.
-     * @param targetNode The target {@link Node} of the move/copy operation
-     * @return <code>true</code> if the list of {@link Node}s can be moved/copied,
-     * otherwise <code>false</code>.
-     */
-    boolean isMoveOrCopyAllowed(List<Node> nodesToMove, Node targetNode);
 
     /**
      * Finds the {@link Node} corresponding to the parent of last element in the split path. For instance, given a

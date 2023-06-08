@@ -11,6 +11,7 @@ import static org.csstudio.display.builder.representation.ToolkitRepresentation.
 
 import java.util.logging.Level;
 
+import javafx.scene.CacheHint;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
@@ -56,6 +57,8 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
     {
         final ImageView iv = new ImageView();
         iv.setSmooth(true);
+        iv.setCache(true);
+        iv.setCacheHint(CacheHint.SCALE);  // Prevents excessive VRAM usage when zooming in using the D3D library for rendering under Windows.
         iv.getTransforms().addAll(translate, rotation);
         return iv;
     }

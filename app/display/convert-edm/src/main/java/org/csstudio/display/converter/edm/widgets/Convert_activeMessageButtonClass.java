@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -132,7 +132,9 @@ public class Convert_activeMessageButtonClass extends ConverterBase<Widget>
                     logger.log(Level.WARNING, "EDM message 'push' button '" + desc + "' lacks both 'press' and 'release'; writing empty string");
                 }
 
-                b.propActions().setValue(new ActionInfos(List.of(new WritePVActionInfo(desc, pv, value))));
+                // Set the button's $(pv_name) macro to the PV name, and use that within the write-PV action
+                b.propPVName().setValue(pv);
+                b.propActions().setValue(new ActionInfos(List.of(new WritePVActionInfo(desc, "$(pv_name)", value))));
             }
 
             if (mb.getPassword() != null)

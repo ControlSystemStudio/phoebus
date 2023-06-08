@@ -77,9 +77,14 @@ public class ContextMenuSnapshot extends ContextMenuBase {
 
         MenuItem tagGoldenMenuItem = new MenuItem(Messages.contextMenuTagAsGolden, new ImageView(ImageRepository.SNAPSHOT));
 
-        //
+        Image copyIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/copy.png");
+        MenuItem copyMenuItem = new MenuItem(Messages.copy, new ImageView(copyIcon));
+        copyMenuItem.setOnAction(action -> saveAndRestoreController.copySelectionToClipboard());
+
         setOnShowing(event -> {
             saveAndRestoreController.configureGoldenItem(tagGoldenMenuItem);
+            copyMenuItem.setDisable(!saveAndRestoreController.mayCopy());
+            compareSnapshotsMenuItem.disableProperty().set(!compareSnapshotsPossible());
             runChecks();
         });
 
@@ -87,6 +92,7 @@ public class ContextMenuSnapshot extends ContextMenuBase {
                 compareSnapshotsMenuItem,
                 tagGoldenMenuItem,
                 tagWithComment,
+                copyMenuItem,
                 copyUniqueIdToClipboardMenuItem,
                 exportSnapshotMenuItem);
     }
@@ -103,7 +109,6 @@ public class ContextMenuSnapshot extends ContextMenuBase {
         else{
             tagWithComment.disableProperty().set(false);
         }
-        compareSnapshotsMenuItem.disableProperty().set(!compareSnapshotsPossible());
     }
 
     /**

@@ -357,7 +357,7 @@ public class GitMigrator {
                             Snapshot snapshot = new Snapshot();
                             snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).name(snapshotName).description(commit.getFullMessage()).build());
                             SnapshotData snapshotData = new SnapshotData();
-                            snapshotData.setSnasphotItems(snapshotItems);
+                            snapshotData.setSnapshotItems(snapshotItems);
                             snapshot.setSnapshotData(snapshotData);
 
                             Node snapshotNode = saveAndRestoreService.saveSnapshot(saveSetNode, snapshot).getSnapshotNode();

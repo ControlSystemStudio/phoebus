@@ -70,7 +70,7 @@
                     <ComboBox fx:id="levelSelector" prefWidth="150.0" GridPane.columnSpan="2" GridPane.rowIndex="6" />
                     <Label text="%Logbooks" GridPane.rowIndex="7" />
                     <TextField fx:id="searchLogbooks" editable="false" GridPane.columnSpan="2" GridPane.rowIndex="8" />
-                    <Label text="%Tags" GridPane.rowIndex="8" />
+                    <Label text="%Tags" GridPane.rowIndex="9" />
                     <TextField fx:id="searchTags" editable="false" GridPane.columnSpan="2" GridPane.rowIndex="10" />
                     <Label text="%Author" GridPane.rowIndex="11" />
                     <TextField fx:id="searchAuthor" GridPane.columnSpan="2" GridPane.rowIndex="12" />
