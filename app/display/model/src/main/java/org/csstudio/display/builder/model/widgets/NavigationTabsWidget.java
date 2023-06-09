@@ -214,7 +214,7 @@ public class NavigationTabsWidget extends VisibleWidget
             if (index >= 0  &&  index < tabs.size())
             {
                 final Macros selected = tabs.getElement(index).macros().getValue();
-                selected.expand(base);
+                selected.expandValues(base);
                 return selected;
             }
         }

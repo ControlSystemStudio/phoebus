@@ -299,7 +299,7 @@ public class DisplayModel extends Widget
     public void expandMacros(final Macros base)
     {
         // Expand the display macros
-        propMacros().getValue().expand(base);
+        propMacros().getValue().expandValues(base);
 
         // Recurse into child widgets
         for (Widget child: getChildren())

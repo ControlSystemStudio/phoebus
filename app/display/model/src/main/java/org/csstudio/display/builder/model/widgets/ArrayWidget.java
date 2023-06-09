@@ -99,7 +99,7 @@ public class ArrayWidget extends PVWidget
     @Override
     public void expandMacros(final Macros input)
     {
-        macros.getValue().expand(input);
+        macros.getValue().expandValues(input);
         for (Widget child : children.getValue())
             child.expandMacros(macros.getValue());
     }

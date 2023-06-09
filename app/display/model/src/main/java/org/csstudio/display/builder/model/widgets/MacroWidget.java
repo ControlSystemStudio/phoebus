@@ -103,7 +103,7 @@ public class MacroWidget extends VisibleWidget
     @Override
     public void expandMacros(final Macros input)
     {
-        macros.getValue().expand(input);
+        macros.getValue().expandValues(input);
     }
 
     /** {@inheritDoc} */

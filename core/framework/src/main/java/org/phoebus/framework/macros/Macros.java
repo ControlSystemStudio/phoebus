@@ -243,7 +243,7 @@ public class Macros implements MacroValueProvider
      *  then adding the expanded specs.
      *  @param base Base values (already expanded) to import before expanding specs
      */
-    public void expand(final Macros base)
+    public void expandValues(final Macros base)
     {
         values.clear();
 

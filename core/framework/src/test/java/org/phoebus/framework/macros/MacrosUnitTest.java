@@ -294,9 +294,9 @@ public class MacrosUnitTest
         group.add("T", "group");
 
         // Hierarchically expand specs
-        launcher.expand(prefs);
-        display .expand(launcher);
-        group   .expand(display);
+        launcher.expandValues(prefs);
+        display .expandValues(launcher);
+        group   .expandValues(display);
         System.out.println("Group specs : " + group);
         System.out.println("Group values: " + group.toExpandedString());
 
