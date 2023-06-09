@@ -86,7 +86,7 @@ public class ActionUtil
         {
             // Path to resolve, after expanding macros of action in environment of source widget
             final Macros macros = action.getMacros(); // Not copying, just using action's macros
-            macros.expand(source_widget.getEffectiveMacros());
+            macros.expandValues(source_widget.getEffectiveMacros());
 
             // For display path, use the combined macros...
             expanded_path = MacroHandler.replace(new MacroOrSystemProvider(macros), action.getFile());

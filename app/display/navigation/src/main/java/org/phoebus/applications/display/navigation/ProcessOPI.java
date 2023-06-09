@@ -96,7 +96,7 @@ public class ProcessOPI {
                     try {
                         // Path to resolve, after expanding macros of action in environment of source widget
                         final Macros macros = action.getMacros(); // Not copying, just using action's macros
-                        macros.expand(widget.getEffectiveMacros());
+                        macros.expandValues(widget.getEffectiveMacros());
 
                         // For display path, use the combined macros...
                         String expanded_path = MacroHandler.replace(new MacroOrSystemProvider(macros), action.getFile());
