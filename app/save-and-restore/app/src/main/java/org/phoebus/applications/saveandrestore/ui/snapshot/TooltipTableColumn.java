@@ -35,8 +35,22 @@ public class TooltipTableColumn<T> extends TableColumn<TableEntry, T> {
     private String text;
     private Label label;
 
-    public TooltipTableColumn(){
+    private String tooltip;
 
+    public String getTooltip() {
+        return tooltip;
+    }
+
+    public void setTooltip(String tooltip) {
+        this.tooltip = tooltip;
+        label.setTooltip(new Tooltip(this.tooltip));
+    }
+
+    public TooltipTableColumn(){
+        label = new Label(text);
+        //label.setTooltip(new Tooltip(tooltip));
+        label.setTextAlignment(TextAlignment.CENTER);
+        setGraphic(label);
     }
 
     TooltipTableColumn(String text, String tooltip, int minWidth) {
@@ -45,6 +59,10 @@ public class TooltipTableColumn<T> extends TableColumn<TableEntry, T> {
 
     TooltipTableColumn(String text, String tooltip, int minWidth, int prefWidth, boolean resizable) {
         setup(text, tooltip, minWidth, prefWidth, resizable);
+    }
+
+    public void setPreferredWidth(int prefWidth){
+        setPrefWidth(prefWidth);
     }
 
     public void setup(String text, String tooltip, int minWidth, int prefWidth, boolean resizable) {

@@ -40,8 +40,16 @@ public class SelectionTableColumn extends TooltipTableColumn<Boolean>{
 
     private CheckBox selectAllCheckBox;
 
+    public SelectionTableColumn(){
+
+    }
+
     public SelectionTableColumn(TableView<TableEntry> tableView) {
         super("", "Include this PV when restoring values", 30, 30, false);
+        configure(tableView);
+    }
+
+    public void configure(TableView<TableEntry> tableView){
         setCellValueFactory(new PropertyValueFactory<>("selected"));
         //for those entries, which have a read-only property, disable the checkbox
         setCellFactory(column -> {

@@ -17,20 +17,20 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                 <VBox fx:id="vBox" maxHeight="1.7976931348623157E308" prefWidth="1188.0">
                     <ToolBar prefHeight="40.0">
                         <items>
-                            <ToggleButton fx:id="showLiveReadbackButton" mnemonicParsing="false" >
+                            <ToggleButton fx:id="showLiveReadbackButton" mnemonicParsing="false">
                                 <tooltip>
-                                    <Tooltip text="%toolTipShowLiveReadback"/>
+                                    <Tooltip text="%toolTipShowLiveReadback" />
                                 </tooltip>
                             </ToggleButton>
                             <Pane HBox.hgrow="ALWAYS" />
-                            <ToggleButton fx:id="showHideDeltaPercentageButton" mnemonicParsing="false" >
+                            <ToggleButton fx:id="showHideDeltaPercentageButton" mnemonicParsing="false">
                                 <tooltip>
-                                    <Tooltip text="%toolTipShowHideDeltaPercentageToggleButton"/>
+                                    <Tooltip text="%toolTipShowHideDeltaPercentageToggleButton" />
                                 </tooltip>
                             </ToggleButton>
-                            <ToggleButton fx:id="hideShowEqualItemsButton" mnemonicParsing="false" >
+                            <ToggleButton fx:id="hideShowEqualItemsButton" mnemonicParsing="false">
                                 <tooltip>
-                                    <Tooltip text="%toolTipShowHideEqualToggleButton"/>
+                                    <Tooltip text="%toolTipShowHideEqualToggleButton" />
                                 </tooltip>
                             </ToggleButton>
                         </items>
@@ -74,12 +74,12 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                                     <Insets bottom="5.0" left="5.0" right="5.0" top="6.0" />
                                 </GridPane.margin>
                             </Button>
-                            <Button fx:id="saveSnapshotButton" onAction="#saveSnapshot" userData="false" prefWidth="120.0" text="%saveSnapshot" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+                            <Button fx:id="saveSnapshotButton" onAction="#saveSnapshot" prefWidth="120.0" text="%saveSnapshot" userData="false" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.valignment="CENTER">
                                 <GridPane.margin>
                                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                 </GridPane.margin>
                             </Button>
-                            <Button fx:id="saveSnapshotAndCreateLogEntryButton" onAction="#saveSnapshot" userData="true" prefWidth="120.0" text="%saveSnapshotAndCreateLogEntry" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="CENTER">
+                            <Button fx:id="saveSnapshotAndCreateLogEntryButton" onAction="#saveSnapshot" prefWidth="120.0" text="%saveSnapshotAndCreateLogEntry" userData="true" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="CENTER">
                                 <GridPane.margin>
                                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                 </GridPane.margin>
@@ -95,9 +95,12 @@ save-and-restore UI, this fxml does not make use of TabPane and Tab elements.
                     </GridPane>
                 </VBox>
             </top>
+            <center>
+                <fx:include fx:id="snapshotTableView" maxWidth="1.7976931348623157E308" source="SnapshotTableView.fxml" />
+            </center>
         </BorderPane>
         <VBox fx:id="progressIndicator" alignment="CENTER" focusTraversable="true">
-            <ProgressIndicator />
+            <ProgressIndicator visible="false" />
         </VBox>
     </children>
 </StackPane>

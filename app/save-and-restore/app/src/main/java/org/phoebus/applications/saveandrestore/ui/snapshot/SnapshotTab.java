@@ -122,6 +122,9 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
                     return clazz.getConstructor(SnapshotTab.class)
                             .newInstance(this);
                 }
+                else if(clazz.isAssignableFrom(SnapshotTableViewController.class)){
+                    return clazz.getConstructor().newInstance();
+                }
             } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError("Error",
                         "Failed to open new snapshot tab", e);

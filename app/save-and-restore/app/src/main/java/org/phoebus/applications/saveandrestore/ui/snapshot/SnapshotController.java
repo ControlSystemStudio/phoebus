@@ -168,11 +168,14 @@ public class SnapshotController {
     protected final List<Snapshot> snapshots = new ArrayList<>(10);
 
     @FXML
+    private SnapshotTableViewController snapshotTableViewController;
+
+    @FXML
     public void initialize() {
 
-        snapshotTable = new SnapshotTable(this);
+        //snapshotTable = new SnapshotTable(this);
 
-        borderPane.setCenter(snapshotTable);
+        //borderPane.setCenter(snapshotTable);
 
         saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
                         snapshotDataDirty.not().get() ||
@@ -263,7 +266,7 @@ public class SnapshotController {
             snapshots.add(0, snapshot);
             List<TableEntry> tableEntries = createTableEntries(snapshots.get(0));
             Platform.runLater(() -> {
-                snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
+                snapshotTableViewController.updateTable(tableEntries, snapshots, false, false, false);
             });
         });
     }
