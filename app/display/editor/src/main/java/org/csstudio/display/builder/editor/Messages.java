@@ -95,6 +95,7 @@ public class Messages
                          ShowWidgetTree,
                          Size,
                          Snap,
+                         SortWidgets,
                          UpdateWidgetLocation,
                          UpdateWidgetOrder,
                          UseWidgetClass_TT,
