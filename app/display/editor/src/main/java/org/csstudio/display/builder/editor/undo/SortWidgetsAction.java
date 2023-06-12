@@ -8,6 +8,7 @@
 package org.csstudio.display.builder.editor.undo;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.csstudio.display.builder.editor.DisplayEditor;
@@ -15,9 +16,11 @@ import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
+import org.csstudio.display.builder.model.widgets.TabsWidget;
+import org.csstudio.display.builder.model.widgets.TabsWidget.TabItemProperty;
 import org.phoebus.ui.undo.UndoableAction;
 
-/** Action to sort immediate child widgets of display or group
+/** Action to sort child widgets of display or group
  *  @author Kay Kasemir
  */
 public class SortWidgetsAction extends UndoableAction
@@ -35,8 +38,11 @@ public class SortWidgetsAction extends UndoableAction
         return null;
     }
 
+    /** Children of model or a selected group */
     private final ChildrenProperty children;
-    private final ArrayList<Widget> original;
+
+    /** Original widget order for 'children' and sub-widgets */
+    private final List<List<Widget>> originals = new LinkedList<>();
 
     /** @param editor {@link DisplayEditor} */
     public SortWidgetsAction(final DisplayEditor editor)
@@ -44,12 +50,34 @@ public class SortWidgetsAction extends UndoableAction
         super(Messages.SortWidgets);
         final Widget widget = getWidgetToSort(editor);
         children = ChildrenProperty.getChildren(widget);
-        original = new ArrayList<>(children.getValue());
     }
 
     @Override
     public void run()
     {
+        originals.clear();
+        sort(children);
+    }
+
+    private void sort(final ChildrenProperty children)
+    {
+        // Get original order
+        final List<Widget> original = new ArrayList<>(children.getValue());
+        originals.add(original);
+
+        // Recurse..
+        for (Widget child : original)
+            if (child instanceof TabsWidget)
+                for (TabItemProperty tab : ((TabsWidget)child).propTabs().getValue())
+                    sort(tab.children());
+            else
+            {
+                final ChildrenProperty sub = ChildrenProperty.getChildren(child);
+                if (sub != null)
+                    sort(sub);
+            }
+
+        // .. then sort on this level
         final List<Widget> sorted = new ArrayList<>(original);
         sorted.sort((a, b) ->
         {
@@ -72,10 +100,29 @@ public class SortWidgetsAction extends UndoableAction
     @Override
     public void undo()
     {
+        restore(children);
+    }
+
+    private void restore(final ChildrenProperty children)
+    {
+        // Restore order for this item ...
+        final List<Widget> original = originals.remove(0);
         final List<Widget> sorted = new ArrayList<>(children.getValue());
         for (int i=sorted.size()-1; i>=0; --i)
             children.removeChild(sorted.get(i));
         for (Widget w : original)
             children.addChild(w);
+
+        // .. then recurse
+        for (Widget child : original)
+            if (child instanceof TabsWidget)
+                for (TabItemProperty tab : ((TabsWidget)child).propTabs().getValue())
+                    restore(tab.children());
+            else
+            {
+                final ChildrenProperty sub = ChildrenProperty.getChildren(child);
+                if (sub != null)
+                    restore(sub);
+            }
     }
 }

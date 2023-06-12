@@ -27,8 +27,8 @@ There are several options to change the widget order:
 * Use the "Widget Tree" to drag/drop widgets witin the order
 
 * Select either the widget background or a group widget, then invoke the "Sort Widgets" option
-  from the context menu. This will sort the immediate child widgets of the display or
-  of a group by position, ordering them left to right and top to bottom. If widgets share the same
-  position, they are ordered by name. This can be a quick way to establish a useful "TAB" order,
-  but it may not result in the desired order of overlapping widgets, which requires either manual
-  adjustment or setting widget names that aid in the sort.
+  from the context menu. This will sort the widgets of the display or of a group by position,
+  ordering them left to right and top to bottom.
+  If widgets share the same position, they are ordered by name.
+  This can be a quick way to establish a useful "TAB" order, but it may not result in the desired order
+  of overlapping widgets, which requires either manual adjustment or setting widget names that aid in the sort.
