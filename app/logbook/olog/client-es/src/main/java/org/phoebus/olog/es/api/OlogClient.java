@@ -19,34 +19,23 @@ import com.sun.jersey.multipart.impl.MultiPartWriter;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.LogService;
 import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookException;
 import org.phoebus.logbook.Messages;
 import org.phoebus.logbook.Property;
 import org.phoebus.logbook.SearchResult;
 import org.phoebus.logbook.Tag;
-import org.phoebus.olog.es.api.model.OlogAttachment;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.olog.es.api.model.OlogObjectMappers;
 import org.phoebus.olog.es.api.model.OlogSearchResult;
-import org.phoebus.security.store.SecureStore;
-import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
 import javax.net.ssl.SSLContext;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigInteger;
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.MessageDigest;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -56,9 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.zip.CRC32;
-import java.util.zip.CheckedInputStream;
 
 /**
  * A client to the Olog-es webservice
@@ -210,7 +196,6 @@ public class OlogClient implements LogClient {
      * @throws LogbookException E.g. due to invalid log entry data.
      */
     private LogEntry save(LogEntry log, LogEntry inReplyTo) throws LogbookException {
-        ClientResponse clientResponse = null;
 
         try {
             MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
@@ -218,70 +203,33 @@ public class OlogClient implements LogClient {
             if (inReplyTo != null) {
                 queryParams.putSingle("inReplyTo", Long.toString(inReplyTo.getId()));
             }
-            /*
-            clientResponse = service.path("logs")
-                    .queryParams(queryParams)
-                    .type(MediaType.APPLICATION_JSON)
-                    .header(OLOG_CLIENT_INFO_HEADER, CLIENT_INFO)
-                    .accept(MediaType.APPLICATION_XML)
+
+            FormDataMultiPart form = new FormDataMultiPart();
+            try {
+                form.bodyPart(new FormDataBodyPart("logEntry", OlogObjectMappers.logEntrySerializer.writeValueAsString(log), MediaType.APPLICATION_JSON_TYPE));
+            } catch (JsonProcessingException e) {
+                logger.log(Level.SEVERE, "Got unexpected exception", e);
+                throw e;
+            }
+            log.getAttachments().forEach(attachment -> {
+                // Add all files as represented in the attachment objects. Note that each gets
+                // the "multipart name" files, but that is OK.
+                form.bodyPart(new FileDataBodyPart("files", attachment.getFile()));
+            });
+
+            ClientResponse clientResponse = service.path("logs")
+                    .path("multipart")
+                    .type(MediaType.MULTIPART_FORM_DATA)
                     .accept(MediaType.APPLICATION_JSON)
-                    .put(ClientResponse.class, OlogObjectMappers.logEntrySerializer.writeValueAsString(log));
+                    .put(ClientResponse.class, form);
 
-             */
-
-            //if (clientResponse.getStatus() < 300) {
-                OlogLog createdLog = null; //OlogObjectMappers.logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), OlogLog.class);
-                List<AttachmentLight> attachmentData = log.getAttachments().stream().map(a -> new AttachmentLight((OlogAttachment) a)).collect(Collectors.toList());
-                FormDataMultiPart form = new FormDataMultiPart();
-                try {
-                    form.bodyPart(new FormDataBodyPart("logEntry", OlogObjectMappers.logEntrySerializer.writeValueAsString(log), MediaType.APPLICATION_JSON_TYPE));
-                    form.bodyPart(new FormDataBodyPart("attachmentData", OlogObjectMappers.logEntrySerializer.writeValueAsString(attachmentData), MediaType.APPLICATION_JSON_TYPE));
-                }
-                catch(JsonProcessingException e){
-                    e.printStackTrace();
-                }
-                log.getAttachments().forEach(attachment -> {
-
-                            // Add id only if it is set, otherwise Jersey will complain and cause the submission to fail.
-                            //if (attachment.getId() != null && !attachment.getId().isEmpty()) {
-                            //    form.bodyPart(new FormDataBodyPart("id", attachment.getId()));
-                            //}
-                            form.bodyPart(new FileDataBodyPart("files", attachment.getFile()));
-                            //form.bodyPart(new FormDataBodyPart("filename", attachment.getName()));
-                            //form.bodyPart(new FormDataBodyPart("fileMetadataDescription", attachment.getContentType()));
-                        });
-
-                    ClientResponse attachmentResponse  = service.path("logs")
-                                .path("composite")
-                                //.path(String.valueOf(createdLog.getId()))
-                                .type(MediaType.MULTIPART_FORM_DATA)
-                                //.accept(MediaType.APPLICATION_XML)
-                                .accept(MediaType.APPLICATION_JSON)
-                                .post(ClientResponse.class, form);
-
-                    if (attachmentResponse.getStatus() > 300) {
-                        // TODO failed to add attachments
-                        logger.log(Level.SEVERE, "Failed to submit attachment(s), HTTP status: " + attachmentResponse.getStatus());
-                    }
-
-                    return OlogObjectMappers.logEntryDeserializer.readValue(attachmentResponse.getEntityInputStream(), OlogLog.class);
-
-                    /*
-                clientResponse = service.path("logs").path(String.valueOf(createdLog.getId()))
-                        .type(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .get(ClientResponse.class);
-                return OlogObjectMappers.logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), OlogLog.class);
-                /*
-            } else if (clientResponse.getStatus() == 401) {
-                logger.log(Level.SEVERE, "Submission of log entry returned HTTP status, invalid credentials");
-                throw new LogbookException(Messages.SubmissionFailedInvalidCredentials);
-            } else {
-                logger.log(Level.SEVERE, "Submission of log entry returned HTTP status" + clientResponse.getStatus());
-                throw new LogbookException(MessageFormat.format(Messages.SubmissionFailedWithHttpStatus, clientResponse.getStatus()));
+            if (clientResponse.getStatus() > 300) {
+                logger.log(Level.SEVERE, "Failed to create log entry: " + clientResponse.toString());
+                throw new LogbookException(clientResponse.toString());
             }
 
-                 */
+            return OlogObjectMappers.logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), OlogLog.class);
+
         } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
             logger.log(Level.SEVERE, "Failed to submit log entry, got client exception", e);
             throw new LogbookException(e);
@@ -342,11 +290,11 @@ public class OlogClient implements LogClient {
                             .get(String.class),
                     OlogSearchResult.class);
             return SearchResult.of(new ArrayList<>(ologSearchResult.getLogs()),
-                                   ologSearchResult.getHitCount());
+                    ologSearchResult.getHitCount());
         } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
             logger.log(Level.WARNING, "failed to retrieve log entries", e);
-            if(e instanceof UniformInterfaceException){
-                if(((UniformInterfaceException) e).getResponse().getStatus() == Status.BAD_REQUEST.getStatusCode()){
+            if (e instanceof UniformInterfaceException) {
+                if (((UniformInterfaceException) e).getResponse().getStatus() == Status.BAD_REQUEST.getStatusCode()) {
                     throw new RuntimeException(Messages.BadRequestFailure);
                 }
             }
@@ -505,7 +453,7 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public void groupLogEntries(List<Long> logEntryIds) throws LogbookException{
+    public void groupLogEntries(List<Long> logEntryIds) throws LogbookException {
         try {
             ClientResponse clientResponse = service.path("logs/group")
                     .type(MediaType.APPLICATION_JSON)
@@ -548,74 +496,8 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public String serviceInfo(){
+    public String serviceInfo() {
         ClientResponse clientResponse = service.path("").get(ClientResponse.class);
         return clientResponse.getEntity(String.class);
-    }
-
-    private static long getChecksumCRC32(File file, int bufferSize)
-            throws IOException {
-        InputStream stream = new FileInputStream(file);
-        CheckedInputStream checkedInputStream = new CheckedInputStream(stream, new CRC32());
-        byte[] buffer = new byte[bufferSize];
-        while (checkedInputStream.read(buffer, 0, buffer.length) >= 0) {}
-        return checkedInputStream.getChecksum().getValue();
-    }
-
-    private static String getMD5Checksum(String filePath) throws Exception{
-        byte[] data = Files.readAllBytes(Paths.get(filePath));
-        byte[] hash = MessageDigest.getInstance("MD5").digest(data);
-        return new BigInteger(1, hash).toString(16);
-    }
-
-    private static class AttachmentLight{
-        private String id;
-        private String fileName;
-        private String contentType;
-
-        private String checksum;
-
-        public AttachmentLight(OlogAttachment attachment){
-            this.id = attachment.getId();
-            this.fileName = attachment.getFileName();
-            this.contentType = attachment.getContentType();
-            try {
-                this.checksum = getMD5Checksum(attachment.getFile().getAbsolutePath());
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public void setId(String id) {
-            this.id = id;
-        }
-
-        public String getFileName() {
-            return fileName;
-        }
-
-        public void setFileName(String fileName) {
-            this.fileName = fileName;
-        }
-
-        public String getContentType() {
-            return contentType;
-        }
-
-        public void setContentType(String contentType) {
-            this.contentType = contentType;
-        }
-
-        public String getChecksum() {
-            return checksum;
-        }
-
-        public void setChecksum(String checksum) {
-            this.checksum = checksum;
-        }
     }
 }
