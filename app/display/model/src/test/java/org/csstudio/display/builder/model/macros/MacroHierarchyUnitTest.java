@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -27,34 +27,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 @SuppressWarnings("nls")
 public class MacroHierarchyUnitTest
 {
-    /** Test Macro Hierarchy
-     */
+    /** Test Macro Hierarchy */
     @Test
     public void testMacroHierarchy()
     {
-        // Macros start out empty
-        MacroValueProvider macros = new Macros();
-        System.out.println(macros);
-        assertThat(macros.toString(), equalTo("[]"));
+        // prefs -> model -> group1 -> group2 -> child
 
-        // Preferences (at least in test setup where there is no preferences service)
-        macros = Preferences.getMacros();
-        System.out.println(macros);
-        assertThat(macros.getValue("EXAMPLE_MACRO"), equalTo("Value from Preferences"));
-
-        // Display model uses preferences
-        final DisplayModel model = new DisplayModel();
-        macros = model.getEffectiveMacros();
-        System.out.println(macros);
-        assertThat(macros.getValue("EXAMPLE_MACRO"), equalTo("Value from Preferences"));
-
-        // .. but display can replace this value
-        model.propMacros().getValue().add("EXAMPLE_MACRO", "Value from Display");
-        macros = model.getEffectiveMacros();
-        System.out.println(macros);
-        assertThat(macros.getValue("EXAMPLE_MACRO"), equalTo("Value from Display"));
-
-        // Similar, groups can replace macros
         final LabelWidget child = new LabelWidget();
 
         final GroupWidget group2 = new GroupWidget();
@@ -65,8 +43,22 @@ public class MacroHierarchyUnitTest
         group1.propMacros().getValue().add("EXAMPLE_MACRO", "In Group 1");
         group1.runtimeChildren().addChild(group2);
 
+        final DisplayModel model = new DisplayModel();
+        model.propMacros().getValue().add("TITLE", "Display Title");
         model.runtimeChildren().addChild(group1);
 
+        Macros prefs = new Macros();
+        prefs.add("EXAMPLE_MACRO", "Value from Preferences");
+
+        // Expand macros of model, recursively, with prefs as input
+        model.expandMacros(prefs);
+
+        // Model inherits from prefs
+        Macros macros = model.getEffectiveMacros();
+        System.out.println(macros);
+        assertThat(macros.getValue("EXAMPLE_MACRO"), equalTo("Value from Preferences"));
+
+        // Groups replace...
         macros = group1.getEffectiveMacros();
         System.out.println(macros);
         assertThat(macros.getValue("EXAMPLE_MACRO"), equalTo("In Group 1"));
@@ -75,22 +67,21 @@ public class MacroHierarchyUnitTest
         System.out.println(macros);
         assertThat(macros.getValue("EXAMPLE_MACRO"), equalTo("In Group 2"));
 
+        // child has replacement from group2 but also inherited macros
         macros = child.getEffectiveMacros();
         System.out.println(macros);
         assertThat(macros.getValue("EXAMPLE_MACRO"), equalTo("In Group 2"));
-
-        // Finally, the EmbeddedDisplayWidget can replace macros,
-        // but testing that requires the runtime to load the embedded content
-        // --> Leaving that to examples/macros
+        assertThat(macros.getValue("TITLE"), equalTo("Display Title"));
     }
 
-    /** Test access to widget properties, Java properties and environment
-     */
+    /** Test access to widget properties, Java properties and environment */
     @Test
     public void testPropertiesAndEnvironment()
     {
         // Display model uses preferences
         final DisplayModel model = new DisplayModel();
+        model.expandMacros(Preferences.getMacros());
+
         MacroValueProvider macros = model.getEffectiveMacros();
         assertThat(macros.getValue("EXAMPLE_MACRO"), equalTo("Value from Preferences"));
 
@@ -108,11 +99,10 @@ public class MacroHierarchyUnitTest
         // Check fall back to environment variables
         value = macros.getValue("HOME");
         System.out.println("Environment variable $HOME: " + value);
-        if(System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) {
+        if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0)
             assertThat(value, nullValue());
-        }else {
+        else
             assertThat(value, not(nullValue()));
-        }
     }
 
     /** Test when macros get expanded
@@ -140,23 +130,18 @@ public class MacroHierarchyUnitTest
         model.propMacros().getValue().add("P", "display");
         group.propMacros().getValue().add("P", "group");
         subgroup.propMacros().getValue().add("P", "subgroup");
+        model.expandMacros(null);
         Macros macros = label.getEffectiveMacros();
-        System.out.println(macros);
+        System.out.println(macros.toExpandedString());
         assertThat(macros.getValue("P"), equalTo("subgroup"));
 
         // When are macros expanded?
-        // In BOY, they were mostly expanded when set,
-        // except the following example would fail if all widgets
-        // were within one display.
         model.propMacros().getValue().add("P", "display");
 
-        // If macros are expanded early on,
-        // this sets SAVE=display,
-        // then redefines P
+        // Group has P=group, so SAVE=group
         group.propMacros().getValue().add("SAVE", "$(P)");
-        group.propMacros().getValue().add("P", "group");
 
-        // .. and this would restore P='display', since that's what's im $(SAVE):
+        // Subgroup had set P to subgroup, but now updates it to $(SAVE)=group
         subgroup.propMacros().getValue().add("P", "$(SAVE)");
 
         // With lazy macro expansion,
@@ -164,13 +149,10 @@ public class MacroHierarchyUnitTest
         // so $(P) results in a "recursive macro" error.
 
         // When macros are expanded as the runtime starts..
-        DisplayMacroExpander.expandDisplayMacros(model);
+        model.expandMacros(null);
 
-        // ..you get $(P)="group", since 'subgroup' defines 'P' as
-        // '$(SAVE)', and 'group' defines 'SAVE' as '$(P)' and
-        // 'P' as 'group'.
         macros = label.getEffectiveMacros();
-        System.out.println(macros);
+        System.out.println(macros.toExpandedString());
         assertThat(macros.getValue("P"), equalTo("group"));
         assertThat(MacroHandler.replace(macros, "$(P)"), equalTo("group"));
     }

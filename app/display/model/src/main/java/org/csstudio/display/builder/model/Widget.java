@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -728,6 +728,14 @@ public class Widget
             final Object value) throws Exception
     {
         getProperty(name).setValueFromObject(value);
+    }
+
+    /** Expand macros for this widget and potential child widgets
+     *  @param input Input that should be used to expand macros
+     */
+    public void expandMacros(final Macros input)
+    {
+        // Plain widget has no macros to expand
     }
 
     /** Determine effective macros.

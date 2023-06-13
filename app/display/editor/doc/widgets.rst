@@ -12,3 +12,4 @@ organized based on functionality as shown below
 
    widgets_properties
    widgets_classes
+   widgets_order

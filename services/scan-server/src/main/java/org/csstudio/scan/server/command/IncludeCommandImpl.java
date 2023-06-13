@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2013-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -47,6 +47,8 @@ public class IncludeCommandImpl extends ScanCommandImpl<IncludeCommand>
         // Parse scan
         final List<String> paths = ScanServerInstance.getScanConfig().getScriptPaths();
         final InputStream scan_stream = PathStreamTool.openStream(paths, command.getScanFile());
+        if (scan_stream == null)
+            throw new Exception(command + " cannot open '" + command.getScanFile() + "'");
         final List<ScanCommand> commands = XMLCommandReader.readXMLStream(scan_stream);
 
         // Implement

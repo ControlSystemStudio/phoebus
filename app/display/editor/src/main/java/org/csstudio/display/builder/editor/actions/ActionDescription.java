@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -24,6 +24,7 @@ import org.csstudio.display.builder.editor.DisplayEditor;
 import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.editor.app.DisplayEditorInstance;
 import org.csstudio.display.builder.editor.undo.SetWidgetPropertyAction;
+import org.csstudio.display.builder.editor.undo.SortWidgetsAction;
 import org.csstudio.display.builder.editor.undo.UpdateWidgetOrderAction;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.DisplayModel;
@@ -837,6 +838,17 @@ public abstract class ActionDescription
                 undo.execute(new SetWidgetPropertyAction<>(widget.propY(), location));
                 height = widget.propHeight().getValue();
             }
+        }
+    };
+
+    /** Sort widgets */
+    public static final ActionDescription SORT_WIDGETS =
+        new ActionDescription("icons/sort.png", Messages.SortWidgets)
+    {
+        @Override
+        public void run(final DisplayEditor editor, final boolean selected)
+        {
+            editor.getUndoableActionManager().execute(new SortWidgetsAction(editor));
         }
     };
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,21 +7,45 @@
  *******************************************************************************/
 package org.phoebus.framework.macros;
 
+import java.util.AbstractMap;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-/** Macro information
+/** Macro specifications and expanded runtime values
  *
- *  <p>Holds macros and their value
+ *  <p>Macro specifications are an ordered list of name-value-pairs:
+ *  <pre>
+ *  A=a
+ *  B=b
+ *  X=$(A)
+ *  A=$(B)
+ *  B=$(X)
+ *  </pre>
+ *
+ *  <p>Macro specifications are used to configure for example
+ *  display widgets.
+ *  At runtime, they are expanded, typically based on macros
+ *  passed in from a container.
+ *  Assuming that a container provides
+ *  <pre>COUNT=42</pre>
+ *  the above specification will result in
+ *  <pre>
+ *  A=b
+ *  B=a
+ *  COUNT=42
+ *  X=a
+ *  </pre>
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -30,19 +54,26 @@ public class Macros implements MacroValueProvider
     /** Logger for macro related messages */
     public static final Logger logger = Logger.getLogger(Macros.class.getPackageName());
 
-    // Using linked map for predictable order.
-    //
-    // Example, a tool that tries to first "save" a current macro value in another macro,
-    // then set it to a new value like this depends on the order of macros:
-    // SAVE = $(M), M = "new value"
-    //
-    // (At the same time, getNames() always sorts alphabetically, so does order still matter?)
-    //
-    // SYNC on access
-    private final Map<String, String> macros = new LinkedHashMap<>();
-
     /** Regular expression for valid macro names */
     public final static Pattern MACRO_NAME_PATTERN = Pattern.compile("[A-Za-z][A-Za-z0-9_.\\-\\[\\]]*");
+
+    /** List of name-value pairs for macro specification.
+     *  Order of macro definitions is preserved.
+     *  Multiple specifications for the same macro will re-define its value.
+     *  Thread-safe using COWAL assuming that specifications are usually short,
+     *  between none and just a few per display widget.
+     */
+    private final CopyOnWriteArrayList<AbstractMap.SimpleImmutableEntry<String, String>> specs = new CopyOnWriteArrayList<>();
+
+    /** Map of macro name to (expanded) macro value
+     *  Order of macro definitions is not preserved,
+     *  emphasis is on fast lookup of values by name.
+     *  Each macro has exactly one value, holding the
+     *  last one from the specification in case specification
+     *  re-defines it.
+     *  Thread-safe.
+     */
+    private final ConcurrentHashMap<String, String> values = new ConcurrentHashMap<>();
 
     /** Check macro name
      *
@@ -87,7 +118,7 @@ public class Macros implements MacroValueProvider
      *  <pre> MSG = "This is a \"Message\""</pre>
      *
      *  @param names_and_values "M1=Value1, M2=Value2"
-     *  @return {@link Macros}
+     *  @return {@link Macros2}
      *  @throws Exception on error
      */
     public static Macros fromSimpleSpec(final String names_and_values) throws Exception
@@ -158,19 +189,14 @@ public class Macros implements MacroValueProvider
             if (value == null)
                 throw new Exception("Error parsing '" + names_and_values + "': Missing value");
 
-            // Legacy tools like EDM would allow "S=$(S)" to pass existing macros,
-            // which we now consider a recursive macro error, so ignore.
-            if (value.equals("$(" + name + ")"))
-                logger.log(Level.WARNING, "Ignoring recursive macro " + name + " = " + value);
-            else
-                macros.add(name, value);
+            macros.add(name, value);
             pos = end;
         }
 
         return macros;
     }
 
-    /** Create empty macro map */
+    /** Create empty macros */
     public Macros()
     {
     }
@@ -181,158 +207,159 @@ public class Macros implements MacroValueProvider
     public Macros(final Macros other)
     {
         if (other != null)
-            synchronized (other.macros)
-            {
-                synchronized (macros)
-                {
-                    macros.putAll(other.macros);
-                }
-            }
+        {
+            specs.addAll(other.specs);
+            values.putAll(other.values);
+        }
     }
 
-    /** @return Are the macros empty? */
+    /** @return Are there any macro specifications? */
     public boolean isEmpty()
     {
-        synchronized (macros)
-        {
-            return macros.isEmpty();
-        }
+        return specs.isEmpty();
     }
 
-    /** Merge two macro maps
-     *
-     *  <p>Optimized for cases where <code>base</code> or <code>addition</code> are empty,
-     *  but will never _change_ any macros.
-     *  If a merge is necessary, it returns a new <code>Macros</code> instance.
-     *
-     *  @param base Base macros
-     *  @param addition Additional macros that may override 'base'
-     *  @return Merged macros
-     */
-    public static Macros merge(final Macros base, final Macros addition)
-    {
-        // Optimize if one is empty
-        if (addition == null  ||  addition.isEmpty())
-            return base;
-        if (base == null  ||  base.isEmpty())
-            return addition;
-        // Construct new macros
-        final Macros merged = new Macros();
-        synchronized (base.macros)
-        {
-            merged.macros.putAll(base.macros);
-        }
-        synchronized (addition.macros)
-        {
-            merged.macros.putAll(addition.macros);
-        }
-        return merged;
-    }
-
-    /** Add a macro
+    /** Add a macro specification
      *  @param name Name of the macro
-     *  @param value Value of the macro
+     *  @param spec Specification of the macro, that is value that might contain "$(NAME)"
      *  @throws IllegalArgumentException for illegal macro name
      *  @see #checkMacroName(String)
      */
-    public void add(final String name, final String value)
+    public void add(final String name, final String spec)
     {
         final String error = checkMacroName(name);
         if (error != null)
             throw new IllegalArgumentException(error);
-        synchronized (macros)
-        {
-            macros.put(name, value);
-        }
+        specs.add(new SimpleImmutableEntry<>(name, spec));
+        // Expand this name=spec right away so getValue() won't return null.
+        // Complete expansion typically requires calling expand(base)
+        expandSpec(name, spec);
     }
 
-    /** @return Macro names, sorted alphabetically */
-    public Collection<String> getNames()
-    {
-        final List<String> names;
-        synchronized (macros)
-        {
-            names = new ArrayList<>(macros.keySet());
-        }
-        Collections.sort(names);
-        return names;
-    }
-
-    /** Perform given action for each name/value (names are not sorted)
-     *  @param action Invoked with each name/value
+    /** Expand macro specs into values
+     *
+     *  <p>The macro specifications remain unchanged,
+     *  while the values are set to the input's values,
+     *  then adding the expanded specs.
+     *  @param base Base values (already expanded) to import before expanding specs
      */
-    public void forEach(final BiConsumer<String, String> action)
+    public void expandValues(final Macros base)
     {
-        synchronized (macros)
-        {
-            macros.forEach(action);
-        }
-    }
+        values.clear();
 
-    /** Expand values of all macros
-     *  @param input Value provider, usually from the 'parent' widget
-     *  @throws Exception on error
-     */
-    public void expandValues(final MacroValueProvider input) throws Exception
-    {
-        synchronized (macros)
+        // Add all base values (already expanded)
+        if (base != null)
+            values.putAll(base.values);
+
+        // Add expanded specs
+        for (AbstractMap.SimpleImmutableEntry<String, String> spec : specs)
         {
-            for (String name : macros.keySet())
+            final String name = spec.getKey();
+            final String expanded = expandSpec(name, spec.getValue());
+            if (MacroHandler.containsMacros(expanded))
             {
-                final String orig = macros.get(name);
-                final String expanded = MacroHandler.replace(input, orig);
-                if (! expanded.equals(orig))
-                    macros.put(name, expanded);
+                // Not fatal, in fact common when creating displays,
+                // but log with exception to get stack trace in case
+                // origin of macro needs to be debugged
+                logger.log(Level.WARNING, "Incomplete macro expansion " + name + "='" + expanded + "'",
+                           new Exception("Macro spec " + name + "='" + spec + "' does not fully resolve"));
             }
         }
     }
 
-    /** {@inheritDoc} */
+    /** Expand a macro spec
+     *  @param name Name of the macro
+     *  @param spec Specification of the macro, may contain macros "$(NAME)" or "${NAME}" which will be expanded
+     *  @return Expanded value
+     */
+    private String expandSpec(final String name, final String spec)
+    {
+        String expanded;
+        try
+        {
+            expanded = MacroHandler.replace(this, spec);
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Failed to expand " + name + "='" + spec + "'", ex);
+            expanded = spec;
+        }
+        values.put(name, expanded);
+        return expanded;
+    }
+
+    /** @return Names of expanded macros, sorted alphabetically */
+    public Collection<String> getNames()
+    {
+        final List<String> names = new ArrayList<>(values.keySet());
+        Collections.sort(names);
+        return names;
+    }
+
+    /** Get value for macro
+     *  @param name Name of the macro
+     *  @return Expanded value of the macro or <code>null</code> if not defined or macro specs have not been expanded
+     */
     @Override
     public String getValue(final String name)
     {
-        synchronized (macros)
-        {
-            return macros.get(name);
-        }
+        return values.get(name);
     }
 
-    // Hash based on content
+    /** Visit a thread-safe snapshot of all macro specifications
+     *  @param action Invoked with each macro name and value specification
+     */
+    public void forEachSpec(final BiConsumer<String, String> action)
+    {
+        specs.forEach(entry -> action.accept(entry.getKey(), entry.getValue()));
+    }
+
+    /** Visit a thread-safe snapshot of all expanded macro values
+     *  @param action Invoked with each macro name and expanded value
+     */
+    public void forEach(final BiConsumer<String, String> action)
+    {
+        values.forEach(action);
+    }
+
+    // Hash based on specs
     @Override
     public int hashCode()
     {
-        synchronized (macros)
-        {
-            return macros.hashCode();
-        }
+        return specs.hashCode();
     }
 
-    // Compare based on content
+    // Compare based on specs
     @Override
     public boolean equals(final Object obj)
     {
         if (! (obj instanceof Macros))
             return false;
         final Macros other = (Macros) obj;
-        synchronized (other.macros)
-        {
-            synchronized (macros)
-            {
-                return other.macros.equals(macros);
-            }
-        }
+        return other.specs.equals(specs);
     }
 
-    /** @return String representation for debugging */
+    /** @return String representation of macro specs for debugging
+     *  @see #toExpandedString()
+     */
     @Override
     public String toString()
     {
-        synchronized (macros)
-        {
-            return "[" + getNames().stream()
-                                   .map((macro) -> macro + " = '" + macros.get(macro) + "'")
-                                   .collect(Collectors.joining(", ")) +
-                   "]";
-        }
+        return "[" + specs.stream()
+                          .map(entry -> entry.getKey() + "='" + entry.getValue() + "'")
+                          .collect(Collectors.joining(",")) +
+               "]";
     }
+
+    /** @return String representation of expanded macros for debugging
+     *  @see #toString()
+     */
+    public String toExpandedString()
+    {
+        return "[" + getNames().stream()
+                               .map((macro) -> macro + "='" + getValue(macro) + "'")
+                               .collect(Collectors.joining(",")) +
+               "]";
+    }
+
 }

@@ -9,6 +9,7 @@ import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.phoebus.framework.macros.MacroHandler;
+import org.phoebus.framework.macros.MacroOrSystemProvider;
 import org.phoebus.framework.macros.Macros;
 
 import java.io.File;
@@ -93,10 +94,14 @@ public class ProcessOPI {
                     // Path to resolve, after expanding macros of source widget and action
                     OpenDisplayActionInfo action = (OpenDisplayActionInfo) openAction;
                     try {
-                        final Macros expanded = new Macros(action.getMacros());
-                        expanded.expandValues(widget.getEffectiveMacros());
-                        final Macros macros = Macros.merge(widget.getEffectiveMacros(), expanded);
-                        final String expanded_path = MacroHandler.replace(macros, action.getFile());
+                        // Path to resolve, after expanding macros of action in environment of source widget
+                        final Macros macros = action.getMacros(); // Not copying, just using action's macros
+                        macros.expandValues(widget.getEffectiveMacros());
+
+                        // For display path, use the combined macros...
+                        String expanded_path = MacroHandler.replace(new MacroOrSystemProvider(macros), action.getFile());
+                        // .. but fall back to properties
+                        expanded_path = MacroHandler.replace(widget.getMacrosOrProperties(), expanded_path);
 
                         String resource = ModelResourceUtil.resolveResource(file.getPath(), expanded_path);
                         result.add(new File(resource));
