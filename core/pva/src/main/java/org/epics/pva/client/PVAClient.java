@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -262,9 +262,14 @@ public class PVAClient implements AutoCloseable
             }
             return null;
         });
-        // In case of connection errors (TCP connection blocked by firewall),
-        // tcp will be null
-        if (tcp != null)
+        // In case of connection errors, tcp will be null
+        if (tcp == null)
+        {   // Cannot connect to server on provided port? Likely a server or firewall problem.
+            // On the next search, that same server might reply and then we fail the same way on connect.
+            // Still, no way around re-registering the search so we succeed once the server is fixed.
+            search.register(channel, false /* not "now" but eventually */);
+        }
+        else
         {
             if (tcp.updateGuid(guid))
                 logger.log(Level.FINE, "Search-only TCP handler received GUID, now " + tcp);
