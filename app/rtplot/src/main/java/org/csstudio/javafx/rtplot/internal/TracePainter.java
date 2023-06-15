@@ -89,8 +89,9 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
             return;
 
         final TraceType type = trace.getType();
-        logger.log(Level.FINE, () -> "Painting trace type " + type.toString());
-        if (type == TraceType.NONE)
+        final PointType point_type = trace.getPointType();
+        logger.log(Level.FINE, () -> "Painting trace type " + type.toString() + ", points " + point_type.toString());
+        if (type == TraceType.NONE  &&  point_type == PointType.NONE)
             return;
 
         x_min = bounds.x - OUTSIDE;
@@ -224,7 +225,6 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
                 drawValueStaircase(gc, x_transform, y_axis, data, start, end, trace.getWidth(), trace.getLineStyle());
             }
 
-            final PointType point_type = trace.getPointType();
             if (point_type != PointType.NONE)
                 drawPoints(gc, x_transform, y_axis, data, point_type, trace.getPointSize());
         }
