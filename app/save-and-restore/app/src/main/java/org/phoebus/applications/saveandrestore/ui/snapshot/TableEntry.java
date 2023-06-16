@@ -10,29 +10,11 @@
  */
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import org.epics.vtype.AlarmSeverity;
-import org.epics.vtype.AlarmStatus;
-import org.epics.vtype.VEnum;
-import org.epics.vtype.VEnumArray;
-import org.epics.vtype.VNumber;
-import org.epics.vtype.VNumberArray;
-import org.epics.vtype.VType;
-import org.phoebus.applications.saveandrestore.common.Threshold;
-import org.phoebus.applications.saveandrestore.common.Utilities;
-import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
-import org.phoebus.applications.saveandrestore.common.VNoData;
+import javafx.beans.property.*;
+import org.epics.vtype.*;
+import org.phoebus.applications.saveandrestore.common.*;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.ui.SingleListenerBooleanProperty;
-import org.phoebus.applications.saveandrestore.common.VTypePair;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -52,8 +34,7 @@ public class TableEntry {
     private final IntegerProperty id = new SimpleIntegerProperty(this, "id");
     private final SingleListenerBooleanProperty selected = new SingleListenerBooleanProperty(this, "selected", true);
     private final StringProperty pvName = new SimpleStringProperty(this, "pvName");
-    private final ObjectProperty<Instant> liveTimestamp = new SimpleObjectProperty<>(this, "liveTimestamp");
-    private final ObjectProperty<Instant> storedTimestamp = new SimpleObjectProperty<>(this, "storedTimestamp");
+    private final ObjectProperty<Instant> timestamp = new SimpleObjectProperty<>(this, "timestamp");
     private final StringProperty liveStatus = new SimpleStringProperty(this, "liveStatus", null);
     private final StringProperty storedStatus = new SimpleStringProperty(this, "storedStatus", AlarmStatus.UNDEFINED.name());
     private final StringProperty liveSeverity = new SimpleStringProperty(this, "liveSeverity", null);
@@ -62,7 +43,7 @@ public class TableEntry {
      * Snapshot value set either when user takes snapshot, or when snapshot data is loaded from remote service. Note that this
      * can be modified if user chooses to use a multiplier before triggering a restore operation.
      */
-    private final ObjectProperty<VType> snapshotVal = new SimpleObjectProperty<>(this, "snapshotValue", VNoData.INSTANCE);
+    private final ObjectProperty<VType> snapshotVal = new SimpleObjectProperty<>(this, "storedSetpoint", VNoData.INSTANCE);
 
     /**
      * Snapshot value as loaded from remote service
@@ -162,13 +143,6 @@ public class TableEntry {
     }
 
     /**
-     * @return the property providing the timestamp of the primary snapshot value
-     */
-    public ObjectProperty<Instant> liveTimestampProperty() {
-        return liveTimestamp;
-    }
-
-    /**
      * @return the property providing the alarm status of the PV value
      */
     public StringProperty liveStatusProperty() {
@@ -224,16 +198,16 @@ public class TableEntry {
         return readOnly;
     }
 
-    public Instant getStoredTimestamp() {
-        return storedTimestamp.get();
+    public Instant getTimestamp() {
+        return timestamp.get();
     }
 
-    public ObjectProperty<Instant> storedTimestampProperty() {
-        return storedTimestamp;
+    public ObjectProperty<Instant> timestampProperty() {
+        return timestamp;
     }
 
-    public void setStoredTimestamp(Instant storedTimestamp) {
-        this.storedTimestamp.set(storedTimestamp);
+    public void setTimestamp(Instant timestamp) {
+        this.timestamp.set(timestamp);
     }
 
     public String getStoredStatus() {
@@ -297,27 +271,27 @@ public class TableEntry {
             if (val instanceof VNumber) {
                 storedStatus.set(((VNumber) val).getAlarm().getStatus().name());
                 storedSeverity.set(((VNumber) val).getAlarm().getSeverity().toString());
-                storedTimestamp.set(((VNumber) val).getTime().getTimestamp());
+                timestamp.set(((VNumber) val).getTime().getTimestamp());
             } else if (val instanceof VNumberArray) {
                 storedStatus.set(((VNumberArray) val).getAlarm().getStatus().name());
                 storedSeverity.set(((VNumberArray) val).getAlarm().getSeverity().toString());
-                storedTimestamp.set(((VNumberArray) val).getTime().getTimestamp());
+                timestamp.set(((VNumberArray) val).getTime().getTimestamp());
             } else if (val instanceof VEnum) {
                 storedStatus.set(((VEnum) val).getAlarm().getStatus().name());
                 storedSeverity.set(((VEnum) val).getAlarm().getSeverity().toString());
-                storedTimestamp.set(((VEnum) val).getTime().getTimestamp());
+                timestamp.set(((VEnum) val).getTime().getTimestamp());
             } else if (val instanceof VEnumArray) {
                 storedStatus.set(((VEnumArray) val).getAlarm().getStatus().name());
                 storedSeverity.set(((VEnumArray) val).getAlarm().getSeverity().toString());
-                storedTimestamp.set(((VEnumArray) val).getTime().getTimestamp());
+                timestamp.set(((VEnumArray) val).getTime().getTimestamp());
             } else if (val instanceof VNoData) {
-                storedStatus.set(null);
+                storedStatus.set("---");
                 storedSeverity.set("---");
-                storedTimestamp.set(null);
+                timestamp.set(null);
             } else {
                 storedStatus.set(AlarmSeverity.NONE.toString());
                 storedSeverity.set("---");
-                storedTimestamp.set(null);
+                timestamp.set(null);
             }
             snapshotVal.set(val);
             storedSnapshotValue.set(val);
@@ -392,28 +366,27 @@ public class TableEntry {
         if (val instanceof VNumber) {
             liveStatus.set(((VNumber) val).getAlarm().getStatus().name());
             liveSeverity.set(((VNumber) val).getAlarm().getSeverity().toString());
-            liveTimestamp.set(((VNumber) val).getTime().getTimestamp());
+            timestamp.set(((VNumber) val).getTime().getTimestamp());
         } else if (val instanceof VNumberArray) {
             liveStatus.set(((VNumberArray) val).getAlarm().getStatus().name());
             liveSeverity.set(((VNumberArray) val).getAlarm().getSeverity().toString());
-            liveTimestamp.set(((VNumberArray) val).getTime().getTimestamp());
+            timestamp.set(((VNumberArray) val).getTime().getTimestamp());
         } else if (val instanceof VEnum) {
             liveStatus.set(((VEnum) val).getAlarm().getStatus().name());
             liveSeverity.set(((VEnum) val).getAlarm().getSeverity().toString());
-            liveTimestamp.set(((VEnum) val).getTime().getTimestamp());
+            timestamp.set(((VEnum) val).getTime().getTimestamp());
         } else if (val instanceof VEnumArray) {
             liveStatus.set(((VEnumArray) val).getAlarm().getStatus().name());
             liveSeverity.set(((VEnumArray) val).getAlarm().getSeverity().toString());
-            liveTimestamp.set(((VEnumArray) val).getTime().getTimestamp());
-        } else if(val instanceof VDisconnectedData){
+            timestamp.set(((VEnumArray) val).getTime().getTimestamp());
+        } else if (val instanceof VDisconnectedData) {
             liveSeverity.set(null);
             liveStatus.set("---");
-            liveTimestamp.set(null);
-        }
-        else {
+            timestamp.set(null);
+        } else {
             liveSeverity.set(AlarmSeverity.NONE.toString());
             liveStatus.set("---");
-            liveTimestamp.set(null);
+            timestamp.set(null);
         }
     }
 
@@ -437,7 +410,8 @@ public class TableEntry {
         }
     }
 
-    public ObjectProperty<VType> getStoredSnapshotValue(){
+    public ObjectProperty<VType> getStoredSnapshotValue() {
         return storedSnapshotValue;
     }
+
 }

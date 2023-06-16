@@ -143,8 +143,8 @@ class SnapshotTable extends TableView<TableEntry> {
                         List<TimeStampedProcessVariable> selectedPVList = getSelectionModel().getSelectedItems().stream()
                                 .map(tableEntry -> {
                                     Instant time = Instant.now();
-                                    if (tableEntry.liveTimestampProperty().getValue() != null) {
-                                        time = tableEntry.liveTimestampProperty().getValue();
+                                    if (tableEntry.timestampProperty().getValue() != null) {
+                                        time = tableEntry.timestampProperty().getValue();
                                     }
                                     return new TimeStampedProcessVariable(tableEntry.pvNameProperty().get(), time);
                                 })

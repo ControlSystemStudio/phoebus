@@ -194,6 +194,8 @@ public class SnapshotController {
         // Do not show the create log entry button if no event receivers have been registered
         saveSnapshotAndCreateLogEntryButton.visibleProperty().set(eventReceivers.iterator().hasNext());
 
+        snapshotTableViewController.setSnapshotController(this);
+
         initializeCommonComponents();
     }
 
@@ -290,7 +292,7 @@ public class SnapshotController {
                     snapshot.setSnapshotData(snapshotData);
                     snapshots.set(0, snapshot);
                     List<TableEntry> tableEntries = createTableEntries(snapshots.get(0));
-                    snapshotTable.updateTable(tableEntries, snapshots, showLiveReadbackProperty.get(), false, showDeltaPercentage);
+                    snapshotTableViewController.updateTable(tableEntries, snapshots, showLiveReadbackProperty.get(), false, showDeltaPercentage);
                 
                     if (!Preferences.default_snapshot_name_date_format.equals("")) {
                             SimpleDateFormat formater = new SimpleDateFormat(Preferences.default_snapshot_name_date_format);

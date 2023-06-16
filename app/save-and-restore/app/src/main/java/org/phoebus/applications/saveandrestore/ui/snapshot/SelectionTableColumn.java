@@ -26,7 +26,6 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.CheckBoxTableCell;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseButton;
 import org.phoebus.applications.saveandrestore.common.VNoData;
 
@@ -40,8 +39,11 @@ public class SelectionTableColumn extends TooltipTableColumn<Boolean>{
 
     private CheckBox selectAllCheckBox;
 
+    /**
+     * Needed by fxml
+     */
+    @SuppressWarnings("unused")
     public SelectionTableColumn(){
-
     }
 
     public SelectionTableColumn(TableView<TableEntry> tableView) {
@@ -50,14 +52,14 @@ public class SelectionTableColumn extends TooltipTableColumn<Boolean>{
     }
 
     public void configure(TableView<TableEntry> tableView){
-        setCellValueFactory(new PropertyValueFactory<>("selected"));
+        //setCellValueFactory(new PropertyValueFactory<>("selected"));
         //for those entries, which have a read-only property, disable the checkbox
         setCellFactory(column -> {
             TableCell<TableEntry, Boolean> cell = new CheckBoxTableCell<>(null, null);
             // initialize the checkbox
-            UpdateCheckboxState(cell);
+            updateCheckboxState(cell);
             cell.itemProperty().addListener((a, o, n) -> {
-                UpdateCheckboxState(cell);
+                updateCheckboxState(cell);
             });
             return cell;
         });
@@ -79,17 +81,15 @@ public class SelectionTableColumn extends TooltipTableColumn<Boolean>{
         });
     }
 
-    private void UpdateCheckboxState(TableCell<TableEntry, Boolean> cell) {
-        cell.getStyleClass().remove("check-box-table-cell-disabled");
-
+    private void updateCheckboxState(TableCell<TableEntry, Boolean> cell) {
         TableRow<?> row = cell.getTableRow();
         if (row != null) {
             TableEntry item = (TableEntry) row.getItem();
             if (item != null) {
                 cell.setEditable(!item.readOnlyProperty().get());
-                if (item.readOnlyProperty().get()) {
-                    cell.getStyleClass().add("check-box-table-cell-disabled");
-                } else if (item.valueProperty().get().value.equals(VNoData.INSTANCE)) {
+                item.selectedProperty().set(!item.valueProperty().get().value.equals(VNoData.INSTANCE));
+                cell.setDisable(item.valueProperty().get().value.equals(VNoData.INSTANCE));
+                if (item.valueProperty().get().value.equals(VNoData.INSTANCE)) {
                     item.selectedProperty().set(false);
                 }
             }
