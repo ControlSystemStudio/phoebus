@@ -161,6 +161,13 @@ public class LogTicks extends LinearTicks
             }
         }
 
+        if (major_ticks.size() < 2)
+        {   // If the best-laid plans of mice and men fail
+            // and we end up with just one or no tick,
+            // add the low and high markers
+            major_ticks.add(0, new MajorTick<>(low, format(low)));
+            major_ticks.add(new MajorTick<>(high, format(high)));
+        }
         this.major_ticks = major_ticks;
         this.minor_ticks = minor_ticks;
     }
