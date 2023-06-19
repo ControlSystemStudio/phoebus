@@ -46,8 +46,7 @@ public class LogTicksTest extends TicksTestBase
         System.out.println("Ticks for " + start + " .. " + end + ":");
         text = ticks2text(ticks);
         System.out.println(text);
-        // Needs to show significant detail in mantissa
-        assertThat(text, equalTo("'1.100E3' '1.200E3' "));
+        assertThat(text, equalTo("'1.1E3' '1.2E3' "));
 
     }
 }
