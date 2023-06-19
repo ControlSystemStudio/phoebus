@@ -130,7 +130,7 @@ public class LogTicks extends LinearTicks
                 minor_ticks.add(new MinorTick<>(minorTickValueInInterval));
             }
         }
-        else {
+        else linearScale: {
             // Compute scale with linearly spaced values:
             int logOfSignificantDecimal = (int) Math.floor(Math.log10(high - low));
             double significantDecimal = Log10.pow10(logOfSignificantDecimal);
@@ -138,10 +138,16 @@ public class LogTicks extends LinearTicks
             double stepSize = significantDecimal;
             int steps = 0;
             do  {
-                for (double tickValue = low - (low % significantDecimal) - stepSize; tickValue <= high; tickValue += stepSize) {
+                double tickValue = low - (low % significantDecimal) - stepSize;
+                if (!Double.isFinite(tickValue) || tickValue + stepSize == tickValue) {
+                    // The precision of the double is insufficient for the calculation.
+                    break linearScale;
+                }
+                while (tickValue <= high) {
                     if (tickValue >= low && tickValue <= high) {
                         tickValues.add(tickValue);
                     }
+                    tickValue += stepSize;
                 }
                 steps++;
                 stepSize /= 2;
