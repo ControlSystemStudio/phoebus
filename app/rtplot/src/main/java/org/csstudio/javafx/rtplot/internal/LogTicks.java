@@ -19,6 +19,7 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.stream.IntStream;
 
+import javafx.util.Pair;
 import org.csstudio.javafx.rtplot.internal.util.Log10;
 
 /** Helper for creating tick marks.
@@ -36,16 +37,33 @@ public class LogTicks extends LinearTicks
         detailed_num_fmt = createExponentialFormat(3);
     }
 
+    @Override
+    public Pair<Double, Double> adjustRange(Double low, Double high) {
+        // Only support 'normal' order, low < high:
+        if (!Double.isFinite(low) || low <= 0.0) {
+            low = Math.ulp(0.0);
+        }
+        if (!Double.isFinite(high)) {
+            high = Double.MAX_VALUE;
+        }
+        if (Math.abs(high - low) < 3*Math.ulp(low)) {
+            high = low + 3*Math.ulp(low);
+        }
+        if (high < low) {
+            double new_high = low;
+            low = high;
+            high = new_high;
+        }
+
+        return new Pair<>(low, high);
+    }
+
     /** {@inheritDoc} */
     @Override
     public void compute(final Double low, final Double high, final Graphics2D gc, final int screen_width)
     {
         logger.log(Level.FINE, "Compute log ticks, width {0}, for {1} - {2}",
                                new Object[] { screen_width, low, high });
-
-        // Only support 'normal' order, low < high
-        if (!(low > 0.0) || !isSupportedRange(low, high) || high <= low)
-            throw new Error("Unsupported range " + low + " .. " + high);
 
         double low_exp_exact = Log10.log10(low);
         double high_exp_exact = Log10.log10(high);
