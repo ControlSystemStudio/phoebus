@@ -165,6 +165,9 @@ public class LogTicks extends LinearTicks
         {   // If the best-laid plans of mice and men fail
             // and we end up with just one or no tick,
             // add the low and high markers
+            precision = 17;
+            num_fmt = createExponentialFormat(precision-1);
+            detailed_num_fmt = createExponentialFormat(precision+1);
             major_ticks.add(0, new MajorTick<>(low, format(low)));
             major_ticks.add(new MajorTick<>(high, format(high)));
         }
