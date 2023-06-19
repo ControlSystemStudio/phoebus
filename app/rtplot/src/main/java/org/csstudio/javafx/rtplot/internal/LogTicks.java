@@ -154,7 +154,7 @@ public class LogTicks extends LinearTicks
             } while (tickValues.size() < num_that_fits / 2);
 
             for (double tickValue : tickValues) {
-                precision = (int) Math.floor(Math.log10(tickValue)) + 1 + Math.max(0, -logOfSignificantDecimal) + (steps - 1);
+                precision = (int) Math.floor(Math.log10(tickValue)) - logOfSignificantDecimal + steps;
                 num_fmt = createExponentialFormat(precision-1);
                 detailed_num_fmt = createExponentialFormat(precision+1);
                 major_ticks.add(new MajorTick<>(tickValue, format(tickValue)));
