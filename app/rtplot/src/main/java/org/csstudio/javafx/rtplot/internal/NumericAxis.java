@@ -61,9 +61,22 @@ public abstract class NumericAxis extends AxisPart<Double>
         if (isLogarithmic())
         {
             final double fixed = Log10.log10(getValue(center));
-            final double new_low  = fixed - (fixed - Log10.log10(getValueRange().getLow())) * factor;
-            final double new_high = fixed + (Log10.log10(getValueRange().getHigh()) - fixed) * factor;
-            setValueRange(Log10.pow10(new_low), Log10.pow10(new_high));
+            final double new_low_exp  = fixed - (fixed - Log10.log10(getValueRange().getLow())) * factor;
+            final double new_high_exp = fixed + (Log10.log10(getValueRange().getHigh()) - fixed) * factor;
+            
+            double new_low = Log10.pow10(new_low_exp);
+            double new_high = Log10.pow10(new_high_exp);
+
+            // Ensure progress when zooming out:
+            if (factor > 1 && Math.abs(new_low - range.getLow()) < 1000*Math.ulp(range.getLow())) {
+                new_low = Math.max(Math.ulp(0.0), range.getLow() - 1000*Math.ulp(range.getLow()));
+            }
+
+            if (factor > 1 && Math.abs(new_high - range.getHigh()) < 1000*Math.ulp(range.getHigh())) {
+                new_high = Math.min(Double.MAX_VALUE, range.getHigh() + 1000*Math.ulp(range.getHigh()));
+            }
+
+            setValueRange(new_low, new_high);
         }
         else
         {
