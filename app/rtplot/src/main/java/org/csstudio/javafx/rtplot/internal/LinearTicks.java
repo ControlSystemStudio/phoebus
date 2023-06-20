@@ -78,13 +78,7 @@ public class LinearTicks extends Ticks<Double>
         if (Math.abs(high - low) < 3*Math.ulp(low)) {
             high = low + 3*Math.ulp(low);
         }
-
-        if (high < low) {
-            return new Pair<>(high, low);
-        }
-        else {
-            return new Pair<>(low, high);
-        }
+        return new Pair<>(low, high);
     }
 
     /** {@inheritDoc} */
