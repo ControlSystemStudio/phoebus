@@ -263,9 +263,7 @@ public abstract class AxisPart<T extends Comparable<T>> extends PlotPart impleme
     public boolean setValueRange(T low, T high)
     {
         synchronized (this)
-        {   // Any change at all?
-            if (low.equals(range.getLow())  &&  high.equals(range.getHigh()))
-                return false;
+        {
             logger.log(Level.FINE, "Axis {0}: Value range {1} ... {2}",
                                    new Object[] { getName(), low, high });
             // Adjust range if necessary
@@ -277,6 +275,11 @@ public abstract class AxisPart<T extends Comparable<T>> extends PlotPart impleme
                 logger.log(Level.WARNING, "Axis {0}: Bad value range {1} ... {2}. Adjusting the range to {3} ... {4}.",
                                           new Object[] { getName(), low, high, newLow, newHigh });
             }
+
+            // Any change at all?
+            if (newLow.equals(range.getLow())  &&  newHigh.equals(range.getHigh()))
+                return false;
+
             range = new AxisRange<>(newLow, newHigh);
             transform.config(newLow, newHigh, low_screen, high_screen);
         }
