@@ -268,8 +268,17 @@ public abstract class AxisPart<T extends Comparable<T>> extends PlotPart impleme
                 return false;
             logger.log(Level.FINE, "Axis {0}: Value range {1} ... {2}",
                                    new Object[] { getName(), low, high });
-            range = new AxisRange<>(low, high);
-            transform.config(low, high, low_screen, high_screen);
+            // Adjust range if necessary
+            Pair<T, T> possiblyNewLowAndHigh = ticks.adjustRange(low, high);
+            T newLow = possiblyNewLowAndHigh.getKey();
+            T newHigh = possiblyNewLowAndHigh.getValue();
+            if (newLow != low || newHigh != high)
+            {
+                logger.log(Level.WARNING, "Axis {0}: Bad value range {1} ... {2}. Adjusting the range to {3} ... {4}.",
+                                          new Object[] { getName(), low, high, newLow, newHigh });
+            }
+            range = new AxisRange<>(newLow, newHigh);
+            transform.config(newLow, newHigh, low_screen, high_screen);
         }
         dirty_ticks = true;
         requestLayout();
@@ -352,7 +361,8 @@ public abstract class AxisPart<T extends Comparable<T>> extends PlotPart impleme
     {
         if (! dirty_ticks)
             return;
-
+        Pair<T, T> adjustedRange = ticks.adjustRange(range.getLow(), range.getHigh());
+        range = new AxisRange<>(adjustedRange.getKey(), adjustedRange.getValue());
         if (horizontal)
             ticks.compute(range.getLow(), range.getHigh(), gc, getBounds().width);
         else
