@@ -361,11 +361,12 @@ public abstract class AxisPart<T extends Comparable<T>> extends PlotPart impleme
     {
         if (! dirty_ticks)
             return;
-        final AxisRange<T> safe_range = range;
+        Pair<T, T> adjustedRange = ticks.adjustRange(range.getLow(), range.getHigh());
+        range = new AxisRange<>(adjustedRange.getKey(), adjustedRange.getValue());
         if (horizontal)
-            ticks.compute(safe_range.getLow(), safe_range.getHigh(), gc, getBounds().width);
+            ticks.compute(range.getLow(), range.getHigh(), gc, getBounds().width);
         else
-            ticks.compute(safe_range.getLow(), safe_range.getHigh(), gc, getBounds().height);
+            ticks.compute(range.getLow(), range.getHigh(), gc, getBounds().height);
         // If ticks changed, the layout of tick labels may change
         requestLayout();
         requestRefresh();
