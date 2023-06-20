@@ -20,6 +20,7 @@ import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
+import javafx.util.Pair;
 import org.csstudio.javafx.rtplot.internal.util.Log10;
 
 /** Helper for creating tick marks.
@@ -60,17 +61,30 @@ public class LinearTicks extends Ticks<Double>
 
     /** {@inheritDoc} */
     @Override
-    public boolean isSupportedRange(final Double low, final Double high)
+    public Pair<Double, Double> adjustRange(Double low, Double high)
     {
-        if (! (Double.isFinite(low)  &&  Double.isFinite(high)))
-            return false;
-        final double span = Math.abs(high - low);
+        if (!Double.isFinite(low)) {
+            low = Double.MIN_VALUE;
+        }
+        if (!Double.isFinite(high)) {
+            high = Double.MAX_VALUE;
+        }
+
         // Avoid degraded axes like
         // 1000.00000000000001 .. 1000.00000000000002
         // where low + (high - low) == low,
         // i.e. tick computations will fail because
         // they reach the granularity of the Double type.
-        return span > Math.ulp(low);
+        if (Math.abs(high - low) < 3*Math.ulp(low)) {
+            high = low + 3*Math.ulp(low);
+        }
+
+        if (high < low) {
+            return new Pair<>(high, low);
+        }
+        else {
+            return new Pair<>(low, high);
+        }
     }
 
     /** {@inheritDoc} */
@@ -80,9 +94,6 @@ public class LinearTicks extends Ticks<Double>
         logger.log(Level.FINE, "Compute linear ticks, width {0}, for {1} - {2}",
                                new Object[] { screen_width, low, high });
 
-        // Determine range of values on axis
-        if (! isSupportedRange(low, high))
-            throw new Error("Unsupported range " + low + " .. " + high);
         if (low.equals(high))
         {
             low = high - 1;
