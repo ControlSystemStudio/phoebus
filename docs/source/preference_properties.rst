@@ -623,6 +623,9 @@ File ../../app/display/model/src/main/resources/display_model_preferences.proper
    # When writing a display file, skip properties that are still at default values?
    skip_defaults=true
 
+   # Add a comment containing the date, time, and username when saving an OPI in the Display Editor.
+   enable_saved_on_comments=true
+
 
 display.builder.representation
 ------------------------------
