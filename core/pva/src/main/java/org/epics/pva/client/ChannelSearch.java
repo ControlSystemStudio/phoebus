@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -76,6 +76,9 @@ class ChannelSearch
     /** Minimum search for a channel is ASAP, then incrementing by 1 */
     private static final int MIN_SEARCH_PERIOD = 0;
 
+    /** Seconds to delay to start a search "soon", not right now */
+    private static final int SEARCH_SOON_DELAY = 5;
+
     /** Maximum and eternal search period is every 30 sec */
     private static final int MAX_SEARCH_PERIOD = 30;
 
@@ -117,7 +120,7 @@ class ChannelSearch
     /** Search buckets
      *
      *  <p>The {@link #current_search_bucket} selects the list
-     *  of channels to be searched by {@link #runSeaches()},
+     *  of channels to be searched by {@link #runSearches()},
      *  which runs roughly once per second, each time moving to
      *  the next search bucket in a ring buffer fashion.
      *
@@ -229,7 +232,7 @@ class ChannelSearch
      */
     public void register(final PVAChannel channel, final boolean now)
     {
-        logger.log(Level.FINE, () -> "Register search for " + channel);
+        logger.log(Level.FINE, () -> "Register search for " + channel + (now ? " now" : " soon"));
 
         final ClientChannelState old = channel.setState(ClientChannelState.SEARCHING);
         if (old == ClientChannelState.SEARCHING)
@@ -239,7 +242,10 @@ class ChannelSearch
 
         synchronized (search_buckets)
         {
-            search_buckets.get(current_search_bucket.get()).add(sc);
+            int bucket = current_search_bucket.get();
+            if (!now)
+                bucket = (bucket + SEARCH_SOON_DELAY)  % search_buckets.size();
+            search_buckets.get(bucket).add(sc);
         }
     }
 

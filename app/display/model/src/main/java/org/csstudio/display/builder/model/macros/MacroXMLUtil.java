@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -34,11 +34,25 @@ public class MacroXMLUtil
      */
     public static void writeMacros(final XMLStreamWriter writer, final Macros macros) throws Exception
     {
-        for (String name : macros.getNames())
+        try
         {
-            writer.writeStartElement(name);
-            writer.writeCharacters(macros.getValue(name));
-            writer.writeEndElement();
+            macros.forEachSpec((name, value) ->
+            {
+                try
+                {
+                    writer.writeStartElement(name);
+                    writer.writeCharacters(value);
+                    writer.writeEndElement();
+                }
+                catch (Exception ex)
+                {   // Abort iterator via Error...
+                    throw new Error(ex);
+                }
+            });
+        }
+        catch (Error ex)
+        {   // .. then pass original exception back up
+            throw (Exception) ex.getCause();
         }
     }
 

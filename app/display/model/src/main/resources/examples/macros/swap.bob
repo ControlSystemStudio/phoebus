@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Macro Swap</name>
+  <macros>
+    <A>a</A>
+    <B>b</B>
+  </macros>
+  <width>550</width>
+  <height>290</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Macro Swap Example</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>550</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>On top level, A=$(A) and B=$(B)</text>
+    <x>40</x>
+    <y>60</y>
+    <width>240</width>
+  </widget>
+  <widget type="group" version="2.0.0">
+    <name>Swapping Group</name>
+    <macros>
+      <X>$(A)</X>
+      <A>$(B)</A>
+      <B>$(X)</B>
+    </macros>
+    <x>10</x>
+    <y>90</y>
+    <height>100</height>
+    <widget type="label" version="2.0.0">
+      <name>Label_2</name>
+      <text>Inside group, A=$(A) and B=$(B)
+..  and X=$(X)</text>
+      <x>12</x>
+      <y>22</y>
+      <width>230</width>
+      <height>60</height>
+    </widget>
+  </widget>
+</display>

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -136,7 +136,9 @@ class WidgetTreeCell extends TextFieldTreeCell<WidgetOrTab>
                 // Extra icon for widgets with macros defined
                 Optional<WidgetProperty<Macros>> optMacros = widget.checkProperty(propMacros);
                 final String iconName = "/icons/macro_hint.png";
-                if (optMacros.isPresent() && optMacros.get().getValue().getNames().size() > 0)
+
+
+                if (optMacros.isPresent() && !optMacros.get().getValue().isEmpty())
                 {
                     ImageView macroIcon = ImageCache.getImageView(DisplayEditor.class.getResource(iconName));
                     graphic = new HBox(graphic, macroIcon);
@@ -146,7 +148,7 @@ class WidgetTreeCell extends TextFieldTreeCell<WidgetOrTab>
                     NavigationTabsWidget tabs = (NavigationTabsWidget)widget;
                     for(NavigationTabsWidget.TabProperty tab : tabs.propTabs().getValue())
                     {
-                        if (tab.macros().getValue().getNames().size() > 0)
+                        if (! tab.macros().getValue().isEmpty())
                         {
                             ImageView macroIcon = ImageCache.getImageView(DisplayEditor.class.getResource(iconName));
                             graphic = new HBox(graphic, macroIcon);

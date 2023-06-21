@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -54,15 +54,17 @@ public class MacrosUnitTest
     public void testXML() throws Exception
     {
         final Macros macros = new Macros();
+        macros.add("N", "13");
         macros.add("S", "System");
         macros.add("N", "42");
 
         final String xml = MacroXMLUtil.toString(macros);
         System.out.println(xml);
-        assertThat(xml, equalTo("<N>42</N><S>System</S>"));
+        assertThat(xml, equalTo("<N>13</N><S>System</S><N>42</N>"));
 
         final Macros readback = MacroXMLUtil.readMacros(xml);
         assertThat(readback.getValue("S"), equalTo("System"));
+        assertThat(readback.getValue("N"), equalTo("42"));
         assertThat(readback.getNames(), hasItems("S", "N"));
     }
 

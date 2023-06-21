@@ -306,6 +306,13 @@ public class Macros implements MacroValueProvider
         return values.get(name);
     }
 
+    // Note that there is no "getSpecNames()" and "getSpec(name)"
+    // because for specifications, the same name might appear more than once
+    // and order matters. So "getSpecNames()" would have to return
+    // the same name multiple times, and "getSpec(name)" wouldn't know
+    // which definition to return.
+    // forEachSpec() iterates over all specs in the correct order
+
     /** Visit a thread-safe snapshot of all macro specifications
      *  @param action Invoked with each macro name and value specification
      */
