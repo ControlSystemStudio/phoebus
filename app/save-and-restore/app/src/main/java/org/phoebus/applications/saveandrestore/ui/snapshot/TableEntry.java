@@ -35,9 +35,9 @@ public class TableEntry {
     private final SingleListenerBooleanProperty selected = new SingleListenerBooleanProperty(this, "selected", true);
     private final StringProperty pvName = new SimpleStringProperty(this, "pvName");
     private final ObjectProperty<Instant> timestamp = new SimpleObjectProperty<>(this, "timestamp");
-    private final StringProperty liveStatus = new SimpleStringProperty(this, "liveStatus", null);
+    private final StringProperty liveStatus = new SimpleStringProperty(this, "liveStatus", "---");
     private final StringProperty storedStatus = new SimpleStringProperty(this, "storedStatus", AlarmStatus.UNDEFINED.name());
-    private final StringProperty liveSeverity = new SimpleStringProperty(this, "liveSeverity", null);
+    private final StringProperty liveSeverity = new SimpleStringProperty(this, "liveSeverity", "---");
     private final StringProperty storedSeverity = new SimpleStringProperty(this, "storedSeverity", AlarmSeverity.UNDEFINED.toString());
     /**
      * Snapshot value set either when user takes snapshot, or when snapshot data is loaded from remote service. Note that this
@@ -57,13 +57,13 @@ public class TableEntry {
     private final ObjectProperty<VType> liveValue = new SimpleObjectProperty<>(this, "liveValue", VDisconnectedData.INSTANCE);
     private final List<ObjectProperty<VTypePair>> compareValues = new ArrayList<>();
 
-    private final ObjectProperty<VTypePair> liveReadback = new SimpleObjectProperty<>(this, "liveReadback",
+    private final ObjectProperty<VTypePair> liveReadbackValue = new SimpleObjectProperty<>(this, "liveReadbackValue",
             new VTypePair(VDisconnectedData.INSTANCE, VDisconnectedData.INSTANCE, Optional.empty()));
 
-    private final StringProperty readbackName = new SimpleStringProperty(this, "readbackName");
+    private final StringProperty readbackPvName = new SimpleStringProperty(this, "readbackPvName");
     private final BooleanProperty liveStoredEqual = new SingleListenerBooleanProperty(this, "liveStoredEqual", true);
 
-    private final ObjectProperty<VTypePair> storedReadback = new SimpleObjectProperty<>(this, "storedReadback",
+    private final ObjectProperty<VTypePair> storedReadbackValue = new SimpleObjectProperty<>(this, "storedReadbackValue",
             new VTypePair(VDisconnectedData.INSTANCE, VDisconnectedData.INSTANCE, Optional.empty()));
 
     private final List<ObjectProperty<VTypePair>> compareStoredReadbacks = new ArrayList<>();
@@ -94,7 +94,7 @@ public class TableEntry {
     public void setConfigPv(ConfigPv configPv) {
         this.configPv = configPv;
         pvName.setValue(configPv.getPvName());
-        readbackName.setValue(configPv.getReadbackPvName());
+        readbackPvName.setValue(configPv.getReadbackPvName());
     }
 
     public ConfigPv getConfigPv() {
@@ -131,15 +131,15 @@ public class TableEntry {
     /**
      * @return the property providing the liveReadback pv name
      */
-    public StringProperty readbackNameProperty() {
-        return readbackName;
+    public StringProperty readbackPvNameProperty() {
+        return readbackPvName;
     }
 
     /**
      * @return the property providing the liveReadback value
      */
-    public ObjectProperty<VTypePair> liveReadbackProperty() {
-        return liveReadback;
+    public ObjectProperty<VTypePair> liveReadbackValueProperty() {
+        return liveReadbackValue;
     }
 
     /**
@@ -187,8 +187,8 @@ public class TableEntry {
     /**
      * @return the property providing the stored liveReadback vs stored setpoint value
      */
-    public ObjectProperty<VTypePair> storedReadbackProperty() {
-        return storedReadback;
+    public ObjectProperty<VTypePair> storedReadbackValueProperty() {
+        return storedReadbackValue;
     }
 
     /**
@@ -298,7 +298,7 @@ public class TableEntry {
             value.set(new VTypePair(liveValue.get(), val, threshold));
             compareValues.forEach(o -> o.set(new VTypePair(val, o.get().value, threshold)));
             liveStoredEqual.set(Utilities.areValuesEqual(liveValue.get(), val, threshold));
-            storedReadback.set(new VTypePair(val, storedReadback.get().value, threshold));
+            storedReadbackValue.set(new VTypePair(val, storedReadbackValue.get().value, threshold));
         } else {
             for (int i = compareValues.size(); i < index; i++) {
                 compareValues.add(new SimpleObjectProperty<>(this, "CompareValue" + i,
@@ -323,7 +323,7 @@ public class TableEntry {
             val = VDisconnectedData.INSTANCE;
         }
         if (index == 0) {
-            storedReadback.set(new VTypePair(storedReadback.get().base, val, threshold));
+            storedReadbackValue.set(new VTypePair(storedReadbackValue.get().base, val, threshold));
         } else {
             for (int i = compareValues.size(); i < index; i++) {
                 compareStoredReadbacks.add(new SimpleObjectProperty<>(this, "CompareStoredReadback" + i,
@@ -343,9 +343,9 @@ public class TableEntry {
         if (val == null) {
             val = VDisconnectedData.INSTANCE;
         }
-        if (liveReadback.get().value != val) {
+        if (liveReadbackValue.get().value != val) {
             VTypePair vTypePair = new VTypePair(liveValueProperty().get(), val, threshold);
-            liveReadback.set(vTypePair);
+            liveReadbackValue.set(vTypePair);
         }
     }
 
@@ -359,7 +359,7 @@ public class TableEntry {
             val = VDisconnectedData.INSTANCE;
         }
         liveValue.set(val);
-        liveReadback.set(new VTypePair(val, liveReadback.get().value, threshold));
+        liveReadbackValue.set(new VTypePair(val, liveReadbackValue.get().value, threshold));
         VType stored = value.get().value;
         value.set(new VTypePair(val, stored, threshold));
         liveStoredEqual.set(Utilities.areValuesEqual(val, stored, threshold));
@@ -403,9 +403,9 @@ public class TableEntry {
             this.value.set(new VTypePair(this.value.get().base, val, threshold));
             this.liveStoredEqual.set(Utilities.areValuesEqual(liveValue.get(), val, threshold));
             this.compareValues.forEach(e -> e.set(new VTypePair(val, e.get().value, threshold)));
-            this.liveReadback.set(new VTypePair(this.liveReadback.get().base, this.liveReadback.get().value, threshold));
-            this.storedReadback
-                    .set(new VTypePair(this.storedReadback.get().base, this.storedReadback.get().value, threshold));
+            this.liveReadbackValue.set(new VTypePair(this.liveReadbackValue.get().base, this.liveReadbackValue.get().value, threshold));
+            this.storedReadbackValue
+                    .set(new VTypePair(this.storedReadbackValue.get().base, this.storedReadbackValue.get().value, threshold));
             this.compareStoredReadbacks.forEach(e -> e.set(new VTypePair(e.get().base, e.get().value, threshold)));
         }
     }

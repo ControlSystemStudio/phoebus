@@ -219,7 +219,7 @@ class SnapshotTable extends TableView<TableEntry> {
 
         TableColumn<TableEntry, Instant> timestampStoredColumn = new TooltipTableColumn<>("Time",
                 Messages.toolTipTableColumnTimestamp, width, width, true);
-        timestampStoredColumn.setCellValueFactory(new PropertyValueFactory<>("storedTimestamp"));
+        timestampStoredColumn.setCellValueFactory(new PropertyValueFactory<>("timestamp"));
         timestampStoredColumn.setCellFactory(c -> new TimestampTableCell());
         timestampStoredColumn.getStyleClass().add("timestamp-column");
         timestampStoredColumn.setPrefWidth(width);

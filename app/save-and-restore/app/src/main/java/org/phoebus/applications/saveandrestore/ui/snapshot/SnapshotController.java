@@ -14,11 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * <a target="_blank" href="https://icons8.com/icons/set/percentage">Percentage icon</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
- * <a target="_blank" href="https://icons8.com/icons/set/price-tag">Price Tag icon</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
- * <a target="_blank" href="https://icons8.com/icons/set/add-tag">Add Tag icon</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
- * <a target="_blank" href="https://icons8.com/icons/set/remove-tag">Remove Tag icon</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
  */
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
@@ -116,7 +111,7 @@ public class SnapshotController {
     @FXML
     private Button saveSnapshotAndCreateLogEntryButton;
 
-    protected SnapshotTable snapshotTable;
+    //protected SnapshotTable snapshotTable;
 
     private final SimpleStringProperty snapshotNameProperty = new SimpleStringProperty();
     private final SimpleStringProperty snapshotCommentProperty = new SimpleStringProperty();
@@ -124,8 +119,6 @@ public class SnapshotController {
     protected final Map<String, PV> pvs = new HashMap<>();
     protected final Map<String, TableEntry> tableEntryItems = new LinkedHashMap<>();
     protected final BooleanProperty showLiveReadbackProperty = new SimpleBooleanProperty(false);
-
-    private final BooleanProperty showStoredReadbackProperty = new SimpleBooleanProperty(false);
 
     private boolean showDeltaPercentage = false;
     protected boolean hideEqualItems;
@@ -168,15 +161,10 @@ public class SnapshotController {
     protected final List<Snapshot> snapshots = new ArrayList<>(10);
 
     @FXML
-    private SnapshotTableViewController snapshotTableViewController;
+    protected SnapshotTableViewController snapshotTableViewController;
 
     @FXML
     public void initialize() {
-
-        //snapshotTable = new SnapshotTable(this);
-
-        //borderPane.setCenter(snapshotTable);
-
         saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
                         snapshotDataDirty.not().get() ||
                                 snapshotNameProperty.isEmpty().get() ||
@@ -194,8 +182,6 @@ public class SnapshotController {
         // Do not show the create log entry button if no event receivers have been registered
         saveSnapshotAndCreateLogEntryButton.visibleProperty().set(eventReceivers.iterator().hasNext());
 
-        snapshotTableViewController.setSnapshotController(this);
-
         initializeCommonComponents();
     }
 
@@ -211,7 +197,7 @@ public class SnapshotController {
         showLiveReadbackProperty.bind(showLiveReadbackButton.selectedProperty());
         showLiveReadbackButton.selectedProperty().addListener((a, o, n) -> Platform.runLater(() -> {
             ArrayList<TableEntry> arrayList = new ArrayList<>(tableEntryItems.values());
-            snapshotTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbackProperty.get(), showDeltaPercentage);
+            snapshotTableViewController.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showDeltaPercentage);
         }));
 
         ImageView showHideDeltaPercentageButtonImageView = new ImageView(new Image(getClass().getResourceAsStream("/icons/show_hide_delta_percentage.png")));
@@ -224,7 +210,7 @@ public class SnapshotController {
                     showDeltaPercentage = n;
                     Platform.runLater(() -> {
                         ArrayList<TableEntry> arrayList = new ArrayList<>(tableEntryItems.values());
-                        snapshotTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbackProperty.get(), showDeltaPercentage);
+                        snapshotTableViewController.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showDeltaPercentage);
                     });
                 });
 
@@ -233,12 +219,14 @@ public class SnapshotController {
                 .addListener((a, o, n) -> {
                     hideEqualItems = n;
                     ArrayList<TableEntry> arrayList = new ArrayList<>(tableEntryItems.values());
-                    Platform.runLater(() -> snapshotTable.updateTable(arrayList));
+                    Platform.runLater(() -> snapshotTableViewController.updateTable(arrayList));
                 });
 
 
         progressIndicator.visibleProperty().bind(disabledUi);
         disabledUi.addListener((observable, oldValue, newValue) -> borderPane.setDisable(newValue));
+
+        snapshotTableViewController.setSnapshotController(this);
     }
 
     /**
@@ -268,7 +256,7 @@ public class SnapshotController {
             snapshots.add(0, snapshot);
             List<TableEntry> tableEntries = createTableEntries(snapshots.get(0));
             Platform.runLater(() -> {
-                snapshotTableViewController.updateTable(tableEntries, snapshots, false, false, false);
+                snapshotTableViewController.updateTable(tableEntries, snapshots, false, false);
             });
         });
     }
@@ -292,7 +280,7 @@ public class SnapshotController {
                     snapshot.setSnapshotData(snapshotData);
                     snapshots.set(0, snapshot);
                     List<TableEntry> tableEntries = createTableEntries(snapshots.get(0));
-                    snapshotTableViewController.updateTable(tableEntries, snapshots, showLiveReadbackProperty.get(), false, showDeltaPercentage);
+                    snapshotTableViewController.updateTable(tableEntries, snapshots, showLiveReadbackProperty.get(), showDeltaPercentage);
                 
                     if (!Preferences.default_snapshot_name_date_format.equals("")) {
                             SimpleDateFormat formater = new SimpleDateFormat(Preferences.default_snapshot_name_date_format);
@@ -353,7 +341,7 @@ public class SnapshotController {
             tableEntry.setSnapshotValue(entry.getValue(), 0);
             tableEntry.setStoredReadbackValue(entry.getReadbackValue(), 0);
             String key = getPVKey(name, entry.getConfigPv().isReadOnly());
-            tableEntry.readbackNameProperty().set(entry.getConfigPv().getReadbackPvName());
+            tableEntry.readbackPvNameProperty().set(entry.getConfigPv().getReadbackPvName());
             tableEntry.readOnlyProperty().set(entry.getConfigPv().isReadOnly());
             tableEntryItems.put(key, tableEntry);
         });
@@ -442,7 +430,7 @@ public class SnapshotController {
         PV(TableEntry snapshotTableEntry) {
             this.snapshotTableEntry = snapshotTableEntry;
             this.pvName = patchPvName(snapshotTableEntry.pvNameProperty().get());
-            this.readbackPvName = patchPvName(snapshotTableEntry.readbackNameProperty().get());
+            this.readbackPvName = patchPvName(snapshotTableEntry.readbackPvNameProperty().get());
             this.readOnly = snapshotTableEntry.readOnlyProperty().get();
 
             try {
@@ -646,7 +634,7 @@ public class SnapshotController {
                     tableEntry.pvNameProperty().setValue(nodeName);
                     tableEntry.setConfigPv(entry.getConfigPv());
                     tableEntryItems.put(key, tableEntry);
-                    tableEntry.readbackNameProperty().set(entry.getConfigPv().getReadbackPvName());
+                    tableEntry.readbackPvNameProperty().set(entry.getConfigPv().getReadbackPvName());
                 }
                 tableEntry.setSnapshotValue(entry.getValue(), numberOfSnapshots);
                 tableEntry.setStoredReadbackValue(entry.getReadbackValue(), numberOfSnapshots);
@@ -660,14 +648,14 @@ public class SnapshotController {
             }
             snapshots.add(snapshot);
             connectPVs();
-            snapshotTable.updateTable(new ArrayList<>(tableEntryItems.values()), snapshots, false, false, false);
+            snapshotTableViewController.updateTable(new ArrayList<>(tableEntryItems.values()), snapshots, false, false);
             return new ArrayList<>(tableEntryItems.values());
         }
     }
 
     public void setSnapshotNameProperty(String name){
         snapshotNameProperty.set(name);
-        // Externally saved so not really dirty.
+        // Externally saved so not actually dirty.
         snapshotDataDirty.set(false);
     }
 }

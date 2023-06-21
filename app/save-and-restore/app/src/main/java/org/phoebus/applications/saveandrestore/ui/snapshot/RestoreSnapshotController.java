@@ -14,11 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * <a target="_blank" href="https://icons8.com/icons/set/percentage">Percentage icon</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
- * <a target="_blank" href="https://icons8.com/icons/set/price-tag">Price Tag icon</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
- * <a target="_blank" href="https://icons8.com/icons/set/add-tag">Add Tag icon</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
- * <a target="_blank" href="https://icons8.com/icons/set/remove-tag">Remove Tag icon</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
  */
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
@@ -31,16 +26,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.Spinner;
-import javafx.scene.control.SpinnerValueFactory;
-import javafx.scene.control.TextField;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -58,11 +44,7 @@ import org.phoebus.applications.saveandrestore.common.Threshold;
 import org.phoebus.applications.saveandrestore.common.Utilities;
 import org.phoebus.applications.saveandrestore.common.VNoData;
 import org.phoebus.applications.saveandrestore.common.VTypePair;
-import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.Snapshot;
-import org.phoebus.applications.saveandrestore.model.SnapshotData;
-import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.framework.jobs.JobManager;
@@ -71,12 +53,7 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.util.time.TimestampFormats;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.ServiceLoader;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -104,9 +81,6 @@ public class RestoreSnapshotController extends SnapshotController {
     private Button restoreButton;
 
     @FXML
-    private ToggleButton showStoredReadbackButton;
-
-    @FXML
     private Spinner<Double> thresholdSpinner;
 
     @FXML
@@ -126,10 +100,6 @@ public class RestoreSnapshotController extends SnapshotController {
     private final SimpleStringProperty snapshotUniqueIdProperty = new SimpleStringProperty();
 
     private final BooleanProperty snapshotRestorableProperty = new SimpleBooleanProperty(false);
-
-    private final BooleanProperty showStoredReadbackProperty = new SimpleBooleanProperty(false);
-
-    private final boolean showDeltaPercentage = false;
 
     /**
      * Property used to indicate if snapshot node has changed with respect to name or comment, or both.
@@ -154,8 +124,6 @@ public class RestoreSnapshotController extends SnapshotController {
     @FXML
     public void initialize() {
 
-        snapshotTable = new SnapshotTable(this);
-
         initializeCommonComponents();
 
         snapshotName.textProperty().bindBidirectional(snapshotNameProperty);
@@ -168,19 +136,11 @@ public class RestoreSnapshotController extends SnapshotController {
         createdDate.textProperty().bind(createdDateTextProperty);
         snapshotLastModifiedLabel.textProperty().bind(lastModifiedDateTextProperty);
 
-        borderPane.setCenter(snapshotTable);
-
         saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
                         nodeMetaDataDirty.not().get() ||
                                 snapshotNameProperty.isEmpty().get() ||
                                 snapshotCommentProperty.isEmpty().get(),
                 nodeMetaDataDirty, snapshotNameProperty, snapshotCommentProperty));
-
-        showStoredReadbackButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/icons/show_stored_readback_column.png"))));
-        showStoredReadbackButton.selectedProperty().addListener((a, o, n) -> Platform.runLater(() -> {
-            ArrayList<TableEntry> arrayList = new ArrayList<>(tableEntryItems.values());
-            snapshotTable.updateTable(arrayList, snapshots, showLiveReadbackProperty.get(), showStoredReadbackProperty.get(), showDeltaPercentage);
-        }));
 
         SpinnerValueFactory<Double> thresholdSpinnerValueFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, 999.0, 0.0, 0.01);
         thresholdSpinnerValueFactory.setConverter(new DoubleStringConverter());
@@ -252,8 +212,7 @@ public class RestoreSnapshotController extends SnapshotController {
                             }
                         }).collect(Collectors.toList());
 
-                Platform.runLater(() -> snapshotTable.updateTable(arrayList));
-
+                Platform.runLater(() -> snapshotTableViewController.updateTable(arrayList));
                 return;
             }
 
@@ -291,7 +250,7 @@ public class RestoreSnapshotController extends SnapshotController {
                         return matchEither;
                     }).collect(Collectors.toList());
 
-            Platform.runLater(() -> snapshotTable.updateTable(filteredEntries));
+            Platform.runLater(() -> snapshotTableViewController.updateTable(filteredEntries));
         });
 
         // Locate registered SaveAndRestoreEventReceivers
@@ -308,8 +267,8 @@ public class RestoreSnapshotController extends SnapshotController {
 
         snapshotCommentProperty.addListener((observable, oldValue, newValue) ->
                 nodeMetaDataDirty.set(oldValue != null && newValue != null &&
-                !oldValue.equals(newValue) &&
-                !newValue.equals(snapshotNode.getDescription())));
+                        !oldValue.equals(newValue) &&
+                        !newValue.equals(snapshotNode.getDescription())));
     }
 
     /**
@@ -328,6 +287,8 @@ public class RestoreSnapshotController extends SnapshotController {
         snapshotTab.updateTabTitle(snapshotNode.getName());
         snapshotTab.setId(snapshotNode.getUniqueId());
 
+        snapshotTableViewController.setSelectionColumnVisible(true);
+
         if (this.snapshotNode.getNodeType().equals(NodeType.SNAPSHOT)) {
             loadSnapshotInternal();
         } else {
@@ -336,7 +297,7 @@ public class RestoreSnapshotController extends SnapshotController {
             snapshotComment.setEditable(false);
             loadCompositeSnapshotInternal(snapshot -> Platform.runLater(() -> {
                 List<TableEntry> tableEntries = createTableEntries(snapshot);
-                snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
+                snapshotTableViewController.updateTable(tableEntries, snapshots, false, false);
                 snapshotRestorableProperty.set(true);
             }));
         }
@@ -360,7 +321,7 @@ public class RestoreSnapshotController extends SnapshotController {
                 this.configurationNode = SaveAndRestoreService.getInstance().getParentNode(snapshotNode.getUniqueId());
                 snapshotData = SaveAndRestoreService.getInstance().getSnapshot(snapshotNode.getUniqueId());
             } catch (Exception e) {
-                ExceptionDetailsErrorDialog.openError(snapshotTable, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
+                ExceptionDetailsErrorDialog.openError(snapshotTab.getContent(), Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
                 LOGGER.log(Level.INFO, "Error loading snapshot", e);
                 return;
             } finally {
@@ -372,8 +333,7 @@ public class RestoreSnapshotController extends SnapshotController {
             snapshots.add(0, snapshot);
             Platform.runLater(() -> {
                 List<TableEntry> tableEntries = createTableEntries(snapshot);
-
-                snapshotTable.updateTable(tableEntries, snapshots, false, false, false);
+                snapshotTableViewController.updateTable(tableEntries, snapshots, false, false);
                 snapshotRestorableProperty.set(true);
                 disabledUi.set(false);
             });
@@ -389,7 +349,7 @@ public class RestoreSnapshotController extends SnapshotController {
                 snapshotItems = SaveAndRestoreService.getInstance().getCompositeSnapshotItems(snapshotNode.getUniqueId());
             } catch (Exception e) {
                 LOGGER.log(Level.INFO, "Error loading composite snapshot for restore", e);
-                ExceptionDetailsErrorDialog.openError(snapshotTable, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
+                //ExceptionDetailsErrorDialog.openError(snapshotTable, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
                 return;
             } finally {
                 disabledUi.set(false);

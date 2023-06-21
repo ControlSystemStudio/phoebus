@@ -19,12 +19,7 @@
 
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableRow;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.input.MouseButton;
 import org.phoebus.applications.saveandrestore.common.VNoData;
@@ -37,13 +32,24 @@ import org.phoebus.applications.saveandrestore.common.VNoData;
  */
 public class SelectionTableColumn extends TooltipTableColumn<Boolean>{
 
-    private CheckBox selectAllCheckBox;
+    private final CheckBox selectAllCheckBox = new CheckBox();
 
     /**
      * Needed by fxml
      */
     @SuppressWarnings("unused")
     public SelectionTableColumn(){
+
+    }
+
+    @Override
+    public void setTooltip(String tooltip){
+        selectAllCheckBox.setTooltip(new Tooltip(tooltip));
+    }
+
+    @Override
+    public String getTooltip(){
+        return selectAllCheckBox.getTooltip().textProperty().get();
     }
 
     public SelectionTableColumn(TableView<TableEntry> tableView) {
@@ -52,20 +58,16 @@ public class SelectionTableColumn extends TooltipTableColumn<Boolean>{
     }
 
     public void configure(TableView<TableEntry> tableView){
-        //setCellValueFactory(new PropertyValueFactory<>("selected"));
         //for those entries, which have a read-only property, disable the checkbox
         setCellFactory(column -> {
             TableCell<TableEntry, Boolean> cell = new CheckBoxTableCell<>(null, null);
             // initialize the checkbox
             updateCheckboxState(cell);
-            cell.itemProperty().addListener((a, o, n) -> {
-                updateCheckboxState(cell);
-            });
+            cell.itemProperty().addListener((a, o, n) -> updateCheckboxState(cell));
             return cell;
         });
         setEditable(true);
         setSortable(false);
-        selectAllCheckBox = new CheckBox();
         selectAllCheckBox.setSelected(false);
         selectAllCheckBox.setOnAction(e -> tableView.getItems().stream().filter(te -> !te.readOnlyProperty().get())
                 .forEach(te -> te.selectedProperty().setValue(selectAllCheckBox.isSelected())));

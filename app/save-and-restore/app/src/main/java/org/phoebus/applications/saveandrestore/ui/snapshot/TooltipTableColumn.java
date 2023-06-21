@@ -24,6 +24,8 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.Tooltip;
 import javafx.scene.text.TextAlignment;
 
+import javax.tools.Tool;
+
 /**
  * <code>TooltipTableColumn</code> is the common table column implementation, which can also provide the tooltip.
  *
@@ -33,23 +35,27 @@ import javafx.scene.text.TextAlignment;
 public class TooltipTableColumn<T> extends TableColumn<TableEntry, T> {
 
     private String text;
+
     private Label label;
 
-    private String tooltip;
-
-    public String getTooltip() {
-        return tooltip;
+    public void setTooltip(String tooltip) {
+        label.setTooltip(new Tooltip(tooltip));
     }
 
-    public void setTooltip(String tooltip) {
-        this.tooltip = tooltip;
-        label.setTooltip(new Tooltip(this.tooltip));
+    public void setLabelText(String labelText){
+        label.textProperty().set(labelText);
+    }
+
+    public String getTooltip(){
+        return label.getTooltip().textProperty().get();
+    }
+
+    public String getLabelText(){
+        return label.textProperty().get();
     }
 
     public TooltipTableColumn(){
-        label = new Label(text);
-        //label.setTooltip(new Tooltip(tooltip));
-        label.setTextAlignment(TextAlignment.CENTER);
+        label = new Label();
         setGraphic(label);
     }
 

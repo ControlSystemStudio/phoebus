@@ -43,10 +43,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * {@link Tab} subclass showing a view for the purpose of taking a snapshot, or restoring one.
- * These two use cases are split in terms of fxml files and controller classes in order to facilitate development
- * and maintenance. Drawback is that this class will need to switch between the two in order to switch
- * view when a new snapshot has been saved.
+ * {@link Tab} subclass showing a view for the purpose of creating or restoring a snapshot.
+ * These two use cases/views are split in terms of fxml files and controller classes in order to facilitate development
+ * and maintenance.
  */
 public class SnapshotTab extends Tab implements NodeChangedListener {
 
@@ -110,6 +109,11 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
         }
     }
 
+    /**
+     * Loads and configures a view for the use case of taking a new snapshot.
+     * @param configurationNode The {@link Node} of type {@link NodeType#CONFIGURATION} listing PVs for which
+     *                          a snapshot will be created.
+     */
     public void newSnapshot(org.phoebus.applications.saveandrestore.model.Node configurationNode) {
         ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
         FXMLLoader loader = new FXMLLoader();
@@ -144,6 +148,10 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
         snapshotController.newSnapshot(configurationNode);
     }
 
+    /**
+     * Loads and configures a view for the use case of restoring a snapshot.
+     * @param snapshotNode The {@link Node} of type {@link NodeType#SNAPSHOT} containing snapshot data.
+     */
     public void loadSnapshot(Node snapshotNode) {
         ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
         FXMLLoader loader = new FXMLLoader();
@@ -155,6 +163,9 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
                 if (clazz.isAssignableFrom(RestoreSnapshotController.class)) {
                     return clazz.getConstructor(SnapshotTab.class)
                             .newInstance(this);
+                }
+                else if(clazz.isAssignableFrom(SnapshotTableViewController.class)){
+                    return clazz.getConstructor().newInstance();
                 }
             } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError("Error",
@@ -171,7 +182,6 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
                     .log(Level.SEVERE, "Failed to load fxml", e);
             return;
         }
-
         ((RestoreSnapshotController) snapshotController).loadSnapshot(snapshotNode);
     }
 
