@@ -35,6 +35,8 @@ public class Preferences
     @Preference public static boolean skip_defaults;
     /** Preference setting */
     @Preference(name="macros") private static String macro_spec;
+    /** Preference setting */
+    @Preference public static boolean enable_saved_on_comments;
     private static Macros macros;
 
     static

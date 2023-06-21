@@ -56,6 +56,7 @@ public class AllWidgetsAllProperties
         }
         ModelWriter.with_comments = true;
         ModelWriter.skip_defaults = false;
+        ModelWriter.enable_saved_on_comment = true;
         try
         {
             final ModelWriter writer = new ModelWriter(new FileOutputStream(filename));
