@@ -272,7 +272,7 @@ public abstract class AxisPart<T extends Comparable<T>> extends PlotPart impleme
             T newHigh = possiblyNewLowAndHigh.getValue();
             if (newLow != low || newHigh != high)
             {
-                logger.log(Level.WARNING, "Axis {0}: Bad value range {1} ... {2}. Adjusting the range to {3} ... {4}.",
+                logger.log(Level.WARNING, "Axis {0}: Invalid value range {1,number,#.###############E0} ... {2,number,#.###############E0}. Adjusting the range to {3,number,#.###############E0} ... {4,number,#.###############E0}.",
                                           new Object[] { getName(), low, high, newLow, newHigh });
             }
 

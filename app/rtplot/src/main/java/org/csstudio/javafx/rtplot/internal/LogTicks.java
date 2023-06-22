@@ -67,7 +67,7 @@ public class LogTicks extends LinearTicks
         double newHigh = adjustedRange.getValue();
 
         if (newLow != low || newHigh != high) {
-            logger.log(Level.WARNING, "Bad value range for a logarithmic scale {0} ... {1}. Adjusting the range to {2} ... {3}.",
+            logger.log(Level.WARNING, "Invalid value range for a logarithmic scale {0,number,#.###############E0} ... {1,number,#.###############E0}. Adjusting the range to {2,number,#.###############E0} ... {3,number,#.###############E0}.",
                     new Object[] {low, high, newLow, newHigh });
             high = newHigh;
             low = newLow;
