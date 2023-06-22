@@ -243,19 +243,14 @@ public class PVItem extends ModelItem
     public void removeArchiveDataSource(final ArchiveDataSource archive)
     {
         // Archive removed -> (Probably) no need to get new data
-        if (archives.remove(archive))
-            fireItemDataConfigChanged(false);
+        archives.remove(archive);
     }
 
     /** @param archs Archives to remove as a source from this item. Ignored when not used. */
     public void removeArchiveDataSource(final List<ArchiveDataSource> archs)
     {
-        boolean change = false;
         for (ArchiveDataSource archive : archs)
-            if (archives.remove(archive))
-                change = true;
-        if (change)
-            fireItemDataConfigChanged(false);
+            archives.remove(archive);
     }
 
     /** Replace existing archive data sources with given archives
