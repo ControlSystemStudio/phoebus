@@ -16,8 +16,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import org.epics.pva.data.PVAArray;
 import org.epics.pva.data.PVABool;
@@ -35,7 +33,6 @@ import org.epics.pva.data.PVAStringArray;
 import org.epics.pva.data.PVAStructure;
 import org.epics.pva.data.PVAStructureArray;
 import org.epics.pva.data.PVAUnion;
-import org.epics.util.array.ArrayBoolean;
 import org.epics.util.array.ArrayByte;
 import org.epics.util.array.ArrayDouble;
 import org.epics.util.array.ArrayFloat;
@@ -252,7 +249,7 @@ public class PVAStructureHelper
             }
             else 
             {
-            	throw new RuntimeException("Could not decode table column of type: " + column.getClass());
+            	throw new IllegalArgumentException("Could not decode table column of type: " + column.getClass());
             }
         }
 
