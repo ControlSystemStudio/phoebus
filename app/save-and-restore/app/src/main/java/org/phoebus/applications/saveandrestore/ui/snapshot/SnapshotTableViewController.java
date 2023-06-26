@@ -64,7 +64,7 @@ public class SnapshotTableViewController {
     private TooltipTableColumn<Instant> timeColumn;
 
     @FXML
-    private TooltipTableColumn<VType> storedSetpointColumn;
+    private TooltipTableColumn<VType> storedValueClumn;
 
     @FXML
     private TableColumn<TableEntry, VTypePair> deltaColumn;
@@ -197,8 +197,8 @@ public class SnapshotTableViewController {
         });
 
         timeColumn.setCellFactory(c -> new TimestampTableCell());
-        storedSetpointColumn.setCellFactory(e -> new VTypeCellEditor<>());
-        storedSetpointColumn.setOnEditCommit(e -> {
+        storedValueClumn.setCellFactory(e -> new VTypeCellEditor<>());
+        storedValueClumn.setOnEditCommit(e -> {
             VType updatedValue = e.getRowValue().readOnlyProperty().get() ? e.getOldValue() : e.getNewValue();
             ObjectProperty<VTypePair> value = e.getRowValue().valueProperty();
             value.setValue(new VTypePair(value.get().base, updatedValue, value.get().threshold));

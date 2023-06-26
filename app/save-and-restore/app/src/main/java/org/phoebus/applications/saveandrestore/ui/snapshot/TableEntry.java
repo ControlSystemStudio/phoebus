@@ -19,6 +19,7 @@ import org.phoebus.applications.saveandrestore.ui.SingleListenerBooleanProperty;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -41,9 +42,10 @@ public class TableEntry {
     private final StringProperty storedSeverity = new SimpleStringProperty(this, "storedSeverity", AlarmSeverity.UNDEFINED.toString());
     /**
      * Snapshot value set either when user takes snapshot, or when snapshot data is loaded from remote service. Note that this
-     * can be modified if user chooses to use a multiplier before triggering a restore operation.
+     * can be modified if user chooses to use a multiplier before triggering a restore operation, or if the value is
+     * edited directly in the table view cell.
      */
-    private final ObjectProperty<VType> snapshotVal = new SimpleObjectProperty<>(this, "storedSetpoint", VNoData.INSTANCE);
+    private final ObjectProperty<VType> storedValue = new SimpleObjectProperty<>(this, "storedValue", VNoData.INSTANCE);
 
     /**
      * Snapshot value as loaded from remote service
@@ -58,7 +60,7 @@ public class TableEntry {
     private final List<ObjectProperty<VTypePair>> compareValues = new ArrayList<>();
 
     private final ObjectProperty<VType> liveReadbackValue = new SimpleObjectProperty<>(this, "liveReadbackValue",
-            VNoData.INSTANCE);
+            VDisconnectedData.INSTANCE);
 
     private final StringProperty readbackPvName = new SimpleStringProperty(this, "readbackPvName");
     private final BooleanProperty liveStoredEqual = new SingleListenerBooleanProperty(this, "liveStoredEqual", true);
@@ -158,8 +160,8 @@ public class TableEntry {
     /**
      * @return the property providing the value of the primary snapshot value
      */
-    public ObjectProperty<VType> snapshotValProperty() {
-        return snapshotVal;
+    public ObjectProperty<VType> storedValueProperty() {
+        return storedValue;
     }
 
     /**
@@ -191,7 +193,7 @@ public class TableEntry {
     }
 
     /**
-     * @return the property indicating the the PV is read only or read and write
+     * @return the property indicating the PV is read only or read and write
      */
     public BooleanProperty readOnlyProperty() {
         return readOnly;
@@ -280,12 +282,11 @@ public class TableEntry {
                 storedSeverity.set("---");
                 timestamp.set(null);
             }
-            snapshotVal.set(val);
+            storedValue.set(val);
             storedSnapshotValue.set(val);
             value.set(new VTypePair(liveValue.get(), val, threshold));
             compareValues.forEach(o -> o.set(new VTypePair(val, o.get().value, threshold)));
             liveStoredEqual.set(Utilities.areValuesEqual(liveValue.get(), val, threshold));
-            //storedReadbackValue.set(new VTypePair(val, storedReadbackValue.get(), threshold));
         } else {
             for (int i = compareValues.size(); i < index; i++) {
                 compareValues.add(new SimpleObjectProperty<>(this, "CompareValue" + i,
@@ -299,15 +300,9 @@ public class TableEntry {
      * Set the stored liveReadback value for the primary snapshot of for the snapshots compared to the primary one.
      *
      * @param val   the value to set
-     * @param index the index of the snapshot
      */
-    public void setStoredReadbackValue(VType val, int index) {
-        if (val == null) {
-            val = VNoData.INSTANCE;
-        }
-        else{
-            storedReadbackValue.set(val);
-        }
+    public void setStoredReadbackValue(VType val) {
+        storedReadbackValue.set(Objects.requireNonNullElse(val, VNoData.INSTANCE));
     }
 
     /**
@@ -316,13 +311,7 @@ public class TableEntry {
      * @param val the value
      */
     public void setReadbackValue(VType val) {
-        if (val == null) {
-            val = VDisconnectedData.INSTANCE;
-        }
-        if (liveReadbackValue.get() != val) {
-            //VTypePair vTypePair = new VTypePair(liveValueProperty().get(), val, threshold);
-            liveReadbackValue.set(val);
-        }
+        liveReadbackValue.set(val);
     }
 
     /**
@@ -335,7 +324,6 @@ public class TableEntry {
             val = VDisconnectedData.INSTANCE;
         }
         liveValue.set(val);
-        //liveReadbackValue.set(new VTypePair(val, liveReadbackValue.get().value, threshold));
         VType stored = value.get().value;
         value.set(new VTypePair(val, stored, threshold));
         liveStoredEqual.set(Utilities.areValuesEqual(val, stored, threshold));

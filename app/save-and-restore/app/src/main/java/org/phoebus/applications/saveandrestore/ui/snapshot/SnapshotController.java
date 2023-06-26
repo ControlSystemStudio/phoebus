@@ -339,7 +339,7 @@ public class SnapshotController {
             tableEntry.pvNameProperty().setValue(name);
             tableEntry.setConfigPv(entry.getConfigPv());
             tableEntry.setSnapshotValue(entry.getValue(), 0);
-            tableEntry.setStoredReadbackValue(entry.getReadbackValue(), 0);
+            tableEntry.setStoredReadbackValue(entry.getReadbackValue());
             String key = getPVKey(name, entry.getConfigPv().isReadOnly());
             tableEntry.readbackPvNameProperty().set(entry.getConfigPv().getReadbackPvName());
             tableEntry.readOnlyProperty().set(entry.getConfigPv().isReadOnly());
@@ -412,7 +412,7 @@ public class SnapshotController {
                         newVType = newValue;
                     }
                     item.setValue(newVType);
-                    rowValue.snapshotValProperty().set(newVType);
+                    rowValue.storedValueProperty().set(newVType);
                 });
     }
 
@@ -448,6 +448,10 @@ public class SnapshotController {
                                 this.readbackValue = org.phoebus.pv.PV.isDisconnected(value) ? VDisconnectedData.INSTANCE : value;
                                 this.snapshotTableEntry.setReadbackValue(this.readbackValue);
                             });
+                }
+                else{
+                    // If configuration does not define readback PV, then UI should show "no data" rather than "disconnected"
+                    this.snapshotTableEntry.setReadbackValue(VNoData.INSTANCE);
                 }
             } catch (Exception e) {
                 LOGGER.log(Level.INFO, "Error connecting to PV", e);
@@ -637,7 +641,7 @@ public class SnapshotController {
                     tableEntry.readbackPvNameProperty().set(entry.getConfigPv().getReadbackPvName());
                 }
                 tableEntry.setSnapshotValue(entry.getValue(), numberOfSnapshots);
-                tableEntry.setStoredReadbackValue(entry.getReadbackValue(), numberOfSnapshots);
+                tableEntry.setStoredReadbackValue(entry.getReadbackValue());
                 tableEntry.readOnlyProperty().set(entry.getConfigPv().isReadOnly());
                 baseSnapshotTableEntries.remove(tableEntry);
             }

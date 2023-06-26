@@ -503,7 +503,7 @@ public class RestoreSnapshotController extends SnapshotController {
 
                     item.setValue(newVType);
 
-                    tableEntry.snapshotValProperty().set(newVType);
+                    tableEntry.storedValueProperty().set(newVType);
 
                     ObjectProperty<VTypePair> value = tableEntry.valueProperty();
                     value.setValue(new VTypePair(value.get().base, newVType, value.get().threshold));

@@ -85,9 +85,9 @@
 
         <TableColumn styleClass="snapshot-table-centered" text="%tableColumnStoredSetpoint">
             <columns>
-                <TooltipTableColumn fx:id="storedSetpointColumn" labelText="%tableColumnSetpoint" minWidth="100" prefWidth="100" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnSetpointPVValue">
+                <TooltipTableColumn fx:id="storedValueClumn" labelText="%tableColumnSetpoint" minWidth="100" prefWidth="100" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnSetpointPVValue">
                     <cellValueFactory>
-                        <PropertyValueFactory property="snapshotVal" />
+                        <PropertyValueFactory property="storedValue" />
                     </cellValueFactory>
                 </TooltipTableColumn>
                 <TableColumn fx:id="deltaColumn" minWidth="100" prefWidth="100" styleClass="snapshot-table-centered" text="%tableColumnDeltaValue" />
