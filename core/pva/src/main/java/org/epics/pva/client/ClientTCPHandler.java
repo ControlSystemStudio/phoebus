@@ -98,7 +98,7 @@ class ClientTCPHandler extends TCPHandler
      *  Client must not send get/put/.. messages until
      *  this flag is set.
      */
-    private final AtomicBoolean connection_validated = new AtomicBoolean();
+    private final AtomicBoolean connection_validated = new AtomicBoolean(false);
 
     public ClientTCPHandler(final PVAClient client, final InetSocketAddress address, final Guid guid) throws Exception
     {
