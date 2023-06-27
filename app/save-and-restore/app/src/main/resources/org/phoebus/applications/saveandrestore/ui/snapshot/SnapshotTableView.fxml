@@ -85,7 +85,7 @@
 
         <TableColumn styleClass="snapshot-table-centered" text="%tableColumnStoredSetpoint">
             <columns>
-                <TooltipTableColumn fx:id="storedValueClumn" labelText="%tableColumnSetpoint" minWidth="100" prefWidth="100" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnSetpointPVValue">
+                <TooltipTableColumn fx:id="storedValueColumn" labelText="%tableColumnSetpoint" minWidth="100" prefWidth="100" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnSetpointPVValue">
                     <cellValueFactory>
                         <PropertyValueFactory property="storedValue" />
                     </cellValueFactory>

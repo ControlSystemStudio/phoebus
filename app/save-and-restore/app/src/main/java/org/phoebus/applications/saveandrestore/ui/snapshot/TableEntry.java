@@ -66,7 +66,7 @@ public class TableEntry {
     private final BooleanProperty liveStoredEqual = new SingleListenerBooleanProperty(this, "liveStoredEqual", true);
 
     private final ObjectProperty<VType> storedReadbackValue = new SimpleObjectProperty<>(this, "storedReadbackValue",
-            VNoData.INSTANCE);
+            VDisconnectedData.INSTANCE);
 
     private Optional<Threshold<?>> threshold = Optional.empty();
     private final BooleanProperty readOnly = new SimpleBooleanProperty(this, "readOnly", false);
@@ -302,7 +302,11 @@ public class TableEntry {
      * @param val   the value to set
      */
     public void setStoredReadbackValue(VType val) {
-        storedReadbackValue.set(Objects.requireNonNullElse(val, VNoData.INSTANCE));
+        if (readbackPvName.get() == null || readbackPvName.get().isEmpty()) {
+            storedReadbackValue.set(VNoData.INSTANCE);
+        } else {
+            storedReadbackValue.set(Objects.requireNonNullElse(val, VDisconnectedData.INSTANCE));
+        }
     }
 
     /**

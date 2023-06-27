@@ -25,6 +25,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -40,19 +41,18 @@ import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SafeMultiply;
-import org.phoebus.applications.saveandrestore.common.Threshold;
-import org.phoebus.applications.saveandrestore.common.Utilities;
-import org.phoebus.applications.saveandrestore.common.VNoData;
-import org.phoebus.applications.saveandrestore.common.VTypePair;
+import org.phoebus.applications.saveandrestore.common.*;
 import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.util.time.TimestampFormats;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
@@ -116,6 +116,10 @@ public class RestoreSnapshotController extends SnapshotController {
     private final List<String> restoreFailedPVNames = new ArrayList<>();
 
     private final SimpleBooleanProperty nodeMetaDataDirty = new SimpleBooleanProperty(false);
+
+    private boolean compareViewInitialized = false;
+
+    private CompareSnapshotsTableViewController compareSnapshotsTableViewController;
 
     public RestoreSnapshotController(SnapshotTab snapshotTab) {
         super(snapshotTab);
@@ -303,14 +307,31 @@ public class RestoreSnapshotController extends SnapshotController {
         }
     }
 
-    @Override
     public void addSnapshot(Node snapshotNode) {
-        // Comparison to same snapshot is pointless...
-        if (snapshots.stream().anyMatch(snapshot -> snapshot.getSnapshotNode().getUniqueId().equals(snapshotNode.getUniqueId()))) {
-            return;
+        if(!compareViewInitialized){
+            initializeCompareView();
         }
 
-        super.getSnapshotDataAndAdd(snapshotNode);
+        getSnapshotDataAndAdd(snapshotNode);
+    }
+
+    private void initializeCompareView(){
+        ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
+        FXMLLoader loader = new FXMLLoader();
+        loader.setResources(resourceBundle);
+        loader.setLocation(SnapshotTab.class.getResource("CompareSnapshotsTableView.fxml"));
+
+        try {
+            javafx.scene.Node tableView = loader.load();
+            compareSnapshotsTableViewController = loader.getController();
+            compareSnapshotsTableViewController.setSnapshotController(this);
+            compareSnapshotsTableViewController.setSelectionColumnVisible(true);
+            borderPane.setCenter(tableView);
+            compareViewInitialized = true;
+        } catch (IOException e) {
+            ExceptionDetailsErrorDialog.openError("Error",
+                    "Failed to load compare snapshots view", e);
+        }
     }
 
     private void loadSnapshotInternal() {
@@ -425,15 +446,55 @@ public class RestoreSnapshotController extends SnapshotController {
      * Since the added snapshot may have a different number of valued, some care is taken to
      * render sensible values (e.g. DISCONNECTED) for such table rows.
      *
-     * @param snapshotNode An existing {@link Node} of type {@link NodeType#SNAPSHOT}
+     * @param snapshotNode A {@link Node} of type {@link NodeType#SNAPSHOT}
      * @return List of updated {@link TableEntry}s.
      */
-    @Override
     protected List<TableEntry> getSnapshotDataAndAdd(Node snapshotNode) {
-        List<TableEntry> tableEntries = super.getSnapshotDataAndAdd(snapshotNode);
-        snapshotRestorableProperty.set(true);
-        return tableEntries;
+        SnapshotData snapshotData = SaveAndRestoreService.getInstance().getSnapshot(snapshotNode.getUniqueId());
+        Snapshot snapshot = new Snapshot();
+        snapshot.setSnapshotNode(snapshotNode);
+        snapshot.setSnapshotData(snapshotData);
+        int numberOfSnapshots = getNumberOfSnapshots();
+        if (numberOfSnapshots == 0) {
+            return createTableEntries(snapshot); // do not dispose of anything
+        } else {
+            List<SnapshotItem> entries = snapshot.getSnapshotData().getSnapshotItems();
+            String nodeName;
+            TableEntry tableEntry;
+            // Base snapshot data
+            List<TableEntry> baseSnapshotTableEntries = new ArrayList<>(tableEntryItems.values());
+            SnapshotItem entry;
+            for (int i = 0; i < entries.size(); i++) {
+                entry = entries.get(i);
+                nodeName = entry.getConfigPv().getPvName();
+                String key = getPVKey(nodeName, entry.getConfigPv().isReadOnly());
+                tableEntry = tableEntryItems.get(key);
+                // tableEntry is null if the added snapshot has more items than the base snapshot.
+                if (tableEntry == null) {
+                    tableEntry = new TableEntry();
+                    tableEntry.idProperty().setValue(tableEntryItems.size() + i + 1);
+                    tableEntry.pvNameProperty().setValue(nodeName);
+                    tableEntry.setConfigPv(entry.getConfigPv());
+                    tableEntryItems.put(key, tableEntry);
+                    tableEntry.readbackPvNameProperty().set(entry.getConfigPv().getReadbackPvName());
+                }
+                tableEntry.setSnapshotValue(entry.getValue(), numberOfSnapshots);
+                tableEntry.setStoredReadbackValue(entry.getReadbackValue());
+                tableEntry.readOnlyProperty().set(entry.getConfigPv().isReadOnly());
+                baseSnapshotTableEntries.remove(tableEntry);
+            }
+            // If added snapshot has more items than base snapshot, the base snapshot's values for those
+            // table rows need to be set to DISCONNECTED.
+            for (TableEntry te : baseSnapshotTableEntries) {
+                te.setSnapshotValue(VDisconnectedData.INSTANCE, numberOfSnapshots);
+            }
+            snapshots.add(snapshot);
+            connectPVs();
+            compareSnapshotsTableViewController.updateTable(new ArrayList<>(tableEntryItems.values()), snapshots, false, false);
+            return new ArrayList<>(tableEntryItems.values());
+        }
     }
+
 
     /**
      * Returns the snapshot stored under the given index.

@@ -19,49 +19,22 @@
 
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
+import javafx.scene.control.TableColumn;
 import org.epics.vtype.VType;
-import org.phoebus.applications.saveandrestore.Messages;
-import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.common.Utilities;
 import org.phoebus.applications.saveandrestore.common.VTypePair;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
-import org.phoebus.core.types.TimeStampedProcessVariable;
-import org.phoebus.framework.selection.SelectionService;
-import org.phoebus.ui.application.ContextMenuHelper;
-import org.phoebus.util.time.TimestampFormats;
 
-import java.lang.reflect.Field;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
-public class SnapshotTableViewController extends BaseSnapshotTableViewController{
-
-    @FXML
-    private TooltipTableColumn<Instant> timeColumn;
+public class CompareSnapshotsTableViewController extends BaseSnapshotTableViewController{
 
     @FXML
-    private TooltipTableColumn<VType> storedReadbackColumn;
-
-    @FXML
-    private TooltipTableColumn<VType> liveReadbackColumn;
-
-    @FXML
-    private TableColumn<TableEntry, ?> readbackColumn;
+    private TableColumn<TableEntry, VTypePair> deltaColumn;
 
     private final SimpleBooleanProperty showReadbacks = new SimpleBooleanProperty(false);
     private boolean showDeltaPercentage;
@@ -71,7 +44,6 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
 
         super.initialize();
 
-        timeColumn.setCellFactory(c -> new SnapshotTableViewController.TimestampTableCell());
 
         deltaColumn.setCellValueFactory(e -> e.getValue().valueProperty());
         deltaColumn.setCellFactory(e -> {
@@ -87,9 +59,6 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
             return Double.compare(vtc1.getAbsoluteDelta(), vtc2.getAbsoluteDelta());
         });
 
-        liveReadbackColumn.setCellFactory(e -> new VTypeCellEditor<>());
-        storedReadbackColumn.setCellFactory(e -> new VTypeCellEditor<>());
-        readbackColumn.visibleProperty().bind(showReadbacks);
     }
 
     public void setSnapshotController(SnapshotController snapshotController) {
@@ -102,6 +71,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
         this.showReadbacks.set(showLiveReadback);
         this.showDeltaPercentage = showDeltaPercentage;
         uiSnapshots.addAll(snapshots);
+        //updateTableColumnTitles();
         updateTable(entries);
     }
 

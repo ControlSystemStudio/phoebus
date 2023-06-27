@@ -24,37 +24,17 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
-import javafx.scene.control.ToggleButton;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
-import org.epics.vtype.Alarm;
-import org.epics.vtype.Display;
-import org.epics.vtype.Time;
-import org.epics.vtype.VEnum;
-import org.epics.vtype.VNumber;
-import org.epics.vtype.VNumberArray;
-import org.epics.vtype.VString;
-import org.epics.vtype.VStringArray;
-import org.epics.vtype.VType;
+import org.epics.vtype.*;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.common.VNoData;
-import org.phoebus.applications.saveandrestore.model.ConfigPv;
-import org.phoebus.applications.saveandrestore.model.ConfigurationData;
-import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.Snapshot;
-import org.phoebus.applications.saveandrestore.model.SnapshotData;
-import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.framework.jobs.JobManager;
@@ -63,15 +43,7 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.ServiceLoader;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -126,7 +98,7 @@ public class SnapshotController {
     /**
      * Property used to indicate if there is new snapshot data to save.
      */
-    protected final SimpleBooleanProperty snapshotDataDirty = new SimpleBooleanProperty(false);
+    private final SimpleBooleanProperty snapshotDataDirty = new SimpleBooleanProperty(false);
 
     protected Node configurationNode;
 
@@ -260,7 +232,7 @@ public class SnapshotController {
             });
         });
     }
-    
+
     @FXML
     @SuppressWarnings("unused")
     private void takeSnapshot() {
@@ -281,12 +253,12 @@ public class SnapshotController {
                     snapshots.set(0, snapshot);
                     List<TableEntry> tableEntries = createTableEntries(snapshots.get(0));
                     snapshotTableViewController.updateTable(tableEntries, snapshots, showLiveReadbackProperty.get(), showDeltaPercentage);
-                
+
                     if (!Preferences.default_snapshot_name_date_format.equals("")) {
-                            SimpleDateFormat formater = new SimpleDateFormat(Preferences.default_snapshot_name_date_format);
-                            snapshotNameProperty.set(formater.format(new Date()));
+                        SimpleDateFormat formater = new SimpleDateFormat(Preferences.default_snapshot_name_date_format);
+                        snapshotNameProperty.set(formater.format(new Date()));
                     }
-                
+
                 })
         );
     }
@@ -382,7 +354,7 @@ public class SnapshotController {
         return 1;
     }
 
-    private void connectPVs() {
+    protected void connectPVs() {
         tableEntryItems.values().forEach(e -> {
             PV pv = pvs.get(getPVKey(e.getConfigPv().getPvName(), e.getConfigPv().isReadOnly()));
             if (pv == null) {
@@ -448,8 +420,7 @@ public class SnapshotController {
                                 this.readbackValue = org.phoebus.pv.PV.isDisconnected(value) ? VDisconnectedData.INSTANCE : value;
                                 this.snapshotTableEntry.setReadbackValue(this.readbackValue);
                             });
-                }
-                else{
+                } else {
                     // If configuration does not define readback PV, then UI should show "no data" rather than "disconnected"
                     this.snapshotTableEntry.setReadbackValue(VNoData.INSTANCE);
                 }
@@ -588,76 +559,7 @@ public class SnapshotController {
         return configurationNode;
     }
 
-    public void addSnapshot(Node snapshotNode) {
-
-        // Alert and return if user has not yet taken a snapshot.
-        if (snapshotDataDirty.not().get()) {
-            Alert alert = new Alert(AlertType.INFORMATION);
-            alert.setTitle(Messages.cannotCompareTitle);
-            alert.setHeaderText(Messages.cannotCompareHeader);
-            DialogHelper.positionDialog(alert, snapshotTab.getTabPane(), -200, -200);
-            alert.show();
-            return;
-        }
-
-        getSnapshotDataAndAdd(snapshotNode);
-    }
-
-    /**
-     * Updates table data such that the added snapshot can be rendered for the sake of comparison.
-     * Since the added snapshot may have a different number of valued, some care is taken to
-     * render sensible values (e.g. DISCONNECTED) for such table rows.
-     *
-     * @param snapshotNode A {@link Node} of type {@link NodeType#SNAPSHOT}
-     * @return List of updated {@link TableEntry}s.
-     */
-    protected List<TableEntry> getSnapshotDataAndAdd(Node snapshotNode) {
-        SnapshotData snapshotData = SaveAndRestoreService.getInstance().getSnapshot(snapshotNode.getUniqueId());
-        Snapshot snapshot = new Snapshot();
-        snapshot.setSnapshotNode(snapshotNode);
-        snapshot.setSnapshotData(snapshotData);
-        int numberOfSnapshots = getNumberOfSnapshots();
-        if (numberOfSnapshots == 0) {
-            return createTableEntries(snapshot); // do not dispose of anything
-        } else {
-            List<SnapshotItem> entries = snapshot.getSnapshotData().getSnapshotItems();
-            String nodeName;
-            TableEntry tableEntry;
-            // Base snapshot data
-            List<TableEntry> baseSnapshotTableEntries = new ArrayList<>(tableEntryItems.values());
-            SnapshotItem entry;
-            for (int i = 0; i < entries.size(); i++) {
-                entry = entries.get(i);
-                nodeName = entry.getConfigPv().getPvName();
-                String key = getPVKey(nodeName, entry.getConfigPv().isReadOnly());
-                tableEntry = tableEntryItems.get(key);
-                // tableEntry is null if the added snapshot has more items than the base snapshot.
-                if (tableEntry == null) {
-                    tableEntry = new TableEntry();
-                    tableEntry.idProperty().setValue(tableEntryItems.size() + i + 1);
-                    tableEntry.pvNameProperty().setValue(nodeName);
-                    tableEntry.setConfigPv(entry.getConfigPv());
-                    tableEntryItems.put(key, tableEntry);
-                    tableEntry.readbackPvNameProperty().set(entry.getConfigPv().getReadbackPvName());
-                }
-                tableEntry.setSnapshotValue(entry.getValue(), numberOfSnapshots);
-                tableEntry.setStoredReadbackValue(entry.getReadbackValue());
-                tableEntry.readOnlyProperty().set(entry.getConfigPv().isReadOnly());
-                baseSnapshotTableEntries.remove(tableEntry);
-            }
-            // If added snapshot has more items than base snapshot, the base snapshot's values for those
-            // table rows need to be set to DISCONNECTED.
-            for (TableEntry te : baseSnapshotTableEntries) {
-                te.setSnapshotValue(VDisconnectedData.INSTANCE, numberOfSnapshots);
-            }
-            snapshots.add(snapshot);
-            connectPVs();
-            snapshotTableViewController.updateTable(new ArrayList<>(tableEntryItems.values()), snapshots, false, false);
-            return new ArrayList<>(tableEntryItems.values());
-        }
-    }
-
-    public void setSnapshotNameProperty(String name){
+    public void setSnapshotNameProperty(String name) {
         snapshotNameProperty.set(name);
         // Externally saved so not actually dirty.
         snapshotDataDirty.set(false);

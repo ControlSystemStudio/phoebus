@@ -15,7 +15,6 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.ObservableList;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
@@ -23,35 +22,19 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
-import javafx.scene.control.Tooltip;
-import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseButton;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
-import javafx.util.StringConverter;
-import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
-import org.epics.vtype.EnumDisplay;
-import org.epics.vtype.Time;
-import org.epics.vtype.VEnum;
-import org.epics.vtype.VNumber;
-import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.common.Utilities;
-import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
-import org.phoebus.applications.saveandrestore.common.VNoData;
 import org.phoebus.applications.saveandrestore.common.VTypePair;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
-import org.phoebus.applications.saveandrestore.ui.MultitypeTableCell;
 import org.phoebus.core.types.TimeStampedProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
@@ -64,7 +47,6 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Formatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -444,30 +426,6 @@ class SnapshotTable extends TableView<TableEntry> {
         }
 
          */
-    }
-
-    /**
-     * SnapshotTable cell renderer styled to fit the {@link DividerTableColumn}
-     */
-    private class DividerCell extends TableCell {
-        @Override
-        protected void updateItem(final Object object, final boolean empty) {
-            super.updateItem(object, empty);
-            getStyleClass().add("divider");
-        }
-    }
-
-    /**
-     * A table column styled to act as a divider between other columns.
-     */
-    protected class DividerTableColumn extends TableColumn {
-
-        public DividerTableColumn() {
-            setPrefWidth(10);
-            setMinWidth(10);
-            setMaxWidth(50);
-            setCellFactory(c -> new DividerCell());
-        }
     }
 
     private void createTableForMultipleSnapshots(List<Snapshot> snapshots) {

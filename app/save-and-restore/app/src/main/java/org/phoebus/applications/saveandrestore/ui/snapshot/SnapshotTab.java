@@ -186,7 +186,7 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
     }
 
     public void addSnapshot(org.phoebus.applications.saveandrestore.model.Node node) {
-        snapshotController.addSnapshot(node);
+        ((RestoreSnapshotController) snapshotController).addSnapshot(node);
     }
 
     @Override
