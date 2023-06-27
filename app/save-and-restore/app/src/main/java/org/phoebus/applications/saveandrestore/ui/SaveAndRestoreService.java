@@ -198,10 +198,9 @@ public class SaveAndRestoreService {
         return future.get();
     }
 
-    public Node copyNode(List<Node> sourceNodes, Node targetNode) throws Exception {
+    public Node copyNodes(List<String> sourceNodes, String targetNode) throws Exception {
         // Map list of nodes to list of unique ids
-        List<String> sourceNodeIds = sourceNodes.stream().map(Node::getUniqueId).collect(Collectors.toList());
-        Future<Node> future = executor.submit(() -> saveAndRestoreClient.copyNodes(sourceNodeIds, targetNode.getUniqueId()));
+        Future<Node> future = executor.submit(() -> saveAndRestoreClient.copyNodes(sourceNodes, targetNode));
         return future.get();
     }
 
@@ -236,7 +235,7 @@ public class SaveAndRestoreService {
             }
             return snapshotItem;
         }).collect(Collectors.toList());
-        snapshot.getSnapshotData().setSnasphotItems(beautifiedItems);
+        snapshot.getSnapshotData().setSnapshotItems(beautifiedItems);
         Future<Snapshot> future = executor.submit(() -> saveAndRestoreClient.saveSnapshot(configurationNode.getUniqueId(), snapshot));
         Snapshot updatedSnapshot = future.get();
         // Notify listeners as the configuration node has a new child node.

@@ -52,6 +52,7 @@ public class Preferences
     @Preference public static int[] alarm_area_panel_major_severity_background_color;
     @Preference public static int[] alarm_area_panel_invalid_severity_background_color;
     @Preference public static int[] alarm_area_panel_undefined_severity_background_color;
+    @Preference public static String cache_hint_for_picture_and_symbol_widgets;
 
     static
     {

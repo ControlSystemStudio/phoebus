@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
+import javafx.util.Pair;
 import org.csstudio.javafx.rtplot.internal.util.TemporalRounding;
 
 /** Helper for creating tick marks.
@@ -156,11 +157,22 @@ public class TimeTicks extends Ticks<Instant>
 
     /** {@inheritDoc} */
     @Override
-    public boolean isSupportedRange(final Instant low, final Instant high)
+    public Pair<Instant, Instant> adjustRange(Instant low, Instant high)
     {
         final Duration range = Duration.between(low, high);
-        return low.compareTo(high) < 0  &&
-               range.compareTo(min) >= 0  &&  range.compareTo(max) <= 0;
+        if (range.compareTo(min) < 0) {
+            high = low.plus(min);
+        }
+        if (range.compareTo(max) > 0) {
+            high = low.plus(max);
+        }
+
+        if (low.compareTo(high) > 0) {
+            return new Pair<>(high, low);
+        }
+        else {
+            return new Pair<>(low, high);
+        }
     }
 
     /** {@inheritDoc} */

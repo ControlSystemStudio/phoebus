@@ -204,7 +204,7 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
      */
     @Override
     public Iterable<ESTreeNode> findAllById(Iterable<String> uniqueIds) {
-        if (!uniqueIds.iterator().hasNext()) {
+        if (uniqueIds == null || !uniqueIds.iterator().hasNext()) {
             return Collections.emptyList();
         }
         List<String> ids = new ArrayList<>();

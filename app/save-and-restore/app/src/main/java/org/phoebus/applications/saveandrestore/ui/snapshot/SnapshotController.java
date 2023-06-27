@@ -258,7 +258,7 @@ public class SnapshotController {
             Snapshot snapshot = new Snapshot();
             snapshot.setSnapshotNode(Node.builder().name(Messages.unnamedSnapshot).nodeType(NodeType.SNAPSHOT).build());
             SnapshotData snapshotData = new SnapshotData();
-            snapshotData.setSnasphotItems(configurationToSnapshotItems(configPvs));
+            snapshotData.setSnapshotItems(configurationToSnapshotItems(configPvs));
             snapshot.setSnapshotData(snapshotData);
             snapshots.add(0, snapshot);
             List<TableEntry> tableEntries = createTableEntries(snapshots.get(0));
@@ -283,7 +283,7 @@ public class SnapshotController {
                     Snapshot snapshot = new Snapshot();
                     snapshot.setSnapshotNode(Node.builder().name(Messages.unnamedSnapshot).nodeType(NodeType.SNAPSHOT).build());
                     SnapshotData snapshotData = new SnapshotData();
-                    snapshotData.setSnasphotItems(entries);
+                    snapshotData.setSnapshotItems(entries);
                     snapshot.setSnapshotData(snapshotData);
                     snapshots.set(0, snapshot);
                     List<TableEntry> tableEntries = createTableEntries(snapshots.get(0));
@@ -306,7 +306,7 @@ public class SnapshotController {
         JobManager.schedule("Save Snapshot", monitor -> {
             List<SnapshotItem> snapshotItems = snapshots.get(0).getSnapshotData().getSnapshotItems();
             SnapshotData snapshotData = new SnapshotData();
-            snapshotData.setSnasphotItems(snapshotItems);
+            snapshotData.setSnapshotItems(snapshotItems);
             Snapshot snapshot = new Snapshot();
             snapshot.setSnapshotData(snapshotData);
             snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).name(snapshotNameProperty.get()).description(snapshotCommentProperty.get()).build());

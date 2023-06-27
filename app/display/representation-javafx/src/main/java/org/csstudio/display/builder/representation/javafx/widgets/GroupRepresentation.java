@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -148,8 +148,13 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
 
             //  Reset position and size as if style == Style.NONE.
             int[] insets = new int[4];
-
-            System.arraycopy(model_widget.runtimePropInsets().getValue(), 0, insets, 0, insets.length);
+            // If the widget was deleted and then via 'undo' restored,
+            // this could be a first update while the model item
+            // contains the old 'inset' data.
+            // ==> Ignore 'inset' on first update,
+            // From then on, use the 'insets' which we compute and store below
+            if (! firstUpdate)
+                System.arraycopy(model_widget.runtimePropInsets().getValue(), 0, insets, 0, insets.length);
 
             final boolean hasChildren = !model_widget.runtimeChildren().getValue().isEmpty();
             if (hasChildren)

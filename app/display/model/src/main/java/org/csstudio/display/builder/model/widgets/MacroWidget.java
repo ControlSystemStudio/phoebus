@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2020-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -99,14 +99,17 @@ public class MacroWidget extends VisibleWidget
         return macros;
     }
 
-    /** Widget extends parent macros
-     *  @return {@link Macros}
-     */
+    /** {@inheritDoc} */
+    @Override
+    public void expandMacros(final Macros input)
+    {
+        macros.getValue().expandValues(input);
+    }
+
+    /** {@inheritDoc} */
     @Override
     public Macros getEffectiveMacros()
     {
-        final Macros base = super.getEffectiveMacros();
-        final Macros my_macros = propMacros().getValue();
-        return Macros.merge(base, my_macros);
+        return propMacros().getValue();
     }
 }

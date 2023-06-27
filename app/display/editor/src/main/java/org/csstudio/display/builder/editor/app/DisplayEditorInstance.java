@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -24,6 +24,7 @@ import org.csstudio.display.builder.editor.EditorUtil;
 import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.editor.WidgetSelectionHandler;
 import org.csstudio.display.builder.editor.actions.ActionDescription;
+import org.csstudio.display.builder.editor.undo.SortWidgetsAction;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.ModelPlugin;
 import org.csstudio.display.builder.model.Widget;
@@ -163,6 +164,10 @@ public class DisplayEditorInstance implements AppInstance
             final MenuItem morph = new MorphWidgetsMenu(editor_gui.getDisplayEditor());
             final MenuItem back = new ActionWapper(ActionDescription.TO_BACK);
             final MenuItem front = new ActionWapper(ActionDescription.TO_FRONT);
+
+            final ActionWapper sort_widgets = new ActionWapper(ActionDescription.SORT_WIDGETS);
+            sort_widgets.setDisable(SortWidgetsAction.getWidgetToSort(editor_gui.getDisplayEditor()) == null);
+
             final ActionWapper open_external = new ActionWapper(ActionDescription.OPEN_EXTERNAL);
             if (selection.size() <= 0)
             {
@@ -245,6 +250,7 @@ public class DisplayEditorInstance implements AppInstance
                                        morph,
                                        back,
                                        front,
+                                       sort_widgets,
                                        new SetDisplaySize(editor_gui.getDisplayEditor()),
                                        new SeparatorMenuItem(),
                                        ExecuteDisplayAction.asMenuItem(this),

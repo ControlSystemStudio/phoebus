@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,9 +14,6 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Stroke;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
@@ -27,6 +24,7 @@ import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.javafx.rtplot.TraceType;
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
 import org.csstudio.javafx.rtplot.data.PlotDataProvider;
+import org.csstudio.javafx.rtplot.data.PlotDataSearch;
 import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
 import org.csstudio.javafx.rtplot.internal.util.IntList;
 import org.csstudio.javafx.rtplot.internal.util.ScreenTransform;
@@ -89,6 +87,13 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
     {
         if (! trace.isVisible())
             return;
+
+        final TraceType type = trace.getType();
+        final PointType point_type = trace.getPointType();
+        logger.log(Level.FINE, () -> "Painting trace type " + type.toString() + ", points " + point_type.toString());
+        if (type == TraceType.NONE  &&  point_type == PointType.NONE)
+            return;
+
         x_min = bounds.x - OUTSIDE;
         x_max = bounds.x + bounds.width + OUTSIDE;
         y_min = bounds.y - OUTSIDE;
@@ -103,9 +108,6 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
         gc.setColor(color);
 
         // TODO Optimize drawing
-        //
-        // Determine first sample to draw via PlotDataSearch.findSampleLessOrEqual(),
-        // then end drawing when reaching right end of area.
         //
         // Loop only once, performing drawMinMax, drawStdDev, drawValueStaircase in one loop
         //
@@ -124,8 +126,43 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
         }
         try
         {
-            final TraceType type = trace.getType();
-            logger.log(Level.ALL, "Painting trace type " + type.toString());
+            int start = 0;
+            int end = data.size();
+            if (end <= 0)
+                return;
+
+            switch (type)
+            {
+            // Types that require ordered X axis so start..end can be optimized
+            case AREA:
+            case LINES_ERROR_BARS:
+            case ERROR_BARS:
+            case BARS:
+                // Determine first and last sample to draw, then go one sample further on each end
+                final PlotDataSearch<XTYPE> search = new PlotDataSearch<>();
+                XTYPE border = x_transform.inverse(bounds.x);
+                start = search.findSampleLessOrEqual(data, border);
+                if (start < 0)
+                    start = 0;
+                else
+                    start = Math.max(0, start-1);
+
+                border = x_transform.inverse(bounds.getMaxX());
+                end = search.findSampleGreaterOrEqual(data, border);
+                if (end < 0)
+                    end = data.size();
+                else
+                    end = Math.min(end+1, data.size());
+
+                if (logger.isLoggable(Level.FINE))
+                    logger.log(Level.FINE,
+                               "Optimized drawing from samples 0.." + data.size() + " to " + start + ".." + end);
+                break;
+
+            // Types where X axis may not be ordered so start..end cannot be optimized
+            default:
+                break;
+            }
 
             switch (type)
             {
@@ -133,34 +170,34 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
                 break;
             case AREA:
                 gc.setPaint(tpcolor);
-                drawMinMaxArea(gc, x_transform, y_axis, data);
+                drawMinMaxArea(gc, x_transform, y_axis, data, start, end);
                 gc.setPaint(color);
-                drawStdDevLines(gc, x_transform, y_axis, data, trace.getWidth());
-                drawValueStaircase(gc, x_transform, y_axis, data, trace.getWidth(), trace.getLineStyle());
+                drawStdDevLines(gc, x_transform, y_axis, data, start, end, trace.getWidth());
+                drawValueStaircase(gc, x_transform, y_axis, data, start, end, trace.getWidth(), trace.getLineStyle());
                 break;
             case AREA_DIRECT:
                 gc.setPaint(tpcolor);
-                drawMinMaxArea(gc, x_transform, y_axis, data);
+                drawMinMaxArea(gc, x_transform, y_axis, data, start, end);
                 gc.setPaint(color);
-                drawStdDevLines(gc, x_transform, y_axis, data, trace.getWidth());
+                drawStdDevLines(gc, x_transform, y_axis, data, start, end, trace.getWidth());
                 drawValueLines(gc, x_transform, y_axis, data, trace.getWidth(), trace.getLineStyle());
                 break;
             case LINES:
                 drawMinMaxLines(gc, x_transform, y_axis, data, trace.getWidth());
                 gc.setPaint(tpcolor);
-                drawStdDevLines(gc, x_transform, y_axis, data, trace.getWidth());
+                drawStdDevLines(gc, x_transform, y_axis, data, start, end, trace.getWidth());
                 gc.setPaint(color);
-                drawValueStaircase(gc, x_transform, y_axis, data, trace.getWidth(), trace.getLineStyle());
+                drawValueStaircase(gc, x_transform, y_axis, data, start, end, trace.getWidth(), trace.getLineStyle());
                 break;
             case LINES_DIRECT:
                 drawMinMaxLines(gc, x_transform, y_axis, data, trace.getWidth());
                 gc.setPaint(tpcolor);
-                drawStdDevLines(gc, x_transform, y_axis, data, trace.getWidth());
+                drawStdDevLines(gc, x_transform, y_axis, data, start, end, trace.getWidth());
                 gc.setPaint(color);
                 drawValueLines(gc, x_transform, y_axis, data, trace.getWidth(), trace.getLineStyle());
                 break;
             case SINGLE_LINE:
-                drawValueStaircase(gc, x_transform, y_axis, data, trace.getWidth(), trace.getLineStyle());
+                drawValueStaircase(gc, x_transform, y_axis, data, start, end, trace.getWidth(), trace.getLineStyle());
                 break;
             case SINGLE_LINE_DIRECT:
                 drawValueLines(gc, x_transform, y_axis, data, trace.getWidth(), trace.getLineStyle());
@@ -185,10 +222,9 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
                     drawHistogram(gc, x_transform, y_axis, data);
                 break;
             default:
-                drawValueStaircase(gc, x_transform, y_axis, data, trace.getWidth(), trace.getLineStyle());
+                drawValueStaircase(gc, x_transform, y_axis, data, start, end, trace.getWidth(), trace.getLineStyle());
             }
 
-            final PointType point_type = trace.getPointType();
             if (point_type != PointType.NONE)
                 drawPoints(gc, x_transform, y_axis, data, point_type, trace.getPointSize());
         }
@@ -240,19 +276,23 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
      *  @param x_transform Horizontal axis
      *  @param y_axis Value axis
      *  @param data Data
+     *  @param start Start and ..
+     *  @param end .. end index of data to plot
      *  @param line_width
      *  @param line_style
      */
     final private void drawValueStaircase(final Graphics2D gc,
             final ScreenTransform<XTYPE> x_transform, final YAxisImpl<XTYPE> y_axis,
-            final PlotDataProvider<XTYPE> data, final int line_width, final LineStyle line_style)
+            final PlotDataProvider<XTYPE> data,
+            final int start, final int end,
+            final int line_width, final LineStyle line_style)
     {
         final IntList poly_x = new IntList(INITIAL_ARRAY_SIZE);
         final IntList poly_y = new IntList(INITIAL_ARRAY_SIZE);
-        final int N = data.size();
+
         int last_x = -1, last_y = -1;
         gc.setStroke(createStroke(line_width, line_style));
-        for (int i=0; i<N; ++i)
+        for (int i=start; i<end; ++i)
         {
             final PlotDataItem<XTYPE> item = data.get(i);
             final int x = clipX(Math.round(x_transform.transform(item.getPosition())));
@@ -326,19 +366,22 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
      *  @param x_transform Horizontal axis
      *  @param y_axis Value axis
      *  @param data Data
+     *  @param start Start and ..
+     *  @param end .. end index of data to plot
      */
     final private void drawMinMaxArea(final Graphics2D gc,
             final ScreenTransform<XTYPE> x_transform, final YAxisImpl<XTYPE> y_axis,
-            final PlotDataProvider<XTYPE> data)
+            final PlotDataProvider<XTYPE> data,
+            final int start, final int end)
     {
-        final int N = data.size();
+        final int N = end - start;
         // Assume N, might use less because end up with sections
         // separated by Double.NaN
         final IntList pos = new IntList(N);
         final IntList min = new IntList(N);
         final IntList max = new IntList(N);
 
-        for (int i = 0;  i < N;  ++i)
+        for (int i = start;  i < end;  ++i)
         {
             final PlotDataItem<XTYPE> item = data.get(i);
             double ymin = item.getMin();
@@ -402,18 +445,19 @@ public class TracePainter<XTYPE extends Comparable<XTYPE>>
      *  @param x_transform Horizontal axis
      *  @param y_axis Value axis
      *  @param data Data
+     *  @param start Start and ..
+     *  @param end .. end index of data to plot
      *  @param line_width
      */
     final private void drawStdDevLines(final Graphics2D gc, final ScreenTransform<XTYPE> x_transform, final YAxisImpl<XTYPE> y_axis,
-            final PlotDataProvider<XTYPE> data, final int line_width)
+            final PlotDataProvider<XTYPE> data, final int start, final int end, final int line_width)
     {
         final IntList lower_poly_y = new IntList(INITIAL_ARRAY_SIZE);
         final IntList upper_poly_y = new IntList(INITIAL_ARRAY_SIZE);
         final IntList lower_poly_x = new IntList(INITIAL_ARRAY_SIZE);
         final IntList upper_poly_x = new IntList(INITIAL_ARRAY_SIZE);
 
-        final int N = data.size();
-        for (int i = 0;  i < N;  ++i)
+        for (int i = start;  i < end;  ++i)
         {
             final PlotDataItem<XTYPE> item = data.get(i);
             double value = item.getValue();

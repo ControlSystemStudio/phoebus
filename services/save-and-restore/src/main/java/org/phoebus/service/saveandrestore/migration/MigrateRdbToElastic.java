@@ -29,7 +29,6 @@ import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchDAO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
@@ -185,7 +184,7 @@ public class MigrateRdbToElastic {
             Snapshot snapshot = new Snapshot();
             snapshot.setSnapshotNode(legacySnapshotNode);
             SnapshotData snapshotData = new SnapshotData();
-            snapshotData.setSnasphotItems(Arrays.asList(snapshotItems));
+            snapshotData.setSnapshotItems(Arrays.asList(snapshotItems));
             snapshotData.setUniqueId(legacySnapshotNode.getUniqueId());
             snapshot.setSnapshotData(snapshotData);
             snapshotCount++;

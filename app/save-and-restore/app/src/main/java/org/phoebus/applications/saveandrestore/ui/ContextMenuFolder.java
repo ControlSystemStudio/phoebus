@@ -57,8 +57,17 @@ public class ContextMenuFolder extends ContextMenuBase {
         importConfigurationMenuItem.disableProperty().bind(multipleSelection);
         importConfigurationMenuItem.setOnAction(ae -> saveAndRestoreController.importConfiguration());
 
+        Image pasteIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/paste.png");
+        MenuItem pasteMenuItem = new MenuItem(Messages.paste, new ImageView(pasteIcon));
+        pasteMenuItem.setOnAction(ae -> saveAndRestoreController.pasteFromClipboard());
+
+        setOnShowing(event -> {
+            pasteMenuItem.setDisable(!saveAndRestoreController.mayPaste());
+        });
+
         getItems().addAll(newFolderMenuItem,
                 renameNodeMenuItem,
+                pasteMenuItem,
                 deleteNodesMenuItem,
                 newConfigurationMenuItem,
                 newCompositeSnapshotMenuItem,

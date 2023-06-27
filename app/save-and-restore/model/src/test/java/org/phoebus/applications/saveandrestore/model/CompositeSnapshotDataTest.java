@@ -14,25 +14,17 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
  */
 
-package org.phoebus.applications.saveandrestore;
+package org.phoebus.applications.saveandrestore.model;
 
-import org.phoebus.framework.preferences.AnnotatedPreferences;
-import org.phoebus.framework.preferences.Preference;
+import org.junit.jupiter.api.Test;
 
-public class Preferences {
-    @Preference
-    public static int readTimeout;
-    @Preference
-    public static int search_result_page_size;
-    @Preference
-    public static String default_search_query;
-    @Preference
-    public static String default_snapshot_name_date_format;
+public class CompositeSnapshotDataTest {
 
-    static
-    {
-        AnnotatedPreferences.initialize(Preferences.class, "/save_and_restore_preferences.properties");
+    @Test
+    public void testClone(){
+        
     }
 }

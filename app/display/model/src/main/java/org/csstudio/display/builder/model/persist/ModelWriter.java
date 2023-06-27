@@ -43,6 +43,7 @@ public class ModelWriter implements Closeable
 {
     /** Add comments to the XML output? */
     public static boolean with_comments = Preferences.with_comments;
+    public static boolean enable_saved_on_comment = Preferences.enable_saved_on_comments;
 
     /** Default values are usually not written,
      *  but for tests they can be included in the XML output.
@@ -83,7 +84,9 @@ public class ModelWriter implements Closeable
         writer = new IndentingXMLStreamWriter(base);
 
         writer.writeStartDocument(XMLUtil.ENCODING, "1.0");
-        writer.writeComment("Saved on " + TimestampFormats.SECONDS_FORMAT.format(Instant.now()) + " by " + System.getProperty("user.name"));
+        if (enable_saved_on_comment) {
+            writer.writeComment("Saved on " + TimestampFormats.SECONDS_FORMAT.format(Instant.now()) + " by " + System.getProperty("user.name"));
+        }
         writer.writeStartElement(XMLTags.DISPLAY);
         writer.writeAttribute(XMLTags.VERSION, DisplayModel.VERSION.toString());
     }

@@ -18,6 +18,7 @@
 
 package org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
@@ -42,8 +43,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -52,6 +53,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.phoebus.applications.saveandrestore.model.Node.ROOT_FOLDER_UNIQUE_ID;
@@ -81,6 +84,8 @@ public class ElasticsearchDAO implements NodeDAO {
     @SuppressWarnings("unused")
     @Autowired
     private SearchUtil searchUtil;
+
+    private final Pattern NODE_NAME_PATTERN = Pattern.compile(".*(\\scopy(\\s\\d*)?$)");
 
     private static final Logger logger = Logger.getLogger(ElasticsearchDAO.class.getName());
 
@@ -221,14 +226,26 @@ public class ElasticsearchDAO implements NodeDAO {
 
     @Override
     public Node moveNodes(List<String> nodeIds, String targetId, String userName) {
-        Optional<ESTreeNode> targetNode = elasticsearchTreeRepository.findById(targetId);
-        if (targetNode.isEmpty()) {
-            throw new NodeNotFoundException(String.format("Target node with unique id=%s not found", targetId));
+        // Move root node is not allowed
+        if (nodeIds.contains(ROOT_FOLDER_UNIQUE_ID)) {
+            throw new IllegalArgumentException("Move root node not supported");
         }
 
-        if (!targetNode.get().getNode().getNodeType().equals(NodeType.FOLDER)) {
-            throw new IllegalArgumentException("Move not allowed: target node is not a folder");
+        // Check that the target node is not any of the source nodes, i.e. a node cannot be copied to itself.
+        if (nodeIds.stream().anyMatch(i -> i.equals(targetId))) {
+            throw new IllegalArgumentException("At least one source node is same as target node");
         }
+
+        // Get target node. If it does not exist, a NodeNotFoundException is thrown.
+        Optional<ESTreeNode> targetNodeOptional;
+
+        try {
+            targetNodeOptional = elasticsearchTreeRepository.findById(targetId);
+        } catch (NodeNotFoundException e) {
+            throw new IllegalArgumentException("Target node does not exist");
+        }
+
+        ESTreeNode targetNode = targetNodeOptional.get();
 
         List<Node> sourceNodes = new ArrayList<>();
         nodeIds.forEach(id -> {
@@ -236,91 +253,211 @@ public class ElasticsearchDAO implements NodeDAO {
             esTreeNode.ifPresent(treeNode -> sourceNodes.add(treeNode.getNode()));
         });
 
-        if (sourceNodes.size() != nodeIds.size()) {
-            throw new IllegalArgumentException("At least one unique node id not found.");
+        // Get node type of first element...
+        NodeType nodeTypeOfFirstSourceNode = sourceNodes.get(0).getNodeType();
+
+        // All nodes must be of same type
+        if (sourceNodes.stream().anyMatch(n -> !n.getNodeType().equals(nodeTypeOfFirstSourceNode))) {
+            throw new IllegalArgumentException("Move nodes supported only if all source nodes are of same type");
         }
 
-        if (!isMoveOrCopyAllowed(sourceNodes, targetNode.get().getNode())) {
-            throw new IllegalArgumentException("Prerequisites for moving source node(s) not met.");
+        // All nodes must have same parent node
+        String parentNodeOfFirstSourceNode =
+                elasticsearchTreeRepository.getParentNode(sourceNodes.get(0).getUniqueId()).getNode().getUniqueId();
+        if (sourceNodes.stream().anyMatch(n ->
+                !parentNodeOfFirstSourceNode.equals(elasticsearchTreeRepository.getParentNode(n.getUniqueId()).getNode().getUniqueId()))) {
+            throw new IllegalArgumentException("All source nodes must have same parent node");
         }
 
-        // Remove source nodes from the list of child nodes in parent node.
+        // Configuration, composite snapshot and folder can be moved only to folder
+        if ((nodeTypeOfFirstSourceNode.equals(NodeType.FOLDER) ||
+                nodeTypeOfFirstSourceNode.equals(NodeType.CONFIGURATION) ||
+                nodeTypeOfFirstSourceNode.equals(NodeType.COMPOSITE_SNAPSHOT))
+                && !targetNode.getNode().getNodeType().equals(NodeType.FOLDER)) {
+            throw new IllegalArgumentException(nodeTypeOfFirstSourceNode + " cannot be moved to " + targetNode.getNode().getNodeType() + " node");
+        }
+
+        // Snapshot may only be moved to a configuration node.
+        if (nodeTypeOfFirstSourceNode.equals(NodeType.SNAPSHOT)
+                && !targetNode.getNode().getNodeType().equals(NodeType.CONFIGURATION)) {
+            throw new IllegalArgumentException(nodeTypeOfFirstSourceNode + " cannot be moved to " + targetNode.getNode().getNodeType() + " node");
+        }
+
+        // Snapshot nodes' PV list must match target configuration's PV list. This is checked for all source snapshots:
+        // if one mismatch is found, the move operation is aborted -> no snapshots moved.
+        if (nodeTypeOfFirstSourceNode.equals(NodeType.SNAPSHOT)) {
+            for (Node node : sourceNodes) {
+                if (!mayMoveOrCopySnapshot(node, targetNode.getNode())) {
+                    throw new IllegalArgumentException("At least one snapshot's PV list does not match target configuration's PV list");
+                }
+            }
+        }
+
         ESTreeNode parentNode = elasticsearchTreeRepository.getParentNode(sourceNodes.get(0).getUniqueId());
         if (parentNode == null) {
             throw new RuntimeException("Parent node of source node " + sourceNodes.get(0).getUniqueId() + " not found. Should not happen.");
         }
+
+        if (targetNode.getChildNodes() != null){
+            List<Node> targetsChildNodes = new ArrayList<>();
+            for(String parentChildNode : targetNode.getChildNodes()){
+                Optional<ESTreeNode> targetChildNodeOptional = elasticsearchTreeRepository.findById(parentChildNode);
+                if(targetChildNodeOptional.isEmpty()){ // Should not happen, but ignore if it does.
+                    continue;
+                }
+                targetsChildNodes.add(targetChildNodeOptional.get().getNode());
+            }
+            for(Node sourceNode : sourceNodes){
+                for(Node targetChildNode : targetsChildNodes) {
+                    if (targetChildNode.getName().equals(sourceNode.getName()) && targetChildNode.getNodeType().equals(sourceNode.getNodeType())) {
+                        throw new IllegalArgumentException("Cannot move, at least one source node has same name and type as a target child node");
+                    }
+                }
+            }
+        }
+
+        // Remove source nodes from the list of child nodes in parent node.
         parentNode.getChildNodes().removeAll(sourceNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
         elasticsearchTreeRepository.save(parentNode);
 
         // Update the target node to include the source nodes in its list of child nodes
-        if (targetNode.get().getChildNodes() == null) {
-            targetNode.get().setChildNodes(new ArrayList<>());
+        if (targetNode.getChildNodes() == null) {
+            targetNode.setChildNodes(new ArrayList<>());
         }
 
-        targetNode.get().getChildNodes().addAll(sourceNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
-        ESTreeNode updatedTargetNode = elasticsearchTreeRepository.save(targetNode.get());
+        targetNode.getChildNodes().addAll(sourceNodes.stream().map(Node::getUniqueId).collect(Collectors.toList()));
+        ESTreeNode updatedTargetNode = elasticsearchTreeRepository.save(targetNode);
 
         return updatedTargetNode.getNode();
     }
 
     @Override
     public Node copyNodes(List<String> nodeIds, String targetId, String userName) {
-        Optional<ESTreeNode> targetNode = elasticsearchTreeRepository.findById(targetId);
-        if (targetNode.isEmpty()) {
-            throw new NodeNotFoundException(String.format("Target node with unique id=%s not found", targetId));
+        // Copy to root node not allowed, neither is copying of root folder itself
+        if (targetId.equals(ROOT_FOLDER_UNIQUE_ID) || nodeIds.contains(ROOT_FOLDER_UNIQUE_ID)) {
+            throw new IllegalArgumentException("Copy to root node or copy root node not supported");
         }
 
-        if (!targetNode.get().getNode().getNodeType().equals(NodeType.FOLDER)) {
-            throw new IllegalArgumentException("Move not allowed: target node is not a folder");
+        // Check that the target node is not any of the source nodes, i.e. a node cannot be copied to itself.
+        if (nodeIds.stream().anyMatch(i -> i.equals(targetId))) {
+            throw new IllegalArgumentException("At least one source node is same as target node");
         }
+
+        // Get target node. If it does not exist, a NodeNotFoundException is thrown.
+        Optional<ESTreeNode> targetNodeOptional;
+
+        try {
+            targetNodeOptional = elasticsearchTreeRepository.findById(targetId);
+        } catch (NodeNotFoundException e) {
+            throw new IllegalArgumentException("Target node does not exist");
+        }
+
+        Node targetNode = targetNodeOptional.get().getNode();
 
         List<Node> sourceNodes = new ArrayList<>();
-        nodeIds.forEach(id -> {
-            Optional<ESTreeNode> esTreeNode = elasticsearchTreeRepository.findById(id);
-            esTreeNode.ifPresent(treeNode -> sourceNodes.add(treeNode.getNode()));
-        });
 
-        if (sourceNodes.size() != nodeIds.size()) {
-            throw new IllegalArgumentException("At least one unique node id not found.");
+        try {
+            for (String nodeId : nodeIds) {
+                Optional<ESTreeNode> esTreeNode = elasticsearchTreeRepository.findById(nodeId);
+                sourceNodes.add(esTreeNode.get().getNode());
+            }
+        } catch (NodeNotFoundException e) {
+            throw new IllegalArgumentException("At least one source node does not exist");
         }
 
-        // TODO: Remove when copy of composite snapshots is supported
-        if(sourceNodes.stream().filter(n -> n.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)).findFirst().isPresent()){
-            throw new IllegalArgumentException("Copy composite snapshot not supported");
+        // Get node type of first element...
+        NodeType nodeTypeOfFirstSourceNode = sourceNodes.get(0).getNodeType();
+        // ... if type is folder, abort
+        if (nodeTypeOfFirstSourceNode.equals(NodeType.FOLDER)) {
+            throw new IllegalArgumentException("Copy of folder(s) not supported");
+        }
+        // All nodes must be of same type
+        if (sourceNodes.stream().anyMatch(n -> !n.getNodeType().equals(nodeTypeOfFirstSourceNode))) {
+            throw new IllegalArgumentException("Copy nodes supported only if all source nodes are of same type");
+        }
+        // All nodes must have same parent node
+        String parentNodeOfFirstSourceNode =
+                elasticsearchTreeRepository.getParentNode(sourceNodes.get(0).getUniqueId()).getNode().getUniqueId();
+        if (sourceNodes.stream().anyMatch(n ->
+                !parentNodeOfFirstSourceNode.equals(elasticsearchTreeRepository.getParentNode(n.getUniqueId()).getNode().getUniqueId()))) {
+            throw new IllegalArgumentException("All source nodes must have same parent node");
         }
 
-        if (!isMoveOrCopyAllowed(sourceNodes, targetNode.get().getNode())) {
-            throw new IllegalArgumentException("Prerequisites for copying source node(s) not met.");
+        // Configuration and composite snapshot nodes may be copied only to folder
+        if ((nodeTypeOfFirstSourceNode.equals(NodeType.CONFIGURATION) || nodeTypeOfFirstSourceNode.equals(NodeType.COMPOSITE_SNAPSHOT))
+                && !targetNode.getNodeType().equals(NodeType.FOLDER)) {
+            throw new IllegalArgumentException(nodeTypeOfFirstSourceNode + " cannot be copied to " + targetNode.getNodeType() + " node");
         }
 
-        sourceNodes.forEach(sourceNode -> copyNode(sourceNode, targetNode.get().getNode(), userName));
+        // Snapshot may only be copied to a configuration node.
+        if (nodeTypeOfFirstSourceNode.equals(NodeType.SNAPSHOT)
+                && !targetNode.getNodeType().equals(NodeType.CONFIGURATION)) {
+            throw new IllegalArgumentException(nodeTypeOfFirstSourceNode + " cannot be copied to " + targetNode.getNodeType() + " node");
+        }
 
-        return targetNode.get().getNode();
+        // Snapshot nodes' PV list must match target configuration's PV list. This is checked for all source snapshots:
+        // if one mismatch is found, the copy operation is aborted -> no snapshots copied.
+        if (nodeTypeOfFirstSourceNode.equals(NodeType.SNAPSHOT)) {
+            for (Node node : sourceNodes) {
+                if (!mayMoveOrCopySnapshot(node, targetNode)) {
+                    throw new IllegalArgumentException("Snapshot not compatible with configuration");
+                }
+            }
+        }
+
+        sourceNodes.forEach(sourceNode -> copyNode(sourceNode, targetNode, userName));
+
+        return targetNode;
     }
 
-    private void copyNode(Node sourceNode, Node targetNode, String userName) {
-        // In order to copy, we first create a shallow clone of the source node
+    /**
+     * Creates a copy (clone) of the source {@link Node} and associated data like so:
+     * <ol>
+     *     <li>Determine the new {@link Node}'s name.</li>
+     *     <li>Create the new {@link Node}.</li>
+     *     <li>Clone the data, which of course varies depending on the {@link NodeType} of the source {@link Node}.</li>
+     * </ol>
+     *
+     * @param sourceNode       The source {@link Node} to be copied (cloned).
+     * @param targetParentNode The parent {@link Node} of the copy.
+     * @param userName         Username of the individual performing the action.
+     */
+    private void copyNode(Node sourceNode, Node targetParentNode, String userName) {
+        List<Node> targetsChildNodes = getChildNodes(targetParentNode.getUniqueId());
+        String newNodeName = determineNewNodeName(sourceNode, targetsChildNodes);
+        // First create a clone of the source Node object
         Node sourceNodeClone = Node.builder()
-                .name(sourceNode.getName())
+                .name(newNodeName)
                 .nodeType(sourceNode.getNodeType())
                 .userName(userName)
                 .tags(sourceNode.getTags())
                 .description(sourceNode.getDescription())
                 .build();
-        final Node newSourceNode = createNode(targetNode.getUniqueId(), sourceNodeClone);
+        final Node newSourceNode = createNode(targetParentNode.getUniqueId(), sourceNodeClone);
 
+        // Next copy data and associate it with the cloned Node object
         if (sourceNode.getNodeType().equals(NodeType.CONFIGURATION)) {
             ConfigurationData sourceConfiguration = getConfigurationData(sourceNode.getUniqueId());
             copyConfigurationData(newSourceNode, sourceConfiguration);
         } else if (sourceNode.getNodeType().equals(NodeType.SNAPSHOT)) {
             SnapshotData snapshotData = getSnapshotData(sourceNode.getUniqueId());
             copySnapshotData(newSourceNode, snapshotData);
+        } else if (sourceNode.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)) {
+            CompositeSnapshotData compositeSnapshotData =
+                    getCompositeSnapshotData(sourceNode.getUniqueId());
+            copyCompositeSnapshotData(newSourceNode, compositeSnapshotData);
         }
+    }
 
-        if (sourceNode.getNodeType().equals(NodeType.FOLDER) || sourceNode.getNodeType().equals(NodeType.CONFIGURATION)) {
-            List<Node> childNodes = getChildNodes(sourceNode.getUniqueId());
-            childNodes.forEach(childNode -> copyNode(childNode, newSourceNode, userName));
-        }
+    protected boolean mayMoveOrCopySnapshot(Node sourceNode, Node targetParentNode) {
+        SnapshotData snapshotData = getSnapshotData(sourceNode.getUniqueId());
+        ConfigurationData configurationData = getConfigurationData(targetParentNode.getUniqueId());
+
+        List<String> pvsInSnapshot =
+                snapshotData.getSnapshotItems().stream().map(si -> si.getConfigPv().getPvName()).collect(Collectors.toList());
+        List<String> pvsInConfiguration =
+                configurationData.getPvList().stream().map(ConfigPv::getPvName).collect(Collectors.toList());
+        return CollectionUtils.containsAll(pvsInSnapshot, pvsInConfiguration) && CollectionUtils.containsAll(pvsInConfiguration, pvsInSnapshot);
     }
 
     /**
@@ -330,16 +467,24 @@ public class ElasticsearchDAO implements NodeDAO {
      *                                associated. This must already exist in the Elasticsearch index.
      * @param sourceConfiguration     The source {@link ConfigurationData}
      */
-    private ConfigurationData copyConfigurationData(Node targetConfigurationNode, ConfigurationData sourceConfiguration) {
+    private void copyConfigurationData(Node targetConfigurationNode, ConfigurationData sourceConfiguration) {
         ConfigurationData clonedConfigurationData = ConfigurationData.clone(sourceConfiguration);
         clonedConfigurationData.setUniqueId(targetConfigurationNode.getUniqueId());
-        return configurationDataRepository.save(clonedConfigurationData);
+        configurationDataRepository.save(clonedConfigurationData);
     }
 
-    private SnapshotData copySnapshotData(Node targetSnapshotNode, SnapshotData snapshotData) {
-        SnapshotData clonedSnapshotData = SnapshotData.clone(snapshotData);
+    private void copySnapshotData(Node targetSnapshotNode, SnapshotData snapshotData) {
+        SnapshotData clonedSnapshotData = new SnapshotData();
+        clonedSnapshotData.setSnapshotItems(snapshotData.getSnapshotItems());
         clonedSnapshotData.setUniqueId(targetSnapshotNode.getUniqueId());
-        return snapshotDataRepository.save(clonedSnapshotData);
+        snapshotDataRepository.save(clonedSnapshotData);
+    }
+
+    private void copyCompositeSnapshotData(Node targetCompositeSnapshotNode, CompositeSnapshotData compositeSnapshotData) {
+        CompositeSnapshotData clonedCompositeSnapshotData = new CompositeSnapshotData();
+        clonedCompositeSnapshotData.setReferencedSnapshotNodes(compositeSnapshotData.getReferencedSnapshotNodes());
+        clonedCompositeSnapshotData.setUniqueId(targetCompositeSnapshotNode.getUniqueId());
+        compositeSnapshotDataRepository.save(clonedCompositeSnapshotData);
     }
 
     @Override
@@ -550,87 +695,6 @@ public class ElasticsearchDAO implements NodeDAO {
                 .build();
     }
 
-    /**
-     * Move of list of {@link Node}s is allowed only if:
-     * <ul>
-     *     <li>All elements are of same {@link NodeType}.</li>
-     *     <li>All elements have same parent.</li>
-     *     <li>All elements are folder nodes if the target is the root node.</li>
-     *     <li>None of the elements is a snapshot node, or the root node.</li>
-     *     <li>The target node - which must be a folder - does not contain any direct child nodes
-     *     with same name and node type as any of the source nodes.</li>
-     *     <li>Target node is not a descendant at any depth of any of the source nodes.</li>
-     * </ul>
-     *
-     * @param sourceNodes List of source {@link Node}s
-     * @param targetNode  The wanted target {@link Node}
-     * @return <code>true</code> if move criteria are met, otherwise <code>false</code>
-     */
-    @Override
-    public boolean isMoveOrCopyAllowed(List<Node> sourceNodes, Node targetNode) {
-        // Does target node even exist?
-        Optional<ESTreeNode> esTargetTreeNodeOptional = elasticsearchTreeRepository.findById(targetNode.getUniqueId());
-        if (esTargetTreeNodeOptional.isEmpty()) {
-            throw new NodeNotFoundException("Target node " + targetNode.getUniqueId() + " does not exist.");
-        }
-        // Check that the target node is not any of the source nodes, i.e. a node cannot be copied/moved to itself.
-        for (Node sourceNode : sourceNodes) {
-            if (sourceNode.getUniqueId().equals(esTargetTreeNodeOptional.get().getNode().getUniqueId())) {
-                return false;
-            }
-        }
-        // Root node cannot be copied/moved. Individual snapshot nodes cannot be copies/moved.
-        Optional<Node> rootOrSnapshotNode = sourceNodes.stream()
-                .filter(node -> node.getUniqueId().equals(ROOT_FOLDER_UNIQUE_ID) ||
-                        node.getNodeType().equals(NodeType.SNAPSHOT)).findFirst();
-        if (rootOrSnapshotNode.isPresent()) {
-            logger.info("Move/copy not allowed: source node(s) list contains snapshot or root node.");
-            return false;
-        }
-        // Check if selection contains configuration or snapshot node.
-        Optional<Node> saveSetNode = sourceNodes.stream()
-                .filter(node -> node.getNodeType().equals(NodeType.CONFIGURATION)).findFirst();
-        // Configuration nodes may not be moved/copied to root node.
-        if (saveSetNode.isPresent() && targetNode.getUniqueId().equals(ROOT_FOLDER_UNIQUE_ID)) {
-            logger.info("Move/copy of configuration node(s) to root node not allowed.");
-            return false;
-        }
-        if (sourceNodes.size() > 1) {
-            // Check that all elements are of same type and have the same parent.
-            NodeType firstElementType = sourceNodes.get(0).getNodeType();
-            Node parentNodeOfFirst = getParentNode(sourceNodes.get(0).getUniqueId());
-            for (int i = 1; i < sourceNodes.size(); i++) {
-                if (!sourceNodes.get(i).getNodeType().equals(firstElementType)) {
-                    logger.info("Move not allowed: all source nodes must be of same type.");
-                    return false;
-                }
-                Node parent = getParentNode(sourceNodes.get(i).getUniqueId());
-                if (!parent.getUniqueId().equals(parentNodeOfFirst.getUniqueId())) {
-                    logger.info("Move not allowed: all source nodes must have same parent node.");
-                    return false;
-                }
-            }
-        }
-        // Check if there is any name/type clash
-        List<Node> parentsChildNodes = getChildNodes(targetNode.getUniqueId());
-        for (Node node : sourceNodes) {
-            if (!isNodeNameValid(node, parentsChildNodes)) {
-                logger.info("Move/copy not allowed: target node already contains child node with same name and type: " + node.getName());
-                return false;
-            }
-        }
-
-        boolean containedInSubtree = false;
-        for (Node sourceNode : sourceNodes) {
-            containedInSubtree = isContainedInSubtree(sourceNode.getUniqueId(), targetNode.getUniqueId());
-            if (containedInSubtree) {
-                break;
-            }
-        }
-
-        return !containedInSubtree;
-    }
-
     @Override
     public ConfigurationData getConfigurationData(String uniqueId) {
         Optional<ConfigurationData> configurationData = configurationDataRepository.findById(uniqueId);
@@ -727,27 +791,27 @@ public class ElasticsearchDAO implements NodeDAO {
     /**
      * Removes duplicate PV names if found in the {@link ConfigurationData}. While user and client should
      * take measures to not add duplicates, this is to safeguard that only sanitized data is persisted.
+     *
      * @param configurationData The {@link ConfigurationData} subject to sanitation.
      * @return The sanitized {@link ConfigurationData} object.
      */
-    protected ConfigurationData removeDuplicatePVNames(ConfigurationData configurationData){
-        if(configurationData == null){
+    protected ConfigurationData removeDuplicatePVNames(ConfigurationData configurationData) {
+        if (configurationData == null) {
             return null;
         }
-        if(configurationData.getPvList() == null){
+        if (configurationData.getPvList() == null) {
             return configurationData;
         }
         Map<String, ConfigPv> sanitizedMap = new HashMap<>();
-        for (ConfigPv configPv : configurationData.getPvList()){
-            if(sanitizedMap.containsKey(configPv.getPvName())){
+        for (ConfigPv configPv : configurationData.getPvList()) {
+            if (sanitizedMap.containsKey(configPv.getPvName())) {
                 continue;
             }
             sanitizedMap.put(configPv.getPvName(), configPv);
         }
         ConfigurationData sanitizedConfigurationData = new ConfigurationData();
         sanitizedConfigurationData.setUniqueId(configurationData.getUniqueId());
-        List<ConfigPv> sanitizedList = new ArrayList<>();
-        sanitizedList.addAll(sanitizedMap.values());
+        List<ConfigPv> sanitizedList = new ArrayList<>(sanitizedMap.values());
         sanitizedConfigurationData.setPvList(sanitizedList);
         return sanitizedConfigurationData;
     }
@@ -755,6 +819,7 @@ public class ElasticsearchDAO implements NodeDAO {
     /**
      * Removes duplicate PV names if found in the {@link SnapshotData}. While user and client should
      * take measures to not add duplicates, this is to safeguard that only sanitized data is persisted.
+     *
      * @param snapshotData The {@link SnapshotData} subject to sanitation.
      * @return The sanitized {@link SnapshotData} object.
      */
@@ -762,7 +827,7 @@ public class ElasticsearchDAO implements NodeDAO {
         if (snapshotData == null) {
             return null;
         }
-        if(snapshotData.getSnapshotItems() == null){
+        if (snapshotData.getSnapshotItems() == null) {
             return snapshotData;
         }
         Map<String, SnapshotItem> sanitizedMap = new HashMap<>();
@@ -774,7 +839,7 @@ public class ElasticsearchDAO implements NodeDAO {
         }
         SnapshotData sanitizedSnapshotData = new SnapshotData();
         List<SnapshotItem> sanitizedList = new ArrayList<>(sanitizedMap.values());
-        sanitizedSnapshotData.setSnasphotItems(sanitizedList);
+        sanitizedSnapshotData.setSnapshotItems(sanitizedList);
         return sanitizedSnapshotData;
     }
 
@@ -984,11 +1049,12 @@ public class ElasticsearchDAO implements NodeDAO {
      *     <li>Only valid keys are saved.</li>
      *     <li>Values (search terms) with multiple elements are formatted correctly.</li>
      * </ul>
+     *
      * @param filter The {@link Filter} to save
-     * @return
+     * @return The saved {@link Filter}
      */
     @Override
-    public Filter saveFilter(Filter filter){
+    public Filter saveFilter(Filter filter) {
         // Parse the search query to make sure only supported keys are accepted
         Map<String, String> queryParams = SearchQueryUtil.parseHumanReadableQueryString(filter.getQueryString());
         // Format query again before saving it
@@ -998,30 +1064,25 @@ public class ElasticsearchDAO implements NodeDAO {
 
 
     @Override
-    public List<Filter> getAllFilters(){
+    public List<Filter> getAllFilters() {
         Iterable<Filter> filtersIterable = filterRepository.findAll();
         List<Filter> filters = new ArrayList<>();
-        filtersIterable.forEach(element ->  filters.add(element));
+        filtersIterable.forEach(filters::add);
         return filters;
     }
 
     @Override
-    public void deleteFilter(String name){
+    public void deleteFilter(String name) {
         filterRepository.deleteById(name);
     }
 
     @Override
-    public void deleteAllFilters(){
+    public void deleteAllFilters() {
         filterRepository.deleteAll();
     }
 
     @Override
-    /**
-     * Adds a {@link Tag} to specified list of target {@link Node}s
-     * @param tagData See {@link TagData}
-     * @return The list of updated {@link Node}s
-     */
-    public List<Node> addTag(TagData tagData){
+    public List<Node> addTag(TagData tagData) {
         List<Node> updatedNodes = new ArrayList<>();
         tagData.getUniqueNodeIds().forEach(nodeId -> {
             try {
@@ -1035,7 +1096,7 @@ public class ElasticsearchDAO implements NodeDAO {
                         .created(node.getCreated())
                         .build();
                 List<Tag> tags = node.getTags();
-                if(tags == null){
+                if (tags == null) {
                     tags = new ArrayList<>();
                 }
                 tags.add(tagData.getTag());
@@ -1052,16 +1113,17 @@ public class ElasticsearchDAO implements NodeDAO {
     /**
      * Removes a {@link Tag} from specified list of target {@link Node}s. If a {@link Node} does not
      * contain the {@link Tag}, this method does not update that {@link Node}.
+     *
      * @param tagData See {@link TagData}
      * @return The list of updated {@link Node}s. This may contain fewer elements than the list of
      * unique node ids as {@link Node}s not containing the {@link Tag} are omitted from update.
      */
-    public List<Node> deleteTag(TagData tagData){
+    public List<Node> deleteTag(TagData tagData) {
         List<Node> updatedNodes = new ArrayList<>();
         tagData.getUniqueNodeIds().forEach(nodeId -> {
             try {
                 Node node = getNode(nodeId);
-                if(node != null){
+                if (node != null) {
                     Node updatedNode = Node.builder()
                             .nodeType(node.getNodeType())
                             .userName(node.getUserName())
@@ -1072,7 +1134,7 @@ public class ElasticsearchDAO implements NodeDAO {
                             .build();
                     List<Tag> tags = node.getTags();
                     Optional<Tag> optional = tags.stream().filter(tag -> tag.getName().equals(tagData.getTag().getName())).findFirst();
-                    if(optional.isPresent()){
+                    if (optional.isPresent()) {
                         tags.remove(optional.get());
                         updatedNode.setTags(tags);
                         updatedNode = updateNode(updatedNode, false);
@@ -1084,5 +1146,69 @@ public class ElasticsearchDAO implements NodeDAO {
             }
         });
         return updatedNodes;
+    }
+
+    /**
+     * Determines a name for a copied/moved node. Some (ugly) logic is applied to implement a strategy where
+     * a string like "copy" or "copy 2" is appended to the node name in case the target node already contains a
+     * child node with same name and type.
+     *
+     * @param sourceNode             The node subject to copy/move
+     * @param targetParentChildNodes List of child nodes in target
+     * @return A node name that does not clash with any existing node of same type in the target node.
+     */
+    protected String determineNewNodeName(Node sourceNode, List<Node> targetParentChildNodes) {
+        // Filter to make sure only nodes of same type are considered.
+        targetParentChildNodes = targetParentChildNodes.stream().filter(n -> n.getNodeType().equals(sourceNode.getNodeType())).collect(Collectors.toList());
+        List<String> targetParentChildNodeNames = targetParentChildNodes.stream().map(Node::getName).collect(Collectors.toList());
+        if(!targetParentChildNodeNames.contains(sourceNode.getName())){
+            return sourceNode.getName();
+        }
+        String newNodeBaseName = sourceNode.getName();
+        Matcher matcher = NODE_NAME_PATTERN.matcher(newNodeBaseName);
+        if (matcher.matches()) { // If source node already contains "copy X", then calculate the "base name".
+            newNodeBaseName = newNodeBaseName.substring(0, (newNodeBaseName.length() - matcher.group(1).length()));
+        }
+        List<String> nodeNameCopies = new ArrayList<>();
+        Pattern pattern = Pattern.compile(newNodeBaseName + "(\\scopy(\\s\\d*)?$)");
+        for (Node targetChildNode : targetParentChildNodes) {
+            String targetChildNodeName = targetChildNode.getName();
+            if(pattern.matcher(targetChildNodeName).matches()){
+                nodeNameCopies.add(targetChildNodeName);
+            }
+        }
+        // NOTE: nodeNameCopies may also contain an element with equal name as source node.
+        if (nodeNameCopies.isEmpty()) {
+            return newNodeBaseName + " copy";
+        } else {
+            Collections.sort(nodeNameCopies, new NodeNameComparator());
+            try {
+                String lastCopyName = nodeNameCopies.get(nodeNameCopies.size() - 1);
+                if (lastCopyName.equals(newNodeBaseName + " copy")) {
+                    return newNodeBaseName + " copy 2";
+                } else {
+                    int highestIndex = Integer.parseInt(nodeNameCopies.get(nodeNameCopies.size() - 1).substring((newNodeBaseName + " copy ").length()));
+                    return newNodeBaseName + " copy " + (highestIndex + 1);
+                }
+            } catch (NumberFormatException e) { // Should not happen...
+                logger.log(Level.WARNING, "Unable to determine copy name index from " + nodeNameCopies.get(nodeNameCopies.size() - 1));
+                return sourceNode.getUniqueId();
+            }
+        }
+    }
+
+    public static class NodeNameComparator implements Comparator<String>{
+
+        @Override
+        public int compare(String s1, String s2){
+            if(s1.endsWith("copy") || s2.endsWith("copy")){
+                return s1.compareTo(s2);
+            }
+            int copyIndex1 = s1.indexOf("copy");
+            int copyIndex2 = s1.indexOf("copy");
+            int index1 = Integer.parseInt(s1.substring(copyIndex1 + 5));
+            int index2 = Integer.parseInt(s2.substring(copyIndex2 + 5));
+            return index1 - index2;
+        }
     }
 }

@@ -7,6 +7,8 @@
  ******************************************************************************/
 package org.phoebus.pv.pva;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.IntStream.range;
 import static org.phoebus.pv.pva.Decoders.decodeAlarm;
 import static org.phoebus.pv.pva.Decoders.decodeTime;
 
@@ -17,6 +19,7 @@ import java.util.Optional;
 
 import org.epics.pva.data.PVAArray;
 import org.epics.pva.data.PVABool;
+import org.epics.pva.data.PVABoolArray;
 import org.epics.pva.data.PVAByteArray;
 import org.epics.pva.data.PVAData;
 import org.epics.pva.data.PVADoubleArray;
@@ -30,10 +33,16 @@ import org.epics.pva.data.PVAStringArray;
 import org.epics.pva.data.PVAStructure;
 import org.epics.pva.data.PVAStructureArray;
 import org.epics.pva.data.PVAUnion;
+import org.epics.util.array.ArrayByte;
 import org.epics.util.array.ArrayDouble;
 import org.epics.util.array.ArrayFloat;
 import org.epics.util.array.ArrayInteger;
+import org.epics.util.array.ArrayLong;
+import org.epics.util.array.ArrayShort;
+import org.epics.util.array.ArrayUByte;
 import org.epics.util.array.ArrayUInteger;
+import org.epics.util.array.ArrayULong;
+import org.epics.util.array.ArrayUShort;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
@@ -202,6 +211,45 @@ public class PVAStructureHelper
                 final PVAStringArray typed = (PVAStringArray)column;
                 types.add(String.class);
                 values.add(Arrays.asList(typed.get()));
+            }
+            else if (column instanceof PVAShortArray)
+            {
+                final PVAShortArray typed = (PVAShortArray)column;
+                types.add(Short.TYPE);
+                if (typed.isUnsigned())
+                    values.add(ArrayUShort.of(typed.get()));
+                else
+                    values.add(ArrayShort.of(typed.get()));
+            }
+            else if (column instanceof PVALongArray)
+            {
+                final PVALongArray typed = (PVALongArray)column;
+                types.add(Long.TYPE);
+                if (typed.isUnsigned())
+                    values.add(ArrayULong.of(typed.get()));
+                else
+                    values.add(ArrayLong.of(typed.get()));
+            }
+            else if (column instanceof PVAByteArray)
+            {
+                final PVAByteArray typed = (PVAByteArray)column;
+                types.add(Byte.TYPE);
+                if (typed.isUnsigned())
+                    values.add(ArrayUByte.of(typed.get()));
+                else
+                    values.add(ArrayByte.of(typed.get()));
+            }
+            else if (column instanceof PVABoolArray)
+            {
+                final PVABoolArray typed = (PVABoolArray)column;
+                types.add(Boolean.TYPE);
+                boolean[] data = typed.get();
+                // Convert to boxed Integer to add to List
+                values.add(range(0, data.length).mapToObj(i -> data[i]).collect(toList()));
+            }
+            else 
+            {
+            	throw new IllegalArgumentException("Could not decode table column of type: " + column.getClass());
             }
         }
 
