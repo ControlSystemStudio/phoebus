@@ -60,10 +60,21 @@ public class LogTicks extends LinearTicks
 
     /** {@inheritDoc} */
     @Override
-    public void compute(final Double low, final Double high, final Graphics2D gc, final int screen_width)
+    public void compute(Double low, Double high, final Graphics2D gc, final int screen_width)
     {
+        Pair<Double, Double> adjustedRange = adjustRange(low, high);
+        double newLow = adjustedRange.getKey();
+        double newHigh = adjustedRange.getValue();
+
+        if (newLow != low || newHigh != high) {
+            logger.log(Level.WARNING, "Invalid value range for a logarithmic scale {0,number,#.###############E0} ... {1,number,#.###############E0}. Adjusting the range to {2,number,#.###############E0} ... {3,number,#.###############E0}.",
+                    new Object[] {low, high, newLow, newHigh });
+            high = newHigh;
+            low = newLow;
+        }
+
         logger.log(Level.FINE, "Compute log ticks, width {0}, for {1} - {2}",
-                               new Object[] { screen_width, low, high });
+                new Object[] { screen_width, low, high });
 
         double low_exp_exact = Log10.log10(low);
         double high_exp_exact = Log10.log10(high);

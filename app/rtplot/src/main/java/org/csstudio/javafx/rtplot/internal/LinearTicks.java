@@ -78,19 +78,24 @@ public class LinearTicks extends Ticks<Double>
         if (Math.abs(high - low) < 3*Math.ulp(low)) {
             high = low + 3*Math.ulp(low);
         }
-
-        if (high < low) {
-            return new Pair<>(high, low);
-        }
-        else {
-            return new Pair<>(low, high);
-        }
+        return new Pair<>(low, high);
     }
 
     /** {@inheritDoc} */
     @Override
     public void compute(Double low, Double high, final Graphics2D gc, final int screen_width)
     {
+        Pair<Double, Double> adjustedRange = adjustRange(low, high);
+        double newLow = adjustedRange.getKey();
+        double newHigh = adjustedRange.getValue();
+
+        if (newLow != low || newHigh != high) {
+            logger.log(Level.WARNING, "Invalid value range for a linear scale {0,number,#.###############E0} ... {1,number,#.###############E0}. Adjusting the range to {2,number,#.###############E0} ... {3,number,#.###############E0}.",
+                    new Object[] {low, high, newLow, newHigh });
+            high = newHigh;
+            low = newLow;
+        }
+
         logger.log(Level.FINE, "Compute linear ticks, width {0}, for {1} - {2}",
                                new Object[] { screen_width, low, high });
 
