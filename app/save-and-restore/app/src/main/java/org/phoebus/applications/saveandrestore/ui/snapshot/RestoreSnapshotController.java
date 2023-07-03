@@ -219,10 +219,10 @@ public class RestoreSnapshotController extends SnapshotController {
                         !entry.getValue().equals(VNoData.INSTANCE);
 
                 if (restorable) {
-                    final PV pv = pvs.get(getPVKey(e.pvNameProperty().get(), e.readOnlyProperty().get()));
+                    final SaveAndRestorePV pv = pvs.get(getPVKey(e.pvNameProperty().get(), e.readOnlyProperty().get()));
                     if (entry.getValue() != null) {
                         try {
-                            pv.pv.write(Utilities.toRawValue(entry.getValue()));
+                            pv.getPv().write(Utilities.toRawValue(entry.getValue()));
                         } catch (Exception writeException) {
                             restoreFailedPVNames.add(entry.getConfigPv().getPvName());
                         } finally {
@@ -367,7 +367,7 @@ public class RestoreSnapshotController extends SnapshotController {
      * and disposes of those that have not been unmarked.
      */
     private void dispose() {
-        pvs.values().forEach(PV::dispose);
+        pvs.values().forEach(SaveAndRestorePV::dispose);
         pvs.clear();
         tableEntryItems.clear();
         snapshots.clear();

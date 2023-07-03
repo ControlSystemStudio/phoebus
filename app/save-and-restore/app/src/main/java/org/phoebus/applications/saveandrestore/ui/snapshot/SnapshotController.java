@@ -35,7 +35,6 @@ import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.pv.PVPool;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
@@ -64,18 +63,13 @@ public class SnapshotController {
     private BorderPane borderPane;
 
 
-    protected final Map<String, PV> pvs = new HashMap<>();
+    protected final Map<String, SaveAndRestorePV> pvs = new HashMap<>();
     protected final Map<String, TableEntry> tableEntryItems = new LinkedHashMap<>();
 
 
     protected Node configurationNode;
 
     public static final Logger LOGGER = Logger.getLogger(SnapshotController.class.getName());
-
-    /**
-     * The time between updates of dynamic data in the table, in ms
-     */
-    public static final long TABLE_UPDATE_INTERVAL = 500;
 
 
     protected ServiceLoader<SaveAndRestoreEventReceiver> eventReceivers;
@@ -301,9 +295,9 @@ public class SnapshotController {
 
     protected void connectPVs() {
         tableEntryItems.values().forEach(e -> {
-            PV pv = pvs.get(getPVKey(e.getConfigPv().getPvName(), e.getConfigPv().isReadOnly()));
+            SaveAndRestorePV pv = pvs.get(getPVKey(e.getConfigPv().getPvName(), e.getConfigPv().isReadOnly()));
             if (pv == null) {
-                pvs.put(getPVKey(e.getConfigPv().getPvName(), e.getConfigPv().isReadOnly()), new PV(e));
+                pvs.put(getPVKey(e.getConfigPv().getPvName(), e.getConfigPv().isReadOnly()), new SaveAndRestorePV(e));
             } else {
                 pv.setSnapshotTableEntry(e);
             }
@@ -333,82 +327,6 @@ public class SnapshotController {
                 });
     }
 
-    protected static class PV {
-        final String pvName;
-        final String readbackPvName;
-        CountDownLatch countDownLatch;
-        org.phoebus.pv.PV pv;
-        org.phoebus.pv.PV readbackPv;
-        volatile VType pvValue = VDisconnectedData.INSTANCE;
-        volatile VType readbackValue = VDisconnectedData.INSTANCE;
-        TableEntry snapshotTableEntry;
-        boolean readOnly;
-
-        PV(TableEntry snapshotTableEntry) {
-            this.snapshotTableEntry = snapshotTableEntry;
-            this.pvName = patchPvName(snapshotTableEntry.pvNameProperty().get());
-            this.readbackPvName = patchPvName(snapshotTableEntry.readbackPvNameProperty().get());
-            this.readOnly = snapshotTableEntry.readOnlyProperty().get();
-
-            try {
-                pv = PVPool.getPV(pvName);
-                pv.onValueEvent().throttleLatest(TABLE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS).subscribe(value -> {
-                    pvValue = org.phoebus.pv.PV.isDisconnected(value) ? VDisconnectedData.INSTANCE : value;
-                    this.snapshotTableEntry.setLiveValue(pvValue);
-                });
-
-                if (readbackPvName != null && !readbackPvName.isEmpty()) {
-                    readbackPv = PVPool.getPV(this.readbackPvName);
-                    readbackPv.onValueEvent()
-                            .throttleLatest(TABLE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS)
-                            .subscribe(value -> {
-                                this.readbackValue = org.phoebus.pv.PV.isDisconnected(value) ? VDisconnectedData.INSTANCE : value;
-                                this.snapshotTableEntry.setReadbackValue(this.readbackValue);
-                            });
-                } else {
-                    // If configuration does not define readback PV, then UI should show "no data" rather than "disconnected"
-                    this.snapshotTableEntry.setReadbackValue(VNoData.INSTANCE);
-                }
-            } catch (Exception e) {
-                LOGGER.log(Level.INFO, "Error connecting to PV", e);
-            }
-        }
-
-        private String patchPvName(String pvName) {
-            if (pvName == null || pvName.isEmpty()) {
-                return null;
-            } else if (pvName.startsWith("ca://") || pvName.startsWith("pva://")) {
-                return pvName.substring(pvName.lastIndexOf('/') + 1);
-            } else {
-                return pvName;
-            }
-        }
-
-        public void setCountDownLatch(CountDownLatch countDownLatch) {
-            LOGGER.info(countDownLatch + " New CountDownLatch set");
-            this.countDownLatch = countDownLatch;
-        }
-
-        public void countDown() {
-            this.countDownLatch.countDown();
-        }
-
-        public void setSnapshotTableEntry(TableEntry snapshotTableEntry) {
-            this.snapshotTableEntry = snapshotTableEntry;
-            this.snapshotTableEntry.setLiveValue(pv.read());
-        }
-
-        void dispose() {
-            if (pv != null) {
-                PVPool.releasePV(pv);
-            }
-
-            if (readbackPv != null) {
-                PVPool.releasePV(readbackPv);
-            }
-        }
-    }
-
     public boolean handleSnapshotTabClosed() {
         if (snapshotControlsViewController.getSnapshotDataDirty().get()) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -428,7 +346,7 @@ public class SnapshotController {
      * Releases PV resources.
      */
     private void dispose() {
-        pvs.values().forEach(PV::dispose);
+        pvs.values().forEach(SaveAndRestorePV::dispose);
     }
 
     /**
@@ -470,19 +388,19 @@ public class SnapshotController {
             for (TableEntry t : tableEntryItems.values()) {
                 // Submit read request only if job has not been cancelled
                 executorService.submit(() -> {
-                    PV pv = pvs.get(getPVKey(t.pvNameProperty().get(), t.readOnlyProperty().get()));
+                    SaveAndRestorePV pv = pvs.get(getPVKey(t.pvNameProperty().get(), t.readOnlyProperty().get()));
                     VType value = VNoData.INSTANCE;
                     try {
-                        value = pv.pv.asyncRead().get(Preferences.readTimeout, TimeUnit.MILLISECONDS);
+                        value = pv.getPv().asyncRead().get(Preferences.readTimeout, TimeUnit.MILLISECONDS);
                     } catch (Exception e) {
-                        LOGGER.log(Level.WARNING, "Failed to read PV " + pv.pvName, e);
+                        LOGGER.log(Level.WARNING, "Failed to read PV " + pv.getPvName(), e);
                     }
                     VType readBackValue = VNoData.INSTANCE;
-                    if (pv.readbackPv != null && !pv.readbackValue.equals(VDisconnectedData.INSTANCE)) {
+                    if (pv.getReadbackPv() != null && !pv.getReadbackValue().equals(VDisconnectedData.INSTANCE)) {
                         try {
-                            readBackValue = pv.readbackPv.asyncRead().get(Preferences.readTimeout, TimeUnit.MILLISECONDS);
+                            readBackValue = pv.getReadbackPv().asyncRead().get(Preferences.readTimeout, TimeUnit.MILLISECONDS);
                         } catch (Exception e) {
-                            LOGGER.log(Level.WARNING, "Failed to read read-back PV " + pv.readbackPvName, e);
+                            LOGGER.log(Level.WARNING, "Failed to read read-back PV " + pv.getReadbackPvName(), e);
                         }
                     }
                     SnapshotItem snapshotItem = new SnapshotItem();
@@ -686,10 +604,10 @@ public class SnapshotController {
                         !entry.getValue().equals(VNoData.INSTANCE);
 
                 if (restorable) {
-                    final PV pv = pvs.get(getPVKey(e.pvNameProperty().get(), e.readOnlyProperty().get()));
+                    final SaveAndRestorePV pv = pvs.get(getPVKey(e.pvNameProperty().get(), e.readOnlyProperty().get()));
                     if (entry.getValue() != null) {
                         try {
-                            pv.pv.write(Utilities.toRawValue(entry.getValue()));
+                            pv.getPv().write(Utilities.toRawValue(entry.getValue()));
                         } catch (Exception writeException) {
                             restoreFailedPVNames.add(entry.getConfigPv().getPvName());
                         } finally {
