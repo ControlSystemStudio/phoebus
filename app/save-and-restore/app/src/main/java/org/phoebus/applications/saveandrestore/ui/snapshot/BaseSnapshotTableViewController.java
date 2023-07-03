@@ -24,8 +24,10 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import org.epics.vtype.VType;
@@ -52,7 +54,7 @@ public abstract class BaseSnapshotTableViewController {
     protected TableView<TableEntry> snapshotTableView;
 
     @FXML
-    protected SelectionTableColumn selectedColumn;
+    protected TableColumn<TableEntry, Boolean> selectedColumn;
 
     @FXML
     protected TooltipTableColumn<Integer> idColumn;
@@ -97,6 +99,10 @@ public abstract class BaseSnapshotTableViewController {
         snapshotTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         snapshotTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         snapshotTableView.getStylesheets().add(SnapshotTableViewController.class.getResource("/save-and-restore-style.css").toExternalForm());
+
+        CheckBoxTableCell checkBoxTableCell = new CheckBoxTableCell<TableEntry, Boolean>();
+        checkBoxTableCell.addEventHandler(MouseEvent.MOUSE_PRESSED, event -> System.out.println(snapshotTableView.getItems().get(0).selectedProperty()));
+        selectedColumn.setCellFactory(col -> checkBoxTableCell);
 
         snapshotTableView.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() != KeyCode.SPACE) {
@@ -153,12 +159,13 @@ public abstract class BaseSnapshotTableViewController {
                         });
                         contextMenu.getItems().add(toggle);
                         contextMenu.show(this, event.getScreenX(), event.getScreenY());
+                        disableProperty().set(item.readOnlyProperty().get());
                     });
                 }
             }
         });
 
-        selectedColumn.configure(snapshotTableView);
+        //selectedColumn.configure(snapshotTableView);
 
         int width = measureStringWidth("000", Font.font(20));
         idColumn.setPrefWidth(width);

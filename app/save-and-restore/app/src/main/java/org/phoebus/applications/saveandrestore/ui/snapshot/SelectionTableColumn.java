@@ -24,6 +24,9 @@ import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.input.MouseButton;
 import org.phoebus.applications.saveandrestore.common.VNoData;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * <code>SelectionTableColumn</code> is the table column for the first column in the table, which displays
  * a checkbox, whether the PV should be selected or not.
@@ -33,6 +36,8 @@ import org.phoebus.applications.saveandrestore.common.VNoData;
 public class SelectionTableColumn extends TooltipTableColumn<Boolean>{
 
     private final CheckBox selectAllCheckBox = new CheckBox();
+
+    private static final Logger logger = Logger.getLogger(SelectionTableColumn.class.getName());
 
     /**
      * Needed by fxml
@@ -68,9 +73,9 @@ public class SelectionTableColumn extends TooltipTableColumn<Boolean>{
         });
         setEditable(true);
         setSortable(false);
-        selectAllCheckBox.setSelected(false);
-        selectAllCheckBox.setOnAction(e -> tableView.getItems().stream().filter(te -> !te.readOnlyProperty().get())
-                .forEach(te -> te.selectedProperty().setValue(selectAllCheckBox.isSelected())));
+        selectAllCheckBox.setSelected(true);
+        //selectAllCheckBox.setOnAction(e -> tableView.getItems().stream().filter(te -> !te.readOnlyProperty().get())
+        //        .forEach(te -> te.selectedProperty().setValue(selectAllCheckBox.isSelected())));
         setGraphic(selectAllCheckBox);
         MenuItem inverseMI = new MenuItem("Inverse Selection");
         inverseMI.setOnAction(e -> tableView.getItems().stream().filter(te -> !te.readOnlyProperty().get())
@@ -89,7 +94,7 @@ public class SelectionTableColumn extends TooltipTableColumn<Boolean>{
             TableEntry item = (TableEntry) row.getItem();
             if (item != null) {
                 cell.setEditable(!item.readOnlyProperty().get());
-                item.selectedProperty().set(!item.valueProperty().get().value.equals(VNoData.INSTANCE));
+                item.selectedProperty().set(!item.selectedProperty().get() /*!item.valueProperty().get().value.equals(VNoData.INSTANCE)*/);
                 cell.setDisable(item.valueProperty().get().value.equals(VNoData.INSTANCE));
                 if (item.valueProperty().get().value.equals(VNoData.INSTANCE)) {
                     item.selectedProperty().set(false);

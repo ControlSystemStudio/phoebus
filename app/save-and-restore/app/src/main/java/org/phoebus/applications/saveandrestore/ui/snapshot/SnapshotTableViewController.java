@@ -19,37 +19,22 @@
 
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
+import javafx.scene.control.cell.CheckBoxTableCell;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.Messages;
-import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.common.Utilities;
 import org.phoebus.applications.saveandrestore.common.VTypePair;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
-import org.phoebus.core.types.TimeStampedProcessVariable;
-import org.phoebus.framework.selection.SelectionService;
-import org.phoebus.ui.application.ContextMenuHelper;
-import org.phoebus.util.time.TimestampFormats;
 
-import java.lang.reflect.Field;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
-public class SnapshotTableViewController extends BaseSnapshotTableViewController{
+public class SnapshotTableViewController extends BaseSnapshotTableViewController {
 
     @FXML
     private TooltipTableColumn<Instant> timeColumn;
@@ -63,6 +48,8 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
     @FXML
     private TableColumn<TableEntry, ?> readbackColumn;
 
+    private final SimpleBooleanProperty selectionInverted = new SimpleBooleanProperty(false);
+
     private final SimpleBooleanProperty showReadbacks = new SimpleBooleanProperty(false);
     private boolean showDeltaPercentage;
 
@@ -70,6 +57,31 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
     public void initialize() {
 
         super.initialize();
+
+
+        selectedColumn.setCellFactory(column -> new SelectionCell());
+
+        CheckBox selectAllCheckBox = new CheckBox();
+        selectAllCheckBox.selectedProperty().set(true);
+        selectAllCheckBox.setTooltip(new Tooltip(Messages.includeThisPV));
+        selectAllCheckBox.selectedProperty().addListener((ob, o, n) ->
+                snapshotTableView.getItems().stream().filter(te -> te.readOnlyProperty().not().get())
+                        .forEach(te -> te.selectedProperty().set(n)));
+        selectedColumn.setGraphic(selectAllCheckBox);
+
+        selectionInverted.addListener((ob, o, n) -> {
+            snapshotTableView.getItems().stream().filter(te -> te.readOnlyProperty().not().get())
+                    .forEach(te -> {
+                        te.selectedProperty().set(te.selectedProperty().not().get());
+                    });
+        });
+
+        MenuItem inverseMI = new MenuItem(Messages.inverseSelection);
+        inverseMI.setOnAction(e -> {
+            selectionInverted.set(selectionInverted.not().get());
+        });
+        final ContextMenu contextMenu = new ContextMenu(inverseMI);
+        selectAllCheckBox.setContextMenu(contextMenu);
 
         timeColumn.setCellFactory(c -> new SnapshotTableViewController.TimestampTableCell());
 
@@ -129,6 +141,27 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
             if (notHide || !e.liveStoredEqualProperty().get()) {
                 items.add(e);
             }
+            e.selectedProperty().addListener((ob, o, n) -> {
+                System.out.println(e.pvNameProperty().get() + " " + n);
+            });
         });
+    }
+
+    /**
+     * {@link CheckBoxTableCell} handling the selection checkboxes for each row in the table.
+     * Some logic is needed in case a PV is defined as read-only in the configuration.
+     * For such PVs the checkbox is not rendered. It would be confusing since a read-only
+     * PV must not be part of a restore operation.
+     */
+    private class SelectionCell extends CheckBoxTableCell<TableEntry, Boolean> {
+
+        @Override
+        public void updateItem(final Boolean item, final boolean empty) {
+            super.updateItem(item, empty);
+            TableRow<TableEntry> tableRow = getTableRow();
+            if (tableRow != null && tableRow.getItem() != null && tableRow.getItem().readOnlyProperty().get()) {
+                setGraphic(null);
+            }
+        }
     }
 }

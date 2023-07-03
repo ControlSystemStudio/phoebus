@@ -29,6 +29,7 @@
   -fx-font-weight: 700;
   -fx-font-family: 'Liberation Sans';
   -fx-alignment: center-left;
+  -fx-padding: 0 0 0 2;
 }
 
 .snapshot-table-right-aligned.column-header > .label{
@@ -36,6 +37,7 @@
   -fx-font-weight: 700;
   -fx-font-family: 'Liberation Sans';
   -fx-alignment: center-right;
+  -fx-padding: 0 2 0 0;
 }
 
 .snapshot-table-centered.column-header > .label{

@@ -19,6 +19,7 @@
 
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
+import javafx.scene.control.TableRow;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -191,6 +192,14 @@ public class VTypeCellEditor<T> extends MultitypeTableCell<TableEntry, T> {
 
                 tooltip.setText(item.toString());
                 setTooltip(tooltip);
+            }
+        }
+        TableRow tableRow = getTableRow();
+        // If this is a TableEntry row and read-only it should not be editable.
+        if(tableRow != null){
+            if(tableRow.getItem() != null && tableRow.getItem() instanceof TableEntry){
+                TableEntry tableEntry = (TableEntry)tableRow.getItem();
+                setEditable(tableEntry.readOnlyProperty().get());
             }
         }
     }

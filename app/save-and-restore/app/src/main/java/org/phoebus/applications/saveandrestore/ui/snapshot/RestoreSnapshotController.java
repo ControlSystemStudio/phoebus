@@ -63,50 +63,9 @@ import java.util.stream.Collectors;
 public class RestoreSnapshotController extends SnapshotController {
 
     @FXML
-    private Label createdBy;
-
-    @FXML
-    private Label createdDate;
-
-    @FXML
     private BorderPane borderPane;
 
-    @FXML
-    private Label snapshotLastModifiedLabel;
-
-    @FXML
-    private Button takeSnapshotButton;
-
-    @FXML
-    private Button restoreButton;
-
-    @FXML
-    private Spinner<Double> thresholdSpinner;
-
-    @FXML
-    private Spinner<Double> multiplierSpinner;
-
-    @FXML
-    private TextField filterTextField;
-
-    @FXML
-    private CheckBox preserveSelectionCheckBox;
-    private final SimpleStringProperty createdByTextProperty = new SimpleStringProperty();
-    private final SimpleStringProperty createdDateTextProperty = new SimpleStringProperty();
-
-    private final SimpleStringProperty lastModifiedDateTextProperty = new SimpleStringProperty();
-    private final SimpleStringProperty snapshotNameProperty = new SimpleStringProperty();
-    private final SimpleStringProperty snapshotCommentProperty = new SimpleStringProperty();
     private final SimpleStringProperty snapshotUniqueIdProperty = new SimpleStringProperty();
-
-    private final BooleanProperty snapshotRestorableProperty = new SimpleBooleanProperty(false);
-
-    /**
-     * Property used to indicate if snapshot node has changed with respect to name or comment, or both.
-     */
-    private final SimpleBooleanProperty nodeDataDirty = new SimpleBooleanProperty(false);
-
-    private List<List<Pattern>> regexPatterns = new ArrayList<>();
 
     /**
      * A {@link Node} of type {@link NodeType#SNAPSHOT} or {@link NodeType#COMPOSITE_SNAPSHOT}.
@@ -128,134 +87,9 @@ public class RestoreSnapshotController extends SnapshotController {
     @FXML
     public void initialize() {
 
-        initializeCommonComponents();
-
-        snapshotName.textProperty().bindBidirectional(snapshotNameProperty);
-        snapshotNameProperty.addListener(((observableValue, oldValue, newValue) -> nodeDataDirty.set(newValue != null && !newValue.equals(snapshotNode.getName()))));
-
-        snapshotComment.textProperty().bindBidirectional(snapshotCommentProperty);
-        snapshotCommentProperty.addListener(((observableValue, oldValue, newValue) -> nodeDataDirty.set(newValue != null && !newValue.equals(snapshotNode.getDescription()))));
-
-        createdBy.textProperty().bind(createdByTextProperty);
-        createdDate.textProperty().bind(createdDateTextProperty);
-        snapshotLastModifiedLabel.textProperty().bind(lastModifiedDateTextProperty);
-
-        saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
-                        nodeMetaDataDirty.not().get() ||
-                                snapshotNameProperty.isEmpty().get() ||
-                                snapshotCommentProperty.isEmpty().get(),
-                nodeMetaDataDirty, snapshotNameProperty, snapshotCommentProperty));
-
-        SpinnerValueFactory<Double> thresholdSpinnerValueFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, 999.0, 0.0, 0.01);
-        thresholdSpinnerValueFactory.setConverter(new DoubleStringConverter());
-        thresholdSpinner.setValueFactory(thresholdSpinnerValueFactory);
-        thresholdSpinner.getEditor().setAlignment(Pos.CENTER_RIGHT);
-        thresholdSpinner.getEditor().getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
-        thresholdSpinner.getEditor().textProperty().addListener((a, o, n) -> parseAndUpdateThreshold(n));
-
-        SpinnerValueFactory<Double> multiplierSpinnerValueFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, 999.0, 1.0, 0.01);
-        multiplierSpinnerValueFactory.setConverter(new DoubleStringConverter());
-        multiplierSpinner.setValueFactory(multiplierSpinnerValueFactory);
-        multiplierSpinner.getEditor().setAlignment(Pos.CENTER_RIGHT);
-        multiplierSpinner.getEditor().getStylesheets().add(getClass().getResource("/save-and-restore-style.css").toExternalForm());
-        multiplierSpinner.getEditor().textProperty()
-                .addListener((a, o, n) -> {
-                    multiplierSpinner.getEditor().getStyleClass().remove("input-error");
-                    multiplierSpinner.setTooltip(null);
-                    snapshotRestorableProperty.set(true);
-
-                    double parsedNumber;
-                    try {
-                        parsedNumber = Double.parseDouble(n.trim());
-                        updateSnapshotValues(parsedNumber);
-                    } catch (NumberFormatException e) {
-                        multiplierSpinner.getEditor().getStyleClass().add("input-error");
-                        multiplierSpinner.setTooltip(new Tooltip(Messages.toolTipMultiplierSpinner));
-                        snapshotRestorableProperty.set(false);
-                    }
-                });
-
         ImageView showHideDeltaPercentageButtonImageView = new ImageView(new Image(getClass().getResourceAsStream("/icons/show_hide_delta_percentage.png")));
         showHideDeltaPercentageButtonImageView.setFitWidth(16);
         showHideDeltaPercentageButtonImageView.setFitHeight(16);
-
-        restoreButton.disableProperty().bind(snapshotRestorableProperty.not());
-
-        DockPane.getActiveDockPane().addEventFilter(KeyEvent.ANY, event -> {
-            if (event.isShortcutDown() && event.getCode() == KeyCode.F) {
-                if (!filterTextField.isFocused()) {
-                    filterTextField.requestFocus();
-                }
-            }
-        });
-
-        preserveSelectionCheckBox.selectedProperty().addListener((observableValue, aBoolean, isSelected) -> {
-            if (isSelected) {
-                boolean allSelected = tableEntryItems.values().stream().allMatch(item -> item.selectedProperty().get());
-
-                if (allSelected) {
-                    tableEntryItems.values()
-                            .forEach(item -> item.selectedProperty().set(false));
-                }
-            }
-        });
-
-        String filterShortcutName = (new KeyCodeCombination(KeyCode.F, KeyCombination.SHORTCUT_DOWN)).getDisplayText();
-        filterTextField.setPromptText("* for all matching and , as or separator, & as and separator. Start with / for regex. All if empty. (" + filterShortcutName + ")");
-
-        filterTextField.addEventHandler(KeyEvent.ANY, event -> {
-            String filterText = filterTextField.getText().trim();
-
-            if (filterText.isEmpty()) {
-                List<TableEntry> arrayList = tableEntryItems.values().stream()
-                        .peek(item -> {
-                            if (!preserveSelectionCheckBox.isSelected()) {
-                                if (!item.readOnlyProperty().get()) {
-                                    item.selectedProperty().set(true);
-                                }
-                            }
-                        }).collect(Collectors.toList());
-
-                Platform.runLater(() -> snapshotTableViewController.updateTable(arrayList));
-                return;
-            }
-
-            List<String> filters = Arrays.asList(filterText.split(","));
-            regexPatterns = filters.stream()
-                    .map(item -> {
-                        if (item.startsWith("/")) {
-                            return List.of(Pattern.compile(item.substring(1, item.length() - 1).trim()));
-                        } else {
-                            return Arrays.stream(item.split("&"))
-                                    .map(andItem -> andItem.replaceAll("\\*", ".*"))
-                                    .map(andItem -> Pattern.compile(andItem.trim()))
-                                    .collect(Collectors.toList());
-                        }
-                    }).collect(Collectors.toList());
-
-            List<TableEntry> filteredEntries = tableEntryItems.values().stream()
-                    .filter(item -> {
-                        boolean matchEither = false;
-                        for (List<Pattern> andPatternList : regexPatterns) {
-                            boolean matchAnd = true;
-                            for (Pattern pattern : andPatternList) {
-                                matchAnd &= pattern.matcher(item.pvNameProperty().get()).find();
-                            }
-
-                            matchEither |= matchAnd;
-                        }
-
-                        if (!preserveSelectionCheckBox.isSelected()) {
-                            item.selectedProperty().setValue(matchEither);
-                        } else {
-                            matchEither |= item.selectedProperty().get();
-                        }
-
-                        return matchEither;
-                    }).collect(Collectors.toList());
-
-            Platform.runLater(() -> snapshotTableViewController.updateTable(filteredEntries));
-        });
 
         // Locate registered SaveAndRestoreEventReceivers
         eventReceivers = ServiceLoader.load(SaveAndRestoreEventReceiver.class);
@@ -263,16 +97,6 @@ public class RestoreSnapshotController extends SnapshotController {
         progressIndicator.visibleProperty().bind(disabledUi);
         disabledUi.addListener((observable, oldValue, newValue) -> borderPane.setDisable(newValue));
 
-        snapshotNameProperty.addListener((observable, oldValue, newValue) -> {
-            if (oldValue != null && newValue != null && !oldValue.equals(newValue)) {
-                nodeMetaDataDirty.set(true);
-            }
-        });
-
-        snapshotCommentProperty.addListener((observable, oldValue, newValue) ->
-                nodeMetaDataDirty.set(oldValue != null && newValue != null &&
-                        !oldValue.equals(newValue) &&
-                        !newValue.equals(snapshotNode.getDescription())));
     }
 
     /**
@@ -282,27 +106,20 @@ public class RestoreSnapshotController extends SnapshotController {
      */
     public void loadSnapshot(Node snapshotNode) {
         this.snapshotNode = snapshotNode;
-        snapshotNameProperty.set(snapshotNode.getName());
+        snapshotControlsViewController.setSnapshotNode(snapshotNode);
         snapshotUniqueIdProperty.set(snapshotNode.getUniqueId());
-        snapshotCommentProperty.set(snapshotNode.getDescription());
-        createdDateTextProperty.set(TimestampFormats.SECONDS_FORMAT.format(snapshotNode.getCreated().toInstant()));
-        lastModifiedDateTextProperty.set(TimestampFormats.SECONDS_FORMAT.format(snapshotNode.getLastModified().toInstant()));
-        createdByTextProperty.set(snapshotNode.getUserName());
         snapshotTab.updateTabTitle(snapshotNode.getName());
         snapshotTab.setId(snapshotNode.getUniqueId());
-
         snapshotTableViewController.setSelectionColumnVisible(true);
 
         if (this.snapshotNode.getNodeType().equals(NodeType.SNAPSHOT)) {
             loadSnapshotInternal();
         } else {
-            takeSnapshotButton.setDisable(true);
-            snapshotName.setEditable(false);
-            snapshotComment.setEditable(false);
+            snapshotControlsViewController.setNameAndCommentDisabled(true);
             loadCompositeSnapshotInternal(snapshot -> Platform.runLater(() -> {
                 List<TableEntry> tableEntries = createTableEntries(snapshot);
                 snapshotTableViewController.updateTable(tableEntries, snapshots, false, false);
-                snapshotRestorableProperty.set(true);
+                snapshotControlsViewController.getSnapshotRestorableProperty().set(true);
             }));
         }
     }
@@ -355,7 +172,7 @@ public class RestoreSnapshotController extends SnapshotController {
             Platform.runLater(() -> {
                 List<TableEntry> tableEntries = createTableEntries(snapshot);
                 snapshotTableViewController.updateTable(tableEntries, snapshots, false, false);
-                snapshotRestorableProperty.set(true);
+                snapshotControlsViewController.getSnapshotRestorableProperty().set(true);
                 disabledUi.set(false);
             });
         });
@@ -521,77 +338,13 @@ public class RestoreSnapshotController extends SnapshotController {
         }
     }
 
-    private void updateThreshold(double threshold) {
-        snapshots.forEach(snapshot -> snapshot.getSnapshotData().getSnapshotItems().forEach(item -> {
-            VType vtype = item.getValue();
-            VNumber diffVType;
+    //@Override
+    //public void updateLoadedSnapshot(int snapshotIndex, TableEntry rowValue, VType newValue) {
+    //    super.updateLoadedSnapshot(snapshotIndex, rowValue, newValue);
+    //    parseAndUpdateThreshold(thresholdSpinner.getEditor().getText().trim());
+    //}
 
-            double ratio = threshold / 100;
 
-            TableEntry tableEntry = tableEntryItems.get(getPVKey(item.getConfigPv().getPvName(), item.getConfigPv().isReadOnly()));
-            if (tableEntry == null) {
-                tableEntry = tableEntryItems.get(getPVKey(item.getConfigPv().getPvName(), !item.getConfigPv().isReadOnly()));
-            }
-
-            if (!item.getConfigPv().equals(tableEntry.getConfigPv())) {
-                return;
-            }
-
-            if (vtype instanceof VNumber) {
-                diffVType = SafeMultiply.multiply((VNumber) vtype, ratio);
-                VNumber vNumber = diffVType;
-                boolean isNegative = vNumber.getValue().doubleValue() < 0;
-
-                tableEntry.setThreshold(Optional.of(new Threshold<>(isNegative ? SafeMultiply.multiply(vNumber.getValue(), -1.0) : vNumber.getValue())));
-            }
-        }));
-    }
-
-    private void updateSnapshotValues(double multiplier) {
-        snapshots.forEach(snapshot -> snapshot.getSnapshotData().getSnapshotItems()
-                .forEach(item -> {
-                    TableEntry tableEntry = tableEntryItems.get(getPVKey(item.getConfigPv().getPvName(), item.getConfigPv().isReadOnly()));
-                    VType vtype = tableEntry.getStoredSnapshotValue().get();
-                    VType newVType;
-
-                    if (vtype instanceof VNumber) {
-                        newVType = SafeMultiply.multiply((VNumber) vtype, multiplier);
-                    } else if (vtype instanceof VNumberArray) {
-                        newVType = SafeMultiply.multiply((VNumberArray) vtype, multiplier);
-                    } else {
-                        return;
-                    }
-
-                    item.setValue(newVType);
-
-                    tableEntry.storedValueProperty().set(newVType);
-
-                    ObjectProperty<VTypePair> value = tableEntry.valueProperty();
-                    value.setValue(new VTypePair(value.get().base, newVType, value.get().threshold));
-                }));
-
-        parseAndUpdateThreshold(thresholdSpinner.getEditor().getText().trim());
-    }
-
-    @Override
-    public void updateLoadedSnapshot(int snapshotIndex, TableEntry rowValue, VType newValue) {
-        super.updateLoadedSnapshot(snapshotIndex, rowValue, newValue);
-        parseAndUpdateThreshold(thresholdSpinner.getEditor().getText().trim());
-    }
-
-    private void parseAndUpdateThreshold(String value) {
-        thresholdSpinner.getEditor().getStyleClass().remove("input-error");
-        thresholdSpinner.setTooltip(null);
-
-        double parsedNumber;
-        try {
-            parsedNumber = Double.parseDouble(value.trim());
-            updateThreshold(parsedNumber);
-        } catch (Exception e) {
-            thresholdSpinner.getEditor().getStyleClass().add("input-error");
-            thresholdSpinner.setTooltip(new Tooltip(Messages.toolTipMultiplierSpinner));
-        }
-    }
 
     public boolean handleSnapshotTabClosed() {
         if (nodeMetaDataDirty.get()) {
@@ -633,7 +386,7 @@ public class RestoreSnapshotController extends SnapshotController {
 
     @FXML
     @SuppressWarnings("unused")
-    private void takeSnapshot() {
+    public void takeSnapshot() {
         dispose();
         snapshotTab.newSnapshot(configurationNode);
     }
@@ -644,8 +397,7 @@ public class RestoreSnapshotController extends SnapshotController {
     public void saveSnapshot(ActionEvent actionEvent) {
         disabledUi.set(true);
         JobManager.schedule("Save Snapshot", monitor -> {
-            snapshotNode.setName(snapshotNameProperty.get());
-            snapshotNode.setDescription(snapshotCommentProperty.get());
+            snapshotControlsViewController.setSnapshotNode(snapshotNode);
             try {
                 snapshotNode = SaveAndRestoreService.getInstance().updateNode(snapshotNode);
                 // Snapshot successfully saved, clean up and request tab to switch to restore view.
@@ -664,5 +416,9 @@ public class RestoreSnapshotController extends SnapshotController {
                 disabledUi.set(false);
             }
         });
+    }
+
+    public Node getSnapshotNode(){
+        return snapshotNode;
     }
 }

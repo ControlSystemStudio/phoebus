@@ -29,11 +29,11 @@
 
 <TableView fx:id="snapshotTableView" editable="true" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTableViewController">
     <columns>
-        <SelectionTableColumn fx:id="selectedColumn" minWidth="30" prefWidth="30" resizable="false" tooltip="%includeThisPV" visible="false">
+        <TableColumn fx:id="selectedColumn" sortable="false" minWidth="30" prefWidth="30" resizable="false" visible="false">
             <cellValueFactory>
                 <PropertyValueFactory property="selected" />
             </cellValueFactory>
-        </SelectionTableColumn>
+        </TableColumn>
 
         <TooltipTableColumn fx:id="idColumn" labelText="#" resizable="false" tooltip="%toolTipTableColumIndex" />
 
@@ -90,7 +90,7 @@
                         <PropertyValueFactory property="storedValue" />
                     </cellValueFactory>
                 </TooltipTableColumn>
-                <TableColumn fx:id="deltaColumn" minWidth="100" prefWidth="100" styleClass="snapshot-table-centered" text="%tableColumnDeltaValue" />
+                <TableColumn fx:id="deltaColumn" minWidth="100" prefWidth="100" styleClass="snapshot-table-left-aligned" text="%tableColumnDeltaValue" />
             </columns>
         </TableColumn>
 

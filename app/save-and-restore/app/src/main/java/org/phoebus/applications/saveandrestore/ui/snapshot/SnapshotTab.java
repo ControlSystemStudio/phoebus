@@ -57,6 +57,8 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
 
     private final SimpleObjectProperty<Image> tabGraphicImageProperty = new SimpleObjectProperty<>();
 
+    private CompareSnapshotsController compareSnapshotsController;
+
 
     public SnapshotTab(org.phoebus.applications.saveandrestore.model.Node node, SaveAndRestoreService saveAndRestoreService) {
 
@@ -64,6 +66,39 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
 
         if (node.getNodeType().equals(NodeType.SNAPSHOT)) {
             setId(node.getUniqueId());
+        }
+
+        ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
+        FXMLLoader loader = new FXMLLoader();
+        loader.setResources(resourceBundle);
+        loader.setLocation(SnapshotTab.class.getResource("SnapshotView.fxml"));
+
+        loader.setControllerFactory(clazz -> {
+            try {
+                if (clazz.isAssignableFrom(SnapshotController.class)) {
+                    return clazz.getConstructor(SnapshotTab.class)
+                            .newInstance(this);
+                }
+                else if(clazz.isAssignableFrom(SnapshotTableViewController.class)){
+                    return clazz.getConstructor().newInstance();
+                }
+                else if(clazz.isAssignableFrom(SnapshotControlsViewController.class)){
+                    return clazz.getConstructor().newInstance();
+                }
+            } catch (Exception e) {
+                ExceptionDetailsErrorDialog.openError("Error",
+                        "Failed to open new snapshot tab", e);
+            }
+            return null;
+        });
+
+        try {
+            setContent(loader.load());
+            snapshotController = loader.getController();
+        } catch (IOException e) {
+            Logger.getLogger(SnapshotTab.class.getName())
+                    .log(Level.SEVERE, "Failed to load fxml", e);
+            return;
         }
 
         HBox container = new HBox();
@@ -77,7 +112,6 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
         setGraphic(container);
 
         tabTitleProperty.set(node.getNodeType().equals(NodeType.SNAPSHOT) ? node.getName() : Messages.unnamedSnapshot);
-
         setTabImage(node);
 
         setOnCloseRequest(event -> {
@@ -87,6 +121,8 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
                 SaveAndRestoreService.getInstance().removeNodeChangeListener(this);
             }
         });
+
+
 
         SaveAndRestoreService.getInstance().addNodeChangeListener(this);
     }
@@ -115,35 +151,6 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
      *                          a snapshot will be created.
      */
     public void newSnapshot(org.phoebus.applications.saveandrestore.model.Node configurationNode) {
-        ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
-        FXMLLoader loader = new FXMLLoader();
-        loader.setResources(resourceBundle);
-        loader.setLocation(SnapshotTab.class.getResource("SnapshotView.fxml"));
-
-        loader.setControllerFactory(clazz -> {
-            try {
-                if (clazz.isAssignableFrom(SnapshotController.class)) {
-                    return clazz.getConstructor(SnapshotTab.class)
-                            .newInstance(this);
-                }
-                else if(clazz.isAssignableFrom(SnapshotTableViewController.class)){
-                    return clazz.getConstructor().newInstance();
-                }
-            } catch (Exception e) {
-                ExceptionDetailsErrorDialog.openError("Error",
-                        "Failed to open new snapshot tab", e);
-            }
-            return null;
-        });
-
-        try {
-            setContent(loader.load());
-            snapshotController = loader.getController();
-        } catch (IOException e) {
-            Logger.getLogger(SnapshotTab.class.getName())
-                    .log(Level.SEVERE, "Failed to load fxml", e);
-            return;
-        }
         setId(null);
         snapshotController.newSnapshot(configurationNode);
     }
@@ -153,40 +160,15 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
      * @param snapshotNode The {@link Node} of type {@link NodeType#SNAPSHOT} containing snapshot data.
      */
     public void loadSnapshot(Node snapshotNode) {
-        ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
-        FXMLLoader loader = new FXMLLoader();
-        loader.setResources(resourceBundle);
-        loader.setLocation(SnapshotTab.class.getResource("RestoreSnapshotView.fxml"));
-
-        loader.setControllerFactory(clazz -> {
-            try {
-                if (clazz.isAssignableFrom(RestoreSnapshotController.class)) {
-                    return clazz.getConstructor(SnapshotTab.class)
-                            .newInstance(this);
-                }
-                else if(clazz.isAssignableFrom(SnapshotTableViewController.class)){
-                    return clazz.getConstructor().newInstance();
-                }
-            } catch (Exception e) {
-                ExceptionDetailsErrorDialog.openError("Error",
-                        "Failed to open new snapshot tab", e);
-            }
-            return null;
-        });
-
-        try {
-            setContent(loader.load());
-            snapshotController = loader.getController();
-        } catch (IOException e) {
-            Logger.getLogger(SnapshotTab.class.getName())
-                    .log(Level.SEVERE, "Failed to load fxml", e);
-            return;
-        }
-        ((RestoreSnapshotController) snapshotController).loadSnapshot(snapshotNode);
+        updateTabTitle(snapshotNode.getName());
+        setId(snapshotNode.getUniqueId());
+        snapshotController.loadSnapshot(snapshotNode);
     }
 
     public void addSnapshot(org.phoebus.applications.saveandrestore.model.Node node) {
-        ((RestoreSnapshotController) snapshotController).addSnapshot(node);
+        if(compareSnapshotsController == null){ // The compare view has not been created yet
+
+        }
     }
 
     @Override
