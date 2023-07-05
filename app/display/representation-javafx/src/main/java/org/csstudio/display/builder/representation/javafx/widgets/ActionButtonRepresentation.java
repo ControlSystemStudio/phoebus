@@ -37,6 +37,7 @@ import org.phoebus.ui.vtype.FormatOptionHandler;
 
 import javafx.application.Platform;
 import javafx.geometry.Dimension2D;
+import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
@@ -50,6 +51,7 @@ import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 
@@ -105,6 +107,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     private final UntypedWidgetPropertyListener buttonChangedListener = this::buttonChanged;
     private final UntypedWidgetPropertyListener representationChangedListener = this::representationChanged;
     private final WidgetPropertyListener<Boolean> enablementChangedListener = this::enablementChanged;
+    private volatile Pos pos;
 
     @Override
     protected boolean isFilteringEditModeClicks()
@@ -348,7 +351,8 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     {
         updateColors();
         super.registerListeners();
-
+        pos = JFXUtil.computePos(model_widget.propHorizontalAlignment().getValue(),
+                model_widget.propVerticalAlignment().getValue());
         model_widget.propWidth().addUntypedPropertyListener(representationChangedListener);
         model_widget.propHeight().addUntypedPropertyListener(representationChangedListener);
         model_widget.propText().addUntypedPropertyListener(representationChangedListener);
@@ -361,6 +365,8 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         model_widget.propBackgroundColor().addUntypedPropertyListener(buttonChangedListener);
         model_widget.propForegroundColor().addUntypedPropertyListener(buttonChangedListener);
         model_widget.propTransparent().addUntypedPropertyListener(buttonChangedListener);
+        model_widget.propHorizontalAlignment().addUntypedPropertyListener(buttonChangedListener);
+        model_widget.propVerticalAlignment().addUntypedPropertyListener(buttonChangedListener);
         model_widget.propActions().addUntypedPropertyListener(buttonChangedListener);
 
         if (! toolkit.isEditMode()  &&  isLabelValue())
@@ -384,6 +390,8 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         model_widget.propBackgroundColor().removePropertyListener(buttonChangedListener);
         model_widget.propForegroundColor().removePropertyListener(buttonChangedListener);
         model_widget.propTransparent().removePropertyListener(buttonChangedListener);
+        model_widget.propHorizontalAlignment().removePropertyListener(buttonChangedListener);
+        model_widget.propVerticalAlignment().removePropertyListener(buttonChangedListener);
         model_widget.propActions().removePropertyListener(buttonChangedListener);
         super.unregisterListeners();
     }
@@ -399,6 +407,8 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     /** Complete button needs to be updated */
     private void buttonChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
+    	pos = JFXUtil.computePos(model_widget.propHorizontalAlignment().getValue(),
+                model_widget.propVerticalAlignment().getValue());
         dirty_actionls.mark();
         representationChanged(property, old_value, new_value);
     }
@@ -496,6 +506,8 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
                 was_ever_transformed = true;
                 break;
             }
+            base.setAlignment(pos);
+            base.setTextAlignment(TextAlignment.values()[model_widget.propHorizontalAlignment().getValue().ordinal()]);
         }
         if (dirty_enablement.checkAndClear())
         {
