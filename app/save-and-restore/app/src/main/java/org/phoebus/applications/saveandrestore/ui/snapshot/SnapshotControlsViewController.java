@@ -19,6 +19,7 @@
 
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -98,7 +99,7 @@ public class SnapshotControlsViewController {
     protected ToggleButton showLiveReadbackButton;
 
     @FXML
-    private ToggleButton showHideDeltaPercentageButton;
+    private ToggleButton showDeltaPercentageButton;
 
     @FXML
     protected ToggleButton hideEqualItemsButton;
@@ -108,7 +109,7 @@ public class SnapshotControlsViewController {
 
     private List<List<Pattern>> regexPatterns = new ArrayList<>();
 
-    private final SimpleStringProperty snapshotNameProperty = new SimpleStringProperty();
+    protected final SimpleStringProperty snapshotNameProperty = new SimpleStringProperty();
     private final SimpleStringProperty snapshotCommentProperty = new SimpleStringProperty();
     private final SimpleStringProperty createdByTextProperty = new SimpleStringProperty();
     private final SimpleStringProperty createdDateTextProperty = new SimpleStringProperty();
@@ -125,9 +126,7 @@ public class SnapshotControlsViewController {
      * Property used to indicate if there is new snapshot data to save, or if snapshot metadata
      * has changed (e.g. user wants to rename the snapshot or update the comment).
      */
-    private final SimpleBooleanProperty snapshotDataDirty = new SimpleBooleanProperty(false);
-
-    private final SimpleBooleanProperty restoreMode = new SimpleBooleanProperty(false);
+    protected final SimpleBooleanProperty snapshotDataDirty = new SimpleBooleanProperty(false);
 
     private final SimpleObjectProperty<Node> snapshotNodeProperty = new SimpleObjectProperty();
 
@@ -142,8 +141,6 @@ public class SnapshotControlsViewController {
         snapshotComment.textProperty().bindBidirectional(snapshotCommentProperty);
         createdBy.textProperty().bind(createdByTextProperty);
         createdDate.textProperty().bind(createdDateTextProperty);
-        restoreButton.visibleProperty().bind(restoreMode);
-        restoreAndLogButton.visibleProperty().bind(restoreMode);
         snapshotLastModifiedLabel.textProperty().bind(lastModifiedDateTextProperty);
 
         takeSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() -> snapshotNodeProperty.isNotNull().get() &&
@@ -237,17 +234,17 @@ public class SnapshotControlsViewController {
         showLiveReadbackProperty.bind(showLiveReadbackButton.selectedProperty());
         showLiveReadbackButton.selectedProperty()
                 .addListener((a, o, n) ->
-                        snapshotController.applyShowReadback(showLiveReadbackProperty.get(), showDeltaPercentageProperty.get()));
+                        snapshotController.showReadback(showLiveReadbackProperty.get()));
 
         ImageView showHideDeltaPercentageButtonImageView = new ImageView(new Image(getClass().getResourceAsStream("/icons/show_hide_delta_percentage.png")));
         showHideDeltaPercentageButtonImageView.setFitWidth(16);
         showHideDeltaPercentageButtonImageView.setFitHeight(16);
 
-        showHideDeltaPercentageButton.setGraphic(showHideDeltaPercentageButtonImageView);
-        showDeltaPercentageProperty.bind(showHideDeltaPercentageButton.selectedProperty());
-        showHideDeltaPercentageButton.selectedProperty()
+        showDeltaPercentageButton.setGraphic(showHideDeltaPercentageButtonImageView);
+        showDeltaPercentageProperty.bind(showDeltaPercentageButton.selectedProperty());
+        showDeltaPercentageButton.selectedProperty()
                 .addListener((a, o, n) ->
-                        snapshotController.applyShowReadback(showLiveReadbackProperty.get(), showDeltaPercentageProperty.get()));
+                        snapshotController.showDeltaPercentage(n));
 
         hideEqualItemsButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/icons/hide_show_equal_items.png"))));
         hideEqualItemsProperty.bind(hideEqualItemsButton.selectedProperty());
@@ -257,12 +254,14 @@ public class SnapshotControlsViewController {
 
         snapshotNodeProperty.addListener((ob, old, node) -> {
             if (node != null) {
-                snapshotNameProperty.set(node.getName());
-                snapshotCommentProperty.set(node.getDescription());
-                createdDateTextProperty.set(TimestampFormats.SECONDS_FORMAT.format(node.getCreated().toInstant()));
-                lastModifiedDateTextProperty.set(TimestampFormats.SECONDS_FORMAT.format(node.getLastModified().toInstant()));
-                createdByTextProperty.set(node.getUserName());
-                filterToolbar.disableProperty().set(false);
+                Platform.runLater(() -> {
+                    snapshotNameProperty.set(node.getName());
+                    snapshotCommentProperty.set(node.getDescription());
+                    createdDateTextProperty.set(node.getCreated() != null ? TimestampFormats.SECONDS_FORMAT.format(node.getCreated().toInstant()) : null);
+                    lastModifiedDateTextProperty.set(node.getLastModified() != null ? TimestampFormats.SECONDS_FORMAT.format(node.getLastModified().toInstant()) : null);
+                    createdByTextProperty.set(node.getUserName());
+                    filterToolbar.disableProperty().set(node.getName() == null);
+                });
             }
         });
     }
@@ -275,20 +274,21 @@ public class SnapshotControlsViewController {
         return snapshotCommentProperty;
     }
 
+    @FXML
     public void takeSnapshot() {
+        snapshotDataDirty.set(true);
+        snapshotRestorableProperty.set(false);
         snapshotController.takeSnapshot();
     }
 
+    @FXML
     public void saveSnapshot(ActionEvent event) {
         snapshotController.saveSnapshot(event);
     }
 
+    @FXML
     public void restore(ActionEvent event) {
         snapshotController.restore(event);
-    }
-
-    public SimpleBooleanProperty getSnapshotDataDirty() {
-        return snapshotDataDirty;
     }
 
     public SimpleBooleanProperty getSnapshotRestorableProperty() {
@@ -326,7 +326,7 @@ public class SnapshotControlsViewController {
         filterToolbar.disableProperty().set(disabled);
     }
 
-    public void setRestoreMode(boolean restoreMode) {
-        this.restoreMode.set(restoreMode);
+    public void setSnapshotRestorableProperty(boolean restorable){
+        snapshotRestorableProperty.set(restorable);
     }
 }

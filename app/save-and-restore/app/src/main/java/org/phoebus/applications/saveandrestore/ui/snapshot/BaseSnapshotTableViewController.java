@@ -32,10 +32,15 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
+import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
+import org.phoebus.applications.saveandrestore.common.VNoData;
 import org.phoebus.applications.saveandrestore.common.VTypePair;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
+import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.core.types.TimeStampedProcessVariable;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.util.time.TimestampFormats;
@@ -44,11 +49,28 @@ import java.lang.reflect.Field;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public abstract class BaseSnapshotTableViewController {
+
+    /**
+     * {@link Map} of {@link TableEntry} items corresponding to the snapshot data, i.e.
+     * one per PV as defined in the snapshot's configuration. This map is used to
+     * populate the {@link TableView}, but other parameters (e.g. hideEqualItems) may
+     * determine which elements in the {@link Map} to actually represent.
+     */
+    protected final Map<String, TableEntry> tableEntryItems = new LinkedHashMap<>();
+
+    protected final Map<String, SaveAndRestorePV> pvs = new HashMap<>();
 
     @FXML
     protected TableView<TableEntry> snapshotTableView;
@@ -68,11 +90,12 @@ public abstract class BaseSnapshotTableViewController {
     @FXML
     protected TableColumn<TableEntry, VTypePair> deltaColumn;
 
-    protected final List<Snapshot> uiSnapshots = new ArrayList<>();
-
     protected SnapshotController snapshotController;
 
     protected static boolean resizePolicyNotInitialized = true;
+
+    protected static final Logger LOGGER = Logger.getLogger(BaseSnapshotTableViewController.class.getName());
+
 
     public BaseSnapshotTableViewController() {
         if (resizePolicyNotInitialized) {
@@ -181,7 +204,7 @@ public abstract class BaseSnapshotTableViewController {
             VType updatedValue = e.getRowValue().readOnlyProperty().get() ? e.getOldValue() : e.getNewValue();
             ObjectProperty<VTypePair> value = e.getRowValue().valueProperty();
             value.setValue(new VTypePair(value.get().base, updatedValue, value.get().threshold));
-            snapshotController.updateLoadedSnapshot(0, e.getRowValue(), updatedValue);
+            snapshotController.updateLoadedSnapshot( e.getRowValue(), updatedValue);
         });
 
         liveValueColumn.setCellFactory(e -> new VTypeCellEditor<>());
@@ -219,5 +242,87 @@ public abstract class BaseSnapshotTableViewController {
 
     protected void setSelectionColumnVisible(boolean visible) {
         selectedColumn.visibleProperty().set(visible);
+    }
+
+
+    protected String getPVKey(String pvName, boolean isReadonly) {
+        return pvName + "_" + isReadonly;
+    }
+
+    protected void showSnapshotInTable(Snapshot snapshot){
+        AtomicInteger counter = new AtomicInteger(0);
+        snapshot.getSnapshotData().getSnapshotItems().forEach(entry -> {
+            TableEntry tableEntry = new TableEntry();
+            String name = entry.getConfigPv().getPvName();
+            tableEntry.idProperty().setValue(counter.incrementAndGet());
+            tableEntry.pvNameProperty().setValue(name);
+            tableEntry.setConfigPv(entry.getConfigPv());
+            tableEntry.setSnapshotValue(entry.getValue(), 0);
+            tableEntry.setStoredReadbackValue(entry.getReadbackValue());
+            String key = getPVKey(name, entry.getConfigPv().isReadOnly());
+            tableEntry.readbackPvNameProperty().set(entry.getConfigPv().getReadbackPvName());
+            tableEntry.readOnlyProperty().set(entry.getConfigPv().isReadOnly());
+            tableEntryItems.put(key, tableEntry);
+        });
+        connectPVs();
+        updateTable(null);
+    }
+
+    /**
+     * Sets new table entries for this table, but do not change the structure of the table.
+     *
+     * @param entries the entries to set
+     */
+    public void updateTable(List<TableEntry> entries) {
+        final ObservableList<TableEntry> items = snapshotTableView.getItems();
+        final boolean notHide = !snapshotController.isHideEqualItems();
+        snapshotTableView.getItems().clear();
+        tableEntryItems.entrySet().forEach(e -> {
+            // there is no harm if this is executed more than once, because only one line is allowed for these
+            // two properties (see SingleListenerBooleanProperty for more details)
+            e.getValue().liveStoredEqualProperty().addListener((a, o, n) -> {
+                if (snapshotController.isHideEqualItems()) {
+                    if (n) {
+                        snapshotTableView.getItems().remove(e.getValue());
+                    } else {
+                        snapshotTableView.getItems().add(e.getValue());
+                    }
+                }
+            });
+            if (notHide || !e.getValue().liveStoredEqualProperty().get()) {
+                items.add(e.getValue());
+            }
+        });
+    }
+
+    protected List<TableEntry> createTableEntries(Snapshot snapshot) {
+        AtomicInteger counter = new AtomicInteger(0);
+        snapshot.getSnapshotData().getSnapshotItems().forEach(entry -> {
+            TableEntry tableEntry = new TableEntry();
+            String name = entry.getConfigPv().getPvName();
+            tableEntry.idProperty().setValue(counter.incrementAndGet());
+            tableEntry.pvNameProperty().setValue(name);
+            tableEntry.setConfigPv(entry.getConfigPv());
+            tableEntry.setSnapshotValue(entry.getValue(), 0);
+            tableEntry.setStoredReadbackValue(entry.getReadbackValue());
+            String key = getPVKey(name, entry.getConfigPv().isReadOnly());
+            tableEntry.readbackPvNameProperty().set(entry.getConfigPv().getReadbackPvName());
+            tableEntry.readOnlyProperty().set(entry.getConfigPv().isReadOnly());
+            tableEntryItems.put(key, tableEntry);
+        });
+        // Table entries created, associate connected PVs with these entries
+        connectPVs();
+        return new ArrayList<>(tableEntryItems.values());
+    }
+
+    protected void connectPVs() {
+        tableEntryItems.values().forEach(e -> {
+            SaveAndRestorePV pv = pvs.get(getPVKey(e.getConfigPv().getPvName(), e.getConfigPv().isReadOnly()));
+            if (pv == null) {
+                pvs.put(getPVKey(e.getConfigPv().getPvName(), e.getConfigPv().isReadOnly()), new SaveAndRestorePV(e));
+            } else {
+                pv.setSnapshotTableEntry(e);
+            }
+        });
     }
 }

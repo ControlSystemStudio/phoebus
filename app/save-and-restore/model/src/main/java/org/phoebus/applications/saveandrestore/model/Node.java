@@ -175,6 +175,9 @@ public class Node implements Comparable<Node>, Serializable {
         }
         if(other instanceof Node) {
             Node otherNode = (Node)other;
+            if(uniqueId == null || otherNode.getUniqueId() == null){
+                return false;
+            }
             return uniqueId.equals(otherNode.getUniqueId());
         }
         return false;

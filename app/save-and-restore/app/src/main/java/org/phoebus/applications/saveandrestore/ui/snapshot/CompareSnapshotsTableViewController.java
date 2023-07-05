@@ -49,7 +49,7 @@ public class CompareSnapshotsTableViewController extends BaseSnapshotTableViewCo
         deltaColumn.setCellFactory(e -> {
             VDeltaCellEditor<VTypePair> vDeltaCellEditor = new VDeltaCellEditor<>();
             if (showDeltaPercentage) {
-                vDeltaCellEditor.setShowDeltaPercentage();
+                vDeltaCellEditor.setShowDeltaPercentage(true);
             }
             return vDeltaCellEditor;
         });
@@ -66,11 +66,9 @@ public class CompareSnapshotsTableViewController extends BaseSnapshotTableViewCo
     }
 
     public void updateTable(List<TableEntry> entries, List<Snapshot> snapshots, boolean showLiveReadback, boolean showDeltaPercentage) {
-        uiSnapshots.clear();
         // we should always know if we are showing the stored readback or not, to properly extract the selection
         this.showReadbacks.set(showLiveReadback);
         this.showDeltaPercentage = showDeltaPercentage;
-        uiSnapshots.addAll(snapshots);
         //updateTableColumnTitles();
         updateTable(entries);
     }

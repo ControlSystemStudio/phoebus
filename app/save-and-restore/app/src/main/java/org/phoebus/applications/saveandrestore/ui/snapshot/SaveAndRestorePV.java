@@ -30,6 +30,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Utility class binding the snapshot table views to a {@link PV} for each row such
+ * that the view can show the live values. A hardcoded throttling time of 500ms keeps
+ * update rate of PV values under control.
+ */
 public class SaveAndRestorePV {
 
     private final String pvName;
@@ -43,7 +48,7 @@ public class SaveAndRestorePV {
     private TableEntry snapshotTableEntry;
 
     /**
-     * The time between updates of dynamic data in the table, in ms
+     * The time between updates of dynamic data in the table, in ms.
      */
     private static final long TABLE_UPDATE_INTERVAL = 500;
 

@@ -46,8 +46,8 @@ public class VDeltaCellEditor<T> extends VTypeCellEditor<T>{
 
     private boolean showDeltaPercentage = false;
 
-    protected void setShowDeltaPercentage() {
-        showDeltaPercentage = true;
+    protected void setShowDeltaPercentage(boolean showDeltaPercentage) {
+        this.showDeltaPercentage = showDeltaPercentage;
     }
 
     VDeltaCellEditor() {

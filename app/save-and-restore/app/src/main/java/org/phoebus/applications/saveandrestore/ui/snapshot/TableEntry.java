@@ -50,7 +50,7 @@ public class TableEntry {
     /**
      * Snapshot value as loaded from remote service
      */
-    private final ObjectProperty<VType> storedSnapshotValue = new SimpleObjectProperty<>(VNoData.INSTANCE);
+    //private final ObjectProperty<VType> storedSnapshotValue = new SimpleObjectProperty<>(VNoData.INSTANCE);
 
 
     private final ObjectProperty<VTypePair> value = new SimpleObjectProperty<>(this, "value",
@@ -283,7 +283,7 @@ public class TableEntry {
                 timestamp.set(null);
             }
             storedValue.set(val);
-            storedSnapshotValue.set(val);
+            //storedSnapshotValue.set(val);
             value.set(new VTypePair(liveValue.get(), val, threshold));
             compareValues.forEach(o -> o.set(new VTypePair(val, o.get().value, threshold)));
             liveStoredEqual.set(Utilities.areValuesEqual(liveValue.get(), val, threshold));
@@ -348,7 +348,7 @@ public class TableEntry {
             liveSeverity.set(((VEnumArray) val).getAlarm().getSeverity().toString());
             timestamp.set(((VEnumArray) val).getTime().getTimestamp());
         } else if (val instanceof VDisconnectedData) {
-            liveSeverity.set(null);
+            liveSeverity.set("---");
             liveStatus.set("---");
             timestamp.set(null);
         } else {
@@ -374,8 +374,8 @@ public class TableEntry {
         }
     }
 
-    public ObjectProperty<VType> getStoredSnapshotValue() {
-        return storedSnapshotValue;
+    public ObjectProperty<VType> getStoredValue() {
+        return storedValue;
     }
 
 }

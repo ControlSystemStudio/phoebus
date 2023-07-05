@@ -245,7 +245,7 @@ class SnapshotTable extends TableView<TableEntry> {
 
             ObjectProperty<VTypePair> value = e.getRowValue().valueProperty();
             value.setValue(new VTypePair(value.get().base, updatedValue, value.get().threshold));
-            controller.updateLoadedSnapshot(0, e.getRowValue(), updatedValue);
+            controller.updateLoadedSnapshot(e.getRowValue(), updatedValue);
         });
 
         storedDataTableColumn.getColumns().addAll(timestampStoredColumn, statusStoredColumn, severityStoredColumn, storedValueColumn);
@@ -259,9 +259,8 @@ class SnapshotTable extends TableView<TableEntry> {
         delta.setCellFactory(e -> {
             VDeltaCellEditor vDeltaCellEditor = new VDeltaCellEditor<>();
             if (showDeltaPercentage) {
-                vDeltaCellEditor.setShowDeltaPercentage();
+                vDeltaCellEditor.setShowDeltaPercentage(true);
             }
-
             return vDeltaCellEditor;
         });
         delta.setEditable(false);
@@ -477,7 +476,7 @@ class SnapshotTable extends TableView<TableEntry> {
 
             ObjectProperty<VTypePair> value = e.getRowValue().valueProperty();
             value.setValue(new VTypePair(value.get().base, updatedValue, value.get().threshold));
-            controller.updateLoadedSnapshot(0, e.getRowValue(), updatedValue);
+            controller.updateLoadedSnapshot( e.getRowValue(), updatedValue);
 
             for (int i = 1; i < snapshots.size(); i++) {
                 ObjectProperty<VTypePair> compareValue = e.getRowValue().compareValueProperty(i);
@@ -496,7 +495,7 @@ class SnapshotTable extends TableView<TableEntry> {
         delta.setCellFactory(e -> {
             VDeltaCellEditor vDeltaCellEditor = new VDeltaCellEditor<>();
             if (showDeltaPercentage) {
-                vDeltaCellEditor.setShowDeltaPercentage();
+                vDeltaCellEditor.setShowDeltaPercentage(true);
             }
 
             return vDeltaCellEditor;
@@ -547,7 +546,7 @@ class SnapshotTable extends TableView<TableEntry> {
             deltaCol.setCellFactory(e -> {
                 VDeltaCellEditor vDeltaCellEditor = new VDeltaCellEditor<>();
                 if (showDeltaPercentage) {
-                    vDeltaCellEditor.setShowDeltaPercentage();
+                    vDeltaCellEditor.setShowDeltaPercentage(true);
                 }
 
                 return vDeltaCellEditor;

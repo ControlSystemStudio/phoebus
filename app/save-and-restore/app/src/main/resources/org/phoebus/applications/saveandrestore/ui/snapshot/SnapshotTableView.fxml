@@ -29,13 +29,13 @@
 
 <TableView fx:id="snapshotTableView" editable="true" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTableViewController">
     <columns>
-        <TableColumn fx:id="selectedColumn" sortable="false" minWidth="30" prefWidth="30" resizable="false" visible="false">
+        <TableColumn fx:id="selectedColumn" minWidth="30" prefWidth="30" resizable="false" sortable="false" visible="false">
             <cellValueFactory>
                 <PropertyValueFactory property="selected" />
             </cellValueFactory>
         </TableColumn>
 
-        <TooltipTableColumn fx:id="idColumn" labelText="#" resizable="false" tooltip="%toolTipTableColumIndex" />
+        <TooltipTableColumn fx:id="idColumn" labelText="#" resizable="false" styleClass="id-column" tooltip="%toolTipTableColumIndex" />
 
         <TooltipTableColumn labelText="%tableColumnPVName" minWidth="100.0" prefWidth="100.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnPVName">
             <cellValueFactory>
@@ -112,7 +112,7 @@
                         <PropertyValueFactory property="liveReadbackValue" />
                     </cellValueFactory>
                 </TooltipTableColumn>
-                <TooltipTableColumn fx:id="storedReadbackColumn" minWidth="100" styleClass="snapshot-table-left-aligned" labelText="%tableColumnStored" tooltip="%toolTipTableColumnSetpointReadbackPVValue">
+                <TooltipTableColumn fx:id="storedReadbackColumn" labelText="%tableColumnStored" minWidth="100" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnSetpointReadbackPVValue">
                     <cellValueFactory>
                         <PropertyValueFactory property="storedReadbackValue" />
                     </cellValueFactory>
