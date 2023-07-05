@@ -278,6 +278,12 @@ public class SnapshotController {
         snapshotControlsViewController.getSnapshotNameProperty().set(name);
     }
 
+    /**
+     * Updates snapshot set-point values with user defined multiplier. Note that the stored snapshot
+     * is not affected, only the values shown in the snapshot view. The updated value is used when
+     * user requests a restore operation.
+     * @param multiplier The (double) factor used to change the snapshot set-points used in restore operation.
+     */
     public void updateSnapshotValues(double multiplier) {
         snapshotTableViewController.updateSnapshotValues(snapshotProperty.get(), multiplier);
     }

@@ -234,6 +234,11 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
         });
     }
 
+    /**
+     * Updates snapshot set-point values using user-defined multiplier.
+     * @param snapshot Current snapshot loaded into table view.
+     * @param multiplier The (double) factor used to change the snapshot set-points used in restore operation.
+     */
     public void updateSnapshotValues(Snapshot snapshot, double multiplier) {
         snapshot.getSnapshotData().getSnapshotItems()
                 .forEach(item -> {
@@ -300,7 +305,6 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
     public void applyPreserveSelection(boolean preserve) {
         if (preserve) {
             boolean allSelected = tableEntryItems.values().stream().allMatch(item -> item.selectedProperty().get());
-
             if (allSelected) {
                 tableEntryItems.values()
                         .forEach(item -> item.selectedProperty().set(false));
