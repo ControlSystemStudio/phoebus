@@ -32,6 +32,7 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.Styles;
 
 import javafx.application.Platform;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.image.Image;
@@ -43,6 +44,7 @@ import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Paint;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.Ellipse;
+import javafx.scene.text.TextAlignment;
 
 /** Creates JavaFX item for model widget
  *  @author Megan Grodowitz
@@ -89,6 +91,7 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
     private final WidgetPropertyListener<VType> valueChangedListener = this::valueChanged;
     private final WidgetPropertyListener<Mode> modeChangeListener = this::modeChanged;
     private final WidgetPropertyListener<ConfirmDialog> confirmDialogWidgetPropertyListener = this::confirmationDialogChanged;
+    private volatile Pos pos;
 
     @Override
     public Pane createJFXNode() throws Exception
@@ -185,6 +188,8 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
     {
         super.registerListeners();
         representationChanged(null,null,null);
+        pos = JFXUtil.computePos(model_widget.propHorizontalAlignment().getValue(),
+                model_widget.propVerticalAlignment().getValue());
         model_widget.propWidth().addUntypedPropertyListener(representationChangedListener);
         model_widget.propHeight().addUntypedPropertyListener(representationChangedListener);
         model_widget.propOffLabel().addUntypedPropertyListener(representationChangedListener);
@@ -197,6 +202,8 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
         model_widget.propFont().addUntypedPropertyListener(representationChangedListener);
         model_widget.propForegroundColor().addUntypedPropertyListener(representationChangedListener);
         model_widget.propBackgroundColor().addUntypedPropertyListener(representationChangedListener);
+        model_widget.propHorizontalAlignment().addUntypedPropertyListener(representationChangedListener);
+        model_widget.propVerticalAlignment().addUntypedPropertyListener(representationChangedListener);
         model_widget.propEnabled().addPropertyListener(enablementChangedListener);
         model_widget.runtimePropPVWritable().addPropertyListener(enablementChangedListener);
         model_widget.propBit().addPropertyListener(bitChangedListener);
@@ -226,6 +233,8 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
         model_widget.propFont().removePropertyListener(representationChangedListener);
         model_widget.propForegroundColor().removePropertyListener(representationChangedListener);
         model_widget.propBackgroundColor().removePropertyListener(representationChangedListener);
+        model_widget.propHorizontalAlignment().removePropertyListener(representationChangedListener);
+        model_widget.propVerticalAlignment().removePropertyListener(representationChangedListener);
         model_widget.propEnabled().removePropertyListener(enablementChangedListener);
         model_widget.runtimePropPVWritable().removePropertyListener(enablementChangedListener);
         model_widget.propBit().removePropertyListener(bitChangedListener);
@@ -338,6 +347,9 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
         value_label = state_labels[on_state];
 
         computeBackground();
+        
+        pos = JFXUtil.computePos(model_widget.propHorizontalAlignment().getValue(),
+                model_widget.propVerticalAlignment().getValue());
 
         dirty_representation.mark();
         toolkit.scheduleUpdate(this);
@@ -418,6 +430,8 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, Boo
             else
                 button.setGraphic(image);
         }
+        button.setAlignment(pos);
+        button.setTextAlignment(TextAlignment.values()[model_widget.propHorizontalAlignment().getValue().ordinal()]);
     }
 
     @Override
