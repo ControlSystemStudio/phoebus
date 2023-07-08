@@ -166,9 +166,7 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
     }
 
     public void addSnapshot(org.phoebus.applications.saveandrestore.model.Node node) {
-        if(compareSnapshotsController == null){ // The compare view has not been created yet
-
-        }
+        snapshotController.addSnapshot(node);
     }
 
     @Override

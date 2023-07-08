@@ -22,11 +22,10 @@ package org.phoebus.applications.saveandrestore.ui.snapshot;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
+import javafx.scene.control.cell.PropertyValueFactory;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
@@ -36,11 +35,16 @@ import org.phoebus.applications.saveandrestore.SafeMultiply;
 import org.phoebus.applications.saveandrestore.common.*;
 import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.util.time.TimestampFormats;
 
+import java.security.AccessController;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
@@ -50,6 +54,8 @@ import java.util.stream.Collectors;
 public class SnapshotTableViewController extends BaseSnapshotTableViewController {
 
     @FXML
+    private TooltipTableColumn<String> pvNameColumn;
+    @FXML
     private TooltipTableColumn<Instant> timeColumn;
     @FXML
     private TooltipTableColumn<VType> storedReadbackColumn;
@@ -57,10 +63,13 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
     private TooltipTableColumn<VType> liveReadbackColumn;
     @FXML
     private TableColumn<TableEntry, ?> readbackColumn;
+
     private final SimpleBooleanProperty selectionInverted = new SimpleBooleanProperty(false);
     private final SimpleBooleanProperty showReadbacks = new SimpleBooleanProperty(false);
     private final SimpleBooleanProperty showDeltaPercentage = new SimpleBooleanProperty(false);
     private final SimpleBooleanProperty hideEqualItems = new SimpleBooleanProperty(false);
+
+    private final SimpleBooleanProperty compareViewEnabled = new SimpleBooleanProperty(false);
 
     @FXML
     public void initialize() {
@@ -115,12 +124,20 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
         liveReadbackColumn.setCellFactory(e -> new VTypeCellEditor<>());
         storedReadbackColumn.setCellFactory(e -> new VTypeCellEditor<>());
         readbackColumn.visibleProperty().bind(showReadbacks);
+
+        timeColumn.visibleProperty().bind(compareViewEnabled.not());
+        firstDividerColumn.visibleProperty().bind(compareViewEnabled);
+        //compareColumn.visibleProperty().bind(compareViewEnabled);
+        statusColumn.visibleProperty().bind(compareViewEnabled.not());
+        severityColumn.visibleProperty().bind(compareViewEnabled.not());
+        valueColumn.visibleProperty().bind(compareViewEnabled.not());
+
+        compareViewEnabled.addListener((ob, o, n) -> snapshotTableView.layout());
     }
 
     public void setSnapshotController(SnapshotController snapshotController) {
         this.snapshotController = snapshotController;
     }
-
 
 
     /**
@@ -152,8 +169,9 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
                     SnapshotData snapshotData = new SnapshotData();
                     snapshotData.setSnapshotItems(entries);
                     snapshot.setSnapshotData(snapshotData);
-                    List<TableEntry> tableEntries = createTableEntries(snapshot);
-                    updateTable(tableEntries);
+                    //List<TableEntry> tableEntries = createTableEntries(snapshot);
+                    //updateTable(tableEntries);
+                    showSnapshotInTable(snapshot);
                     if (!Preferences.default_snapshot_name_date_format.equals("")) {
                         SimpleDateFormat formatter = new SimpleDateFormat(Preferences.default_snapshot_name_date_format);
                         snapshot.getSnapshotNode().setName(formatter.format(new Date()));
@@ -236,7 +254,8 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
 
     /**
      * Updates snapshot set-point values using user-defined multiplier.
-     * @param snapshot Current snapshot loaded into table view.
+     *
+     * @param snapshot   Current snapshot loaded into table view.
      * @param multiplier The (double) factor used to change the snapshot set-points used in restore operation.
      */
     public void updateSnapshotValues(Snapshot snapshot, double multiplier) {
@@ -370,7 +389,176 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
         }).start();
     }
 
-    public void setShowDeltaPercentage(boolean showDeltaPercentage){
+    public void setShowDeltaPercentage(boolean showDeltaPercentage) {
         this.showDeltaPercentage.set(showDeltaPercentage);
+    }
+
+    public void addSnapshot(Snapshot snapshot) {
+        if (compareViewEnabled.not().get()) {
+            //snapshotTableView.getColumns().clear();
+            compareViewEnabled.set(true);
+            // Initialize compare view
+            Node baseSnapshotNode = snapshotController.getSnapshot().getSnapshotNode();
+            /*
+            baseSnapshotColumn.textProperty()
+                    .set(snapshotNode.getName() +
+                            " (" +
+                            TimestampFormats.SECONDS_FORMAT.format(snapshotNode.getCreated().toInstant()) +
+                            ")");
+
+            baseSnapshotDeltaColumn.setCellValueFactory(e -> e.getValue().valueProperty());
+            baseSnapshotDeltaColumn.setCellFactory(e -> new VDeltaCellEditor<>());
+
+             */
+
+            TableColumn<TableEntry, ?> storedValueColumn = new TableColumn<>(Messages.storedValues);
+            storedValueColumn.setMinWidth(100);
+            //storedValueColumn.setPrefWidth(300);
+            //storedValueColumn.getStyleClass().add("toplevel");
+
+            String baseSnapshotTimeStamp = snapshots.get(0).getSnapshotNode().getCreated() == null ?
+                    "" :
+                    " (" + TimestampFormats.SECONDS_FORMAT.format(snapshots.get(0).getSnapshotNode().getCreated().toInstant()) + ")";
+            String snapshotName = snapshots.get(0).getSnapshotNode().getName() + baseSnapshotTimeStamp;
+
+            TableColumn<TableEntry, ?> baseCol = new TooltipTableColumn<>(
+                    snapshotName,
+                    Messages.toolTipTableColumnSetpointPVValue, 33);
+            baseCol.getStyleClass().add("second-level");
+
+            TableColumn<TableEntry, VType> storedBaseSetpointValueColumn = new TooltipTableColumn<>(
+                    Messages.baseSetpoint,
+                    Messages.toolTipTableColumnBaseSetpointValue, 100);
+
+            storedBaseSetpointValueColumn.setCellValueFactory(new PropertyValueFactory<>("storedValue"));
+            storedBaseSetpointValueColumn.setCellFactory(e -> new VTypeCellEditor<>());
+            storedBaseSetpointValueColumn.setEditable(true);
+            storedBaseSetpointValueColumn.setOnEditCommit(e -> {
+                VType updatedValue = e.getRowValue().readOnlyProperty().get() ? e.getOldValue() : e.getNewValue();
+
+                ObjectProperty<VTypePair> value = e.getRowValue().valueProperty();
+                value.setValue(new VTypePair(value.get().base, updatedValue, value.get().threshold));
+                //controller.updateLoadedSnapshot(0, e.getRowValue(), updatedValue);
+
+                for (int i = 1; i < snapshots.size(); i++) {
+                    ObjectProperty<VTypePair> compareValue = e.getRowValue().compareValueProperty(i);
+                    compareValue.setValue(new VTypePair(updatedValue, compareValue.get().value, compareValue.get().threshold));
+                }
+            });
+
+            baseCol.getColumns().add(storedBaseSetpointValueColumn);
+
+            // show deltas in separate column
+            TableColumn<TableEntry, VTypePair> delta = new TooltipTableColumn<>(
+                    Utilities.DELTA_CHAR + " Live Setpoint",
+                    "", 100);
+
+            delta.setCellValueFactory(e -> e.getValue().valueProperty());
+            delta.setCellFactory(e -> {
+                VDeltaCellEditor vDeltaCellEditor = new VDeltaCellEditor<>();
+                vDeltaCellEditor.setShowDeltaPercentage(showDeltaPercentage.get());
+                return vDeltaCellEditor;
+            });
+            delta.setEditable(false);
+            delta.setComparator((pair1, pair2) -> {
+                Utilities.VTypeComparison vtc1 = Utilities.valueToCompareString(pair1.value, pair1.base, pair1.threshold);
+                Utilities.VTypeComparison vtc2 = Utilities.valueToCompareString(pair2.value, pair2.base, pair2.threshold);
+
+                if (!vtc1.isWithinThreshold() && vtc2.isWithinThreshold()) {
+                    return -1;
+                } else if (vtc1.isWithinThreshold() && !vtc2.isWithinThreshold()) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            });
+
+            baseCol.getColumns().add(delta);
+
+            storedValueColumn.getColumns().addAll(baseCol, new DividerTableColumn());
+            /*
+            snapshotTableView.getColumns().add(0, selectedColumn);
+            snapshotTableView.getColumns().add(1, idColumn);
+            snapshotTableView.getColumns().add(2, new DividerTableColumn());
+            snapshotTableView.getColumns().add(1, pvNameColumn);
+            snapshotTableView.getColumns().addAll(3, Arrays.asList(storedValueColumn));
+            snapshotTableView.getColumns().add(4, new DividerTableColumn());
+
+             */
+            snapshotTableView.getColumns().add(5, storedValueColumn);
+        }
+
+
+        Node snapshotNode = snapshot.getSnapshotNode();
+        String snapshotName = snapshotNode.getName();
+
+        List<SnapshotItem> entries = snapshot.getSnapshotData().getSnapshotItems();
+        String nodeName;
+        TableEntry tableEntry;
+        // Base snapshot data
+        List<TableEntry> baseSnapshotTableEntries = new ArrayList<>(tableEntryItems.values());
+        SnapshotItem entry;
+        for (int i = 0; i < entries.size(); i++) {
+            entry = entries.get(i);
+            nodeName = entry.getConfigPv().getPvName();
+            String key = getPVKey(nodeName, entry.getConfigPv().isReadOnly());
+            tableEntry = tableEntryItems.get(key);
+            // tableEntry is null if the added snapshot has more items than the base snapshot.
+            if (tableEntry == null) {
+                tableEntry = new TableEntry();
+                tableEntry.idProperty().setValue(tableEntryItems.size() + i + 1);
+                tableEntry.pvNameProperty().setValue(nodeName);
+                tableEntry.setConfigPv(entry.getConfigPv());
+                tableEntryItems.put(key, tableEntry);
+                tableEntry.readbackPvNameProperty().set(entry.getConfigPv().getReadbackPvName());
+            }
+            tableEntry.setSnapshotValue(entry.getValue(), snapshots.size());
+            tableEntry.setStoredReadbackValue(entry.getReadbackValue(), snapshots.size());
+            tableEntry.readOnlyProperty().set(entry.getConfigPv().isReadOnly());
+            baseSnapshotTableEntries.remove(tableEntry);
+        }
+        // If added snapshot has more items than base snapshot, the base snapshot's values for those
+        // table rows need to be set to DISCONNECTED.
+        for (TableEntry te : baseSnapshotTableEntries) {
+            te.setSnapshotValue(VDisconnectedData.INSTANCE, snapshots.size());
+        }
+
+        TableColumn<TableEntry, ?> headerColumn = new TableColumn<>(snapshotName + " (" +
+                TimestampFormats.SECONDS_FORMAT.format(snapshotNode.getCreated().toInstant()) + ")");
+        headerColumn.getStyleClass().add("snapshot-table-centered");
+        headerColumn.setPrefWidth(200);
+        headerColumn.setResizable(true);
+
+        TooltipTableColumn<VTypePair> setpointValueCol = new TooltipTableColumn<>(
+                Messages.setpoint,
+                "Setpoint PV value when the " + snapshotName + " snapshot was taken", 66);
+        setpointValueCol.setCellValueFactory(e -> e.getValue().compareValueProperty(snapshots.size() - 1));
+        setpointValueCol.setCellFactory(e -> new VTypeCellEditor<>());
+        setpointValueCol.setEditable(false);
+        setpointValueCol.setPreferredWidth(150);
+        setpointValueCol.setMinWidth(100);
+
+        TooltipTableColumn<VTypePair> deltaCol = new TooltipTableColumn<>(
+                Utilities.DELTA_CHAR + Messages.baseSetpoint,
+                "Setpoint PVV value when the " + snapshotName + " snapshot was taken", 50);
+        deltaCol.setCellValueFactory(e -> e.getValue().compareValueProperty(snapshots.size() - 1));
+        deltaCol.setCellFactory(e -> {
+            VDeltaCellEditor vDeltaCellEditor = new VDeltaCellEditor<>();
+            vDeltaCellEditor.setShowDeltaPercentage(showDeltaPercentage.get());
+            return vDeltaCellEditor;
+        });
+        deltaCol.setPreferredWidth(150);
+        deltaCol.setEditable(false);
+        deltaCol.setMinWidth(100);
+
+        headerColumn.getColumns().addAll(setpointValueCol, deltaCol, new DividerTableColumn());
+        //compareColumn.getColumns().add(headerColumn);
+
+        snapshots.add(snapshot);
+        //Platform.runLater(() -> snapshotTableView.layout());
+
+
+        connectPVs();
+        updateTable(null);
     }
 }

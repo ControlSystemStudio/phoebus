@@ -65,11 +65,13 @@ public class TableEntry {
     private final StringProperty readbackPvName = new SimpleStringProperty(this, "readbackPvName");
     private final BooleanProperty liveStoredEqual = new SingleListenerBooleanProperty(this, "liveStoredEqual", true);
 
-    private final ObjectProperty<VType> storedReadbackValue = new SimpleObjectProperty<>(this, "storedReadbackValue",
-            VDisconnectedData.INSTANCE);
+    private final ObjectProperty<VTypePair> storedReadbackValue = new SimpleObjectProperty<>(this, "storedReadback",
+            new VTypePair(VNoData.INSTANCE, VNoData.INSTANCE, Optional.empty()));
 
     private Optional<Threshold<?>> threshold = Optional.empty();
     private final BooleanProperty readOnly = new SimpleBooleanProperty(this, "readOnly", false);
+
+    private final List<ObjectProperty<VTypePair>> compareStoredReadbacks = new ArrayList<>();
 
 
     private ConfigPv configPv;
@@ -188,7 +190,7 @@ public class TableEntry {
     /**
      * @return the property providing the stored liveReadback vs stored setpoint value
      */
-    public ObjectProperty<VType> storedReadbackValueProperty() {
+    public ObjectProperty<VTypePair> storedReadbackValueProperty() {
         return storedReadbackValue;
     }
 
@@ -291,21 +293,33 @@ public class TableEntry {
             for (int i = compareValues.size(); i < index; i++) {
                 compareValues.add(new SimpleObjectProperty<>(this, "CompareValue" + i,
                         new VTypePair(VDisconnectedData.INSTANCE, VDisconnectedData.INSTANCE, threshold)));
+                compareStoredReadbacks.add(new SimpleObjectProperty<>(this, "CompareStoredReadback" + i,
+                        new VTypePair(VDisconnectedData.INSTANCE, VDisconnectedData.INSTANCE, threshold)));
             }
             compareValues.get(index - 1).set(new VTypePair(valueProperty().get().value, val, threshold));
+            compareStoredReadbacks.get(index - 1)
+                    .set(new VTypePair(val, compareStoredReadbacks.get(index - 1).get().value, threshold));
         }
     }
 
     /**
-     * Set the stored liveReadback value for the primary snapshot of for the snapshots compared to the primary one.
+     * Set the stored readback value for the primary snapshot of for the snapshots compared to the primary one.
      *
      * @param val   the value to set
      */
-    public void setStoredReadbackValue(VType val) {
-        if (readbackPvName.get() == null || readbackPvName.get().isEmpty()) {
-            storedReadbackValue.set(VNoData.INSTANCE);
+    public void setStoredReadbackValue(VType val, int index) {
+        if (val == null) {
+            val = VNoData.INSTANCE;
+        }
+        if (index == 0) {
+            storedReadbackValue.set(new VTypePair(storedReadbackValue.get().base, val, threshold));
         } else {
-            storedReadbackValue.set(Objects.requireNonNullElse(val, VDisconnectedData.INSTANCE));
+            for (int i = compareValues.size(); i < index; i++) {
+                compareStoredReadbacks.add(new SimpleObjectProperty<>(this, "CompareStoredReadback" + i,
+                        new VTypePair(VDisconnectedData.INSTANCE, VDisconnectedData.INSTANCE, threshold)));
+            }
+            compareStoredReadbacks.get(index - 1)
+                    .set(new VTypePair(compareStoredReadbacks.get(index - 1).get().base, val, threshold));
         }
     }
 

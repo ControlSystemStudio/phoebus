@@ -32,15 +32,10 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.Messages;
-import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
-import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
-import org.phoebus.applications.saveandrestore.common.VNoData;
 import org.phoebus.applications.saveandrestore.common.VTypePair;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
-import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.core.types.TimeStampedProcessVariable;
-import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.util.time.TimestampFormats;
@@ -50,13 +45,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -71,6 +60,8 @@ public abstract class BaseSnapshotTableViewController {
     protected final Map<String, TableEntry> tableEntryItems = new LinkedHashMap<>();
 
     protected final Map<String, SaveAndRestorePV> pvs = new HashMap<>();
+
+
 
     @FXML
     protected TableView<TableEntry> snapshotTableView;
@@ -96,6 +87,35 @@ public abstract class BaseSnapshotTableViewController {
 
     protected static final Logger LOGGER = Logger.getLogger(BaseSnapshotTableViewController.class.getName());
 
+    @FXML
+    protected TableColumn<TableEntry, ?> statusColumn;
+
+    @FXML
+    protected TableColumn<TableEntry, ?> severityColumn;
+
+    @FXML
+    protected TableColumn<TableEntry, ?> valueColumn;
+
+    @FXML
+    protected TableColumn firstDividerColumn;
+
+    @FXML
+    protected TableColumn<TableEntry, ?> compareColumn;
+
+    @FXML
+    protected TableColumn<TableEntry, ?> baseSnapshotColumn;
+
+    @FXML
+    protected TooltipTableColumn<?> baseSnapshotValueColumn;
+
+    @FXML
+    protected TableColumn<TableEntry, VTypePair> baseSnapshotDeltaColumn;
+
+    /**
+     * List of snapshots used managed in this controller. Index 0 is always the base snapshot,
+     * all others are snapshots added in the compare use-case.
+     */
+    protected List<Snapshot> snapshots = new ArrayList<>();
 
     public BaseSnapshotTableViewController() {
         if (resizePolicyNotInitialized) {
@@ -208,7 +228,8 @@ public abstract class BaseSnapshotTableViewController {
         });
 
         liveValueColumn.setCellFactory(e -> new VTypeCellEditor<>());
-
+        // TODO: uncomment!
+        //baseSnapshotValueColumn.setCellFactory(e -> new VTypeCellEditor<>());
     }
 
     private int measureStringWidth(String text, Font font) {
@@ -250,6 +271,7 @@ public abstract class BaseSnapshotTableViewController {
     }
 
     protected void showSnapshotInTable(Snapshot snapshot){
+        snapshots.add(0, snapshot);
         AtomicInteger counter = new AtomicInteger(0);
         snapshot.getSnapshotData().getSnapshotItems().forEach(entry -> {
             TableEntry tableEntry = new TableEntry();
@@ -258,12 +280,13 @@ public abstract class BaseSnapshotTableViewController {
             tableEntry.pvNameProperty().setValue(name);
             tableEntry.setConfigPv(entry.getConfigPv());
             tableEntry.setSnapshotValue(entry.getValue(), 0);
-            tableEntry.setStoredReadbackValue(entry.getReadbackValue());
+            tableEntry.setStoredReadbackValue(entry.getReadbackValue(), 0);
             String key = getPVKey(name, entry.getConfigPv().isReadOnly());
             tableEntry.readbackPvNameProperty().set(entry.getConfigPv().getReadbackPvName());
             tableEntry.readOnlyProperty().set(entry.getConfigPv().isReadOnly());
             tableEntryItems.put(key, tableEntry);
         });
+
         connectPVs();
         updateTable(null);
     }
@@ -295,6 +318,7 @@ public abstract class BaseSnapshotTableViewController {
         });
     }
 
+    /*
     protected List<TableEntry> createTableEntries(Snapshot snapshot) {
         AtomicInteger counter = new AtomicInteger(0);
         snapshot.getSnapshotData().getSnapshotItems().forEach(entry -> {
@@ -304,7 +328,7 @@ public abstract class BaseSnapshotTableViewController {
             tableEntry.pvNameProperty().setValue(name);
             tableEntry.setConfigPv(entry.getConfigPv());
             tableEntry.setSnapshotValue(entry.getValue(), 0);
-            tableEntry.setStoredReadbackValue(entry.getReadbackValue());
+            tableEntry.setStoredReadbackValue(entry.getReadbackValue(), 0);
             String key = getPVKey(name, entry.getConfigPv().isReadOnly());
             tableEntry.readbackPvNameProperty().set(entry.getConfigPv().getReadbackPvName());
             tableEntry.readOnlyProperty().set(entry.getConfigPv().isReadOnly());
@@ -314,6 +338,8 @@ public abstract class BaseSnapshotTableViewController {
         connectPVs();
         return new ArrayList<>(tableEntryItems.values());
     }
+
+     */
 
     protected void connectPVs() {
         tableEntryItems.values().forEach(e -> {

@@ -22,6 +22,8 @@ package org.phoebus.applications.saveandrestore.ui.snapshot;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 
 import javax.tools.Tool;
@@ -70,6 +72,7 @@ public class TooltipTableColumn<T> extends TableColumn<TableEntry, T> {
     public void setPreferredWidth(int prefWidth){
         setPrefWidth(prefWidth);
     }
+
 
     public void setup(String text, String tooltip, int minWidth, int prefWidth, boolean resizable) {
         label = new Label(text);

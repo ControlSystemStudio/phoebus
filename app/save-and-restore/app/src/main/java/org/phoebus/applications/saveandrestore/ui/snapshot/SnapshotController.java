@@ -127,8 +127,8 @@ public class SnapshotController {
             snapshotData.setSnapshotItems(configurationToSnapshotItems(configPvs));
             snapshot.setSnapshotData(snapshotData);
             snapshotProperty.set(snapshot);
-            List<TableEntry> tableEntries = snapshotTableViewController.createTableEntries(snapshot);
-            Platform.runLater(() -> snapshotTableViewController.updateTable(tableEntries));
+            //List<TableEntry> tableEntries = snapshotTableViewController.createTableEntries(snapshot);
+            Platform.runLater(() -> snapshotTableViewController.showSnapshotInTable(snapshot));
         });
     }
 
@@ -308,13 +308,13 @@ public class SnapshotController {
         snapshotTableViewController.hideEqualItems(hide);
     }
 
-    private void loadCompositeSnapshotInternal(Consumer<Snapshot> completion) {
-
-        JobManager.schedule("Load composite snapshot items", items -> {
-            disabledUi.set(true);
+    private void loadCompositeSnapshotInternal(Node compositeSnapshotNode) {
+        Platform.runLater(() -> disabledUi.set(true));
+        JobManager.schedule("Load composite snapshot", items -> {
+            /*
             List<SnapshotItem> snapshotItems;
             try {
-                snapshotItems = SaveAndRestoreService.getInstance().getCompositeSnapshotItems(snapshotProperty.get().getSnapshotNode().getUniqueId());
+                snapshotItems = SaveAndRestoreService.getInstance().getCompositeSnapshotItems(compositeSnapshotNode.getUniqueId());
             } catch (Exception e) {
                 LOGGER.log(Level.INFO, "Error loading composite snapshot for restore", e);
                 //ExceptionDetailsErrorDialog.openError(snapshotTable, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
@@ -322,6 +322,20 @@ public class SnapshotController {
             } finally {
                 disabledUi.set(false);
             }
+
+             */
+            try {
+                Snapshot snapshot = getSnapshotFromService(compositeSnapshotNode);
+                snapshotProperty.set(snapshot);
+                Platform.runLater(() -> {
+                    snapshotTableViewController.showSnapshotInTable(snapshot);
+                    snapshotControlsViewController.getSnapshotRestorableProperty().set(true);
+                });
+            }
+            finally{
+                Platform.runLater(() -> disabledUi.set(false));
+            }
+            /*
             Snapshot snapshot = new Snapshot();
             snapshot.setSnapshotNode(snapshotProperty.get().getSnapshotNode());
             SnapshotData snapshotData = new SnapshotData();
@@ -329,33 +343,25 @@ public class SnapshotController {
             snapshot.setSnapshotData(snapshotData);
             snapshotProperty.set(snapshot);
             disabledUi.set(false);
-            completion.accept(snapshot);
+
+             */
         });
     }
 
     private void loadSnapshotInternal(Node snapshotNode) {
-        disabledUi.set(true);
+        Platform.runLater(() -> disabledUi.set(true));
         JobManager.schedule("Load snapshot items", monitor -> {
-            SnapshotData snapshotData;
             try {
-                this.configurationNode = SaveAndRestoreService.getInstance().getParentNode(snapshotNode.getUniqueId());
-                snapshotData = SaveAndRestoreService.getInstance().getSnapshot(snapshotNode.getUniqueId());
-            } catch (Exception e) {
-                ExceptionDetailsErrorDialog.openError(snapshotTab.getContent(), Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
-                LOGGER.log(Level.INFO, "Error loading snapshot", e);
-                return;
-            } finally {
-                disabledUi.set(false);
+                Snapshot snapshot = getSnapshotFromService(snapshotNode);
+                snapshotProperty.set(snapshot);
+                Platform.runLater(() -> {
+                    snapshotTableViewController.showSnapshotInTable(snapshot);
+                    snapshotControlsViewController.getSnapshotRestorableProperty().set(true);
+                });
             }
-            Snapshot snapshot = new Snapshot();
-            snapshot.setSnapshotNode(snapshotNode);
-            snapshot.setSnapshotData(snapshotData);
-            snapshotProperty.set(snapshot);
-            Platform.runLater(() -> {
-                snapshotTableViewController.showSnapshotInTable(snapshot);
-                snapshotControlsViewController.getSnapshotRestorableProperty().set(true);
-                disabledUi.set(false);
-            });
+            finally{
+                Platform.runLater(() -> disabledUi.set(false));
+            }
         });
     }
 
@@ -373,11 +379,15 @@ public class SnapshotController {
             loadSnapshotInternal(snapshotNode);
         } else {
             snapshotControlsViewController.setNameAndCommentDisabled(true);
+            loadSnapshotInternal(snapshotNode);
+            /*
             loadCompositeSnapshotInternal(snapshot -> Platform.runLater(() -> {
                 List<TableEntry> tableEntries = snapshotTableViewController.createTableEntries(snapshot);
                 snapshotTableViewController.updateTable(tableEntries);
                 snapshotControlsViewController.getSnapshotRestorableProperty().set(true);
             }));
+
+             */
         }
     }
 
@@ -389,5 +399,42 @@ public class SnapshotController {
                 eventReceivers.forEach(r -> r.snapshotRestored(snapshotProperty.get().getSnapshotNode(), restoreFailedPVNames, this::showLoggingError));
             }
         });
+    }
+
+    public void addSnapshot(Node snapshotNode){
+        disabledUi.set(true);
+        try {
+            Snapshot snapshot = getSnapshotFromService(snapshotNode);
+            snapshotTableViewController.addSnapshot(snapshot);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        finally {
+            disabledUi.set(false);
+        }
+    }
+
+    private Snapshot getSnapshotFromService(Node snapshotNode) throws Exception{
+        SnapshotData snapshotData;
+        try {
+            if(snapshotNode.getNodeType().equals(NodeType.SNAPSHOT)){
+                this.configurationNode = SaveAndRestoreService.getInstance().getParentNode(snapshotNode.getUniqueId());
+                snapshotData = SaveAndRestoreService.getInstance().getSnapshot(snapshotNode.getUniqueId());
+            }
+            else{
+                List<SnapshotItem> snapshotItems = SaveAndRestoreService.getInstance().getCompositeSnapshotItems(snapshotNode.getUniqueId());
+                snapshotData = new SnapshotData();
+                snapshotData.setSnapshotItems(snapshotItems);
+            }
+        } catch (Exception e) {
+            ExceptionDetailsErrorDialog.openError(snapshotTab.getContent(), Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
+            LOGGER.log(Level.INFO, "Error loading snapshot", e);
+            throw e;
+        }
+        Snapshot snapshot = new Snapshot();
+        snapshot.setSnapshotNode(snapshotNode);
+        snapshot.setSnapshotData(snapshotData);
+        return snapshot;
     }
 }
