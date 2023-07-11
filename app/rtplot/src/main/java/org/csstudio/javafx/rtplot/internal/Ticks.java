@@ -25,7 +25,7 @@ public abstract class Ticks<XTYPE>
     protected volatile List<MinorTick<XTYPE>> minor_ticks = Collections.emptyList();
 
     /** How many percent of the available space should be used for labels? */
-    final public static int FILL_PERCENTAGE = 60;
+    final public static int FILL_PERCENTAGE = 70;
 
     /** Used to adjust a range to a meaningful range for the chosen scale.
      *  @param low Desired low limit of the axis range.
