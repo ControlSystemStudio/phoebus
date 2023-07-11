@@ -46,7 +46,7 @@ public class LogTicksTest extends TicksTestBase
         System.out.println("Ticks for " + start + " .. " + end + ":");
         text = ticks2text(ticks);
         System.out.println(text);
-        assertThat(text, equalTo("'1.1E3' '1.2E3' "));
+        assertThat(text, equalTo("'1.05E3' '1.10E3' '1.15E3' '1.20E3' "));
 
     }
 }
