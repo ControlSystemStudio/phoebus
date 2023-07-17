@@ -47,6 +47,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogFactory;
@@ -55,11 +56,14 @@ import org.phoebus.logbook.Logbook;
 import org.phoebus.logbook.LogbookException;
 import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.logbook.Tag;
+import org.phoebus.logbook.olog.ui.AttachmentsViewController;
 import org.phoebus.logbook.olog.ui.HelpViewer;
 import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
 import org.phoebus.logbook.olog.ui.PreviewViewer;
+import org.phoebus.logbook.olog.ui.SingleLogEntryDisplayController;
 import org.phoebus.logbook.olog.ui.menu.SendToLogBookApp;
 import org.phoebus.olog.es.api.OlogProperties;
+import org.phoebus.olog.es.api.model.OlogAttachment;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
@@ -68,6 +72,10 @@ import org.phoebus.ui.dialog.ListSelectionPopOver;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -103,7 +111,7 @@ public class LogEntryUpdateController {
 
     @SuppressWarnings("unused")
     @FXML
-    private AttachmentsEditorController attachmentsEditorController;
+    private AttachmentsViewController attachmentsViewController;
     @SuppressWarnings("unused")
     @FXML
     private LogPropertiesEditorController logPropertiesEditorController;
@@ -220,7 +228,6 @@ public class LogEntryUpdateController {
                         completionMessageLabel.textProperty(), submissionInProgress));
 
         cancelButton.disableProperty().bind(submissionInProgress);
-        attachmentsEditorController.setTextArea(textArea);
 
         userField.textProperty().bindBidirectional(usernameProperty);
         userField.textProperty().addListener((changeListener, oldVal, newVal) ->
@@ -382,6 +389,7 @@ public class LogEntryUpdateController {
 
         // Note: logbooks and tags are retrieved asynchronously from service
         setupLogbooksAndTags();
+        retrieveAttachments();
     }
 
     /**
@@ -406,7 +414,7 @@ public class LogEntryUpdateController {
      */
     @FXML
     public void showHtmlPreview() {
-        new PreviewViewer(getDescription(), attachmentsEditorController.getAttachments()).show();
+        new PreviewViewer(getDescription(), attachmentsViewController.getAttachments()).show();
     }
 
 
@@ -423,7 +431,7 @@ public class LogEntryUpdateController {
             ologLog.setLevel(selectedLevelProperty.get());
             ologLog.setLogbooks(getSelectedLogbooks());
             ologLog.setTags(getSelectedTags());
-            ologLog.setAttachments(attachmentsEditorController.getAttachments());
+//            ologLog.setAttachments(attachmentsViewController.getAttachments());
             ologLog.setProperties(logPropertiesEditorController.getProperties());
 
             LogClient logClient =
@@ -449,7 +457,6 @@ public class LogEntryUpdateController {
                             logger.log(Level.WARNING, "Secure Store file not found.", ex);
                         }
                     }
-                    attachmentsEditorController.deleteTemporaryFiles();
                     // This will close the editor
                     Platform.runLater(this::cancel);
                 }
@@ -629,6 +636,36 @@ public class LogEntryUpdateController {
             logbooksPopOver.setAvailable(availableLogbooksAsStringList, selectedLogbooks);
             logbooksPopOver.setSelected(selectedLogbooks);
 
+        });
+    }
+
+    private void retrieveAttachments(){
+        JobManager.schedule("Fetch attachment data", monitor -> {
+
+            LogClient logClient =
+                    LogService.getInstance().getLogFactories().get(LogbookPreferences.logbook_factory).getLogClient();
+            Collection<Attachment> attachments = logEntry.getAttachments().stream()
+                    .filter((attachment) -> attachment.getName() != null && !attachment.getName().isEmpty())
+                    .map((attachment) -> {
+                        OlogAttachment fileAttachment = new OlogAttachment();
+                        fileAttachment.setContentType(attachment.getContentType());
+                        fileAttachment.setThumbnail(false);
+                        fileAttachment.setFileName(attachment.getName());
+                        try {
+                            Path temp = Files.createTempFile("phoebus", attachment.getName());
+                            Files.copy(logClient.getAttachment(logEntry.getId(), attachment.getName()), temp, StandardCopyOption.REPLACE_EXISTING);
+                            fileAttachment.setFile(temp.toFile());
+                            temp.toFile().deleteOnExit();
+                        } catch (LogbookException | IOException e) {
+                            Logger.getLogger(SingleLogEntryDisplayController.class.getName())
+                                    .log(Level.WARNING, "Failed to retrieve attachment " + fileAttachment.getFileName(), e);
+                        }
+                        return fileAttachment;
+                    }).collect(Collectors.toList());
+            // Update UI
+            Platform.runLater(()->{
+                attachmentsViewController.setAttachments(attachments);
+            });
         });
     }
 

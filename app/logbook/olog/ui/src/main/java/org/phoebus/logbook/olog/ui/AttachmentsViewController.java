@@ -265,18 +265,20 @@ public class AttachmentsViewController {
      * @param attachment The image {@link Attachment} selected by user.
      */
     private void showImagePreview(Attachment attachment) {
-        try {
-            BufferedImage bufferedImage = ImageIO.read(attachment.getFile());
-            // BufferedImage may be null due to lazy loading strategy.
-            if (bufferedImage == null) {
-                return;
+        if (attachment.getFile() != null) {
+            try {
+                BufferedImage bufferedImage = ImageIO.read(attachment.getFile());
+                // BufferedImage may be null due to lazy loading strategy.
+                if (bufferedImage == null) {
+                    return;
+                }
+                Image image = SwingFXUtils.toFXImage(bufferedImage, null);
+                imagePreview.visibleProperty().setValue(true);
+                imagePreview.setImage(image);
+            } catch (IOException ex) {
+                Logger.getLogger(AttachmentsEditorController.class.getName())
+                        .log(Level.SEVERE, "Unable to load image file " + attachment.getFile().getAbsolutePath(), ex);
             }
-            Image image = SwingFXUtils.toFXImage(bufferedImage, null);
-            imagePreview.visibleProperty().setValue(true);
-            imagePreview.setImage(image);
-        } catch (IOException ex) {
-            Logger.getLogger(AttachmentsEditorController.class.getName())
-                    .log(Level.SEVERE, "Unable to load image file " + attachment.getFile().getAbsolutePath(), ex);
         }
     }
 

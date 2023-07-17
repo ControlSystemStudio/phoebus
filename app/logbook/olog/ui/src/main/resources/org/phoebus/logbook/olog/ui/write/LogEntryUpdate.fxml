@@ -157,7 +157,7 @@
             <Accordion maxHeight="1.7976931348623157E308">
                 <panes>
                     <TitledPane animated="false" maxHeight="1.7976931348623157E308" text="%Attachments">
-                        <fx:include fx:id="attachmentsEditor" maxHeight="1.7976931348623157E308" source="AttachmentsEditor.fxml" />
+                        <fx:include fx:id="attachmentsView" source="../AttachmentsView.fxml" />
                     </TitledPane>
                     <TitledPane animated="false" text="%Properties">
                         <fx:include fx:id="logPropertiesEditor" source="LogPropertiesEditor.fxml" />
