@@ -438,7 +438,7 @@ public class LogEntryUpdateController {
                     logFactory.getLogClient(new SimpleAuthenticationToken(usernameProperty.get(), passwordProperty.get()));
             LogEntry result;
             try {
-                result = logClient.updateLogEntry(ologLog);
+                result = logClient.update(ologLog);
                 // Not dirty any more...
                 isDirty = false;
                 if (result != null) {
