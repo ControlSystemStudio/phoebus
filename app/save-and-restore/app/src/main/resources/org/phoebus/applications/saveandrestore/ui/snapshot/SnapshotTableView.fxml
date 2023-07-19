@@ -18,8 +18,6 @@
   ~  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
   ~  
   -->
-<!--<AnchorPane maxWidth="1.7976931348623157E308"  xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTableViewController">-->
-<!--</AnchorPane>-->
 
 <?import java.lang.*?>
 <?import javafx.scene.control.*?>
@@ -27,17 +25,17 @@
 <?import javafx.scene.layout.*?>
 <?import org.phoebus.applications.saveandrestore.ui.snapshot.*?>
 
-<TableView fx:id="snapshotTableView" editable="true" HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTableViewController">
+<TableView fx:id="snapshotTableView" editable="true" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTableViewController">
     <columns>
-        <TableColumn fx:id="selectedColumn" minWidth="30" prefWidth="30" resizable="false" sortable="false" visible="false">
+        <TableColumn fx:id="selectedColumn" maxWidth="-1.0" minWidth="30" prefWidth="30" resizable="false" sortable="false" visible="false">
             <cellValueFactory>
                 <PropertyValueFactory property="selected" />
             </cellValueFactory>
         </TableColumn>
 
-        <TooltipTableColumn fx:id="idColumn" labelText="#" resizable="false" styleClass="id-column" tooltip="%toolTipTableColumIndex" />
+        <TooltipTableColumn fx:id="idColumn" labelText="#" maxWidth="-1.0" prefWidth="-1.0" resizable="false" styleClass="id-column" tooltip="%toolTipTableColumIndex" />
 
-        <TooltipTableColumn fx:id="pvNameColumn" labelText="%tableColumnPVName" maxWidth="-1.0" minWidth="100.0" prefWidth="100.0" tooltip="%toolTipTableColumnPVName"> <!--styleClass="snapshot-table-left-aligned" >-->
+        <TooltipTableColumn fx:id="pvNameColumn" labelText="%tableColumnPVName" minWidth="100.0" prefWidth="200.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnPVName">
             <cellValueFactory>
                 <PropertyValueFactory property="pvName" />
             </cellValueFactory>
@@ -53,32 +51,16 @@
          </styleClass>
         </TooltipTableColumn>
 
-        <DividerTableColumn fx:id="firstDividerColumn" reorderable="false" visible="false" />
+        <DividerTableColumn fx:id="firstDividerColumn" maxWidth="-1.0" visible="false" />
 
-        <!--<TableColumn fx:id="compareColumn" editable="false" maxWidth="-1.0" minWidth="-1.0" prefWidth="-1.0" sortable="false" styleClass="snapshot-table-centered" text="%storedValues" visible="false">
+        <TableColumn fx:id="statusColumn" minWidth="140.0" prefWidth="200.0" sortable="false" styleClass="snapshot-table-centered" text="%tableColumnAlarmStatus">
             <columns>
-                <TableColumn fx:id="baseSnapshotColumn" maxWidth="-1.0" prefWidth="200.0" styleClass="snapshot-table-centered">
-                    <columns>
-                        <TooltipTableColumn fx:id="baseSnapshotValueColumn" labelText="%tableColumnSetpoint" maxWidth="-1.0" minWidth="100" prefWidth="150" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnSetpointPVValue">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="storedValue" />
-                            </cellValueFactory>
-                        </TooltipTableColumn>
-                        <TableColumn fx:id="baseSnapshotDeltaColumn" maxWidth="-1.0" minWidth="100" prefWidth="150" styleClass="snapshot-table-left-aligned" text="%tableColumnDeltaValue" />
-                        <DividerTableColumn maxWidth="-1.0" minWidth="20.0" />
-                    </columns>
-                </TableColumn>
-            </columns>
-        </TableColumn>-->
-
-        <TableColumn fx:id="statusColumn" styleClass="snapshot-table-centered" text="%tableColumnAlarmStatus">
-            <columns>
-                <TooltipTableColumn labelText="%tableColumnStored" minWidth="70" prefWidth="70" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnStoredAlarmStatus">
+                <TooltipTableColumn labelText="%tableColumnStored" minWidth="70.0" prefWidth="100.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnStoredAlarmStatus">
                     <cellValueFactory>
                         <PropertyValueFactory property="storedStatus" />
                     </cellValueFactory>
                 </TooltipTableColumn>
-                <TooltipTableColumn labelText="%tableColumnLive" minWidth="70" prefWidth="70" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnLiveAlarmStatus">
+                <TooltipTableColumn labelText="%tableColumnLive" minWidth="70.0" prefWidth="100.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnLiveAlarmStatus">
                     <cellValueFactory>
                         <PropertyValueFactory property="liveStatus" />
                     </cellValueFactory>
@@ -86,14 +68,14 @@
             </columns>
         </TableColumn>
 
-        <TableColumn fx:id="severityColumn" styleClass="snapshot-table-centered" text="%tableColumnAlarmSeverity">
+        <TableColumn fx:id="severityColumn" minWidth="140.0" prefWidth="200.0" sortable="false" styleClass="snapshot-table-centered" text="%tableColumnAlarmSeverity">
             <columns>
-                <TooltipTableColumn labelText="%tableColumnStored" minWidth="70" prefWidth="70" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnStoredAlarmSeverity">
+                <TooltipTableColumn labelText="%tableColumnStored" minWidth="70.0" prefWidth="100.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnStoredAlarmSeverity">
                     <cellValueFactory>
                         <PropertyValueFactory property="storedSeverity" />
                     </cellValueFactory>
                 </TooltipTableColumn>
-                <TooltipTableColumn labelText="%tableColumnLive" minWidth="70" prefWidth="70" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnLiveAlarmSeverity">
+                <TooltipTableColumn labelText="%tableColumnLive" minWidth="70.0" prefWidth="100.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnLiveAlarmSeverity">
                     <cellValueFactory>
                         <PropertyValueFactory property="liveSeverity" />
                     </cellValueFactory>
@@ -101,38 +83,39 @@
             </columns>
         </TableColumn>
 
-        <TableColumn fx:id="valueColumn" styleClass="snapshot-table-centered" text="%tableColumnStoredSetpoint">
+        <TableColumn fx:id="valueColumn" minWidth="300.0" prefWidth="500.0" sortable="false" styleClass="snapshot-table-centered" text="%tableColumnStoredSetpoint">
             <columns>
-                <TooltipTableColumn fx:id="storedValueColumn" labelText="%tableColumnSetpoint" minWidth="100" prefWidth="100" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnSetpointPVValue">
+                <TooltipTableColumn fx:id="storedValueColumn" labelText="%tableColumnSetpoint" minWidth="150.0" prefWidth="150.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnSetpointPVValue">
                     <cellValueFactory>
-                        <PropertyValueFactory property="storedValue" />
+                        <PropertyValueFactory property="snapshotVal" />
                     </cellValueFactory>
                 </TooltipTableColumn>
-                <TableColumn fx:id="deltaColumn" minWidth="100" prefWidth="100" styleClass="snapshot-table-left-aligned" text="%tableColumnDeltaValue" />
+                <TableColumn fx:id="deltaColumn" editable="false" minWidth="150.0" prefWidth="150.0" styleClass="snapshot-table-left-aligned" text="%tableColumnDeltaValue" />
             </columns>
         </TableColumn>
 
-        <TooltipTableColumn fx:id="liveValueColumn" editable="false" labelText="%tableColumnLiveSetpoint" maxWidth="1.7976931348623157E308" minWidth="100" prefWidth="150.0" sortable="false" styleClass="snapshot-table-left-aligned" tooltip="%currentPVValue">
+        <TooltipTableColumn fx:id="liveValueColumn" editable="false" labelText="%tableColumnLiveSetpoint" minWidth="150.0" prefWidth="200.0" sortable="false" styleClass="snapshot-table-left-aligned" tooltip="%currentPVValue">
             <cellValueFactory>
                 <PropertyValueFactory property="liveValue" />
             </cellValueFactory>
         </TooltipTableColumn>
 
-        <TableColumn fx:id="readbackColumn" styleClass="snapshot-table-centered" text="%tableColumnReadback">
+        <TableColumn fx:id="readbackColumn" minWidth="300.0" prefWidth="500.0" sortable="false" styleClass="snapshot-table-centered" text="%tableColumnReadback">
             <columns>
-                <TooltipTableColumn labelText="%tableColumnPVName" minWidth="100.0" prefWidth="100.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnReadbackPVName">
+                <TooltipTableColumn labelText="%tableColumnPVName" minWidth="80.0" prefWidth="150.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnReadbackPVName">
                     <cellValueFactory>
-                        <PropertyValueFactory property="readbackPvName" />
+                        <PropertyValueFactory property="readbackName" />
                     </cellValueFactory>
                 </TooltipTableColumn>
-                <TooltipTableColumn fx:id="liveReadbackColumn" labelText="%tableColumnLive" minWidth="100" styleClass="snapshot-table-left-aligned" tooltip="%currentReadbackValue">
+                <TooltipTableColumn fx:id="storedReadbackColumn" labelText="%tableColumnStored" minWidth="80.0" prefWidth="150.0" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnSetpointReadbackPVValue">
                     <cellValueFactory>
-                        <PropertyValueFactory property="liveReadbackValue" />
+                        <PropertyValueFactory property="storedReadback" />
                     </cellValueFactory>
                 </TooltipTableColumn>
-                <TooltipTableColumn fx:id="storedReadbackColumn" labelText="%tableColumnStored" minWidth="100" styleClass="snapshot-table-left-aligned" tooltip="%toolTipTableColumnSetpointReadbackPVValue">
+                <TableColumn fx:id="deltaReadbackColumn" editable="false" minWidth="80.0" prefWidth="150.0" styleClass="snapshot-table-left-aligned" text="%tableColumnDeltaSetpointValue" />
+                <TooltipTableColumn fx:id="liveReadbackColumn" labelText="%tableColumnLive" minWidth="80.0" prefWidth="150.0" styleClass="snapshot-table-left-aligned" tooltip="%currentReadbackValue">
                     <cellValueFactory>
-                        <PropertyValueFactory property="storedReadbackValue" />
+                        <PropertyValueFactory property="liveReadback" />
                     </cellValueFactory>
                 </TooltipTableColumn>
             </columns>

@@ -49,6 +49,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+/**
+ * Base controller class for the snapshot table view. It handles common items (UI components, methods) needed
+ * by all subclasses.
+ */
 public abstract class BaseSnapshotTableViewController {
 
     /**
@@ -60,8 +64,6 @@ public abstract class BaseSnapshotTableViewController {
     protected final Map<String, TableEntry> tableEntryItems = new LinkedHashMap<>();
 
     protected final Map<String, SaveAndRestorePV> pvs = new HashMap<>();
-
-
 
     @FXML
     protected TableView<TableEntry> snapshotTableView;
@@ -81,6 +83,9 @@ public abstract class BaseSnapshotTableViewController {
     @FXML
     protected TableColumn<TableEntry, VTypePair> deltaColumn;
 
+    @FXML
+    protected TableColumn<TableEntry, VTypePair> deltaReadbackColumn;
+
     protected SnapshotController snapshotController;
 
     protected static boolean resizePolicyNotInitialized = true;
@@ -99,14 +104,14 @@ public abstract class BaseSnapshotTableViewController {
     @FXML
     protected TableColumn firstDividerColumn;
 
-    @FXML
+    //@FXML
     protected TableColumn<TableEntry, ?> compareColumn;
 
     @FXML
     protected TableColumn<TableEntry, ?> baseSnapshotColumn;
 
     @FXML
-    protected TooltipTableColumn<?> baseSnapshotValueColumn;
+    protected TooltipTableColumn<VType> baseSnapshotValueColumn;
 
     @FXML
     protected TableColumn<TableEntry, VTypePair> baseSnapshotDeltaColumn;
@@ -240,14 +245,12 @@ public abstract class BaseSnapshotTableViewController {
         return (int) mText.getLayoutBounds().getWidth();
     }
 
-
     /**
      * <code>TimestampTableCell</code> is a table cell for rendering the {@link Instant} objects in the table.
      *
      * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
      */
     protected static class TimestampTableCell extends TableCell<TableEntry, Instant> {
-
         @Override
         protected void updateItem(Instant item, boolean empty) {
             super.updateItem(item, empty);
@@ -265,7 +268,6 @@ public abstract class BaseSnapshotTableViewController {
         selectedColumn.visibleProperty().set(visible);
     }
 
-
     protected String getPVKey(String pvName, boolean isReadonly) {
         return pvName + "_" + isReadonly;
     }
@@ -282,7 +284,7 @@ public abstract class BaseSnapshotTableViewController {
             tableEntry.setSnapshotValue(entry.getValue(), 0);
             tableEntry.setStoredReadbackValue(entry.getReadbackValue(), 0);
             String key = getPVKey(name, entry.getConfigPv().isReadOnly());
-            tableEntry.readbackPvNameProperty().set(entry.getConfigPv().getReadbackPvName());
+            tableEntry.readbackNameProperty().set(entry.getConfigPv().getReadbackPvName());
             tableEntry.readOnlyProperty().set(entry.getConfigPv().isReadOnly());
             tableEntryItems.put(key, tableEntry);
         });
@@ -317,29 +319,6 @@ public abstract class BaseSnapshotTableViewController {
             }
         });
     }
-
-    /*
-    protected List<TableEntry> createTableEntries(Snapshot snapshot) {
-        AtomicInteger counter = new AtomicInteger(0);
-        snapshot.getSnapshotData().getSnapshotItems().forEach(entry -> {
-            TableEntry tableEntry = new TableEntry();
-            String name = entry.getConfigPv().getPvName();
-            tableEntry.idProperty().setValue(counter.incrementAndGet());
-            tableEntry.pvNameProperty().setValue(name);
-            tableEntry.setConfigPv(entry.getConfigPv());
-            tableEntry.setSnapshotValue(entry.getValue(), 0);
-            tableEntry.setStoredReadbackValue(entry.getReadbackValue(), 0);
-            String key = getPVKey(name, entry.getConfigPv().isReadOnly());
-            tableEntry.readbackPvNameProperty().set(entry.getConfigPv().getReadbackPvName());
-            tableEntry.readOnlyProperty().set(entry.getConfigPv().isReadOnly());
-            tableEntryItems.put(key, tableEntry);
-        });
-        // Table entries created, associate connected PVs with these entries
-        connectPVs();
-        return new ArrayList<>(tableEntryItems.values());
-    }
-
-     */
 
     protected void connectPVs() {
         tableEntryItems.values().forEach(e -> {

@@ -190,7 +190,7 @@ public class SnapshotControlsViewController {
                     try {
                         parsedNumber = Double.parseDouble(n.trim());
                         snapshotController.updateSnapshotValues(parsedNumber);
-                        parseAndUpdateThreshold(thresholdSpinner.getEditor().getText().trim());
+                        //parseAndUpdateThreshold(thresholdSpinner.getEditor().getText().trim());
                     } catch (NumberFormatException e) {
                         multiplierSpinner.getEditor().getStyleClass().add("input-error");
                         multiplierSpinner.setTooltip(new Tooltip(Messages.toolTipMultiplierSpinner));
@@ -250,7 +250,7 @@ public class SnapshotControlsViewController {
         hideEqualItemsProperty.bind(hideEqualItemsButton.selectedProperty());
         hideEqualItemsButton.selectedProperty()
                 .addListener((a, o, n) ->
-                        snapshotController.applyHideEqualItems(hideEqualItemsProperty.get()));
+                        snapshotController.applyHideEqualItems());
 
         snapshotNodeProperty.addListener((ob, old, node) -> {
             if (node != null) {

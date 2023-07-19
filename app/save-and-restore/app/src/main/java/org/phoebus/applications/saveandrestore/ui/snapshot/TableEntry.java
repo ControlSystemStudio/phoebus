@@ -19,7 +19,6 @@ import org.phoebus.applications.saveandrestore.ui.SingleListenerBooleanProperty;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -45,12 +44,12 @@ public class TableEntry {
      * can be modified if user chooses to use a multiplier before triggering a restore operation, or if the value is
      * edited directly in the table view cell.
      */
-    private final ObjectProperty<VType> storedValue = new SimpleObjectProperty<>(this, "storedValue", VNoData.INSTANCE);
+    private final ObjectProperty<VType> snapshotVal = new SimpleObjectProperty<>(this, "snapshotValue", VNoData.INSTANCE);
 
     /**
-     * Snapshot value as loaded from remote service
+     * Snapshot value as loaded from remote service. Unlike snapshotVal it is not subject to changes.
      */
-    //private final ObjectProperty<VType> storedSnapshotValue = new SimpleObjectProperty<>(VNoData.INSTANCE);
+    private final ObjectProperty<VType> storedSnapshotValue = new SimpleObjectProperty<>(VNoData.INSTANCE);
 
 
     private final ObjectProperty<VTypePair> value = new SimpleObjectProperty<>(this, "value",
@@ -59,19 +58,18 @@ public class TableEntry {
     private final ObjectProperty<VType> liveValue = new SimpleObjectProperty<>(this, "liveValue", VDisconnectedData.INSTANCE);
     private final List<ObjectProperty<VTypePair>> compareValues = new ArrayList<>();
 
-    private final ObjectProperty<VType> liveReadbackValue = new SimpleObjectProperty<>(this, "liveReadbackValue",
-            VDisconnectedData.INSTANCE);
+    private final ObjectProperty<VTypePair> liveReadback = new SimpleObjectProperty<>(this, "liveReadback",
+            new VTypePair(VDisconnectedData.INSTANCE, VDisconnectedData.INSTANCE, Optional.empty()));
 
-    private final StringProperty readbackPvName = new SimpleStringProperty(this, "readbackPvName");
+    private final StringProperty readbackName = new SimpleStringProperty(this, "readbackName");
     private final BooleanProperty liveStoredEqual = new SingleListenerBooleanProperty(this, "liveStoredEqual", true);
 
-    private final ObjectProperty<VTypePair> storedReadbackValue = new SimpleObjectProperty<>(this, "storedReadback",
-            new VTypePair(VNoData.INSTANCE, VNoData.INSTANCE, Optional.empty()));
-
-    private Optional<Threshold<?>> threshold = Optional.empty();
-    private final BooleanProperty readOnly = new SimpleBooleanProperty(this, "readOnly", false);
+    private final ObjectProperty<VTypePair> storedReadback = new SimpleObjectProperty<>(this, "storedReadback",
+            new VTypePair(VDisconnectedData.INSTANCE, VDisconnectedData.INSTANCE, Optional.empty()));
 
     private final List<ObjectProperty<VTypePair>> compareStoredReadbacks = new ArrayList<>();
+    private Optional<Threshold<?>> threshold = Optional.empty();
+    private final BooleanProperty readOnly = new SimpleBooleanProperty(this, "readOnly", false);
 
 
     private ConfigPv configPv;
@@ -97,7 +95,7 @@ public class TableEntry {
     public void setConfigPv(ConfigPv configPv) {
         this.configPv = configPv;
         pvName.setValue(configPv.getPvName());
-        readbackPvName.setValue(configPv.getReadbackPvName());
+        readbackName.setValue(configPv.getReadbackPvName());
     }
 
     public ConfigPv getConfigPv() {
@@ -134,20 +132,21 @@ public class TableEntry {
     /**
      * @return the property providing the liveReadback pv name
      */
-    public StringProperty readbackPvNameProperty() {
-        return readbackPvName;
+    public StringProperty readbackNameProperty() {
+        return readbackName;
     }
 
     /**
      * @return the property providing the liveReadback value
      */
-    public ObjectProperty<VType> liveReadbackValueProperty() {
-        return liveReadbackValue;
+    public ObjectProperty<VTypePair> liveReadbackProperty() {
+        return liveReadback;
     }
 
     /**
      * @return the property providing the alarm status of the PV value
      */
+    @SuppressWarnings("unused")
     public StringProperty liveStatusProperty() {
         return liveStatus;
     }
@@ -155,6 +154,7 @@ public class TableEntry {
     /**
      * @return the property providing the alarm severity of the PV value
      */
+    @SuppressWarnings("unused")
     public StringProperty liveSeverityProperty() {
         return liveSeverity;
     }
@@ -162,8 +162,8 @@ public class TableEntry {
     /**
      * @return the property providing the value of the primary snapshot value
      */
-    public ObjectProperty<VType> storedValueProperty() {
-        return storedValue;
+    public ObjectProperty<VType> snapshotValProperty() {
+        return snapshotVal;
     }
 
     /**
@@ -190,8 +190,14 @@ public class TableEntry {
     /**
      * @return the property providing the stored liveReadback vs stored setpoint value
      */
-    public ObjectProperty<VTypePair> storedReadbackValueProperty() {
-        return storedReadbackValue;
+    @SuppressWarnings("unused")
+    public ObjectProperty<VTypePair> storedReadbackProperty() {
+        return storedReadback;
+    }
+
+    @SuppressWarnings("unused")
+    public StringProperty storedStatusProperty(){
+        return storedStatus;
     }
 
     /**
@@ -213,28 +219,13 @@ public class TableEntry {
         this.timestamp.set(timestamp);
     }
 
-    public String getStoredStatus() {
-        return storedStatus.get();
+    public ObjectProperty<VType> storedSnapshotValue(){
+        return storedSnapshotValue;
     }
 
-    public StringProperty storedStatusProperty() {
-        return storedStatus;
-    }
-
-    public void setStoredStatus(String storedStatus) {
-        this.storedStatus.set(storedStatus);
-    }
-
-    public String getStoredSeverity() {
-        return storedSeverity.get();
-    }
-
+    @SuppressWarnings("unused")
     public StringProperty storedSeverityProperty() {
         return storedSeverity;
-    }
-
-    public void setStoredSeverity(String storedSeverity) {
-        this.storedSeverity.set(storedSeverity);
     }
 
     /**
@@ -246,6 +237,18 @@ public class TableEntry {
             throw new IndexOutOfBoundsException("Index has to be larger than 0.");
         } else {
             return compareValues.get(index - 1);
+        }
+    }
+
+    /**
+     * @param index the index of the compared value (starts with 1)
+     * @return the property providing the compares stored liveReadback value for the given index
+     */
+    public ObjectProperty<VTypePair> compareStoredReadbackProperty(int index) {
+        if (index == 0) {
+            throw new IndexOutOfBoundsException("Index has to be larger than 0.");
+        } else {
+            return compareStoredReadbacks.get(index - 1);
         }
     }
 
@@ -284,11 +287,12 @@ public class TableEntry {
                 storedSeverity.set("---");
                 timestamp.set(null);
             }
-            storedValue.set(val);
-            //storedSnapshotValue.set(val);
+            snapshotVal.set(val);
+            storedSnapshotValue.set(val);
             value.set(new VTypePair(liveValue.get(), val, threshold));
             compareValues.forEach(o -> o.set(new VTypePair(val, o.get().value, threshold)));
             liveStoredEqual.set(Utilities.areValuesEqual(liveValue.get(), val, threshold));
+            storedReadback.set(new VTypePair(val, storedReadback.get().value, threshold));
         } else {
             for (int i = compareValues.size(); i < index; i++) {
                 compareValues.add(new SimpleObjectProperty<>(this, "CompareValue" + i,
@@ -312,7 +316,7 @@ public class TableEntry {
             val = VNoData.INSTANCE;
         }
         if (index == 0) {
-            storedReadbackValue.set(new VTypePair(storedReadbackValue.get().base, val, threshold));
+            storedReadback.set(new VTypePair(storedReadback.get().base, val, threshold));
         } else {
             for (int i = compareValues.size(); i < index; i++) {
                 compareStoredReadbacks.add(new SimpleObjectProperty<>(this, "CompareStoredReadback" + i,
@@ -329,7 +333,13 @@ public class TableEntry {
      * @param val the value
      */
     public void setReadbackValue(VType val) {
-        liveReadbackValue.set(val);
+        if (val == null) {
+            val = VDisconnectedData.INSTANCE;
+        }
+        if (liveReadback.get().value != val) {
+            VTypePair vTypePair = new VTypePair(liveValueProperty().get(), val, threshold);
+            liveReadback.set(vTypePair);
+        }
     }
 
     /**
@@ -342,6 +352,7 @@ public class TableEntry {
             val = VDisconnectedData.INSTANCE;
         }
         liveValue.set(val);
+        liveReadback.set(new VTypePair(val, liveReadback.get().value, threshold));
         VType stored = value.get().value;
         value.set(new VTypePair(val, stored, threshold));
         liveStoredEqual.set(Utilities.areValuesEqual(val, stored, threshold));
@@ -385,11 +396,15 @@ public class TableEntry {
             this.value.set(new VTypePair(this.value.get().base, val, threshold));
             this.liveStoredEqual.set(Utilities.areValuesEqual(liveValue.get(), val, threshold));
             this.compareValues.forEach(e -> e.set(new VTypePair(val, e.get().value, threshold)));
+            this.liveReadback.set(new VTypePair(this.liveReadback.get().base, this.liveReadback.get().value, threshold));
+            this.storedReadback
+                    .set(new VTypePair(this.storedReadback.get().base, this.storedReadback.get().value, threshold));
+            this.compareStoredReadbacks.forEach(e -> e.set(new VTypePair(e.get().base, e.get().value, threshold)));
         }
     }
 
-    public ObjectProperty<VType> getStoredValue() {
-        return storedValue;
+    public ObjectProperty<VType> getSnapshotVal() {
+        return snapshotVal;
     }
 
 }

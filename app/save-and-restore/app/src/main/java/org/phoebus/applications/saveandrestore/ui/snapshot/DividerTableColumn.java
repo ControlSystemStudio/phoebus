@@ -28,11 +28,12 @@ import javafx.scene.control.TableColumn;
 public class DividerTableColumn extends TableColumn {
 
     public DividerTableColumn() {
-        setPrefWidth(20);
+        setPrefWidth(15);
         setMinWidth(15);
-        setMaxWidth(20);
+        setMaxWidth(15);
         setSortable(false);
         setEditable(false);
+        setReorderable(false);
         setCellFactory(c -> new DividerCell());
     }
 

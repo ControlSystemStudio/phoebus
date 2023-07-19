@@ -37,7 +37,6 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -58,7 +57,6 @@ public class SnapshotController {
     protected Node configurationNode;
 
     public static final Logger LOGGER = Logger.getLogger(SnapshotController.class.getName());
-
 
     protected ServiceLoader<SaveAndRestoreEventReceiver> eventReceivers;
 
@@ -224,7 +222,7 @@ public class SnapshotController {
                         newVType = newValue;
                     }
                     item.setValue(newVType);
-                    rowValue.storedValueProperty().set(newVType);
+                    rowValue.snapshotValProperty().set(newVType);
                 });
     }
 
@@ -282,6 +280,7 @@ public class SnapshotController {
      * Updates snapshot set-point values with user defined multiplier. Note that the stored snapshot
      * is not affected, only the values shown in the snapshot view. The updated value is used when
      * user requests a restore operation.
+     *
      * @param multiplier The (double) factor used to change the snapshot set-points used in restore operation.
      */
     public void updateSnapshotValues(double multiplier) {
@@ -300,53 +299,14 @@ public class SnapshotController {
         snapshotTableViewController.showReadback(showLiveReadback);
     }
 
-    public void showDeltaPercentage(boolean showDeltaPercentage){
+    public void showDeltaPercentage(boolean showDeltaPercentage) {
         snapshotTableViewController.setShowDeltaPercentage(showDeltaPercentage);
     }
 
-    public void applyHideEqualItems(boolean hide) {
-        snapshotTableViewController.hideEqualItems(hide);
+    public void applyHideEqualItems() {
+        snapshotTableViewController.hideEqualItems();
     }
 
-    private void loadCompositeSnapshotInternal(Node compositeSnapshotNode) {
-        Platform.runLater(() -> disabledUi.set(true));
-        JobManager.schedule("Load composite snapshot", items -> {
-            /*
-            List<SnapshotItem> snapshotItems;
-            try {
-                snapshotItems = SaveAndRestoreService.getInstance().getCompositeSnapshotItems(compositeSnapshotNode.getUniqueId());
-            } catch (Exception e) {
-                LOGGER.log(Level.INFO, "Error loading composite snapshot for restore", e);
-                //ExceptionDetailsErrorDialog.openError(snapshotTable, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
-                return;
-            } finally {
-                disabledUi.set(false);
-            }
-
-             */
-            try {
-                Snapshot snapshot = getSnapshotFromService(compositeSnapshotNode);
-                snapshotProperty.set(snapshot);
-                Platform.runLater(() -> {
-                    snapshotTableViewController.showSnapshotInTable(snapshot);
-                    snapshotControlsViewController.getSnapshotRestorableProperty().set(true);
-                });
-            }
-            finally{
-                Platform.runLater(() -> disabledUi.set(false));
-            }
-            /*
-            Snapshot snapshot = new Snapshot();
-            snapshot.setSnapshotNode(snapshotProperty.get().getSnapshotNode());
-            SnapshotData snapshotData = new SnapshotData();
-            snapshotData.setSnapshotItems(snapshotItems);
-            snapshot.setSnapshotData(snapshotData);
-            snapshotProperty.set(snapshot);
-            disabledUi.set(false);
-
-             */
-        });
-    }
 
     private void loadSnapshotInternal(Node snapshotNode) {
         Platform.runLater(() -> disabledUi.set(true));
@@ -358,8 +318,7 @@ public class SnapshotController {
                     snapshotTableViewController.showSnapshotInTable(snapshot);
                     snapshotControlsViewController.getSnapshotRestorableProperty().set(true);
                 });
-            }
-            finally{
+            } finally {
                 Platform.runLater(() -> disabledUi.set(false));
             }
         });
@@ -380,14 +339,6 @@ public class SnapshotController {
         } else {
             snapshotControlsViewController.setNameAndCommentDisabled(true);
             loadSnapshotInternal(snapshotNode);
-            /*
-            loadCompositeSnapshotInternal(snapshot -> Platform.runLater(() -> {
-                List<TableEntry> tableEntries = snapshotTableViewController.createTableEntries(snapshot);
-                snapshotTableViewController.updateTable(tableEntries);
-                snapshotControlsViewController.getSnapshotRestorableProperty().set(true);
-            }));
-
-             */
         }
     }
 
@@ -401,28 +352,25 @@ public class SnapshotController {
         });
     }
 
-    public void addSnapshot(Node snapshotNode){
+    public void addSnapshot(Node snapshotNode) {
         disabledUi.set(true);
         try {
             Snapshot snapshot = getSnapshotFromService(snapshotNode);
             snapshotTableViewController.addSnapshot(snapshot);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
-        }
-        finally {
+        } finally {
             disabledUi.set(false);
         }
     }
 
-    private Snapshot getSnapshotFromService(Node snapshotNode) throws Exception{
+    private Snapshot getSnapshotFromService(Node snapshotNode) throws Exception {
         SnapshotData snapshotData;
         try {
-            if(snapshotNode.getNodeType().equals(NodeType.SNAPSHOT)){
+            if (snapshotNode.getNodeType().equals(NodeType.SNAPSHOT)) {
                 this.configurationNode = SaveAndRestoreService.getInstance().getParentNode(snapshotNode.getUniqueId());
                 snapshotData = SaveAndRestoreService.getInstance().getSnapshot(snapshotNode.getUniqueId());
-            }
-            else{
+            } else {
                 List<SnapshotItem> snapshotItems = SaveAndRestoreService.getInstance().getCompositeSnapshotItems(snapshotNode.getUniqueId());
                 snapshotData = new SnapshotData();
                 snapshotData.setSnapshotItems(snapshotItems);

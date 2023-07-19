@@ -55,7 +55,7 @@ public class SaveAndRestorePV {
     protected SaveAndRestorePV(TableEntry snapshotTableEntry) {
         this.snapshotTableEntry = snapshotTableEntry;
         this.pvName = patchPvName(snapshotTableEntry.pvNameProperty().get());
-        this.readbackPvName = patchPvName(snapshotTableEntry.readbackPvNameProperty().get());
+        this.readbackPvName = patchPvName(snapshotTableEntry.readbackNameProperty().get());
 
         try {
             pv = PVPool.getPV(pvName);

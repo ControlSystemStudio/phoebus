@@ -199,7 +199,7 @@ public class VTypeCellEditor<T> extends MultitypeTableCell<TableEntry, T> {
         if(tableRow != null){
             if(tableRow.getItem() != null && tableRow.getItem() instanceof TableEntry){
                 TableEntry tableEntry = (TableEntry)tableRow.getItem();
-                setEditable(tableEntry.readOnlyProperty().get());
+                setEditable(tableEntry.readOnlyProperty().not().get());
             }
         }
     }
