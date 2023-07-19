@@ -14,6 +14,8 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontal;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontalAlignment;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propVerticalAlignment;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propItemsFromPV;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPassword;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propSelectedColor;
@@ -34,6 +36,8 @@ import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
+import org.csstudio.display.builder.model.properties.HorizontalAlignment;
+import org.csstudio.display.builder.model.properties.VerticalAlignment;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 
@@ -66,6 +70,8 @@ public class ChoiceButtonWidget extends WritablePVWidget
     private volatile WidgetProperty<WidgetColor> selected;
     private volatile ArrayWidgetProperty<WidgetProperty<String>> items;
     private volatile WidgetProperty<Boolean> items_from_pv;
+    private volatile WidgetProperty<HorizontalAlignment> horizontal_alignment;
+    private volatile WidgetProperty<VerticalAlignment> vertical_alignment;
     private volatile WidgetProperty<Boolean> horizontal;
     private volatile WidgetProperty<Boolean> enabled;
     private volatile WidgetProperty<Boolean> confirm_dialog;
@@ -97,6 +103,8 @@ public class ChoiceButtonWidget extends WritablePVWidget
                         propItem.createProperty(this, Messages.ComboWidget_Item  + " 2")));
         properties.add(items);
         properties.add(items_from_pv = propItemsFromPV.createProperty(this, true));
+        properties.add(horizontal_alignment = propHorizontalAlignment.createProperty(this, HorizontalAlignment.CENTER));
+        properties.add(vertical_alignment = propVerticalAlignment.createProperty(this, VerticalAlignment.MIDDLE));
         properties.add(horizontal = propHorizontal.createProperty(this, true));
         properties.add(enabled = propEnabled.createProperty(this, true));
         properties.add(confirm_dialog = propConfirmDialog.createProperty(this, false));
@@ -138,6 +146,18 @@ public class ChoiceButtonWidget extends WritablePVWidget
     public WidgetProperty< List<WidgetProperty<String>> > propItems()
     {
         return items;
+    }
+    
+    /** @return 'horizontal_alignment' property */
+    public WidgetProperty<HorizontalAlignment> propHorizontalAlignment()
+    {
+        return horizontal_alignment;
+    }
+    
+    /** @return 'vertical_alignment' property */
+    public WidgetProperty<VerticalAlignment> propVerticalAlignment()
+    {
+        return vertical_alignment;
     }
 
     /** @return 'horizontal' property */
