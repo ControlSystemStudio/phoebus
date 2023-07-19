@@ -42,6 +42,7 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.TilePane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.TextAlignment;
 
 /** Creates JavaFX item for model widget
  *  @author Kay Kasemir
@@ -60,6 +61,7 @@ public class ChoiceButtonRepresentation extends RegionBaseRepresentation<TilePan
     private final WidgetPropertyListener< List<WidgetProperty<String> > > itemsChangedListener = this::itemsChanged;
     private final UntypedWidgetPropertyListener sizeChangedListener = this::sizeChanged;
     private final UntypedWidgetPropertyListener styleChangedListener = this::styleChanged;
+    private volatile Pos pos;
 
     private volatile List<String> items = Collections.emptyList();
     private volatile int index = -1;
@@ -88,6 +90,8 @@ public class ChoiceButtonRepresentation extends RegionBaseRepresentation<TilePan
     protected void registerListeners()
     {
         super.registerListeners();
+        pos = JFXUtil.computePos(model_widget.propHorizontalAlignment().getValue(),
+                model_widget.propVerticalAlignment().getValue());
         model_widget.propWidth().addUntypedPropertyListener(sizeChangedListener);
         model_widget.propHeight().addUntypedPropertyListener(sizeChangedListener);
         model_widget.propHorizontal().addUntypedPropertyListener(sizeChangedListener);
@@ -95,6 +99,8 @@ public class ChoiceButtonRepresentation extends RegionBaseRepresentation<TilePan
         model_widget.propFont().addUntypedPropertyListener(styleChangedListener);
         model_widget.propForegroundColor().addUntypedPropertyListener(styleChangedListener);
         model_widget.propBackgroundColor().addUntypedPropertyListener(styleChangedListener);
+        model_widget.propHorizontalAlignment().addUntypedPropertyListener(styleChangedListener);
+        model_widget.propVerticalAlignment().addUntypedPropertyListener(styleChangedListener);
         model_widget.propEnabled().addUntypedPropertyListener(styleChangedListener);
         model_widget.runtimePropPVWritable().addUntypedPropertyListener(styleChangedListener);
 
@@ -198,6 +204,8 @@ public class ChoiceButtonRepresentation extends RegionBaseRepresentation<TilePan
 
     private void styleChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
+    	pos = JFXUtil.computePos(model_widget.propHorizontalAlignment().getValue(),
+                model_widget.propVerticalAlignment().getValue());
         dirty_style.mark();
         toolkit.scheduleUpdate(this);
     }
@@ -331,6 +339,8 @@ public class ChoiceButtonRepresentation extends RegionBaseRepresentation<TilePan
                 final ButtonBase b = (ButtonBase) node;
                 b.setTextFill(fg);
                 b.setFont(font);
+                b.setAlignment(pos);
+                b.setTextAlignment(TextAlignment.values()[model_widget.propHorizontalAlignment().getValue().ordinal()]);
                 if (((Toggle)b).isSelected())
                     b.setStyle(selected);
                 else

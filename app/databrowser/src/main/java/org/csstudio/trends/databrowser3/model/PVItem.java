@@ -242,9 +242,11 @@ public class PVItem extends ModelItem
     /** @param archive Archive to remove as a source from this item. */
     public void removeArchiveDataSource(final ArchiveDataSource archive)
     {
-        // Archive removed -> (Probably) no need to get new data
-        if (archives.remove(archive))
+        boolean change = archives.remove(archive);
+        if (!Preferences.use_default_archives && change) {
+            // Archive removed -> (Probably) no need to get new data
             fireItemDataConfigChanged(false);
+        }
     }
 
     /** @param archs Archives to remove as a source from this item. Ignored when not used. */
@@ -254,7 +256,7 @@ public class PVItem extends ModelItem
         for (ArchiveDataSource archive : archs)
             if (archives.remove(archive))
                 change = true;
-        if (change)
+        if (!Preferences.use_default_archives && change)
             fireItemDataConfigChanged(false);
     }
 

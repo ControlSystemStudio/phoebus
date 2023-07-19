@@ -78,19 +78,24 @@ public class LinearTicks extends Ticks<Double>
         if (Math.abs(high - low) < 3*Math.ulp(low)) {
             high = low + 3*Math.ulp(low);
         }
-
-        if (high < low) {
-            return new Pair<>(high, low);
-        }
-        else {
-            return new Pair<>(low, high);
-        }
+        return new Pair<>(low, high);
     }
 
     /** {@inheritDoc} */
     @Override
     public void compute(Double low, Double high, final Graphics2D gc, final int screen_width)
     {
+        Pair<Double, Double> adjustedRange = adjustRange(low, high);
+        double newLow = adjustedRange.getKey();
+        double newHigh = adjustedRange.getValue();
+
+        if (newLow != low || newHigh != high) {
+            logger.log(Level.WARNING, "Invalid value range for a linear scale {0,number,#.###############E0} ... {1,number,#.###############E0}. Adjusting the range to {2,number,#.###############E0} ... {3,number,#.###############E0}.",
+                    new Object[] {low, high, newLow, newHigh });
+            high = newHigh;
+            low = newLow;
+        }
+
         logger.log(Level.FINE, "Compute linear ticks, width {0}, for {1} - {2}",
                                new Object[] { screen_width, low, high });
 
@@ -249,8 +254,7 @@ public class LinearTicks extends Ticks<Double>
      *  A computed distance of 6.1 turns into 10.0, not 5.0.
      *  @see #selectNiceStep(double)
      */
-    final private static double[] NICE_STEPS = { 10.0, 5.0, 2.0, 1.0 },
-                             NICE_THRESHOLDS = {  6.0, 3.0, 1.2, 0.0 };
+    final private static double[] NICE_STEPS = { 1.0, 2.0, 5.0, 10.0 };
 
     /** To a human viewer, tick distances of 5.0 are easier to see
      *  than for example 7.
@@ -258,18 +262,17 @@ public class LinearTicks extends Ticks<Double>
      *  <p>This method tries to adjust a computed tick distance
      *  to one that is hopefully 'nicer'
      *
-     *  @param distance Original step distance
+     *  @param min_distance Original step distance
      *  @return
      */
-    public static double selectNiceStep(final double distance)
+    public static double selectNiceStep(final double min_distance)
     {
-        final double log = Math.log10(distance);
+        final double log = Math.log10(min_distance);
         final double order_of_magnitude = Math.pow(10, Math.floor(log));
-        final double step = distance / order_of_magnitude;
         for (int i=0; i<NICE_STEPS.length; ++i)
-            if (step >= NICE_THRESHOLDS[i])
+            if (NICE_STEPS[i] * order_of_magnitude >= min_distance)
                 return NICE_STEPS[i] * order_of_magnitude;
-        return step * order_of_magnitude;
+        return min_distance;
     }
 
     /** Create decimal format

@@ -563,7 +563,7 @@ public class PropertyPanelSection extends GridPane
                         final MacroizedWidgetProperty<?> other_prop = (MacroizedWidgetProperty<?>) w.getProperty(macro_prop.getName());
                         undo.execute(new SetMacroizedWidgetPropertyAction(other_prop, result.get()));
                     }
-                    text.setText(result.get());
+                    text.setText(result.get().replaceAll("\n", "\\\\n"));
                     Tooltip.install(text, new Tooltip(result.get()));
                 });
                 field = new HBox(text, open_editor);
