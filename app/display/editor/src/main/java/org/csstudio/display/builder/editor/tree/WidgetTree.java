@@ -331,9 +331,11 @@ public class WidgetTree
                         : wot.getTab().getWidget();
                     if (! widgets.contains(widget))
                         widgets.add(widget);
-                };
+                }
                 logger.log(Level.FINE, "Selected in tree: {0}", widgets);
+                editor.getSelectedWidgetUITracker().setDisableRequestFocus(true);
                 editor.getWidgetSelectionHandler().setSelection(widgets);
+                editor.getSelectedWidgetUITracker().setDisableRequestFocus(false);
             }
             finally
             {
