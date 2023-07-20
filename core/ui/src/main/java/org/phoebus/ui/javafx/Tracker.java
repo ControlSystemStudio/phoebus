@@ -179,7 +179,7 @@ public class Tracker extends Group
         // Keep the keyboard focus to actually get key events.
         // The RTImagePlot will also listen to mouse moves and try to keep the focus,
         // so the active tracker uses an event filter to have higher priority
-        tracker.addEventFilter(MouseEvent.MOUSE_MOVED, event ->
+        tracker.addEventFilter(MouseEvent.MOUSE_CLICKED, event ->
         {
             event.consume();
             tracker.requestFocus();
