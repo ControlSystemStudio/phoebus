@@ -244,51 +244,6 @@ public class WidgetTree
 
         bindSelections();
         tree_view.setOnKeyPressed(this::handleKeyPress);
-        tree_view.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            // This prevents the arrow-key events from being propagated,
-            // preventing counter-intuitive behavior when arrow-keys are
-            // pressed in some situations. (Otherwise, when pressing an
-            // arrow-key, a widget would be selected, and the next arrow-
-            // key event would be processed by the selected widget
-            // instead of the tree-widget, usually resulting in a
-            // translation of the widget.)
-            if (event.getCode().isArrowKey()) {
-                event.consume();
-            }
-        });
-        tree_view.focusedProperty().addListener(
-                (observable, oldValue, newValue) -> {
-                    if (newValue) {
-                        // This event handler ensures that whenever the Widget Tree
-                        // becomes focused and widgets are selected in the widget tree,
-                        // then those widgets are selected in the Display Editor.
-                        // In particular, this ensures that key-press-events are
-                        // directed to the widgets in question.
-                        ObservableList<TreeItem<WidgetOrTab>> tree_selection = tree_view.getSelectionModel().getSelectedItems();
-
-                        if (! active.compareAndSet(false, true))
-                            return;
-                        try
-                        {
-                            final List<Widget> widgets = new ArrayList<>(tree_selection.size());
-                            for (TreeItem<WidgetOrTab> item : tree_selection)
-                            {
-                                final WidgetOrTab wot = item.getValue();
-                                final Widget widget = wot.isWidget()
-                                        ? wot.getWidget()
-                                        : wot.getTab().getWidget();
-                                if (! widgets.contains(widget))
-                                    widgets.add(widget);
-                            };
-                            logger.log(Level.FINE, "Selected in tree: {0}", widgets);
-                            editor.getWidgetSelectionHandler().setSelection(widgets);
-                        }
-                        finally
-                        {
-                            active.set(false);
-                        }
-                    }
-                });
 
         return tree_view;
     }
