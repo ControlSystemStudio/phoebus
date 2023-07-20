@@ -58,6 +58,8 @@ public class AxisConfig
     /** Logarithmic scale? */
     private boolean log_scale;
 
+    public boolean autoScaleUpdateInProgress = false;
+
     /** Initialize with defaults
      *  @param name Axis name
      */
@@ -227,7 +229,11 @@ public class AxisConfig
             this.min = max;
             this.max = min;
         }
+
+        autoScaleUpdateInProgress = true;
         fireAxisChangeEvent();
+        autoScaleUpdateInProgress = false;
+
     }
 
     /** @return <code>true</code> if grid lines are drawn */
