@@ -11,14 +11,36 @@
     -fx-text-fill: -fx-selection-bar-text;
 }
 
-.table-view .column-header.toplevel .label {
+.table-view .column-header.toplevel > .label {
      -fx-text-fill: #595959FF;
      -fx-font-weight: 700;
      -fx-font-family: 'Liberation Sans';
      -fx-font-size: 18px;
 }
 
-.table-view .column-header.second-level .label {
+.table-view .column-header.second-level > .label {
+  -fx-text-fill: #595959FF;
+  -fx-font-weight: 700;
+  -fx-font-family: 'Liberation Sans';
+}
+
+.snapshot-table-left-aligned.column-header > .label{
+  -fx-text-fill: #595959FF;
+  -fx-font-weight: 700;
+  -fx-font-family: 'Liberation Sans';
+  -fx-alignment: center-left;
+  -fx-padding: 0 0 0 2;
+}
+
+.snapshot-table-right-aligned.column-header > .label{
+  -fx-text-fill: #595959FF;
+  -fx-font-weight: 700;
+  -fx-font-family: 'Liberation Sans';
+  -fx-alignment: center-right;
+  -fx-padding: 0 2 0 0;
+}
+
+.snapshot-table-centered.column-header > .label{
   -fx-text-fill: #595959FF;
   -fx-font-weight: 700;
   -fx-font-family: 'Liberation Sans';
@@ -36,23 +58,6 @@
     -fx-text-fill: -fx-selection-bar-text;
 }
 
-.tree-table-view .column-header.toplevel .label {
-     -fx-text-fill: #595959FF;
-     -fx-font-weight: 700;
-     -fx-font-family: 'Liberation Sans';
-     -fx-font-size: 18px;
-}
-
-.tree-table-view .column-header.second-level .label {
-  -fx-text-fill: #595959FF;
-  -fx-font-weight: 700;
-  -fx-font-family: 'Liberation Sans';
-}
-
-.tree-table-cell.divider{
-    -fx-background-color: #f2f2f2FF;
-}
-
 .separator:vertical .line {
     -fx-border-style: dashed;
     -fx-padding: 0.0em 0.0em 0.0em 0.0em;
@@ -65,16 +70,8 @@
     -fx-prompt-text-fill: transparent;
 }
 
-.chart-plot-background {
-    -fx-background-color: #ffffff;
-}
-
 .tab-pane .tab-header-area .tab-header-background {
     -fx-opacity: 0;
-}
-
-.check-box-table-cell-disabled > .check-box > .box {
-	-fx-background-color: #E0E0E0;
 }
 
 .pv-name-check-box-disabled > .box {
@@ -116,6 +113,12 @@
 
 .timestamp-column.tree-table-cell{
     -fx-font-family: "Liberation Mono";
+}
+
+.id-column.table-cell{
+    -fx-font-family: "Liberation Mono";
+    -fx-alignment: CENTER-RIGHT;
+    -fx-padding: 0 4 2 0;
 }
 
 .filter-match {

@@ -241,11 +241,13 @@ public class ConfigurationController implements NodeChangedListener {
                 SimpleObjectProperty<Node> simpleObjectProperty = (SimpleObjectProperty<Node>) observable;
                 Node newValue = simpleObjectProperty.get();
                 configurationNameProperty.set(newValue.getName());
-                configurationCreatedDateField.textProperty().set(newValue.getCreated() != null ?
-                        TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(newValue.getCreated().getTime())) : null);
-                configurationLastModifiedDateField.textProperty().set(newValue.getLastModified() != null ?
-                        TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(newValue.getLastModified().getTime())) : null);
-                createdByField.textProperty().set(newValue.getUserName());
+                Platform.runLater(() -> {
+                    configurationCreatedDateField.textProperty().set(newValue.getCreated() != null ?
+                            TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(newValue.getCreated().getTime())) : null);
+                    configurationLastModifiedDateField.textProperty().set(newValue.getLastModified() != null ?
+                            TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(newValue.getLastModified().getTime())) : null);
+                    createdByField.textProperty().set(newValue.getUserName());
+                });
                 configurationDescriptionProperty.set(configurationNode.get().getDescription());
             }
         });
