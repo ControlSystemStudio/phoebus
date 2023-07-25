@@ -42,7 +42,9 @@ public class Messages
             PreviewOpenErrorTitle,
             SelectFile,
             SelectFolder,
-            ShowHideDetails;
+            ShowHideDetails,
+            UpdateLogEntry;
+
     static
     {
         // initialize resource bundle
