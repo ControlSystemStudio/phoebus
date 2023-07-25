@@ -118,6 +118,11 @@
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
+      <artifactId>app-display-linearmeter</artifactId>
+      <version>4.7.3-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
       <artifactId>app-display-editor</artifactId>
       <version>4.7.3-SNAPSHOT</version>
     </dependency>
