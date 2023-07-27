@@ -1,6 +1,7 @@
 package org.phoebus.applications.utility;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.logging.Level;
@@ -267,6 +268,7 @@ public class LoggingConfiguration implements AppInstance {
                                 manager.getLogger(fullName), manager.getLogger(fullName) != null ? true : false));
                         newNode.setExpanded(true);
                         parent.getChildren().add(newNode);
+                        FXCollections.sort(parent.getChildren(), Comparator.comparing(o -> o.getValue().getFullName()));
                         parent = newNode;
                     }
                 }
