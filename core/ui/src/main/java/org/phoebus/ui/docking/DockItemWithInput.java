@@ -209,7 +209,7 @@ public class DockItemWithInput extends DockItem
     /** Called when user tries to close the tab
      *  @return Should the tab close? Otherwise it stays open.
      */
-    private Future<Boolean> okToClose()
+    public Future<Boolean> okToClose()
     {
         if (! isDirty())
             return CompletableFuture.completedFuture(true);
