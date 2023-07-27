@@ -215,7 +215,7 @@ public class DockItemWithInput extends DockItem
             return CompletableFuture.completedFuture(true);
 
         final FutureTask promptToSave = new FutureTask(() -> {
-            final String text = MessageFormat.format(Messages.DockAlertMsg, getLabel());
+            final String text = MessageFormat.format(Messages.DockAlertMsg, getApplication().getAppDescriptor().getDisplayName(), getLabel());
             final Alert prompt = new Alert(AlertType.NONE,
                     text,
                     ButtonType.NO, ButtonType.CANCEL, ButtonType.YES);
