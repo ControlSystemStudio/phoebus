@@ -24,11 +24,13 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import javafx.event.Event;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.application.Messages;
+import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.application.SaveLayoutHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
@@ -175,7 +177,25 @@ public class DockItem extends Tab
 
         createContextMenu();
 
+        setOnCloseRequest(event -> handleCloseRequest(event));
         setOnClosed(event -> handleClosed());
+    }
+
+    private void handleCloseRequest(Event event) {
+        // For now, prevent closing
+        event.consume();
+
+        // Invoke all the ok-to-close checks in background threads
+        // since those that save files might take time.
+        JobManager.schedule("Close " + getLabel(), monitor ->
+        {
+            boolean shouldClose = this instanceof DockItemWithInput ? ((DockItemWithInput) this).okToClose().get() : true;
+
+            if (shouldClose) {
+                prepareToClose();
+                Platform.runLater(() -> close());
+            }
+        });
     }
 
     /** This tab should be in a DockPane, not a plain TabPane
@@ -219,14 +239,16 @@ public class DockItem extends Tab
         });
 
         final MenuItem close = new MenuItem(Messages.DockClose, new ImageView(DockPane.close_icon));
-        close.setOnAction(event -> close(List.of(this)));
+        ArrayList<DockItem> arrayList = new ArrayList<DockItem>();
+        arrayList.add(this);
+        close.setOnAction(event -> close(arrayList));
 
         final MenuItem close_other = new MenuItem(Messages.DockCloseOthers, new ImageView(close_many_icon));
         close_other.setOnAction(event ->
         {
             // Close all other tabs in non-fixed panes of this window
             final Stage stage = (Stage) getDockPane().getScene().getWindow();
-            final List<DockItem> tabs = new ArrayList<>();
+            final ArrayList<DockItem> tabs = new ArrayList<>();
             for (DockPane pane : getDockPanes(stage))
                 if (! pane.isFixed())
                     for (Tab tab : new ArrayList<>(pane.getTabs()))
@@ -240,7 +262,7 @@ public class DockItem extends Tab
         {
             // Close all tabs in non-fixed panes of this window
             final Stage stage = (Stage) getDockPane().getScene().getWindow();
-            final List<DockItem> tabs = new ArrayList<>();
+            final ArrayList<DockItem> tabs = new ArrayList<>();
             for (DockPane pane : getDockPanes(stage))
                 if (! pane.isFixed())
                     for (Tab tab : new ArrayList<>(pane.getTabs()))
@@ -285,19 +307,28 @@ public class DockItem extends Tab
     }
 
     /** @param tabs Tabs to prepare and then close */
-    private static void close(final List<DockItem> tabs)
+    private void close(final ArrayList<DockItem> tabs)
     {
         JobManager.schedule("Close", monitor ->
         {
-            for (DockItem tab : tabs)
-                if (! tab.prepareToClose())
-                    return;
+            Window window = getDockPane().getScene().getWindow();
+            boolean shouldCloseTabs = PhoebusApplication.confirmationDialogWhenUnsavedChangesExist(tabs,
+                                                                                                   "Would you like to save any changes before closing the tabs?",
+                                                                                                   "close",
+                                                                                                   window instanceof Stage ? (Stage) window : null,
+                                                                                                   monitor);
 
-            Platform.runLater(() ->
-            {
+            if (shouldCloseTabs) {
                 for (DockItem tab : tabs)
-                    tab.close();
-            });
+                    if (! tab.prepareToClose())
+                        return;
+
+                Platform.runLater(() ->
+                {
+                    for (DockItem tab : tabs)
+                        tab.close();
+                });
+            }
         });
     }
 
@@ -593,21 +624,6 @@ public class DockItem extends Tab
      */
     public void addCloseCheck(final Supplier<Future<Boolean>> ok_to_close)
     {
-        if (getOnCloseRequest() == null)
-            setOnCloseRequest(event ->
-            {
-                // For now, prevent closing
-                event.consume();
-
-                // Invoke all the ok-to-close checks in background threads
-                // since those that save files might take time.
-                JobManager.schedule("Close " + getLabel(), monitor ->
-                {
-                    if (prepareToClose())
-                        Platform.runLater(() -> close());
-                });
-            });
-
         close_check.add(ok_to_close);
     }
 

@@ -16,8 +16,11 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.UUID;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.Locations;
@@ -191,8 +194,18 @@ public class DockStage
             // and on success close them
             JobManager.schedule("Close " + stage.getTitle(), monitor ->
             {
-                if (prepareToCloseItems(stage))
+                boolean shouldCloseStage = PhoebusApplication.confirmationDialogWhenUnsavedChangesExist(stage,
+                                                                                                        "Would you like to save any changes before closing the window?",
+                                                                                                        "close",
+                                                                                                        monitor);
+
+                if (shouldCloseStage) {
+                    if (!DockStage.prepareToCloseItems(stage)) {
+                        return;
+                    }
+
                     Platform.runLater(() -> closeItems(stage));
+                }
             });
         });
 

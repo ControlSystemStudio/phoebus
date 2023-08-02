@@ -18,8 +18,10 @@ import java.util.stream.Collectors;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.stage.Window;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.application.Messages;
+import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Styles;
@@ -343,8 +345,12 @@ public class DockPane extends TabPane
             {
                 JobManager.schedule("Close " + item.getLabel(), monitor ->
                 {
-                    if (item.prepareToClose())
+                    boolean shouldClose = item instanceof DockItemWithInput ? ((DockItemWithInput) item).okToClose().get() : true;
+
+                    if (shouldClose) {
+                        item.prepareToClose();
                         Platform.runLater(item::close);
+                    }
                 });
             }
             event.consume();

@@ -103,8 +103,6 @@ public class DockItemWithInput extends DockItem
         this.file_extensions =  file_extensions;
         this.save_handler = save_handler;
         setInput(input);
-
-        addCloseCheck(this::okToClose);
     }
 
     // Override to include 'dirty' tab

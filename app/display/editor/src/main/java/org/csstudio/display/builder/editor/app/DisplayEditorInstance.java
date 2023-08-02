@@ -121,7 +121,6 @@ public class DisplayEditorInstance implements AppInstance
         menu_node.setOnContextMenuRequested(event -> handleContextMenu(menu, event));
         menu_node.setContextMenu(menu);
 
-        dock_item.addCloseCheck(this::okToClose);
         dock_item.addClosedNotification(this::dispose);
     }
 
