@@ -195,8 +195,8 @@ public class DockStage
             JobManager.schedule("Close " + stage.getTitle(), monitor ->
             {
                 boolean shouldCloseStage = PhoebusApplication.confirmationDialogWhenUnsavedChangesExist(stage,
-                                                                                                        "Would you like to save any changes before closing the window?",
-                                                                                                        "close",
+                                                                                                        Messages.UnsavedChanges_wouldYouLikeToSaveAnyChangesBeforeClosingTheWindow,
+                                                                                                        Messages.UnsavedChanges_close,
                                                                                                         monitor);
 
                 if (shouldCloseStage) {

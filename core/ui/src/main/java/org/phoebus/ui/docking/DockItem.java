@@ -313,8 +313,8 @@ public class DockItem extends Tab
         {
             Window window = getDockPane().getScene().getWindow();
             boolean shouldCloseTabs = PhoebusApplication.confirmationDialogWhenUnsavedChangesExist(tabs,
-                                                                                                   "Would you like to save any changes before closing the tabs?",
-                                                                                                   "close",
+                                                                                                   Messages.UnsavedChanges_wouldYouLikeToSaveAnyChangesBeforeClosingTheTabs,
+                                                                                                   Messages.UnsavedChanges_close,
                                                                                                    window instanceof Stage ? (Stage) window : null,
                                                                                                    monitor);
 

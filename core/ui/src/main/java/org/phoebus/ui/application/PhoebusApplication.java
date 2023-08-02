@@ -92,8 +92,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
-import javax.tools.Tool;
-
 /**
  * Primary UI for a phoebus application
  *
@@ -1077,8 +1075,8 @@ public class PhoebusApplication extends Application {
         JobManager.schedule("Close all stages", monitor ->
         {
             boolean shouldExit = confirmationDialogWhenUnsavedChangesExist(stages,
-                                                                           "Would you like to save any changes before replacing the layout?",
-                                                                           "replace",
+                                                                           Messages.UnsavedChanges_wouldYouLikeToSaveAnyChangesBeforeReplacingTheLayout,
+                                                                           Messages.UnsavedChanges_replace,
                                                                            main_stage,
                                                                            monitor);
 
@@ -1296,8 +1294,8 @@ public class PhoebusApplication extends Application {
         JobManager.schedule("Close all stages", monitor ->
         {
             boolean shouldExit = confirmationDialogWhenUnsavedChangesExist(stages,
-                                                                           "Would you like to save any changes before exiting?",
-                                                                           "exit",
+                                                                           Messages.UnsavedChanges_wouldYouLikeToSaveAnyChangesBeforeExiting,
+                                                                           Messages.UnsavedChanges_exit,
                                                                            main_stage,
                                                                            monitor);
 
@@ -1338,10 +1336,10 @@ public class PhoebusApplication extends Application {
             for (Stage stage : stages) {
                 String currentWindowName;
                 if (stage == DockStage.getDockStages().get(0)) {
-                    currentWindowName = "Main window";
+                    currentWindowName = Messages.UnsavedChanges_mainWindow;
                 }
                 else {
-                    currentWindowName = "Secondary window " + currentWindowNr;
+                    currentWindowName = Messages.UnsavedChanges_secondaryWindow + " " + currentWindowNr;
                     currentWindowNr++;
                 }
 
@@ -1416,10 +1414,10 @@ public class PhoebusApplication extends Application {
                 stageToPositionTheConfirmationDialogOver = INSTANCE.main_stage;
             }
 
-            ButtonType clearSelectionOfCheckboxes = new ButtonType("Clear");
-            ButtonType selectAllCheckboxes = new ButtonType("Select all");
-            ButtonType saveSelectedItems = new ButtonType("Save");
-            ButtonType exitPhoebusWithoutSavingUnsavedChanges = new ButtonType("Discard & " + closeActionName);
+            ButtonType clearSelectionOfCheckboxes = new ButtonType(Messages.UnsavedChanges_clearButtonText);
+            ButtonType selectAllCheckboxes = new ButtonType(Messages.UnsavedChanges_selectAllButtonText);
+            ButtonType saveSelectedItems = new ButtonType(Messages.UnsavedChanges_saveButtonText);
+            ButtonType exitPhoebusWithoutSavingUnsavedChanges = new ButtonType(Messages.UnsavedChanges_discardButtonText_discardAnd + " " + closeActionName);
 
             FutureTask displayConfirmationWindow = new FutureTask(() -> {
                 Alert prompt = new Alert(AlertType.CONFIRMATION);
@@ -1463,12 +1461,12 @@ public class PhoebusApplication extends Application {
 
                     if (getCheckBoxStatusActions.stream().allMatch(getCheckBoxStatus -> getCheckBoxStatus.get())) {
                         selectAllCheckboxes_button.setDisable(true);
-                        saveSelectedItems_button.setText("Save & " + closeActionName);
+                        saveSelectedItems_button.setText(Messages.UnsavedChanges_saveButtonText_saveAnd + " " + closeActionName);
                         saveSelectedItems_button.setTooltip(new Tooltip(saveSelectedItems_button.getText()));
                     }
                     else {
                         selectAllCheckboxes_button.setDisable(false);
-                        saveSelectedItems_button.setText("Save");
+                        saveSelectedItems_button.setText(Messages.UnsavedChanges_saveButtonText);
                         saveSelectedItems_button.setTooltip(new Tooltip(saveSelectedItems_button.getText()));
                     }
                 };
@@ -1511,7 +1509,7 @@ public class PhoebusApplication extends Application {
                                 Supplier<Boolean> actionSaveIfCheckboxEnabled = () -> {
                                     if (checkBox.isSelected()) {
 
-                                        Text saving = new Text("[Saving...]");
+                                        Text saving = new Text("[" + Messages.UnsavedChanges_saving + "]");
                                         saving.setFill(Color.ORANGE);
                                         saving.setStyle("-fx-font-weight: bold;");
                                         hBox.getChildren().set(0, saving);
@@ -1523,14 +1521,14 @@ public class PhoebusApplication extends Application {
                                             getCheckBoxStatusActions.remove(getCheckBoxStatus);
                                             setCheckboxStatus.accept(false);
 
-                                            Text saved = new Text("[Saved]");
+                                            Text saved = new Text("[" + Messages.UnsavedChanges_saved + "]");
                                             saved.setFill(Color.GREEN);
                                             saved.setStyle("-fx-font-weight: bold;");
                                             hBox.getChildren().set(0, saved);
                                             return true;
                                         }
                                         else {
-                                            Text savingFailed_text = new Text("[Saving failed]");
+                                            Text savingFailed_text = new Text("[" + Messages.UnsavedChanges_savingFailed + "]");
                                             savingFailed_text.setFill(Color.RED);
                                             savingFailed_text.setStyle("-fx-font-weight: bold;");
 
@@ -1596,8 +1594,8 @@ public class PhoebusApplication extends Application {
                 // Initialize state of buttons:
                 enableAndDisableButtons.run();
 
-                prompt.setHeaderText("The following application instances have unsaved changes. " + question);
-                prompt.setTitle("Unsaved changes");
+                prompt.setHeaderText(Messages.UnsavedChanges_theFollowingApplicationInstancesHaveUnsavedChanges + " " + question);
+                prompt.setTitle(Messages.UnsavedChanges);
 
                 int prefWidth = 750;
                 int prefHeight = 400;
@@ -1679,8 +1677,8 @@ public class PhoebusApplication extends Application {
         JobManager.schedule("Close All Tabs", monitor ->
         {
             boolean shouldCloseTabs = PhoebusApplication.confirmationDialogWhenUnsavedChangesExist(stages,
-                                                                                                   "Would you like to save any changes before closing all tabs?",
-                                                                                                   "close",
+                                                                                                   Messages.UnsavedChanges_wouldYouLikeToSaveAnyChangesBeforeClosingAllTabs,
+                                                                                                   Messages.UnsavedChanges_close,
                                                                                                    PhoebusApplication.INSTANCE.main_stage,
                                                                                                    monitor);
 
