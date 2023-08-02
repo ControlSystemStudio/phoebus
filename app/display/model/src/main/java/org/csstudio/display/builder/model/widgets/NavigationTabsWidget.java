@@ -25,6 +25,7 @@ import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.ArrayWidgetProperty;
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.MacroizedWidgetProperty;
 import org.csstudio.display.builder.model.StructuredWidgetProperty;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetCategory;
@@ -38,6 +39,7 @@ import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.Direction;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.Macros;
 
 /** Widget with tabs to select amongst several embedded displays
@@ -207,21 +209,36 @@ public class NavigationTabsWidget extends VisibleWidget
     public Macros getEffectiveMacros()
     {
         final Macros base = super.getEffectiveMacros();
+        // Join macros of active tab
+        final int index;
+
+        // To fetch the effective macros, we want to add those of the selected tab.
+        // But if we get the tab index via active.getValue(), AND 'active' itself contains macros,
+        // those would be expanded via a call to getEffectiveMacros() -> recursion!
+        // So expand 'active' ourselves using the base macros
+        final String spec = ((MacroizedWidgetProperty<Integer>)active).getSpecification();
         try
         {
-            // Join macros of active tab
-            int index = active.getValue();
-            if (index >= 0  &&  index < tabs.size())
+            final String expanded = MacroHandler.replace(base, spec);
+            index = Integer.parseInt(expanded);
+        }
+        catch (Throwable ex)
+        {
+            logger.log(Level.WARNING, this + " cannot determing active tab from '" + spec + "'", ex);
+            return base;
+        }
+
+        if (index >= 0  &&  index < tabs.size())
+            try
             {
                 final Macros selected = tabs.getElement(index).macros().getValue();
                 selected.expandValues(base);
                 return selected;
             }
-        }
-        catch (Throwable ex)
-        {   // IndexOutOfBoundsException while tabs change size?
-            logger.log(Level.WARNING, "Cannot access active tab macros", ex);
-        }
+            catch (Throwable ex)
+            {   // IndexOutOfBoundsException while tabs change size?
+                logger.log(Level.WARNING, this + " cannot access macros of active tab " + index, ex);
+            }
         return base;
     }
 }
