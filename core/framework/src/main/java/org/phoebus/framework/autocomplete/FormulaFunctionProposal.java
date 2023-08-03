@@ -33,101 +33,87 @@ class FormulaFunctionProposal extends Proposal
         return "=" + function.getSignature();
     }
 
+    public String getSignature()
+    {
+        return function.getSignature();
+    }
+
+    public String getName()
+    {
+        return function.getName();
+    }
+
+    public String[] getArguments()
+    {
+        return function.getArguments().toArray(new String[0]);
+    }
+
     @Override
     public List<MatchSegment> getMatch(final String text)
     {
-        // Does text contain the function name?
-        final int match = text.indexOf(function.getName());
+        // Does text contain parameters?
+        String sub_text = text.substring(1);
+        final List<String> split = SimProposal.splitNameAndParameters(sub_text);
+
+        final List<MatchSegment> segs = new ArrayList<>(split.size());
+
+        // First compare text up to optional parameters
+        final String noparm_text = split.get(0);
+        final String name = getName();
+        final int match = name.toLowerCase().indexOf(noparm_text.toLowerCase());
+        segs.add(MatchSegment.normal("="));
+        // Text does not match the proposal??
         if (match < 0)
-            return List.of(MatchSegment.normal(getDescription()));
-
-        // Copy text leading up to function name
-        final List<MatchSegment> segs = new ArrayList<>();
-        if (match > 0)
-            segs.add(MatchSegment.normal(text.substring(0, match)));
-
-        // Match function name
-        segs.add(MatchSegment.match(function.getName()));
-
-        // Is there a "(" to start arguments?
-        final int len = text.length();
-        int pos = match  + function.getName().length();
-        if (pos < len  &&  text.charAt(pos) == '(')
-        {
-            if (function.isVarArgs())
-            {
-                int end = SimProposal.findClosingParenthesis(text, pos);
-                if (end < len)
-                {   // Located end, match complete arguments
-                    segs.add(MatchSegment.match(text.substring(pos, end+1)));
-                    pos = end+1;
-                }
-                else
-                {   // Match opening '(' and args, suggest ')'
-                    segs.add(MatchSegment.match(text.substring(pos, end)));
-                    segs.add(MatchSegment.comment(")"));
-                    pos = end;
-                }
-            }
-            else
-            {
-                // Match provided arguments with arg. name as description
-                segs.add(MatchSegment.match("("));
-                ++pos;
-                int end = SimProposal.nextSep(text, pos);
-                for (int i=0;  i<function.getArguments().size();  ++i)
-                {
-                    if (i > 0)
-                        segs.add(MatchSegment.normal(","));
-                    if (pos > 0)
-                    {
-                        if (end > pos)
-                        {
-                            // Have text for this argument.
-                            segs.add(MatchSegment.match(text.substring(pos, end),
-                                                        function.getArguments().get(i)));
-                            if (text.charAt(end) == ')')
-                            {
-                                segs.add(MatchSegment.match(")"));
-                                pos = end + 1;
-                                break;
-                            }
-                            else
-                            {
-                                pos = end + 1;
-                                end = SimProposal.nextSep(text, pos);
-                            }
-                        }
-                        else
-                        {
-                            segs.add(MatchSegment.comment(text.substring(pos),
-                                                          function.getArguments().get(i)));
-                            pos = end = -1;
-                        }
-                    }
-                    else
-                        segs.add(MatchSegment.comment(function.getArguments().get(i)));
-                }
-            }
-        }
+            segs.add(MatchSegment.normal(name));
         else
         {
-            // Show argument info as comment
-            for (int i=0;  i<function.getArguments().size();  ++i)
-            {
-                if (i == 0)
-                    segs.add(MatchSegment.comment("("));
-                else
-                    segs.add(MatchSegment.comment(","));
-                segs.add(MatchSegment.comment(function.getArguments().get(i)));
-            }
-            segs.add(MatchSegment.comment(")"));
+            // Start of proposal ..
+            if (match > 0)
+                segs.add(MatchSegment.normal(name.substring(0, match)));
+
+            // .. matching text ..
+            segs.add(MatchSegment.match(getSignature().substring(match, match + noparm_text.length())));
+
+            // .. rest of proposal
+            final int rest = match + noparm_text.length();
+            if (name.length() > rest)
+                segs.add(MatchSegment.normal(name.substring(rest)));
         }
 
-        // Copy remaining text
-        if (pos >= 0  &&  pos < len)
-            segs.add(MatchSegment.normal(text.substring(pos)));
+        String[] arguments = getArguments();
+
+        final int common = Math.min(split.size()-1, arguments.length);
+        int parm;
+        for (parm = 0;  parm < common; ++parm)
+        {
+            final String another = parm < arguments.length-1 ? "," : ")";
+            if (parm == 0)
+                segs.add(MatchSegment.match("(" + split.get(parm+1) + another,
+                        "(" + arguments[parm] + another));
+            else
+                segs.add(MatchSegment.match(split.get(parm+1) + another,
+                        arguments[parm] + another));
+        }
+
+        // Add remaining parameters as COMMENT
+        final StringBuilder buf = new StringBuilder();
+        if (parm < arguments.length)
+        {
+            if (parm == 0)
+                buf.append('(');
+            for (/**/; parm<arguments.length; ++parm)
+            {
+                buf.append(arguments[parm]);
+                if (parm < arguments.length-1)
+                    buf.append(", ");
+            }
+            buf.append(')');
+        }
+        if (buf.length() > 0)
+            segs.add(MatchSegment.comment(buf.toString()));
 
         return segs;
     }
 }
+
+
