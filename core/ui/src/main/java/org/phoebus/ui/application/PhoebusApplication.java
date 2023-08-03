@@ -497,10 +497,10 @@ public class PhoebusApplication extends Application {
         top_resources_menu.setDisable(true);
 
         final MenuItem file_save = new MenuItem(Messages.Save, ImageCache.getImageView(getClass(), "/icons/save_edit.png"));
-        file_save.setOnAction(event -> JobManager.schedule(Messages.Save, monitor -> active_item_with_input.get().save(monitor)));
+        file_save.setOnAction(event -> JobManager.schedule(Messages.Save, monitor -> active_item_with_input.get().save(monitor, active_item_with_input.get().getTabPane().getScene().getWindow())));
 
         final MenuItem file_save_as = new MenuItem(Messages.SaveAs, ImageCache.getImageView(getClass(), "/icons/saveas_edit.png"));
-        file_save_as.setOnAction(event -> JobManager.schedule(Messages.SaveAs, monitor -> active_item_with_input.get().save_as(monitor)));
+        file_save_as.setOnAction(event -> JobManager.schedule(Messages.SaveAs, monitor -> active_item_with_input.get().save_as(monitor, active_item_with_input.get().getTabPane().getScene().getWindow())));
 
         final MenuItem exit = new MenuItem(Messages.Exit);
         exit.setOnAction(event -> closeMainStage());
@@ -1513,7 +1513,7 @@ public class PhoebusApplication extends Application {
                                         saving.setFill(Color.ORANGE);
                                         saving.setStyle("-fx-font-weight: bold;");
                                         hBox.getChildren().set(0, saving);
-                                        boolean saveSuccessful = dockItemWithInput.save(monitor);
+                                        boolean saveSuccessful = dockItemWithInput.save(monitor, prompt.getDialogPane().getScene().getWindow());
 
                                         if (saveSuccessful) {
                                             // The functions setCheckboxStatus() and getCheckBoxStatus should not be available anymore:

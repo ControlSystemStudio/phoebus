@@ -335,7 +335,7 @@ public class DockPane extends TabPane
             {
                 final DockItemWithInput active_item_with_input = (DockItemWithInput) item;
                 if (active_item_with_input.isDirty())
-                    JobManager.schedule(Messages.Save, monitor -> active_item_with_input.save(monitor));
+                    JobManager.schedule(Messages.Save, monitor -> active_item_with_input.save(monitor, active_item_with_input.getTabPane().getScene().getWindow()));
             }
             event.consume();
         }

@@ -464,7 +464,7 @@ public class DisplayEditorInstance implements AppInstance
             else
             {   // Save-As with proper file name
                 dock_item.setInput(proper.toURI());
-                if (! dock_item.save_as(monitor))
+                if (! dock_item.save_as(monitor, dock_item.getTabPane().getScene().getWindow()))
                     dock_item.setInput(orig_input);
             }
         }

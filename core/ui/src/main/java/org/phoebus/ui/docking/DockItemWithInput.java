@@ -243,7 +243,7 @@ public class DockItemWithInput extends DockItem
         final CompletableFuture<Boolean> done = new CompletableFuture<>();
         JobManager.schedule(Messages.Save, monitor ->
         {
-            save(monitor);
+            save(monitor, getTabPane().getScene().getWindow());
             // Indicate if we may close, or need to stay open because of error
             done.complete(!isDirty());
         });
@@ -261,7 +261,7 @@ public class DockItemWithInput extends DockItem
      *  @param monitor {@link JobMonitor} for reporting progress
      *  @return <code>true</code> on success
      */
-    public final boolean save(final JobMonitor monitor)
+    public final boolean save(final JobMonitor monitor, Window parentWindow)
     {
         // 'final' because any save customization should be possible
         // inside the save_handler
@@ -272,7 +272,7 @@ public class DockItemWithInput extends DockItem
             // call save_as to prompt for file
             File file = ResourceParser.getFile(getInput());
             if (file == null)
-                return save_as(monitor);
+                return save_as(monitor, parentWindow);
 
 
             if (file.exists()  &&  !file.canWrite())
@@ -291,7 +291,7 @@ public class DockItemWithInput extends DockItem
 
                 // If user doesn't want to overwrite, abort the save
                 if (response.get() == ButtonType.OK)
-                    return save_as(monitor);
+                    return save_as(monitor, getTabPane().getScene().getWindow());
                 return false;
             }
 
@@ -372,7 +372,7 @@ public class DockItemWithInput extends DockItem
      *  @param monitor {@link JobMonitor} for reporting progress
      *  @return <code>true</code> on success
      */
-    public final boolean save_as(final JobMonitor monitor)
+    public final boolean save_as(final JobMonitor monitor, Window parentWindow)
     {
         // 'final' because any save customization should be possible
         // inside the save_handler
@@ -380,7 +380,7 @@ public class DockItemWithInput extends DockItem
         {
             // Prompt for file
             final File initial = ResourceParser.getFile(getInput());
-            final File file = new SaveAsDialog().promptForFile(getTabPane().getScene().getWindow(),
+            final File file = new SaveAsDialog().promptForFile(parentWindow,
                                                                Messages.SaveAs, initial, file_extensions);
             if (file == null)
                 return false;
@@ -426,7 +426,7 @@ public class DockItemWithInput extends DockItem
             // Update input
             setInput(ResourceParser.getURI(actual_file.get()));
             // Save in that file
-            return save(monitor);
+            return save(monitor, getTabPane().getScene().getWindow());
         }
         catch (Exception ex)
         {
