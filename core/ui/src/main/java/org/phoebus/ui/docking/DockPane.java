@@ -333,7 +333,7 @@ public class DockPane extends TabPane
             {
                 final DockItemWithInput active_item_with_input = (DockItemWithInput) item;
                 if (event.isShiftDown()) {
-                    JobManager.schedule(Messages.Save, monitor -> active_item_with_input.save_as(monitor));
+                    JobManager.schedule(Messages.SaveAs, monitor -> active_item_with_input.save_as(monitor));
                 }
                 else if (active_item_with_input.isDirty()) {
                     JobManager.schedule(Messages.Save, monitor -> active_item_with_input.save(monitor));
