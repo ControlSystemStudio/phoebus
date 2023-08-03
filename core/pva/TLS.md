@@ -15,16 +15,15 @@ The server passes the public key to clients. Clients then use that to encrypt me
 to the server which only the server can decode with its private key.
 
 ```
-keytool -genkey -alias mykey -keystore KEYSTORE -keyalg RSA
+keytool -genkey -alias mykey -dname "CN=myself" -keystore KEYSTORE -storepass changeit -keyalg RSA
 ```
 
-Use password `changeit`.
 
 
 To check, note "Entry type: PrivateKeyEntry" because the certificate holds both a public and private key:
 
 ```
-keytool -list -v -keystore KEYSTORE
+keytool -list -v -keystore KEYSTORE -storepass changeit
 ```
 
 This example so far only uses self-signed certificates.
@@ -43,19 +42,19 @@ the client truststore.
 First export the server's public key.
 
 ```
-keytool -export -alias mykey -keystore KEYSTORE -rfc -file mykey.cer
+keytool -export -alias mykey -keystore KEYSTORE -storepass changeit -rfc -file mykey.cer
 ```
 
 Import the certificate into a new client truststore.
 
 ```
-keytool -import -alias mykey -file mykey.cer -keystore TRUSTSTORE
+keytool -import -alias mykey -file mykey.cer -keystore TRUSTSTORE -storepass changeit -noprompt
 ```
 
 To check, note "Entry type: trustedCertEntry" because the truststore contains only public keys:
 
 ```
-keytool -list -v -keystore TRUSTSTORE
+keytool -list -v -keystore TRUSTSTORE -storepass changeit
 ```
 
 While the key and trust files were created with the Java keytool,
@@ -125,4 +124,53 @@ javax.net.ssl|DEBUG|91|TCP receiver /127.0.0.1|2023-05-05 15:57:37.300 EDT|SSLCi
 ```
 
 
+Use a Certification Authority
+-----------------------------
+
+Instead of creating a separate key pair for each server and telling the client to trust all those public keys,
+we can use a Certification Authority.
+That way, clients trust the CA, and you can create individual key pairs for servers without need
+to distribute their public keys to each client.
+
+For a standalone demo, we create our own CA, and make its public certificate available as `myca.cer`:
+```
+keytool -genkeypair -alias myca -keystore ca.p12 -storepass changeit -dname "CN=myca" -keyalg RSA -ext bc=ca:true
+keytool -list                   -keystore ca.p12 -storepass changeit
+keytool -exportcert -alias myca -keystore ca.p12 -storepass changeit -rfc -file myca.cer
+keytool -printcert -file myca.cer 
+```
+
+Now create a server keypair for use by the IOC:
+
+```
+keytool -genkeypair -alias myioc -keystore ioc.p12 -storepass changeit -dname "CN=myioc" -keyalg RSA
+keytool -list -v                 -keystore ioc.p12 -storepass changeit
+```
+
+It starts out as a "self-signed certificate" with matching owner and issuer.
+Create a certificate signing request. The CSR could be sent to a commercial CA, but we sign it with out own CA.
+
+```
+keytool -certreq -alias myioc -keystore ioc.p12 -storepass changeit -file myioc.csr
+keytool -gencert -alias myca  -keystore ca.p12  -storepass changeit -ext san=dns:myioc -infile myioc.csr -outfile myioc.cer
+keytool -printcert -file myioc.cer
+```
+
+Import the signed certificate into the ioc keystore. Since `ioc.cer` is signed by 'myca', which
+is not a generally known CA, we will get an error like "Failed to establish chain"
+unless we first import `myca.cer` to trust out local CA.
+```
+keytool -importcert -alias myca  -keystore ioc.p12 -storepass changeit -file myca.cer  -noprompt
+keytool -importcert -alias myioc -keystore ioc.p12 -storepass changeit -file myioc.cer
+keytool -list -v                 -keystore ioc.p12 -storepass changeit
+```
+
+A client will trust any IOC certificate signed by 'myca' once it's aware of the 'myca' certificate,
+which needs to be imported into the PKCS12 file format:
+```
+keytool -importcert -alias myca  -keystore trust_ca.p12 -storepass changeit -file myca.cer  -noprompt
+```
+
+We can now run the server with `EPICS_PVA_SERVER_KEYSTORE=/path/to/ioc.p12` and clients with
+`EPICS_PVA_CLIENT_TRUSTSTORE=/path/to/trust_ca.p12`
 
