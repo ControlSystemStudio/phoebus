@@ -1506,7 +1506,7 @@ public class PhoebusApplication extends Application {
 
                                 hBox.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseEvent -> checkBox.setSelected(!checkBox.isSelected())); // Enable toggling checkbox by clicking on its label.
 
-                                Supplier<Boolean> actionSaveIfCheckboxEnabled = () -> {
+                                Supplier<Boolean> saveIfCheckboxEnabled = () -> {
                                     if (checkBox.isSelected()) {
 
                                         Text saving = new Text("[" + Messages.UnsavedChanges_saving + "]");
@@ -1542,7 +1542,7 @@ public class PhoebusApplication extends Application {
                                         return false;
                                     }
                                 };
-                                saveActions.add(actionSaveIfCheckboxEnabled);
+                                saveActions.add(saveIfCheckboxEnabled);
 
                                 currentRow++;
                             }
