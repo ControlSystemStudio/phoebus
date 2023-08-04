@@ -279,6 +279,7 @@ public class Messages
                          WidgetProperties_RingWidth,
                          WidgetProperties_Rotation,
                          WidgetProperties_Rules,
+                         WidgetProperties_RunActionsOnMouseClick,
                          WidgetProperties_Running,
                          WidgetProperties_ScaleFactor,
                          WidgetProperties_ScaleFormat,
