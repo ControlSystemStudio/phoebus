@@ -23,8 +23,8 @@ import javax.net.ssl.TrustManagerFactory;
  *
  *  By default, provide plain TCP sockets.
  *
- *  To enable TLS sockets, EPICS_PVA_SERVER_KEYSTORE can be set to
- *  select a keystore for the server, and EPICS_PVA_CLIENT_TRUSTSTORE can define
+ *  To enable TLS sockets, EPICS_PVAS_TLS_KEYCHAIN can be set to
+ *  select a keystore for the server, and EPICS_PVA_TLS_KEYCHAIN can define
  *  a trust store for the client.
  *  The optional password for both is in EPICS_PVA_STOREPASS.
  *
@@ -41,7 +41,7 @@ public class SecureSockets
         final String pass = System.getenv("EPICS_PVA_STOREPASS");
         final char[] password = pass != null ? pass.toCharArray() : null;
 
-        final String keyfile = System.getenv("EPICS_PVA_SERVER_KEYSTORE");
+        final String keyfile = System.getenv("EPICS_PVAS_TLS_KEYCHAIN");
         if (keyfile != null  &&  keyfile.length() > 0)
         {
             logger.log(Level.INFO, "Loading keystore '" + keyfile + "'");
@@ -59,7 +59,7 @@ public class SecureSockets
         else
             server_sockets = ServerSocketFactory.getDefault();
 
-        final String trustfile = System.getenv("EPICS_PVA_CLIENT_TRUSTSTORE");
+        final String trustfile = System.getenv("EPICS_PVA_TLS_KEYCHAIN");
         if (trustfile != null  &&  trustfile.length() > 0)
         {
             logger.log(Level.INFO, "Loading truststore '" + trustfile + "'");

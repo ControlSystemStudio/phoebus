@@ -71,7 +71,7 @@ Step 3: Configure and run the demo server
 Set environment variables to inform the server about its keystore:
 
 ```
-export EPICS_PVA_SERVER_KEYSTORE=/path/to/KEYSTORE
+export EPICS_PVAS_TLS_KEYCHAIN=/path/to/KEYSTORE
 export EPICS_PVA_STOREPASS=changeit
 ```
 
@@ -88,7 +88,7 @@ Step 4: Configure and run the demo client
 Set environment variables to inform the server about its keystore:
 
 ```
-export EPICS_PVA_CLIENT_TRUSTSTORE=/path/to/TRUSTSTORE
+export EPICS_PVA_TLS_KEYCHAIN=/path/to/TRUSTSTORE
 export EPICS_PVA_STOREPASS=changeit
 ```
 
@@ -123,6 +123,27 @@ javax.net.ssl|DEBUG|91|TCP receiver /127.0.0.1|2023-05-05 15:57:37.300 EDT|SSLCi
   0020: 00 00 00 00 10 0E AD 11   00                       .........
 ```
 
+Firewalls
+---------
+
+To allow tests from other hosts, may need to open firewalls.
+For RHEL9, use this get both immediate openings and have them
+persist a reboot:
+
+```
+# Default UDP search port
+sudo firewall-cmd --zone=public --add-port=5076/udp
+sudo firewall-cmd --zone=public --add-port=5076/udp --permanent
+# Default TCP (plain) port
+sudo firewall-cmd --zone=public --add-port=5075/tcp
+sudo firewall-cmd --zone=public --add-port=5075/tcp --permanent
+# Default TCP (TLS) port
+sudo firewall-cmd --zone=public --add-port=5076/tcp
+sudo firewall-cmd --zone=public --add-port=5076/tcp --permanent
+
+# Show
+sudo firewall-cmd --info-zone=public
+```
 
 Use a Certification Authority
 -----------------------------
@@ -133,6 +154,7 @@ That way, clients trust the CA, and you can create individual key pairs for serv
 to distribute their public keys to each client.
 
 For a standalone demo, we create our own CA, and make its public certificate available as `myca.cer`:
+
 ```
 keytool -genkeypair -alias myca -keystore ca.p12 -storepass changeit -dname "CN=myca" -keyalg RSA -ext bc=ca:true
 keytool -list                   -keystore ca.p12 -storepass changeit
@@ -171,6 +193,6 @@ which needs to be imported into the PKCS12 file format:
 keytool -importcert -alias myca  -keystore trust_ca.p12 -storepass changeit -file myca.cer  -noprompt
 ```
 
-We can now run the server with `EPICS_PVA_SERVER_KEYSTORE=/path/to/ioc.p12` and clients with
-`EPICS_PVA_CLIENT_TRUSTSTORE=/path/to/trust_ca.p12`
+We can now run the server with `EPICS_PVAS_TLS_KEYCHAIN=/path/to/ioc.p12` and clients with
+`EPICS_PVA_TLS_KEYCHAIN=/path/to/trust_ca.p12`
 
