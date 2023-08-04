@@ -483,26 +483,31 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
             imageView.addEventFilter(MouseEvent.MOUSE_ENTERED, mouseEvent -> {
                 clickEffect[0] = increaseBrightness;
                 setEffect.run();
+                mouseEvent.consume();
             });
 
             imageView.addEventFilter(MouseEvent.MOUSE_EXITED, mouseEvent -> {
                 clickEffect[0] = null;
                 setEffect.run();
+                mouseEvent.consume();
             });
 
             imageView.addEventFilter(MouseEvent.MOUSE_PRESSED, mouseEvent -> {
                 clickEffect[0] = decreaseBrightness;
                 setEffect.run();
+                mouseEvent.consume();
             });
 
             imageView.addEventFilter(MouseEvent.MOUSE_RELEASED, mouseEvent -> {
                 clickEffect[0] = increaseBrightness;
                 setEffect.run();
+                mouseEvent.consume();
             });
 
             imageView.addEventFilter(MouseEvent.MOUSE_CLICKED, mouseEvent -> {
                 model_widget.propActions().getValue().getActions().forEach(actionInfo -> toolkit.fireAction(model_widget, actionInfo));
                 imageView.requestFocus();
+                mouseEvent.consume();
             });
 
             Color focusColor = Color.web("rgba(3,158,211,1)");
