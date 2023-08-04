@@ -24,6 +24,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import javafx.scene.effect.ColorAdjust;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.input.MouseEvent;
 import org.csstudio.display.builder.model.ArrayWidgetProperty;
 import org.csstudio.display.builder.model.DirtyFlag;
@@ -464,28 +465,57 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         if (!toolkit.isEditMode() && model_widget.propEnabled().getValue() && model_widget.propRunActionsOnMouseClick().getValue()) {
             imageView.setStyle("-fx-cursor: hand;");
 
+            ColorAdjust[] clickEffect = { null }; // Values are wrapped in arrays as a workaround of the fact that Java doesn't allow non-final variables to be captured by closures.
+            DropShadow[] focusEffect = { null };
+            Runnable setEffect = () -> {
+               if (focusEffect[0] != null) {
+                   focusEffect[0].setInput(clickEffect[0]);
+                   imageView.setEffect(focusEffect[0]);
+               }
+               else {
+                   imageView.setEffect(clickEffect[0]);
+               }
+            };
+
             ColorAdjust increaseBrightness = new ColorAdjust(0, 0, 0.3, 0);
             ColorAdjust decreaseBrightness = new ColorAdjust(0, 0, -0.3, 0);
 
             imageView.addEventFilter(MouseEvent.MOUSE_ENTERED, mouseEvent -> {
-                imageView.setEffect(increaseBrightness);
+                clickEffect[0] = increaseBrightness;
+                setEffect.run();
             });
 
-
             imageView.addEventFilter(MouseEvent.MOUSE_EXITED, mouseEvent -> {
-                imageView.setEffect(null);
+                clickEffect[0] = null;
+                setEffect.run();
             });
 
             imageView.addEventFilter(MouseEvent.MOUSE_PRESSED, mouseEvent -> {
-                imageView.setEffect(decreaseBrightness);
+                clickEffect[0] = decreaseBrightness;
+                setEffect.run();
             });
 
             imageView.addEventFilter(MouseEvent.MOUSE_RELEASED, mouseEvent -> {
-                imageView.setEffect(increaseBrightness);
+                clickEffect[0] = increaseBrightness;
+                setEffect.run();
             });
 
             imageView.addEventFilter(MouseEvent.MOUSE_CLICKED, mouseEvent -> {
                 model_widget.propActions().getValue().getActions().forEach(actionInfo -> toolkit.fireAction(model_widget, actionInfo));
+                imageView.requestFocus();
+            });
+
+            Color focusColor = Color.web("rgba(3,158,211,1)");
+            DropShadow dropShadow = new DropShadow(5, focusColor);
+            imageView.focusedProperty().addListener((observable, old_value, new_value) -> {
+                if (new_value) {
+                    focusEffect[0] = dropShadow;
+                    setEffect.run();
+                }
+                else {
+                    focusEffect[0] = null;
+                    setEffect.run();
+                }
             });
         }
 
