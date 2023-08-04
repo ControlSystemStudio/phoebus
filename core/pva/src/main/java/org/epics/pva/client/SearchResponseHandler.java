@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2021-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -64,13 +64,13 @@ class SearchResponseHandler implements CommandHandler<ClientTCPHandler>
                 final PVAChannel channel = tcp.getClient().getChannel(cid);
 
                 if (channel == null)
-                    logger.log(Level.FINE, "Got search response for unknown CID " + cid + " from " + server + " " +
+                    logger.log(Level.FINE, "Got search response for unknown CID " + cid + " from " + (response.tls ? "TLS " : "TCP ") + server + " " +
                                response.guid + " V" + response.version);
                 else
                 {
-                    logger.log(Level.FINE, "Got search response for " + channel + " from " + response.server +
+                    logger.log(Level.FINE, "Got search response for " + channel + " from " + (response.tls ? "TLS " : "TCP ") + response.server +
                                " (using " + server + ") " + response.guid + " V" + response.version);
-                    tcp.getClient().handleSearchResponse(cid, server, response.version, response.guid);
+                    tcp.getClient().handleSearchResponse(cid, server, response.version, response.guid, response.tls);
                 }
             }
         }

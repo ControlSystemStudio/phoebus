@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 
+import org.epics.pva.PVASettings;
 import org.epics.pva.data.PVAAddress;
 import org.epics.pva.data.PVAString;
 
@@ -189,6 +190,7 @@ public class SearchRequest
         final int payload_start = buffer.position();
 
         // SEARCH message sequence
+        // PVXS sends "find".getBytes() instead
         buffer.putInt(seq);
 
         // If a host has multiple listeners on the UDP search port,
@@ -219,7 +221,14 @@ public class SearchRequest
         }
         else
         {
-            buffer.put((byte)1);
+            // Only support tcp, or both tls and tcp?
+            if (PVASettings.EPICS_PVA_TLS_KEYCHAIN.isBlank())
+                buffer.put((byte)1);
+            else
+            {
+                buffer.put((byte)2);
+                PVAString.encodeString("tls", buffer);
+            }
             PVAString.encodeString("tcp", buffer);
 
             buffer.putShort((short)channels.size());

@@ -19,6 +19,8 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
+import org.epics.pva.PVASettings;
+
 /** Helpers for creating secure sockets
  *
  *  By default, provide plain TCP sockets.
@@ -38,15 +40,15 @@ public class SecureSockets
 
     private static synchronized void initialize() throws Exception
     {
-        final String pass = System.getenv("EPICS_PVA_STOREPASS");
-        final char[] password = pass != null ? pass.toCharArray() : null;
+        // TODO For now always creating TLS sockets based on preference settings.
+        //      Need to create them based on search response requesting TLS
+        final char[] password = PVASettings.EPICS_PVA_STOREPASS.isBlank() ? null : PVASettings.EPICS_PVA_STOREPASS.toCharArray();
 
-        final String keyfile = System.getenv("EPICS_PVAS_TLS_KEYCHAIN");
-        if (keyfile != null  &&  keyfile.length() > 0)
+        if (! PVASettings.EPICS_PVAS_TLS_KEYCHAIN.isBlank())
         {
-            logger.log(Level.INFO, "Loading keystore '" + keyfile + "'");
+            logger.log(Level.INFO, "Loading keystore '" + PVASettings.EPICS_PVAS_TLS_KEYCHAIN + "'");
             final KeyStore key_store = KeyStore.getInstance("PKCS12");
-            key_store.load(new FileInputStream(keyfile), password);
+            key_store.load(new FileInputStream(PVASettings.EPICS_PVAS_TLS_KEYCHAIN), password);
 
             final KeyManagerFactory key_manager = KeyManagerFactory.getInstance("PKIX");
             key_manager.init(key_store, password);
@@ -59,12 +61,11 @@ public class SecureSockets
         else
             server_sockets = ServerSocketFactory.getDefault();
 
-        final String trustfile = System.getenv("EPICS_PVA_TLS_KEYCHAIN");
-        if (trustfile != null  &&  trustfile.length() > 0)
+        if (! PVASettings.EPICS_PVA_TLS_KEYCHAIN.isBlank())
         {
-            logger.log(Level.INFO, "Loading truststore '" + trustfile + "'");
+            logger.log(Level.INFO, "Loading truststore '" + PVASettings.EPICS_PVA_TLS_KEYCHAIN + "'");
             final KeyStore trust_store = KeyStore.getInstance("PKCS12");
-            trust_store.load(new FileInputStream(trustfile), password);
+            trust_store.load(new FileInputStream(PVASettings.EPICS_PVA_TLS_KEYCHAIN), password);
 
             final TrustManagerFactory trust_manager = TrustManagerFactory.getInstance("PKIX");
             trust_manager.init(trust_store);

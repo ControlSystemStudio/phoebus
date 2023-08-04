@@ -216,7 +216,7 @@ public class PVAClient implements AutoCloseable
             search.boost();
     }
 
-    void handleSearchResponse(final int channel_id, final InetSocketAddress server, final int version, final Guid guid)
+    void handleSearchResponse(final int channel_id, final InetSocketAddress server, final int version, final Guid guid, final boolean tls)
     {
         // Generic server 'list' response?
         if (channel_id < 0)
@@ -248,7 +248,7 @@ public class PVAClient implements AutoCloseable
             return;
         }
         channel.setState(ClientChannelState.FOUND);
-        logger.log(Level.FINE, () -> "Reply for " + channel + " from " + server + " " + guid);
+        logger.log(Level.FINE, () -> "Reply for " + channel + " from " + (tls ? "TLS " : "TCP ") + server + " " + guid);
 
         final ClientTCPHandler tcp = tcp_handlers.computeIfAbsent(server, addr ->
         {

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -60,8 +60,9 @@ class ClientUDPHandler extends UDPHandler
          *  @param server Server that replied to a search request
          *  @param version Server version
          *  @param guid  Globally unique ID of the server
+         *  @param tcp Does server require TLS?
          */
-        void handleSearchResponse(int channel_id, InetSocketAddress server, int version, Guid guid);
+        void handleSearchResponse(int channel_id, InetSocketAddress server, int version, Guid guid, boolean tls);
     }
 
     private final BeaconHandler beacon_handler;
@@ -321,10 +322,10 @@ class ClientUDPHandler extends UDPHandler
 
             // Server may reply with list of PVs that it does _not_ have...
             if (! response.found)
-                search_response.handleSearchResponse(-1, server, version, response.guid);
+                search_response.handleSearchResponse(-1, server, version, response.guid, response.tls);
             else
                 for (int cid : response.cid)
-                    search_response.handleSearchResponse(cid, server, version, response.guid);
+                    search_response.handleSearchResponse(cid, server, version, response.guid, response.tls);
         }
         catch (Exception ex)
         {
