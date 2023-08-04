@@ -170,7 +170,7 @@ keytool -list -v                 -keystore ioc.p12 -storepass changeit
 ```
 
 It starts out as a "self-signed certificate" with matching owner and issuer.
-Create a certificate signing request. The CSR could be sent to a commercial CA, but we sign it with out own CA.
+Create a certificate signing request. The CSR could be sent to a commercial CA, but we sign it with our own CA.
 
 ```
 keytool -certreq -alias myioc -keystore ioc.p12 -storepass changeit -file myioc.csr
@@ -181,6 +181,7 @@ keytool -printcert -file myioc.cer
 Import the signed certificate into the ioc keystore. Since `ioc.cer` is signed by 'myca', which
 is not a generally known CA, we will get an error like "Failed to establish chain"
 unless we first import `myca.cer` to trust out local CA.
+
 ```
 keytool -importcert -alias myca  -keystore ioc.p12 -storepass changeit -file myca.cer  -noprompt
 keytool -importcert -alias myioc -keystore ioc.p12 -storepass changeit -file myioc.cer
@@ -194,5 +195,5 @@ keytool -importcert -alias myca  -keystore trust_ca.p12 -storepass changeit -fil
 ```
 
 We can now run the server with `EPICS_PVAS_TLS_KEYCHAIN=/path/to/ioc.p12` and clients with
-`EPICS_PVA_TLS_KEYCHAIN=/path/to/trust_ca.p12`
+`EPICS_PVA_TLS_KEYCHAIN=/path/to/trust_ca.p12`, both with `EPICS_PVA_STOREPASS=changeit`
 
