@@ -465,6 +465,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         symbolChanged(null, null, null);
 
         if (!toolkit.isEditMode() && model_widget.propEnabled().getValue() && model_widget.propRunActionsOnMouseClick().getValue()) {
+            imageView.focusTraversableProperty().set(true);
             imageView.setStyle("-fx-cursor: hand;");
 
             ColorAdjust[] clickEffect = { null }; // Values are wrapped in arrays as a workaround of the fact that Java doesn't allow non-final variables to be captured by closures.
