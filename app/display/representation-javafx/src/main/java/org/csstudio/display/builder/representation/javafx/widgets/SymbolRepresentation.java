@@ -23,6 +23,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import javafx.scene.effect.ColorAdjust;
+import javafx.scene.input.MouseEvent;
 import org.csstudio.display.builder.model.ArrayWidgetProperty;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
@@ -458,6 +460,34 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         dirtyValue.checkAndClear();
 
         symbolChanged(null, null, null);
+
+        if (!toolkit.isEditMode() && model_widget.propEnabled().getValue() && model_widget.propRunActionsOnMouseClick().getValue()) {
+            imageView.setStyle("-fx-cursor: hand;");
+
+            ColorAdjust increaseBrightness = new ColorAdjust(0, 0, 0.3, 0);
+            ColorAdjust decreaseBrightness = new ColorAdjust(0, 0, -0.3, 0);
+
+            imageView.addEventFilter(MouseEvent.MOUSE_ENTERED, mouseEvent -> {
+                imageView.setEffect(increaseBrightness);
+            });
+
+
+            imageView.addEventFilter(MouseEvent.MOUSE_EXITED, mouseEvent -> {
+                imageView.setEffect(null);
+            });
+
+            imageView.addEventFilter(MouseEvent.MOUSE_PRESSED, mouseEvent -> {
+                imageView.setEffect(decreaseBrightness);
+            });
+
+            imageView.addEventFilter(MouseEvent.MOUSE_RELEASED, mouseEvent -> {
+                imageView.setEffect(increaseBrightness);
+            });
+
+            imageView.addEventFilter(MouseEvent.MOUSE_CLICKED, mouseEvent -> {
+                model_widget.propActions().getValue().getActions().forEach(actionInfo -> toolkit.fireAction(model_widget, actionInfo));
+            });
+        }
 
         return symbolPane;
 
