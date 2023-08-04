@@ -25,6 +25,8 @@ import java.util.stream.Collectors;
 
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.DropShadow;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import org.csstudio.display.builder.model.ArrayWidgetProperty;
 import org.csstudio.display.builder.model.DirtyFlag;
@@ -477,6 +479,10 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
                }
             };
 
+            Runnable runActions = () -> {
+                model_widget.propActions().getValue().getActions().forEach(actionInfo -> toolkit.fireAction(model_widget, actionInfo));
+            };
+
             ColorAdjust increaseBrightness = new ColorAdjust(0, 0, 0.3, 0);
             ColorAdjust decreaseBrightness = new ColorAdjust(0, 0, -0.3, 0);
 
@@ -505,7 +511,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
             });
 
             imageView.addEventFilter(MouseEvent.MOUSE_CLICKED, mouseEvent -> {
-                model_widget.propActions().getValue().getActions().forEach(actionInfo -> toolkit.fireAction(model_widget, actionInfo));
+                runActions.run();
                 imageView.requestFocus();
                 mouseEvent.consume();
             });
@@ -520,6 +526,25 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
                 else {
                     focusEffect[0] = null;
                     setEffect.run();
+                }
+            });
+
+            imageView.addEventFilter(KeyEvent.KEY_PRESSED, keyEvent -> {
+                if (keyEvent.getCode() == KeyCode.ENTER || keyEvent.getCode() == KeyCode.SPACE) {
+                    clickEffect[0] = decreaseBrightness;
+                    setEffect.run();
+                    keyEvent.consume();
+                }
+            });
+
+            imageView.addEventFilter(KeyEvent.KEY_RELEASED, keyEvent -> {
+                if (keyEvent.getCode() == KeyCode.ENTER || keyEvent.getCode() == KeyCode.SPACE) {
+
+                    runActions.run();
+
+                    clickEffect[0] = null;
+                    setEffect.run();
+                    keyEvent.consume();
                 }
             });
         }
