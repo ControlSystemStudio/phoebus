@@ -61,7 +61,7 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
     /** Inner pane that holds child widgets */
     private Pane inner;
 
-    private volatile boolean firstUpdate = true, changedOldColors = false;
+    private volatile boolean firstUpdate = true;
     private volatile int inset = 10;
     private volatile Color foreground_color, line_color, background_color;
 
@@ -121,15 +121,6 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
 
     private void computeColors()
     {
-
-
-        if(model_widget.isOld_colors() && !changedOldColors) {
-            model_widget.propLineColor().setValue(model_widget.propForegroundColor().getValue());
-            if(model_widget.propStyle().getValue() == Style.TITLE){
-                model_widget.propForegroundColor().setValue(model_widget.propBackgroundColor().getValue());
-            }
-            changedOldColors = true;
-        }
         line_color = JFXUtil.convert(model_widget.propLineColor().getValue());
         foreground_color = JFXUtil.convert(model_widget.propForegroundColor().getValue());
         background_color = JFXUtil.convert(model_widget.propBackgroundColor().getValue());

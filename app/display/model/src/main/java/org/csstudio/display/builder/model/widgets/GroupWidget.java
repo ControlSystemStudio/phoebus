@@ -60,8 +60,6 @@ public class GroupWidget extends MacroWidget
     /** Group Widget version */
     public static final Version GROUP_WIDGET_VERSION = new Version(3, 0, 0);
 
-    private boolean old_colors = false;
-
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
             new WidgetDescriptor("group", WidgetCategory.STRUCTURE,
@@ -184,8 +182,14 @@ public class GroupWidget extends MacroWidget
                     group_widget.foreground.readFromXML(model_reader, text);
             }
 
-            if (xml_version.getMajor() < 3)
-                group_widget.old_colors = true;
+            if (xml_version.getMajor() < 3) {
+                final Element text_foreground = XMLUtil.getChildElement(xml, "foreground_color");
+                if (text_foreground != null)
+                    group_widget.line.readFromXML(model_reader, text_foreground);
+                final Element text_background = XMLUtil.getChildElement(xml, "background_color");
+                if (text_background != null && group_widget.style.getValue() == Style.TITLE)
+                    group_widget.foreground.readFromXML(model_reader, text_background);
+            }
 
             return true;
         }
@@ -252,10 +256,6 @@ public class GroupWidget extends MacroWidget
     public Version getVersion()
     {
         return GROUP_WIDGET_VERSION;
-    }
-
-    public boolean isOld_colors() {
-        return old_colors;
     }
 
     /** @return Runtime 'children' property */
