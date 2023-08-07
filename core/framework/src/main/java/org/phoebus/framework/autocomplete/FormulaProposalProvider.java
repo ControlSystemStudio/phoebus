@@ -51,33 +51,16 @@ public class FormulaProposalProvider implements PVProposalProvider
         if (! text.startsWith("="))
             return generic;
 
-        // Does text contain parameters?
-        final String sub_text = text.substring(1);
-        final List<String> split = SimProposal.splitNameAndParameters(sub_text);
-        final String noparm_text = split.get(0);
-        final int given = SimProposal.hasOpeningBacket(sub_text)
-                ? split.size() - 1
-                : -1;
-        final boolean complete_args = SimProposal.hasClosingBacket(sub_text);
-
-        // Search 'all' proposals for match
+        // User is typing a formula
+        // Find all functions where the text results in a match
         final List<Proposal> result = new ArrayList<>();
-        // First compare text up to optional parameters
-        for (FormulaFunctionProposal proposal : functions)
-            if (proposal.getName().toLowerCase().contains(noparm_text.toLowerCase())) {
-                // If text contains arguments, check them
-                if (given >= 0) {
-                    final int required = proposal.getArguments().length;
-                    // Skip if text contains more arguments than proposal allows
-                    if (given > required)
-                        continue;
-                    // Skip if text contains complete arguments "(...)" but wrong number
-                    if (given != required && complete_args)
-                        continue;
-                    // Text has fewer arguments, or not ending in "..)"
+        for (Proposal p : functions)
+            for (MatchSegment seg : p.getMatch(text))
+                if (seg.getType() == MatchSegment.Type.MATCH)
+                {
+                    result.add(p);
+                    break;
                 }
-                result.add(proposal);
-            }
 
         // Show functions with a match
         if (result.size() > 0)
