@@ -21,7 +21,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 import java.util.logging.Level;
 
 import org.epics.pva.PVASettings;
@@ -156,7 +156,8 @@ class ChannelSearch
 
     private final ClientUDPHandler udp;
 
-    private final Function<InetSocketAddress, ClientTCPHandler> tcp_provider;
+    /** Create ClientTCPHandler from IP address and 'tls' flag */
+    private final BiFunction<InetSocketAddress, Boolean, ClientTCPHandler> tcp_provider;
 
     /** Buffer for assembling search messages */
     private final ByteBuffer send_buffer = ByteBuffer.allocate(PVASettings.MAX_UDP_UNFRAGMENTED_SEND);
@@ -169,9 +170,16 @@ class ChannelSearch
                                     b_or_mcast_search_addresses = new ArrayList<>(),
                                     name_server_addresses = new ArrayList<>();
 
+    /** Create channel searcher
+     *  @param udp UDP handler
+     *  @param udp_addresses UDP addresses to search
+     *  @param tcp_provider Function that creates ClientTCPHandler for IP address and 'tls' flag
+     *  @param name_server_addresses TCP addresses to search
+     *  @throws Exception on error
+     */
     public ChannelSearch(final ClientUDPHandler udp,
                          final List<AddressInfo> udp_addresses,
-                         final Function<InetSocketAddress, ClientTCPHandler> tcp_provider,
+                         final BiFunction<InetSocketAddress, Boolean, ClientTCPHandler> tcp_provider,
                          final List<AddressInfo> name_server_addresses) throws Exception
     {
         this.udp = udp;
@@ -413,7 +421,11 @@ class ChannelSearch
         // Search via TCP
         for (AddressInfo name_server : name_server_addresses)
         {
-            final ClientTCPHandler tcp = tcp_provider.apply(name_server.getAddress());
+            // TODO How to decide if TCP search should use TLS?
+            // Configure via EPICS_PVA_NAME_SERVERS?
+            // For now configuring EPICS_PVA_TLS_KEYCHAIN enables TLS for all name server lookups
+            final boolean tls = !PVASettings.EPICS_PVA_TLS_KEYCHAIN.isBlank();
+            final ClientTCPHandler tcp = tcp_provider.apply(name_server.getAddress(), tls);
 
             // In case of connection errors (TCP connection blocked by firewall),
             // tcp will be null

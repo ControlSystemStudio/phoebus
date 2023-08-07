@@ -138,6 +138,8 @@ public class PVASettings
     /** Path to trust store, a PKCS12 file that contains the certificates or root CA
      *  that the client will trust.
      *  When empty, PVA client does not support secure (TLS) communication.
+     *  When configured, PVA client can reply to PVA servers that offer "tls" in a search reply,
+     *  and searches via EPICS_PVA_NAME_SERVERS will also use TLS.
      */
     public static String EPICS_PVA_TLS_KEYCHAIN = "";
 

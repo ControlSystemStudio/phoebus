@@ -14,7 +14,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.channels.ServerSocketChannel;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -126,13 +125,16 @@ class ServerTCPListener
      */
     private static ServerSocket createSocket() throws Exception
     {
+        // If a PVA Server keychain has been configured, use TLS
+        final boolean tls = !PVASettings.EPICS_PVAS_TLS_KEYCHAIN.isBlank();
+
         if (checkForIPv4Server(PVASettings.EPICS_PVA_SERVER_PORT))
             logger.log(Level.FINE, "Found existing IPv4 server on port " + PVASettings.EPICS_PVA_SERVER_PORT);
         else
         {   // Try to bind to desired port
             try
             {
-                return createBoundSocket(new InetSocketAddress(PVASettings.EPICS_PVA_SERVER_PORT));
+                return SecureSockets.createServerSocket(new InetSocketAddress(PVASettings.EPICS_PVA_SERVER_PORT), tls);
             }
             catch (BindException ex)
             {
@@ -144,33 +146,12 @@ class ServerTCPListener
         final InetSocketAddress any = new InetSocketAddress(0);
         try
         {
-            return createBoundSocket(any);
+            return SecureSockets.createServerSocket(any, tls);
         }
         catch (Exception e)
         {
             throw new Exception("Cannot bind to automatically assigned port " + any, e);
         }
-    }
-
-    /** Try to create socket that's bound to an address
-     *  @param addr Desired address
-     *  @return {@link ServerSocketChannel}
-     *  @throws Exception on error
-     */
-    private static ServerSocket createBoundSocket(final InetSocketAddress addr) throws Exception
-    {
-        final ServerSocket socket = SecureSockets.getServerFactory().createServerSocket();
-        try
-        {
-            socket.setReuseAddress(true);
-            socket.bind(addr);
-        }
-        catch (Exception ex)
-        {
-            socket.close();
-            throw ex;
-        }
-        return socket;
     }
 
     private void listen()
