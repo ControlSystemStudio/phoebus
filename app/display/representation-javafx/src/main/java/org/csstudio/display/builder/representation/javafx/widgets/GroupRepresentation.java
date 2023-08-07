@@ -42,12 +42,12 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
     private static final int BORDER_WIDTH = 1;
     static final BorderWidths EDIT_NONE_BORDER = new BorderWidths(0.5, 0.5, 0.5, 0.5, false, false, false, false);
     static final BorderStrokeStyle EDIT_NONE_DASHED = new BorderStrokeStyle(
-        StrokeType.INSIDE,
-        StrokeLineJoin.MITER,
-        StrokeLineCap.BUTT,
-        10,
-        0,
-        List.of(Double.valueOf(11.11), Double.valueOf(7.7), Double.valueOf(3.3), Double.valueOf(7.7))
+            StrokeType.INSIDE,
+            StrokeLineJoin.MITER,
+            StrokeLineCap.BUTT,
+            10,
+            0,
+            List.of(Double.valueOf(11.11), Double.valueOf(7.7), Double.valueOf(3.3), Double.valueOf(7.7))
     );
 
     private final DirtyFlag dirty_border = new DirtyFlag();
@@ -61,9 +61,9 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
     /** Inner pane that holds child widgets */
     private Pane inner;
 
-    private volatile boolean firstUpdate = true;
+    private volatile boolean firstUpdate = true, changedOldColors = false;
     private volatile int inset = 10;
-    private volatile Color foreground_color, background_color;
+    private volatile Color foreground_color, line_color, background_color;
 
     @Override
     public Pane createJFXNode() throws Exception
@@ -87,6 +87,7 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
     {
         super.registerListeners();
         model_widget.propForegroundColor().addUntypedPropertyListener(borderChangedListener);
+        model_widget.propLineColor().addUntypedPropertyListener(borderChangedListener);
         model_widget.propBackgroundColor().addUntypedPropertyListener(borderChangedListener);
         model_widget.propTransparent().addUntypedPropertyListener(borderChangedListener);
         model_widget.propName().addUntypedPropertyListener(borderChangedListener);
@@ -100,6 +101,7 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
     protected void unregisterListeners()
     {
         model_widget.propForegroundColor().removePropertyListener(borderChangedListener);
+        model_widget.propLineColor().removePropertyListener(borderChangedListener);
         model_widget.propBackgroundColor().removePropertyListener(borderChangedListener);
         model_widget.propTransparent().removePropertyListener(borderChangedListener);
         model_widget.propName().removePropertyListener(borderChangedListener);
@@ -119,6 +121,16 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
 
     private void computeColors()
     {
+
+
+        if(model_widget.isOld_colors() && !changedOldColors) {
+            model_widget.propLineColor().setValue(model_widget.propForegroundColor().getValue());
+            if(model_widget.propStyle().getValue() == Style.TITLE){
+                model_widget.propForegroundColor().setValue(model_widget.propBackgroundColor().getValue());
+            }
+            changedOldColors = true;
+        }
+        line_color = JFXUtil.convert(model_widget.propLineColor().getValue());
         foreground_color = JFXUtil.convert(model_widget.propForegroundColor().getValue());
         background_color = JFXUtil.convert(model_widget.propBackgroundColor().getValue());
     }
@@ -179,7 +191,7 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
                     // In edit mode, show outline because otherwise hard to
                     // handle the totally invisible group
                     if (toolkit.isEditMode())
-                        jfx_node.setBorder(new Border(new BorderStroke(foreground_color, EDIT_NONE_DASHED, CornerRadii.EMPTY, EDIT_NONE_BORDER)));
+                        jfx_node.setBorder(new Border(new BorderStroke(line_color, EDIT_NONE_DASHED, CornerRadii.EMPTY, EDIT_NONE_BORDER)));
                     else
                         jfx_node.setBorder(null);
 
@@ -194,7 +206,7 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
                     insets[2] = 2 * insets[0];
                     insets[3] = 2 * insets[1];
 
-                    jfx_node.setBorder(new Border(new BorderStroke(foreground_color, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
+                    jfx_node.setBorder(new Border(new BorderStroke(line_color, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
                     label.setVisible(false);
                     break;
                 }
@@ -206,13 +218,13 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
                     insets[2] = 2 * insets[0];
                     insets[3] = insets[0] + insets[1];
 
-                    jfx_node.setBorder(new Border(new BorderStroke(foreground_color, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
+                    jfx_node.setBorder(new Border(new BorderStroke(line_color, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
                     label.setVisible(true);
                     label.relocate(0, BORDER_WIDTH);
                     label.setPadding(TITLE_PADDING);
                     label.setPrefSize(width + ( ( !firstUpdate && hasChildren ) ? insets[2] : 0 ), inset);
-                    label.setTextFill(background_color);
-                    label.setBackground(new Background(new BackgroundFill(foreground_color, CornerRadii.EMPTY, Insets.EMPTY)));
+                    label.setTextFill(foreground_color);
+                    label.setBackground(new Background(new BackgroundFill(line_color, CornerRadii.EMPTY, Insets.EMPTY)));
                     break;
                 }
                 case GROUP:
@@ -224,7 +236,7 @@ public class GroupRepresentation extends JFXBaseRepresentation<Pane, GroupWidget
                     insets[2] = 2 * insets[0];
                     insets[3] = 2 * insets[1];
 
-                    jfx_node.setBorder(new Border(new BorderStroke(foreground_color, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT, new Insets(inset / 2))));
+                    jfx_node.setBorder(new Border(new BorderStroke(line_color, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT, new Insets(inset / 2))));
                     label.setVisible(true);
                     label.relocate(inset, 0);
                     label.setPadding(TITLE_PADDING);
