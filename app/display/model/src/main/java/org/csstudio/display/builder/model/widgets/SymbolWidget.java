@@ -304,4 +304,9 @@ public class SymbolWidget extends PVWidget {
 
     }
 
+    @Override
+    protected String getInitialTooltip()
+    {
+        return "$(pv_name)\\n$(pv_value)\\n$(actions)";
+    }
 }
