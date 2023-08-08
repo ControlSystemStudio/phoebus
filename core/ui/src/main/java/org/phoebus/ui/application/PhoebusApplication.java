@@ -1401,11 +1401,6 @@ public class PhoebusApplication extends Application {
                                                                     Stage stage,
                                                                     JobMonitor monitor) throws ExecutionException, InterruptedException {
 
-            if (windowNrToApplicationNameToDockItemsWithInput.isEmpty() || windowNrToApplicationNameToDockItemsWithInput.values().stream().allMatch(sortedMap -> sortedMap.values().stream().allMatch(Collection::isEmpty))) {
-                // No unsaved changes.
-                return true;
-            }
-
             Stage stageToPositionTheConfirmationDialogOver;
             if (stage != null) {
                 stageToPositionTheConfirmationDialogOver = stage;
@@ -1608,14 +1603,15 @@ public class PhoebusApplication extends Application {
                 return prompt.showAndWait().orElse(ButtonType.CANCEL) == exitPhoebusWithoutSavingUnsavedChanges ? true : false;
             });
 
-            if (!windowNrToApplicationNameToDockItemsWithInput.isEmpty()) { // Only show confirmation window if there are any items with unsaved changes.
-                Platform.runLater(displayConfirmationWindow);
-                boolean shouldClose = (boolean) displayConfirmationWindow.get();
-                return shouldClose;
-            }
-            else {
-                return true;
-            }
+        if (windowNrToApplicationNameToDockItemsWithInput.isEmpty() || windowNrToApplicationNameToDockItemsWithInput.values().stream().allMatch(sortedMap -> sortedMap.values().stream().allMatch(Collection::isEmpty))) {
+            // No unsaved changes.
+            return true;
+        }
+        else {
+            Platform.runLater(displayConfirmationWindow);
+            boolean shouldClose = (boolean) displayConfirmationWindow.get();
+            return shouldClose;
+        }
     }
 
     private void exitPhoebus() {
