@@ -28,7 +28,6 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.security.authorization.AuthorizationService;
-import org.phoebus.ui.Preferences;
 import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.application.SaveLayoutHelper;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -177,20 +176,18 @@ public class DockItem extends Tab
         createContextMenu();
 
         setOnClosed(event -> handleClosed());
-        if (Preferences.open_previous_tab_when_closing_tab) {
-            setOnCloseRequest(event -> {
-                // Select the previously selected tab:
-                var dockPane = getDockPane();
-                var recentlyOpenedTabs = dockPane.tabsInOrderOfFocus;
-                recentlyOpenedTabs.remove(this);
+        setOnCloseRequest(event -> {
+            // Select the previously selected tab:
+            var dockPane = getDockPane();
+            var recentlyOpenedTabs = dockPane.tabsInOrderOfFocus;
+            recentlyOpenedTabs.remove(this);
 
-                if (recentlyOpenedTabs.size() > 0) {
-                    var tab = recentlyOpenedTabs.getFirst();
-                    var selectionModel = dockPane.getSelectionModel();
-                    selectionModel.select(tab);
-                }
-            });
-        }
+            if (recentlyOpenedTabs.size() > 0) {
+                var tab = recentlyOpenedTabs.getFirst();
+                var selectionModel = dockPane.getSelectionModel();
+                selectionModel.select(tab);
+            }
+        });
     }
 
     /** This tab should be in a DockPane, not a plain TabPane
