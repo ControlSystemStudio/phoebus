@@ -19,7 +19,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
-import javafx.stage.Window;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Preferences;
 import org.csstudio.display.builder.model.Widget;
@@ -34,7 +33,6 @@ import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
-import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockItemWithInput;
