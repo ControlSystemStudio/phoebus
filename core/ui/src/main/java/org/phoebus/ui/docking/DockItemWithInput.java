@@ -400,7 +400,8 @@ public class DockItemWithInput extends DockItem
                                                            file,
                                                            valid.stream().collect(Collectors.joining(", ")),
                                                            suggestion);
-                Platform.runLater(() ->
+
+                Runnable confirmFileExtension = () ->
                 {
                     final Alert dialog = new Alert(AlertType.CONFIRMATION, prompt, ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
                     dialog.setTitle(Messages.SaveAs);
@@ -417,7 +418,15 @@ public class DockItemWithInput extends DockItem
                         actual_file.complete(file);
                     else
                         actual_file.complete(null);
-                });
+                };
+
+                if (Platform.isFxApplicationThread()) {
+                    confirmFileExtension.run();
+                }
+                else {
+                    Platform.runLater(confirmFileExtension);
+                }
+
                 // In background thread, wait for the result
                 if (actual_file.get() == null)
                     return false;
