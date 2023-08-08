@@ -179,13 +179,12 @@ public class DockItem extends Tab
         setOnCloseRequest(event -> {
             // Select the previously selected tab:
             var dockPane = getDockPane();
-            var recentlyOpenedTabs = dockPane.tabsInOrderOfFocus;
-            recentlyOpenedTabs.remove(this);
+            dockPane.tabsInOrderOfFocus.remove(this);
 
-            if (recentlyOpenedTabs.size() > 0) {
-                var tab = recentlyOpenedTabs.getFirst();
+            if (dockPane.tabsInOrderOfFocus.size() > 0) {
+                var tabToSelect = dockPane.tabsInOrderOfFocus.getFirst();
                 var selectionModel = dockPane.getSelectionModel();
-                selectionModel.select(tab);
+                selectionModel.select(tabToSelect);
             }
         });
     }
