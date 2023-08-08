@@ -86,7 +86,7 @@ public class SymbolWidget extends PVWidget {
     public static final WidgetPropertyDescriptor<Boolean>                       propPreserveRatio = newBooleanPropertyDescriptor (WidgetPropertyCategory.BEHAVIOR, "preserve_ratio", Messages.WidgetProperties_PreserveRatio);
     /** Property */
     public static final WidgetPropertyDescriptor<String>                        propFallbackSymbol = newFilenamePropertyDescriptor (WidgetPropertyCategory.BEHAVIOR, "fallback_symbol", Messages.WidgetProperties_FallbackSymbol);
-
+    public static final WidgetPropertyDescriptor<Boolean>                       propRunActionsOnMouseClick = newBooleanPropertyDescriptor (WidgetPropertyCategory.BEHAVIOR, "run_actions_on_mouse_click", Messages.WidgetProperties_RunActionsOnMouseClick);
 
     /** 'items' property: list of items (string properties) for combo box */
     public static final ArrayWidgetProperty.Descriptor<WidgetProperty<String> > propSymbols       = new ArrayWidgetProperty.Descriptor< >(
@@ -120,6 +120,7 @@ public class SymbolWidget extends PVWidget {
     private volatile String                                      importedFrom = null;
     private volatile WidgetProperty<String>                      fallbackSymbol;
     private volatile WidgetProperty<WidgetColor>                 disconnectOverlayColor;
+    private volatile WidgetProperty<Boolean>                     run_actions_on_mouse_click;
 
     /** Returns 'symbol' property: element for list of 'symbols' property */
     private static WidgetPropertyDescriptor<String> propSymbol( int index ) {
@@ -219,6 +220,11 @@ public class SymbolWidget extends PVWidget {
         return disconnectOverlayColor;
     }
 
+    /** @return property */
+    public WidgetProperty<Boolean> propRunActionsOnMouseClick() {
+        return run_actions_on_mouse_click;
+    }
+
     @Override
     protected void defineProperties ( final List<WidgetProperty<?>> properties ) {
 
@@ -242,6 +248,12 @@ public class SymbolWidget extends PVWidget {
         WidgetColor defaultDisconnectedOverlayColor =
                 new WidgetColor(alarmInvalidColor.getRed(), alarmInvalidColor.getGreen(), alarmInvalidColor.getBlue(), 128);
         properties.add(disconnectOverlayColor = propDisconnectOverlayColor.createProperty(this, defaultDisconnectedOverlayColor));
+        {
+            int indexOfPropActions = properties.indexOf(propActions());
+            run_actions_on_mouse_click = propRunActionsOnMouseClick.createProperty(this, false);
+            properties.add(indexOfPropActions + 1, run_actions_on_mouse_click);
+        }
+
     }
 
     /**
@@ -292,4 +304,9 @@ public class SymbolWidget extends PVWidget {
 
     }
 
+    @Override
+    protected String getInitialTooltip()
+    {
+        return "$(pv_name)\\n$(pv_value)\\n$(actions)";
+    }
 }

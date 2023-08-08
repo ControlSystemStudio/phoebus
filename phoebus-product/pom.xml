@@ -277,15 +277,16 @@
         -->
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.0.0</version>
         <executions>
           <execution>
             <phase>verify</phase>
             <configuration>
               <failOnError>true</failOnError>
-              <tasks>
+              <target>
                 <echo message="Copying doc/" />
                 <ant antfile="build.xml" target="copy-doc" />
-              </tasks>
+              </target>
             </configuration>
             <goals>
               <goal>run</goal>

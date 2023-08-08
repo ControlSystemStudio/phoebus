@@ -334,8 +334,13 @@ public class DockPane extends TabPane
             if (item instanceof DockItemWithInput)
             {
                 final DockItemWithInput active_item_with_input = (DockItemWithInput) item;
-                if (active_item_with_input.isDirty())
+
+                if (event.isShiftDown()) {
+                    JobManager.schedule(Messages.SaveAs, monitor -> active_item_with_input.save_as(monitor, active_item_with_input.getTabPane().getScene().getWindow()));
+                }
+                else if (active_item_with_input.isDirty()) {
                     JobManager.schedule(Messages.Save, monitor -> active_item_with_input.save(monitor, active_item_with_input.getTabPane().getScene().getWindow()));
+                }
             }
             event.consume();
         }
