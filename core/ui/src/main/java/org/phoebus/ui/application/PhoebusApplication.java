@@ -1600,6 +1600,7 @@ public class PhoebusApplication extends Application {
                 int prefWidth = 750;
                 int prefHeight = 400;
                 prompt.getDialogPane().setPrefSize(prefWidth, prefHeight);
+                prompt.getDialogPane().setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
                 prompt.setResizable(false);
 
                 DialogHelper.positionDialog(prompt, stageToPositionTheConfirmationDialogOver.getScene().getRoot(), -prefWidth/2, -prefHeight/2);
