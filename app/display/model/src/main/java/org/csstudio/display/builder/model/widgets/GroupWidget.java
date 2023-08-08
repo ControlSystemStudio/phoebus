@@ -10,6 +10,7 @@ package org.csstudio.display.builder.model.widgets;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propTransparent;
 import static org.csstudio.display.builder.model.properties.InsetsWidgetProperty.runtimePropExtendedInsets;
 
@@ -56,20 +57,23 @@ import org.w3c.dom.Element;
 @SuppressWarnings("nls")
 public class GroupWidget extends MacroWidget
 {
+    /** Group Widget version */
+    public static final Version GROUP_WIDGET_VERSION = new Version(3, 0, 0);
+
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
-        new WidgetDescriptor("group", WidgetCategory.STRUCTURE,
-            Messages.GroupWidget_Name,
-            "/icons/group.png",
-            Messages.GroupWidget_Description,
-            Arrays.asList("org.csstudio.opibuilder.widgets.groupingContainer"))
-    {
-        @Override
-        public Widget createWidget()
-        {
-            return new GroupWidget();
-        }
-    };
+            new WidgetDescriptor("group", WidgetCategory.STRUCTURE,
+                    Messages.GroupWidget_Name,
+                    "/icons/group.png",
+                    Messages.GroupWidget_Description,
+                    Arrays.asList("org.csstudio.opibuilder.widgets.groupingContainer"))
+            {
+                @Override
+                public Widget createWidget()
+                {
+                    return new GroupWidget();
+                }
+            };
 
     /** Group widget style */
     public enum Style
@@ -99,16 +103,16 @@ public class GroupWidget extends MacroWidget
 
     /** 'style' property */
     static final WidgetPropertyDescriptor<Style> propStyle =
-        new WidgetPropertyDescriptor<>(
-            WidgetPropertyCategory.DISPLAY, "style", Messages.Style)
-    {
-        @Override
-        public EnumWidgetProperty<Style> createProperty(final Widget widget,
-                                                        final Style default_value)
-        {
-            return new EnumWidgetProperty<>(this, widget, default_value);
-        }
-    };
+            new WidgetPropertyDescriptor<>(
+                    WidgetPropertyCategory.DISPLAY, "style", Messages.Style)
+            {
+                @Override
+                public EnumWidgetProperty<Style> createProperty(final Widget widget,
+                                                                final Style default_value)
+                {
+                    return new EnumWidgetProperty<>(this, widget, default_value);
+                }
+            };
 
     /** Convert legacy "border_style"
      *
@@ -119,30 +123,30 @@ public class GroupWidget extends MacroWidget
     {
         switch (border_style)
         {
-        case  0: // NONE
-        case 15: // EMPTY
-            return Style.NONE;
+            case  0: // NONE
+            case 15: // EMPTY
+                return Style.NONE;
 
-        case  1: // LINE
-        case  2: // RAISED
-        case  3: // LOWERED
-        case  4: // ETCHED
-        case  5: // RIDGED
-        case  6: // BUTTON_RAISED
-        case  7: // BUTTON_PRESSED
-        case  8: // DOTTED
-        case  9: // DASHED
-        case 10: // DASH_DOT
-        case 11: // DASH_DOT_DOT
-        case 14: // ROUND_RECTANGLE_BACKGROUND
-            return Style.LINE;
+            case  1: // LINE
+            case  2: // RAISED
+            case  3: // LOWERED
+            case  4: // ETCHED
+            case  5: // RIDGED
+            case  6: // BUTTON_RAISED
+            case  7: // BUTTON_PRESSED
+            case  8: // DOTTED
+            case  9: // DASHED
+            case 10: // DASH_DOT
+            case 11: // DASH_DOT_DOT
+            case 14: // ROUND_RECTANGLE_BACKGROUND
+                return Style.LINE;
 
-        case 12: // TITLE_BAR
-            return Style.TITLE;
+            case 12: // TITLE_BAR
+                return Style.TITLE;
 
-        case 13: // GROUP_BOX
-        default:
-            return Style.GROUP;
+            case 13: // GROUP_BOX
+            default:
+                return Style.GROUP;
         }
     }
 
@@ -161,12 +165,13 @@ public class GroupWidget extends MacroWidget
             if (! super.configureFromXML(model_reader, widget, xml))
                 return false;
 
+            final GroupWidget group_widget = (GroupWidget) widget;
             if (xml_version.getMajor() < 2)
             {
-                final GroupWidget group_widget = (GroupWidget) widget;
+
                 // Translate border styles
                 XMLUtil.getChildInteger(xml, "border_style")
-                       .ifPresent(old -> group_widget.style.setValue(convertLegacyStyle(old)));
+                        .ifPresent(old -> group_widget.style.setValue(convertLegacyStyle(old)));
 
                 // Legacy had 'border_color'.
                 // It wasn't used by Group Box style, which had built-in gray,
@@ -177,6 +182,15 @@ public class GroupWidget extends MacroWidget
                     group_widget.foreground.readFromXML(model_reader, text);
             }
 
+            if (xml_version.getMajor() < 3) {
+                final Element text_foreground = XMLUtil.getChildElement(xml, "foreground_color");
+                if (text_foreground != null)
+                    group_widget.line.readFromXML(model_reader, text_foreground);
+                final Element text_background = XMLUtil.getChildElement(xml, "background_color");
+                if (text_background != null && group_widget.style.getValue() == Style.TITLE)
+                    group_widget.foreground.readFromXML(model_reader, text_background);
+            }
+
             return true;
         }
     }
@@ -185,6 +199,7 @@ public class GroupWidget extends MacroWidget
     private volatile WidgetProperty<Style> style;
     private volatile WidgetProperty<WidgetColor> foreground;
     private volatile WidgetProperty<WidgetColor> background;
+    private volatile WidgetProperty<WidgetColor> line;
     private volatile WidgetProperty<Boolean> transparent;
     private volatile WidgetProperty<WidgetFont> font;
     private volatile WidgetProperty<int[]> insets;
@@ -203,6 +218,7 @@ public class GroupWidget extends MacroWidget
         properties.add(style = propStyle.createProperty(this, Style.GROUP));
         properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
+        properties.add(line = propLineColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BACKGROUND)));
         properties.add(transparent = propTransparent.createProperty(this, false));
         properties.add(insets = runtimePropExtendedInsets.createProperty(this, new int[] { 0, 0, 0, 0 }));
@@ -236,6 +252,12 @@ public class GroupWidget extends MacroWidget
             child.expandMacros(propMacros().getValue());
     }
 
+    @Override
+    public Version getVersion()
+    {
+        return GROUP_WIDGET_VERSION;
+    }
+
     /** @return Runtime 'children' property */
     public ChildrenProperty runtimeChildren()
     {
@@ -258,6 +280,11 @@ public class GroupWidget extends MacroWidget
     public WidgetProperty<WidgetColor> propBackgroundColor()
     {
         return background;
+    }
+
+    public WidgetProperty<WidgetColor> propLineColor()
+    {
+        return line;
     }
 
     /** @return 'transparent' property */
