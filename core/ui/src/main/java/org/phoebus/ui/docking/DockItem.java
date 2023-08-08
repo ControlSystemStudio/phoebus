@@ -176,6 +176,18 @@ public class DockItem extends Tab
         createContextMenu();
 
         setOnClosed(event -> handleClosed());
+        setOnCloseRequest(event -> {
+            // Select the previously selected tab:
+            var dockPane = getDockPane();
+            var recentlyOpenedTabs = dockPane.tabsInOrderOfFocus;
+            recentlyOpenedTabs.remove(this);
+
+            if (recentlyOpenedTabs.size() > 0) {
+                var tab = recentlyOpenedTabs.getFirst();
+                var selectionModel = dockPane.getSelectionModel();
+                selectionModel.select(tab);
+            }
+        });
     }
 
     /** This tab should be in a DockPane, not a plain TabPane
