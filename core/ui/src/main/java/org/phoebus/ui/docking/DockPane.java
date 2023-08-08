@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.ui.Preferences;
 import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
@@ -224,13 +225,15 @@ public class DockPane extends TabPane
 
         setOnContextMenuRequested(this::showContextMenu);
 
-        getSelectionModel().selectedItemProperty().addListener((observable, previous_item, new_item) -> {
-            // Keep track of the order of focus of tabs:
-            if (new_item != null) {
-                tabsInOrderOfFocus.remove(new_item);
-                tabsInOrderOfFocus.push((DockItem) new_item);
-            }
-        });
+        if (Preferences.open_previous_tab_when_closing_tab) {
+            getSelectionModel().selectedItemProperty().addListener((observable, previous_item, new_item) -> {
+                // Keep track of the order of focus of tabs:
+                if (new_item != null) {
+                    tabsInOrderOfFocus.remove(new_item);
+                    tabsInOrderOfFocus.push((DockItem) new_item);
+                }
+            });
+        }
     }
 
     protected LinkedList<DockItem> tabsInOrderOfFocus = new LinkedList<>();
