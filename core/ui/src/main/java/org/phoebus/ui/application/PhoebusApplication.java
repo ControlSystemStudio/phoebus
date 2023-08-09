@@ -1074,13 +1074,13 @@ public class PhoebusApplication extends Application {
 
         JobManager.schedule("Close all stages", monitor ->
         {
-            boolean shouldExit = confirmationDialogWhenUnsavedChangesExist(stages,
-                                                                           Messages.UnsavedChanges_wouldYouLikeToSaveAnyChangesBeforeReplacingTheLayout,
-                                                                           Messages.UnsavedChanges_replace,
-                                                                           main_stage,
-                                                                           monitor);
+            boolean shouldReplaceLayout = confirmationDialogWhenUnsavedChangesExist(stages,
+                                                                                    Messages.UnsavedChanges_wouldYouLikeToSaveAnyChangesBeforeReplacingTheLayout,
+                                                                                    Messages.UnsavedChanges_replace,
+                                                                                    main_stage,
+                                                                                    monitor);
 
-            if (shouldExit) {
+            if (shouldReplaceLayout) {
                 for (Stage stage : stages) {
                     if (!DockStage.prepareToCloseItems(stage)) {
                         return;
