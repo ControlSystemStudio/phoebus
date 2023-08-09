@@ -702,6 +702,10 @@ public class DockItem extends Tab
         setContent(null);
         // Remove "application" entry which otherwise holds on to application data model
         getProperties().remove(KEY_APPLICATION);
+        var dockPane = getDockPane();
+        if (dockPane != null) {
+            dockPane.tabsInOrderOfFocus.remove(this);
+        }
     }
 
     /** Programmatically close this tab
