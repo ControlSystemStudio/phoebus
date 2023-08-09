@@ -89,8 +89,11 @@ public class PVASettings
     /** PVA client port for sending name searches and receiving beacons */
     public static int EPICS_PVA_BROADCAST_PORT = 5076;
 
-    /** First PVA port used by server */
+    /** First PVA port used by plain TCP server */
     public static int EPICS_PVA_SERVER_PORT = 5075;
+
+    /** First PVA port used by TLS server */
+    public static int EPICS_PVAS_TLS_PORT = 5076;
 
     /** Local addresses to which server will listen.
      *
@@ -226,6 +229,7 @@ public class PVASettings
         EPICS_PVA_AUTO_ADDR_LIST = get("EPICS_PVA_AUTO_ADDR_LIST", EPICS_PVA_AUTO_ADDR_LIST);
         EPICS_PVA_NAME_SERVERS = get("EPICS_PVA_NAME_SERVERS", EPICS_PVA_NAME_SERVERS);
         EPICS_PVA_SERVER_PORT = get("EPICS_PVA_SERVER_PORT", EPICS_PVA_SERVER_PORT);
+        EPICS_PVAS_TLS_PORT = get("EPICS_PVAS_TLS_PORT", EPICS_PVAS_TLS_PORT);
         EPICS_PVAS_INTF_ADDR_LIST = get("EPICS_PVAS_INTF_ADDR_LIST", EPICS_PVAS_INTF_ADDR_LIST).trim();
         EPICS_PVA_BROADCAST_PORT = get("EPICS_PVA_BROADCAST_PORT", EPICS_PVA_BROADCAST_PORT);
         EPICS_PVAS_BROADCAST_PORT = get("EPICS_PVAS_BROADCAST_PORT", EPICS_PVAS_BROADCAST_PORT);

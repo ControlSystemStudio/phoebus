@@ -110,10 +110,12 @@ public class SearchResponse
      *  @param cid Client's channel ID or -1
      *  @param address Address where client can connect to access the channel
      *  @param port Associated TCP port
+     *  @param tls Use TLS? Otherwise plain TCP
      *  @param buffer Buffer into which search response will be encoded
      */
     public static void encode(final Guid guid, final int seq, final int cid,
                               final InetAddress address, final int port,
+                              final boolean tls,
                               final ByteBuffer buffer)
     {
         PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_SERVER, PVAHeader.CMD_SEARCH_RESPONSE, 12+4+16+2+4+1+2+ (cid < 0 ? 0 : 4));
@@ -129,7 +131,7 @@ public class SearchResponse
         buffer.putShort((short)port);
 
         // Protocol
-        PVAString.encodeString("tcp", buffer);
+        PVAString.encodeString(tls ? "tls" : "tcp", buffer);
 
         // Found
         PVABool.encodeBoolean(cid >= 0, buffer);

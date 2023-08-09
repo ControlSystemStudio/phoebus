@@ -54,7 +54,14 @@ class ServerTCPListener
     {
         this.server = server;
 
-        server_socket = createSocket();
+        // Is TLS configured?
+        final boolean tls = !PVASettings.EPICS_PVAS_TLS_KEYCHAIN.isBlank();
+
+        // TODO Support both plain and tls, not either/or
+        if (! tls)
+            server_socket = createSocket(PVASettings.EPICS_PVA_SERVER_PORT, false);
+        else
+            server_socket = createSocket(PVASettings.EPICS_PVAS_TLS_PORT, true);
 
         local_address = (InetSocketAddress) server_socket.getLocalSocketAddress();
         logger.log(Level.CONFIG, "Listening on TCP " + local_address);
@@ -120,25 +127,24 @@ class ServerTCPListener
 
     /** Create server's TCP socket
      *
-     *  @return Socket bound to EPICS_PVA_SERVER_PORT or unused port
+     *  @param port Preferred TCP port
+     *  @param tls Use TLS?
+     *  @return Socket bound to preferred port or unused port
      *  @throws Exception on error
      */
-    private static ServerSocket createSocket() throws Exception
+    private static ServerSocket createSocket(final int port, final boolean tls) throws Exception
     {
-        // If a PVA Server keychain has been configured, use TLS
-        final boolean tls = !PVASettings.EPICS_PVAS_TLS_KEYCHAIN.isBlank();
-
-        if (checkForIPv4Server(PVASettings.EPICS_PVA_SERVER_PORT))
-            logger.log(Level.FINE, "Found existing IPv4 server on port " + PVASettings.EPICS_PVA_SERVER_PORT);
+        if (checkForIPv4Server(port))
+            logger.log(Level.FINE, "Found existing IPv4 server on port " + port);
         else
         {   // Try to bind to desired port
             try
             {
-                return SecureSockets.createServerSocket(new InetSocketAddress(PVASettings.EPICS_PVA_SERVER_PORT), tls);
+                return SecureSockets.createServerSocket(new InetSocketAddress(port), tls);
             }
             catch (BindException ex)
             {
-                logger.log(Level.INFO, "TCP port " + PVASettings.EPICS_PVA_SERVER_PORT + " already in use, switching to automatically assigned port");
+                logger.log(Level.INFO, (tls ? "TLS" : "TCP") + " port " + port + " already in use, switching to automatically assigned port");
             }
         }
 
@@ -162,6 +168,7 @@ class ServerTCPListener
             while (running)
             {
                 final Socket client = server_socket.accept();
+                logger.log(Level.FINE, () -> Thread.currentThread().getName() + " accepted client " + client.getRemoteSocketAddress());
                 new ServerTCPHandler(server, client);
             }
         }

@@ -175,8 +175,8 @@ abstract public class TCPHandler
     {
         try
         {
-            Thread.currentThread().setName("TCP sender from " + socket.getLocalAddress() + " to " + socket.getInetAddress());
-            logger.log(Level.FINER, Thread.currentThread().getName() + " started");
+            Thread.currentThread().setName("TCP sender from " + socket.getLocalSocketAddress() + " to " + socket.getRemoteSocketAddress());
+            logger.log(Level.FINER, () -> Thread.currentThread().getName() + " started");
             while (true)
             {
                 send_buffer.clear();
@@ -249,8 +249,8 @@ abstract public class TCPHandler
     {
         try
         {
-            Thread.currentThread().setName("TCP receiver " + socket.getInetAddress());
-            logger.log(Level.FINER, Thread.currentThread().getName() + " started");
+            Thread.currentThread().setName("TCP receiver " + socket.getLocalSocketAddress());
+            logger.log(Level.FINER, () -> Thread.currentThread().getName() + " started for " + socket.getRemoteSocketAddress());
             logger.log(Level.FINER, "Native byte order " + receive_buffer.order());
             receive_buffer.clear();
             final InputStream in = socket.getInputStream();

@@ -1,8 +1,6 @@
 Secure Socket Support
 =====================
 
-The server and client provide a simple preview of TLS-enabled "secure socket" communication.
-
 By default, the server and client will use plain TCP sockets to communicate.
 By configuring a keystore for the server and a truststore for the client,
 the communication can be switched to secure (TLS) sockets.
@@ -18,8 +16,6 @@ to the server which only the server can decode with its private key.
 keytool -genkey -alias mykey -dname "CN=myself" -keystore KEYSTORE -storepass changeit -keyalg RSA
 ```
 
-
-
 To check, note "Entry type: PrivateKeyEntry" because the certificate holds both a public and private key:
 
 ```
@@ -33,9 +29,10 @@ An operational setup might prefer to sign them by a publicly trusted certificate
 Step 2: Create a client TRUSTSTORE to register the public server key
 -------
 
-Clients check this list of public keys to identify trusted servers.
+Clients check a list of public keys to identify trusted servers.
 Clients can technically use the keystore we just created, but
-they should really only have access to the server's public key.
+they should really only have access to the server's public key,
+not the server's private key.
 In addition, you may want to add public keys from more than one server into
 the client truststore.
 
@@ -85,7 +82,7 @@ java -cp target/classes org/epics/pva/server/ServerDemo
 Step 4: Configure and run the demo client
 -------
 
-Set environment variables to inform the server about its keystore:
+Set environment variables to inform the client about its truststore:
 
 ```
 export EPICS_PVA_TLS_KEYCHAIN=/path/to/TRUSTSTORE
@@ -95,7 +92,7 @@ export EPICS_PVA_STOREPASS=changeit
 Then run a demo client
 
 ```
-java -cp target/classes org/epics/pva/client/PVAClientMain monitor demo
+java -cp target/classes org/epics/pva/client/PVAClientMain get demo
 ```
 
 
@@ -134,10 +131,10 @@ persist a reboot:
 # Default UDP search port
 sudo firewall-cmd --zone=public --add-port=5076/udp
 sudo firewall-cmd --zone=public --add-port=5076/udp --permanent
-# Default TCP (plain) port
+# Default plain TCP port
 sudo firewall-cmd --zone=public --add-port=5075/tcp
 sudo firewall-cmd --zone=public --add-port=5075/tcp --permanent
-# Default TCP (TLS) port
+# Default secure (TLS) TCP port
 sudo firewall-cmd --zone=public --add-port=5076/tcp
 sudo firewall-cmd --zone=public --add-port=5076/tcp --permanent
 
@@ -179,7 +176,7 @@ keytool -printcert -file myioc.cer
 ```
 
 Import the signed certificate into the ioc keystore. Since `ioc.cer` is signed by 'myca', which
-is not a generally known CA, we will get an error like "Failed to establish chain"
+is not a generally known CA, we will get an error "Failed to establish chain"
 unless we first import `myca.cer` to trust out local CA.
 
 ```
@@ -190,6 +187,7 @@ keytool -list -v                 -keystore ioc.p12 -storepass changeit
 
 A client will trust any IOC certificate signed by 'myca' once it's aware of the 'myca' certificate,
 which needs to be imported into the PKCS12 file format:
+
 ```
 keytool -importcert -alias myca  -keystore trust_ca.p12 -storepass changeit -file myca.cer  -noprompt
 ```

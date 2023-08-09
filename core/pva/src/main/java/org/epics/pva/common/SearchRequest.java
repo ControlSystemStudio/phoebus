@@ -72,6 +72,8 @@ public class SearchRequest
     public boolean reply_required;
     /** Address of client */
     public InetSocketAddress client;
+    /** Use TLS, or plain TCP? */
+    public boolean tls;
     /** Names requested in search, <code>null</code> for 'list' */
     public List<Channel> channels;
 
@@ -135,17 +137,18 @@ public class SearchRequest
             search.client = new InetSocketAddress(addr, port);
 
         // Assert that client supports "tcp", ignore rest
-        boolean tcp = false;
+        boolean tcp = search.tls = false;
         int count = Byte.toUnsignedInt(buffer.get());
-        String protocol = "<none>";
+        String unknown_protocol = "<none>";
         for (int i=0; i<count; ++i)
         {
-            protocol = PVAString.decodeString(buffer);
-            if ("tcp".equals(protocol))
-            {
+            final String protocol = PVAString.decodeString(buffer);
+            if ("tls".equals(protocol))
+                search.tls = true;
+            else if ("tcp".equals(protocol))
                 tcp = true;
-                break;
-            }
+            else
+                unknown_protocol = protocol;
         }
 
         // Loop over searched channels
@@ -158,9 +161,9 @@ public class SearchRequest
         }
         else
         {   // Channel search request
-            if (! tcp)
+            if (! (tcp || search.tls))
             {
-                logger.log(Level.WARNING, "PVA Client " + from + " sent search #" + search.seq + " for protocol '" + protocol + "', need 'tcp'");
+                logger.log(Level.WARNING, "PVA Client " + from + " sent search #" + search.seq + " for protocol '" + unknown_protocol + "', need 'tcp' or 'tls'");
                 return null;
             }
             search.channels = new ArrayList<>(count);
@@ -191,6 +194,7 @@ public class SearchRequest
 
         // SEARCH message sequence
         // PVXS sends "find".getBytes() instead
+        // For TCP search via EPICS_PVA_NAME_SERVERS, we send "look" ("kool" for little endian)
         buffer.putInt(seq);
 
         // If a host has multiple listeners on the UDP search port,
@@ -222,6 +226,7 @@ public class SearchRequest
         else
         {
             // Only support tcp, or both tls and tcp?
+            // TODO pass 'use_tls' in because encode might also be called by ServerUDPHandler.forwardSearchRequest
             if (PVASettings.EPICS_PVA_TLS_KEYCHAIN.isBlank())
                 buffer.put((byte)1);
             else

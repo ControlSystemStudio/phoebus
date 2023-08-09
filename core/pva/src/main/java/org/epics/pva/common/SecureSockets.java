@@ -48,7 +48,8 @@ public class SecureSockets
         if (initialized)
             return;
 
-        final char[] password = PVASettings.EPICS_PVA_STOREPASS.isBlank() ? null : PVASettings.EPICS_PVA_STOREPASS.toCharArray();
+        // We support the default "" empty as well as actual passwords, but not null for no password
+        final char[] password = PVASettings.EPICS_PVA_STOREPASS.toCharArray();
 
         if (! PVASettings.EPICS_PVAS_TLS_KEYCHAIN.isBlank())
         {

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -183,7 +183,7 @@ class ServerUDPHandler extends UDPHandler
         {
             if (search.reply_required)
             {   // pvlist request
-                final boolean handled = server.handleSearchRequest(0, -1, null, search.client, null);
+                final boolean handled = server.handleSearchRequest(0, -1, null, search.client, search.tls, null);
                 if (! handled  &&  search.unicast)
                     PVAServer.POOL.submit(() -> forwardSearchRequest(0, null, search.client));
             }
@@ -193,7 +193,7 @@ class ServerUDPHandler extends UDPHandler
             List<SearchRequest.Channel> forward = null;
             for (SearchRequest.Channel channel : search.channels)
             {
-                final boolean handled = server.handleSearchRequest(search.seq, channel.getCID(), channel.getName(), search.client, null);
+                final boolean handled = server.handleSearchRequest(search.seq, channel.getCID(), channel.getName(), search.client, search.tls, null);
                 if (! handled && search.unicast)
                 {
                     if (forward == null)
@@ -250,15 +250,16 @@ class ServerUDPHandler extends UDPHandler
      *  @param guid This server's GUID
      *  @param seq Client search request sequence number
      *  @param cid Client's channel ID or -1
-     *  @param server TCP address where client can connect to server
+     *  @param server_address TCP address where client can connect to server
+     *  @param tls Should client use tls?
      *  @param client Address of client's UDP port
      */
-    public void sendSearchReply(final Guid guid, final int seq, final int cid, final InetSocketAddress server, final InetSocketAddress client)
+    public void sendSearchReply(final Guid guid, final int seq, final int cid, final InetSocketAddress server_address, final boolean tls, final InetSocketAddress client)
     {
         synchronized (send_buffer)
         {
             send_buffer.clear();
-            SearchResponse.encode(guid, seq, cid, server.getAddress(), server.getPort(), send_buffer);
+            SearchResponse.encode(guid, seq, cid, server_address.getAddress(), server_address.getPort(), tls, send_buffer);
             send_buffer.flip();
             logger.log(Level.FINER, () -> "Sending UDP search reply to " + client + "\n" + Hexdump.toHexdump(send_buffer));
 
