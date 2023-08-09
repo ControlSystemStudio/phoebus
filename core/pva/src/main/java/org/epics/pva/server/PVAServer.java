@@ -88,10 +88,12 @@ public class PVAServer implements AutoCloseable
         tcp = new ServerTCPListener(this);
     }
 
-    /** @return TCP address and port where server is accepting clients */
-    public InetSocketAddress getTCPAddress()
+    /** @param tls Request TLS or plain TCP address?
+     *  @return TCP address and port where server is accepting clients
+     */
+    public InetSocketAddress getTCPAddress(final boolean tls)
     {
-        return tcp.getResponseAddress();
+        return tcp.getResponseAddress(tls);
     }
 
     /** Create a read-only PV which serves data to clients
@@ -196,7 +198,7 @@ public class PVAServer implements AutoCloseable
             if (tcp_connection != null)
                 tcp_connection.submitSearchReply(guid, seq, -1, USE_THIS_TCP_CONNECTION, tls);
             else
-                POOL.execute(() -> udp.sendSearchReply(guid, 0, -1, getTCPAddress(), tls, client));
+                POOL.execute(() -> udp.sendSearchReply(guid, 0, -1, getTCPAddress(tls), tls, client));
             return true;
         }
         else
@@ -213,7 +215,7 @@ public class PVAServer implements AutoCloseable
                 if (tcp_connection != null)
                     send_search_reply.accept(USE_THIS_TCP_CONNECTION);
                 else
-                    send_search_reply.accept(getTCPAddress());
+                    send_search_reply.accept(getTCPAddress(tls));
                 return true;
             }
             else

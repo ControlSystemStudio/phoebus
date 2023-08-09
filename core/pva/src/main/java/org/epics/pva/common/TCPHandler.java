@@ -92,6 +92,7 @@ abstract public class TCPHandler
     };
 
     /** Pool for sender and receiver threads */
+    // Default keeps idle threads for one minute
     private static final ExecutorService thread_pool = Executors.newCachedThreadPool(runnable ->
     {
         final Thread thread = new Thread(runnable);

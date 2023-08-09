@@ -94,6 +94,7 @@ class ServerTCPHandler extends TCPHandler
             // TODO ServerAuthentication
             PVAString.encodeString("ca", buffer);
             PVAString.encodeString("anonymous", buffer);
+            // TODO "x509"
         });
     }
 
