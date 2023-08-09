@@ -194,6 +194,24 @@ public class FormulaUnitTest {
             // usually, should NOT get the same number twice...
             assertTrue(rnd != rnd2);
         }
+
+        f = new Formula("round(12.3)");
+        assertEquals(12, VTypeHelper.toDouble(f.eval()), epsilon);
+
+        f = new Formula("bitOR(5, 7)");
+        assertEquals(7, VTypeHelper.toDouble(f.eval()), epsilon);
+
+        f = new Formula("bitXOR(5, 7)");
+        assertEquals(2, VTypeHelper.toDouble(f.eval()), epsilon);
+
+        f = new Formula("bitRightShift(2, 4)");
+        assertEquals(0, VTypeHelper.toDouble(f.eval()), epsilon);
+
+        f = new Formula("bitRightShift(4, 2)");
+        assertEquals(1, VTypeHelper.toDouble(f.eval()), epsilon);
+
+        f = new Formula("bitNOT(5)");
+        assertEquals(-6, VTypeHelper.toDouble(f.eval()), epsilon);
     }
 
     @Test
@@ -256,6 +274,9 @@ public class FormulaUnitTest {
         assertTrue(Double.isInfinite(VTypeHelper.toDouble(f.eval())));
 
         f = new Formula("sqrt(-1)");
+        assertTrue(Double.isNaN(VTypeHelper.toDouble(f.eval())));
+
+        f = new Formula("bitXOR(5.3, 7)");
         assertTrue(Double.isNaN(VTypeHelper.toDouble(f.eval())));
     }
 
