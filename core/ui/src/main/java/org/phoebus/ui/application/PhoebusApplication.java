@@ -1395,6 +1395,12 @@ public class PhoebusApplication extends Application {
                                                          monitor);
     }
 
+    private enum SaveStatus {
+        SUCCESS,
+        FAILURE,
+        NOTHING
+    };
+
     public static boolean confirmationDialogWhenUnsavedChangesExist(SortedMap<String, SortedMap<String, List<DockItemWithInput>>> windowNrToApplicationNameToDockItemsWithInput,
                                                                     String question,
                                                                     String closeActionName,
@@ -1440,7 +1446,7 @@ public class PhoebusApplication extends Application {
                 exitPhoebusWithoutSavingUnsavedChanges_button.setTooltip(new Tooltip(exitPhoebusWithoutSavingUnsavedChanges_button.getText()));
                 List<Consumer<Boolean>> setCheckBoxStatusActions = new LinkedList<>();
                 List<Supplier<Boolean>> getCheckBoxStatusActions = new LinkedList<>();
-                List<Supplier<Boolean>> saveActions = new LinkedList<>();
+                List<Supplier<SaveStatus>> saveActions = new LinkedList<>();
 
                 Runnable enableAndDisableButtons = () -> {
                     if (getCheckBoxStatusActions.stream().anyMatch(getCheckBoxStatus -> getCheckBoxStatus.get())) {
@@ -1501,7 +1507,7 @@ public class PhoebusApplication extends Application {
 
                                 hBox.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseEvent -> checkBox.setSelected(!checkBox.isSelected())); // Enable toggling checkbox by clicking on its label.
 
-                                Supplier<Boolean> saveIfCheckboxEnabled = () -> {
+                                Supplier<SaveStatus> saveIfCheckboxEnabled = () -> {
                                     if (checkBox.isSelected()) {
 
                                         Text saving = new Text("[" + Messages.UnsavedChanges_saving + "]");
@@ -1520,7 +1526,7 @@ public class PhoebusApplication extends Application {
                                             saved.setFill(Color.GREEN);
                                             saved.setStyle("-fx-font-weight: bold;");
                                             hBox.getChildren().set(0, saved);
-                                            return true;
+                                            return SaveStatus.SUCCESS;
                                         }
                                         else {
                                             Text savingFailed_text = new Text("[" + Messages.UnsavedChanges_savingFailed + "]");
@@ -1530,11 +1536,11 @@ public class PhoebusApplication extends Application {
                                             HBox savingFailed = new HBox(checkBox, savingFailed_text);
                                             savingFailed.setSpacing(6);
                                             hBox.getChildren().set(0, savingFailed);
-                                            return false;
+                                            return SaveStatus.FAILURE;
                                         }
                                     }
                                     else {
-                                        return false;
+                                        return SaveStatus.NOTHING;
                                     }
                                 };
                                 saveActions.add(saveIfCheckboxEnabled);
@@ -1569,12 +1575,16 @@ public class PhoebusApplication extends Application {
                 saveSelectedItems_button.addEventFilter(ActionEvent.ACTION, event -> {
                     event.consume();
 
-                    List<Supplier<Boolean>> saveActionsThatHaveBeenCompleted = new LinkedList<>();
+                    List<Supplier<SaveStatus>> saveActionsThatHaveBeenCompleted = new LinkedList<>();
                     for (var saveAction : saveActions) {
-                        boolean result = saveAction.get();
-                        if (result) {
+                        SaveStatus result = saveAction.get();
+                        if (result == SaveStatus.SUCCESS) {
                             saveActionsThatHaveBeenCompleted.add(saveAction);
                         }
+                        else if (result == SaveStatus.FAILURE) {
+                            break;
+                        }
+                        // If result == SaveStatus.NOTHING, continue.
                     }
 
                     for (var saveActionThatHasBeenCompleted : saveActionsThatHaveBeenCompleted) {
