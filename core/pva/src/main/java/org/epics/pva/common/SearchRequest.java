@@ -17,7 +17,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 
-import org.epics.pva.PVASettings;
 import org.epics.pva.data.PVAAddress;
 import org.epics.pva.data.PVAString;
 
@@ -183,9 +182,10 @@ public class SearchRequest
      *  @param seq Sequence number
      *  @param channels Channels to search, <code>null</code> for 'list'
      *  @param address client's address
+     *  @param tls Use TLS?
      *  @param buffer Buffer into which to encode
      */
-    public static void encode(final boolean unicast, final int seq, final Collection<Channel> channels, final InetSocketAddress address, final ByteBuffer buffer)
+    public static void encode(final boolean unicast, final int seq, final Collection<Channel> channels, final InetSocketAddress address, final boolean tls, final ByteBuffer buffer)
     {
         // Create with zero payload size, to be patched later
         PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_SEARCH, 0);
@@ -225,15 +225,14 @@ public class SearchRequest
         }
         else
         {
-            // Only support tcp, or both tls and tcp?
-            // TODO pass 'use_tls' in because encode might also be called by ServerUDPHandler.forwardSearchRequest
-            if (PVASettings.EPICS_PVA_TLS_KEYCHAIN.isBlank())
-                buffer.put((byte)1);
-            else
+            // Support both tls and tcp, or only tcp?
+            if (tls)
             {
                 buffer.put((byte)2);
                 PVAString.encodeString("tls", buffer);
             }
+            else
+                buffer.put((byte)1);
             PVAString.encodeString("tcp", buffer);
 
             buffer.putShort((short)channels.size());

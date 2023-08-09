@@ -185,7 +185,7 @@ class ServerUDPHandler extends UDPHandler
             {   // pvlist request
                 final boolean handled = server.handleSearchRequest(0, -1, null, search.client, search.tls, null);
                 if (! handled  &&  search.unicast)
-                    PVAServer.POOL.submit(() -> forwardSearchRequest(0, null, search.client));
+                    PVAServer.POOL.submit(() -> forwardSearchRequest(0, null, search.client, search.tls));
             }
         }
         else
@@ -205,7 +205,7 @@ class ServerUDPHandler extends UDPHandler
             if (forward != null)
             {
                 final List<SearchRequest.Channel> to_forward = forward;
-                PVAServer.POOL.submit(() -> forwardSearchRequest(search.seq, to_forward, search.client));
+                PVAServer.POOL.submit(() -> forwardSearchRequest(search.seq, to_forward, search.client, search.tls));
             }
         }
 
@@ -223,8 +223,9 @@ class ServerUDPHandler extends UDPHandler
      *  @param seq Search sequence or 0
      *  @param channels Channel CIDs and names or <code>null</code> for 'list'
      *  @param address Client's address and port
+     *  @param tls Use TLS or plain TCP?
      */
-    private void forwardSearchRequest(final int seq, final Collection<SearchRequest.Channel> channels, final InetSocketAddress address)
+    private void forwardSearchRequest(final int seq, final Collection<SearchRequest.Channel> channels, final InetSocketAddress address, final boolean tls)
     {
         // TODO Remove the local IPv4 multicast re-send from the protocol, just use multicast from the start as with IPv6
         if (local_multicast == null)
@@ -232,7 +233,7 @@ class ServerUDPHandler extends UDPHandler
         synchronized (send_buffer)
         {
             send_buffer.clear();
-            SearchRequest.encode(false, seq, channels, address, send_buffer);
+            SearchRequest.encode(false, seq, channels, address, tls, send_buffer);
             send_buffer.flip();
             logger.log(Level.FINER, () -> "Forward search to " + local_multicast + "\n" + Hexdump.toHexdump(send_buffer));
             try

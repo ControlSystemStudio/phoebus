@@ -284,7 +284,7 @@ class ClientUDPHandler extends UDPHandler
                     if (search.reply_required)
                     {
                         forward_buffer.clear();
-                        SearchRequest.encode(false, 0, null, search.client, forward_buffer);
+                        SearchRequest.encode(false, 0, null, search.client, search.tls, forward_buffer);
                         forward_buffer.flip();
                         logger.log(Level.FINER, () -> "Forward search to list servers to " + local_multicast + "\n" + Hexdump.toHexdump(forward_buffer));
                         send(forward_buffer, local_multicast);
@@ -293,7 +293,7 @@ class ClientUDPHandler extends UDPHandler
                 else
                 {
                     forward_buffer.clear();
-                    SearchRequest.encode(false, search.seq, search.channels, search.client, forward_buffer);
+                    SearchRequest.encode(false, search.seq, search.channels, search.client, search.tls, forward_buffer);
                     forward_buffer.flip();
                     logger.log(Level.FINER, () -> "Forward search to " + local_multicast + "\n" + Hexdump.toHexdump(forward_buffer));
                     send(forward_buffer, local_multicast);
