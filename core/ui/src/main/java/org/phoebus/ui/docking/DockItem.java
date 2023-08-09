@@ -604,20 +604,24 @@ public class DockItem extends Tab
      */
     public void addCloseCheck(final Supplier<Future<Boolean>> ok_to_close)
     {
-        if (getOnCloseRequest() == null)
-            setOnCloseRequest(event ->
-            {
-                // For now, prevent closing
-                event.consume();
+        var alreadyExistingEventHandler = getOnCloseRequest();
 
-                // Invoke all the ok-to-close checks in background threads
-                // since those that save files might take time.
-                JobManager.schedule("Close " + getLabel(), monitor ->
-                {
-                    if (prepareToClose())
-                        Platform.runLater(() -> close());
-                });
+        setOnCloseRequest(event -> {
+            // For now, prevent closing
+            event.consume();
+
+            // Invoke all the ok-to-close checks in background threads
+            // since those that save files might take time.
+            JobManager.schedule("Close " + getLabel(), monitor ->
+            {
+                if (prepareToClose()) {
+                    if (alreadyExistingEventHandler != null) {
+                        alreadyExistingEventHandler.handle(event);
+                    }
+                    Platform.runLater(() -> close());
+                }
             });
+        });
 
         close_check.add(ok_to_close);
     }
