@@ -39,8 +39,28 @@ abstract class ServerAuth
     public static ServerAuth decode(final ServerTCPHandler tcp, final ByteBuffer buffer) throws Exception
     {
         final String auth = PVAString.decodeString(buffer);
+
+        if (buffer.remaining() < 1)
+            throw new Exception("Missing authentication detail for '" + auth + "'");
+
+        final PVATypeRegistry types = tcp.getClientTypes();
+        final PVAData type = types.decodeType("", buffer);
+        PVAStructure info = null;
+        if (type instanceof PVAStructure)
+        {
+            info = (PVAStructure) type;
+            info.decode(types, buffer);
+        }
+
         if (PVAAuth.CA.equals(auth))
-            return new CAServerAuth(tcp, buffer);
+            return new CAServerAuth(info);
+
+        if (info != null)
+            throw new Exception("Expected no authentication detail for '" + auth + "' but got " + info);
+
+        if (PVAAuth.X509.equals(auth))
+            return new X509ServerAuth();
+
         return Anonymous;
     }
 
@@ -63,20 +83,8 @@ abstract class ServerAuth
     {
         private String user, host;
 
-        public CAServerAuth(final ServerTCPHandler tcp, final ByteBuffer buffer) throws Exception
+        public CAServerAuth(final PVAStructure info) throws Exception
         {
-            final PVATypeRegistry types = tcp.getClientTypes();
-
-            if (buffer.remaining() < 1)
-                throw new Exception("Missing 'ca' authentication info");
-
-            final PVAData data = types.decodeType("", buffer);
-            if (! (data instanceof PVAStructure))
-                throw new Exception("Expected structure for 'ca' authentication info, got " + data);
-
-            final PVAStructure info = (PVAStructure) data;
-            info.decode(types, buffer);
-
             PVAString element = info.get("user");
             if (element == null)
                 throw new Exception("Missing 'ca' authentication 'user', got " + info);
@@ -91,9 +99,7 @@ abstract class ServerAuth
         @Override
         public boolean hasWriteAccess(final String channel)
         {
-            // TODO Implement access security based on `acf` type config file
-            // if (! channel.contains("demo"))
-            //     return false;
+            // TODO Implement access security based on `acf` type config file, checking channel for user and host
             return true;
         }
 
@@ -103,4 +109,31 @@ abstract class ServerAuth
             return "ca(" + user + "@" + host + ")";
         }
     }
+
+
+    private static class X509ServerAuth extends ServerAuth
+    {
+        private String user, host;
+
+        public X509ServerAuth() throws Exception
+        {
+            // TODO Get user from certificate, host from TCP??
+            user = "TODO";
+            host = "TODO";
+        }
+
+        @Override
+        public boolean hasWriteAccess(final String channel)
+        {
+            // TODO Implement access security based on `acf` type config file, checking channel for user and host
+            return true;
+        }
+
+        @Override
+        public String toString()
+        {
+            return "x509(" + user + "@" + host + ")";
+        }
+    }
+
 }

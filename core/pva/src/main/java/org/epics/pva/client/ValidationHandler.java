@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.epics.pva.common.CommandHandler;
+import org.epics.pva.common.PVAAuth;
 import org.epics.pva.common.PVAHeader;
 import org.epics.pva.data.PVASize;
 import org.epics.pva.data.PVAString;
@@ -50,10 +51,11 @@ class ValidationHandler implements CommandHandler<ClientTCPHandler>
 
         // Support "ca" authorization, fall back to anonymouse
         final ClientAuthentication authentication;
-        if (auth.contains("ca"))
+        if (auth.contains(PVAAuth.CA))
             authentication = ClientAuthentication.CA;
         else
             authentication = ClientAuthentication.Anonymous;
+        // TODO PVAAuth.X509
         tcp.handleValidationRequest(server_receive_buffer_size,
                                     server_introspection_registry_max_size,
                                     authentication);

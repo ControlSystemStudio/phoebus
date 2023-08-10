@@ -14,7 +14,10 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
 
+import javax.net.ssl.SSLSocket;
+
 import org.epics.pva.common.CommandHandlers;
+import org.epics.pva.common.PVAAuth;
 import org.epics.pva.common.PVAHeader;
 import org.epics.pva.common.RequestEncoder;
 import org.epics.pva.common.SearchResponse;
@@ -78,9 +81,10 @@ class ServerTCPHandler extends TCPHandler
         submit((version, buffer) ->
         {
             logger.log(Level.FINE, () -> "Sending Validation Request");
-            PVAHeader.encodeMessageHeader(buffer,
-                    PVAHeader.FLAG_SERVER,
-                    PVAHeader.CMD_CONNECTION_VALIDATION, 4+2+1+PVAString.getEncodedSize("anonymous") + PVAString.getEncodedSize("ca"));
+
+            final int size_offset = buffer.position() + PVAHeader.HEADER_OFFSET_PAYLOAD_SIZE;
+            PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_SERVER, PVAHeader.CMD_CONNECTION_VALIDATION, 4+2+1);
+            final int payload_start = buffer.position();
 
             // int serverReceiveBufferSize;
             buffer.putInt(receive_buffer.capacity());
@@ -88,13 +92,17 @@ class ServerTCPHandler extends TCPHandler
             // short serverIntrospectionRegistryMaxSize;
             buffer.putShort(Short.MAX_VALUE);
 
-            // string[] authNZ;
-            PVASize.encodeSize(1, buffer);
+            // On secure connection server supports "x509"
+            boolean support_x509 = (client instanceof SSLSocket);
 
-            // TODO ServerAuthentication
-            PVAString.encodeString("ca", buffer);
-            PVAString.encodeString("anonymous", buffer);
-            // TODO "x509"
+            // string[] authNZ; listing most secure at end
+            PVASize.encodeSize(support_x509 ? 3 : 2, buffer);
+            PVAString.encodeString(PVAAuth.ANONYMOUS, buffer);
+            PVAString.encodeString(PVAAuth.CA, buffer);
+            if (support_x509)
+                PVAString.encodeString(PVAAuth.X509, buffer);
+
+            buffer.putInt(size_offset, buffer.position() - payload_start);
         });
     }
 
