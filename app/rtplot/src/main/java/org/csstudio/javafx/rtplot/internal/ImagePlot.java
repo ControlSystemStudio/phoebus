@@ -666,8 +666,8 @@ public class ImagePlot extends PlotCanvasBase
         // Fill with a 'background' color
         if (background.getAlpha() < 255)
         {   // Clear because fill alone with transparent background leaves previous content
-        	gc.setBackground(background);
-            gc.clearRect(0, 0, area_copy.width, area_copy.height);        	
+            gc.setBackground(background);
+            gc.clearRect(0, 0, area_copy.width, area_copy.height);
         }
         gc.setColor(background);
         gc.fillRect(0, 0, area_copy.width, area_copy.height);
