@@ -192,6 +192,16 @@ public class DockItem extends Tab
             boolean shouldClose = this instanceof DockItemWithInput ? ((DockItemWithInput) this).okToClose().get() : true;
 
             if (shouldClose) {
+                // Select the previously selected tab:
+                var dockPane = getDockPane();
+                dockPane.tabsInOrderOfFocus.remove(this);
+                if (dockPane.tabsInOrderOfFocus.size() > 0) {
+                    var tabToSelect = dockPane.tabsInOrderOfFocus.getFirst();
+                    var selectionModel = dockPane.getSelectionModel();
+                    selectionModel.select(tabToSelect);
+                }
+
+                // Close the tab:
                 prepareToClose();
                 Platform.runLater(() -> close());
             }
@@ -707,6 +717,14 @@ public class DockItem extends Tab
         setContent(null);
         // Remove "application" entry which otherwise holds on to application data model
         getProperties().remove(KEY_APPLICATION);
+
+        // Ensure that the tab is removed from dockPane.tabsInOrderOfFocus
+        // to avoid memory leaks. (The tab may have been closed without
+        // calling the OnCloseRequest event-handler.)
+        var dockPane = getDockPane();
+        if (dockPane != null) {
+            dockPane.tabsInOrderOfFocus.remove(this);
+        }
     }
 
     /** Programmatically close this tab
