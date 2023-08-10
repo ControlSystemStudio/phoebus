@@ -255,6 +255,9 @@ class ChannelSearch
                 bucket = (bucket + SEARCH_SOON_DELAY)  % search_buckets.size();
             search_buckets.get(bucket).add(sc);
         }
+        // Jumpstart search instead of waiting up to ~1 second for current bucket to be handled
+        if (now)
+            timer.execute(this::runSearches);
     }
 
     /** Stop searching for channel
@@ -321,6 +324,7 @@ class ChannelSearch
             // Determine current search bucket
             final int current = current_search_bucket.getAndUpdate(i -> (i + 1) % search_buckets.size());
             final LinkedList<SearchedChannel> bucket = search_buckets.get(current);
+            logger.log(Level.FINEST, () -> "Search bucket " + current);
 
             // Remove searched channels from the current bucket
             SearchedChannel sc;
