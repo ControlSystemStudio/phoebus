@@ -9,7 +9,11 @@ package org.phoebus.ui.docking;
 
 import java.lang.ref.WeakReference;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -219,8 +223,17 @@ public class DockPane extends TabPane
         getTabs().addListener((InvalidationListener) change -> handleTabChanges());
 
         setOnContextMenuRequested(this::showContextMenu);
+
+        getSelectionModel().selectedItemProperty().addListener((observable, previous_item, new_item) -> {
+            // Keep track of the order of focus of tabs:
+            if (new_item != null) {
+                tabsInOrderOfFocus.remove(new_item);
+                tabsInOrderOfFocus.push((DockItem) new_item);
+            }
+        });
     }
 
+    protected LinkedList<DockItem> tabsInOrderOfFocus = new LinkedList<>();
 
     private void showContextMenu(final ContextMenuEvent event)
     {

@@ -176,6 +176,17 @@ public class DockItem extends Tab
         createContextMenu();
 
         setOnClosed(event -> handleClosed());
+        setOnCloseRequest(event -> {
+            // Select the previously selected tab:
+            var dockPane = getDockPane();
+            dockPane.tabsInOrderOfFocus.remove(this);
+
+            if (dockPane.tabsInOrderOfFocus.size() > 0) {
+                var tabToSelect = dockPane.tabsInOrderOfFocus.getFirst();
+                var selectionModel = dockPane.getSelectionModel();
+                selectionModel.select(tabToSelect);
+            }
+        });
     }
 
     /** This tab should be in a DockPane, not a plain TabPane
@@ -593,20 +604,24 @@ public class DockItem extends Tab
      */
     public void addCloseCheck(final Supplier<Future<Boolean>> ok_to_close)
     {
-        if (getOnCloseRequest() == null)
-            setOnCloseRequest(event ->
-            {
-                // For now, prevent closing
-                event.consume();
+        var alreadyExistingEventHandler = getOnCloseRequest();
 
-                // Invoke all the ok-to-close checks in background threads
-                // since those that save files might take time.
-                JobManager.schedule("Close " + getLabel(), monitor ->
-                {
-                    if (prepareToClose())
-                        Platform.runLater(() -> close());
-                });
+        setOnCloseRequest(event -> {
+            // For now, prevent closing
+            event.consume();
+
+            // Invoke all the ok-to-close checks in background threads
+            // since those that save files might take time.
+            JobManager.schedule("Close " + getLabel(), monitor ->
+            {
+                if (prepareToClose()) {
+                    if (alreadyExistingEventHandler != null) {
+                        alreadyExistingEventHandler.handle(event);
+                    }
+                    Platform.runLater(() -> close());
+                }
             });
+        });
 
         close_check.add(ok_to_close);
     }
@@ -691,6 +706,10 @@ public class DockItem extends Tab
         setContent(null);
         // Remove "application" entry which otherwise holds on to application data model
         getProperties().remove(KEY_APPLICATION);
+        var dockPane = getDockPane();
+        if (dockPane != null) {
+            dockPane.tabsInOrderOfFocus.remove(this);
+        }
     }
 
     /** Programmatically close this tab
