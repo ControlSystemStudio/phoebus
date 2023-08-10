@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -89,8 +89,11 @@ public class PVASettings
     /** PVA client port for sending name searches and receiving beacons */
     public static int EPICS_PVA_BROADCAST_PORT = 5076;
 
-    /** First PVA port used by server */
+    /** First PVA port used by plain TCP server */
     public static int EPICS_PVA_SERVER_PORT = 5075;
+
+    /** First PVA port used by TLS server */
+    public static int EPICS_PVAS_TLS_PORT = 5076;
 
     /** Local addresses to which server will listen.
      *
@@ -130,13 +133,35 @@ public class PVASettings
     /** Multicast address used for the local re-send of IPv4 unicasts */
     public static String EPICS_PVA_MULTICAST_GROUP = "224.0.0.128";
 
+    /** Path to key store, a PKCS12 file that contains server's public and private key.
+     *  When empty, PVA server does not support secure (TLS) communication.
+     */
+    public static String EPICS_PVAS_TLS_KEYCHAIN = "";
+
+    /** Path to trust store, a PKCS12 file that contains the certificates or root CA
+     *  that the client will trust.
+     *  When empty, PVA client does not support secure (TLS) communication.
+     *  When configured, PVA client can reply to PVA servers that offer "tls" in a search reply,
+     *  and searches via EPICS_PVA_NAME_SERVERS will also use TLS.
+     */
+    public static String EPICS_PVA_TLS_KEYCHAIN = "";
+
+    /** Password used to open the EPICS_PVAS_TLS_KEYCHAIN as well as EPICS_PVA_TLS_KEYCHAIN.
+     *  May be empty if key stores do not use a password.
+     *
+     *  The wrong password will result in an obvious "keystore password was incorrect" exception,
+     *  but an empty password for a keystore that requires one can result in an exception
+     *  with message "the trustAnchors parameter must be non-empty".
+     */
+    public static String EPICS_PVA_STOREPASS = "";
+
     /** TCP buffer size for sending data
      *
      *  <p>Messages are constructed within this buffer,
      *  so it needs to be pre-configured to hold the maximum
      *  package size.
      */
-    // double[8 million] plus some protocol overhead
+    // 1 million 'double' plus some protocol overhead
     public static int EPICS_PVA_SEND_BUFFER_SIZE = 8001000;
 
     /** Initial TCP buffer size for receiving data
@@ -204,11 +229,15 @@ public class PVASettings
         EPICS_PVA_AUTO_ADDR_LIST = get("EPICS_PVA_AUTO_ADDR_LIST", EPICS_PVA_AUTO_ADDR_LIST);
         EPICS_PVA_NAME_SERVERS = get("EPICS_PVA_NAME_SERVERS", EPICS_PVA_NAME_SERVERS);
         EPICS_PVA_SERVER_PORT = get("EPICS_PVA_SERVER_PORT", EPICS_PVA_SERVER_PORT);
+        EPICS_PVAS_TLS_PORT = get("EPICS_PVAS_TLS_PORT", EPICS_PVAS_TLS_PORT);
         EPICS_PVAS_INTF_ADDR_LIST = get("EPICS_PVAS_INTF_ADDR_LIST", EPICS_PVAS_INTF_ADDR_LIST).trim();
         EPICS_PVA_BROADCAST_PORT = get("EPICS_PVA_BROADCAST_PORT", EPICS_PVA_BROADCAST_PORT);
         EPICS_PVAS_BROADCAST_PORT = get("EPICS_PVAS_BROADCAST_PORT", EPICS_PVAS_BROADCAST_PORT);
         EPICS_PVA_CONN_TMO = get("EPICS_PVA_CONN_TMO", EPICS_PVA_CONN_TMO);
         EPICS_PVA_MAX_ARRAY_FORMATTING = get("EPICS_PVA_MAX_ARRAY_FORMATTING", EPICS_PVA_MAX_ARRAY_FORMATTING);
+        EPICS_PVAS_TLS_KEYCHAIN = get("EPICS_PVAS_TLS_KEYCHAIN", EPICS_PVAS_TLS_KEYCHAIN);
+        EPICS_PVA_TLS_KEYCHAIN = get("EPICS_PVA_TLS_KEYCHAIN", EPICS_PVA_TLS_KEYCHAIN);
+        EPICS_PVA_STOREPASS = get("EPICS_PVA_STOREPASS", EPICS_PVA_STOREPASS);
         EPICS_PVA_SEND_BUFFER_SIZE = get("EPICS_PVA_SEND_BUFFER_SIZE", EPICS_PVA_SEND_BUFFER_SIZE);
         EPICS_PVA_FAST_BEACON_MIN = get("EPICS_PVA_FAST_BEACON_MIN", EPICS_PVA_FAST_BEACON_MIN);
         EPICS_PVA_FAST_BEACON_MAX = get("EPICS_PVA_FAST_BEACON_MAX", EPICS_PVA_FAST_BEACON_MAX);

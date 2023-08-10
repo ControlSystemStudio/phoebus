@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -50,6 +50,8 @@ public class PVAChannel extends SearchRequest.Channel implements AutoCloseable
      *  Since the server tends to start at 1, this makes it
      *  more obvious in tests which ID is the SID
      *  and which is the CID.
+     *
+     *  PVXS starts first channel with ID 0x12345678
      */
     private static final AtomicInteger CID_Provider = new AtomicInteger(1);
 

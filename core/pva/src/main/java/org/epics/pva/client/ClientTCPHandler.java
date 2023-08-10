@@ -100,9 +100,9 @@ class ClientTCPHandler extends TCPHandler
      */
     private final AtomicBoolean connection_validated = new AtomicBoolean(false);
 
-    public ClientTCPHandler(final PVAClient client, final InetSocketAddress address, final Guid guid) throws Exception
+    public ClientTCPHandler(final PVAClient client, final InetSocketAddress address, final Guid guid, final boolean tls) throws Exception
     {
-        super(createSocket(address), true);
+        super(createSocket(address, tls), true);
         logger.log(Level.FINE, () -> "TCPHandler " + guid + " for " + address + " created ============================");
         this.client = client;
         this.guid = guid;
@@ -117,9 +117,9 @@ class ClientTCPHandler extends TCPHandler
         // it's started when server confirms the connection.
     }
 
-    private static Socket createSocket(InetSocketAddress address) throws Exception
+    private static Socket createSocket(InetSocketAddress address, final boolean tls) throws Exception
     {
-        final Socket socket = SecureSockets.getClientFactory().createSocket(address.getAddress(), address.getPort());
+        final Socket socket = SecureSockets.createClientSocket(address, tls);
         socket.setTcpNoDelay(true);
         socket.setKeepAlive(true);
         return socket;

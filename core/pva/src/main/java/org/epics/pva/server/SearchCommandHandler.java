@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2021-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -35,6 +35,6 @@ class SearchCommandHandler implements CommandHandler<ServerTCPHandler>
         if (search.channels != null)
             for (SearchRequest.Channel channel : search.channels)
                 tcp.getServer().handleSearchRequest(search.seq, channel.getCID(), channel.getName(),
-                                                    search.client, tcp);
+                                                    search.client, search.tls, tcp);
     }
 }

@@ -94,6 +94,7 @@ class ServerTCPHandler extends TCPHandler
             // TODO ServerAuthentication
             PVAString.encodeString("ca", buffer);
             PVAString.encodeString("anonymous", buffer);
+            // TODO "x509"
         });
     }
 
@@ -141,12 +142,19 @@ class ServerTCPHandler extends TCPHandler
             super.handleApplicationMessage(command, buffer);
     }
 
-    void submitSearchReply(final Guid guid, final int seq, final int cid, final InetSocketAddress server_address)
+    /** Send a "channel found" reply to a client's search
+     *  @param guid This server's GUID
+     *  @param seq Client search request sequence number
+     *  @param cid Client's channel ID or -1
+     *  @param server_address TCP address where client can connect to server
+     *  @param tls Should client use tls?
+     */
+    void submitSearchReply(final Guid guid, final int seq, final int cid, final InetSocketAddress server_address, final boolean tls)
     {
         final RequestEncoder encoder = (version, buffer) ->
         {
-            logger.log(Level.FINER, "Sending TCP search reply");
-            SearchResponse.encode(guid, seq, cid, server_address.getAddress(), server_address.getPort(), buffer);
+            logger.log(Level.FINER, () -> "Sending " + (tls ? "TLS" : "TCP") + " search reply");
+            SearchResponse.encode(guid, seq, cid, server_address.getAddress(), server_address.getPort(), tls, buffer);
         };
         submit(encoder);
     }
