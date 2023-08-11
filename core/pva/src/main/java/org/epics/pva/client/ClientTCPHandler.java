@@ -22,6 +22,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
+import javax.net.ssl.SSLSocket;
+
 import org.epics.pva.PVASettings;
 import org.epics.pva.common.CommandHandlers;
 import org.epics.pva.common.PVAHeader;
@@ -56,6 +58,13 @@ class ClientTCPHandler extends TCPHandler
 
     /** Client context */
     private final PVAClient client;
+
+    /** When using TLS, the socket may come with a local certificate
+     *  that TLS uses to authenticate to the server,
+     *  and this is the name from that certificate.
+     *  Otherwise <code>null</code>
+     */
+    private String x509_name;
 
     /** Channels that use this connection */
     private final CopyOnWriteArrayList<PVAChannel> channels = new CopyOnWriteArrayList<>();
@@ -107,6 +116,9 @@ class ClientTCPHandler extends TCPHandler
         this.client = client;
         this.guid = guid;
 
+        // For TLS, check if the socket has a name that's used to authenticate
+        x509_name = tls ? SecureSockets.getLocalPrincipalName((SSLSocket) socket) : null;
+
         // For default EPICS_CA_CONN_TMO: 30 sec, send echo at ~15 sec:
         // Check every ~3 seconds
         last_life_sign = last_message_sent = System.currentTimeMillis();
@@ -117,7 +129,7 @@ class ClientTCPHandler extends TCPHandler
         // it's started when server confirms the connection.
     }
 
-    private static Socket createSocket(InetSocketAddress address, final boolean tls) throws Exception
+    private static Socket createSocket(final InetSocketAddress address, final boolean tls) throws Exception
     {
         final Socket socket = SecureSockets.createClientSocket(address, tls);
         socket.setTcpNoDelay(true);
@@ -129,6 +141,12 @@ class ClientTCPHandler extends TCPHandler
     PVAClient getClient()
     {
         return client;
+    }
+
+    /** @return Name used by TLS socket's certificate, or <code>null</code> */
+    String getX509Name()
+    {
+        return x509_name;
     }
 
     /** @param channel Channel that uses this TCP connection */

@@ -161,6 +161,28 @@ public class SecureSockets
         return socket;
     }
 
+    /** Get name from local principal
+     *
+     *  @param socket {@link SSLSocket} that may have local principal
+     *  @return Name (without "CN=..") or <code>null</code> if socket has certificate to authenticate
+     */
+    public static String getLocalPrincipalName(final SSLSocket socket)
+    {
+        try
+        {
+            String name = socket.getSession().getLocalPrincipal().getName();
+            if (name.startsWith("CN="))
+                name = name.substring(3);
+            else
+                logger.log(Level.WARNING, "Client has principal '" + name + "', expected 'CN=...'");
+            return name;
+        }
+        catch (Exception ex)
+        {   // May not have certificate with name
+        }
+        return null;
+    }
+
     /** Information from TLS socket handshake */
     public static class TLSHandshakeInfo
     {

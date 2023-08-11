@@ -49,13 +49,15 @@ class ValidationHandler implements CommandHandler<ClientTCPHandler>
         logger.finer(() -> "Server registry max size: " + server_introspection_registry_max_size);
         logger.finer(() -> "Server authentication methods: " + auth);
 
-        // Support "ca" authorization, fall back to anonymouse
+        // Support "x509" or "ca" authorization, fall back to any-no-mouse
         final ClientAuthentication authentication;
-        if (auth.contains(PVAAuth.CA))
+        // Even if server suggests x509, check that we have a certificate with name
+        if (tcp.getX509Name() != null  &&  auth.contains(PVAAuth.X509))
+            authentication = ClientAuthentication.X509;
+        else if (auth.contains(PVAAuth.CA))
             authentication = ClientAuthentication.CA;
         else
             authentication = ClientAuthentication.Anonymous;
-        // TODO PVAAuth.X509
         tcp.handleValidationRequest(server_receive_buffer_size,
                                     server_introspection_registry_max_size,
                                     authentication);
