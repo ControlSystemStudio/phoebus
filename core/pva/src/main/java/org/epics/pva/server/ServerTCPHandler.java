@@ -14,8 +14,6 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
 
-import javax.net.ssl.SSLSocket;
-
 import org.epics.pva.common.CommandHandlers;
 import org.epics.pva.common.PVAAuth;
 import org.epics.pva.common.PVAHeader;
@@ -67,12 +65,6 @@ class ServerTCPHandler extends TCPHandler
         this.server = server;
         this.tls_info = tls_info;
 
-        // TODO Use name for x509 auth
-        if (this.tls_info != null)
-            System.out.println("GOT x509 NAME '" + this.tls_info.name + "'!");
-        else
-            System.out.println("GOT NO x509 NAME...");
-
         server.register(this);
         startSender();
 
@@ -105,8 +97,8 @@ class ServerTCPHandler extends TCPHandler
             // short serverIntrospectionRegistryMaxSize;
             buffer.putShort(Short.MAX_VALUE);
 
-            // On secure connection server supports "x509"
-            boolean support_x509 = (client instanceof SSLSocket);
+            // If client identified itself on secure connection, server supports "x509"
+            boolean support_x509 = this.tls_info != null;
 
             // string[] authNZ; listing most secure at end
             PVASize.encodeSize(support_x509 ? 3 : 2, buffer);
@@ -122,6 +114,11 @@ class ServerTCPHandler extends TCPHandler
     PVAServer getServer()
     {
         return server;
+    }
+
+    TLSHandshakeInfo getTLSHandshakeInfo()
+    {
+        return tls_info;
     }
 
     PVATypeRegistry getClientTypes()

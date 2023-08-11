@@ -68,6 +68,8 @@ public class SecureSockets
             pass = "".toCharArray();
         }
 
+        logger.log(Level.INFO, () -> "Loading keychain '" + path + "'");
+
         final KeyStore key_store = KeyStore.getInstance("PKCS12");
         key_store.load(new FileInputStream(path), pass);
 
@@ -90,14 +92,12 @@ public class SecureSockets
 
         if (! PVASettings.EPICS_PVAS_TLS_KEYCHAIN.isBlank())
         {
-            logger.log(Level.INFO, "Loading server keychain '" + PVASettings.EPICS_PVAS_TLS_KEYCHAIN + "'");
             final SSLContext context = createContext(PVASettings.EPICS_PVAS_TLS_KEYCHAIN);
             tls_server_sockets = context.getServerSocketFactory();
         }
 
         if (! PVASettings.EPICS_PVA_TLS_KEYCHAIN.isBlank())
         {
-            logger.log(Level.INFO, "Loading client keychain '" + PVASettings.EPICS_PVA_TLS_KEYCHAIN + "'");
             final SSLContext context = createContext(PVASettings.EPICS_PVA_TLS_KEYCHAIN);
             tls_client_sockets = context.getSocketFactory();
         }
@@ -167,6 +167,10 @@ public class SecureSockets
         /** Name by which the peer identified */
         public String name;
 
+        /** Host of the peer */
+        public String hostname;
+
+
         /** Get TLS/SSH info from socket
          *  @param socket {@link SSLSocket}
          *  @return {@link TLSHandshakeInfo} or <code>null</code>
@@ -191,6 +195,9 @@ public class SecureSockets
                     logger.log(Level.WARNING, "Peer " + socket.getInetAddress() + " sent '" + name + "' as principal name, expected 'CN=...'");
                 final TLSHandshakeInfo info = new TLSHandshakeInfo();
                 info.name = name;
+
+                info.hostname = socket.getInetAddress().getHostName();
+
                 return info;
             }
             catch (Exception ex)
