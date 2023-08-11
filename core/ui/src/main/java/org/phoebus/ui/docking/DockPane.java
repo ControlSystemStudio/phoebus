@@ -227,11 +227,13 @@ public class DockPane extends TabPane
         setOnContextMenuRequested(this::showContextMenu);
 
         getSelectionModel().selectedItemProperty().addListener((observable, previous_item, new_item) -> {
-            // Keep track of the order of focus of tabs:
-            if (new_item != null) {
-                tabsInOrderOfFocus.remove(new_item);
-                tabsInOrderOfFocus.push((DockItem) new_item);
-            }
+            Platform.runLater(() -> {
+                // Keep track of the order of focus of tabs:
+                if (new_item != null) {
+                    tabsInOrderOfFocus.remove(new_item);
+                    tabsInOrderOfFocus.push((DockItem) new_item);
+                }
+            });
         });
     }
 

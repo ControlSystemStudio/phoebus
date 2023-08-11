@@ -192,14 +192,17 @@ public class DockItem extends Tab
             boolean shouldClose = this instanceof DockItemWithInput ? ((DockItemWithInput) this).okToClose().get() : true;
 
             if (shouldClose) {
-                // Select the previously selected tab:
                 var dockPane = getDockPane();
-                dockPane.tabsInOrderOfFocus.remove(this);
-                if (dockPane.tabsInOrderOfFocus.size() > 0) {
-                    var tabToSelect = dockPane.tabsInOrderOfFocus.getFirst();
-                    var selectionModel = dockPane.getSelectionModel();
-                    selectionModel.select(tabToSelect);
-                }
+                Platform.runLater(() -> {
+                    // Select the previously selected tab:
+                    dockPane.tabsInOrderOfFocus.remove(this);
+
+                    if (dockPane.tabsInOrderOfFocus.size() > 0) {
+                        var tabToSelect = dockPane.tabsInOrderOfFocus.getFirst();
+                        var selectionModel = dockPane.getSelectionModel();
+                        selectionModel.select(tabToSelect);
+                    }
+                });
 
                 // Close the tab:
                 prepareToClose();
@@ -723,7 +726,9 @@ public class DockItem extends Tab
         // calling the OnCloseRequest event-handler.)
         var dockPane = getDockPane();
         if (dockPane != null) {
-            dockPane.tabsInOrderOfFocus.remove(this);
+            Platform.runLater(() -> {
+                dockPane.tabsInOrderOfFocus.remove(this);
+            });
         }
     }
 
