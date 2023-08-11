@@ -24,7 +24,9 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import javafx.scene.Scene;
+import javafx.scene.layout.Region;
 import javafx.stage.Window;
+import org.apache.commons.io.FilenameUtils;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.JobRunnable;
@@ -425,10 +427,36 @@ public class DockItemWithInput extends DockItem
                     return false;
             }
 
-            // Update input
-            setInput(ResourceParser.getURI(actual_file.get()));
-            // Save in that file
-            return save(monitor);
+            URI newInput = ResourceParser.getURI(actual_file.get());
+            DockItemWithInput existingInstanceWithInput = DockStage.getDockItemWithInput(getApplication().getAppDescriptor().getName(), newInput);
+            if (existingInstanceWithInput == null || (input != null && newInput.getPath().equals(input.getPath()))) {
+                // Update input
+                setInput(newInput);
+                // Save in that file
+                return save(monitor);
+            }
+            else {
+                CompletableFuture<Boolean> waitForDialogToClose = new CompletableFuture<>();
+                Platform.runLater(() -> {
+                    String filename = FilenameUtils.getName(newInput.getPath());
+
+                    final Alert dialog = new Alert(AlertType.INFORMATION);
+                    dialog.setTitle("File is already open in another tab");
+                    dialog.setHeaderText("The file " + filename + " is already open in another tab");
+                    dialog.setContentText("An instance of " + getApplication().getAppDescriptor().getDisplayName() + " associated with " + filename + " is already running in a different tab. A different filepath must be chosen for the save operation.");
+                    int width = 500;
+                    int height = 200;
+                    dialog.getDialogPane().setPrefSize(width, height);
+                    dialog.getDialogPane().setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+                    dialog.setResizable(false);
+                    DialogHelper.positionDialog(dialog, getTabPane(), -width/2, -height/2);
+                    dialog.showAndWait();
+                    waitForDialogToClose.complete(true);
+                });
+
+                waitForDialogToClose.get();
+                save_as(monitor);
+            }
         }
         catch (Exception ex)
         {
