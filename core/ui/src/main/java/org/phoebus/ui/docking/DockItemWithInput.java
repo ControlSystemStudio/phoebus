@@ -14,18 +14,14 @@ import java.net.URI;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import javafx.scene.Scene;
 import javafx.scene.layout.Region;
-import javafx.stage.Window;
 import org.apache.commons.io.FilenameUtils;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
@@ -441,9 +437,11 @@ public class DockItemWithInput extends DockItem
                     String filename = FilenameUtils.getName(newInput.getPath());
 
                     final Alert dialog = new Alert(AlertType.INFORMATION);
-                    dialog.setTitle("File is already open in another tab");
-                    dialog.setHeaderText("The file " + filename + " is already open in another tab");
-                    dialog.setContentText("An instance of " + getApplication().getAppDescriptor().getDisplayName() + " associated with " + filename + " is already running in a different tab. A different filepath must be chosen for the save operation.");
+                    dialog.setTitle(Messages.SaveAsFileAlreadyOpen_title);
+                    String headerText = MessageFormat.format(Messages.SaveAsFileAlreadyOpen_header, filename);
+                    dialog.setHeaderText(headerText);
+                    String contentText = MessageFormat.format(Messages.SaveAsFileAlreadyOpen_content, getApplication().getAppDescriptor().getDisplayName(), filename);
+                    dialog.setContentText(contentText);
                     int width = 500;
                     int height = 200;
                     dialog.getDialogPane().setPrefSize(width, height);
