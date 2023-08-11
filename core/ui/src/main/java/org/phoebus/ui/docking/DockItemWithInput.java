@@ -442,7 +442,7 @@ public class DockItemWithInput extends DockItem
                     dialog.setHeaderText(headerText);
                     String contentText = MessageFormat.format(Messages.SaveAsFileAlreadyOpen_content, getApplication().getAppDescriptor().getDisplayName(), filename);
                     dialog.setContentText(contentText);
-                    int width = 500;
+                    int width = 550;
                     int height = 200;
                     dialog.getDialogPane().setPrefSize(width, height);
                     dialog.getDialogPane().setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
