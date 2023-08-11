@@ -5,14 +5,48 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.lang.ref.WeakReference;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import javafx.event.ActionEvent;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.SubJobMonitor;
@@ -48,27 +82,13 @@ import org.phoebus.ui.welcome.Welcome;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckMenuItem;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuButton;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.ToolBar;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
@@ -477,10 +497,10 @@ public class PhoebusApplication extends Application {
         top_resources_menu.setDisable(true);
 
         final MenuItem file_save = new MenuItem(Messages.Save, ImageCache.getImageView(getClass(), "/icons/save_edit.png"));
-        file_save.setOnAction(event -> JobManager.schedule(Messages.Save, monitor -> active_item_with_input.get().save(monitor)));
+        file_save.setOnAction(event -> JobManager.schedule(Messages.Save, monitor -> active_item_with_input.get().save(monitor, active_item_with_input.get().getTabPane().getScene().getWindow())));
 
         final MenuItem file_save_as = new MenuItem(Messages.SaveAs, ImageCache.getImageView(getClass(), "/icons/saveas_edit.png"));
-        file_save_as.setOnAction(event -> JobManager.schedule(Messages.SaveAs, monitor -> active_item_with_input.get().save_as(monitor)));
+        file_save_as.setOnAction(event -> JobManager.schedule(Messages.SaveAs, monitor -> active_item_with_input.get().save_as(monitor, active_item_with_input.get().getTabPane().getScene().getWindow())));
 
         final MenuItem exit = new MenuItem(Messages.Exit);
         exit.setOnAction(event -> closeMainStage());
@@ -1054,31 +1074,41 @@ public class PhoebusApplication extends Application {
 
         JobManager.schedule("Close all stages", monitor ->
         {
-            for (Stage stage : stages)
-                if (!DockStage.prepareToCloseItems(stage))
-                    return;
+            boolean shouldReplaceLayout = confirmationDialogWhenUnsavedChangesExist(stages,
+                                                                                    Messages.UnsavedChanges_wouldYouLikeToSaveAnyChangesBeforeReplacingTheLayout,
+                                                                                    Messages.UnsavedChanges_replace,
+                                                                                    main_stage,
+                                                                                    monitor);
 
-            // All stages OK to close
-            Platform.runLater(() ->
-            {
+            if (shouldReplaceLayout) {
                 for (Stage stage : stages) {
-                    DockStage.closeItems(stage);
-                    // Don't wait for Platform.runLater-based tab handlers
-                    // that will merge splits and eventually close the empty panes,
-                    // but close all non-main stages right away
-                    if (stage != main_stage)
-                        stage.close();
+                    if (!DockStage.prepareToCloseItems(stage)) {
+                        return;
+                    }
                 }
 
-                // Go into the main stage and close all of the tabs. If any of them refuse, return.
-                final Node node = DockStage.getPaneOrSplit(main_stage);
-                if (!MementoHelper.closePaneOrSplit(node))
-                    return;
+                // All stages OK to close
+                Platform.runLater(() ->
+                {
+                    for (Stage stage : stages) {
+                        DockStage.closeItems(stage);
+                        // Don't wait for Platform.runLater-based tab handlers
+                        // that will merge splits and eventually close the empty panes,
+                        // but close all non-main stages right away
+                        if (stage != main_stage)
+                            stage.close();
+                    }
 
-                // Allow handlers for tab changes etc. to run as everything closed.
-                // On next UI tick, load content from memento file.
-                Platform.runLater(() -> restoreState(memento));
-            });
+                    // Go into the main stage and close all of the tabs. If any of them refuse, return.
+                    final Node node = DockStage.getPaneOrSplit(main_stage);
+                    if (!MementoHelper.closePaneOrSplit(node))
+                        return;
+
+                    // Allow handlers for tab changes etc. to run as everything closed.
+                    // On next UI tick, load content from memento file.
+                    Platform.runLater(() -> restoreState(memento));
+                });
+            }
         });
     }
 
@@ -1263,21 +1293,346 @@ public class PhoebusApplication extends Application {
 
         JobManager.schedule("Close all stages", monitor ->
         {
-            // closeStages()
-            for (Stage stage : stages)
-                if (!DockStage.prepareToCloseItems(stage))
-                    return;
+            boolean shouldExit = confirmationDialogWhenUnsavedChangesExist(stages,
+                                                                           Messages.UnsavedChanges_wouldYouLikeToSaveAnyChangesBeforeExiting,
+                                                                           Messages.UnsavedChanges_exit,
+                                                                           main_stage,
+                                                                           monitor);
 
-            // All stages OK to close
-            Platform.runLater(() ->
-            {
+            if (shouldExit) {
                 for (Stage stage : stages)
-                    DockStage.closeItems(stage);
+                    if (!DockStage.prepareToCloseItems(stage)) {
+                        return;
+                    }
 
-                stop();
-            });
+                exitPhoebus();
+            }
         });
     }
+
+    private static SortedMap<String, List<DockItemWithInput>> listOfDockItems2ApplicationNameToDockItemsWithInput(List<DockItem> dockItems) {
+        SortedMap<String, List<DockItemWithInput>> applicationNameToDockItemsWithInput = new TreeMap<>();
+        for (DockItem dockItem : dockItems) {
+            if (dockItem instanceof DockItemWithInput) {
+                DockItemWithInput dockItemWithInput = (DockItemWithInput) dockItem;
+                if (dockItemWithInput.isDirty()) {
+                    String applicationName = dockItemWithInput.getApplication().getAppDescriptor().getDisplayName();
+                    if (!applicationNameToDockItemsWithInput.containsKey(applicationName)) {
+                        applicationNameToDockItemsWithInput.put(applicationName, new LinkedList<>());
+                    }
+
+                    applicationNameToDockItemsWithInput.get(applicationName).add(dockItemWithInput);
+                }
+            }
+        }
+        return applicationNameToDockItemsWithInput;
+    }
+
+    private static SortedMap<String, SortedMap<String, List<DockItemWithInput>>> stages2WindowNameToApplicationNameToDockItemsWithInput(List<Stage> stages) {
+        SortedMap<String, SortedMap<String, List<DockItemWithInput>>> windowNameToApplicationNameToDockItemsWithInput = new TreeMap<>();
+        {
+            int currentWindowNr = 1;
+
+            for (Stage stage : stages) {
+                String currentWindowName;
+                if (stage == DockStage.getDockStages().get(0)) {
+                    currentWindowName = Messages.UnsavedChanges_mainWindow;
+                }
+                else {
+                    currentWindowName = Messages.UnsavedChanges_secondaryWindow + " " + currentWindowNr;
+                    currentWindowNr++;
+                }
+
+                List<DockItem> dockItems = DockStage.getDockPanes(stage).stream().flatMap(dockPane -> dockPane.getDockItems().stream()).collect(Collectors.toList());
+                SortedMap<String, List<DockItemWithInput>> applicationNameToDockItemsWithInput = PhoebusApplication.listOfDockItems2ApplicationNameToDockItemsWithInput(dockItems);
+                windowNameToApplicationNameToDockItemsWithInput.put(currentWindowName, applicationNameToDockItemsWithInput);
+            }
+        }
+        return windowNameToApplicationNameToDockItemsWithInput;
+    }
+
+    public static boolean confirmationDialogWhenUnsavedChangesExist(Stage stage,
+                                                                    String question,
+                                                                    String closeActionName,
+                                                                    JobMonitor monitor) throws ExecutionException, InterruptedException {
+        List<DockItem> dockItems = DockStage.getDockPanes(stage).stream().flatMap(dockPane -> dockPane.getDockItems().stream()).collect(Collectors.toList());
+        SortedMap<String, List<DockItemWithInput>> applicationNameToDockItemsWithInput = PhoebusApplication.listOfDockItems2ApplicationNameToDockItemsWithInput(dockItems);
+        SortedMap<String, SortedMap<String, List<DockItemWithInput>>> windowNameToApplicationNameToDockItemsWithInput = new TreeMap<>();
+        windowNameToApplicationNameToDockItemsWithInput.put("Window", applicationNameToDockItemsWithInput);
+
+        return confirmationDialogWhenUnsavedChangesExist(windowNameToApplicationNameToDockItemsWithInput,
+                                                         question,
+                                                         closeActionName,
+                                                         stage,
+                                                         monitor);
+    }
+
+    public static boolean confirmationDialogWhenUnsavedChangesExist(ArrayList<DockItem> dockItems, // "ArrayList<DockItem>" is used instead of "List<DockItem>" to prevent a conflict with "List<DockItem>" after type erasure.
+                                                                    String question,
+                                                                    String closeActionName,
+                                                                    Stage stage,
+                                                                    JobMonitor monitor) throws ExecutionException, InterruptedException {
+        SortedMap<String, List<DockItemWithInput>> applicationNameToDockItemsWithInput = PhoebusApplication.listOfDockItems2ApplicationNameToDockItemsWithInput(dockItems);
+        SortedMap<String, SortedMap<String, List<DockItemWithInput>>> windowNameToApplicationNameToDockItemsWithInput = new TreeMap<>();
+        windowNameToApplicationNameToDockItemsWithInput.put("Window", applicationNameToDockItemsWithInput);
+
+        return confirmationDialogWhenUnsavedChangesExist(windowNameToApplicationNameToDockItemsWithInput,
+                                                         question,
+                                                         closeActionName,
+                                                         stage,
+                                                         monitor);
+    }
+
+    public static boolean confirmationDialogWhenUnsavedChangesExist(List<Stage> stages,
+                                                                    String question,
+                                                                    String closeActionName,
+                                                                    Stage stage,
+                                                                    JobMonitor monitor) throws ExecutionException, InterruptedException {
+        return confirmationDialogWhenUnsavedChangesExist(stages2WindowNameToApplicationNameToDockItemsWithInput(stages),
+                                                         question,
+                                                         closeActionName,
+                                                         stage,
+                                                         monitor);
+    }
+
+    private enum SaveStatus {
+        SUCCESS,
+        FAILURE,
+        NOTHING
+    };
+
+    public static boolean confirmationDialogWhenUnsavedChangesExist(SortedMap<String, SortedMap<String, List<DockItemWithInput>>> windowNrToApplicationNameToDockItemsWithInput,
+                                                                    String question,
+                                                                    String closeActionName,
+                                                                    Stage stage,
+                                                                    JobMonitor monitor) throws ExecutionException, InterruptedException {
+
+            Stage stageToPositionTheConfirmationDialogOver;
+            if (stage != null) {
+                stageToPositionTheConfirmationDialogOver = stage;
+            }
+            else {
+                stageToPositionTheConfirmationDialogOver = INSTANCE.main_stage;
+            }
+
+            ButtonType clearSelectionOfCheckboxes = new ButtonType(Messages.UnsavedChanges_clearButtonText);
+            ButtonType selectAllCheckboxes = new ButtonType(Messages.UnsavedChanges_selectAllButtonText);
+            ButtonType saveSelectedItems = new ButtonType(Messages.UnsavedChanges_saveButtonText);
+            ButtonType exitPhoebusWithoutSavingUnsavedChanges = new ButtonType(Messages.UnsavedChanges_discardButtonText_discardAnd + " " + closeActionName);
+
+            FutureTask displayConfirmationWindow = new FutureTask(() -> {
+                Alert prompt = new Alert(AlertType.CONFIRMATION);
+
+                prompt.getDialogPane().getButtonTypes().remove(ButtonType.OK);
+                ((ButtonBar) prompt.getDialogPane().lookup(".button-bar")).setButtonOrder(ButtonBar.BUTTON_ORDER_NONE); // Set the button order manually (since they are non-standard)
+                prompt.getDialogPane().getButtonTypes().add(clearSelectionOfCheckboxes);
+                prompt.getDialogPane().getButtonTypes().add(selectAllCheckboxes);
+                prompt.getDialogPane().getButtonTypes().add(saveSelectedItems);
+                prompt.getDialogPane().getButtonTypes().add(exitPhoebusWithoutSavingUnsavedChanges);
+
+                Button cancel_button = (Button) prompt.getDialogPane().lookupButton(ButtonType.CANCEL);
+                cancel_button.setTooltip(new Tooltip(cancel_button.getText()));
+
+                Button clearSelectionOfCheckboxes_button = (Button) prompt.getDialogPane().lookupButton(clearSelectionOfCheckboxes);
+                clearSelectionOfCheckboxes_button.setTooltip(new Tooltip(clearSelectionOfCheckboxes_button.getText()));
+
+                Button selectAllCheckboxes_button = (Button) prompt.getDialogPane().lookupButton(selectAllCheckboxes);
+                selectAllCheckboxes_button.setTooltip(new Tooltip(selectAllCheckboxes_button.getText()));
+
+                Button saveSelectedItems_button = (Button) prompt.getDialogPane().lookupButton(saveSelectedItems);
+                saveSelectedItems_button.setTooltip(new Tooltip(saveSelectedItems_button.getText()));
+
+                Button exitPhoebusWithoutSavingUnsavedChanges_button = (Button) prompt.getDialogPane().lookupButton(exitPhoebusWithoutSavingUnsavedChanges);
+                exitPhoebusWithoutSavingUnsavedChanges_button.setTooltip(new Tooltip(exitPhoebusWithoutSavingUnsavedChanges_button.getText()));
+                List<Consumer<Boolean>> setCheckBoxStatusActions = new LinkedList<>();
+                List<Supplier<Boolean>> getCheckBoxStatusActions = new LinkedList<>();
+                List<Supplier<SaveStatus>> saveActions = new LinkedList<>();
+
+                Runnable enableAndDisableButtons = () -> {
+                    if (getCheckBoxStatusActions.stream().anyMatch(getCheckBoxStatus -> getCheckBoxStatus.get())) {
+                        clearSelectionOfCheckboxes_button.setDisable(false);
+                        saveSelectedItems_button.setDisable(false);
+                        exitPhoebusWithoutSavingUnsavedChanges_button.setDisable(true);
+                    }
+                    else {
+                        clearSelectionOfCheckboxes_button.setDisable(true);
+                        saveSelectedItems_button.setDisable(true);
+                        exitPhoebusWithoutSavingUnsavedChanges_button.setDisable(false);
+                    }
+
+                    if (getCheckBoxStatusActions.stream().allMatch(getCheckBoxStatus -> getCheckBoxStatus.get())) {
+                        selectAllCheckboxes_button.setDisable(true);
+                        saveSelectedItems_button.setText(Messages.UnsavedChanges_saveButtonText_saveAnd + " " + closeActionName);
+                        saveSelectedItems_button.setTooltip(new Tooltip(saveSelectedItems_button.getText()));
+                    }
+                    else {
+                        selectAllCheckboxes_button.setDisable(false);
+                        saveSelectedItems_button.setText(Messages.UnsavedChanges_saveButtonText);
+                        saveSelectedItems_button.setTooltip(new Tooltip(saveSelectedItems_button.getText()));
+                    }
+                };
+
+                GridPane gridPane = new GridPane();
+                gridPane.setVgap(4);
+                int currentRow = 0;
+                for (String windowName : windowNrToApplicationNameToDockItemsWithInput.keySet()) {
+                    var applicationNameToDockItemsWithInput = windowNrToApplicationNameToDockItemsWithInput.get(windowName);
+
+                    if (applicationNameToDockItemsWithInput.size() > 0) {    // Only print unsaved changes for a window if it actually containts any unsaved changes.
+                        if (windowNrToApplicationNameToDockItemsWithInput.size() >= 2) {    // Only print the window names if two or more windows are in the process of being closed.
+                            Text windowTitle = new Text(windowName);
+                            windowTitle.setStyle("-fx-font-size: 16; -fx-font-weight: bold");
+                            gridPane.add(windowTitle, 0, currentRow);
+                            currentRow++;
+                        }
+
+                        for (var applicationName : applicationNameToDockItemsWithInput.keySet()) {
+                            for (var dockItemWithInput : applicationNameToDockItemsWithInput.get(applicationName)) {
+                                CheckBox checkBox = new CheckBox();
+                                checkBox.selectedProperty().addListener((observableValue, old_value, new_value) -> enableAndDisableButtons.run());
+
+                                Text applicationName_text = new Text(applicationName + ":");
+                                applicationName_text.setStyle("-fx-font-weight: bold");
+                                Text instanceName_text = new Text(dockItemWithInput.getLabel());
+
+                                HBox hBox = new HBox(checkBox, applicationName_text, instanceName_text);
+                                hBox.setSpacing(4);
+                                gridPane.add(hBox, 0, currentRow);
+
+                                Consumer<Boolean> setCheckboxStatus = bool -> checkBox.setSelected(bool);
+                                setCheckBoxStatusActions.add(setCheckboxStatus);
+
+                                Supplier<Boolean> getCheckBoxStatus = () -> checkBox.isSelected();
+                                getCheckBoxStatusActions.add(getCheckBoxStatus);
+
+                                hBox.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseEvent -> checkBox.setSelected(!checkBox.isSelected())); // Enable toggling checkbox by clicking on its label.
+
+                                Supplier<SaveStatus> saveIfCheckboxEnabled = () -> {
+                                    if (checkBox.isSelected()) {
+
+                                        Text saving = new Text("[" + Messages.UnsavedChanges_saving + "]");
+                                        saving.setFill(Color.ORANGE);
+                                        saving.setStyle("-fx-font-weight: bold;");
+                                        hBox.getChildren().set(0, saving);
+                                        boolean saveSuccessful = dockItemWithInput.save(monitor, prompt.getDialogPane().getScene().getWindow());
+
+                                        if (saveSuccessful) {
+                                            // The functions setCheckboxStatus() and getCheckBoxStatus should not be available anymore:
+                                            setCheckBoxStatusActions.remove(setCheckboxStatus);
+                                            getCheckBoxStatusActions.remove(getCheckBoxStatus);
+                                            setCheckboxStatus.accept(false);
+
+                                            Text saved = new Text("[" + Messages.UnsavedChanges_saved + "]");
+                                            saved.setFill(Color.GREEN);
+                                            saved.setStyle("-fx-font-weight: bold;");
+                                            hBox.getChildren().set(0, saved);
+                                            return SaveStatus.SUCCESS;
+                                        }
+                                        else {
+                                            Text savingFailed_text = new Text("[" + Messages.UnsavedChanges_savingFailed + "]");
+                                            savingFailed_text.setFill(Color.RED);
+                                            savingFailed_text.setStyle("-fx-font-weight: bold;");
+
+                                            HBox savingFailed = new HBox(checkBox, savingFailed_text);
+                                            savingFailed.setSpacing(6);
+                                            hBox.getChildren().set(0, savingFailed);
+                                            return SaveStatus.FAILURE;
+                                        }
+                                    }
+                                    else {
+                                        return SaveStatus.NOTHING;
+                                    }
+                                };
+                                saveActions.add(saveIfCheckboxEnabled);
+
+                                currentRow++;
+                            }
+                        }
+                    }
+                }
+
+                ScrollPane scrollPane = new ScrollPane();
+                scrollPane.setContent(gridPane);
+
+                prompt.getDialogPane().setContent(scrollPane);
+
+                clearSelectionOfCheckboxes_button.addEventFilter(ActionEvent.ACTION, event -> {
+                    event.consume();
+
+                    setCheckBoxStatusActions.forEach(setCheckboxAction -> {
+                        setCheckboxAction.accept(false);
+                    });
+                });
+
+                selectAllCheckboxes_button.addEventFilter(ActionEvent.ACTION, event -> {
+                    event.consume();
+
+                    setCheckBoxStatusActions.forEach(setCheckboxAction -> {
+                        setCheckboxAction.accept(true);
+                    });
+                });
+
+                saveSelectedItems_button.addEventFilter(ActionEvent.ACTION, event -> {
+                    event.consume();
+
+                    List<Supplier<SaveStatus>> saveActionsThatHaveBeenCompleted = new LinkedList<>();
+                    for (var saveAction : saveActions) {
+                        SaveStatus result = saveAction.get();
+                        if (result == SaveStatus.SUCCESS) {
+                            saveActionsThatHaveBeenCompleted.add(saveAction);
+                        }
+                        else if (result == SaveStatus.FAILURE) {
+                            break;
+                        }
+                        // If result == SaveStatus.NOTHING, continue.
+                    }
+
+                    for (var saveActionThatHasBeenCompleted : saveActionsThatHaveBeenCompleted) {
+                        saveActions.remove(saveActionThatHasBeenCompleted);
+                    }
+
+                    if (saveActions.size() == 0) {
+                        exitPhoebusWithoutSavingUnsavedChanges_button.fire();
+                    }
+                });
+
+                // Initialize state of buttons:
+                enableAndDisableButtons.run();
+
+                prompt.setHeaderText(Messages.UnsavedChanges_theFollowingApplicationInstancesHaveUnsavedChanges + " " + question);
+                prompt.setTitle(Messages.UnsavedChanges);
+
+                int prefWidth = 750;
+                int prefHeight = 400;
+                prompt.getDialogPane().setPrefSize(prefWidth, prefHeight);
+                prompt.getDialogPane().setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+                prompt.setResizable(false);
+
+                DialogHelper.positionDialog(prompt, stageToPositionTheConfirmationDialogOver.getScene().getRoot(), -prefWidth/2, -prefHeight/2);
+
+                return prompt.showAndWait().orElse(ButtonType.CANCEL) == exitPhoebusWithoutSavingUnsavedChanges ? true : false;
+            });
+
+        if (windowNrToApplicationNameToDockItemsWithInput.isEmpty() || windowNrToApplicationNameToDockItemsWithInput.values().stream().allMatch(sortedMap -> sortedMap.values().stream().allMatch(Collection::isEmpty))) {
+            // No unsaved changes.
+            return true;
+        }
+        else {
+            Platform.runLater(displayConfirmationWindow);
+            boolean shouldClose = (boolean) displayConfirmationWindow.get();
+            return shouldClose;
+        }
+    }
+
+    private void exitPhoebus() {
+        Platform.runLater(() ->
+        {
+            for (Stage stage : DockStage.getDockStages()) {
+                DockStage.closeItems(stage);
+            }
+            stop();
+        });
+    };
 
     /**
      * Start all applications
@@ -1328,16 +1683,21 @@ public class PhoebusApplication extends Application {
         final List<Stage> stages = DockStage.getDockStages();
         JobManager.schedule("Close All Tabs", monitor ->
         {
-            for (Stage stage : stages){
-                if (!DockStage.prepareToCloseItems(stage)){
-                    return;
-                }
-            }
+            boolean shouldCloseTabs = PhoebusApplication.confirmationDialogWhenUnsavedChangesExist(stages,
+                                                                                                   Messages.UnsavedChanges_wouldYouLikeToSaveAnyChangesBeforeClosingAllTabs,
+                                                                                                   Messages.UnsavedChanges_close,
+                                                                                                   PhoebusApplication.INSTANCE.main_stage,
+                                                                                                   monitor);
 
-            Platform.runLater(() ->
-            {
-                stages.forEach(stage -> DockStage.closeItems(stage));
-            });
+            if (shouldCloseTabs) {
+                for (Stage stage : stages){
+                    if (!DockStage.prepareToCloseItems(stage)){
+                        return;
+                    }
+                }
+
+                Platform.runLater(() -> stages.forEach(stage -> DockStage.closeItems(stage)));
+            }
         });
     }
 }
