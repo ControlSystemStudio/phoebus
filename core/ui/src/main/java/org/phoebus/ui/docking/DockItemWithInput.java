@@ -424,7 +424,7 @@ public class DockItemWithInput extends DockItem
             }
 
             URI newInput = ResourceParser.getURI(actual_file.get());
-            DockItemWithInput existingInstanceWithInput = DockStage.getDockItemWithInput(getApplication().getAppDescriptor().getName(), newInput);
+            DockItemWithInput existingInstanceWithInput = DockStage.getDockItemWithInput(newInput);
             if (existingInstanceWithInput == null || (input != null && newInput.getPath().equals(input.getPath()))) {
                 // Update input
                 setInput(newInput);
@@ -440,7 +440,7 @@ public class DockItemWithInput extends DockItem
                     dialog.setTitle(Messages.SaveAsFileAlreadyOpen_title);
                     String headerText = MessageFormat.format(Messages.SaveAsFileAlreadyOpen_header, filename);
                     dialog.setHeaderText(headerText);
-                    String contentText = MessageFormat.format(Messages.SaveAsFileAlreadyOpen_content, getApplication().getAppDescriptor().getDisplayName(), filename);
+                    String contentText = MessageFormat.format(Messages.SaveAsFileAlreadyOpen_content, existingInstanceWithInput.getApplication().getAppDescriptor().getDisplayName(), filename);
                     dialog.setContentText(contentText);
                     int width = 550;
                     int height = 200;

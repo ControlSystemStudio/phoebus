@@ -366,6 +366,25 @@ public class DockStage
         return null;
     }
 
+    /** Locate DockItemWithInput with input
+     *  @param input Input, must not be <code>null</code>
+     *  @return {@link DockItemWithInput} or <code>null</code> if not found
+     */
+    public static DockItemWithInput getDockItemWithInput(URI input)
+    {
+        Objects.requireNonNull(input);
+        for (Stage stage : getDockStages())
+            for (DockPane pane : getDockPanes(stage))
+                for (DockItem tab : pane.getDockItems())
+                    if (tab instanceof DockItemWithInput)
+                    {
+                        DockItemWithInput item = (DockItemWithInput) tab;
+                        if (input.equals(item.getInput()))
+                            return item;
+                    }
+        return null;
+    }
+
     /** Locate any 'fixed' {@link DockPane}s and un-fix them
      *  @param stage Stage where to clear 'fixed' panes
      */
