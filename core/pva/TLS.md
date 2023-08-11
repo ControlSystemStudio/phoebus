@@ -68,8 +68,7 @@ Step 3: Configure and run the demo server
 Set environment variables to inform the server about its keystore:
 
 ```
-export EPICS_PVAS_TLS_KEYCHAIN=/path/to/KEYSTORE
-export EPICS_PVA_STOREPASS=changeit
+export EPICS_PVAS_TLS_KEYCHAIN="/path/to/KEYSTORE;changeit"
 ```
 
 Then run a demo server
@@ -85,8 +84,7 @@ Step 4: Configure and run the demo client
 Set environment variables to inform the client about its truststore:
 
 ```
-export EPICS_PVA_TLS_KEYCHAIN=/path/to/TRUSTSTORE
-export EPICS_PVA_STOREPASS=changeit
+export EPICS_PVA_TLS_KEYCHAIN="/path/to/TRUSTSTORE;changeit"
 ```
 
 Then run a demo client
@@ -192,6 +190,6 @@ which needs to be imported into the PKCS12 file format:
 keytool -importcert -alias myca  -keystore trust_ca.p12 -storepass changeit -file myca.cer  -noprompt
 ```
 
-We can now run the server with `EPICS_PVAS_TLS_KEYCHAIN=/path/to/ioc.p12` and clients with
-`EPICS_PVA_TLS_KEYCHAIN=/path/to/trust_ca.p12`, both with `EPICS_PVA_STOREPASS=changeit`
+We can now run the server with `EPICS_PVAS_TLS_KEYCHAIN=/path/to/ioc.p12;changeit` and clients with
+`EPICS_PVA_TLS_KEYCHAIN=/path/to/trust_ca.p12;changeit`
 

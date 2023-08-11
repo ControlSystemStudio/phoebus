@@ -21,6 +21,7 @@ import org.epics.pva.common.PVAAuth;
 import org.epics.pva.common.PVAHeader;
 import org.epics.pva.common.RequestEncoder;
 import org.epics.pva.common.SearchResponse;
+import org.epics.pva.common.SecureSockets.TLSHandshakeInfo;
 import org.epics.pva.common.TCPHandler;
 import org.epics.pva.data.PVASize;
 import org.epics.pva.data.PVAString;
@@ -50,16 +51,28 @@ class ServerTCPHandler extends TCPHandler
     /** Server that holds all the PVs */
     private final PVAServer server;
 
+    /** Info from TLS socket handshake or <code>null</code> */
+    private final TLSHandshakeInfo tls_info;
+
     /** Types declared by client at other end of this TCP connection */
     private final PVATypeRegistry client_types = new PVATypeRegistry();
 
     /** Auth info, e.g. client user info and his/her permissions */
     private volatile ServerAuth auth = ServerAuth.Anonymous;
 
-    public ServerTCPHandler(final PVAServer server, final Socket client) throws Exception
+
+    public ServerTCPHandler(final PVAServer server, final Socket client, final TLSHandshakeInfo tls_info) throws Exception
     {
         super(client, false);
         this.server = server;
+        this.tls_info = tls_info;
+
+        // TODO Use name for x509 auth
+        if (this.tls_info != null)
+            System.out.println("GOT x509 NAME '" + this.tls_info.name + "'!");
+        else
+            System.out.println("GOT NO x509 NAME...");
+
         server.register(this);
         startSender();
 
