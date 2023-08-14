@@ -79,9 +79,11 @@ public class PVASettings
      *  <p>Example entries:
      *
      *  <pre>
-     *  192.168.10.20    Send name lookups to that IPv4 TCP address at EPICS_PVA_SERVER_PORT (default 5075)
-     *  ::1              Search to IPv6 localhost at EPICS_PVA_SERVER_PORT
-     *  [::1]:9876       Same with non-standard port
+     *  192.168.10.20              Send name lookups to that IPv4 TCP address at EPICS_PVA_SERVER_PORT (default 5075)
+     *  ::1                        Search to IPv6 localhost at EPICS_PVA_SERVER_PORT
+     *  [::1]:9876                 Same with non-standard port
+     *  pvas://192.168.10.20       Use TLS, defaulting to EPICS_PVAS_TLS_PORT (5076)
+     *  pvas://192.168.10.20:5086  Use TLS with specific port
      *  </pre>
      */
     public static String EPICS_PVA_NAME_SERVERS = "";
@@ -135,9 +137,9 @@ public class PVASettings
 
     /** Path to PVA server keystore and truststore, a PKCS12 file that contains server's public and private key
      *  as well as trusted CAs that are used to verify client certificates.
-     *  
+     *
      *  <p>Format: "/path/to/file;password".
-     *  
+     *
      *  <p>When empty, PVA server does not support secure (TLS) communication.
      */
     public static String EPICS_PVAS_TLS_KEYCHAIN = "";
@@ -145,9 +147,9 @@ public class PVASettings
     /** Path to PVA client keystore and truststore, a PKCS12 file that contains the certificates or root CA
      *  that the client will trust when verifying a server certificate,
      *  and optional client certificate used with x509 authentication to establish the client's name.
-     *  
+     *
      *  <p>Format: "/path/to/file;password".
-     *  
+     *
      *  <p>When empty, PVA client does not support secure (TLS) communication.
      *  When configured, PVA client can reply to PVA servers that offer "tls" in a search reply,
      *  and searches via EPICS_PVA_NAME_SERVERS will also use TLS.

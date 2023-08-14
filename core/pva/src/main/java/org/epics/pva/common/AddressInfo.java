@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2021-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,16 +19,19 @@ import java.util.Objects;
 @SuppressWarnings("nls")
 public class AddressInfo
 {
+    private final boolean tls;
     private final InetSocketAddress address;
     private final int ttl;
     private final NetworkInterface iface;
 
-    /** @param address Network address and port
+    /** @param tls Is address for TLS, a secure TCP socket?
+     *  @param address Network address and port
      *  @param ttl Time-to-live for UDP packets
      *  @param iface Interface via which to send/receive
      */
-    public AddressInfo(final InetSocketAddress address, final int ttl, final NetworkInterface iface)
+    public AddressInfo(final boolean tls, final InetSocketAddress address, final int ttl, final NetworkInterface iface)
     {
+        this.tls = tls;
         this.address = address;
         this.ttl = ttl;
         this.iface = iface;
@@ -44,6 +47,12 @@ public class AddressInfo
     public boolean isIPv6()
     {
         return address.getAddress() instanceof Inet6Address;
+    }
+
+    /** @return Is the address for a TLS socket? EPICS_PVA_NAME_SERVERS=pvas://...? */
+    public boolean isTLS()
+    {
+        return tls;
     }
 
     /** @return Network address */
@@ -114,6 +123,8 @@ public class AddressInfo
             buf.append("IPv4 address ");
         else
             buf.append("Unknown INET type address ");
+        if (tls)
+            buf.append("TLS ");
         buf.append(address.getHostString());
         if (address.getAddress().isAnyLocalAddress())
             buf.append(" (ANY LOCAL)");
