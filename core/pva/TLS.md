@@ -5,6 +5,8 @@ By default, the server and client will use plain TCP sockets to communicate.
 By configuring a keystore for the server and a truststore for the client,
 the communication can be switched to secure (TLS) sockets.
 The sockets are encrypted, and clients will only communicate with trusted servers.
+The following describes a minimal setup for initial tests,
+followed by a more elaborate setup later in this document.
 
 Step 1: Create a server KEYSTORE that contains a public and private key.
 -------
@@ -13,7 +15,7 @@ The server passes the public key to clients. Clients then use that to encrypt me
 to the server which only the server can decode with its private key.
 
 ```
-keytool -genkey -alias mykey -dname "CN=myself" -keystore KEYSTORE -storepass changeit -keyalg RSA
+keytool -genkey -alias mykey -dname "CN=server" -keystore KEYSTORE -storepass changeit -keyalg RSA
 ```
 
 To check, note "Entry type: PrivateKeyEntry" because the certificate holds both a public and private key:
@@ -21,9 +23,6 @@ To check, note "Entry type: PrivateKeyEntry" because the certificate holds both 
 ```
 keytool -list -v -keystore KEYSTORE -storepass changeit
 ```
-
-This example so far only uses self-signed certificates.
-An operational setup might prefer to sign them by a publicly trusted certificate authority.
 
 
 Step 2: Create a client TRUSTSTORE to register the public server key
@@ -65,39 +64,35 @@ openssl pkcs12 -info -in KEYSTORE -nodes
 Step 3: Configure and run the demo server
 -------
 
-Set environment variables to inform the server about its keystore:
+Set environment variables to inform the server about its keystore.
+The format of this setting is `/path/to/file;password`.
+Then run a demo server:
+
 
 ```
 export EPICS_PVAS_TLS_KEYCHAIN="/path/to/KEYSTORE;changeit"
-```
-
-Then run a demo server
-
-```
-java -cp target/classes org/epics/pva/server/ServerDemo
+java -cp target/classes org.epics.pva.server.ServerDemo
 ```
 
 
 Step 4: Configure and run the demo client
 -------
 
-Set environment variables to inform the client about its truststore:
+Set environment variables to inform the client about its truststore.
+Then run a demo client (`-v 5` to see protocol detail):
 
 ```
 export EPICS_PVA_TLS_KEYCHAIN="/path/to/TRUSTSTORE;changeit"
-```
-
-Then run a demo client
-
-```
-java -cp target/classes org/epics/pva/client/PVAClientMain get demo
+java -cp target/classes org.epics.pva.client.PVAClientMain get -v 5 demo
+# Or:  ./pvaclient get -v 5 demo
 ```
 
 
-More
-----
+Logging
+-------
 
-Add `-Djavax.net.debug=all` to see encryption information.
+The PVA server and client code logs in the `org.epics.pva` package.
+For lower level encryption information, add `-Djavax.net.debug=all`.
 
 For example, when receiving subscription updates for a string PV with status and timestamp,
 the log messages indicate that the encrypted data size of 74 bytes is almost twice the size
@@ -121,7 +116,7 @@ javax.net.ssl|DEBUG|91|TCP receiver /127.0.0.1|2023-05-05 15:57:37.300 EDT|SSLCi
 Firewalls
 ---------
 
-To allow tests from other hosts, may need to open firewalls.
+Tests from other hosts may require firewall openings.
 For RHEL9, use this get both immediate openings and have them
 persist a reboot:
 
@@ -129,9 +124,11 @@ persist a reboot:
 # Default UDP search port
 sudo firewall-cmd --zone=public --add-port=5076/udp
 sudo firewall-cmd --zone=public --add-port=5076/udp --permanent
+
 # Default plain TCP port
 sudo firewall-cmd --zone=public --add-port=5075/tcp
 sudo firewall-cmd --zone=public --add-port=5075/tcp --permanent
+
 # Default secure (TLS) TCP port
 sudo firewall-cmd --zone=public --add-port=5076/tcp
 sudo firewall-cmd --zone=public --add-port=5076/tcp --permanent
@@ -143,18 +140,27 @@ sudo firewall-cmd --info-zone=public
 Use a Certification Authority
 -----------------------------
 
-Instead of creating a separate key pair for each server and telling the client to trust all those public keys,
-we can use a Certification Authority.
+Instead of creating a separate key pair for each server and telling each client to trust all those public server keys,
+we can use a Certification Authority (CA).
 That way, clients trust the CA, and you can create individual key pairs for servers without need
 to distribute their public keys to each client.
 
-For a standalone demo, we create our own CA, and make its public certificate available as `myca.cer`:
+For a stand-alone demo, we create our own CA, and make its public certificate available as `myca.cer`:
 
 ```
-keytool -genkeypair -alias myca -keystore ca.p12 -storepass changeit -dname "CN=myca" -keyalg RSA -ext bc=ca:true
-keytool -list                   -keystore ca.p12 -storepass changeit
+keytool -genkeypair -alias myca -keystore ca.p12 -storepass changeit -dname "CN=myca" -keyalg RSA -ext BasicConstraints=ca:true
+keytool -list -v                -keystore ca.p12 -storepass changeit
 keytool -exportcert -alias myca -keystore ca.p12 -storepass changeit -rfc -file myca.cer
-keytool -printcert -file myca.cer 
+keytool -printcert -file myca.cer
+```
+
+Create a truststore that holds the public certificate of our CA.
+A client that simply wants to trust any CA-signed certificate
+could use this, it's equivalent to the `TRUSTSTORE` from the original example.
+
+```
+keytool -importcert -alias myca  -keystore trust_ca.p12 -storepass changeit -file myca.cer  -noprompt
+keytool -list -v                 -keystore trust_ca.p12 -storepass changeit
 ```
 
 Now create a server keypair for use by the IOC:
@@ -164,16 +170,16 @@ keytool -genkeypair -alias myioc -keystore ioc.p12 -storepass changeit -dname "C
 keytool -list -v                 -keystore ioc.p12 -storepass changeit
 ```
 
-It starts out as a "self-signed certificate" with matching owner and issuer.
+It starts out as a "self-signed certificate" with `myioc` as both "owner" and "issuer".
 Create a certificate signing request. The CSR could be sent to a commercial CA, but we sign it with our own CA.
 
 ```
 keytool -certreq -alias myioc -keystore ioc.p12 -storepass changeit -file myioc.csr
-keytool -gencert -alias myca  -keystore ca.p12  -storepass changeit -ext san=dns:myioc -infile myioc.csr -outfile myioc.cer
+keytool -gencert -alias myca  -keystore ca.p12  -storepass changeit -ext SubjectAlternativeName=DNS:myioc -ext KeyUsage=digitalSignature -ext ExtendedKeyUsage=serverAuth,clientAuth -infile myioc.csr -outfile myioc.cer
 keytool -printcert -file myioc.cer
 ```
 
-Import the signed certificate into the ioc keystore. Since `ioc.cer` is signed by 'myca', which
+Import the signed certificate into the ioc keystore. Since `ioc.cer` is signed by `myca`, which
 is not a generally known CA, we will get an error "Failed to establish chain"
 unless we first import `myca.cer` to trust out local CA.
 
@@ -183,13 +189,100 @@ keytool -importcert -alias myioc -keystore ioc.p12 -storepass changeit -file myi
 keytool -list -v                 -keystore ioc.p12 -storepass changeit
 ```
 
-A client will trust any IOC certificate signed by 'myca' once it's aware of the 'myca' certificate,
-which needs to be imported into the PKCS12 file format:
-
-```
-keytool -importcert -alias myca  -keystore trust_ca.p12 -storepass changeit -file myca.cer  -noprompt
-```
-
 We can now run the server with `EPICS_PVAS_TLS_KEYCHAIN=/path/to/ioc.p12;changeit` and clients with
-`EPICS_PVA_TLS_KEYCHAIN=/path/to/trust_ca.p12;changeit`
+`EPICS_PVA_TLS_KEYCHAIN=/path/to/trust_ca.p12;changeit`.
+
+You can create additional server files `ioc1.p12`, `ioc2.p12` and have each IOC use its own key pair.
+Clients will trust them without any changes to the `trust_ca.p12`
+as long as the IOC certificates are signed by your CA.
+
+
+Add client certificate
+----------------------
+
+Using certificates as described so far results in encrypted communication.
+Clients trust servers either because a server's public key is directly known to the client,
+or a server's certificate is signed by a CA known to the client.
+Servers, on the other hand, do not know for certain who the client is.
+Authentication is handled by the client sending a name, typically based on the user name provided by the operating system.
+This is called "ca authentication" because it mimics the Channel Access behavior.
+
+By adding a client certificate that is signed by the CA, the client identifies
+via that signed certificate. This is called "x509 authentication".
+
+Create a client certificate that uses the name "Fred F." for x509 authentication:
+
+```
+keytool -genkeypair -alias myclient -keystore client.p12 -storepass changeit -dname "CN=Fred F." -keyalg RSA
+keytool -list -v                 -keystore client.p12 -storepass changeit
+```
+
+Sign the client certificate with the CA and update the client file with that signed certificate:
+
+```
+keytool -certreq -alias myclient -keystore client.p12 -storepass changeit -file myclient.csr
+keytool -gencert -alias myca     -keystore ca.p12     -storepass changeit -ext SubjectAlternativeName=DNS:client -ext KeyUsage=digitalSignature -ext ExtendedKeyUsage=serverAuth,clientAuth -infile myclient.csr -outfile myclient.cer
+keytool -printcert -file myclient.cer
+
+keytool -importcert -alias myca  -keystore client.p12 -storepass changeit -file myca.cer  -noprompt
+keytool -importcert -alias myclient -keystore client.p12 -storepass changeit -file myclient.cer
+keytool -list -v                 -keystore client.p12 -storepass changeit
+```
+
+In the last step, note that the file `client.p12` uses an "alias" and "DNSName" of "myclient",
+and an "owner" of `CN=Fred F.`. The latter "Common Name" listed as the "owner"
+is used as the client name with x509 authentication.
+
+We can now run the server with `EPICS_PVAS_TLS_KEYCHAIN=/path/to/ioc.p12;changeit` and a client with
+`EPICS_PVA_TLS_KEYCHAIN=/path/to/client.p12;changeit`.
+The server will identify the client as "Fred F.".
+
+In total, we now have the following:
+
+ * `KEYSTORE`, `TRUSTSTORE`:
+   Server keystore and client truststore from the first, minimalistic example.
+   All IOCs could use the KEYSTORE and all clients the TRUSTSTORE, but
+   example becomes cumbersome when we want to add certificates that are specific
+   to IOCs, or if clients should use x509 authentication.
+
+ * `ca.p12`:
+   Keystore with public and private key of our Certification Authority (CA).
+   This file needs to be guarded because it allows creating new IOC
+   and client keystores.
+   
+ * `myca.cer`:
+   Public certificate of the CA.
+   Imported into any `*.p12` that needs to trust the CA.
+   
+ * `trust_ca.p12`:
+   Truststore with public certificate of the CA.
+   Equivalent to `myca.cer`, and some tools might directly use `myca.cer`,
+   but `trust_ca.p12` presents it in the commonly used  PKCS12 `*.p12` file format. 
+   Clients can set their `EPICS_PVA_TLS_KEYCHAIN` to this file to
+   communicate with IOCs, resulting in encryption and "ca" authentication.
+   
+ * `ioc.p12`:
+   Keystore with public and private key of an IOC.
+   The public key certificate is signed by the CA so that clients
+   will trust it.
+   To be used with `EPICS_PVAS_TLS_KEYCHAIN` of IOCs.
+   
+ * `myioc.cer`, `myioc.csr`: Public IOC certificate and certificate signing request.
+   Intermediate files used to sign the IOC certificate.
+   May be deleted.
+
+ * `client.p12`:
+   Keystore with public and private key of a client,
+   providing a client name for x509 authentication.
+   Clients can set their `EPICS_PVA_TLS_KEYCHAIN` to this file to
+   communicate with IOCs using x509 authentication.
+     
+ * `myclient.cer`, `myclient.csr`:
+   Intermediate files used to sign the client certificate.
+   May be deleted.
+
+
+The example can be extended by creating one certificate per IOC and one per client,
+and by adding one or more intermediate CA levels instead of directly
+signing IOC and client certificates with the "root" CA.
 
