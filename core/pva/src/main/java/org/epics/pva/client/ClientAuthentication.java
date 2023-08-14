@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,6 +16,7 @@ import java.util.BitSet;
 import java.util.logging.Level;
 
 import org.epics.pva.common.PVAAuth;
+import org.epics.pva.data.PVAFieldDesc;
 import org.epics.pva.data.PVAString;
 import org.epics.pva.data.PVAStructure;
 
@@ -34,6 +35,24 @@ abstract class ClientAuthentication
     @Override
     public abstract String toString();
 
+    /** X509 authentication: Server uses the 'principal' name sent with SSL certificate */
+    public static final ClientAuthentication X509 = new ClientAuthentication()
+    {
+        @Override
+        public void encode(final ByteBuffer buffer) throws Exception
+        {
+            PVAString.encodeString(PVAAuth.X509, buffer);
+            // No detail because server already has name
+            buffer.put(PVAFieldDesc.NULL_TYPE_CODE);
+        }
+
+        @Override
+        public String toString()
+        {
+            return PVAAuth.X509;
+        }
+    };
+
 
     /** Anonymous authentication */
     public static final ClientAuthentication Anonymous = new ClientAuthentication()
@@ -42,6 +61,8 @@ abstract class ClientAuthentication
         public void encode(final ByteBuffer buffer) throws Exception
         {
             PVAString.encodeString(PVAAuth.ANONYMOUS, buffer);
+            // No detail because we're anonymous
+            buffer.put(PVAFieldDesc.NULL_TYPE_CODE);
         }
 
         @Override
@@ -82,6 +103,7 @@ abstract class ClientAuthentication
         public void encode(final ByteBuffer buffer) throws Exception
         {
             PVAString.encodeString(PVAAuth.CA, buffer);
+            // Send identity detail
             identity.encodeType(buffer, new BitSet());
             identity.encode(buffer);
         }

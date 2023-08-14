@@ -16,6 +16,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
+import org.epics.pva.PVASettings;
 import org.epics.pva.data.PVAStructure;
 
 /** PVA Server
@@ -169,15 +170,20 @@ public class PVAServer implements AutoCloseable
      *  @param cid Client's channel ID
      *  @param name PV Name
      *  @param client Client's UDP reply address
-     *  @param tls Does client support tls?
+     *  @param tls_requested Does client support tls?
      *  @param tcp_connection Optional TCP connection for search received via TCP, else <code>null</code>
      *  @return
      */
     boolean handleSearchRequest(final int seq, final int cid, final String name,
                                 final InetSocketAddress client,
-                                final boolean tls,
+                                final boolean tls_requested,
                                 final ServerTCPHandler tcp_connection)
     {
+        // Both client and server must support TLS
+        final boolean tls = tls_requested  &&  !PVASettings.EPICS_PVAS_TLS_KEYCHAIN.isBlank();
+        if (tls_requested  &&  !tls)
+                logger.log(Level.WARNING, "PVA Client " + client + " searches for '" + name + "' with TLS, but EPICS_PVAS_TLS_KEYCHAIN is not configured");
+
         final Consumer<InetSocketAddress> send_search_reply = server_address ->
         {
             // If received via TCP, reply via same connection.

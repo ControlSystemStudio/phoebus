@@ -20,8 +20,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import javax.net.ssl.SSLSocket;
+
 import org.epics.pva.PVASettings;
 import org.epics.pva.common.SecureSockets;
+import org.epics.pva.common.SecureSockets.TLSHandshakeInfo;;
 
 /** Listen to TCP connections
  *
@@ -201,7 +204,7 @@ class ServerTCPListener
                     {   // Check TCP
                         final Socket client = tcp_server_socket.accept();
                         logger.log(Level.FINE, () -> Thread.currentThread().getName() + " accepted TCP client " + client.getRemoteSocketAddress());
-                        new ServerTCPHandler(server, client);
+                        new ServerTCPHandler(server, client, null);
                     }
                     catch (SocketTimeoutException timeout)
                     {   // Ignore
@@ -212,8 +215,15 @@ class ServerTCPListener
                     try
                     {   // Check TLS
                         final Socket client = tls_server_socket.accept();
-                        logger.log(Level.FINE, () -> Thread.currentThread().getName() + " accepted TLS client " + client.getRemoteSocketAddress());
-                        new ServerTCPHandler(server, client);
+                        TLSHandshakeInfo tls_info = null;
+                        if (client instanceof SSLSocket)
+                        {
+                            logger.log(Level.FINE, () -> Thread.currentThread().getName() + " accepted TLS client " + client.getRemoteSocketAddress());
+                            tls_info = TLSHandshakeInfo.fromSocket((SSLSocket) client);
+                        }
+                        else
+                            logger.log(Level.WARNING, () -> Thread.currentThread().getName() + " expected TLS client " + client.getRemoteSocketAddress() + " but did not get SSLSocket");
+                        new ServerTCPHandler(server, client, tls_info);
                     }
                     catch (SocketTimeoutException timeout)
                     {   // Ignore
