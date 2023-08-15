@@ -27,6 +27,7 @@ import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import org.csstudio.display.builder.model.ArrayWidgetProperty;
 import org.csstudio.display.builder.model.DirtyFlag;
@@ -495,8 +496,15 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         ColorAdjust increaseBrightness = new ColorAdjust(0, 0, 0.3, 0);
         ColorAdjust decreaseBrightness = new ColorAdjust(0, 0, -0.3, 0);
 
+        boolean[] buttonIsClicked = { false }; // Value is wrapped in an array as a workaround of the fact that Java doesn't allow non-final variables to be captured by closures.
+
         imageView.addEventFilter(MouseEvent.MOUSE_ENTERED, mouseEvent -> {
-            clickEffect[0] = increaseBrightness;
+            if (!buttonIsClicked[0]) {
+                clickEffect[0] = increaseBrightness;
+            }
+            else {
+                clickEffect[0] = decreaseBrightness;
+            }
             setEffect.run();
             mouseEvent.consume();
         });
@@ -504,25 +512,31 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         imageView.addEventFilter(MouseEvent.MOUSE_EXITED, mouseEvent -> {
             clickEffect[0] = null;
             setEffect.run();
-            mouseEvent.consume();
         });
 
         imageView.addEventFilter(MouseEvent.MOUSE_PRESSED, mouseEvent -> {
-            clickEffect[0] = decreaseBrightness;
+            if (mouseEvent.isPrimaryButtonDown()) {
+                buttonIsClicked[0] = true;
+                clickEffect[0] = decreaseBrightness;
+                mouseEvent.consume();
+            }
+
             setEffect.run();
-            mouseEvent.consume();
         });
 
         imageView.addEventFilter(MouseEvent.MOUSE_RELEASED, mouseEvent -> {
-            clickEffect[0] = increaseBrightness;
-            setEffect.run();
-            mouseEvent.consume();
+            buttonIsClicked[0] = false;
         });
 
         imageView.addEventFilter(MouseEvent.MOUSE_CLICKED, mouseEvent -> {
-            runActions.run();
+            if (mouseEvent.getButton() == MouseButton.PRIMARY) {
+                runActions.run();
+                clickEffect[0] = null;
+                setEffect.run();
+                mouseEvent.consume();
+            }
+
             imageView.requestFocus();
-            mouseEvent.consume();
         });
 
         Color focusColor = Color.web("rgba(3,158,211,1)");
@@ -542,17 +556,29 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
             if (keyEvent.getCode() == KeyCode.ENTER || keyEvent.getCode() == KeyCode.SPACE) {
                 clickEffect[0] = decreaseBrightness;
                 setEffect.run();
+
+                buttonIsClicked[0] = true;
+
                 keyEvent.consume();
+            }
+            else if (keyEvent.getCode() == KeyCode.TAB) {
+                clickEffect[0] = null;
+                focusEffect[0] = null;
+                setEffect.run();
+
+                buttonIsClicked[0] = false;
             }
         });
 
         imageView.addEventFilter(KeyEvent.KEY_RELEASED, keyEvent -> {
             if (keyEvent.getCode() == KeyCode.ENTER || keyEvent.getCode() == KeyCode.SPACE) {
-
                 runActions.run();
 
                 clickEffect[0] = null;
                 setEffect.run();
+
+                buttonIsClicked[0] = false;
+
                 keyEvent.consume();
             }
         });
