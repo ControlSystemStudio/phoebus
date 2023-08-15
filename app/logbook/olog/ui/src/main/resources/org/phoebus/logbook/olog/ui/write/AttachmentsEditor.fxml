@@ -23,32 +23,48 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox fx:id="root" maxHeight="1.7976931348623157E308" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="org.phoebus.logbook.olog.ui.write.AttachmentsEditorController">
-    <children>
-        <fx:include fx:id="attachmentsView" source="../AttachmentsView.fxml" />
-        <HBox fx:id="buttonBar" spacing="5.0" GridPane.rowIndex="2" VBox.vgrow="NEVER">
-            <Button maxWidth="1.7976931348623157E308" onAction="#addFiles" text="%Add" HBox.hgrow="ALWAYS" />
-            <Button fx:id="clipboardButton" maxWidth="1.7976931348623157E308" onAction="#addClipboardContent" text="%ClipboardButton" HBox.hgrow="ALWAYS">
-                <tooltip>
-                    <Tooltip text="%ClipboardButtonTooltip" />
-                </tooltip>
-            </Button>
-            <Button maxWidth="1.7976931348623157E308" onAction="#addCssWindow" text="%CSSWindow" HBox.hgrow="ALWAYS" />
-            <Button maxWidth="1.7976931348623157E308" onAction="#embedImage" text="%EmbedImage" HBox.hgrow="ALWAYS">
-                <tooltip>
-                    <Tooltip text="%EmbedImageTooltip"/>
-                </tooltip>
-            </Button>
-            <Button fx:id="embedSelectedButton" maxWidth="1.7976931348623157E308" onAction="#embedSelected" text="%EmbedSelected" HBox.hgrow="ALWAYS">
-                <tooltip>
-                    <Tooltip text="%EmbedSelectedTooltip"/>
-                </tooltip>
-            </Button>
-            <Button fx:id="removeButton" maxWidth="1.7976931348623157E308" onAction="#removeFiles" text="%Remove" HBox.hgrow="ALWAYS" />
+<VBox fx:id="root" maxHeight="1.7976931348623157E308" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.write.AttachmentsEditorController">
+    <HBox spacing="5.0">
+        <Label fx:id="sizeLimitsLabel" HBox.hgrow="NEVER">
             <VBox.margin>
-               <Insets bottom="-5.0" left="-5.0" right="-5.0" top="15.0" />
+                <Insets />
             </VBox.margin>
-        </HBox>
-    </children>
+            <padding>
+                <Insets bottom="8.0" left="-3.0" top="-4.0" />
+            </padding>
+        </Label>
+        <Label maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
+        <Label fx:id="sizesErrorLabel" alignment="CENTER_RIGHT" text="Error" HBox.hgrow="NEVER" textFill="red">
+            <VBox.margin>
+                <Insets />
+            </VBox.margin>
+            <padding>
+                <Insets bottom="8.0" right="-3.0" top="-4.0" />
+            </padding>
+        </Label>
+    </HBox>
+    <fx:include fx:id="attachmentsView" source="../AttachmentsView.fxml" />
+    <HBox spacing="5.0" VBox.vgrow="NEVER">
+        <Button maxWidth="1.7976931348623157E308" onAction="#addFiles" text="%Add" HBox.hgrow="ALWAYS" />
+        <Button maxWidth="1.7976931348623157E308" onAction="#addClipboardContent" text="%ClipboardButton" HBox.hgrow="ALWAYS">
+            <tooltip>
+                <Tooltip text="%ClipboardButtonTooltip" />
+            </tooltip>
+        </Button>
+        <Button maxWidth="1.7976931348623157E308" onAction="#addCssWindow" text="%CSSWindow" HBox.hgrow="ALWAYS" />
+        <Button maxWidth="1.7976931348623157E308" onAction="#embedImage" text="%EmbedImage" HBox.hgrow="ALWAYS">
+            <tooltip>
+                <Tooltip text="%EmbedImageTooltip" />
+            </tooltip>
+        </Button>
+        <Button fx:id="embedSelectedButton" maxWidth="1.7976931348623157E308" onAction="#embedSelected" text="%EmbedSelected" HBox.hgrow="ALWAYS">
+            <tooltip>
+                <Tooltip text="%EmbedSelectedTooltip" />
+            </tooltip>
+        </Button>
+        <Button fx:id="removeButton" maxWidth="1.7976931348623157E308" onAction="#removeFiles" text="%Remove" HBox.hgrow="ALWAYS" />
+        <VBox.margin>
+            <Insets bottom="-5.0" left="-5.0" right="-5.0" top="15.0" />
+        </VBox.margin>
+    </HBox>
 </VBox>
