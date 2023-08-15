@@ -19,10 +19,6 @@
  */
 package org.csstudio.display.builder.model.widgets;
 
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBorderAlarmSensitive;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPVName;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.runtimePropPVValue;
-
 import java.time.Instant;
 import java.util.List;
 
@@ -34,6 +30,14 @@ import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Time;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
+
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBorderAlarmSensitive;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPVName;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.runtimePropPVAlarmHiHi;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.runtimePropPVAlarmHigh;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.runtimePropPVAlarmLoLo;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.runtimePropPVAlarmLow;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.runtimePropPVValue;
 
 /** A base class for all widgets having a primary PV and value.
  *
@@ -59,6 +63,10 @@ public class PVWidget extends VisibleWidget
 
     private volatile WidgetProperty<String> pv_name;
     private volatile WidgetProperty<VType>  pv_value;
+    private volatile WidgetProperty<Double> pv_alarm_lolo;
+    private volatile WidgetProperty<Double> pv_alarm_low;
+    private volatile WidgetProperty<Double> pv_alarm_high;
+    private volatile WidgetProperty<Double> pv_alarm_hihi;
     private volatile WidgetProperty<Boolean> alarm_border;
 
 
@@ -84,6 +92,10 @@ public class PVWidget extends VisibleWidget
         properties.add(pv_name = propPVName.createProperty(this, ""));
         properties.add(pv_value = runtimePropPVValue.createProperty(this, null));
         properties.add(alarm_border = propBorderAlarmSensitive.createProperty(this, true));
+        properties.add(pv_alarm_lolo = runtimePropPVAlarmLoLo.createProperty(this, Double.NaN));
+        properties.add(pv_alarm_low = runtimePropPVAlarmLow.createProperty(this, Double.NaN));
+        properties.add(pv_alarm_high = runtimePropPVAlarmHigh.createProperty(this, Double.NaN));
+        properties.add(pv_alarm_hihi = runtimePropPVAlarmHiHi.createProperty(this, Double.NaN));
     }
 
     @Override
@@ -103,6 +115,30 @@ public class PVWidget extends VisibleWidget
     public WidgetProperty<VType> runtimePropValue()
     {
         return pv_value;
+    }
+
+    /** @return Runtime 'pv_alarm_lolo' property */
+    public WidgetProperty<Double> runtimePropAlarmLoLo()
+    {
+        return pv_alarm_lolo;
+    }
+
+    /** @return Runtime 'pv_alarm_low' property */
+    public WidgetProperty<Double> runtimePropAlarmLow()
+    {
+        return pv_alarm_low;
+    }
+
+    /** @return Runtime 'pv_alarm_high' property */
+    public WidgetProperty<Double> runtimePropAlarmHigh()
+    {
+        return pv_alarm_high;
+    }
+
+    /** @return Runtime 'pv_alarm_hihi' property */
+    public WidgetProperty<Double> runtimePropAlarmHiHi()
+    {
+        return pv_alarm_hihi;
     }
 
     /** @return 'border_alarm_sensitive' property */
