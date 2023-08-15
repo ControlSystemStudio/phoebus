@@ -171,8 +171,6 @@ abstract public class RegionBaseRepresentation<JFX extends Region, MW extends Vi
         if (toolkit.isEditMode())
             return;
 
-        // In runtime mode, handle alarm-sensitive border
-        final Optional<WidgetProperty<Boolean>> alarm_sens = model_widget.checkProperty(propBorderAlarmSensitive);
         final Optional<WidgetProperty<VType>> value = model_widget.checkProperty(runtimePropPVValue);
 
         if (value.isPresent() && model_widget instanceof PVWidget) {
@@ -201,6 +199,8 @@ abstract public class RegionBaseRepresentation<JFX extends Region, MW extends Vi
             });
         }
 
+        // In runtime mode, handle alarm-sensitive border
+        final Optional<WidgetProperty<Boolean>> alarm_sens = model_widget.checkProperty(propBorderAlarmSensitive);
         if (alarm_sens.isPresent()  &&  value.isPresent())
         {
             value_prop = value.get();
