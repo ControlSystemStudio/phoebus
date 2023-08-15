@@ -719,16 +719,16 @@ public class CommonWidgetProperties
 
     /** Runtime 'pv_alarm_lolo' property: */
     public static final WidgetPropertyDescriptor<Double> runtimePropPVAlarmLoLo =
-            newDoublePropertyDescriptor(WidgetPropertyCategory.RUNTIME, "pv_alarm_lolo", "LoLo Alarm Limit");
+            newDoublePropertyDescriptor(WidgetPropertyCategory.RUNTIME, "pv_alarm_lolo", Messages.WidgetProperties_AlarmLoLo);
     /** Runtime 'pv_alarm_low' property: */
     public static final WidgetPropertyDescriptor<Double> runtimePropPVAlarmLow =
-            newDoublePropertyDescriptor(WidgetPropertyCategory.RUNTIME, "pv_alarm_low", "Low Alarm Limit");
+            newDoublePropertyDescriptor(WidgetPropertyCategory.RUNTIME, "pv_alarm_low", Messages.WidgetProperties_AlarmLow);
     /** Runtime 'pv_alarm_high' property: */
     public static final WidgetPropertyDescriptor<Double> runtimePropPVAlarmHigh =
-            newDoublePropertyDescriptor(WidgetPropertyCategory.RUNTIME, "pv_alarm_high", "High Alarm Limit");
+            newDoublePropertyDescriptor(WidgetPropertyCategory.RUNTIME, "pv_alarm_high", Messages.WidgetProperties_AlarmHigh);
     /** Runtime 'pv_alarm_hihi' property: */
     public static final WidgetPropertyDescriptor<Double> runtimePropPVAlarmHiHi =
-            newDoublePropertyDescriptor(WidgetPropertyCategory.RUNTIME, "pv_alarm_hihi", "HiHi Alarm Limit");
+            newDoublePropertyDescriptor(WidgetPropertyCategory.RUNTIME, "pv_alarm_hihi", Messages.WidgetProperties_AlarmHiHi);
 
     /** Runtime 'pv_writable' property: Does primary PV have write access? */
     public static final WidgetPropertyDescriptor<Boolean> runtimePropPVWritable =
