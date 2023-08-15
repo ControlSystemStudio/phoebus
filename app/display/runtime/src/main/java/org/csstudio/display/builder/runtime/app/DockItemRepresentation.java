@@ -141,24 +141,4 @@ public class DockItemRepresentation extends JFXRepresentation
             app_instance.trackCurrentModel(model);
         super.representModel(model_parent, model);
     }
-
-    @Override
-    public void closeWindow(final DisplayModel model) throws Exception
-    {
-        // Is called from ScriptUtil, i.e. scripts, from background thread
-        final Parent model_parent = Objects.requireNonNull(model.getUserData(Widget.USER_DATA_TOOLKIT_PARENT));
-        if (model_parent.getProperties().get(DisplayRuntimeInstance.MODEL_PARENT_DISPLAY_RUNTIME) == app_instance)
-        {
-            // Prepare-to-close, which might take time and must be called off the UI thread
-            final DisplayRuntimeInstance instance = (DisplayRuntimeInstance) app_instance.getRepresentation().getModelParent().getProperties().get(DisplayRuntimeInstance.MODEL_PARENT_DISPLAY_RUNTIME);
-            if (instance != null)
-                instance.getDockItem().prepareToClose();
-            else
-                logger.log(Level.SEVERE, "Missing DisplayRuntimeInstance to prepare closing", new Exception("Stack Trace"));
-            // 'close' on the UI thread
-            execute(() -> app_instance.close());
-        }
-        else
-            throw new Exception("Wrong model");
-    }
 }

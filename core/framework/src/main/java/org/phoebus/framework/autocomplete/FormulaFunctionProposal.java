@@ -85,7 +85,7 @@ class FormulaFunctionProposal extends Proposal
                         {
                             // Have text for this argument.
                             segs.add(MatchSegment.match(text.substring(pos, end),
-                                                        function.getArguments().get(i)));
+                                    function.getArguments().get(i)));
                             if (text.charAt(end) == ')')
                             {
                                 segs.add(MatchSegment.match(")"));
@@ -101,7 +101,7 @@ class FormulaFunctionProposal extends Proposal
                         else
                         {
                             segs.add(MatchSegment.comment(text.substring(pos),
-                                                          function.getArguments().get(i)));
+                                    function.getArguments().get(i)));
                             pos = end = -1;
                         }
                     }

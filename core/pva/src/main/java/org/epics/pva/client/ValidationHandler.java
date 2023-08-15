@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.epics.pva.common.CommandHandler;
+import org.epics.pva.common.PVAAuth;
 import org.epics.pva.common.PVAHeader;
 import org.epics.pva.data.PVASize;
 import org.epics.pva.data.PVAString;
@@ -48,9 +49,12 @@ class ValidationHandler implements CommandHandler<ClientTCPHandler>
         logger.finer(() -> "Server registry max size: " + server_introspection_registry_max_size);
         logger.finer(() -> "Server authentication methods: " + auth);
 
-        // Support "ca" authorization, fall back to anonymouse
+        // Support "x509" or "ca" authorization, fall back to any-no-mouse
         final ClientAuthentication authentication;
-        if (auth.contains("ca"))
+        // Even if server suggests x509, check that we have a certificate with name
+        if (tcp.getX509Name() != null  &&  auth.contains(PVAAuth.X509))
+            authentication = ClientAuthentication.X509;
+        else if (auth.contains(PVAAuth.CA))
             authentication = ClientAuthentication.CA;
         else
             authentication = ClientAuthentication.Anonymous;

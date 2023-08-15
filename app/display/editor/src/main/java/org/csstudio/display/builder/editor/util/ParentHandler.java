@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,6 +19,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.widgets.ArrayWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget;
+import org.csstudio.display.builder.model.widgets.TabsWidget.TabItemProperty;
 import org.csstudio.display.builder.model.widgets.VisibleWidget;
 
 import javafx.geometry.Rectangle2D;
@@ -137,8 +138,9 @@ public class ParentHandler
                 else if (widget instanceof TabsWidget)
                 {   // Check children of _selected_ Tab
                     final TabsWidget tabwid = (TabsWidget) widget;
-                    final int selected = tabwid.propActiveTab().getValue();
-                    child_prop = tabwid.propTabs().getValue().get(selected).children();
+                    final List<TabItemProperty> tabs = tabwid.propTabs().getValue();
+                    int selected = Math.min(tabwid.propActiveTab().getValue(), tabs.size()-1);
+                    child_prop = tabs.get(selected).children();
                 }
                 else if (widget instanceof ArrayWidget)
                 {

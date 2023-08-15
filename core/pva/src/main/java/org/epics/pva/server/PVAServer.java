@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,6 +16,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
+import org.epics.pva.PVASettings;
 import org.epics.pva.data.PVAStructure;
 
 /** PVA Server
@@ -54,7 +55,7 @@ public class PVAServer implements AutoCloseable
     /** TCP connection listener, creates {@link ServerTCPHandler} for each connecting client */
     private final ServerTCPListener tcp;
 
-    /** Optional handler for seatches that's checked first */
+    /** Optional searche handler 'hook' */
     private final SearchHandler custom_search_handler;
 
     /** Handlers for the TCP connections clients established to this server */
@@ -88,10 +89,12 @@ public class PVAServer implements AutoCloseable
         tcp = new ServerTCPListener(this);
     }
 
-    /** @return TCP address and port where server is accepting clients */
-    public InetSocketAddress getTCPAddress()
+    /** @param tls Request TLS or plain TCP address?
+     *  @return TCP address and port where server is accepting clients
+     */
+    public InetSocketAddress getTCPAddress(final boolean tls)
     {
-        return tcp.getResponseAddress();
+        return tcp.getResponseAddress(tls);
     }
 
     /** Create a read-only PV which serves data to clients
@@ -167,21 +170,28 @@ public class PVAServer implements AutoCloseable
      *  @param cid Client's channel ID
      *  @param name PV Name
      *  @param client Client's UDP reply address
+     *  @param tls_requested Does client support tls?
      *  @param tcp_connection Optional TCP connection for search received via TCP, else <code>null</code>
      *  @return
      */
     boolean handleSearchRequest(final int seq, final int cid, final String name,
                                 final InetSocketAddress client,
+                                final boolean tls_requested,
                                 final ServerTCPHandler tcp_connection)
     {
+        // Both client and server must support TLS
+        final boolean tls = tls_requested  &&  !PVASettings.EPICS_PVAS_TLS_KEYCHAIN.isBlank();
+        if (tls_requested  &&  !tls)
+                logger.log(Level.WARNING, "PVA Client " + client + " searches for '" + name + "' with TLS, but EPICS_PVAS_TLS_KEYCHAIN is not configured");
+
         final Consumer<InetSocketAddress> send_search_reply = server_address ->
         {
             // If received via TCP, reply via same connection.
             if (tcp_connection != null)
-                tcp_connection.submitSearchReply(guid, seq, cid, server_address);
+                tcp_connection.submitSearchReply(guid, seq, cid, server_address, tls);
             else
                 // Otherwise reply via UDP to the given address.
-                POOL.execute(() -> udp.sendSearchReply(guid, seq, cid, server_address, client));
+                POOL.execute(() -> udp.sendSearchReply(guid, seq, cid, server_address, tls, client));
         };
 
         // Does custom handler consume the search request?
@@ -192,9 +202,9 @@ public class PVAServer implements AutoCloseable
         if (cid < 0)
         {   // 'List servers' search, no specific name
             if (tcp_connection != null)
-                tcp_connection.submitSearchReply(guid, seq, -1, USE_THIS_TCP_CONNECTION);
+                tcp_connection.submitSearchReply(guid, seq, -1, USE_THIS_TCP_CONNECTION, tls);
             else
-                POOL.execute(() -> udp.sendSearchReply(guid, 0, -1, getTCPAddress(), client));
+                POOL.execute(() -> udp.sendSearchReply(guid, 0, -1, getTCPAddress(tls), tls, client));
             return true;
         }
         else
@@ -211,7 +221,7 @@ public class PVAServer implements AutoCloseable
                 if (tcp_connection != null)
                     send_search_reply.accept(USE_THIS_TCP_CONNECTION);
                 else
-                    send_search_reply.accept(getTCPAddress());
+                    send_search_reply.accept(getTCPAddress(tls));
                 return true;
             }
             else

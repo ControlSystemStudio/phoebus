@@ -41,7 +41,9 @@ public class Messages
             SelectFile,
             SelectFolder,
             ShowHideDetails,
-            SizeLimitsText;
+            SizeLimitsText,
+            UpdateLogEntry;
+
     static
     {
         // initialize resource bundle

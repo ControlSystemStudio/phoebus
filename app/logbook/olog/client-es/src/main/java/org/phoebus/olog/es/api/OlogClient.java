@@ -2,12 +2,8 @@ package org.phoebus.olog.es.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.*;
 import com.sun.jersey.api.client.ClientResponse.Status;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
@@ -16,15 +12,7 @@ import com.sun.jersey.multipart.FormDataBodyPart;
 import com.sun.jersey.multipart.FormDataMultiPart;
 import com.sun.jersey.multipart.file.FileDataBodyPart;
 import com.sun.jersey.multipart.impl.MultiPartWriter;
-import org.phoebus.logbook.Attachment;
-import org.phoebus.logbook.LogClient;
-import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.Logbook;
-import org.phoebus.logbook.LogbookException;
-import org.phoebus.logbook.Messages;
-import org.phoebus.logbook.Property;
-import org.phoebus.logbook.SearchResult;
-import org.phoebus.logbook.Tag;
+import org.phoebus.logbook.*;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.olog.es.api.model.OlogObjectMappers;
 import org.phoebus.olog.es.api.model.OlogSearchResult;
@@ -36,13 +24,7 @@ import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -428,7 +410,7 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public LogEntry updateLogEntry(LogEntry logEntry) {
+    public LogEntry update(LogEntry logEntry) {
         ClientResponse clientResponse;
 
         try {

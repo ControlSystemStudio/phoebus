@@ -10,29 +10,11 @@
  */
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import org.epics.vtype.AlarmSeverity;
-import org.epics.vtype.AlarmStatus;
-import org.epics.vtype.VEnum;
-import org.epics.vtype.VEnumArray;
-import org.epics.vtype.VNumber;
-import org.epics.vtype.VNumberArray;
-import org.epics.vtype.VType;
-import org.phoebus.applications.saveandrestore.common.Threshold;
-import org.phoebus.applications.saveandrestore.common.Utilities;
-import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
-import org.phoebus.applications.saveandrestore.common.VNoData;
+import javafx.beans.property.*;
+import org.epics.vtype.*;
+import org.phoebus.applications.saveandrestore.common.*;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.ui.SingleListenerBooleanProperty;
-import org.phoebus.applications.saveandrestore.common.VTypePair;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -53,16 +35,19 @@ public class TableEntry {
     private final SingleListenerBooleanProperty selected = new SingleListenerBooleanProperty(this, "selected", true);
     private final StringProperty pvName = new SimpleStringProperty(this, "pvName");
     private final ObjectProperty<Instant> timestamp = new SimpleObjectProperty<>(this, "timestamp");
-    private final StringProperty status = new SimpleStringProperty(this, "status", AlarmStatus.UNDEFINED.name());
-    private final StringProperty severity = new SimpleStringProperty(this, "severity", AlarmSeverity.UNDEFINED.name());
+    private final StringProperty liveStatus = new SimpleStringProperty(this, "liveStatus", "---");
+    private final StringProperty storedStatus = new SimpleStringProperty(this, "storedStatus", AlarmStatus.UNDEFINED.name());
+    private final StringProperty liveSeverity = new SimpleStringProperty(this, "liveSeverity", "---");
+    private final StringProperty storedSeverity = new SimpleStringProperty(this, "storedSeverity", AlarmSeverity.UNDEFINED.toString());
     /**
      * Snapshot value set either when user takes snapshot, or when snapshot data is loaded from remote service. Note that this
-     * can be modified if user chooses to use a multiplier before triggering a restore operation.
+     * can be modified if user chooses to use a multiplier before triggering a restore operation, or if the value is
+     * edited directly in the table view cell.
      */
     private final ObjectProperty<VType> snapshotVal = new SimpleObjectProperty<>(this, "snapshotValue", VNoData.INSTANCE);
 
     /**
-     * Snapshot value as loaded from remote service
+     * Snapshot value as loaded from remote service. Unlike snapshotVal it is not subject to changes.
      */
     private final ObjectProperty<VType> storedSnapshotValue = new SimpleObjectProperty<>(VNoData.INSTANCE);
 
@@ -159,24 +144,19 @@ public class TableEntry {
     }
 
     /**
-     * @return the property providing the timestamp of the primary snapshot value
-     */
-    public ObjectProperty<Instant> timestampProperty() {
-        return timestamp;
-    }
-
-    /**
      * @return the property providing the alarm status of the PV value
      */
-    public StringProperty statusProperty() {
-        return status;
+    @SuppressWarnings("unused")
+    public StringProperty liveStatusProperty() {
+        return liveStatus;
     }
 
     /**
      * @return the property providing the alarm severity of the PV value
      */
-    public StringProperty severityProperty() {
-        return severity;
+    @SuppressWarnings("unused")
+    public StringProperty liveSeverityProperty() {
+        return liveSeverity;
     }
 
     /**
@@ -210,15 +190,42 @@ public class TableEntry {
     /**
      * @return the property providing the stored liveReadback vs stored setpoint value
      */
+    @SuppressWarnings("unused")
     public ObjectProperty<VTypePair> storedReadbackProperty() {
         return storedReadback;
     }
 
+    @SuppressWarnings("unused")
+    public StringProperty storedStatusProperty(){
+        return storedStatus;
+    }
+
     /**
-     * @return the property indicating the the PV is read only or read and write
+     * @return the property indicating the PV is read only or read and write
      */
     public BooleanProperty readOnlyProperty() {
         return readOnly;
+    }
+
+    public Instant getTimestamp() {
+        return timestamp.get();
+    }
+
+    public ObjectProperty<Instant> timestampProperty() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Instant timestamp) {
+        this.timestamp.set(timestamp);
+    }
+
+    public ObjectProperty<VType> storedSnapshotValue(){
+        return storedSnapshotValue;
+    }
+
+    @SuppressWarnings("unused")
+    public StringProperty storedSeverityProperty() {
+        return storedSeverity;
     }
 
     /**
@@ -256,28 +263,28 @@ public class TableEntry {
         final VType val = snapshotValue == null ? VDisconnectedData.INSTANCE : snapshotValue;
         if (index == 0) {
             if (val instanceof VNumber) {
-                status.set(((VNumber) val).getAlarm().getStatus().name());
-                severity.set(((VNumber) val).getAlarm().getSeverity().name());
+                storedStatus.set(((VNumber) val).getAlarm().getStatus().name());
+                storedSeverity.set(((VNumber) val).getAlarm().getSeverity().toString());
                 timestamp.set(((VNumber) val).getTime().getTimestamp());
             } else if (val instanceof VNumberArray) {
-                status.set(((VNumberArray) val).getAlarm().getStatus().name());
-                severity.set(((VNumberArray) val).getAlarm().getSeverity().name());
+                storedStatus.set(((VNumberArray) val).getAlarm().getStatus().name());
+                storedSeverity.set(((VNumberArray) val).getAlarm().getSeverity().toString());
                 timestamp.set(((VNumberArray) val).getTime().getTimestamp());
             } else if (val instanceof VEnum) {
-                status.set(((VEnum) val).getAlarm().getStatus().name());
-                severity.set(((VEnum) val).getAlarm().getSeverity().name());
+                storedStatus.set(((VEnum) val).getAlarm().getStatus().name());
+                storedSeverity.set(((VEnum) val).getAlarm().getSeverity().toString());
                 timestamp.set(((VEnum) val).getTime().getTimestamp());
             } else if (val instanceof VEnumArray) {
-                status.set(((VEnumArray) val).getAlarm().getStatus().name());
-                severity.set(((VEnumArray) val).getAlarm().getSeverity().name());
+                storedStatus.set(((VEnumArray) val).getAlarm().getStatus().name());
+                storedSeverity.set(((VEnumArray) val).getAlarm().getSeverity().toString());
                 timestamp.set(((VEnumArray) val).getTime().getTimestamp());
             } else if (val instanceof VNoData) {
-                severity.set("---");
-                status.set("---");
+                storedStatus.set("---");
+                storedSeverity.set("---");
                 timestamp.set(null);
             } else {
-                severity.set(AlarmSeverity.NONE.name());
-                status.set("---");
+                storedStatus.set(AlarmSeverity.NONE.toString());
+                storedSeverity.set("---");
                 timestamp.set(null);
             }
             snapshotVal.set(val);
@@ -300,14 +307,13 @@ public class TableEntry {
     }
 
     /**
-     * Set the stored liveReadback value for the primary snapshot of for the snapshots compared to the primary one.
+     * Set the stored readback value for the primary snapshot of for the snapshots compared to the primary one.
      *
      * @param val   the value to set
-     * @param index the index of the snapshot
      */
     public void setStoredReadbackValue(VType val, int index) {
         if (val == null) {
-            val = VDisconnectedData.INSTANCE;
+            val = VNoData.INSTANCE;
         }
         if (index == 0) {
             storedReadback.set(new VTypePair(storedReadback.get().base, val, threshold));
@@ -351,20 +357,29 @@ public class TableEntry {
         value.set(new VTypePair(val, stored, threshold));
         liveStoredEqual.set(Utilities.areValuesEqual(val, stored, threshold));
         if (val instanceof VNumber) {
-            status.set(((VNumber) val).getAlarm().getStatus().name());
-            severity.set(((VNumber) val).getAlarm().getSeverity().name());
+            liveStatus.set(((VNumber) val).getAlarm().getStatus().name());
+            liveSeverity.set(((VNumber) val).getAlarm().getSeverity().toString());
+            timestamp.set(((VNumber) val).getTime().getTimestamp());
         } else if (val instanceof VNumberArray) {
-            status.set(((VNumberArray) val).getAlarm().getStatus().name());
-            severity.set(((VNumberArray) val).getAlarm().getSeverity().name());
+            liveStatus.set(((VNumberArray) val).getAlarm().getStatus().name());
+            liveSeverity.set(((VNumberArray) val).getAlarm().getSeverity().toString());
+            timestamp.set(((VNumberArray) val).getTime().getTimestamp());
         } else if (val instanceof VEnum) {
-            status.set(((VEnum) val).getAlarm().getStatus().name());
-            severity.set(((VEnum) val).getAlarm().getSeverity().name());
+            liveStatus.set(((VEnum) val).getAlarm().getStatus().name());
+            liveSeverity.set(((VEnum) val).getAlarm().getSeverity().toString());
+            timestamp.set(((VEnum) val).getTime().getTimestamp());
         } else if (val instanceof VEnumArray) {
-            status.set(((VEnumArray) val).getAlarm().getStatus().name());
-            severity.set(((VEnumArray) val).getAlarm().getSeverity().name());
+            liveStatus.set(((VEnumArray) val).getAlarm().getStatus().name());
+            liveSeverity.set(((VEnumArray) val).getAlarm().getSeverity().toString());
+            timestamp.set(((VEnumArray) val).getTime().getTimestamp());
+        } else if (val instanceof VDisconnectedData) {
+            liveSeverity.set("---");
+            liveStatus.set("---");
+            timestamp.set(null);
         } else {
-            severity.set(AlarmSeverity.NONE.name());
-            status.set("---");
+            liveSeverity.set(AlarmSeverity.NONE.toString());
+            liveStatus.set("---");
+            timestamp.set(null);
         }
     }
 
@@ -388,7 +403,8 @@ public class TableEntry {
         }
     }
 
-    public ObjectProperty<VType> getStoredSnapshotValue(){
-        return storedSnapshotValue;
+    public ObjectProperty<VType> getSnapshotVal() {
+        return snapshotVal;
     }
+
 }

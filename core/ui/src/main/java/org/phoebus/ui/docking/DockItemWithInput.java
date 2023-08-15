@@ -14,17 +14,16 @@ import java.net.URI;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import javafx.scene.Scene;
+import javafx.scene.layout.Region;
 import javafx.stage.Window;
+import org.apache.commons.io.FilenameUtils;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.JobRunnable;
@@ -103,8 +102,6 @@ public class DockItemWithInput extends DockItem
         this.file_extensions =  file_extensions;
         this.save_handler = save_handler;
         setInput(input);
-
-        addCloseCheck(this::okToClose);
     }
 
     // Override to include 'dirty' tab
@@ -209,13 +206,13 @@ public class DockItemWithInput extends DockItem
     /** Called when user tries to close the tab
      *  @return Should the tab close? Otherwise it stays open.
      */
-    private Future<Boolean> okToClose()
+    public Future<Boolean> okToClose()
     {
         if (! isDirty())
             return CompletableFuture.completedFuture(true);
 
         final FutureTask promptToSave = new FutureTask(() -> {
-            final String text = MessageFormat.format(Messages.DockAlertMsg, getLabel());
+            final String text = MessageFormat.format(Messages.DockAlertMsg, getApplication().getAppDescriptor().getDisplayName(), getLabel());
             final Alert prompt = new Alert(AlertType.NONE,
                     text,
                     ButtonType.NO, ButtonType.CANCEL, ButtonType.YES);
@@ -245,7 +242,7 @@ public class DockItemWithInput extends DockItem
         final CompletableFuture<Boolean> done = new CompletableFuture<>();
         JobManager.schedule(Messages.Save, monitor ->
         {
-            save(monitor);
+            save(monitor, getTabPane().getScene().getWindow());
             // Indicate if we may close, or need to stay open because of error
             done.complete(!isDirty());
         });
@@ -263,7 +260,7 @@ public class DockItemWithInput extends DockItem
      *  @param monitor {@link JobMonitor} for reporting progress
      *  @return <code>true</code> on success
      */
-    public final boolean save(final JobMonitor monitor)
+    public final boolean save(final JobMonitor monitor, Window parentWindow)
     {
         // 'final' because any save customization should be possible
         // inside the save_handler
@@ -274,7 +271,7 @@ public class DockItemWithInput extends DockItem
             // call save_as to prompt for file
             File file = ResourceParser.getFile(getInput());
             if (file == null)
-                return save_as(monitor);
+                return save_as(monitor, parentWindow);
 
 
             if (file.exists()  &&  !file.canWrite())
@@ -293,7 +290,7 @@ public class DockItemWithInput extends DockItem
 
                 // If user doesn't want to overwrite, abort the save
                 if (response.get() == ButtonType.OK)
-                    return save_as(monitor);
+                    return save_as(monitor, getTabPane().getScene().getWindow());
                 return false;
             }
 
@@ -374,7 +371,7 @@ public class DockItemWithInput extends DockItem
      *  @param monitor {@link JobMonitor} for reporting progress
      *  @return <code>true</code> on success
      */
-    public final boolean save_as(final JobMonitor monitor)
+    public final boolean save_as(final JobMonitor monitor, Window parentWindow)
     {
         // 'final' because any save customization should be possible
         // inside the save_handler
@@ -382,7 +379,7 @@ public class DockItemWithInput extends DockItem
         {
             // Prompt for file
             final File initial = ResourceParser.getFile(getInput());
-            final File file = new SaveAsDialog().promptForFile(getTabPane().getScene().getWindow(),
+            final File file = new SaveAsDialog().promptForFile(parentWindow,
                                                                Messages.SaveAs, initial, file_extensions);
             if (file == null)
                 return false;
@@ -402,7 +399,8 @@ public class DockItemWithInput extends DockItem
                                                            file,
                                                            valid.stream().collect(Collectors.joining(", ")),
                                                            suggestion);
-                Platform.runLater(() ->
+
+                Runnable confirmFileExtension = () ->
                 {
                     final Alert dialog = new Alert(AlertType.CONFIRMATION, prompt, ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
                     dialog.setTitle(Messages.SaveAs);
@@ -419,16 +417,52 @@ public class DockItemWithInput extends DockItem
                         actual_file.complete(file);
                     else
                         actual_file.complete(null);
-                });
+                };
+
+                if (Platform.isFxApplicationThread()) {
+                    confirmFileExtension.run();
+                }
+                else {
+                    Platform.runLater(confirmFileExtension);
+                }
+
                 // In background thread, wait for the result
                 if (actual_file.get() == null)
                     return false;
             }
 
-            // Update input
-            setInput(ResourceParser.getURI(actual_file.get()));
-            // Save in that file
-            return save(monitor);
+            URI newInput = ResourceParser.getURI(actual_file.get());
+            DockItemWithInput existingInstanceWithInput = DockStage.getDockItemWithInput(newInput);
+            if (existingInstanceWithInput == null || (input != null && newInput.getPath().equals(input.getPath()))) {
+                // Update input
+                setInput(ResourceParser.getURI(actual_file.get()));
+                // Save in that file
+                return save(monitor, getTabPane().getScene().getWindow());
+            }
+            else {
+                CompletableFuture<Boolean> waitForDialogToClose = new CompletableFuture<>();
+                Platform.runLater(() -> {
+                    String filename = FilenameUtils.getName(newInput.getPath());
+
+                    final Alert dialog = new Alert(AlertType.INFORMATION);
+                    dialog.setTitle(Messages.SaveAsFileAlreadyOpen_title);
+                    String headerText = MessageFormat.format(Messages.SaveAsFileAlreadyOpen_header, filename);
+                    dialog.setHeaderText(headerText);
+                    String contentText = MessageFormat.format(Messages.SaveAsFileAlreadyOpen_content, existingInstanceWithInput.getApplication().getAppDescriptor().getDisplayName(), filename);
+                    dialog.setContentText(contentText);
+                    int width = 550;
+                    int height = 200;
+                    dialog.getDialogPane().setPrefSize(width, height);
+                    dialog.getDialogPane().setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+                    dialog.setResizable(false);
+                    DialogHelper.positionDialog(dialog, getTabPane(), -width/2, -height/2);
+                    dialog.showAndWait();
+                    waitForDialogToClose.complete(true);
+                });
+
+                waitForDialogToClose.get();
+                save_as(monitor, getTabPane().getScene().getWindow());
+            }
         }
         catch (Exception ex)
         {

@@ -16,8 +16,11 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.UUID;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.Locations;
@@ -191,8 +194,18 @@ public class DockStage
             // and on success close them
             JobManager.schedule("Close " + stage.getTitle(), monitor ->
             {
-                if (prepareToCloseItems(stage))
+                boolean shouldCloseStage = PhoebusApplication.confirmationDialogWhenUnsavedChangesExist(stage,
+                                                                                                        Messages.UnsavedChanges_wouldYouLikeToSaveAnyChangesBeforeClosingTheWindow,
+                                                                                                        Messages.UnsavedChanges_close,
+                                                                                                        monitor);
+
+                if (shouldCloseStage) {
+                    if (!DockStage.prepareToCloseItems(stage)) {
+                        return;
+                    }
+
                     Platform.runLater(() -> closeItems(stage));
+                }
             });
         });
 
@@ -361,6 +374,25 @@ public class DockStage
                         final DockItemWithInput item = (DockItemWithInput) tab;
                         if (input.equals(item.getInput()) &&
                             item.getApplication().getAppDescriptor().getName().equals(application_name))
+                            return item;
+                    }
+        return null;
+    }
+
+    /** Locate DockItemWithInput with input
+     *  @param input Input, must not be <code>null</code>
+     *  @return {@link DockItemWithInput} or <code>null</code> if not found
+     */
+    public static DockItemWithInput getDockItemWithInput(URI input)
+    {
+        Objects.requireNonNull(input);
+        for (Stage stage : getDockStages())
+            for (DockPane pane : getDockPanes(stage))
+                for (DockItem tab : pane.getDockItems())
+                    if (tab instanceof DockItemWithInput)
+                    {
+                        DockItemWithInput item = (DockItemWithInput) tab;
+                        if (input.equals(item.getInput()))
                             return item;
                     }
         return null;

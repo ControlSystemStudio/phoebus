@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2021-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,8 +7,10 @@
  ******************************************************************************/
 package org.epics.pva.common;
 
-import org.epics.pva.PVASettings;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.Inet4Address;
 import java.net.Inet6Address;
@@ -17,10 +19,8 @@ import java.net.NetworkInterface;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.epics.pva.PVASettings;
+import org.junit.jupiter.api.Test;
 
 /** Unit test of Network helper
  *  @author Kay Kasemir
@@ -72,6 +72,12 @@ public class NetworkTest
         System.out.println(addr);
         assertEquals("127.0.0.255", addr.getAddress().getHostString());
         assertTrue(addr.isBroadcast());
+        assertFalse(addr.isTLS());
+
+        addr = Network.parseAddress("pvas://127.0.0.1", PVASettings.EPICS_PVA_SERVER_PORT);
+        System.out.println(addr);
+        assertTrue(addr.isTLS());
+        assertEquals(PVASettings.EPICS_PVAS_TLS_PORT, addr.getAddress().getPort());
     }
 
     @Test

@@ -33,6 +33,21 @@ import javafx.scene.control.Spinner;
 public class ArraySizePropertyBinding extends WidgetPropertyBinding<Spinner<Integer>, ArrayWidgetProperty<WidgetProperty<?>>>
 {
     private PropertyPanelSection panel_section;
+    private int min_value, max_value;
+
+    /** Check text element from array property in response to property UI */
+    private final ChangeListener<? super String> text_listener = (observable, oldValue, newValue) ->
+    {
+        if(!newValue.isEmpty()){
+            if(!newValue.matches("\\d*")){
+                jfx_node.getEditor().setText(oldValue);
+            } else if(Integer.parseInt(newValue) < min_value){
+                jfx_node.getEditor().setText(String.valueOf(min_value));
+            } else if(Integer.parseInt(newValue) > max_value){
+                jfx_node.getEditor().setText(String.valueOf(max_value));
+            }
+        }
+    };
 
     /** Add/remove elements from array property in response to property UI */
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -47,8 +62,10 @@ public class ArraySizePropertyBinding extends WidgetPropertyBinding<Spinner<Inte
         // By removing the focus from the spinner, the property panel seems to "stay put".
         FocusUtil.removeFocus(jfx_node);
 
+        if(jfx_node.getValue() == null){
+            jfx_node.getValueFactory().setValue(min_value);
+        }
         final int desired = jfx_node.getValue();
-
         // Grow/shrink array via undo-able actions
         final String path = widget_property.getPath();
         while (widget_property.size() < desired)
@@ -72,7 +89,7 @@ public class ArraySizePropertyBinding extends WidgetPropertyBinding<Spinner<Inte
     };
 
     /** Update property sub-panel as array elements are added/removed */
-    private WidgetPropertyListener<List<WidgetProperty<?>>> prop_listener = (prop, removed, added) ->
+    private final WidgetPropertyListener<List<WidgetProperty<?>>> prop_listener = (prop, removed, added) ->
     {
         // Re-populate the complete property panel.
         // Combined with the un-focus call above when changing the array size, this "works":
@@ -90,21 +107,26 @@ public class ArraySizePropertyBinding extends WidgetPropertyBinding<Spinner<Inte
      *  @param other Widgets that also have this array property
      */
     public ArraySizePropertyBinding(final PropertyPanelSection panel_section,
-            final UndoableActionManager undo,
-            final Spinner<Integer> node,
-            final ArrayWidgetProperty<WidgetProperty<?>> widget_property,
-            final List<Widget> other)
+                                    final UndoableActionManager undo,
+                                    final Spinner<Integer> node,
+                                    final ArrayWidgetProperty<WidgetProperty<?>> widget_property,
+                                    final List<Widget> other,
+                                    final int min_value,
+                                    final int max_value)
     {
         super(undo, node, widget_property, other);
+        this.min_value = min_value;
+        this.max_value = max_value;
         this.panel_section = panel_section;
     }
 
     @Override
     public void bind()
     {
+        jfx_node.getEditor().textProperty().addListener(text_listener);
+        jfx_node.setEditable(true);
         jfx_node.valueProperty().addListener(ui_listener);
         jfx_node.getValueFactory().setValue(widget_property.size());
-
         widget_property.addPropertyListener(prop_listener);
     }
 

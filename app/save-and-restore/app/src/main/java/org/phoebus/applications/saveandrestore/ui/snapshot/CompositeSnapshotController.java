@@ -153,7 +153,7 @@ public class CompositeSnapshotController {
     @FXML
     public void initialize() {
 
-        snapshotTable.getStylesheets().add(SnapshotTable.class.getResource("/save-and-restore-style.css").toExternalForm());
+        snapshotTable.getStylesheets().add(CompareSnapshotsController.class.getResource("/save-and-restore-style.css").toExternalForm());
 
         saveAndRestoreService = SaveAndRestoreService.getInstance();
 

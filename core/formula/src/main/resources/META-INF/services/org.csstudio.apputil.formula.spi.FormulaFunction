@@ -11,6 +11,7 @@ org.csstudio.apputil.formula.math.ExpM1
 org.csstudio.apputil.formula.math.Floor
 org.csstudio.apputil.formula.math.Log
 org.csstudio.apputil.formula.math.Log10
+org.csstudio.apputil.formula.math.Round
 org.csstudio.apputil.formula.math.Sin
 org.csstudio.apputil.formula.math.SinH
 org.csstudio.apputil.formula.math.Sqrt
@@ -54,6 +55,14 @@ org.csstudio.apputil.formula.array.ArrayRangeOfFunction
 org.csstudio.apputil.formula.array.ArrayStatsFunction
 org.csstudio.apputil.formula.array.ArrayMaxFunction
 org.csstudio.apputil.formula.array.ArrayMinFunction
+
+# Bitwise Operation
+org.csstudio.apputil.formula.bitwise.BitAND
+org.csstudio.apputil.formula.bitwise.BitOR
+org.csstudio.apputil.formula.bitwise.BitXOR
+org.csstudio.apputil.formula.bitwise.BitNOT
+org.csstudio.apputil.formula.bitwise.BitLeftShift
+org.csstudio.apputil.formula.bitwise.BitRightShift
 
 # Alarm
 org.csstudio.apputil.formula.alarm.HighestSeverityFunction
