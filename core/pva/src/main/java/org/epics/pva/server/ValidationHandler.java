@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -39,7 +39,7 @@ class ValidationHandler implements CommandHandler<ServerTCPHandler>
         final int client_registry_size = Short.toUnsignedInt(buffer.getShort());
         final short quos = buffer.getShort();
 
-        final ServerAuth auth = ServerAuth.decode(tcp, buffer);
+        final ServerAuth auth = ServerAuth.decode(tcp, buffer, tcp.getTLSHandshakeInfo());
         logger.log(Level.FINE, "Connection validated, auth '" + auth + "'");
         tcp.setAuth(auth);
         sendConnectionValidated(tcp);

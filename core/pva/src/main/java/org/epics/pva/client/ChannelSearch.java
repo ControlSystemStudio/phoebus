@@ -424,15 +424,16 @@ class ChannelSearch
      */
     private void search(final Collection<SearchRequest.Channel> channels)
     {
-        // TODO How to decide if TCP search (EPICS_PVA_NAME_SERVERS) should use TLS?
-        // Configure via flags in EPICS_PVA_NAME_SERVERS?
-        // For now setting EPICS_PVA_TLS_KEYCHAIN enables TLS for all searches, UDP and TCP
+        // Do we support TLS? This will be encoded in the search requests
+        // to tell server if we can support TLS?
         final boolean tls = !PVASettings.EPICS_PVA_TLS_KEYCHAIN.isBlank();
 
         // Search via TCP
         for (AddressInfo name_server : name_server_addresses)
         {
-            final ClientTCPHandler tcp = tcp_provider.apply(name_server.getAddress(), tls);
+            // For search via TCP, do we use plain TCP or do we send the search itself via TLS?
+            // This is configured in EPICS_PVA_NAME_SERVERS via prefix pvas://
+            final ClientTCPHandler tcp = tcp_provider.apply(name_server.getAddress(), name_server.isTLS());
 
             // In case of connection errors (TCP connection blocked by firewall),
             // tcp will be null

@@ -60,8 +60,12 @@ abstract public class TCPHandler
     /** Is this the client, expecting received messages to be marked as server messages? */
     private final boolean client_mode;
 
-    /** TCP socket to PVA peer */
-    private final Socket socket;
+    /** TCP socket to PVA peer
+     * 
+     *  Reading and writing is handled by receive and send threads,
+     *  but 'protected' so that derived classes may peek at socket properties.
+     */
+    protected final Socket socket;
 
     /** Flag to indicate that 'close' was called to close the 'socket' */
     protected volatile boolean running = true;

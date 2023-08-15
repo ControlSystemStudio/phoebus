@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,4 +18,7 @@ public class PVAAuth
 
     /** CA authentication based on user name and host */
     public static String CA = "ca";
+
+    /**Authentication based on 'Common Name' in certificate */
+    public static String X509 = "x509";
 }

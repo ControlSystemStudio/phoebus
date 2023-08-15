@@ -22,8 +22,10 @@ import java.util.stream.Collectors;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.stage.Window;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.application.Messages;
+import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Styles;
@@ -225,11 +227,13 @@ public class DockPane extends TabPane
         setOnContextMenuRequested(this::showContextMenu);
 
         getSelectionModel().selectedItemProperty().addListener((observable, previous_item, new_item) -> {
-            // Keep track of the order of focus of tabs:
-            if (new_item != null) {
-                tabsInOrderOfFocus.remove(new_item);
-                tabsInOrderOfFocus.push((DockItem) new_item);
-            }
+            Platform.runLater(() -> {
+                // Keep track of the order of focus of tabs:
+                if (new_item != null) {
+                    tabsInOrderOfFocus.remove(new_item);
+                    tabsInOrderOfFocus.push((DockItem) new_item);
+                }
+            });
         });
     }
 
@@ -345,11 +349,12 @@ public class DockPane extends TabPane
             if (item instanceof DockItemWithInput)
             {
                 final DockItemWithInput active_item_with_input = (DockItemWithInput) item;
+
                 if (event.isShiftDown()) {
-                    JobManager.schedule(Messages.SaveAs, monitor -> active_item_with_input.save_as(monitor));
+                    JobManager.schedule(Messages.SaveAs, monitor -> active_item_with_input.save_as(monitor, active_item_with_input.getTabPane().getScene().getWindow()));
                 }
                 else if (active_item_with_input.isDirty()) {
-                    JobManager.schedule(Messages.Save, monitor -> active_item_with_input.save(monitor));
+                    JobManager.schedule(Messages.Save, monitor -> active_item_with_input.save(monitor, active_item_with_input.getTabPane().getScene().getWindow()));
                 }
             }
             event.consume();
@@ -360,8 +365,12 @@ public class DockPane extends TabPane
             {
                 JobManager.schedule("Close " + item.getLabel(), monitor ->
                 {
-                    if (item.prepareToClose())
+                    boolean shouldClose = item instanceof DockItemWithInput ? ((DockItemWithInput) item).okToClose().get() : true;
+
+                    if (shouldClose) {
+                        item.prepareToClose();
                         Platform.runLater(item::close);
+                    }
                 });
             }
             event.consume();

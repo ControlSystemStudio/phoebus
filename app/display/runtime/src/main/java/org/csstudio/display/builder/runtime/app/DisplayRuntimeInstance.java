@@ -335,15 +335,18 @@ public class DisplayRuntimeInstance implements AppInstance
 
                 display_info = Optional.empty();
 
-                if (dock_item.prepareToClose())
-	                Platform.runLater(() ->
-	                {
-	                    final Parent parent = representation.getModelParent();
-	                    JFXRepresentation.getChildren(parent).clear();
+                boolean shouldClose = dock_item.okToClose().get();
 
-	                    close();
-	                });
-                return;
+                if (shouldClose) {
+                    dock_item.prepareToClose();
+                    Platform.runLater(() ->
+                    {
+                        final Parent parent = representation.getModelParent();
+                        JFXRepresentation.getChildren(parent).clear();
+
+                        close();
+                    });
+                }
             }
         });
     }

@@ -16,11 +16,12 @@ import java.net.Socket;
 import java.security.KeyStore;
 import java.util.logging.Level;
 
-import javax.net.ServerSocketFactory;
-import javax.net.SocketFactory;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.epics.pva.PVASettings;
@@ -30,54 +31,74 @@ import org.epics.pva.PVASettings;
  *  By default, provide plain TCP sockets.
  *
  *  To enable TLS sockets, EPICS_PVAS_TLS_KEYCHAIN can be set to
- *  select a keystore for the server, and EPICS_PVA_TLS_KEYCHAIN can define
- *  a trust store for the client.
- *  The optional password for both is in EPICS_PVA_STOREPASS.
+ *  select a key- and truststore for the server, and EPICS_PVA_TLS_KEYCHAIN can define
+ *  one  for the client.
  *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class SecureSockets
 {
+    /** Supported protocols. PVXS prefers 1.3 */
+    private static final String[] PROTOCOLS = new String[] { "TLSv1.3"};
+
     private static boolean initialized = false;
-    private static ServerSocketFactory tls_server_sockets;
-    private static SocketFactory tls_client_sockets;
+    private static SSLServerSocketFactory tls_server_sockets;
+    private static SSLSocketFactory tls_client_sockets;
+
+    /** @param keychain_setting "/path/to/keychain;password"
+     *  @return {@link SSLContext} with 'keystore' and 'truststore' set to content of keystore
+     *  @throws Exception on error
+     */
+    private static SSLContext createContext(final String keychain_setting) throws Exception
+    {
+        final String path;
+        final char[] pass;
+
+        // We support the default "" empty as well as actual passwords, but not null for no password
+        final int sep = keychain_setting.indexOf(';');
+        if (sep > 0)
+        {
+            path = keychain_setting.substring(0, sep);
+            pass = keychain_setting.substring(sep+1).toCharArray();
+        }
+        else
+        {
+            path = keychain_setting;
+            pass = "".toCharArray();
+        }
+
+        logger.log(Level.INFO, () -> "Loading keychain '" + path + "'");
+
+        final KeyStore key_store = KeyStore.getInstance("PKCS12");
+        key_store.load(new FileInputStream(path), pass);
+
+        final KeyManagerFactory key_manager = KeyManagerFactory.getInstance("PKIX");
+        key_manager.init(key_store, pass);
+
+        final TrustManagerFactory trust_manager = TrustManagerFactory.getInstance("PKIX");
+        trust_manager.init(key_store);
+
+        final SSLContext context = SSLContext.getInstance("TLS");
+        context.init(key_manager.getKeyManagers(), trust_manager.getTrustManagers(), null);
+
+        return context;
+    }
 
     private static synchronized void initialize() throws Exception
     {
         if (initialized)
             return;
 
-        // We support the default "" empty as well as actual passwords, but not null for no password
-        final char[] password = PVASettings.EPICS_PVA_STOREPASS.toCharArray();
-
         if (! PVASettings.EPICS_PVAS_TLS_KEYCHAIN.isBlank())
         {
-            logger.log(Level.INFO, "Loading keystore '" + PVASettings.EPICS_PVAS_TLS_KEYCHAIN + "'");
-            final KeyStore key_store = KeyStore.getInstance("PKCS12");
-            key_store.load(new FileInputStream(PVASettings.EPICS_PVAS_TLS_KEYCHAIN), password);
-
-            final KeyManagerFactory key_manager = KeyManagerFactory.getInstance("PKIX");
-            key_manager.init(key_store, password);
-
-            final SSLContext context = SSLContext.getInstance("TLS");
-            context.init(key_manager.getKeyManagers(), null, null);
-
+            final SSLContext context = createContext(PVASettings.EPICS_PVAS_TLS_KEYCHAIN);
             tls_server_sockets = context.getServerSocketFactory();
         }
 
         if (! PVASettings.EPICS_PVA_TLS_KEYCHAIN.isBlank())
         {
-            logger.log(Level.INFO, "Loading truststore '" + PVASettings.EPICS_PVA_TLS_KEYCHAIN + "'");
-            final KeyStore trust_store = KeyStore.getInstance("PKCS12");
-            trust_store.load(new FileInputStream(PVASettings.EPICS_PVA_TLS_KEYCHAIN), password);
-
-            final TrustManagerFactory trust_manager = TrustManagerFactory.getInstance("PKIX");
-            trust_manager.init(trust_store);
-
-            SSLContext context = SSLContext.getInstance("TLS");
-            context.init(null, trust_manager.getTrustManagers(), null);
-
+            final SSLContext context = createContext(PVASettings.EPICS_PVA_TLS_KEYCHAIN);
             tls_client_sockets = context.getSocketFactory();
         }
         initialized = true;
@@ -98,6 +119,10 @@ public class SecureSockets
             if (tls_server_sockets == null)
                 throw new Exception("TLS is not supported. Configure EPICS_PVAS_TLS_KEYCHAIN");
             socket = tls_server_sockets.createServerSocket();
+
+            // Request, but don't require, client's certificate with 'principal' name for x509 authentication
+            ((SSLServerSocket) socket).setWantClientAuth(true);
+            ((SSLServerSocket) socket).setEnabledProtocols(PROTOCOLS);
         }
         else
             socket = new ServerSocket();
@@ -130,10 +155,80 @@ public class SecureSockets
         if (tls_client_sockets == null)
             throw new Exception("TLS is not supported. Configure EPICS_PVA_TLS_KEYCHAIN");
         final SSLSocket socket = (SSLSocket) tls_client_sockets.createSocket(address.getAddress(), address.getPort());
-        // PVXS prefers 1.3
-        socket.setEnabledProtocols(new String[] { "TLSv1.3"});
+        socket.setEnabledProtocols(PROTOCOLS);
         // Handshake starts when first writing, but that might delay SSL errors, so force handshake before we use the socket
         socket.startHandshake();
         return socket;
+    }
+
+    /** Get name from local principal
+     *
+     *  @param socket {@link SSLSocket} that may have local principal
+     *  @return Name (without "CN=..") or <code>null</code> if socket has certificate to authenticate
+     */
+    public static String getLocalPrincipalName(final SSLSocket socket)
+    {
+        try
+        {
+            String name = socket.getSession().getLocalPrincipal().getName();
+            if (name.startsWith("CN="))
+                name = name.substring(3);
+            else
+                logger.log(Level.WARNING, "Client has principal '" + name + "', expected 'CN=...'");
+            return name;
+        }
+        catch (Exception ex)
+        {   // May not have certificate with name
+        }
+        return null;
+    }
+
+    /** Information from TLS socket handshake */
+    public static class TLSHandshakeInfo
+    {
+        /** Name by which the peer identified */
+        public String name;
+
+        /** Host of the peer */
+        public String hostname;
+
+
+        /** Get TLS/SSH info from socket
+         *  @param socket {@link SSLSocket}
+         *  @return {@link TLSHandshakeInfo} or <code>null</code>
+         *  @throws Exception on error
+         */
+        public static TLSHandshakeInfo fromSocket(final SSLSocket socket) throws Exception
+        {
+            // Start ASAP instead of waiting for first read/write on socket.
+            // "This method is synchronous for the initial handshake on a connection
+            // and returns when the negotiated handshake is complete",
+            // so no need to addHandshakeCompletedListener()
+            socket.startHandshake();
+
+            try
+            {
+                // No way to check if there is peer info (certificates, principal, ...)
+                // other then success vs. exception..
+                String name = socket.getSession().getPeerPrincipal().getName();
+                if (name.startsWith("CN="))
+                    name = name.substring(3);
+                else
+                    logger.log(Level.WARNING, "Peer " + socket.getInetAddress() + " sent '" + name + "' as principal name, expected 'CN=...'");
+                final TLSHandshakeInfo info = new TLSHandshakeInfo();
+                info.name = name;
+
+                info.hostname = socket.getInetAddress().getHostName();
+
+                return info;
+            }
+            catch (Exception ex)
+            {
+                // Clients may not have a certificate..
+                // System.out.println("No x509 name from client");
+                // ex.printStackTrace();
+            }
+            return null;
+        }
     }
 }
