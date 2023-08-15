@@ -22,6 +22,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import javafx.scene.layout.Region;
+import javafx.stage.Window;
 import org.apache.commons.io.FilenameUtils;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
