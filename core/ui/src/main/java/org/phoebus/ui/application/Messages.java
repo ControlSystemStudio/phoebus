@@ -113,6 +113,9 @@ public class Messages
     public static String SaveAsPrompt;
     public static String SaveDlgErrHdr;
     public static String SaveDlgHdr;
+    public static String SaveAsFileAlreadyOpen_content;
+    public static String SaveAsFileAlreadyOpen_header;
+    public static String SaveAsFileAlreadyOpen_title;
     public static String SaveLayoutAs;
     public static String SaveLayoutOfContainingWindowAs;
     public static String SaveLayoutWarningApplicationNoSaveFile;

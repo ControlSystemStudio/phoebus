@@ -14,17 +14,16 @@ import java.net.URI;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import javafx.scene.Scene;
+import javafx.scene.layout.Region;
 import javafx.stage.Window;
+import org.apache.commons.io.FilenameUtils;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.JobRunnable;
@@ -432,10 +431,38 @@ public class DockItemWithInput extends DockItem
                     return false;
             }
 
-            // Update input
-            setInput(ResourceParser.getURI(actual_file.get()));
-            // Save in that file
-            return save(monitor, getTabPane().getScene().getWindow());
+            URI newInput = ResourceParser.getURI(actual_file.get());
+            DockItemWithInput existingInstanceWithInput = DockStage.getDockItemWithInput(newInput);
+            if (existingInstanceWithInput == null || (input != null && newInput.getPath().equals(input.getPath()))) {
+                // Update input
+                setInput(ResourceParser.getURI(actual_file.get()));
+                // Save in that file
+                return save(monitor, getTabPane().getScene().getWindow());
+            }
+            else {
+                CompletableFuture<Boolean> waitForDialogToClose = new CompletableFuture<>();
+                Platform.runLater(() -> {
+                    String filename = FilenameUtils.getName(newInput.getPath());
+
+                    final Alert dialog = new Alert(AlertType.INFORMATION);
+                    dialog.setTitle(Messages.SaveAsFileAlreadyOpen_title);
+                    String headerText = MessageFormat.format(Messages.SaveAsFileAlreadyOpen_header, filename);
+                    dialog.setHeaderText(headerText);
+                    String contentText = MessageFormat.format(Messages.SaveAsFileAlreadyOpen_content, existingInstanceWithInput.getApplication().getAppDescriptor().getDisplayName(), filename);
+                    dialog.setContentText(contentText);
+                    int width = 550;
+                    int height = 200;
+                    dialog.getDialogPane().setPrefSize(width, height);
+                    dialog.getDialogPane().setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+                    dialog.setResizable(false);
+                    DialogHelper.positionDialog(dialog, getTabPane(), -width/2, -height/2);
+                    dialog.showAndWait();
+                    waitForDialogToClose.complete(true);
+                });
+
+                waitForDialogToClose.get();
+                save_as(monitor, getTabPane().getScene().getWindow());
+            }
         }
         catch (Exception ex)
         {
