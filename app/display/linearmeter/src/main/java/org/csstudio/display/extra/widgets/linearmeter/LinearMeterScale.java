@@ -54,9 +54,7 @@ public class LinearMeterScale extends NumericAxis
         this.p1x = p1x;
         this.p1y = p1y;
         this.scale = s;
-        if( Double.compare(this.range.getLow(),0.0) != 0){
-            this.offset = this.range.getLow();
-        }
+        this.offset = this.range.getLow();
 
         dirty_ticks = true;
         requestLayout();

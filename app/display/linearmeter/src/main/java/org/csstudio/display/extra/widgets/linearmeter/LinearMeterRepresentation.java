@@ -275,7 +275,7 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
     private void valueChanged(WidgetProperty<?> property, Object old_value, Object new_value)
     {
         synchronized (meter) {    // "synchronized (meter) { ... }" is due to the reading of values from "meter.linearMeter",
-                                  // which may otherwise be intreleaved with writes to these values.
+                                  // which may otherwise be interleaved with writes to these values.
             if (new_value instanceof VDouble ) {
                 VDouble vDouble = ((VDouble) new_value);
                 double newValue = vDouble.getValue();
