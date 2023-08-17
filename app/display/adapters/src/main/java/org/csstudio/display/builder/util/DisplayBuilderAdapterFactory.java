@@ -58,7 +58,7 @@ public class DisplayBuilderAdapterFactory implements AdapterFactory {
         {
             LogEntryBuilder log = log()
                     .title(LogbookPreferences.auto_title ? "Display Screenshot for : " + selectionInfo.getName() : "")
-                    .appendDescription(getBody(selectionInfo));
+                    .appendDescription(LogbookPreferences.auto_body ? getBody(selectionInfo) : "");
             try
             {
                 final File image_file = selectionInfo.getImage() == null ? null : new Screenshot(selectionInfo.getImage()).writeToTempfile("image");
