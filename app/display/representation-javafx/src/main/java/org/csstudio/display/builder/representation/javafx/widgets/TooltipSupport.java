@@ -20,9 +20,11 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.StringWidgetProperty;
 import org.csstudio.display.builder.representation.Preferences;
 import org.csstudio.display.builder.representation.javafx.JFXPreferences;
+import org.epics.util.stats.Range;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.Display;
+import org.epics.vtype.DisplayProvider;
 import org.epics.vtype.Time;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.MacroValueProvider;
@@ -93,6 +95,9 @@ public class TooltipSupport
         {
             String spec = ((MacroizedWidgetProperty<?>)tooltip_property).getSpecification();
 
+            final Widget widget = tooltip_property.getWidget();
+            Object vtype = widget.getPropertyValue(runtimePropPVValue);
+
             // Use custom supplier for $(pv_value)?
             // Otherwise replace like other macros, i.e. use toString of the property
             if (pv_value != null)
@@ -100,7 +105,6 @@ public class TooltipSupport
                 final StringBuilder buf = new StringBuilder();
                 buf.append(pv_value.get());
 
-                final Object vtype = tooltip_property.getWidget().getPropertyValue(runtimePropPVValue);
                 final Alarm alarm = Alarm.alarmOf(vtype);
                 if (alarm != null  &&  alarm.getSeverity() != AlarmSeverity.NONE)
                     buf.append(", ").append(alarm.getSeverity()).append(" - ").append(alarm.getName());
@@ -116,7 +120,28 @@ public class TooltipSupport
                 }
                 spec = spec.replace("$(pv_value)", buf.toString());
             }
-            final Widget widget = tooltip_property.getWidget();
+
+            // If 'vtype' supports it (i.e., it is an instance of "DisplayProvider"),
+            // replace occurrences of $(pv_alarm_limits) with the alarm limits:
+            if (vtype instanceof DisplayProvider) {
+                DisplayProvider displayProvider = (DisplayProvider) vtype;
+                Display vtypeDisplay = displayProvider.getDisplay();
+
+                Range alarmRange = vtypeDisplay.getAlarmRange();
+                double lolo = alarmRange.getMinimum();
+                double hihi = alarmRange.getMaximum();
+
+                Range warningRange = vtypeDisplay.getWarningRange();
+                double low = warningRange.getMinimum();
+                double high = warningRange.getMaximum();
+
+                String pv_alarm_limits = "HiHi: " + hihi + System.lineSeparator() +
+                                         "High: " + high + System.lineSeparator() +
+                                         "Low: " + low + System.lineSeparator() +
+                                         "LoLo: " + lolo;
+                spec = spec.replace("$(pv_alarm_limits)", pv_alarm_limits);
+            }
+
             final MacroValueProvider macros = widget.getMacrosOrProperties();
             String expanded;
             try
