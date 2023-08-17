@@ -29,7 +29,9 @@ import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.VisibleWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
-import org.epics.util.stats.Range;
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.VType;
 
 import javafx.geometry.Insets;
 import javafx.scene.input.Clipboard;
@@ -46,11 +48,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
-import org.epics.vtype.Alarm;
-import org.epics.vtype.AlarmSeverity;
-import org.epics.vtype.Display;
-import org.epics.vtype.DisplayProvider;
-import org.epics.vtype.VType;
 
 /** Base class for all JavaFX widgets that use a {@link Region}-derived JFX node representations
  *
@@ -174,33 +171,6 @@ abstract public class RegionBaseRepresentation<JFX extends Region, MW extends Vi
         // In runtime mode, handle alarm-sensitive border
         final Optional<WidgetProperty<Boolean>> alarm_sens = model_widget.checkProperty(propBorderAlarmSensitive);
         final Optional<WidgetProperty<VType>> value = model_widget.checkProperty(runtimePropPVValue);
-
-        if (value.isPresent() && model_widget instanceof PVWidget) {
-            PVWidget pvWidget = (PVWidget) model_widget;
-            value_prop = value.get();
-            value_prop.addPropertyListener((observable, old_value, new_value) -> {
-                if (new_value != null && new_value instanceof DisplayProvider) {
-                    DisplayProvider vDouble = (DisplayProvider) new_value;
-                    Display display = vDouble.getDisplay();
-                    {
-                        Range alarmRange = display.getAlarmRange();
-                        double lolo = alarmRange.getMinimum();
-                        double hihi = alarmRange.getMaximum();
-                        pvWidget.runtimePropAlarmLoLo().setValue(lolo);
-                        pvWidget.runtimePropAlarmHiHi().setValue(hihi);
-                    }
-
-                    {
-                        Range warningRange = display.getWarningRange();
-                        double low = warningRange.getMinimum();
-                        double high = warningRange.getMaximum();
-                        pvWidget.runtimePropAlarmLow().setValue(low);
-                        pvWidget.runtimePropAlarmHigh().setValue(high);
-                    }
-                }
-            });
-        }
-
         if (alarm_sens.isPresent()  &&  value.isPresent())
         {
             value_prop = value.get();
