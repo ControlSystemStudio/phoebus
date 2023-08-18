@@ -97,6 +97,7 @@ public class TooltipSupport
 
             final Widget widget = tooltip_property.getWidget();
             Object vtype = widget.getPropertyValue(runtimePropPVValue);
+            Display display = Display.displayOf(vtype);
 
             // Use custom supplier for $(pv_value)?
             // Otherwise replace like other macros, i.e. use toString of the property
@@ -113,10 +114,10 @@ public class TooltipSupport
                 if (time != null)
                     buf.append(", ").append(TimestampFormats.FULL_FORMAT.format(time.getTimestamp()));
 
-                String display = Display.displayOf(vtype).getDescription();
+                String displayDescription = display.getDescription();
                 // Description is non-null only for pva.
-                if(display != null && !display.isEmpty()){
-                    buf.append(System.lineSeparator()).append(display);
+                if(displayDescription != null && !displayDescription.isEmpty()){
+                    buf.append(System.lineSeparator()).append(displayDescription);
                 }
                 spec = spec.replace("$(pv_value)", buf.toString());
             }
@@ -124,14 +125,12 @@ public class TooltipSupport
             // If 'vtype' supports it (i.e., it is an instance of "DisplayProvider"),
             // replace occurrences of $(pv_alarm_limits) with the alarm limits:
             if (vtype instanceof DisplayProvider) {
-                DisplayProvider displayProvider = (DisplayProvider) vtype;
-                Display vtypeDisplay = displayProvider.getDisplay();
 
-                Range alarmRange = vtypeDisplay.getAlarmRange();
+                Range alarmRange = display.getAlarmRange();
                 double lolo = alarmRange.getMinimum();
                 double hihi = alarmRange.getMaximum();
 
-                Range warningRange = vtypeDisplay.getWarningRange();
+                Range warningRange = display.getWarningRange();
                 double low = warningRange.getMinimum();
                 double high = warningRange.getMaximum();
 
