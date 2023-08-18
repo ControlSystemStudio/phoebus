@@ -179,13 +179,17 @@ public class GroupWidget extends MacroWidget
                 // -> Use as 'foreground_color'
                 final Element text = XMLUtil.getChildElement(xml, "border_color");
                 if (text != null)
+                    group_widget.line.readFromXML(model_reader, text);
+                if (group_widget.style.getValue() != Style.TITLE)
                     group_widget.foreground.readFromXML(model_reader, text);
             }
 
             if (xml_version.getMajor() < 3) {
-                final Element text_foreground = XMLUtil.getChildElement(xml, "foreground_color");
-                if (text_foreground != null)
-                    group_widget.line.readFromXML(model_reader, text_foreground);
+                if(xml_version.getMajor() > 1){
+                    final Element text_foreground = XMLUtil.getChildElement(xml, "foreground_color");
+                    if (text_foreground != null)
+                        group_widget.line.readFromXML(model_reader, text_foreground);
+                }
                 final Element text_background = XMLUtil.getChildElement(xml, "background_color");
                 if (text_background != null && group_widget.style.getValue() == Style.TITLE)
                     group_widget.foreground.readFromXML(model_reader, text_background);
