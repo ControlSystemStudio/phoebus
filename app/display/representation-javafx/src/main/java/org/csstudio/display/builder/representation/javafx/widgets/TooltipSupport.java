@@ -99,6 +99,25 @@ public class TooltipSupport
             Object vtype = widget.getPropertyValue(runtimePropPVValue);
             Display display = Display.displayOf(vtype);
 
+            // If 'vtype' supports it (i.e., it is an instance of "DisplayProvider"),
+            // append the alarm limits to $(pv_value):
+            if (vtype instanceof DisplayProvider) {
+
+                Range alarmRange = display.getAlarmRange();
+                double lolo = alarmRange.getMinimum();
+                double hihi = alarmRange.getMaximum();
+
+                Range warningRange = display.getWarningRange();
+                double low = warningRange.getMinimum();
+                double high = warningRange.getMaximum();
+
+                String pv_alarm_limits = "HiHi: " + (Double.isNaN(hihi) ? "Undefined" : hihi) + System.lineSeparator() +
+                                         "High: " + (Double.isNaN(high) ? "Undefined" : high) + System.lineSeparator() +
+                                         "Low: "  + (Double.isNaN(low)  ? "Undefined" : low) + System.lineSeparator() +
+                                         "LoLo: " + (Double.isNaN(lolo) ? "Undefined" : lolo);
+                spec = spec.replace("$(pv_value)", "$(pv_value)" + System.lineSeparator() + pv_alarm_limits);
+            }
+
             // Use custom supplier for $(pv_value)?
             // Otherwise replace like other macros, i.e. use toString of the property
             if (pv_value != null)
@@ -120,25 +139,6 @@ public class TooltipSupport
                     buf.append(System.lineSeparator()).append(displayDescription);
                 }
                 spec = spec.replace("$(pv_value)", buf.toString());
-            }
-
-            // If 'vtype' supports it (i.e., it is an instance of "DisplayProvider"),
-            // replace occurrences of $(pv_alarm_limits) with the alarm limits:
-            if (vtype instanceof DisplayProvider) {
-
-                Range alarmRange = display.getAlarmRange();
-                double lolo = alarmRange.getMinimum();
-                double hihi = alarmRange.getMaximum();
-
-                Range warningRange = display.getWarningRange();
-                double low = warningRange.getMinimum();
-                double high = warningRange.getMaximum();
-
-                String pv_alarm_limits = "HiHi: " + hihi + System.lineSeparator() +
-                                         "High: " + high + System.lineSeparator() +
-                                         "Low: " + low + System.lineSeparator() +
-                                         "LoLo: " + lolo;
-                spec = spec.replace("$(pv_alarm_limits)", pv_alarm_limits);
             }
 
             final MacroValueProvider macros = widget.getMacrosOrProperties();
