@@ -16,6 +16,8 @@ import org.phoebus.logbook.*;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.olog.es.api.model.OlogObjectMappers;
 import org.phoebus.olog.es.api.model.OlogSearchResult;
+import org.phoebus.security.store.SecureStore;
+import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
 import javax.net.ssl.SSLContext;
 import javax.ws.rs.core.MediaType;
@@ -126,8 +128,17 @@ public class OlogClient implements LogClient {
                     this.clientConfig = new DefaultClientConfig();
                 }
             }
-            this.username = ifNullReturnPreferenceValue(this.username, "username");
-            this.password = ifNullReturnPreferenceValue(this.password, "password");
+            if(this.username == null || this.password == null){
+                ScopedAuthenticationToken scopedAuthenticationToken = getCredentialsFromSecureStore();
+                if(scopedAuthenticationToken != null){
+                    this.username = scopedAuthenticationToken.getUsername();
+                    this.password = scopedAuthenticationToken.getPassword();
+                }
+                else{
+                    this.username = ifNullReturnPreferenceValue(this.username, "username");
+                    this.password = ifNullReturnPreferenceValue(this.password, "password");
+                }
+            }
             this.connectTimeoutAsString = ifNullReturnPreferenceValue(this.connectTimeoutAsString, "connectTimeout");
             int connectTimeout = 0;
             try {
@@ -145,6 +156,16 @@ public class OlogClient implements LogClient {
                 return this.properties.getPreferenceValue(key);
             } else {
                 return value;
+            }
+        }
+
+        private ScopedAuthenticationToken getCredentialsFromSecureStore(){
+            try {
+                SecureStore secureStore = new SecureStore();
+                return secureStore.getScopedAuthenticationToken("logbook");
+            } catch (Exception e) {
+                Logger.getLogger(OlogClientBuilder.class.getName()).log(Level.WARNING, "Unable to instantiate SecureStore", e);
+                return null;
             }
         }
     }
@@ -200,13 +221,14 @@ public class OlogClient implements LogClient {
             });
 
             ClientResponse clientResponse = service.path("logs")
+                    .queryParams(queryParams)
                     .path("multipart")
                     .type(MediaType.MULTIPART_FORM_DATA)
                     .accept(MediaType.APPLICATION_JSON)
                     .put(ClientResponse.class, form);
 
             if (clientResponse.getStatus() > 300) {
-                logger.log(Level.SEVERE, "Failed to create log entry: " + clientResponse.toString());
+                logger.log(Level.SEVERE, "Failed to create log entry: " + clientResponse);
                 throw new LogbookException(clientResponse.toString());
             }
 
