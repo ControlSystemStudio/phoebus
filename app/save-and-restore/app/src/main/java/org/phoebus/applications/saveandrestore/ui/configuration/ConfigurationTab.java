@@ -18,13 +18,10 @@
  */
 package org.phoebus.applications.saveandrestore.ui.configuration;
 
-import javafx.beans.property.SimpleStringProperty;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Insets;
-import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
@@ -39,8 +36,6 @@ import java.util.logging.Logger;
 public class ConfigurationTab extends Tab implements NodeChangedListener {
 
     private ConfigurationController configurationController;
-
-    private SimpleStringProperty tabTitleProperty = new SimpleStringProperty(Messages.contextMenuNewConfiguration);
 
     public ConfigurationTab() {
         configure();
@@ -66,7 +61,7 @@ public class ConfigurationTab extends Tab implements NodeChangedListener {
             });
             setContent(loader.load());
             configurationController = loader.getController();
-            setGraphic(getTabGraphic());
+            setGraphic(new ImageView(ImageRepository.CONFIGURATION));
         } catch (Exception e) {
             Logger.getLogger(ConfigurationTab.class.getName())
                     .log(Level.SEVERE, "Failed to load fxml", e);
@@ -91,7 +86,7 @@ public class ConfigurationTab extends Tab implements NodeChangedListener {
      */
     public void editConfiguration(Node configurationNode) {
         setId(configurationNode.getUniqueId());
-        tabTitleProperty.set(configurationNode.getName());
+        textProperty().set(configurationNode.getName());
         configurationController.loadConfiguration(configurationNode);
     }
 
@@ -99,22 +94,10 @@ public class ConfigurationTab extends Tab implements NodeChangedListener {
         configurationController.newConfiguration(parentNode);
     }
 
-    private javafx.scene.Node getTabGraphic() {
-        HBox container = new HBox();
-        ImageView imageView = new ImageView(ImageRepository.CONFIGURATION);
-        Label label = new Label("");
-        label.textProperty().bindBidirectional(tabTitleProperty);
-        HBox.setMargin(label, new Insets(1, 5, 0, 3));
-        HBox.setMargin(imageView, new Insets(1, 2, 0, 3));
-        container.getChildren().addAll(imageView, label);
-
-        return container;
-    }
-
     @Override
     public void nodeChanged(Node node) {
         if (node.getUniqueId().equals(getId())) {
-            tabTitleProperty.set(node.getName());
+            textProperty().set(node.getName());
         }
     }
 
@@ -124,15 +107,14 @@ public class ConfigurationTab extends Tab implements NodeChangedListener {
      * @param tabTitle The wanted tab title.
      */
     public void updateTabTitle(String tabTitle) {
-        tabTitleProperty.set(tabTitle);
+        Platform.runLater(() -> textProperty().set(tabTitle));
     }
 
-    public void annotateDirty(boolean dirty){
-        String tabTitle = tabTitleProperty.get();
-        if(dirty){
+    public void annotateDirty(boolean dirty) {
+        String tabTitle = textProperty().get();
+        if (dirty) {
             updateTabTitle("* " + tabTitle);
-        }
-        else{
+        } else {
             updateTabTitle(tabTitle.substring(2));
         }
     }

@@ -159,6 +159,7 @@ public class ConfigurationController implements NodeChangedListener {
                 new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/delete.png")));
         deleteMenuItem.setOnAction(ae -> {
             configurationEntries.removeAll(pvTable.getSelectionModel().getSelectedItems());
+            configurationTab.annotateDirty(true);
             pvTable.refresh();
         });
 
@@ -289,7 +290,7 @@ public class ConfigurationController implements NodeChangedListener {
     public void addPv() {
 
         UI_EXECUTOR.execute(() -> {
-            // Process a list of space or semi colon separated pvs
+            // Process a list of space or semicolon separated pvs
             String[] pvNames = pvNameProperty.get().trim().split("[\\s;]+");
             String[] readbackPvNames = readbackPvNameProperty.get().trim().split("[\\s;]+");
 
@@ -310,6 +311,7 @@ public class ConfigurationController implements NodeChangedListener {
                 configPVs.add(configPV);
             }
             configurationEntries.addAll(configPVs);
+            configurationTab.annotateDirty(true);
             resetAddPv();
         });
 
