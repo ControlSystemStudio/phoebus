@@ -28,8 +28,8 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
-import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
@@ -43,7 +43,7 @@ import java.util.logging.Logger;
  * These two use cases/views are split in terms of fxml files and controller classes in order to facilitate development
  * and maintenance.
  */
-public class SnapshotTab extends Tab implements NodeChangedListener {
+public class SnapshotTab extends SaveAndRestoreTab {
 
     public SaveAndRestoreService saveAndRestoreService;
 

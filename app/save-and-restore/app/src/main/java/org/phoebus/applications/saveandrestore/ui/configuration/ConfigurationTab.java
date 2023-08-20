@@ -20,20 +20,19 @@ package org.phoebus.applications.saveandrestore.ui.configuration;
 
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.Tab;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
-import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
 import org.phoebus.framework.nls.NLS;
 
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ConfigurationTab extends Tab implements NodeChangedListener {
+public class ConfigurationTab extends SaveAndRestoreTab {
 
     private ConfigurationController configurationController;
 
