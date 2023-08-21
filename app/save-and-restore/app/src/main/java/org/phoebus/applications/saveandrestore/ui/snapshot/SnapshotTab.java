@@ -19,21 +19,17 @@ package org.phoebus.applications.saveandrestore.ui.snapshot;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Insets;
-import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
-import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
@@ -47,17 +43,13 @@ import java.util.logging.Logger;
  * These two use cases/views are split in terms of fxml files and controller classes in order to facilitate development
  * and maintenance.
  */
-public class SnapshotTab extends Tab implements NodeChangedListener {
+public class SnapshotTab extends SaveAndRestoreTab {
 
     public SaveAndRestoreService saveAndRestoreService;
-
-    private final SimpleStringProperty tabTitleProperty = new SimpleStringProperty();
 
     private SnapshotController snapshotController;
 
     private final SimpleObjectProperty<Image> tabGraphicImageProperty = new SimpleObjectProperty<>();
-
-    private CompareSnapshotsController compareSnapshotsController;
 
 
     public SnapshotTab(org.phoebus.applications.saveandrestore.model.Node node, SaveAndRestoreService saveAndRestoreService) {
@@ -78,11 +70,9 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
                 if (clazz.isAssignableFrom(SnapshotController.class)) {
                     return clazz.getConstructor(SnapshotTab.class)
                             .newInstance(this);
-                }
-                else if(clazz.isAssignableFrom(SnapshotTableViewController.class)){
+                } else if (clazz.isAssignableFrom(SnapshotTableViewController.class)) {
                     return clazz.getConstructor().newInstance();
-                }
-                else if(clazz.isAssignableFrom(SnapshotControlsViewController.class)){
+                } else if (clazz.isAssignableFrom(SnapshotControlsViewController.class)) {
                     return clazz.getConstructor().newInstance();
                 }
             } catch (Exception e) {
@@ -101,17 +91,12 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
             return;
         }
 
-        HBox container = new HBox();
         ImageView imageView = new ImageView();
         imageView.imageProperty().bind(tabGraphicImageProperty);
-        Label label = new Label("");
-        label.textProperty().bind(tabTitleProperty);
-        HBox.setMargin(label, new Insets(1, 0, 0, 5));
-        container.getChildren().addAll(imageView, label);
 
-        setGraphic(container);
+        setGraphic(imageView);
 
-        tabTitleProperty.set(node.getNodeType().equals(NodeType.SNAPSHOT) ? node.getName() : Messages.unnamedSnapshot);
+        textProperty().set(node.getNodeType().equals(NodeType.SNAPSHOT) ? node.getName() : Messages.unnamedSnapshot);
         setTabImage(node);
 
         setOnCloseRequest(event -> {
@@ -123,19 +108,17 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
         });
 
 
-
         SaveAndRestoreService.getInstance().addNodeChangeListener(this);
     }
 
     public void updateTabTitle(String name) {
-        Platform.runLater(() -> tabTitleProperty.set(name));
+        Platform.runLater(() -> textProperty().set(name));
     }
 
     private void setTabImage(Node node) {
-        if(node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)){
+        if (node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)) {
             tabGraphicImageProperty.set(ImageRepository.COMPOSITE_SNAPSHOT);
-        }
-        else{
+        } else {
             boolean golden = node.getTags() != null && node.getTags().stream().anyMatch(t -> t.getName().equals(Tag.GOLDEN));
             if (golden) {
                 tabGraphicImageProperty.set(ImageRepository.GOLDEN_SNAPSHOT);
@@ -147,6 +130,7 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
 
     /**
      * Loads and configures a view for the use case of taking a new snapshot.
+     *
      * @param configurationNode The {@link Node} of type {@link NodeType#CONFIGURATION} listing PVs for which
      *                          a snapshot will be created.
      */
@@ -157,6 +141,7 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
 
     /**
      * Loads and configures a view for the use case of restoring a snapshot.
+     *
      * @param snapshotNode The {@link Node} of type {@link NodeType#SNAPSHOT} containing snapshot data.
      */
     public void loadSnapshot(Node snapshotNode) {
@@ -173,7 +158,6 @@ public class SnapshotTab extends Tab implements NodeChangedListener {
     public void nodeChanged(Node node) {
         if (node.getUniqueId().equals(getId())) {
             Platform.runLater(() -> {
-                tabTitleProperty.set(node.getName());
                 snapshotController.setSnapshotNameProperty(node.getName());
                 setTabImage(node);
             });
