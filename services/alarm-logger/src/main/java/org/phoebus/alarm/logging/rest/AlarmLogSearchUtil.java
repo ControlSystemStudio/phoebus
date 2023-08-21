@@ -79,7 +79,7 @@ public class AlarmLogSearchUtil {
         logger.info("searching for alarm log entires : " +
                 searchParameters.entrySet().stream().map(e -> e.getKey() + ": " + e.getValue()).collect(Collectors.joining()));
 
-        Instant fromInstant = Instant.now().minus(7, ChronoUnit.DAYS);
+        Instant fromInstant = Instant.EPOCH;
         Instant toInstant = Instant.now();
 
         // The maximum search result size
