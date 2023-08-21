@@ -211,6 +211,7 @@ public class PVList extends BorderPane
             {
                 table.getItems().clear();
                 table.getItems().addAll(items);
+                table.sort();
             });
         });
     }
