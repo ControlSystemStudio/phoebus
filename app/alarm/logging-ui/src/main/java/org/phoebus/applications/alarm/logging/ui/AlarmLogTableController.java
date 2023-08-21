@@ -56,6 +56,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -286,11 +288,13 @@ public class AlarmLogTableController {
                         .collect(Collectors.joining("&")));
 
         searchParameters.addListener(
-                (MapChangeListener<Keys, String>) change -> query.setText(searchParameters.entrySet().stream()
-                        .sorted(Entry.comparingByKey())
-                        .filter(e -> !e.getKey().getName().equals(Keys.ROOT.getName())) // Exclude alarm config (root) as selection is managed in drop-down
-                        .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
-                        .collect(Collectors.joining("&"))));
+                (MapChangeListener<Keys, String>) change ->
+                        query.setText(searchParameters.entrySet().stream()
+                                .sorted(Entry.comparingByKey())
+                                .filter(e -> !e.getKey().getName().equals(Keys.ROOT.getName())) // Exclude alarm config (root) as selection is managed in drop-down
+                                .filter(e -> !e.getValue().equals(""))
+                                .map((e) -> e.getKey().getName().trim() + "=" + e.getValue().trim())
+                                .collect(Collectors.joining("&"))));
 
         query.setOnKeyPressed(keyEvent -> {
             if (keyEvent.getCode() == KeyCode.ENTER) {
@@ -470,13 +474,25 @@ public class AlarmLogTableController {
     @FXML
     void updateQuery() {
         List<String> searchTerms = Arrays.asList(query.getText().split("&"));
+        Set<String> searchKeywords = new TreeSet<>();
         searchTerms.forEach(s -> {
-            String key = s.split("=")[0];
-            String value = s.split("=")[1];
-            if (lookup.containsKey(key)) {
-                searchParameters.put(lookup.get(key), value);
+            String[] splitString = s.split("=");
+            if (splitString.length > 1) {
+                String key = splitString[0];
+                searchKeywords.add(key);
+                String value = splitString[1];
+                if (lookup.containsKey(key)) {
+                    searchParameters.put(lookup.get(key), value);
+                }
             }
         });
+
+        for (Keys key : searchParameters.keySet()) {
+            if (!searchKeywords.contains(key.toString())) {
+                searchParameters.put(key, "");
+            }
+        }
+
         // Add root (alarm config) separately as it is selected differently by user,
         // i.e. from drop-down rather than typing into the text field.
         searchParameters.put(Keys.ROOT, configSelection.getText());
