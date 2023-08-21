@@ -20,6 +20,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.properties.StringWidgetProperty;
 import org.csstudio.display.builder.representation.Preferences;
 import org.csstudio.display.builder.representation.javafx.JFXPreferences;
+import org.csstudio.display.builder.representation.javafx.Messages;
 import org.epics.util.stats.Range;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
@@ -111,10 +112,10 @@ public class TooltipSupport
                 double low = warningRange.getMinimum();
                 double high = warningRange.getMaximum();
 
-                String pv_alarm_limits = "HiHi: " + (Double.isNaN(hihi) ? "Not set" : hihi) + System.lineSeparator() +
-                                         "High: " + (Double.isNaN(high) ? "Not set" : high) + System.lineSeparator() +
-                                         "Low: "  + (Double.isNaN(low)  ? "Not set" : low) + System.lineSeparator() +
-                                         "LoLo: " + (Double.isNaN(lolo) ? "Not set" : lolo);
+                String pv_alarm_limits = "HiHi: " + (Double.isNaN(hihi) ? Messages.NotSet : hihi) + System.lineSeparator() +
+                                         "High: " + (Double.isNaN(high) ? Messages.NotSet : high) + System.lineSeparator() +
+                                         "Low: "  + (Double.isNaN(low)  ? Messages.NotSet : low)  + System.lineSeparator() +
+                                         "LoLo: " + (Double.isNaN(lolo) ? Messages.NotSet : lolo);
                 spec = spec.replace("$(pv_value)", "$(pv_value)" + System.lineSeparator() + pv_alarm_limits);
             }
 

@@ -87,6 +87,7 @@ public class Messages
                          MacrosTable_ValueHint,
                          MoveDown,
                          MoveUp,
+                         NotSet,
                          OpenInExternalEditor,
                          Password,
                          Password_Caption,
