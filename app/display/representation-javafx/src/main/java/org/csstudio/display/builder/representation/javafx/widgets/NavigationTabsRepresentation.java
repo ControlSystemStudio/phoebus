@@ -12,14 +12,17 @@ import static org.csstudio.display.builder.representation.EmbeddedDisplayReprese
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
+import org.apache.commons.lang3.tuple.MutablePair;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
+import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.widgets.NavigationTabsWidget;
@@ -54,6 +57,13 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
     private final DirtyFlag dirty_tabs = new DirtyFlag();
     private final DirtyFlag dirty_tab_look = new DirtyFlag();
     private final DirtyFlag dirty_active_tab = new DirtyFlag();
+    private class SelectedNavigationTabsWidget extends MutablePair<Integer, HashMap<String, SelectedNavigationTabsWidget>> {
+        public SelectedNavigationTabsWidget() {
+            left = 0;
+            right = new HashMap<>();
+        }
+    };
+    protected SelectedNavigationTabsWidget selectedNavigationTabsWidget = new SelectedNavigationTabsWidget();
     private final UntypedWidgetPropertyListener sizesChangedListener = this::sizesChanged;
     private final UntypedWidgetPropertyListener tabLookChangedListener = this::tabLookChanged;
     private final WidgetPropertyListener<Integer> activeTabChangedListener = this::activeTabChanged;
@@ -176,6 +186,7 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
         dirty_active_tab.mark();
         toolkit.scheduleUpdate(this);
         tab_display_listener.propertyChanged(null, null, null);
+        selectedNavigationTabsWidget.left = tab_index;
     }
 
     /** Update to the next pending display
@@ -231,6 +242,27 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
                     return null;
                 });
                 checkCompletion(model_widget, completion, "timeout representing new content");
+
+                new_model.getChildren()
+                         .stream()
+                         .filter(widget -> widget instanceof NavigationTabsWidget)
+                         .forEach(widget -> {
+                             NavigationTabsWidget navigationTabsWidget = (NavigationTabsWidget) widget;
+                             NavigationTabsRepresentation navigationTabsRepresentation = (NavigationTabsRepresentation) navigationTabsWidget.getUserData(Widget.USER_DATA_REPRESENTATION);
+                             SelectedNavigationTabsWidget selectedNavigationTabsWidget_forWidget;
+                             if (!selectedNavigationTabsWidget.right.containsKey(navigationTabsWidget.getName())) {
+                                 selectedNavigationTabsWidget_forWidget = new SelectedNavigationTabsWidget();
+                                 selectedNavigationTabsWidget.right.put(navigationTabsWidget.getName(), selectedNavigationTabsWidget_forWidget);
+                             }
+                             else {
+                                 selectedNavigationTabsWidget_forWidget = selectedNavigationTabsWidget.right.get(navigationTabsWidget.getName());
+                             }
+                             navigationTabsRepresentation.selectedNavigationTabsWidget = selectedNavigationTabsWidget_forWidget;
+                             if (navigationTabsWidget.propTabs().size() > selectedNavigationTabsWidget_forWidget.left) {
+                                 navigationTabsWidget.propActiveTab().setValue(selectedNavigationTabsWidget_forWidget.left);
+                             }
+                        });
+
                 model_widget.runtimePropEmbeddedModel().setValue(new_model);
             }
             catch (Exception ex)
