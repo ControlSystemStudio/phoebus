@@ -22,16 +22,7 @@ import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.common.VNoData;
 import org.phoebus.applications.saveandrestore.impl.SaveAndRestoreJerseyClient;
-import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
-import org.phoebus.applications.saveandrestore.model.Configuration;
-import org.phoebus.applications.saveandrestore.model.ConfigurationData;
-import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.Snapshot;
-import org.phoebus.applications.saveandrestore.model.SnapshotData;
-import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.applications.saveandrestore.model.TagData;
+import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 
@@ -372,5 +363,18 @@ public class SaveAndRestoreService {
 
     private void notifyFilterDeleted(Filter filter) {
         filterChangeListeners.forEach(l -> l.filterRemoved(filter));
+    }
+
+    /**
+     * Authenticate user, needed for all non-GET endpoints if service requires it
+     * @param userName User's account name
+     * @param password User's password
+     * @return A {@link UserData} object
+     * @throws Exception if authentication fails
+     */
+    public UserData authenticate(String userName, String password) throws Exception{
+        Future<UserData> future =
+                executor.submit(() -> saveAndRestoreClient.authenticate(userName, password));
+        return future.get();
     }
 }

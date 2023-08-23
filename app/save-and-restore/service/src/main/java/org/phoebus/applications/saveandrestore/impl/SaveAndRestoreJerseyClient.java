@@ -32,16 +32,7 @@ import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
-import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
-import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
-import org.phoebus.applications.saveandrestore.model.Configuration;
-import org.phoebus.applications.saveandrestore.model.ConfigurationData;
-import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.Snapshot;
-import org.phoebus.applications.saveandrestore.model.SnapshotData;
-import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.applications.saveandrestore.model.TagData;
+import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.service.Messages;
@@ -608,6 +599,34 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
             throw new SaveAndRestoreClientException(message);
         }
         return response.getEntity(new GenericType<List<Node>>() {
+        });
+    }
+
+    @Override
+    public UserData authenticate(String userName, String password){
+        WebResource webResource =
+                client.resource(jmasarServiceUrl + "/login")
+                        .queryParam("username", userName)
+                        .queryParam("password", password);
+        ClientResponse response;
+        try {
+            response = webResource.accept(CONTENT_TYPE_JSON)
+                    .post(ClientResponse.class);
+        } catch (UniformInterfaceException e) {
+            throw new RuntimeException(e);
+        } catch (ClientHandlerException e) {
+            throw new RuntimeException(e);
+        }
+        if (response.getStatus() != 200) {
+            String message = Messages.authenticationFailed;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                // Ignore
+            }
+            throw new SaveAndRestoreClientException(message);
+        }
+        return response.getEntity(new GenericType<UserData>() {
         });
     }
 }

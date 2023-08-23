@@ -29,6 +29,12 @@
 			<artifactId>core-pv</artifactId>
 			<version>4.7.3-SNAPSHOT</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.phoebus</groupId>
+			<artifactId>core-security</artifactId>
+			<version>4.7.3-SNAPSHOT</version>
+		</dependency>
 	
 		<dependency>
 			<groupId>org.epics</groupId>

@@ -21,6 +21,7 @@ import org.phoebus.framework.nls.NLS;
 
 public class Messages {
 
+    public static String authenticationFailed;
     public static String compositeSnapshotConsistencyCheckFailed;
     public static String copyOrMoveNotAllowedBody;
     public static String createNodeFailed;
