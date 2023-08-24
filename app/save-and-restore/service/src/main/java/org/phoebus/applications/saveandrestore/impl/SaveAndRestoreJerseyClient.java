@@ -30,6 +30,7 @@ import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
 import org.phoebus.applications.saveandrestore.model.*;
@@ -37,6 +38,8 @@ import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.service.Messages;
 import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.security.store.SecureStore;
+import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.IOException;
@@ -46,7 +49,7 @@ import java.util.logging.Logger;
 
 public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
-    private final Client client;
+    private Client client;
     private static final String CONTENT_TYPE_JSON = "application/json; charset=UTF-8";
     private final Logger logger = Logger.getLogger(SaveAndRestoreJerseyClient.class.getName());
 
@@ -55,39 +58,65 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     private static final int DEFAULT_READ_TIMEOUT = 5000; // ms
     private static final int DEFAULT_CONNECT_TIMEOUT = 3000; // ms
 
+    private int httpClientReadTimeout = DEFAULT_READ_TIMEOUT;
+    private int httpClientConnectTimeout = DEFAULT_CONNECT_TIMEOUT;
+
+    ObjectMapper mapper = new ObjectMapper();
+
+    private HTTPBasicAuthFilter httpBasicAuthFilter;
+
     public SaveAndRestoreJerseyClient() {
+
+        mapper.registerModule(new JavaTimeModule());
+        mapper.setSerializationInclusion(Include.NON_NULL);
 
         PreferencesReader preferencesReader = new PreferencesReader(SaveAndRestoreClient.class, "/client_preferences.properties");
         this.jmasarServiceUrl = preferencesReader.get("jmasar.service.url");
 
-        int httpClientReadTimeout = DEFAULT_READ_TIMEOUT;
         String readTimeoutString = preferencesReader.get("httpClient.readTimeout");
         try {
             httpClientReadTimeout = Integer.parseInt(readTimeoutString);
-            logger.log(Level.INFO, "JMasar client using read timeout " + httpClientReadTimeout + " ms");
+            logger.log(Level.INFO, "Save&restore client using read timeout " + httpClientReadTimeout + " ms");
         } catch (NumberFormatException e) {
             logger.log(Level.INFO, "Property httpClient.readTimeout \"" + readTimeoutString + "\" is not a number, using default value " + DEFAULT_READ_TIMEOUT + " ms");
         }
 
-        int httpClientConnectTimeout = DEFAULT_CONNECT_TIMEOUT;
         String connectTimeoutString = preferencesReader.get("httpClient.connectTimeout");
         try {
             httpClientConnectTimeout = Integer.parseInt(connectTimeoutString);
-            logger.log(Level.INFO, "JMasar client using connect timeout " + httpClientConnectTimeout + " ms");
+            logger.log(Level.INFO, "Save&restore client using connect timeout " + httpClientConnectTimeout + " ms");
         } catch (NumberFormatException e) {
             logger.log(Level.INFO, "Property httpClient.connectTimeout \"" + connectTimeoutString + "\" is not a number, using default value " + DEFAULT_CONNECT_TIMEOUT + " ms");
         }
+    }
 
-
+    private Client getClient(){
         DefaultClientConfig defaultClientConfig = new DefaultClientConfig();
         defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_READ_TIMEOUT, httpClientReadTimeout);
         defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, httpClientConnectTimeout);
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        mapper.setSerializationInclusion(Include.NON_NULL);
+
         JacksonJsonProvider jacksonJsonProvider = new JacksonJsonProvider(mapper);
         defaultClientConfig.getSingletons().add(jacksonJsonProvider);
+
         client = Client.create(defaultClientConfig);
+
+        try {
+            SecureStore store = new SecureStore();
+            ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken("save-and-restore");
+            if(scopedAuthenticationToken != null){
+                String username = scopedAuthenticationToken.getUsername();
+                String password = scopedAuthenticationToken.getPassword();
+                httpBasicAuthFilter = new HTTPBasicAuthFilter(username, password);
+                client.addFilter(httpBasicAuthFilter);
+            }
+            else if(httpBasicAuthFilter != null){
+                client.removeFilter(httpBasicAuthFilter);
+            }
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Unable to retrieve credentials from secure store", e);
+        }
+
+        return client;
     }
 
     @Override
@@ -107,7 +136,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
     @Override
     public List<Node> getCompositeSnapshotReferencedNodes(String uniqueNodeId){
-        WebResource webResource = client.resource(jmasarServiceUrl + "/composite-snapshot/" + uniqueNodeId + "/nodes");
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/composite-snapshot/" + uniqueNodeId + "/nodes");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).get(ClientResponse.class);
         if (response.getStatus() != 200) {
@@ -126,7 +155,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
     @Override
     public List<SnapshotItem> getCompositeSnapshotItems(String uniqueNodeId){
-        WebResource webResource = client.resource(jmasarServiceUrl + "/composite-snapshot/" + uniqueNodeId + "/items");
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/composite-snapshot/" + uniqueNodeId + "/items");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).get(ClientResponse.class);
         if (response.getStatus() != 200) {
@@ -158,7 +187,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     @Override
     public Node createNewNode(String parentNodeId, Node node) {
         node.setUserName(getCurrentUsersName());
-        WebResource webResource = client.resource(jmasarServiceUrl + "/node").queryParam("parentNodeId", parentNodeId);
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/node").queryParam("parentNodeId", parentNodeId);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(node, CONTENT_TYPE_JSON)
                 .put(ClientResponse.class);
@@ -186,7 +215,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
         if (nodeToUpdate.getUserName() == null || nodeToUpdate.getUserName().isEmpty()) {
             nodeToUpdate.setUserName(getCurrentUsersName());
         }
-        WebResource webResource = client.resource(jmasarServiceUrl + "/node")
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/node")
                 .queryParam("customTimeForMigration", customTimeForMigration ? "true" : "false");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
@@ -213,7 +242,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     private ClientResponse getCall(String relativeUrl) {
-        WebResource webResource = client.resource(jmasarServiceUrl + relativeUrl);
+        WebResource webResource = getClient().resource(jmasarServiceUrl + relativeUrl);
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).get(ClientResponse.class);
         if (response.getStatus() != 200) {
@@ -231,7 +260,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
     @Override
     public void deleteNode(String uniqueNodeId) {
-        WebResource webResource = client.resource(jmasarServiceUrl + "/node/" + uniqueNodeId);
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/node/" + uniqueNodeId);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).delete(ClientResponse.class);
         if (response.getStatus() != 200) {
             String message = response.getEntity(String.class);
@@ -265,7 +294,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     @Override
     public Node moveNodes(List<String> sourceNodeIds, String targetNodeId) {
         WebResource webResource =
-                client.resource(jmasarServiceUrl + "/move")
+                getClient().resource(jmasarServiceUrl + "/move")
                         .queryParam("to", targetNodeId)
                         .queryParam("username", getCurrentUsersName());
 
@@ -288,7 +317,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     @Override
     public Node copyNodes(List<String> sourceNodeIds, String targetNodeId) {
         WebResource webResource =
-                client.resource(jmasarServiceUrl + "/copy")
+                getClient().resource(jmasarServiceUrl + "/copy")
                         .queryParam("to", targetNodeId)
                         .queryParam("username", getCurrentUsersName());
 
@@ -311,7 +340,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     @Override
     public String getFullPath(String uniqueNodeId) {
         WebResource webResource =
-                client.resource(jmasarServiceUrl + "/path/" + uniqueNodeId);
+                getClient().resource(jmasarServiceUrl + "/path/" + uniqueNodeId);
         ClientResponse response = webResource.get(ClientResponse.class);
 
         if (response.getStatus() != 200) {
@@ -335,7 +364,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     public Configuration createConfiguration(String parentNodeId, Configuration configuration) {
         configuration.getConfigurationNode().setUserName(getCurrentUsersName());
         WebResource webResource =
-                client.resource(jmasarServiceUrl + "/config")
+                getClient().resource(jmasarServiceUrl + "/config")
                         .queryParam("parentNodeId", parentNodeId);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(configuration, CONTENT_TYPE_JSON)
@@ -354,7 +383,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
     @Override
     public Configuration updateConfiguration(Configuration configuration) {
-        WebResource webResource = client.resource(jmasarServiceUrl + "/config");
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/config");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(configuration, CONTENT_TYPE_JSON)
@@ -381,7 +410,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     public Snapshot saveSnapshot(String parentNodeId, Snapshot snapshot) {
         snapshot.getSnapshotNode().setUserName(getCurrentUsersName());
         WebResource webResource =
-                client.resource(jmasarServiceUrl + "/snapshot")
+                getClient().resource(jmasarServiceUrl + "/snapshot")
                         .queryParam("parentNodeId", parentNodeId);
         ClientResponse response;
         try {
@@ -409,7 +438,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     public CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot){
         compositeSnapshot.getCompositeSnapshotNode().setUserName(getCurrentUsersName());
         WebResource webResource =
-                client.resource(jmasarServiceUrl + "/composite-snapshot")
+                getClient().resource(jmasarServiceUrl + "/composite-snapshot")
                         .queryParam("parentNodeId", parentNodeId);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(compositeSnapshot, CONTENT_TYPE_JSON)
@@ -429,7 +458,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     @Override
     public List<String> checkCompositeSnapshotConsistency(List<String> snapshotNodeIds){
         WebResource webResource =
-                client.resource(jmasarServiceUrl + "/composite-snapshot-consistency-check");
+                getClient().resource(jmasarServiceUrl + "/composite-snapshot-consistency-check");
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(snapshotNodeIds, CONTENT_TYPE_JSON)
                 .post(ClientResponse.class);
@@ -448,7 +477,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
     @Override
     public CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot){
-        WebResource webResource = client.resource(jmasarServiceUrl + "/composite-snapshot");
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/composite-snapshot");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(compositeSnapshot, CONTENT_TYPE_JSON)
@@ -467,7 +496,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
     @Override
     public SearchResult search(MultivaluedMap<String, String> searchParams){
-        WebResource webResource = client.resource(jmasarServiceUrl + "/search")
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/search")
                 .queryParams(searchParams);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .get(ClientResponse.class);
@@ -486,7 +515,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     @Override
     public Filter saveFilter(Filter filter){
         filter.setUser(getCurrentUsersName());
-        WebResource webResource = client.resource(jmasarServiceUrl + "/filter");
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/filter");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(filter, CONTENT_TYPE_JSON)
@@ -505,7 +534,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
     @Override
     public List<Filter> getAllFilters(){
-        WebResource webResource = client.resource(jmasarServiceUrl + "/filters");
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/filters");
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .get(ClientResponse.class);
         if (response.getStatus() != 200) {
@@ -524,7 +553,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     public void deleteFilter(String name){
         // Filter name may contain space chars, need to URL encode these.
         String filterName = name.replace(" ", "%20");
-        WebResource  webResource = client.resource(jmasarServiceUrl + "/filter/" + filterName);
+        WebResource  webResource = getClient().resource(jmasarServiceUrl + "/filter/" + filterName);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .delete(ClientResponse.class);
         if (response.getStatus() != 200) {
@@ -546,7 +575,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
      */
     public List<Node> addTag(TagData tagData){
         WebResource webResource =
-                client.resource(jmasarServiceUrl + "/tags");
+                getClient().resource(jmasarServiceUrl + "/tags");
         ClientResponse response;
         try {
             response = webResource.accept(CONTENT_TYPE_JSON)
@@ -578,7 +607,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
      */
     public List<Node> deleteTag(TagData tagData){
         WebResource webResource =
-                client.resource(jmasarServiceUrl + "/tags");
+                getClient().resource(jmasarServiceUrl + "/tags");
         ClientResponse response;
         try {
             response = webResource.accept(CONTENT_TYPE_JSON)
@@ -605,7 +634,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     @Override
     public UserData authenticate(String userName, String password){
         WebResource webResource =
-                client.resource(jmasarServiceUrl + "/login")
+                getClient().resource(jmasarServiceUrl + "/login")
                         .queryParam("username", userName)
                         .queryParam("password", password);
         ClientResponse response;
