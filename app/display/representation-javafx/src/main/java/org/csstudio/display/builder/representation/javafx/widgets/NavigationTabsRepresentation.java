@@ -57,13 +57,13 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
     private final DirtyFlag dirty_tabs = new DirtyFlag();
     private final DirtyFlag dirty_tab_look = new DirtyFlag();
     private final DirtyFlag dirty_active_tab = new DirtyFlag();
-    private class SelectedNavigationTabsWidget extends MutablePair<Integer, HashMap<String, SelectedNavigationTabsWidget>> {
-        public SelectedNavigationTabsWidget() {
+    private class SelectedNavigationTabs extends MutablePair<Integer, HashMap<String, SelectedNavigationTabs>> {
+        public SelectedNavigationTabs() {
             left = 0;
             right = new HashMap<>();
         }
     };
-    protected SelectedNavigationTabsWidget selectedNavigationTabsWidget = new SelectedNavigationTabsWidget();
+    protected SelectedNavigationTabs selectedNavigationTabs = new SelectedNavigationTabs();
     private final UntypedWidgetPropertyListener sizesChangedListener = this::sizesChanged;
     private final UntypedWidgetPropertyListener tabLookChangedListener = this::tabLookChanged;
     private final WidgetPropertyListener<Integer> activeTabChangedListener = this::activeTabChanged;
@@ -186,7 +186,7 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
         dirty_active_tab.mark();
         toolkit.scheduleUpdate(this);
         tab_display_listener.propertyChanged(null, null, null);
-        selectedNavigationTabsWidget.left = tab_index;
+        selectedNavigationTabs.left = tab_index;
     }
 
     /** Update to the next pending display
@@ -247,19 +247,19 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
                          .stream()
                          .filter(widget -> widget instanceof NavigationTabsWidget)
                          .forEach(widget -> {
-                             NavigationTabsWidget navigationTabsWidget = (NavigationTabsWidget) widget;
-                             NavigationTabsRepresentation navigationTabsRepresentation = (NavigationTabsRepresentation) navigationTabsWidget.getUserData(Widget.USER_DATA_REPRESENTATION);
-                             SelectedNavigationTabsWidget selectedNavigationTabsWidget_forWidget;
-                             if (!selectedNavigationTabsWidget.right.containsKey(navigationTabsWidget.getName())) {
-                                 selectedNavigationTabsWidget_forWidget = new SelectedNavigationTabsWidget();
-                                 selectedNavigationTabsWidget.right.put(navigationTabsWidget.getName(), selectedNavigationTabsWidget_forWidget);
+                             NavigationTabsWidget nestedNavigationTabsWidget = (NavigationTabsWidget) widget;
+                             NavigationTabsRepresentation nestedNavigationTabsRepresentation = (NavigationTabsRepresentation) nestedNavigationTabsWidget.getUserData(Widget.USER_DATA_REPRESENTATION);
+                             SelectedNavigationTabs nestedNavigationTabsRepresentation_selectedNavigationTabs;
+                             if (!selectedNavigationTabs.right.containsKey(nestedNavigationTabsWidget.getName())) {
+                                 nestedNavigationTabsRepresentation_selectedNavigationTabs = new SelectedNavigationTabs();
+                                 selectedNavigationTabs.right.put(nestedNavigationTabsWidget.getName(), nestedNavigationTabsRepresentation_selectedNavigationTabs);
                              }
                              else {
-                                 selectedNavigationTabsWidget_forWidget = selectedNavigationTabsWidget.right.get(navigationTabsWidget.getName());
+                                 nestedNavigationTabsRepresentation_selectedNavigationTabs = selectedNavigationTabs.right.get(nestedNavigationTabsWidget.getName());
                              }
-                             navigationTabsRepresentation.selectedNavigationTabsWidget = selectedNavigationTabsWidget_forWidget;
-                             if (navigationTabsWidget.propTabs().size() > selectedNavigationTabsWidget_forWidget.left) {
-                                 navigationTabsWidget.propActiveTab().setValue(selectedNavigationTabsWidget_forWidget.left);
+                             nestedNavigationTabsRepresentation.selectedNavigationTabs = nestedNavigationTabsRepresentation_selectedNavigationTabs;
+                             if (nestedNavigationTabsWidget.propTabs().size() > nestedNavigationTabsRepresentation_selectedNavigationTabs.left) {
+                                 nestedNavigationTabsWidget.propActiveTab().setValue(nestedNavigationTabsRepresentation_selectedNavigationTabs.left);
                              }
                         });
 
