@@ -112,10 +112,10 @@ public class TooltipSupport
                 double low = warningRange.getMinimum();
                 double high = warningRange.getMaximum();
 
-                String pv_alarm_limits = "HiHi: " + (Double.isNaN(hihi) ? Messages.NotSet : hihi) + System.lineSeparator() +
-                                         "High: " + (Double.isNaN(high) ? Messages.NotSet : high) + System.lineSeparator() +
-                                         "Low: "  + (Double.isNaN(low)  ? Messages.NotSet : low)  + System.lineSeparator() +
-                                         "LoLo: " + (Double.isNaN(lolo) ? Messages.NotSet : lolo);
+                String pv_alarm_limits = "HIHI: " + (Double.isNaN(hihi) ? Messages.NotSet : hihi) + System.lineSeparator() +
+                                         "HIGH: " + (Double.isNaN(high) ? Messages.NotSet : high) + System.lineSeparator() +
+                                         "LOW: "  + (Double.isNaN(low)  ? Messages.NotSet : low)  + System.lineSeparator() +
+                                         "LOLO: " + (Double.isNaN(lolo) ? Messages.NotSet : lolo);
                 spec = spec.replace("$(pv_value)", "$(pv_value)" + System.lineSeparator() + pv_alarm_limits);
             }
 
