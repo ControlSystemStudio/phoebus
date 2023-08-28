@@ -36,6 +36,7 @@ public class VTypeSerializer extends JsonSerializer<VType> {
 
 	@Override
 	public void serialize(VType vType, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-		gen.writeRawValue(VTypeToJson.toJson(vType).toString());
+		String s = VTypeToJson.toJson(vType).toString();
+		gen.writeRawValue(s);
 	}
 }

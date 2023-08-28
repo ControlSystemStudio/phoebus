@@ -39,44 +39,7 @@ import org.epics.util.number.ULong;
 import org.epics.util.number.UShort;
 import org.epics.util.number.UnsignedConversions;
 import org.epics.util.text.NumberFormats;
-import org.epics.vtype.Alarm;
-import org.epics.vtype.AlarmSeverity;
-import org.epics.vtype.AlarmStatus;
-import org.epics.vtype.Array;
-import org.epics.vtype.Display;
-import org.epics.vtype.EnumDisplay;
-import org.epics.vtype.SimpleValueFormat;
-import org.epics.vtype.Time;
-import org.epics.vtype.VBoolean;
-import org.epics.vtype.VBooleanArray;
-import org.epics.vtype.VByte;
-import org.epics.vtype.VByteArray;
-import org.epics.vtype.VDouble;
-import org.epics.vtype.VDoubleArray;
-import org.epics.vtype.VEnum;
-import org.epics.vtype.VEnumArray;
-import org.epics.vtype.VFloat;
-import org.epics.vtype.VFloatArray;
-import org.epics.vtype.VInt;
-import org.epics.vtype.VIntArray;
-import org.epics.vtype.VLong;
-import org.epics.vtype.VLongArray;
-import org.epics.vtype.VNumber;
-import org.epics.vtype.VNumberArray;
-import org.epics.vtype.VShort;
-import org.epics.vtype.VShortArray;
-import org.epics.vtype.VString;
-import org.epics.vtype.VStringArray;
-import org.epics.vtype.VType;
-import org.epics.vtype.VUByte;
-import org.epics.vtype.VUByteArray;
-import org.epics.vtype.VUInt;
-import org.epics.vtype.VUIntArray;
-import org.epics.vtype.VULong;
-import org.epics.vtype.VULongArray;
-import org.epics.vtype.VUShort;
-import org.epics.vtype.VUShortArray;
-import org.epics.vtype.ValueFormat;
+import org.epics.vtype.*;
 import org.phoebus.core.vtypes.VTypeHelper;
 
 import java.math.BigInteger;
@@ -381,6 +344,9 @@ public final class Utilities {
         } else if (type instanceof VBoolean) {
             return ((VBoolean) type).getValue();
         }
+        else if(type instanceof VTable) {
+            return type;
+        }
         return null;
     }
 
@@ -511,6 +477,9 @@ public final class Utilities {
             return ((VString) type).getValue();
         } else if (type instanceof VBoolean) {
             return String.valueOf(((VBoolean) type).getValue());
+        }
+        else if(type instanceof VTable){
+            return "[VTable]";
         }
         // no support for MultiScalars (VMultiDouble, VMultiInt, VMultiString, VMultiEnum), VStatistics, VTable and
         // VImage)

@@ -66,7 +66,7 @@
   <properties>
     <project.build.outputTimestamp>2023-05-24T19:31:02Z</project.build.outputTimestamp>
     <epics.version>7.0.9</epics.version>
-    <vtype.version>1.0.6</vtype.version>
+    <vtype.version>1.0.7-SNAPSHOT</vtype.version>
     <openjfx.version>19</openjfx.version>
     <jackson.version>2.12.3</jackson.version>
     <batik.version>1.14</batik.version>
