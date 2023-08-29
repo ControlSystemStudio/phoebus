@@ -17,4 +17,12 @@ jobs:
       with:
         java-version: '11'
     - name: Build
-      run: mvn --batch-mode install
+      run: mvn --batch-mode install -DskipTests=true
+
+    - name: Archive build artifacts 
+      uses: actions/upload-artifact@v3
+      with:
+        name: Phoebus product ${{ matrix.os }}
+        path: |
+          ${{ github.workspace }}/phoebus-product/target/*.tar.gz 
+          ${{ github.workspace }}/phoebus-product/target/*.zip
