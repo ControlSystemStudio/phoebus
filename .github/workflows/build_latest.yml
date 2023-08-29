@@ -1,6 +1,9 @@
 name: Phoebus build
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   build:
@@ -17,7 +20,7 @@ jobs:
       with:
         java-version: '11'
     - name: Build
-      run: mvn --batch-mode install -DskipTests=true
+      run: mvn --batch-mode install -DskipTests
 
     - name: Archive build artifacts 
       uses: actions/upload-artifact@v3
