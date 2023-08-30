@@ -105,3 +105,11 @@ Services
 Similar to a product, a service is a runnable tool, but typically
 for a non-UI functionality like a scan server, archive engine,
 alarm handler or logger.
+
+Architecture diagram
+~~~~~~~~~~~~~~~~~~~~
+.. figure:: services.png
+
+This architecture diagram shows the main services used by phoebus and their port.
+Port 808x means : 8080 is used by default. It must be changed if running on the same server as the other services.
+
