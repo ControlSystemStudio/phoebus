@@ -41,6 +41,7 @@ import org.epics.util.number.UnsignedConversions;
 import org.epics.util.text.NumberFormats;
 import org.epics.vtype.*;
 import org.phoebus.core.vtypes.VTypeHelper;
+import org.phoebus.pv.pva.PVAStructureHelper;
 
 import java.math.BigInteger;
 import java.text.NumberFormat;
@@ -345,7 +346,12 @@ public final class Utilities {
             return ((VBoolean) type).getValue();
         }
         else if(type instanceof VTable) {
-            return type;
+            try{
+                return PVAStructureHelper.fromVTable((VTable) type);
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
         }
         return null;
     }
@@ -481,7 +487,7 @@ public final class Utilities {
         else if(type instanceof VTable){
             return "[VTable]";
         }
-        // no support for MultiScalars (VMultiDouble, VMultiInt, VMultiString, VMultiEnum), VStatistics, VTable and
+        // no support for MultiScalars (VMultiDouble, VMultiInt, VMultiString, VMultiEnum), VStatistics and
         // VImage)
         return "Type " + VType.typeOf(type).getSimpleName() + " not supported";
     }

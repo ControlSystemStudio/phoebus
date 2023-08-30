@@ -12,27 +12,17 @@ import static java.util.stream.IntStream.range;
 import static org.phoebus.pv.pva.Decoders.decodeAlarm;
 import static org.phoebus.pv.pva.Decoders.decodeTime;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import org.epics.pva.data.PVAArray;
-import org.epics.pva.data.PVABool;
-import org.epics.pva.data.PVABoolArray;
-import org.epics.pva.data.PVAByteArray;
-import org.epics.pva.data.PVAData;
-import org.epics.pva.data.PVADoubleArray;
-import org.epics.pva.data.PVAFloatArray;
-import org.epics.pva.data.PVAIntArray;
-import org.epics.pva.data.PVALongArray;
-import org.epics.pva.data.PVANumber;
-import org.epics.pva.data.PVAShortArray;
-import org.epics.pva.data.PVAString;
-import org.epics.pva.data.PVAStringArray;
-import org.epics.pva.data.PVAStructure;
-import org.epics.pva.data.PVAStructureArray;
-import org.epics.pva.data.PVAUnion;
+import org.epics.pva.data.*;
+import org.epics.pva.data.nt.MustBeArrayException;
+import org.epics.pva.data.nt.PVAAlarm;
+import org.epics.pva.data.nt.PVATable;
+import org.epics.pva.data.nt.PVATimeStamp;
 import org.epics.util.array.ArrayByte;
 import org.epics.util.array.ArrayDouble;
 import org.epics.util.array.ArrayFloat;
@@ -55,6 +45,7 @@ import org.epics.vtype.VString;
 import org.epics.vtype.VStringArray;
 import org.epics.vtype.VTable;
 import org.epics.vtype.VType;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 /** Helper for handling 'structure' type PVA data */
 @SuppressWarnings("nls")
@@ -254,6 +245,43 @@ public class PVAStructureHelper
         }
 
         return VTable.of(types, names, values);
+    }
+
+    public static PVATable fromVTable(VTable vTable) throws MustBeArrayException {
+        PVATable.PVATableBuilder builder = PVATable.PVATableBuilder.aPVATable();
+        builder.alarm(new PVAAlarm());
+        builder.timeStamp(new PVATimeStamp(Instant.now()));
+        List<PVAData> table = new ArrayList<>();
+
+        int columnCount = vTable.getColumnCount();
+        String[] columnNames = new String[columnCount];
+        for(int i = 0; i < columnCount; i++){
+            columnNames[i] = vTable.getColumnName(i);
+        }
+        PVAStringArray names = new PVAStringArray("labels", columnNames);
+        //table.add(names);
+
+        List<PVAData> valuesData = new ArrayList<>();
+        for(int i = 0; i < columnCount; i++){
+            Class clazz = vTable.getColumnType(i);
+            if(clazz.equals(Integer.TYPE)){
+                ArrayInteger arrayInteger = (ArrayInteger) vTable.getColumnData(i);
+                int[] integers = new int[arrayInteger.size()];
+                for(int j = 0; j < arrayInteger.size(); j++){
+                    integers[j] = arrayInteger.getInt(j);
+                }
+                PVAIntArray ints =
+                        new PVAIntArray(i == 0 ? "A" : "B", false, integers);
+                builder.addColumn(ints);
+            }
+        }
+
+        PVAStructure valueStruct = new PVAStructure("value", "", valuesData);
+        //table.add(valueStruct);
+
+        builder.name("");
+        //builder.table(valuesData);
+        return builder.build();
     }
 
     /** Decode 'value', 'timeStamp', 'alarm' of NTArray
