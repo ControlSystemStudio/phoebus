@@ -1,0 +1,43 @@
+dn: dc=sar,dc=local
+objectClass: dcObject
+objectClass: organization
+dc: sar
+o: sar
+
+dn: cn=sar,dc=sar,dc=local
+objectClass: simpleSecurityObject
+objectClass: organizationalRole
+userPassword:: e1NIQX1jUkR0cE5DZUJpcWw1S09Rc0tWeXJBMHNBaUE9
+cn: sar
+
+dn: ou=Group,dc=sar,dc=local
+objectClass: organizationalunit
+ou: Group
+description: groups branch
+
+dn: ou=People,dc=sar,dc=local
+objectClass: organizationalunit
+ou: People
+description: people branch
+
+dn: uid=saveandrestore,ou=People,dc=sar,dc=local
+uid: saveandrestore
+objectClass: account
+objectClass: posixAccount
+description: User with saveandrestore role
+cn: saveandrestore
+userPassword: 1234
+uidNumber: 23003
+gidNumber: 23003
+homeDirectory: /dev/null
+
+dn: uid=admin,ou=People,dc=sar,dc=local
+uid: admin
+objectClass: account
+objectClass: posixAccount
+description: User with admin role
+cn: admin
+userPassword: 1234
+uidNumber: 23005
+gidNumber: 23005
+homeDirectory: /dev/null
