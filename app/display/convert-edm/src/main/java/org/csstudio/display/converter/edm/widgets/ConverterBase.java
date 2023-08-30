@@ -83,14 +83,14 @@ public abstract class ConverterBase<W extends Widget>
             final String expression = "pv0>=" + t.getVisMin() + " && pv0<" + t.getVisMax();
             WidgetProperty<Boolean> val = vis_prop.clone();
             val.setValue(!t.isVisInvert());
-            exprs.add(new RuleInfo.ExprInfoValue<>(expression, val));
+            exprs.add(new RuleInfo.ExpressionInfo<>(expression, true, val));
 
             // Else: Hide (unless inverted)
             val = vis_prop.clone();
             val.setValue(t.isVisInvert());
-            exprs.add(new RuleInfo.ExprInfoValue<>("true", val));
+            exprs.add(new RuleInfo.ExpressionInfo<>("true", true, val));
 
-            rules.add(new RuleInfo("EDM visibility", vis_prop.getName(), false, exprs, pvs));
+            rules.add(new RuleInfo("EDM visibility", vis_prop.getName(), false, exprs));
             widget.propRules().setValue(rules);
         }
 
@@ -147,11 +147,11 @@ public abstract class ConverterBase<W extends Widget>
                 final WidgetColor color = convertStaticColor(edm_color);
                 final WidgetProperty<WidgetColor> prop_col = prop.clone();
                 prop_col.setValue(color);
-                exprs.add(new RuleInfo.ExprInfoValue<>(expression, prop_col));
+                exprs.add(new RuleInfo.ExpressionInfo<>(expression, false, prop_col));
             }
 
             final String name = "EDM " + (edm.getName() == null ? "color" : edm.getName());
-            rules.add(new RuleInfo(name, prop.getName(), false, exprs, pvs));
+            rules.add(new RuleInfo(name, prop.getName(), false, exprs));
             widget.propRules().setValue(rules);
 
             return;
