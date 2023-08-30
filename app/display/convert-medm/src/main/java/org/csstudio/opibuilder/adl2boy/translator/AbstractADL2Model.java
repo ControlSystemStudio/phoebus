@@ -166,8 +166,7 @@ public abstract class AbstractADL2Model<WM extends Widget>
                     final RuleInfo rule = new RuleInfo("vis_calc",
                             CommonWidgetProperties.propVisible.getName(),
                             false,
-                            List.of(new RuleInfo.ExprInfoValue<>("!("+ newExpr + ")", visible)),
-                            pvs);
+                            List.of(new RuleInfo.ExpressionInfo<>("!("+ newExpr + ")", false, visible)));
 
                     widgetModel.propRules().setValue(List.of(rule));
                 }
@@ -226,8 +225,7 @@ public abstract class AbstractADL2Model<WM extends Widget>
         final RuleInfo rule = new RuleInfo(name,
                 CommonWidgetProperties.propVisible.getName(),
                 false,
-                List.of(new RuleInfo.ExprInfoValue<>("!("+ booleanExpression + ")", visible)),
-                List.of(new ScriptPV(chan, true)));
+                List.of(new RuleInfo.ExpressionInfo<>("!("+ booleanExpression + ")", false, visible)));
 
         widgetModel.propRules().setValue(List.of(rule));
     }
