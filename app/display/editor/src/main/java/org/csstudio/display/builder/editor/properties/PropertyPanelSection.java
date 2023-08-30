@@ -317,7 +317,7 @@ public class PropertyPanelSection extends GridPane
             final EventHandler<ActionEvent> macro_handler = event ->
             {
                 final boolean use_macro = macroButton.isSelected() ||
-                                          MacroHandler.containsMacros(enum_prop.getSpecification());
+                        MacroHandler.containsMacros(enum_prop.getSpecification());
                 combo.setEditable(use_macro);
                 // Combo's text field has been set to the current value
                 // while the combo was non-editable.
@@ -546,7 +546,7 @@ public class PropertyPanelSection extends GridPane
             Tooltip.install(text, new Tooltip(text.getText()));
 
             if (CommonWidgetProperties.propText.getName().equals(property.getName())  ||
-                CommonWidgetProperties.propTooltip.getName().equals(property.getName()))
+                    CommonWidgetProperties.propTooltip.getName().equals(property.getName()))
             {   // Allow editing multi-line text in dialog
                 final Button open_editor = new Button("...");
                 Tooltip.install(open_editor, new Tooltip("Open Editor"));
@@ -603,11 +603,11 @@ public class PropertyPanelSection extends GridPane
      *  @param indentationLevel Indentation level
      */
     private void createPropertyUI(
-        final UndoableActionManager undo,
-        final WidgetProperty<?> property,
-        final List<Widget> other,
-        final int structureIndex,
-        final int indentationLevel)
+            final UndoableActionManager undo,
+            final WidgetProperty<?> property,
+            final List<Widget> other,
+            final int structureIndex,
+            final int indentationLevel)
     {
         // Skip runtime properties
         if (property.getCategory() == WidgetPropertyCategory.RUNTIME)
@@ -711,8 +711,10 @@ public class PropertyPanelSection extends GridPane
             final ArrayWidgetProperty<WidgetProperty<?>> array = (ArrayWidgetProperty<WidgetProperty<?>>) property;
 
             // UI for changing array size
-            final Spinner<Integer> spinner = new Spinner<>(array.getMinimumSize(), 100, 0);
-            final ArraySizePropertyBinding count_binding = new ArraySizePropertyBinding(this, undo, spinner, array, other);
+            final int min_value = array.getMinimumSize();
+            final int max_value = 100;
+            final Spinner<Integer> spinner = new Spinner<>(min_value, max_value, 0);
+            final ArraySizePropertyBinding count_binding = new ArraySizePropertyBinding(this, undo, spinner, array, other, min_value, max_value);
             bindings.add(count_binding);
             count_binding.bind();
 
@@ -820,7 +822,7 @@ public class PropertyPanelSection extends GridPane
 
         final Widget widget = property.getWidget();
         if (! (property == widget.getProperty("type")  ||
-               property == widget.getProperty("name")))
+                property == widget.getProperty("name")))
         {
             if (class_mode)
             {   // Class definition mode:

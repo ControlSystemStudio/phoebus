@@ -64,13 +64,13 @@ public class AlarmLogSearchJob implements JobRunnable {
     @Override
     public void run(JobMonitor monitor) {
         String searchString = "searching for alarm log entries : " +
-                searchParameters.entrySet().stream().map(e -> e.getKey() + ":" + e.getValue()).collect(Collectors.joining(","));
+                searchParameters.entrySet().stream().filter(e -> !e.getValue().equals("")).map(e -> e.getKey() + ":" + e.getValue()).collect(Collectors.joining(","));
         logger.log(Level.INFO, "Searching for alarm entries: " + searchString);
         monitor.beginTask(searchString);
         int size = prefs.getInt("results_max_size");
 
         MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
-        searchParameters.forEach((key, value) -> map.add(key.getName(), value));
+        searchParameters.forEach((key, value) -> { if (!value.equals("")) map.add(key.getName(), value); });
         map.putIfAbsent("size", List.of(String.valueOf(size)));
 
         try {

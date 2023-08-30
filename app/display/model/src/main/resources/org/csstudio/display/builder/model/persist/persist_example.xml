@@ -4,7 +4,7 @@
     <name>Demo</name>
     <zero_ten>7</zero_ten>
   </widget>
-  <widget type="group" version="2.0.0">
+  <widget type="group" version="3.0.0">
     <name>My Group</name>
     <widget type="base" version="2.0.0">
       <name>Jänner</name>

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -664,6 +664,11 @@ public class ImagePlot extends PlotCanvasBase
             computeLayout(gc, area_copy, min_value, max_value);
 
         // Fill with a 'background' color
+        if (background.getAlpha() < 255)
+        {   // Clear because fill alone with transparent background leaves previous content
+            gc.setBackground(background);
+            gc.clearRect(0, 0, area_copy.width, area_copy.height);
+        }
         gc.setColor(background);
         gc.fillRect(0, 0, area_copy.width, area_copy.height);
 

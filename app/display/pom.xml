@@ -19,5 +19,6 @@
     <module>navigation</module>
     <module>adapters</module>
     <module>thumbwheel</module>
+    <module>linearmeter</module>
   </modules>
 </project>

@@ -95,7 +95,12 @@ public class DataBrowserInstance implements AppInstance
 
         @Override
         public void changedAxis(final Optional<AxisConfig> axis)
-        {   setDirty(true);   }
+        {
+            if (!axis.isPresent() || !axis.get().autoScaleUpdateInProgress)
+            {
+                setDirty(true);
+            }
+        }
 
         @Override
         public void itemAdded(final ModelItem item)

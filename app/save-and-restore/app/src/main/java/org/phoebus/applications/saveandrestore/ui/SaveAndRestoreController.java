@@ -877,6 +877,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             List<TreeItem<Node>> childItems = allItems.get(parentItem.getValue().getUniqueId());
             parentItem.getChildren().setAll(childItems);
             parentItem.getChildren().sort(treeNodeComparator);
+            parentItem.setExpanded(true);
             Platform.runLater(() -> childItems.forEach(ci -> setChildItems(allItems, ci)));
         }
     }

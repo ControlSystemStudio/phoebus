@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -68,7 +68,7 @@ public class Network
                     for (InterfaceAddress addr : iface.getInterfaceAddresses())
                         if (addr.getBroadcast() != null)
                         {
-                            final AddressInfo bcast = new AddressInfo(new InetSocketAddress(addr.getBroadcast(), port), 1, iface);
+                            final AddressInfo bcast = new AddressInfo(false, new InetSocketAddress(addr.getBroadcast(), port), 1, iface);
                             if (! addresses.contains(bcast))
                                 addresses.add(bcast);
                         }
@@ -85,7 +85,7 @@ public class Network
         }
 
         if (addresses.isEmpty())
-            addresses.add(new AddressInfo(new InetSocketAddress("255.255.255.255", port), 1, null));
+            addresses.add(new AddressInfo(false, new InetSocketAddress("255.255.255.255", port), 1, null));
 
         return addresses;
     }
@@ -103,6 +103,7 @@ public class Network
      *  [::1]:9876                 IPv6 address with port
      *  224.0.2.3,255@192.168.1.1  IPv4 224.0.2.3, TTL 255, using interface with address 192.168.1.1
      *  [ff02::42:1]:5076,1@br0    IPv6 ff02::42:1, port 5076, TTL 1, interface br0
+     *  pvas://....                Request TLS, i.e. secure TCP, and default to EPICS_PVAS_TLS_PORT
      *  </pre>
      *
      *  @param setting Address "IP:port,TTL@iface" to parse
@@ -117,6 +118,14 @@ public class Network
         int port = default_port;
 
         String parsed = setting;
+
+        final boolean tls = parsed.startsWith("pvas://");
+        if (tls)
+        {
+            parsed = parsed.substring(7);
+            port = PVASettings.EPICS_PVAS_TLS_PORT;
+        }
+
         // Optional @interface
         int sep = parsed.lastIndexOf('@');
         if (sep >= 0)
@@ -175,7 +184,7 @@ public class Network
         // Parse remaining address
         final InetSocketAddress address = new InetSocketAddress(parsed, port);
 
-        return new AddressInfo(address, ttl, iface);
+        return new AddressInfo(tls, address, ttl, iface);
     }
 
     /** Parse network addresses
@@ -298,7 +307,7 @@ public class Network
                 udp.setOption(StandardSocketOptions.IP_MULTICAST_LOOP, true);
                 udp.setOption(StandardSocketOptions.IP_MULTICAST_IF, loopback);
 
-                return new AddressInfo(local_multicast, 1, loopback);
+                return new AddressInfo(false, local_multicast, 1, loopback);
             }
         }
         catch (Exception ex)

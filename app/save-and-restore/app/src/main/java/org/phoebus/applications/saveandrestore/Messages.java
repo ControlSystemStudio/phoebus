@@ -125,17 +125,17 @@ public class Messages {
     public static String status;
     public static String storedReadbackValue;
     public static String storedValues;
+    public static String tableColumnDeltaValue;
     public static String tagNameLabel;
     public static String tagCommentLabel;
     public static String tagRemoveConfirmationTitle;
     public static String tagRemoveConfirmationContent;
     public static String timestamp;
+
     public static String toolTipTableColumnPVName;
     public static String toolTipTableColumnReadbackPVName;
     public static String toolTipTableColumIndex;
     public static String toolTipTableColumnTimestamp;
-    public static String toolTipTableColumnAlarmStatus;
-    public static String toolTipTableColumnAlarmSeverity;
     public static String toolTipTableColumnSetpointPVValue;
     public static String toolTipTableColumnPVValues;
     public static String toolTipUnionOfSetpointPVNames;

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2021-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -33,6 +33,9 @@ public class SearchResponse
 
     /** Server's address, may be  all zero (any local) */
     public InetSocketAddress server;
+
+    /** Did server request usage of TLS? */
+    public boolean tls;
 
     /** Did server reply that channels are found, or did it send negative response? */
     public boolean found;
@@ -85,7 +88,9 @@ public class SearchResponse
             result.server = new InetSocketAddress(addr, port);
 
         final String protocol = PVAString.decodeString(buffer);
-        if (! "tcp".equals(protocol))
+
+        result.tls = "tls".equals(protocol);
+        if (! result.tls  &&  ! "tcp".equals(protocol))
             throw new Exception("PVA Server sent search reply #" + result.seq + " for protocol '" + protocol + "'");
 
         // Server may reply with list of PVs that it does _not_ have...
@@ -105,10 +110,12 @@ public class SearchResponse
      *  @param cid Client's channel ID or -1
      *  @param address Address where client can connect to access the channel
      *  @param port Associated TCP port
+     *  @param tls Use TLS? Otherwise plain TCP
      *  @param buffer Buffer into which search response will be encoded
      */
     public static void encode(final Guid guid, final int seq, final int cid,
                               final InetAddress address, final int port,
+                              final boolean tls,
                               final ByteBuffer buffer)
     {
         PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_SERVER, PVAHeader.CMD_SEARCH_RESPONSE, 12+4+16+2+4+1+2+ (cid < 0 ? 0 : 4));
@@ -124,7 +131,7 @@ public class SearchResponse
         buffer.putShort((short)port);
 
         // Protocol
-        PVAString.encodeString("tcp", buffer);
+        PVAString.encodeString(tls ? "tls" : "tcp", buffer);
 
         // Found
         PVABool.encodeBoolean(cid >= 0, buffer);

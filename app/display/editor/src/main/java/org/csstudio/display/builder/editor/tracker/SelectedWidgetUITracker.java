@@ -358,6 +358,11 @@ public class SelectedWidgetUITracker extends Tracker
         inline_editor = null;
     }
 
+    private boolean requestFocusIsDisabled = false;
+    public void setDisableRequestFocus(boolean requestFocusIsDisabled) {
+        this.requestFocusIsDisabled = requestFocusIsDisabled;
+    }
+
     /** Locate widgets that would be 'clicked' by a mouse event's location */
     private class ClickWidgets extends RecursiveTask<Boolean>
     {
@@ -635,9 +640,10 @@ public class SelectedWidgetUITracker extends Tracker
 
         bindToWidgets();
 
-        // Get focus to allow use of arrow keys
-        Platform.runLater(() -> tracker.requestFocus());
-
+        if (!requestFocusIsDisabled) {
+            // Get focus to allow use of arrow keys
+            Platform.runLater(() -> tracker.requestFocus());
+        }
     }
 
     @Override

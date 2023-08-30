@@ -19,13 +19,16 @@
 
 package org.phoebus.logbook.olog.ui.write;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
 import javafx.scene.input.Clipboard;
@@ -46,10 +49,8 @@ import javax.activation.MimetypesFileTypeMap;
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.text.MessageFormat;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -82,6 +83,30 @@ public class AttachmentsEditorController {
 
     private final LogEntry logEntry;
 
+    @FXML
+    private Label sizeLimitsLabel;
+
+    @FXML
+    private Label sizesErrorLabel;
+
+    private final SimpleStringProperty sizesErrorMessage = new SimpleStringProperty();
+
+    /**
+     * Max size in MB of a single attachment. Default is 15.
+     */
+    private double maxFileSize = 15.0;
+    /**
+     * Max total size in MB for log entry, attachments included. Default is 50.
+     */
+    private double maxRequestSize = 50.0;
+
+    /**
+     * Counter updated when attachments are added/removed to keep track of total attachments size.
+     */
+    private double attachedFilesSize;
+
+    private final SimpleStringProperty sizeLimitsText = new SimpleStringProperty();
+
     /**
      * @param logEntry The log entry template potentially holding a set of attachments. Note
      *                 that files associated with these attachments are considered temporary and
@@ -89,6 +114,12 @@ public class AttachmentsEditorController {
      */
     public AttachmentsEditorController(LogEntry logEntry) {
         this.logEntry = logEntry;
+        // If the log entry has an attachment - e.g. log entry created from display or data browser -
+        // then add the file size to the total attachments size
+        Collection<Attachment> attachments = logEntry.getAttachments();
+        if (attachments != null && !attachments.isEmpty()) {
+            attachments.forEach(a -> attachedFilesSize += getFileSize(a.getFile()));
+        }
     }
 
     @FXML
@@ -108,10 +139,17 @@ public class AttachmentsEditorController {
         });
 
         embedSelectedButton.disableProperty().bind(imageAttachmentSelected.not());
+
+        sizeLimitsLabel.textProperty().bind(sizeLimitsText);
+        sizeLimitsLabel.visibleProperty().bind(Bindings.createBooleanBinding(() -> sizeLimitsText.isNotEmpty().get(), sizeLimitsText));
+
+        sizesErrorLabel.textProperty().bind(sizesErrorMessage);
+        sizesErrorLabel.visibleProperty().bind(Bindings.createBooleanBinding(() -> sizesErrorMessage.isNotEmpty().get(), sizesErrorMessage));
     }
 
     @FXML
     public void addFiles() {
+        Platform.runLater(() -> sizesErrorMessage.set(null));
         final FileChooser addFilesDialog = new FileChooser();
         addFilesDialog.setInitialDirectory(new File(System.getProperty("user.home")));
         final List<File> files = addFilesDialog.showOpenMultipleDialog(root.getParent().getScene().getWindow());
@@ -129,6 +167,7 @@ public class AttachmentsEditorController {
 
     @FXML
     public void addClipboardContent() {
+        Platform.runLater(() -> sizesErrorMessage.set(null));
         Clipboard clipboard = Clipboard.getSystemClipboard();
         if (clipboard.hasFiles()) {
             addFiles(clipboard.getFiles());
@@ -150,12 +189,11 @@ public class AttachmentsEditorController {
         attachmentsToRemove.forEach(a -> {
             if (a.getContentType().startsWith("image") && a.getId() != null) { // Null check on id is needed as only embedded image attachments have a non-null id.
                 String markup = textArea.getText();
-                if(markup != null){
+                if (markup != null) {
                     String newMarkup = removeImageMarkup(markup, a.getId());
                     textArea.textProperty().set(newMarkup);
                 }
             }
-            //attachments.remove(a);
         });
         attachmentsViewController.removeAttachments(attachmentsToRemove);
     }
@@ -189,7 +227,7 @@ public class AttachmentsEditorController {
     public void deleteTemporaryFiles() {
         JobManager.schedule("Delete temporary attachment files", monitor -> filesToDeleteAfterSubmit.forEach(f -> {
             logger.log(Level.INFO, "Deleting temporary attachment file " + f.getAbsolutePath());
-            if(!f.delete()){
+            if (!f.delete()) {
                 logger.log(Level.WARNING, "Failed to delete temporary file " + f.getAbsolutePath());
             }
         }));
@@ -232,6 +270,10 @@ public class AttachmentsEditorController {
     }
 
     private void addFiles(List<File> files) {
+        Platform.runLater(() -> sizesErrorMessage.set(null));
+        if (!checkFileSizes(files)) {
+            return;
+        }
         MimetypesFileTypeMap fileTypeMap = new MimetypesFileTypeMap();
         for (File file : files) {
             OlogAttachment ologAttachment = new OlogAttachment();
@@ -252,10 +294,20 @@ public class AttachmentsEditorController {
     }
 
     private void addImage(Image image, String id) {
+        Platform.runLater(() -> sizesErrorMessage.set(null));
         try {
             File imageFile = new File(System.getProperty("java.io.tmpdir"), id + ".png");
             imageFile.deleteOnExit();
             ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", imageFile);
+            double fileSize = getFileSize(imageFile);
+            if (fileSize > maxFileSize) {
+                showFileSizeExceedsLimit(imageFile);
+                return;
+            }
+            if (attachedFilesSize + fileSize > maxRequestSize) {
+                showTotalSizeExceedsLimit();
+                return;
+            }
             OlogAttachment ologAttachment = new OlogAttachment(id);
             ologAttachment.setContentType("image");
             ologAttachment.setFile(imageFile);
@@ -268,7 +320,49 @@ public class AttachmentsEditorController {
         }
     }
 
-    public List<Attachment> getAttachments(){
+    public List<Attachment> getAttachments() {
         return attachmentsViewController.getAttachments();
+    }
+
+    public void setSizeLimits(String maxFileSize, String maxRequestSize) {
+        this.maxFileSize = Double.parseDouble(maxFileSize);
+        this.maxRequestSize = Double.parseDouble(maxRequestSize);
+        Platform.runLater(() -> sizeLimitsText.set(MessageFormat.format(Messages.SizeLimitsText, maxFileSize, maxRequestSize)));
+    }
+
+    /**
+     * Checks if files can be accepted with respect to max file size and max total (request) size.
+     *
+     * @param files List of files to be checked
+     * @return <code>false</code> when first file exceeding the max file size limit is encountered, otherwise <code>true</code>.
+     */
+    private boolean checkFileSizes(List<File> files) {
+        double totalSize = 0;
+        for (File file : files) {
+            double fileSize = getFileSize(file);
+            if (fileSize > maxFileSize) {
+                showFileSizeExceedsLimit(file);
+                return false;
+            }
+            totalSize += fileSize;
+            if ((attachedFilesSize + totalSize) > maxRequestSize) {
+                showTotalSizeExceedsLimit();
+                return false;
+            }
+        }
+        attachedFilesSize += totalSize;
+        return true;
+    }
+
+    private double getFileSize(File file) {
+        return 1.0 * file.length() / 1024 / 1024;
+    }
+
+    private void showFileSizeExceedsLimit(File file) {
+        Platform.runLater(() -> sizesErrorMessage.set(MessageFormat.format(Messages.FileTooLarge, file.getName())));
+    }
+
+    private void showTotalSizeExceedsLimit() {
+        Platform.runLater(() -> sizesErrorMessage.set(Messages.RequestTooLarge));
     }
 }
