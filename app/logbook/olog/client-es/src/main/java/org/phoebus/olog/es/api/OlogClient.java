@@ -2,12 +2,8 @@ package org.phoebus.olog.es.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.*;
 import com.sun.jersey.api.client.ClientResponse.Status;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
@@ -16,16 +12,7 @@ import com.sun.jersey.multipart.FormDataBodyPart;
 import com.sun.jersey.multipart.FormDataMultiPart;
 import com.sun.jersey.multipart.file.FileDataBodyPart;
 import com.sun.jersey.multipart.impl.MultiPartWriter;
-import org.phoebus.logbook.Attachment;
-import org.phoebus.logbook.LogClient;
-import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.LogService;
-import org.phoebus.logbook.Logbook;
-import org.phoebus.logbook.LogbookException;
-import org.phoebus.logbook.Messages;
-import org.phoebus.logbook.Property;
-import org.phoebus.logbook.SearchResult;
-import org.phoebus.logbook.Tag;
+import org.phoebus.logbook.*;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.olog.es.api.model.OlogObjectMappers;
 import org.phoebus.olog.es.api.model.OlogSearchResult;
@@ -39,14 +26,7 @@ import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -148,8 +128,17 @@ public class OlogClient implements LogClient {
                     this.clientConfig = new DefaultClientConfig();
                 }
             }
-            this.username = ifNullReturnPreferenceValue(this.username, "username");
-            this.password = ifNullReturnPreferenceValue(this.password, "password");
+            if(this.username == null || this.password == null){
+                ScopedAuthenticationToken scopedAuthenticationToken = getCredentialsFromSecureStore();
+                if(scopedAuthenticationToken != null){
+                    this.username = scopedAuthenticationToken.getUsername();
+                    this.password = scopedAuthenticationToken.getPassword();
+                }
+                else{
+                    this.username = ifNullReturnPreferenceValue(this.username, "username");
+                    this.password = ifNullReturnPreferenceValue(this.password, "password");
+                }
+            }
             this.connectTimeoutAsString = ifNullReturnPreferenceValue(this.connectTimeoutAsString, "connectTimeout");
             int connectTimeout = 0;
             try {
@@ -167,6 +156,16 @@ public class OlogClient implements LogClient {
                 return this.properties.getPreferenceValue(key);
             } else {
                 return value;
+            }
+        }
+
+        private ScopedAuthenticationToken getCredentialsFromSecureStore(){
+            try {
+                SecureStore secureStore = new SecureStore();
+                return secureStore.getScopedAuthenticationToken("logbook");
+            } catch (Exception e) {
+                Logger.getLogger(OlogClientBuilder.class.getName()).log(Level.WARNING, "Unable to instantiate SecureStore", e);
+                return null;
             }
         }
     }
@@ -200,7 +199,6 @@ public class OlogClient implements LogClient {
      * @throws LogbookException E.g. due to invalid log entry data.
      */
     private LogEntry save(LogEntry log, LogEntry inReplyTo) throws LogbookException {
-        ClientResponse clientResponse;
 
         try {
             MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
@@ -208,51 +206,34 @@ public class OlogClient implements LogClient {
             if (inReplyTo != null) {
                 queryParams.putSingle("inReplyTo", Long.toString(inReplyTo.getId()));
             }
-            clientResponse = service.path("logs")
-                    .queryParams(queryParams)
-                    .type(MediaType.APPLICATION_JSON)
-                    .header(OLOG_CLIENT_INFO_HEADER, CLIENT_INFO)
-                    .accept(MediaType.APPLICATION_XML)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .put(ClientResponse.class, OlogObjectMappers.logEntrySerializer.writeValueAsString(log));
 
-            if (clientResponse.getStatus() < 300) {
-                OlogLog createdLog = OlogObjectMappers.logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), OlogLog.class);
-                log.getAttachments().forEach(attachment -> {
-                    FormDataMultiPart form = new FormDataMultiPart();
-                    // Add id only if it is set, otherwise Jersey will complain and cause the submission to fail.
-                    if (attachment.getId() != null && !attachment.getId().isEmpty()) {
-                        form.bodyPart(new FormDataBodyPart("id", attachment.getId()));
-                    }
-                    form.bodyPart(new FileDataBodyPart("file", attachment.getFile()));
-                    form.bodyPart(new FormDataBodyPart("filename", attachment.getName()));
-                    form.bodyPart(new FormDataBodyPart("fileMetadataDescription", attachment.getContentType()));
-
-                    ClientResponse attachmentResponse = service.path("logs")
-                            .path("attachments")
-                            .path(String.valueOf(createdLog.getId()))
-                            .type(MediaType.MULTIPART_FORM_DATA)
-                            .accept(MediaType.APPLICATION_XML)
-                            .accept(MediaType.APPLICATION_JSON)
-                            .post(ClientResponse.class, form);
-                    if (attachmentResponse.getStatus() > 300) {
-                        // TODO failed to add attachments
-                        logger.log(Level.SEVERE, "Failed to submit attachment(s), HTTP status: " + attachmentResponse.getStatus());
-                    }
-                });
-
-                clientResponse = service.path("logs").path(String.valueOf(createdLog.getId()))
-                        .type(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .get(ClientResponse.class);
-                return OlogObjectMappers.logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), OlogLog.class);
-            } else if (clientResponse.getStatus() == 401) {
-                logger.log(Level.SEVERE, "Submission of log entry returned HTTP status, invalid credentials");
-                throw new LogbookException(Messages.SubmissionFailedInvalidCredentials);
-            } else {
-                logger.log(Level.SEVERE, "Submission of log entry returned HTTP status" + clientResponse.getStatus());
-                throw new LogbookException(MessageFormat.format(Messages.SubmissionFailedWithHttpStatus, clientResponse.getStatus()));
+            FormDataMultiPart form = new FormDataMultiPart();
+            try {
+                form.bodyPart(new FormDataBodyPart("logEntry", OlogObjectMappers.logEntrySerializer.writeValueAsString(log), MediaType.APPLICATION_JSON_TYPE));
+            } catch (JsonProcessingException e) {
+                logger.log(Level.SEVERE, "Got unexpected exception", e);
+                throw e;
             }
+            log.getAttachments().forEach(attachment -> {
+                // Add all files as represented in the attachment objects. Note that each gets
+                // the "multipart name" files, but that is OK.
+                form.bodyPart(new FileDataBodyPart("files", attachment.getFile()));
+            });
+
+            ClientResponse clientResponse = service.path("logs")
+                    .queryParams(queryParams)
+                    .path("multipart")
+                    .type(MediaType.MULTIPART_FORM_DATA)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .put(ClientResponse.class, form);
+
+            if (clientResponse.getStatus() > 300) {
+                logger.log(Level.SEVERE, "Failed to create log entry: " + clientResponse);
+                throw new LogbookException(clientResponse.toString());
+            }
+
+            return OlogObjectMappers.logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), OlogLog.class);
+
         } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
             logger.log(Level.SEVERE, "Failed to submit log entry, got client exception", e);
             throw new LogbookException(e);
@@ -313,11 +294,11 @@ public class OlogClient implements LogClient {
                             .get(String.class),
                     OlogSearchResult.class);
             return SearchResult.of(new ArrayList<>(ologSearchResult.getLogs()),
-                                   ologSearchResult.getHitCount());
+                    ologSearchResult.getHitCount());
         } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
             logger.log(Level.WARNING, "failed to retrieve log entries", e);
-            if(e instanceof UniformInterfaceException){
-                if(((UniformInterfaceException) e).getResponse().getStatus() == Status.BAD_REQUEST.getStatusCode()){
+            if (e instanceof UniformInterfaceException) {
+                if (((UniformInterfaceException) e).getResponse().getStatus() == Status.BAD_REQUEST.getStatusCode()) {
                     throw new RuntimeException(Messages.BadRequestFailure);
                 }
             }
@@ -451,7 +432,7 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public LogEntry updateLogEntry(LogEntry logEntry) {
+    public LogEntry update(LogEntry logEntry) {
         ClientResponse clientResponse;
 
         try {
@@ -476,7 +457,7 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public void groupLogEntries(List<Long> logEntryIds) throws LogbookException{
+    public void groupLogEntries(List<Long> logEntryIds) throws LogbookException {
         try {
             ClientResponse clientResponse = service.path("logs/group")
                     .type(MediaType.APPLICATION_JSON)
@@ -519,7 +500,7 @@ public class OlogClient implements LogClient {
     }
 
     @Override
-    public String serviceInfo(){
+    public String serviceInfo() {
         ClientResponse clientResponse = service.path("").get(ClientResponse.class);
         return clientResponse.getEntity(String.class);
     }

@@ -71,7 +71,7 @@
     <jackson.version>2.12.3</jackson.version>
     <batik.version>1.14</batik.version>
     <mockito.version>2.23.4</mockito.version>
-    <postgresql.driver.version>42.2.9</postgresql.driver.version>
+    <postgresql.driver.version>42.6.0</postgresql.driver.version>
     <!-- When connections to older MySQL server fail because of CLIENT_PLUGIN_AUTH, downgrade to 5.1.45 -->
     <mysql.version>8.0.30</mysql.version>
     <jetty.version>9.4.30.v20200611</jetty.version>
@@ -82,7 +82,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <skipITTests>true</skipITTests>
-    <guava.version>31.0.1-jre</guava.version>
+    <guava.version>32.1.1-jre</guava.version>
     <log4j-to-slf4j.version>2.17.1</log4j-to-slf4j.version>
     <derby.version>10.16.1.1</derby.version>
     <jython.version>2.7.3</jython.version>

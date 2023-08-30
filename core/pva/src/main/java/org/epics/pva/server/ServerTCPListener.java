@@ -14,14 +14,17 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.channels.ServerSocketChannel;
+import java.net.SocketTimeoutException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import javax.net.ssl.SSLSocket;
+
 import org.epics.pva.PVASettings;
 import org.epics.pva.common.SecureSockets;
+import org.epics.pva.common.SecureSockets.TLSHandshakeInfo;;
 
 /** Listen to TCP connections
  *
@@ -42,11 +45,11 @@ class ServerTCPListener
 
     private final PVAServer server;
 
-    /** TCP channel on which we listen for connections */
-    private final ServerSocket server_socket;
+    /** Open TCP socket on which we listen for clients */
+    private final ServerSocket tcp_server_socket;
 
-    /** Server's TCP address on which clients can connect */
-    private final InetSocketAddress local_address;
+    /** Secure TCP socket on which we listen for clients */
+    private final ServerSocket tls_server_socket;
 
     private volatile boolean running = true;
     private volatile Thread listen_thread;
@@ -55,21 +58,40 @@ class ServerTCPListener
     {
         this.server = server;
 
-        server_socket = createSocket();
+        // Is TLS configured?
+        final boolean tls = !PVASettings.EPICS_PVAS_TLS_KEYCHAIN.isBlank();
 
-        local_address = (InetSocketAddress) server_socket.getLocalSocketAddress();
+        // Support open TCP, maybe also TLS
+        tcp_server_socket = createSocket(PVASettings.EPICS_PVA_SERVER_PORT, false);
+        InetSocketAddress local_address = (InetSocketAddress) tcp_server_socket.getLocalSocketAddress();
         logger.log(Level.CONFIG, "Listening on TCP " + local_address);
+        String name = "TCP-listener " + local_address.getAddress() + ":" + local_address.getPort();
+
+        if (tls)
+        {
+            tls_server_socket = createSocket(PVASettings.EPICS_PVAS_TLS_PORT, true);
+            local_address = (InetSocketAddress) tls_server_socket.getLocalSocketAddress();
+            logger.log(Level.CONFIG, "Listening on TLS " + local_address);
+            name += ", TLS:" + local_address.getPort();
+        }
+        else
+            tls_server_socket = null;
 
         // Start accepting connections
-        listen_thread = new Thread(this::listen, "TCP-listener " + local_address.getAddress() + ":" + local_address.getPort());
+        listen_thread = new Thread(this::listen, name);
         listen_thread.setDaemon(true);
         listen_thread.start();
     }
 
-    /** @return Server's TCP address on which clients can connect */
-    public InetSocketAddress getResponseAddress()
+    /** @param tls Request TLS or plain TCP address?
+     *  @return Server's TCP address on which clients can connect
+     */
+    public InetSocketAddress getResponseAddress(final boolean tls)
     {
-        return local_address;
+        if (tls  &&  tls_server_socket != null)
+            return (InetSocketAddress) tls_server_socket.getLocalSocketAddress();
+
+        return (InetSocketAddress) tcp_server_socket.getLocalSocketAddress();
     }
 
     // How to check if the desired TCP server port is already in use?
@@ -121,22 +143,24 @@ class ServerTCPListener
 
     /** Create server's TCP socket
      *
-     *  @return Socket bound to EPICS_PVA_SERVER_PORT or unused port
+     *  @param port Preferred TCP port
+     *  @param tls Use TLS?
+     *  @return Socket bound to preferred port or unused port
      *  @throws Exception on error
      */
-    private static ServerSocket createSocket() throws Exception
+    private static ServerSocket createSocket(final int port, final boolean tls) throws Exception
     {
-        if (checkForIPv4Server(PVASettings.EPICS_PVA_SERVER_PORT))
-            logger.log(Level.FINE, "Found existing IPv4 server on port " + PVASettings.EPICS_PVA_SERVER_PORT);
+        if (checkForIPv4Server(port))
+            logger.log(Level.FINE, "Found existing IPv4 server on port " + port);
         else
         {   // Try to bind to desired port
             try
             {
-                return createBoundSocket(new InetSocketAddress(PVASettings.EPICS_PVA_SERVER_PORT));
+                return SecureSockets.createServerSocket(new InetSocketAddress(port), tls);
             }
             catch (BindException ex)
             {
-                logger.log(Level.INFO, "TCP port " + PVASettings.EPICS_PVA_SERVER_PORT + " already in use, switching to automatically assigned port");
+                logger.log(Level.INFO, (tls ? "TLS" : "TCP") + " port " + port + " already in use, switching to automatically assigned port");
             }
         }
 
@@ -144,7 +168,7 @@ class ServerTCPListener
         final InetSocketAddress any = new InetSocketAddress(0);
         try
         {
-            return createBoundSocket(any);
+            return SecureSockets.createServerSocket(any, tls);
         }
         catch (Exception e)
         {
@@ -152,36 +176,59 @@ class ServerTCPListener
         }
     }
 
-    /** Try to create socket that's bound to an address
-     *  @param addr Desired address
-     *  @return {@link ServerSocketChannel}
-     *  @throws Exception on error
-     */
-    private static ServerSocket createBoundSocket(final InetSocketAddress addr) throws Exception
-    {
-        final ServerSocket socket = SecureSockets.getServerFactory().createServerSocket();
-        try
-        {
-            socket.setReuseAddress(true);
-            socket.bind(addr);
-        }
-        catch (Exception ex)
-        {
-            socket.close();
-            throw ex;
-        }
-        return socket;
-    }
-
     private void listen()
     {
         try
         {
             logger.log(Level.FINER, Thread.currentThread().getName() + " started");
+
+            // Assume that open TCP, secure TLS, or both are configured.
+            // Need to accept clients on any.
+            // ServerSocketChannel allows using the Selector,
+            // but there is no SSLServerSocketChannel.
+            // SSLContext only creates (SSL)ServerSocket, and no easy way to
+            // turn (SSL)ServerSocket into (SSL)ServerSocketChannel
+            // https://stackoverflow.com/questions/37763038/is-there-any-way-to-use-sslcontext-with-serversocketchannel
+            //
+            // As a workaround we configure a (short) timeout on the sockets
+            // and then take turns 'accept'ing from them
+            if (tcp_server_socket != null)
+                tcp_server_socket.setSoTimeout(10);
+            if (tls_server_socket != null)
+                tls_server_socket.setSoTimeout(10);
             while (running)
             {
-                final Socket client = server_socket.accept();
-                new ServerTCPHandler(server, client);
+                if (tcp_server_socket != null)
+                {
+                    try
+                    {   // Check TCP
+                        final Socket client = tcp_server_socket.accept();
+                        logger.log(Level.FINE, () -> Thread.currentThread().getName() + " accepted TCP client " + client.getRemoteSocketAddress());
+                        new ServerTCPHandler(server, client, null);
+                    }
+                    catch (SocketTimeoutException timeout)
+                    {   // Ignore
+                    }
+                }
+                if (tls_server_socket != null)
+                {
+                    try
+                    {   // Check TLS
+                        final Socket client = tls_server_socket.accept();
+                        TLSHandshakeInfo tls_info = null;
+                        if (client instanceof SSLSocket)
+                        {
+                            logger.log(Level.FINE, () -> Thread.currentThread().getName() + " accepted TLS client " + client.getRemoteSocketAddress());
+                            tls_info = TLSHandshakeInfo.fromSocket((SSLSocket) client);
+                        }
+                        else
+                            logger.log(Level.WARNING, () -> Thread.currentThread().getName() + " expected TLS client " + client.getRemoteSocketAddress() + " but did not get SSLSocket");
+                        new ServerTCPHandler(server, client, tls_info);
+                    }
+                    catch (SocketTimeoutException timeout)
+                    {   // Ignore
+                    }
+                }
             }
         }
         catch (Exception ex)
@@ -198,7 +245,10 @@ class ServerTCPListener
         // Close sockets, wait a little for threads to exit
         try
         {
-            server_socket.close();
+            if (tcp_server_socket != null)
+                tcp_server_socket.close();
+            if (tls_server_socket != null)
+                tls_server_socket.close();
 
             if (listen_thread != null)
                 listen_thread.join(5000);

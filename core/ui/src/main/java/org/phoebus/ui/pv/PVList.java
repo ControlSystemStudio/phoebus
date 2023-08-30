@@ -140,6 +140,7 @@ public class PVList extends BorderPane
         name_col.setCellValueFactory(cell -> cell.getValue().name);
         name_col.setMaxWidth(400.0);
         table.getColumns().add(name_col);
+        table.getSortOrder().setAll(name_col); // By default, sort according to PV-name.
 
         final TableColumn<PVInfo, Number> ref_col = new TableColumn<>(Messages.PVListTblReferences);
         ref_col.setCellValueFactory(cell -> cell.getValue().references);
@@ -211,6 +212,7 @@ public class PVList extends BorderPane
             {
                 table.getItems().clear();
                 table.getItems().addAll(items);
+                table.sort();
             });
         });
     }

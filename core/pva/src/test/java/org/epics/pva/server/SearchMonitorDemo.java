@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2020-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -116,7 +116,7 @@ public class SearchMonitorDemo
         {
             System.out.println("For UDP search, run 'pvget' or 'pvxget' with");
             System.out.println("EPICS_PVA_BROADCAST_PORT=" + PVASettings.EPICS_PVAS_BROADCAST_PORT);
-            System.out.println("For TCP search, set EPICS_PVA_NAME_SERVERS = " + server.getTCPAddress());
+            System.out.println("For TCP search, set EPICS_PVA_NAME_SERVERS = " + server.getTCPAddress(false));
             System.out.println("or other IP address of this host and same port.");
             System.out.println("Run 'pvget QUIT' to stop");
             done.await();

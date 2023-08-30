@@ -24,25 +24,26 @@ public class Messages
             File,
             FileSave,
             FileSaveFailed,
+            FileTooLarge,
             GroupingFailed,
             GroupSelectedEntries,
             Level,
-            Logbooks,
             LogbooksSearchFailTitle,
             LogbookServiceUnavailableTitle,
             LogbookServiceHasNoLogbooks,
-            LogbooksTitle,
-            LogbooksTooltip,
             NewLogEntry,
             NoAttachments,
             NoClipboardContent,
-            Normal,
             NoSearchResults,
             PreviewOpenErrorBody,
             PreviewOpenErrorTitle,
+            RequestTooLarge,
             SelectFile,
             SelectFolder,
-            ShowHideDetails;
+            ShowHideDetails,
+            SizeLimitsText,
+            UpdateLogEntry;
+
     static
     {
         // initialize resource bundle

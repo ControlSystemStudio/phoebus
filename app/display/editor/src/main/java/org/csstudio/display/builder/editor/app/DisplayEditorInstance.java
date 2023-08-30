@@ -121,7 +121,6 @@ public class DisplayEditorInstance implements AppInstance
         menu_node.setOnContextMenuRequested(event -> handleContextMenu(menu, event));
         menu_node.setContextMenu(menu);
 
-        dock_item.addCloseCheck(this::okToClose);
         dock_item.addClosedNotification(this::dispose);
     }
 
@@ -465,7 +464,7 @@ public class DisplayEditorInstance implements AppInstance
             else
             {   // Save-As with proper file name
                 dock_item.setInput(proper.toURI());
-                if (! dock_item.save_as(monitor))
+                if (! dock_item.save_as(monitor, dock_item.getTabPane().getScene().getWindow()))
                     dock_item.setInput(orig_input);
             }
         }

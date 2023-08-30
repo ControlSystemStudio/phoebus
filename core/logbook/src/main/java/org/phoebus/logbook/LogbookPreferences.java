@@ -2,7 +2,6 @@ package org.phoebus.logbook;
 
 import org.phoebus.framework.preferences.AnnotatedPreferences;
 import org.phoebus.framework.preferences.Preference;
-import org.phoebus.framework.preferences.PreferencesReader;
 
 import java.util.logging.Level;
 
@@ -16,25 +15,24 @@ public class LogbookPreferences {
     @Preference
     public static boolean auto_title;
     @Preference
+    public static boolean auto_body;
+    @Preference
     public static boolean auto_property;
 
-    /** Is there support for a logbook?
-     *  Is the 'logbook_factory' configured and available?
+    /**
+     * Is there support for a logbook?
+     * Is the 'logbook_factory' configured and available?
      */
     public static boolean is_supported;
 
-    static
-    {
-        final PreferencesReader prefs = AnnotatedPreferences.initialize(LogbookPreferences.class, "/logbook_preferences.properties");
-        if (logbook_factory.isEmpty())
-        {
+    static {
+        AnnotatedPreferences.initialize(LogbookPreferences.class, "/logbook_preferences.properties");
+        if (logbook_factory.isEmpty()) {
             is_supported = false;
             logger.log(Level.INFO, "No logbook factory selected");
-        }
-        else
-        {
+        } else {
             is_supported = LogService.getInstance().getLogFactories(logbook_factory) != null;
-            if (! is_supported)
+            if (!is_supported)
                 logger.log(Level.WARNING, "Cannot locate logbook factory '" + logbook_factory + "'");
         }
     }

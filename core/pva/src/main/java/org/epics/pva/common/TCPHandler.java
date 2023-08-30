@@ -60,8 +60,12 @@ abstract public class TCPHandler
     /** Is this the client, expecting received messages to be marked as server messages? */
     private final boolean client_mode;
 
-    /** TCP socket to PVA peer */
-    private final Socket socket;
+    /** TCP socket to PVA peer
+     * 
+     *  Reading and writing is handled by receive and send threads,
+     *  but 'protected' so that derived classes may peek at socket properties.
+     */
+    protected final Socket socket;
 
     /** Flag to indicate that 'close' was called to close the 'socket' */
     protected volatile boolean running = true;
@@ -92,6 +96,7 @@ abstract public class TCPHandler
     };
 
     /** Pool for sender and receiver threads */
+    // Default keeps idle threads for one minute
     private static final ExecutorService thread_pool = Executors.newCachedThreadPool(runnable ->
     {
         final Thread thread = new Thread(runnable);
@@ -175,8 +180,8 @@ abstract public class TCPHandler
     {
         try
         {
-            Thread.currentThread().setName("TCP sender from " + socket.getLocalAddress() + " to " + socket.getInetAddress());
-            logger.log(Level.FINER, Thread.currentThread().getName() + " started");
+            Thread.currentThread().setName("TCP sender from " + socket.getLocalSocketAddress() + " to " + socket.getRemoteSocketAddress());
+            logger.log(Level.FINER, () -> Thread.currentThread().getName() + " started");
             while (true)
             {
                 send_buffer.clear();
@@ -249,8 +254,8 @@ abstract public class TCPHandler
     {
         try
         {
-            Thread.currentThread().setName("TCP receiver " + socket.getInetAddress());
-            logger.log(Level.FINER, Thread.currentThread().getName() + " started");
+            Thread.currentThread().setName("TCP receiver " + socket.getLocalSocketAddress());
+            logger.log(Level.FINER, () -> Thread.currentThread().getName() + " started for " + socket.getRemoteSocketAddress());
             logger.log(Level.FINER, "Native byte order " + receive_buffer.order());
             receive_buffer.clear();
             final InputStream in = socket.getInputStream();

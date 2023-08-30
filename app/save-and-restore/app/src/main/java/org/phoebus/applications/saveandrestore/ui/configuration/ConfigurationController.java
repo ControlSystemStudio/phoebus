@@ -159,6 +159,7 @@ public class ConfigurationController implements NodeChangedListener {
                 new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/delete.png")));
         deleteMenuItem.setOnAction(ae -> {
             configurationEntries.removeAll(pvTable.getSelectionModel().getSelectedItems());
+            configurationTab.annotateDirty(true);
             pvTable.refresh();
         });
 
@@ -241,11 +242,13 @@ public class ConfigurationController implements NodeChangedListener {
                 SimpleObjectProperty<Node> simpleObjectProperty = (SimpleObjectProperty<Node>) observable;
                 Node newValue = simpleObjectProperty.get();
                 configurationNameProperty.set(newValue.getName());
-                configurationCreatedDateField.textProperty().set(newValue.getCreated() != null ?
-                        TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(newValue.getCreated().getTime())) : null);
-                configurationLastModifiedDateField.textProperty().set(newValue.getLastModified() != null ?
-                        TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(newValue.getLastModified().getTime())) : null);
-                createdByField.textProperty().set(newValue.getUserName());
+                Platform.runLater(() -> {
+                    configurationCreatedDateField.textProperty().set(newValue.getCreated() != null ?
+                            TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(newValue.getCreated().getTime())) : null);
+                    configurationLastModifiedDateField.textProperty().set(newValue.getLastModified() != null ?
+                            TimestampFormats.SECONDS_FORMAT.format(Instant.ofEpochMilli(newValue.getLastModified().getTime())) : null);
+                    createdByField.textProperty().set(newValue.getUserName());
+                });
                 configurationDescriptionProperty.set(configurationNode.get().getDescription());
             }
         });
@@ -287,7 +290,7 @@ public class ConfigurationController implements NodeChangedListener {
     public void addPv() {
 
         UI_EXECUTOR.execute(() -> {
-            // Process a list of space or semi colon separated pvs
+            // Process a list of space or semicolon separated pvs
             String[] pvNames = pvNameProperty.get().trim().split("[\\s;]+");
             String[] readbackPvNames = readbackPvNameProperty.get().trim().split("[\\s;]+");
 
@@ -308,6 +311,7 @@ public class ConfigurationController implements NodeChangedListener {
                 configPVs.add(configPV);
             }
             configurationEntries.addAll(configPVs);
+            configurationTab.annotateDirty(true);
             resetAddPv();
         });
 

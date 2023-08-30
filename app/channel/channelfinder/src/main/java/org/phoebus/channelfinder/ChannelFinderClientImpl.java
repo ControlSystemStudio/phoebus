@@ -1097,12 +1097,12 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
             } catch (Exception e) {
             	log.log(Level.WARNING, "Error creating channels:", e);
             }
-            log.log(Level.FINE, "Finished mapping to xml : " + String.valueOf(System.currentTimeMillis()-start));
+            log.log(Level.FINE, "Finished mapping to xml. (Time: " + String.valueOf(System.currentTimeMillis()-start) + " ms)");
             start = System.currentTimeMillis();
             for (XmlChannel xmlchannel : xmlchannels) {
                 channels.add(new Channel(xmlchannel));
             }
-            log.log(Level.FINE, "Finished creating new channels : " + String.valueOf(System.currentTimeMillis()-start));
+            log.log(Level.FINE, "Finished creating new channels. (Time: " + String.valueOf(System.currentTimeMillis()-start) + " ms)");
             return Collections.unmodifiableCollection(channels);
         }
     }
