@@ -22,6 +22,7 @@ User Documentation:
    authorization
    applications
    services
+   services_architecture
 
 Developer Documentation:
 
