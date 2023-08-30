@@ -23,6 +23,7 @@ import org.apache.kafka.streams.kstream.Transformer;
 import org.apache.kafka.streams.kstream.TransformerSupplier;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.TimestampExtractor;
+import org.phoebus.applications.alarm.client.KafkaHelper;
 import org.phoebus.applications.alarm.messages.AlarmConfigMessage;
 import org.phoebus.applications.alarm.messages.AlarmMessage;
 import org.phoebus.applications.alarm.messages.AlarmStateMessage;
@@ -42,6 +43,13 @@ public class AlarmMessageLogger implements Runnable {
     private static final String CONFIG_INDEX_FORMAT = "_alarms_config";
     private static final String STATE_INDEX_FORMAT = "_alarms_state";
 
+    /**
+     * Create a alarm logger for the alarm messages (both state and configuration)
+     * for a given alarm server topic.
+     * This runnable will create the kafka streams for the given alarm messages which match the format 'topic'
+     * 
+     * @param topic - the alarm topic in kafka
+     */
     public AlarmMessageLogger(String topic) {
         super();
         this.topic = topic;
@@ -57,19 +65,24 @@ public class AlarmMessageLogger implements Runnable {
 
         Properties props = new Properties();
         props.putAll(PropertiesHelper.getProperties());
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-"+topic+"-alarm-messages");
 
-        if (!props.containsKey(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG)) {
-            props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        Properties kafkaProps = KafkaHelper.loadPropsFromFile(props.getProperty("kafka_properties",""));
+        kafkaProps.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-"+topic+"-alarm-messages");
+
+        if (props.containsKey(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG)){
+            kafkaProps.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG,
+                           props.get(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG));
+        } else {
+            kafkaProps.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         }
         
         
         final String indexDateSpanUnits = props.getProperty("date_span_units");
-        final Integer indexDateSpanValue = Integer.parseInt(props.getProperty("date_span_value"));
+        final boolean useDatedIndexNames = Boolean.parseBoolean(props.getProperty("use_dated_index_names"));
 
         try {
-            stateIndexNameHelper = new IndexNameHelper(topic + STATE_INDEX_FORMAT, indexDateSpanUnits, indexDateSpanValue);
-            configIndexNameHelper = new IndexNameHelper(topic + CONFIG_INDEX_FORMAT , indexDateSpanUnits, indexDateSpanValue);
+            stateIndexNameHelper = new IndexNameHelper(topic + STATE_INDEX_FORMAT, useDatedIndexNames, indexDateSpanUnits);
+            configIndexNameHelper = new IndexNameHelper(topic + CONFIG_INDEX_FORMAT , useDatedIndexNames, indexDateSpanUnits);
         } catch (Exception ex) {
             logger.log(Level.SEVERE, "Time based index creation failed.", ex);
         }
@@ -91,8 +104,8 @@ public class AlarmMessageLogger implements Runnable {
         });
 
         alarms = alarms.map((key, value) -> {
-            logger.config("Processing alarm message with key : " + key != null ? key
-                    : "null" + " " + value != null ? value.toString() : "null");
+//            logger.config("Processing alarm message with key : " + key != null ? key
+//                    : "null" + " " + value != null ? value.toString() : "null");
             value.setKey(key);
             return new KeyValue<String, AlarmMessage>(key, value);
         });
@@ -106,7 +119,7 @@ public class AlarmMessageLogger implements Runnable {
         processAlarmStateStream(alarmBranches[0], props);
         processAlarmConfigurationStream(alarmBranches[1], props);
 
-        final KafkaStreams streams = new KafkaStreams(builder.build(), props);
+        final KafkaStreams streams = new KafkaStreams(builder.build(), kafkaProps);
         final CountDownLatch latch = new CountDownLatch(1);
 
         // attach shutdown handler to catch control-c
@@ -173,8 +186,7 @@ public class AlarmMessageLogger implements Runnable {
 
         // Commit to elastic
         filteredAlarms.foreach((k, v) -> {
-            String topic_name = stateIndexNameHelper.getIndexName(v.getMessage_time());
-            ElasticClientHelper.getInstance().indexAlarmStateDocument(topic_name, v);
+            ElasticClientHelper.getInstance().indexAlarmStateDocuments(stateIndexNameHelper.getIndexName(v.getMessage_time()), v);
         });
 
     }
@@ -216,8 +228,7 @@ public class AlarmMessageLogger implements Runnable {
 
         // Commit to elastic
         alarmConfigMessages.foreach((k, v) -> {
-            String topic_name = configIndexNameHelper.getIndexName(v.getMessage_time());
-            ElasticClientHelper.getInstance().indexAlarmConfigDocument(topic_name, v);
+            ElasticClientHelper.getInstance().indexAlarmConfigDocuments(configIndexNameHelper.getIndexName(v.getMessage_time()), v);
         });
     }
 

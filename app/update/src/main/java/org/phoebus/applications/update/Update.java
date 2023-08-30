@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,12 +10,16 @@ package org.phoebus.applications.update;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.InputStream;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.format.DateTimeFormatter;
 import java.util.Enumeration;
+import java.util.ServiceLoader;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import java.util.zip.ZipEntry;
@@ -23,6 +27,8 @@ import java.util.zip.ZipFile;
 
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.SubJobMonitor;
+import org.phoebus.framework.preferences.AnnotatedPreferences;
+import org.phoebus.framework.preferences.Preference;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.framework.workbench.FileHelper;
 import org.phoebus.framework.workbench.Locations;
@@ -43,73 +49,167 @@ import org.phoebus.util.time.TimestampFormats;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class Update
+abstract public class Update
 {
     public static final Logger logger = Logger.getLogger(Update.class.getPackageName());
 
     /** Initial delay to allow other apps to start */
-    public static final int delay;
+    @Preference public static int delay;
 
     /** Current version, or <code>null</code> if not set */
     public static final Instant current_version;
 
-    /** Update URL, or empty if not set */
-    public static final String update_url;
+    /** The latest timestamp found on the update site. */
+    protected Instant update_version;
 
     /** Path removals */
     public static final PathWrangler wrangler;
 
+    protected JobMonitor monitor;
+
+    /** Check version (i.e. date/time) of a distribution
+     *  @param monitor {@link JobMonitor}
+     *  @return Version of that distribution, or Instant of 0 when nothing found
+     *  @throws Exception on error
+     */
+    abstract protected Instant getVersion() throws Exception;
+
+    /** Return the size of the suggested download. */
+    abstract protected Long getDownloadSize() throws Exception;
+
+    /** Return a stream to access the download file. */
+    abstract protected InputStream getDownloadStream() throws Exception;
+
     static
     {
-        final PreferencesReader prefs = new PreferencesReader(Update.class, "/update_preferences.properties");
+        final PreferencesReader prefs = AnnotatedPreferences.initialize(Update.class, "/update_preferences.properties");
         current_version = TimestampFormats.parse(prefs.get("current_version"));
-
-        delay = prefs.getInt("delay");
-
-        String url = prefs.get("update_url");
-        if (PlatformInfo.is_linux)
-            url = url.replace("$(arch)", "linux");
-        else if (PlatformInfo.is_mac_os_x)
-            url = url.replace("$(arch)", "mac");
-        else
-            url = url.replace("$(arch)", "win");
-        update_url = PreferencesReader.replaceProperties(url);
 
         wrangler = new PathWrangler(prefs.get("removals"));
     }
 
-    /** Check version (i.e. date/time) of a distribution
-     *  @param monitor {@link JobMonitor}
-     *  @param distribution_url URL for distribution (ZIP)
-     *  @return Version of that distribution, or Instant of 0 when nothing found
-     *  @throws Exception on error
-     */
-    public static Instant getVersion(final JobMonitor monitor, final URL distribution_url) throws Exception
+    static UpdateProvider updaterFactory() {
+        if (null == current_version) {
+            // no point in spending any effort
+            // DummyUpdate just says "no update available."
+            // this way, no special case for "no provider found" is required in
+            // the caller.
+            return new DummyUpdate();
+        }
+        logger.log(Level.CONFIG, "Detecting Update Providers.");
+        UpdateProvider active_provider = null;
+
+        try
+        {
+            // find the one provider that is completely configured.
+            // this will be the one we use.
+            for (final var provider : ServiceLoader.load(UpdateProvider.class)) {
+                if (!provider.isEnabled()) {
+                    continue;
+                }
+                if (null != active_provider) {
+                    logger.warning("More than one update provider configured. Disabling updates.");
+                    return new DummyUpdate();
+                }
+                active_provider = provider;
+            }
+            if (null != active_provider) {
+                logger.fine("Update provider: " + active_provider.getClass().getName());
+                return active_provider;
+            }
+        }
+        catch (Throwable ex)
+        {
+            logger.log(Level.WARNING, "Cannot locate Update Providers", ex);
+        }
+        return new DummyUpdate();
+    }
+
+    static public String replace_arch(final String text)
     {
-        return Instant.ofEpochMilli(
-                distribution_url.openConnection().getLastModified());
+        if (PlatformInfo.is_linux)
+            return text.replace("$(arch)", "linux");
+        else if (PlatformInfo.is_mac_os_x)
+            return text.replace("$(arch)", "mac");
+        else
+            return text.replace("$(arch)", "win");
     }
 
     /** @param monitor {@link JobMonitor}
-     *  @param distribution_url URL for distribution (ZIP)
      *  @return Downloaded file, needs to be deleted when done
      *  @throws Exception on error
      */
-    public static File download(final JobMonitor monitor, final URL distribution_url) throws Exception
+    protected File download(final JobMonitor monitor) throws Exception
     {
+        this.monitor = monitor;
+        // Determine size
+        final AtomicLong full_size = new AtomicLong();
+        try
+        {
+            full_size.set(getDownloadSize());
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot determine size of download.", ex);
+        }
+
+        // On success, caller will delete the file.
+        // On error, we'll try, but also ask JVM to remove it.
+        final File file = File.createTempFile("phoebus_update", ".zip");
+        file.deleteOnExit();
+
+        // Watcher thread that displays file size in monitor
+        final CountDownLatch done = new CountDownLatch(1);
+        final Thread download_thread = Thread.currentThread();
+        final Thread watcher = new Thread(() ->
+        {
+            try
+            {
+                while (! done.await(1, TimeUnit.SECONDS))
+                {
+                    final long size = file.length();
+                    final long full = full_size.get();
+                    if (full > 0)
+                    {
+                        int percent = (int) ((size*100) / full);
+                        monitor.updateTaskName(String.format("Downloading %d %% (%.3f/%.3f MB)", percent, size/1.0e6, full/1.0e6));
+                    }
+                    else
+                        monitor.updateTaskName(String.format("Downloading %.3f MB", size/1.0e6));
+
+                    // Force the download thread to stop on 'cancel'.
+                    // 'interrupt()' has no effect, and Files.copy is not
+                    // otherwise instrumented.
+                    if (monitor.isCanceled())
+                        download_thread.stop();
+                }
+                monitor.updateTaskName(String.format("Download Finished"));
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Download watch thread", ex);
+            }
+        }, "Watch Download");
+        watcher.setDaemon(true);
+        watcher.start();
+
         try
         (
-            final InputStream src = distribution_url.openStream();
+            final InputStream src = getDownloadStream();
         )
         {
-            // URL can be read, so OK to create file.
-            // Caller will delete the file.
-            final File file = File.createTempFile("phoebus_update", ".zip");
-            logger.info("Download " + distribution_url + " into " + file);
-            // Would be nice to update monitor, but that would mean
-            // implementing Files.copy to instrument it...
+            logger.info("Download into " + file);
             Files.copy(src, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
             return file;
+        }
+        catch (Exception ex)
+        {
+            file.delete();
+            throw ex;
+        }
+        finally
+        {
+            done.countDown();
         }
     }
 
@@ -119,7 +219,7 @@ public class Update
      *  @param update_zip ZIP file with distribution
      *  @throws Exception on error
      */
-    public static void update(final JobMonitor monitor, final File install_location, final File update_zip) throws Exception
+    protected void update(final File install_location, final File update_zip) throws Exception
     {
         if (monitor.isCanceled())
             return;
@@ -159,27 +259,38 @@ public class Update
                 }
 
                 final File outfile = new File(install_location, wrangled);
+                // ZIP file tends to contain an entry for each folder itself
+                // before the content of that folder,
+                // so we could rely on that and create the folder at that time.
+                // But the ZIP may also start with top-level files
+                // for which the top-level 'output' folder needs to be created.
+                // So ignore specific folder entries and
+                // instead create any missing folders as needed.
                 if (entry.isDirectory())
-                {
-                    logger.info(counter + "/" + num_entries + ": " + "Create " + outfile);
-                    outfile.mkdirs();
-                }
+                    continue;
+
+                final File folder = outfile.getParentFile();
+                if (folder.exists())
+                    logger.info(counter + "/" + num_entries + ": " + entry.getName() + " => " + outfile);
                 else
                 {
-                    logger.info(counter + "/" + num_entries + ": " + entry.getName() + " => " + outfile);
-                    try
-                    (
-                        BufferedInputStream in = new BufferedInputStream(zip.getInputStream(entry));
-                    )
-                    {
-                        Files.copy(in, outfile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                        // ZIP contains a few entries that are 'executable' for Linux and OS X.
-                        // How to get file permissions from ZIP file?
-                        // For now just make shell scripts executable
-                        if (outfile.getName().endsWith(".sh"))
-                            outfile.setExecutable(true);
-                    }
+                    logger.info(counter + "/" + num_entries + ": " + entry.getName() + " => " + outfile + " (new folder)");
+                    folder.mkdirs();
                 }
+
+                try
+                (
+                    BufferedInputStream in = new BufferedInputStream(zip.getInputStream(entry));
+                )
+                {
+                    Files.copy(in, outfile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    // ZIP contains a few entries that are 'executable' for Linux and OS X.
+                    // How to get file permissions from ZIP file?
+                    // For now just make shell scripts executable
+                    if (outfile.getName().endsWith(".sh"))
+                        outfile.setExecutable(true);
+                }
+
                 sub.worked(1);
             }
         }
@@ -194,14 +305,11 @@ public class Update
      *  @return Time stamp of the new version, or <code>null</code> if there is no valid update
      *  @throws Exception on error
      */
-    public static Instant checkForUpdate(final JobMonitor monitor) throws Exception
+    public Instant checkForUpdate(final JobMonitor monitor) throws Exception
     {
-        if (update_url.isEmpty()  ||  current_version == null)
-            return null;
-        logger.info("Checking " + update_url);
+        this.monitor = monitor;
         logger.info("Current version  : " + TimestampFormats.DATETIME_FORMAT.format(current_version));
-        final URL distribution_url = new URL(update_url);
-        final Instant update_version = Update.getVersion(monitor, distribution_url);
+        update_version = getVersion();
 
         logger.info("Available version: " + TimestampFormats.DATETIME_FORMAT.format(update_version));
         if (update_version.isAfter(current_version))
@@ -212,34 +320,29 @@ public class Update
 
     /** Perform update
      *
-     *  <p>Get & unpack `update_url` into the current installation.
+     *  <p>Get & unpack the update file into the current installation.
      *
      *  @param monitor {@link JobMonitor}
      *  @param install_location Existing {@link Locations#install()}
      *  @throws Exception on error
      */
-    public static void downloadAndUpdate(final JobMonitor monitor, final File install_location) throws Exception
+    public void downloadAndUpdate(final JobMonitor monitor, final File install_location) throws Exception
     {
+        this.monitor = monitor;
         monitor.beginTask("Update", 100);
         logger.info("Updating from current version " + TimestampFormats.DATETIME_FORMAT.format(current_version));
-        // Local file?
-        if (update_url.startsWith("file:"))
-            update(monitor, install_location, new File(update_url.substring(5)));
-        else
-        {   // Download
-            final URL distribution_url = new URL(update_url);
-            monitor.updateTaskName("Download " + update_url);
-            final File distribution_zip = download(monitor, distribution_url);
-            try
-            {
-                update(monitor, install_location, distribution_zip);
-            }
-            finally
-            {
-                logger.info("Deleting " + distribution_zip);
-                distribution_zip.delete();
-            }
+        monitor.updateTaskName("Download update");
+        final File distribution_zip = download(monitor);
+        try
+        {
+            update(install_location, distribution_zip);
         }
+        finally
+        {
+            logger.info("Deleting " + distribution_zip);
+            distribution_zip.delete();
+        }
+        adjustCurrentVersion();
     }
 
     /** Set the `current_version` to now
@@ -248,16 +351,14 @@ public class Update
      *  for the `current_version`, but if it doesn't,
      *  the result would be a continuous update loop.
      *
-     *  <p>By setting the `current_version` to now,
+     *  <p>By explicitly setting the `current_version` here,
      *  this is prevented.
      *  @throws Exception on error updating the preferences
      */
-    public static void adjustCurrentVersion() throws Exception
+    protected void adjustCurrentVersion() throws Exception
     {
         final Preferences prefs = Preferences.userNodeForPackage(Update.class);
-        // Add a minute in case we updated right now to a version that has the current HH:MM,
-        // to prevent another update on restart where we're still within the same HH:MM
-        final String updated = TimestampFormats.DATETIME_FORMAT.format(Instant.now().plus(1, ChronoUnit.MINUTES));
+        final String updated = DateTimeFormatter.ISO_INSTANT.format(update_version);
         prefs.put("current_version", updated);
         prefs.flush();
         logger.info("Updated 'current_version' preference to " + updated);

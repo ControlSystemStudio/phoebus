@@ -12,9 +12,7 @@ package org.csstudio.display.builder.representation.javafx;
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
-import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -51,8 +49,7 @@ public class WidgetColorPopOver extends PopOver
 	    try
         {
             final URL fxml = WidgetColorPopOver.class.getResource("WidgetColorPopOver.fxml");
-            final InputStream iStream = NLS.getMessages(WidgetColorPopOver.class);
-            final ResourceBundle bundle = new PropertyResourceBundle(iStream);
+            final ResourceBundle bundle = NLS.getMessages(WidgetColorPopOver.class);
             final FXMLLoader fxmlLoader = new FXMLLoader(fxml, bundle);
             final Node content = (Node) fxmlLoader.load();
 

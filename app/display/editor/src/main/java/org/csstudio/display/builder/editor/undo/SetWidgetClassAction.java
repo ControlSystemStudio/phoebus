@@ -29,6 +29,9 @@ public class SetWidgetClassAction extends UndoableAction
     private final String orig_value, value;
     private final Map<String, WidgetClassSupport.PropertyValue> orig_prop_values = new HashMap<>();
 
+    /** @param widget_property Property for widget class
+     *  @param value Desired class
+     */
     public SetWidgetClassAction(final WidgetClassProperty widget_property,
                                 final String value)
     {

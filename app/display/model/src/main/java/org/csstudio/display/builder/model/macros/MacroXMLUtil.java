@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -27,23 +27,38 @@ import org.w3c.dom.Element;
 @SuppressWarnings("nls")
 public class MacroXMLUtil
 {
-    /** Write macros (without surrounding "&ltmacros>") into XML stream
+    /** Write macros (without surrounding "&lt;macros>") into XML stream
      *  @param writer XML writer
      *  @param macros Macros to write
      *  @throws Exception on error
      */
     public static void writeMacros(final XMLStreamWriter writer, final Macros macros) throws Exception
     {
-        for (String name : macros.getNames())
+        try
         {
-            writer.writeStartElement(name);
-            writer.writeCharacters(macros.getValue(name));
-            writer.writeEndElement();
+            macros.forEachSpec((name, value) ->
+            {
+                try
+                {
+                    writer.writeStartElement(name);
+                    writer.writeCharacters(value);
+                    writer.writeEndElement();
+                }
+                catch (Exception ex)
+                {   // Abort iterator via Error...
+                    throw new Error(ex);
+                }
+            });
+        }
+        catch (Error ex)
+        {   // .. then pass original exception back up
+            throw (Exception) ex.getCause();
         }
     }
 
-    /** Read content of "&ltmacros>"
+    /** Read content of "&lt;macros>"
      *  @param macros_xml XML that contains macros
+     *  @return Parsed macros
      */
     public static Macros readMacros(final Element macros_xml)
     {
@@ -63,8 +78,9 @@ public class MacroXMLUtil
         return macros;
     }
 
-    /** Read content of "&ltmacros>", without the surrounding "&ltmacros>
+    /** Read content of "&lt;macros>", without the surrounding "&lt;macros>
      *  @param macros_xml Text that contains XML for macros
+     *  @return Parsed macros
      *  @throws Exception on error in XML
      */
     public static Macros readMacros(final String macros_xml) throws Exception
@@ -85,7 +101,7 @@ public class MacroXMLUtil
     }
 
     /** @param macros Macros to write
-     *  @return XML for macros (without surrounding "&ltmacros>")
+     *  @return XML for macros (without surrounding "&lt;macros>")
      */
     public static String toString(final Macros macros)
     {

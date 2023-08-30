@@ -13,7 +13,9 @@ import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.BasicState;
+import org.phoebus.applications.alarm.ui.Messages;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.control.MenuItem;
@@ -56,10 +58,16 @@ class RenameTreeItemAction extends MenuItem
 	                // Remove the item and all its children.
 	                // Add the new item, and then rebuild all its children.
 	                final String new_path = AlarmTreePath.makePath(parent.getPathName(), new_name);
-					model.sendItemConfigurationUpdate(new_path, item);
-	                AlarmTreeHelper.rebuildTree(model, item, new_path);
-	                model.removeComponent(item);
-	            });
+					try {
+						model.sendItemConfigurationUpdate(new_path, item);
+						AlarmTreeHelper.rebuildTree(model, item, new_path);
+						model.removeComponent(item);
+					} catch (Exception e) {
+						ExceptionDetailsErrorDialog.openError(Messages.error,
+								Messages.renameItemFailed,
+								e);
+					}
+				});
         	});
         }
         else
@@ -80,12 +88,16 @@ class RenameTreeItemAction extends MenuItem
 	            {
 	                final AlarmTreeItem<BasicState> parent = item.getParent();
 	                final String new_path = AlarmTreePath.makePath(parent.getPathName(), new_name);
-	                model.sendItemConfigurationUpdate(new_path, item);
-	                model.removeComponent(item);
-	            });
+					try {
+						model.sendItemConfigurationUpdate(new_path, item);
+						model.removeComponent(item);
+					} catch (Exception e) {
+						ExceptionDetailsErrorDialog.openError(Messages.error,
+								Messages.renameItemFailed,
+								e);
+					}
+				});
 	        });
         }
     }
-
-
 }

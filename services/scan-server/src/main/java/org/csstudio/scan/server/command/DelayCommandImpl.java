@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,12 +15,16 @@
  ******************************************************************************/
 package org.csstudio.scan.server.command;
 
+import static org.csstudio.scan.server.ScanServerInstance.logger;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 import org.csstudio.scan.command.DelayCommand;
+import org.csstudio.scan.info.ScanState;
 import org.csstudio.scan.server.ScanCommandImpl;
 import org.csstudio.scan.server.ScanContext;
 import org.csstudio.scan.server.SimulationContext;
@@ -35,7 +39,7 @@ public class DelayCommandImpl extends ScanCommandImpl<DelayCommand>
 {
     /** Helper to await the delay while allowing 'next' */
     final private Semaphore done = new Semaphore(1);
-    private volatile Instant started = null;
+    private volatile long remaining_ms = -1;
 
     /** {@inheritDoc} */
     public DelayCommandImpl(final DelayCommand command, final JythonSupport jython) throws Exception
@@ -57,16 +61,38 @@ public class DelayCommandImpl extends ScanCommandImpl<DelayCommand>
         // Reset semaphore
         done.tryAcquire();
 
-        started = Instant.now();
+        final long millis = Math.round(command.getSeconds()*1000);
+        remaining_ms = millis;
+        boolean paused = false;
+        Instant end = Instant.now().plusMillis(millis);
         try
         {
-            // Wait for duration of delay. next() may release early
-            final long millis = Math.round(command.getSeconds()*1000);
-            done.tryAcquire(millis, TimeUnit.MILLISECONDS);
+            while (remaining_ms > 0  &&  ! done.tryAcquire(Math.min(remaining_ms, 100), TimeUnit.MILLISECONDS))
+            {
+                if (command_context.getScanState() == ScanState.Paused)
+                {
+                    if (! paused)
+                    {
+                        paused = true;
+                        logger.log(Level.INFO, "Delay paused, remaining: " + SecondsParser.formatSeconds(remaining_ms/1000.0));
+                    }
+                }
+                else
+                {
+                    if (paused)
+                    {
+                        paused = false;
+                        end = Instant.now().plusMillis(remaining_ms);
+                        logger.log(Level.INFO, "Delay resumed");
+                    }
+                    else
+                        remaining_ms = Duration.between(Instant.now(), end).toMillis();
+                }
+            }
         }
         finally
         {
-            started = null;
+            remaining_ms = -1;
         }
 
         command_context.workPerformed(1);
@@ -84,13 +110,9 @@ public class DelayCommandImpl extends ScanCommandImpl<DelayCommand>
     public String toString()
     {
         String info = super.toString();
-        final Instant start = started;
-        if (start != null)
-        {
-            final Instant now = Instant.now();
-            final Duration duration = Duration.between(start, now);
-            info += ". Elapsed: " + SecondsParser.formatSeconds(duration.getSeconds() + duration.getNano()*1e-9);
-        }
+        final long remain = remaining_ms;
+        if (remain > 0)
+            info += ". Remaining: " + SecondsParser.formatSeconds(remain/1000.0);
         return info;
     }
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,25 +12,27 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 
+import org.epics.pva.PVASettings;
+
 /** 'Primitive' PV Access data type
  *   @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVAByteArray extends PVAData implements PVAArray
+public class PVAByteArray extends PVAData implements PVAArray, PVAValue
 {
     private final boolean unsigned;
     private volatile byte[] value;
 
-    public PVAByteArray(final String name, final boolean unsigned, final byte[] value)
+    /** Construct variable-size array
+     *  @param name Data item name
+     *  @param unsigned Unsigned data?
+     *  @param value Initial value
+     */
+    public PVAByteArray(final String name, final boolean unsigned, final byte... value)
     {
         super(name);
         this.unsigned = unsigned;
         this.value = value;
-    }
-
-    public PVAByteArray(final String name, final boolean unsigned)
-    {
-        this(name, unsigned, new byte[0]);
     }
 
     /** @return Is value unsigned? */
@@ -54,7 +56,16 @@ public class PVAByteArray extends PVAData implements PVAArray
     @Override
     public void setValue(final Object new_value) throws Exception
     {
-        if (new_value instanceof byte[])
+        if (new_value instanceof PVAByteArray)
+        {
+            final byte[] other = ((PVAByteArray) new_value).value;
+            value = Arrays.copyOf(other, other.length);
+        }
+        else if (new_value instanceof PVADoubleArray)
+            set(Convert.toByte(((PVADoubleArray) new_value).get()));
+        else if (new_value instanceof double[])
+            set(Convert.toByte((double[]) new_value));
+        else if (new_value instanceof byte[])
             set(((byte[]) new_value));
         else if (new_value instanceof List)
         {
@@ -70,6 +81,9 @@ public class PVAByteArray extends PVAData implements PVAArray
                     throw new Exception("Cannot set " + formatType() + " to " + new_value);
             }
             value = new_items;
+        }
+        else if(new_value instanceof String){
+            set(((String)new_value).getBytes());
         }
         else
             throw new Exception("Cannot set " + formatType() + " to " + new_value);
@@ -100,11 +114,8 @@ public class PVAByteArray extends PVAData implements PVAArray
     public void decode(final PVATypeRegistry types, final ByteBuffer buffer) throws Exception
     {
         final int size = PVASize.decodeSize(buffer);
-        byte[] new_value = value;
-        if (new_value == null  ||  new_value.length != size)
-            new_value = new byte[size];
-        for (int i=0; i<size; ++i)
-            new_value[i] = buffer.get();
+        final byte[] new_value = new byte[size];
+        buffer.get(new_value);
         value = new_value;
     }
 
@@ -133,12 +144,11 @@ public class PVAByteArray extends PVAData implements PVAArray
     }
 
     @Override
-    protected void formatType(final int level, final StringBuilder buffer)
+    public String getType()
     {
-        indent(level, buffer);
         if (unsigned)
-            buffer.append('u');
-        buffer.append("byte[] ").append(name);
+            return "ubyte[]";
+        return "byte[]";
     }
 
     @Override
@@ -151,7 +161,8 @@ public class PVAByteArray extends PVAData implements PVAArray
             buffer.append("null");
         else
         {
-            for (int i=0; i<safe.length; ++i)
+            final int show = Math.min(PVASettings.EPICS_PVA_MAX_ARRAY_FORMATTING, safe.length);
+            for (int i=0; i<show; ++i)
             {
                 if (i > 0)
                     buffer.append(", ");
@@ -160,8 +171,15 @@ public class PVAByteArray extends PVAData implements PVAArray
                 else
                     buffer.append(safe[i]);
             }
+            if (safe.length > show)
+                buffer.append(", ...");
         }
         buffer.append("]");
+    }
+
+    @Override
+    public String formatValue() {
+        return Arrays.toString(get());
     }
 
     @Override

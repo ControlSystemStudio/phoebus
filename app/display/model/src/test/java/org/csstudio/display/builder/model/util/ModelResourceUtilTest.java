@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,14 +7,13 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.util;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.net.URI;
 
-import org.csstudio.display.builder.model.DisplayModel;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test of the {@link ModelResourceUtil}
  *  @author Kay Kasemir
@@ -22,25 +21,6 @@ import org.junit.Test;
 @SuppressWarnings("nls")
 public class ModelResourceUtilTest
 {
-    @Test
-    public void testFile() throws Exception
-    {
-        File bob = new File("/some/path/file.bob");
-
-        // Change from no file extension
-        File file = ModelResourceUtil.enforceFileExtension(new File("/some/path/file"), DisplayModel.FILE_EXTENSION);
-        assertThat(file, equalTo(bob));
-
-        // Change from other file extension
-        file = ModelResourceUtil.enforceFileExtension(new File("/some/path/file.abc"), DisplayModel.FILE_EXTENSION);
-        assertThat(file, equalTo(bob));
-
-        // Leave matching extension
-        file = ModelResourceUtil.enforceFileExtension(new File("/some/path/file.bob"), DisplayModel.FILE_EXTENSION);
-        assertThat(file, equalTo(bob));
-    }
-
-
     @Test
     public void testExamples() throws Exception
     {

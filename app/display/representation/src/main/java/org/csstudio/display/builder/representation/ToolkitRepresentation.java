@@ -18,7 +18,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -31,6 +33,7 @@ import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
+import org.csstudio.display.builder.model.widgets.PlaceholderWidget;
 import org.csstudio.display.builder.representation.spi.WidgetRepresentationsService;
 
 /** Representation for a toolkit.
@@ -76,6 +79,18 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
     /** Add/remove representations for child elements as model changes */
     private final WidgetPropertyListener<List<Widget>> container_children_listener = (children, removed, added) ->
     {
+        // Only the order of the widgets have changed
+        if (removed != null && added != null && removed.size() == 1 && removed.equals(added))
+        {
+            final Widget widget = added.get(0);
+            execute(() ->
+            {
+                final WidgetRepresentation<TWP, TW, Widget> representation = widget.getUserData(Widget.USER_DATA_REPRESENTATION);
+                representation.updateOrder();
+            });
+            return;
+        }
+
         // Move to toolkit thread.
         // May already be on toolkit, for example in drag/drop,
         // but updating the representation 'later' may reduce blocking.
@@ -94,6 +109,7 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
     };
 
     protected DisplayModel model;
+    private   Phaser       phaser;
 
     /** Constructor
      *  @param edit_mode Edit mode?
@@ -153,6 +169,8 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
      *  @param model {@link DisplayModel}
      *  @return ToolkitRepresentation
      *  @throws NullPointerException if toolkit not set
+     *  @param <TWP> Toolkit widget parent class
+     *  @param <TW> Toolkit widget base class
      */
     public static <TWP, TW> ToolkitRepresentation<TWP, TW> getToolkit(final DisplayModel model) throws NullPointerException
     {
@@ -161,26 +179,26 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
     }
 
     /** Open display panel
-    *
-    *  <p>For RCP-based representation, this is a new workbench 'view'.
-    *
-    *  <p>Is invoked with the _initial_ model,
-    *  calling <code>representModel</code> to create the
-    *  individual widget representations.
-    *
-    *  <p>To later replace the model, call <code>disposeRepresentation</code>
-    *  with the current model, and then <code>representModel</code> with the new model.
-    *
-    *  @param model {@link DisplayModel} that provides name and initial size
-    *  @param name Optional name of the region where the new panel should be created.
-    *              May be empty, may also be ignored.
-    *  @param close_handler Will be invoked when user closes the window
-    *                       with the then active model, i.e. the model
-    *                       provided in last call to <code>representModel</code>.
-    *                       Should stop runtime, dispose representation.
-    *  @return The new ToolkitRepresentation of the new window
-    *  @throws Exception on error
-    */
+     *
+     *  <p>For RCP-based representation, this is a new workbench 'view'.
+     *
+     *  <p>Is invoked with the _initial_ model,
+     *  calling <code>representModel</code> to create the
+     *  individual widget representations.
+     *
+     *  <p>To later replace the model, call <code>disposeRepresentation</code>
+     *  with the current model, and then <code>representModel</code> with the new model.
+     *
+     *  @param model {@link DisplayModel} that provides name and initial size
+     *  @param name Optional name of the region where the new panel should be created.
+     *              May be empty, may also be ignored.
+     *  @param close_handler Will be invoked when user closes the window
+     *                       with the then active model, i.e. the model
+     *                       provided in last call to <code>representModel</code>.
+     *                       Should stop runtime, dispose representation.
+     *  @return The new ToolkitRepresentation of the new window
+     *  @throws Exception on error
+     */
     public ToolkitRepresentation<TWP, TW> openPanel(final DisplayModel model, final String name, final Consumer<DisplayModel> close_handler) throws Exception
     {   // Default: Same as openNewWindow
         return openNewWindow(model, close_handler);
@@ -240,14 +258,18 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
      *  @param parent Toolkit parent (Pane, Container, ..)
      *  @param model Display model
      *  @throws Exception on error
-     *  @see #disposeRepresentation()
+     *  @see #disposeRepresentation(DisplayModel)
      */
     public void representModel(final TWP parent, final DisplayModel model) throws Exception
     {
         Objects.requireNonNull(parent, "Missing toolkit parent item");
 
         if (model.isTopDisplayModel())
+        {
             this.model = model;
+            // Register ourselves
+            phaser = new Phaser(1);
+        }
 
         // Attach toolkit
         model.setUserData(DisplayModel.USER_DATA_TOOLKIT, this);
@@ -279,44 +301,88 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
      *
      *  @param parent Toolkit parent (Group, Container, ..)
      *  @param widget Model widget to represent
-     *  @return Toolkit item that represents the widget
-     *  @see #disposeWidget(Object, Widget)
+     *  @see #disposeWidget(Widget)
      */
     @SuppressWarnings("unchecked")
     public void representWidget(final TWP parent, final Widget widget)
     {
-        WidgetRepresentationFactory<TWP, TW> factory = (WidgetRepresentationFactory<TWP, TW>) factories.get(widget.getType());
-        if (factory == null)
-        {
-            logger.log(Level.SEVERE, "Lacking representation for " + widget.getType());
-            // Check for a generic "unknown" representation
-            factory = (WidgetRepresentationFactory<TWP, TW>) factories.get(WidgetRepresentationFactory.UNKNOWN);
-            if (factory == null)
-                return;
-        }
-
-        final TWP re_parent;
         try
         {
-            final WidgetRepresentation<TWP, TW, Widget> representation = factory.create();
-            representation.initialize(this, widget);
-            re_parent = representation.createComponents(parent);
-            widget.setUserData(Widget.USER_DATA_REPRESENTATION, representation);
-            logger.log(Level.FINE, "Representing {0} as {1}", new Object[] { widget, representation });
+            // Signal the start of a representation
+            onRepresentationStarted();
+
+            WidgetRepresentationFactory<TWP, TW> factory = (WidgetRepresentationFactory<TWP, TW>) factories.get(widget.getType());
+            if (factory == null)
+            {
+                if (! (widget instanceof PlaceholderWidget))
+                    logger.log(Level.SEVERE, "Lacking representation for " + widget.getType());
+                // Check for a generic "unknown" representation
+                factory = (WidgetRepresentationFactory<TWP, TW>) factories.get(WidgetRepresentationFactory.UNKNOWN);
+                if (factory == null)
+                    return;
+            }
+
+            final TWP re_parent;
+            try
+            {
+                final WidgetRepresentation<TWP, TW, Widget> representation = factory.create();
+                representation.initialize(this, widget);
+                re_parent = representation.createComponents(parent);
+                widget.setUserData(Widget.USER_DATA_REPRESENTATION, representation);
+                logger.log(Level.FINE, "Representing {0} as {1}", new Object[] { widget, representation });
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.SEVERE, "Cannot represent " + widget, ex);
+                return;
+            }
+            // Recurse into child widgets
+            final ChildrenProperty children = ChildrenProperty.getChildren(widget);
+            if (children != null)
+            {
+                representChildren(re_parent, widget, children);
+                logger.log(Level.FINE, "Tracking changes to children of {0}", widget);
+                children.addPropertyListener(container_children_listener);
+            }
         }
-        catch (Exception ex)
+        finally
         {
-            logger.log(Level.SEVERE, "Cannot represent " + widget, ex);
-            return;
+            // Signal the end of a representation
+            onRepresentationFinished();
         }
-        // Recurse into child widgets
-        final ChildrenProperty children = ChildrenProperty.getChildren(widget);
-        if (children != null)
-        {
-            representChildren(re_parent, widget, children);
-            logger.log(Level.FINE, "Tracking changes to children of {0}", widget);
-            children.addPropertyListener(container_children_listener);
-        }
+    }
+
+    /** Signal the start of the representation of a widget
+     *
+     *  <p> To be called by WidgetRepresentation classes before submitting a task to be run on another thread
+     */
+    public void onRepresentationStarted()
+    {
+        phaser.register();
+    }
+
+    /** Signal the end of the representation of a widget
+     *
+     *
+     *  <p> To be called by WidgetRepresentation classes upon representation thread completion
+     */
+    public void onRepresentationFinished()
+    {
+        phaser.arriveAndDeregister();
+    }
+
+    /** Wait for the complete representation of a model
+     *
+     *  <p> This includes the representation of embedded displays and navigation tabs
+     *  @param timeout Timeout value
+     *  @param unit Timeout units
+     *  @throws InterruptedException when interrupted
+     *  @throws TimeoutException on timeout
+     */
+    public void awaitRepresentation(long timeout, TimeUnit unit) throws TimeoutException, InterruptedException
+    {
+        phaser.arrive();
+        phaser.awaitAdvanceInterruptibly(0, timeout, unit);
     }
 
     /** Remove all the toolkit items of the model
@@ -417,8 +483,7 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
      *  by pressing "OK".
      *
      *  @param widget Widget, used to create and position the dialog
-     *  @param is_warning Whether to style dialog as warning or information
-     *  @param message Message to display on dialog
+     *  @param message Message to display in dialog
      */
     abstract public void showMessageDialog(Widget widget, String message);
 
@@ -428,8 +493,7 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
      *  by pressing "OK".
      *
      *  @param widget Widget, used to create and position the dialog
-     *  @param is_warning Whether to style dialog as warning or information
-     *  @param message Message to display on dialog
+     *  @param error Error to show in dialog
      */
     abstract public void showErrorDialog(Widget widget, String error);
 
@@ -440,7 +504,7 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
      *  ("Confirm", "Cancel", depending on implementation).
      *
      *  @param widget Widget, used to create and position the dialog
-     *  @param mesquestionsage Message to display on dialog
+     *  @param question Prompt to display on dialog
      *  @return <code>true</code> if user selected "Yes" ("Confirm")
      */
     abstract public boolean showConfirmationDialog(Widget widget, String question);
@@ -510,7 +574,7 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
      *  <p>RCP-based representation can override with
      *  RCP-based web browser
      *
-     *  @param path URL
+     *  @param url URL
      *  @throws Exception on error
      */
     abstract public void openWebBrowser(final String url) throws Exception;

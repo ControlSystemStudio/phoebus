@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,6 +10,7 @@ package org.phoebus.ui.javafx;
 import java.util.Objects;
 
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.ui.Preferences;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import javafx.application.Platform;
@@ -41,7 +42,8 @@ public class PrintAction extends MenuItem
         setOnAction(event -> Platform.runLater(() -> print(node)));
     }
 
-    private void print(final Node node)
+    /** @param node Node to print */
+    public static void print(final Node node)
     {
         try
         {
@@ -58,8 +60,11 @@ public class PrintAction extends MenuItem
             // Scale image to full page
             final Printer printer = job.getPrinter();
             final Paper paper = job.getJobSettings().getPageLayout().getPaper();
+            final PageOrientation orient = Preferences.print_landscape
+                                         ? PageOrientation.LANDSCAPE
+                                         : PageOrientation.PORTRAIT;
             final PageLayout pageLayout = printer.createPageLayout(paper,
-                                                                   PageOrientation.LANDSCAPE,
+                                                                   orient,
                                                                    Printer.MarginType.DEFAULT);
             final double scaleX = pageLayout.getPrintableWidth() / screenshot.getWidth();
             final double scaleY = pageLayout.getPrintableHeight() / screenshot.getHeight();

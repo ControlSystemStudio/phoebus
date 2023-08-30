@@ -2,6 +2,7 @@ package org.phoebus.channel.views.ui;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.logging.Level;
 
 import org.phoebus.channelfinder.Tag;
 
@@ -9,7 +10,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
+import org.phoebus.ui.dialog.DialogHelper;
 
+import static org.phoebus.channel.views.ui.ChannelFinderController.logger;
 /**
  * A dialog for removing a tag to a list of channels
  * 
@@ -32,8 +35,12 @@ public class RemoveTagDialog extends Dialog<Tag> {
                         ? Tag.Builder.tag(controller.getSelectedOption()).build()
                         : null;
             });
+
+
+            DialogHelper.positionDialog(this, parent, -250, -400);
         } catch (IOException e) {
-            e.printStackTrace();
+            // TODO update the dialog
+            logger.log(Level.WARNING, "Failed to remove tag", e);
         }
     }
 }

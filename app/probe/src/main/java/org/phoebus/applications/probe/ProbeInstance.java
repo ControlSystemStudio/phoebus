@@ -1,16 +1,18 @@
 package org.phoebus.applications.probe;
 
+import static org.phoebus.applications.probe.Probe.logger;
+
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
-import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 
 import org.phoebus.applications.probe.view.ProbeController;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.ui.vtype.FormatOption;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -22,6 +24,7 @@ import javafx.scene.control.TextField;
  * @author Kunal Shroff
  *
  */
+@SuppressWarnings("nls")
 public class ProbeInstance implements AppInstance {
 
     private final AppDescriptor appDescriptor;
@@ -40,12 +43,11 @@ public class ProbeInstance implements AppInstance {
     public Node create() {
         try {
             final URL fxml = getClass().getResource("view/ProbeView.fxml");
-            final InputStream iStream = NLS.getMessages(ProbeInstance.class);
-            final ResourceBundle bundle = new PropertyResourceBundle(iStream);
+            final ResourceBundle bundle = NLS.getMessages(ProbeInstance.class);
             loader = new FXMLLoader(fxml, bundle);
             return loader.load();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Cannot load FXML", e);
         }
         return null;
     }
@@ -68,11 +70,17 @@ public class ProbeInstance implements AppInstance {
 
     @Override
     public void restore(final Memento memento) {
+        ProbeController controller = (ProbeController) loader.getController();
         memento.getString("pv").ifPresent(name -> setPV(name));
+        memento.getString("format").ifPresent(name -> controller.setFormat(FormatOption.valueOf(name)));
+        memento.getNumber("precision").ifPresent(value -> controller.setPrecision(value.intValue()));
     }
 
     @Override
     public void save(final Memento memento) {
+        ProbeController controller = (ProbeController) loader.getController();
         memento.setString("pv", getPV());
+        memento.setString("format", controller.getFormat().name());
+        memento.setNumber("precision", controller.getPrecision());
     }
 }

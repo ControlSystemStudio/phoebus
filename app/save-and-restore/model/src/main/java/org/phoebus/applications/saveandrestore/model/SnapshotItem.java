@@ -18,43 +18,33 @@
 
 package org.phoebus.applications.saveandrestore.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import org.epics.vtype.VType;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.phoebus.applications.saveandrestore.model.json.VTypeDeserializer;
 import org.phoebus.applications.saveandrestore.model.json.VTypeSerializer;
 
 
 /**
- * Class encapsulating a {@link VType} holding the PV data. 
- * @author georgweiss
- * Created 28 Nov 2018
+ * Class encapsulating data associated with a single "item" in a save-n-restore snapshot. Such an item
+ * contains at least a PV value and a read-only flag, plus optionally a read-back PV value.
  */
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class SnapshotItem {
-	private int snapshotId;
 
 	/**
 	 * The {@link ConfigPv} associated with this {@link SnapshotItem}. The PV name
 	 * and provider identity are determined from this.
 	 */
 	private ConfigPv configPv;
-	
+
 	/**
 	 * The actual PV data, including alarms and time stamps.
 	 */
+
 	@JsonSerialize(using = VTypeSerializer.class)
 	@JsonDeserialize(using = VTypeDeserializer.class)
 	private VType value;
@@ -64,15 +54,72 @@ public class SnapshotItem {
 	 */
 	@JsonSerialize(using = VTypeSerializer.class)
 	@JsonDeserialize(using = VTypeDeserializer.class)
+	@JsonInclude(Include.NON_NULL)
 	private VType readbackValue;
-	
+
+	public ConfigPv getConfigPv() {
+		return configPv;
+	}
+
+	public void setConfigPv(ConfigPv configPv) {
+		this.configPv = configPv;
+	}
+
+	public VType getValue() {
+		return value;
+	}
+
+	public void setValue(VType value) {
+		this.value = value;
+	}
+
+	public VType getReadbackValue() {
+		return readbackValue;
+	}
+
+	public void setReadbackValue(VType readbackValue) {
+		this.readbackValue = readbackValue;
+	}
+
 	@Override
 	public String toString() {
 		return new StringBuffer()
-				.append(", value=")
-				.append(value != null ? value.toString() : "READ FAILED")
 				.append(", config pv=").append(configPv.toString())
-				.append(readbackValue != null ? (", readback pv=" + readbackValue.toString()) : (", readback pv=READ_FAILED"))
+				.append("value=").append(value != null ? value.toString() : "null")
+				.append(readbackValue != null ? (", readback pv=" + readbackValue) : (", readback pv=null"))
 				.toString();
+	}
+
+	public static Builder builder(){
+		return new Builder();
+	}
+
+	public static class Builder{
+
+		private SnapshotItem snapshotItem;
+
+		private Builder(){
+			snapshotItem = new SnapshotItem();
+		}
+
+
+		public Builder configPv(ConfigPv configPv){
+			snapshotItem.setConfigPv(configPv);
+			return this;
+		}
+
+		public Builder value(VType value){
+			snapshotItem.setValue(value);
+			return this;
+		}
+
+		public Builder readbackValue(VType readbackValue){
+			snapshotItem.setReadbackValue(readbackValue);
+			return this;
+		}
+
+		public SnapshotItem build(){
+			return snapshotItem;
+		}
 	}
 }

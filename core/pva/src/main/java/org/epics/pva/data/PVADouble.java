@@ -18,11 +18,15 @@ public class PVADouble extends PVANumber
 {
     private volatile double value;
 
+    /** @param name Name for data item */
     public PVADouble(final String name)
     {
         this(name, Double.NaN);
     }
 
+    /** @param name Name for data item
+     *  @param value Initial value
+     */
     public PVADouble(final String name, final double value)
     {
         super(name);
@@ -107,10 +111,9 @@ public class PVADouble extends PVANumber
     }
 
     @Override
-    protected void formatType(final int level, final StringBuilder buffer)
+    public String getType()
     {
-        indent(level, buffer);
-        buffer.append("double ").append(name);
+        return "double";
     }
 
     @Override

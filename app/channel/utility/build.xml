@@ -1,0 +1,20 @@
+<project default="app-channel-utility">
+  <import file="../../../dependencies/ant_settings.xml"/>
+
+  <target name="app-channel-utility">
+    <mkdir dir="${classes}"/>
+    <javac destdir="${classes}" debug="${debug}">
+      <src path="${src}"/>
+      <classpath>
+      	<pathelement path="../channelfinder/${build}/app-channel-channelfinder-${version}.jar"/>      	
+        <path refid="app-classpath"/>
+      </classpath>
+    </javac>
+  	
+    <jar destfile="${build}/app-channel-utility-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+	
+</project>

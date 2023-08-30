@@ -15,10 +15,15 @@ import org.csstudio.display.builder.model.Messages;
 public enum LineStyle
 {
     // Ordinals match the line style used by legacy opibuilder
+    /** Line style */
     SOLID(Messages.LineStyle_Solid),
+    /** Line style */
     DASH(Messages.LineStyle_Dash),
+    /** Line style */
     DOT(Messages.LineStyle_Dot),
+    /** Line style */
     DASHDOT(Messages.LineStyle_DashDot),
+    /** Line style */
     DASHDOTDOT(Messages.LineStyle_DashDotDot);
     private final String label;
 

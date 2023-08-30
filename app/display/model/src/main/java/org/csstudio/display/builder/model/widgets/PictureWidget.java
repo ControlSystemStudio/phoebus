@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -33,8 +33,9 @@ import org.w3c.dom.Text;
  *  @author Megan Grodowitz
  */
 @SuppressWarnings("nls")
-public class PictureWidget extends VisibleWidget
+public class PictureWidget extends MacroWidget
 {
+    /** Default picture */
     public final static String default_pic = "examples:/icons/default_picture.png";
 
     /** Widget descriptor */
@@ -64,7 +65,6 @@ public class PictureWidget extends VisibleWidget
         public boolean configureFromXML(final ModelReader model_reader, final Widget widget, final Element widget_xml)
                 throws Exception
         {
-            // Legacy used background color for the line
             Element xml = XMLUtil.getChildElement(widget_xml, "image_file");
             if (xml != null)
             {
@@ -83,6 +83,14 @@ public class PictureWidget extends VisibleWidget
                 widget_xml.appendChild(fname);
             }
 
+            if (xml_version.getMajor() < 2)
+            {
+                final PictureWidget picture = (PictureWidget) widget;
+                MacroWidget.importPVName(model_reader, widget, widget_xml);
+                XMLUtil.getChildBoolean(widget_xml, "stretch_to_fit")
+                       .ifPresent(stretch -> picture.propStretch().setValue(stretch));
+            }
+
             // Parse updated XML
             return super.configureFromXML(model_reader, widget, widget_xml);
         }
@@ -91,13 +99,23 @@ public class PictureWidget extends VisibleWidget
     public static final WidgetPropertyDescriptor<Double> propRotation =
             newDoublePropertyDescriptor(WidgetPropertyCategory.DISPLAY, "rotation", Messages.WidgetProperties_Rotation);
 
+    /** 'stretch_image' property: Stretch to fit widget size? */
     public static final WidgetPropertyDescriptor<Boolean> propStretch =
             newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "stretch_image", Messages.WidgetProperties_StretchToFit);
+
+    /**
+     * An opacity property. Controlling it from a rule or script works as a
+     * way to do a simple animation.
+     */
+    public static final WidgetPropertyDescriptor<Double> propOpacity =
+            newDoublePropertyDescriptor(WidgetPropertyCategory.DISPLAY, "opacity", Messages.WidgetProperties_Opacity);
 
     private volatile WidgetProperty<String> filename;
     private volatile WidgetProperty<Boolean> stretch_image;
     private volatile WidgetProperty<Double> rotation;
+    private volatile WidgetProperty<Double> opacity;
 
+    /** Constructor */
     public PictureWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 150, 100);
@@ -110,6 +128,8 @@ public class PictureWidget extends VisibleWidget
         properties.add(filename = propFile.createProperty(this, default_pic));
         properties.add(stretch_image = propStretch.createProperty(this, false));
         properties.add(rotation = propRotation.createProperty(this, 0.0));
+        properties.add(opacity = propOpacity.createProperty(this, 1.0));
+
     }
 
     /** @return 'rotation' property */
@@ -128,6 +148,12 @@ public class PictureWidget extends VisibleWidget
     public WidgetProperty<Boolean> propStretch()
     {
         return stretch_image;
+    }
+
+    /** @return 'opacity' property */
+    public WidgetProperty<Double> propOpacity()
+    {
+        return opacity;
     }
 
     @Override

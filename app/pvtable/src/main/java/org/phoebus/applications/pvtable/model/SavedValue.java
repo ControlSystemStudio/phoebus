@@ -31,14 +31,14 @@ import org.phoebus.pv.PV;
  *  the text is kept.
  *
  *  <p>Derived implementations provide support for scalar (String) and array (List
- *  <String>)
+ *   of String)
  *
  * @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 abstract public class SavedValue
 {
-    /** @param current_value Current value of PV
+    /** @param value Current value of PV
      *  @return {@link SavedValue} that contains current value
      *  @throws Exception on error
      */

@@ -57,13 +57,17 @@ public class PropertyPanel extends TabPane
     }
 
 
+    /** @param model Model
+     *  @param undo Undo manager
+     */
     public PropertyPanel(final Model model, final UndoableActionManager undo)
     {
         final Tab traces = new TracesTab(model, undo);
         final Tab time_axis = new TimeAxisTab(model, undo);
         final Tab value_axes = new AxesTab(model, undo);
         final Tab misc = new MiscTab(model, undo);
-        getTabs().setAll(traces, time_axis, value_axes, misc);
+        final Tab statistics = new StatisticsTab(model);
+        getTabs().setAll(traces, time_axis, value_axes, misc, statistics);
         for (Tab tab : getTabs())
             tab.setClosable(false);
     }
@@ -89,11 +93,13 @@ public class PropertyPanel extends TabPane
         });
     }
 
+    /** @param memento Saved setting */
     public void restore(final Memento memento)
     {
         memento.getNumber(PROPERTY_TAB).ifPresent(tab -> getSelectionModel().select(tab.intValue()));
     }
 
+    /** @param memento Where to save setting */
     public void save(final Memento memento)
     {
         memento.setNumber(PROPERTY_TAB, getSelectionModel().getSelectedIndex());

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,7 @@ import static org.csstudio.scan.ScanSystem.logger;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 import org.csstudio.scan.client.ScanClient;
@@ -84,7 +85,7 @@ public class ScanMonitor implements AppInstance
         tab.addCloseCheck(() ->
         {
             dispose();
-            return true;
+            return CompletableFuture.completedFuture(true);
         });
         tab.addClosedNotification(() -> INSTANCE = null);
         DockPane.getActiveDockPane().addTab(tab);

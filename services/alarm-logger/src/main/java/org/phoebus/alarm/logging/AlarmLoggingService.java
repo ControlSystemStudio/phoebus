@@ -22,12 +22,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
 @SpringBootApplication
-@SuppressWarnings("nls")
 public class AlarmLoggingService {
 
     /** Alarm system logger */
-    public static final Logger logger = Logger.getLogger(AlarmLoggingService.class.getPackageName());
-    private static final ExecutorService Scheduler = Executors.newScheduledThreadPool(4);
+    public static final Logger logger = Logger.getLogger(AlarmLoggingService.class.getName());
+    private static ExecutorService Scheduler;
 
     private static ConfigurableApplicationContext context;
 
@@ -50,8 +49,10 @@ public class AlarmLoggingService {
         System.out.println("-topics   Accelerator                    - Alarm topics to be logged, they can be defined as a comma separated list");
         System.out.println("-es_host  localhost                      - elastic server host");
         System.out.println("-es_port  9200                           - elastic server port");
+        System.out.println("-es_sniff  false                         - elastic server sniff feature");
         System.out.println("-bootstrap.servers localhost:9092        - Kafka server address");
-        System.out.println("-properties /opt/alarm_logger.propertier - Properties file to be used (instead of command line arguments)");
+        System.out.println("-kafka_properties /opt/client.properties - Properties file to load kafka client settings from");
+        System.out.println("-properties /opt/alarm_logger.properties - Properties file to be used (instead of command line arguments)");
         System.out.println("-date_span_units M                       - Date units for the time based index to span.");
         System.out.println("-date_span_value 1                       - Date value for the time based index to span.");
         System.out.println("-logging logging.properties              - Load log settings");
@@ -76,13 +77,12 @@ public class AlarmLoggingService {
     }
 
     public static void main(final String[] original_args) throws Exception {
-        context = SpringApplication.run(AlarmLoggingService.class, original_args);
         LogManager.getLogManager().readConfiguration(AlarmLoggingService.class.getResourceAsStream("/alarm_logger_logging.properties"));
 
         // load the default properties
         final Properties properties = PropertiesHelper.getProperties();
 
-        // Use interactive shell by default 
+        // Use interactive shell by default
         boolean use_shell = true;
 
         // Handle arguments
@@ -92,9 +92,10 @@ public class AlarmLoggingService {
             while (iter.hasNext()) {
 
                 final String cmd = iter.next();
-                if (cmd.startsWith("-h")) {
+		if ( cmd.equals("-h") || cmd.equals("-help")) {
+		    use_shell = false;
                     help();
-                    close();
+		    System.exit(0);
                     return;
                 } else if (cmd.equals("-noshell")) {
                     use_shell = false;
@@ -106,8 +107,7 @@ public class AlarmLoggingService {
                     try(FileInputStream file = new FileInputStream(iter.next());){
                         properties.load(file);
                     } catch(FileNotFoundException e) {
-                        System.out.println();
-                        e.printStackTrace();
+                        logger.log(Level.SEVERE, "failed to load server properties", e);
                     }
                     iter.remove();
                 } else if (cmd.equals("-topics")) {
@@ -128,11 +128,23 @@ public class AlarmLoggingService {
                     iter.remove();
                     properties.put("es_port",iter.next());
                     iter.remove();
+                } else if (cmd.equals("-es_sniff")) {
+                    if (!iter.hasNext())
+                        throw new Exception("Missing -es_sniff sniff feature true/false");
+                    iter.remove();
+                    properties.put("es_sniff",iter.next());
+                    iter.remove();
                 } else if (cmd.equals("-bootstrap.servers")) {
                     if (!iter.hasNext())
                         throw new Exception("Missing -bootstrap.servers kafaka server addresss");
                     iter.remove();
                     properties.put("bootstrap.servers",iter.next());
+                    iter.remove();
+                } else if (cmd.equals("-kafka_properties")) {
+                    if (!iter.hasNext())
+                        throw new Exception("Missing -kafka_properties file name");
+                    iter.remove();
+                    properties.put("kafka_properties",iter.next());
                     iter.remove();
                 }
                 else if (cmd.equals("-date_span_units"))
@@ -159,18 +171,45 @@ public class AlarmLoggingService {
                     final String filename = iter.next();
                     iter.remove();
                     LogManager.getLogManager().readConfiguration(new FileInputStream(filename));
-                } else
+                }
+                else if(cmd.equals("-thread_pool_size")){
+                    if (! iter.hasNext()){
+                        throw new Exception("Missing -thread_pool_size value");
+                    }
+                    iter.remove();
+                    try {
+                        String size = iter.next();
+                        Integer threadPoolSize = Integer.valueOf(size);
+                        properties.put("thread_pool_size", size);
+                    } catch (NumberFormatException e) {
+                        logger.warning("Specified thread pool size is not a number, will use value from properties or default value");
+                    }
+                    iter.remove();
+                }
+                else
                     throw new Exception("Unknown option " + cmd);
             }
         } catch (Exception ex) {
-            help();
-            System.out.println();
-            ex.printStackTrace();
-            close();
-            return;
+	    System.out.println("\n>>>> Print StackTrace ....");
+	    ex.printStackTrace();
+	    System.out.println("\n>>>> Please check available arguments of alarm-logger as follows:");
+	    help();
+	    System.exit(-1);
+	    return;
         }
 
         logger.info("Alarm Logging Service (PID " + ProcessHandle.current().pid() + ")");
+        context = SpringApplication.run(AlarmLoggingService.class, original_args);
+
+        // Create scheduler with configured or default thread pool size
+        Integer threadPoolSize;
+        try {
+            threadPoolSize = Integer.valueOf(properties.getProperty("thread_pool_size"));
+        } catch (NumberFormatException e) {
+            logger.info("Specified thread pool size is not a number, will default to 4");
+            threadPoolSize = 4;
+        }
+        Scheduler = Executors.newScheduledThreadPool(threadPoolSize);
 
         logger.info("Properties:");
         properties.forEach((k, v) -> { logger.info(k + ":" + v); });

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,7 @@ package org.phoebus.applications.filebrowser;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 import static org.phoebus.applications.filebrowser.FileBrowser.logger;
 
@@ -33,10 +34,19 @@ import java.util.logging.Level;
 @SuppressWarnings("nls")
 public class DirectoryMonitor
 {
-    private final BiConsumer<File, Boolean> listener;
+    public enum Change
+    {
+        ADDED,
+        CHANGED,
+        REMOVED
+    }
+    private final BiConsumer<File, Change> listener;
 
     /** NIO Watch Service */
     private WatchService watcher;
+
+    /** Root folder. All monitored files should be under this location */
+    private volatile File root = null;
 
     /** Thread that polls the `watcher`.
      *  Set to <code>null</code> when exiting.
@@ -49,7 +59,7 @@ public class DirectoryMonitor
     /** Create directory monitor
      *  @param listener Will be called with file that was added (<code>true</code>) or deleted (<code>false</code>)
      */
-    public DirectoryMonitor(final BiConsumer<File, Boolean> listener)
+    public DirectoryMonitor(final BiConsumer<File, Change> listener)
     {
         this.listener = listener;
         try
@@ -68,19 +78,50 @@ public class DirectoryMonitor
         thread.start();
     }
 
+    /** @param root Root of directories and files to monitor */
+    public void setRoot(final File root)
+    {
+        logger.log(Level.INFO, () -> "Root: " + root);
+        this.root = root;
+        clear();
+    }
+
+    /** @param file File to check
+     *  @return Is the file located under the 'root' folder?
+     */
+    private boolean isUnderRoot(final File file)
+    {
+        for (File parent = file;  parent != null;  parent = parent.getParentFile())
+            if (parent.equals(root))
+                return true;
+        return false;
+    }
+
     /** Register a directory to be monitored
      *  @param directory To monitor. Will automatically un-register when it is deleted.
      */
     public void monitor(final File directory)
     {
+        // Tree sub-items (folders) are searched in background threads.
+        // monitor() might thus be requested when the UI was just closed...
         if (thread == null  ||  ! directory.isDirectory())
             return;
+
+        // .. or just after the 'root' has been changed.
+        // This especially happens when file browser is restored,
+        // starts out with $HOME and then gets set to another root from memento.
+        // --> Ignore folders that aren't under the currently selected root
+        if (! isUnderRoot(directory))
+        {
+            logger.log(Level.FINE, () -> "Not monitoring " + directory + " because not under " + root);
+            return;
+        }
         dir_keys.computeIfAbsent(directory, dir ->
         {
             try
             {
                 logger.log(Level.FINE, () -> "Monitoring directory " + directory);
-                return directory.toPath().register(watcher, ENTRY_CREATE, ENTRY_DELETE);
+                return directory.toPath().register(watcher, ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE);
             }
             catch (Exception ex)
             {
@@ -91,7 +132,7 @@ public class DirectoryMonitor
     }
 
     /** Clear all monitors */
-    public void clear()
+    private void clear()
     {
         final Iterator<Entry<File, WatchKey>> iter = dir_keys.entrySet().iterator();
         while (iter.hasNext())
@@ -148,7 +189,9 @@ public class DirectoryMonitor
         final File file = dir.resolve(filename).toFile();
 
         if (kind == ENTRY_CREATE)
-            listener.accept(file, true);
+            listener.accept(file, Change.ADDED);
+        else if (kind == ENTRY_MODIFY)
+            listener.accept(file, Change.CHANGED);
         else if (kind == ENTRY_DELETE)
         {
             final WatchKey key = dir_keys.remove(file);
@@ -157,7 +200,7 @@ public class DirectoryMonitor
                 logger.log(Level.FINE, () -> "No longer monitoring removed directory " + file);
                 key.cancel();
             }
-            listener.accept(file, false);
+            listener.accept(file, Change.REMOVED);
         }
         else
             logger.log(Level.WARNING, "Unexpected " + kind + " for " + file);

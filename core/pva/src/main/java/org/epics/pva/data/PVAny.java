@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,7 @@ package org.epics.pva.data;
 
 import java.nio.ByteBuffer;
 import java.util.BitSet;
+import java.util.Objects;
 
 /** PV Access 'any'
  *
@@ -21,6 +22,7 @@ import java.util.BitSet;
 @SuppressWarnings("nls")
 public class PVAny extends PVAData
 {
+    /** Value of 'any' type, may be <code>null</code> */
     private volatile PVAData value;
 
     /** @param name Name of the any (may be "")
@@ -57,15 +59,18 @@ public class PVAny extends PVAData
     }
 
     @Override
-    public PVAData cloneType(final String name)
+    public PVAny cloneType(final String name)
     {
         return new PVAny(name);
     }
 
     @Override
-    public PVAData cloneData()
+    public PVAny cloneData()
     {
-        return new PVAny(name, value.cloneData());
+        PVAData safe = value;
+        if (value != null)
+            safe = safe.cloneData();
+        return new PVAny(name, safe);
     }
 
     @Override
@@ -87,7 +92,14 @@ public class PVAny extends PVAData
     @Override
     public void encode(final ByteBuffer buffer) throws Exception
     {
-        throw new Exception("TODO: Implement encoding 'any'");
+        if (value == null)
+            buffer.put(PVAFieldDesc.NULL_TYPE_CODE);
+        else
+        {
+            final BitSet described = new BitSet();
+            value.encodeType(buffer, described);
+            value.encode(buffer);
+        }
     }
 
     @Override
@@ -96,20 +108,32 @@ public class PVAny extends PVAData
         if (new_value instanceof PVAny)
         {
             final PVAny other = (PVAny) new_value;
-            if (! other.value.equals(value))
+            if (other.value == null)
             {
-                value = other.value.cloneData();
-                changes.set(index);
+                if (value != null)
+                {
+                    value = null;
+                    changes.set(index);
+                }
+                // else: No change, this.value is already null
+            }
+            else
+            {
+                if (! other.value.equals(value))
+                {
+                    value = other.value.cloneData();
+                    changes.set(index);
+                }
+                // else: No change, this.value already equals other.value
             }
         }
         return index + 1;
     }
 
     @Override
-    protected void formatType(final int level, final StringBuilder buffer)
+    public String getType()
     {
-        indent(level, buffer);
-        buffer.append("any ").append(name);
+        return "any";
     }
 
     @Override
@@ -132,6 +156,6 @@ public class PVAny extends PVAData
         if (! (obj instanceof PVAny))
             return false;
         final PVAny other = (PVAny) obj;
-        return other.equals(value);
+        return Objects.equals(value, other.value);
     }
 }

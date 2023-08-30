@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,7 @@ package org.csstudio.display.builder.editor;
 
 import static org.csstudio.display.builder.editor.Plugin.logger;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -52,6 +53,7 @@ import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
+import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -59,6 +61,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
@@ -69,9 +72,13 @@ import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.shape.Line;
+import javafx.scene.text.TextAlignment;
 
 /** Display editor UI
  *
@@ -140,21 +147,27 @@ public class DisplayEditor
     private AutoScrollHandler autoScrollHandler;
     private DisplayModel model;
 
+    private final BorderPane root = new BorderPane();
     private ToolBar toolbar;
     private ScrollPane model_root;
     private Palette palette;
+    private Node palette_node;
+    private final SplitPane model_and_palette = new SplitPane();
     private Pane widget_parent;
     private final Group edit_tools = new Group();
     private ToggleButton grid;
     private ToggleButton snap;
     private ToggleButton coords;
+    private ToggleButton crosshair;
 
+    /** Snap and info options */
     public static final String
             SNAP_GRID = "snap_grid",
             SNAP_WIDGETS = "snap_widgets",
             SHOW_COORDS = "show_coords";
 
     private static final Preferences prefs = PhoebusPreferenceService.userNodeForClass(DisplayEditorInstance.class);
+
 
     /** @param toolkit JFX Toolkit
      *  @param stack_size Number of undo/redo entries
@@ -169,6 +182,9 @@ public class DisplayEditor
         selection_tracker = new SelectedWidgetUITracker(toolkit, group_handler, selection, undo);
         selection_tracker.enableSnap(true);
         selection_tracker.enableGrid(true);
+
+        vLine.setMouseTransparent(true);
+        hline.setMouseTransparent(true);
     }
 
     /** Create UI elements
@@ -177,6 +193,7 @@ public class DisplayEditor
     public Parent create ()
     {
         model_root = toolkit.createModelRoot();
+        model_root.getStyleClass().add("widget_pane_unfocused");
         autoScrollHandler = new AutoScrollHandler(model_root);
 
         final Group scroll_body = (Group) model_root.getContent();
@@ -186,10 +203,7 @@ public class DisplayEditor
         scroll_body.getChildren().add(edit_tools);
 
         palette = new Palette(this);
-        final Node palette_node = palette.create();
-
-        final SplitPane model_and_palette = new SplitPane(model_root, palette_node);
-        model_and_palette.setDividerPositions(1);
+        palette_node = palette.create();
 
         SplitPane.setResizableWithParent(palette_node, false);
         edit_tools.getChildren().addAll(selection_tracker);
@@ -197,13 +211,21 @@ public class DisplayEditor
 
         toolbar = createToolbar();
 
-        final BorderPane root = new BorderPane(model_and_palette);
-        root.setTop(toolbar);
+        root.setCenter(model_and_palette);
+        root.getStyleClass().add("no-border");
 
+        configureReadonly(false);
         setGrid(prefs.getBoolean(SNAP_GRID, true));
         setSnap(prefs.getBoolean(SNAP_WIDGETS, true));
         setCoords(prefs.getBoolean(SHOW_COORDS, true));
 
+        model_root.focusedProperty().addListener((observableValue, aBoolean, focused) -> {
+            if (focused) {
+                model_root.getStyleClass().add("widget_pane_focused");
+            } else {
+                model_root.getStyleClass().remove("widget_pane_focused");
+            }
+        });
         return root;
     }
 
@@ -222,7 +244,10 @@ public class DisplayEditor
         toolkit.setZoomListener(zl);
         zoom_levels.setOnAction(event ->
         {
-            final String actual = requestZoom(zoom_levels.getValue());
+            final String before = zoom_levels.getValue();
+            if (before == null)
+                return;
+            final String actual = requestZoom(before);
             // Java 9 results in IndexOutOfBoundException
             // when combo is updated within the action handler,
             // so defer to another UI tick
@@ -243,7 +268,8 @@ public class DisplayEditor
             createMenuItem(ActionDescription.ALIGN_RIGHT),
             createMenuItem(ActionDescription.ALIGN_TOP),
             createMenuItem(ActionDescription.ALIGN_MIDDLE),
-            createMenuItem(ActionDescription.ALIGN_BOTTOM));
+            createMenuItem(ActionDescription.ALIGN_BOTTOM),
+            createMenuItem(ActionDescription.ALIGN_GRID));
         align.setTooltip(new Tooltip(Messages.Align));
 
         final MenuButton size = new MenuButton(null, null,
@@ -253,7 +279,9 @@ public class DisplayEditor
 
         final MenuButton dist = new MenuButton(null, null,
             createMenuItem(ActionDescription.DIST_HORIZ),
-            createMenuItem(ActionDescription.DIST_VERT));
+            createMenuItem(ActionDescription.DIST_VERT),
+            createMenuItem(ActionDescription.DIST_HORIZ_GAP),
+            createMenuItem(ActionDescription.DIST_VERT_GAP));
         dist.setTooltip(new Tooltip(Messages.Distribute));
 
         // Use the first item as the icon for the drop-down...
@@ -271,9 +299,10 @@ public class DisplayEditor
 
 
         return new ToolBar(
-            grid = createToggleButton(ActionDescription.ENABLE_GRID),
-            snap = createToggleButton(ActionDescription.ENABLE_SNAP),
-            coords = createToggleButton(ActionDescription.ENABLE_COORDS),
+            grid = createToggleButton(ActionDescription.ENABLE_GRID, true),
+            snap = createToggleButton(ActionDescription.ENABLE_SNAP, true),
+            coords = createToggleButton(ActionDescription.ENABLE_COORDS, true),
+            crosshair = createToggleButton(ActionDescription.ENABLE_CROSS, false),
             new Separator(),
             order,
             align,
@@ -286,7 +315,7 @@ public class DisplayEditor
             zoom_levels);
     }
 
-    public class zoomListener implements Consumer<String>
+    private class zoomListener implements Consumer<String>
     {
         ComboBox<String> zoom_levels;
 
@@ -297,6 +326,7 @@ public class DisplayEditor
         @Override
         public void accept(String zoom_level)
         {
+            zoom_levels.getSelectionModel().clearSelection();
             zoom_levels.getEditor().setText(zoom_level);
             edit_tools.getTransforms().setAll(widget_parent.getTransforms());
         }
@@ -318,7 +348,7 @@ public class DisplayEditor
         return item;
     }
 
-    private ToggleButton createToggleButton(final ActionDescription action)
+    private ToggleButton createToggleButton(final ActionDescription action, boolean selected)
     {
         final ToggleButton button = new ToggleButton();
         try
@@ -330,7 +360,7 @@ public class DisplayEditor
             logger.log(Level.WARNING, "Cannot load action icon", ex);
         }
         button.setTooltip(new Tooltip(action.getToolTip()));
-        button.setSelected(true);
+        button.setSelected(selected);
         button.selectedProperty()
               .addListener((observable, old_value, enabled) -> action.run(this, enabled) );
         return button;
@@ -360,6 +390,7 @@ public class DisplayEditor
         return selection;
     }
 
+    /** @return AutoScrollHandler */
     public AutoScrollHandler getAutoScrollHandler()
     {
         return autoScrollHandler;
@@ -397,6 +428,7 @@ public class DisplayEditor
             logger.log(Level.FINE, "Mouse pressed in 'editor', de-select all widgets");
             event.consume();
             selection.clear();
+            model_root.requestFocus(); // Request focus to be able to intercept CTRL/CMD+A
         });
 
         new Rubberband(model_root, edit_tools, this::handleRubberbandSelection);
@@ -407,11 +439,29 @@ public class DisplayEditor
         WidgetTransfer.addDropSupport(widget_parent, group_handler, selection_tracker, widgets -> addWidgets(widgets, false));
 
         model_root.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeyPress);
+
+        hookCrosshair();
     }
 
     private void handleKeyPress(final KeyEvent event)
     {
-        WidgetTree.handleGroupOrOrderKeys(event, this);
+        if (isReadonly())
+            return;
+
+        if (event.isShortcutDown() && event.getCode().equals(KeyCode.A)) {
+            getWidgetSelectionHandler().setSelection(model.getChildren());
+        }
+        else {
+            WidgetTree.handleGroupOrOrderKeys(event, this);
+        }
+    }
+
+    private void handleMouseMove(final MouseEvent event) {
+        lastMouseX = event.getX();
+        lastMouseY = event.getY();
+        if (crosshair.isSelected()) {
+            setCrosshairCoordinates();
+        }
     }
 
     private void handleRubberbandSelection(final Rectangle2D region, final boolean update_existing)
@@ -533,6 +583,32 @@ public class DisplayEditor
         }
     }
 
+    private void configureReadonly(final boolean read_only)
+    {
+        // toolbar visibility is used in isReadonly()
+        if (read_only)
+        {
+            model_and_palette.getItems().setAll(model_root);
+            selection_tracker.enableChanges(false);
+            root.setTop(null);
+            autoScrollHandler.enable(false);
+        }
+        else
+        {
+            model_and_palette.getItems().setAll(model_root, palette_node);
+            model_and_palette.setDividerPositions(1);
+            selection_tracker.enableChanges(true);
+            root.setTop(toolbar);
+            autoScrollHandler.enable(true);
+        }
+    }
+
+    boolean isReadonly()
+    {
+        // Use toolbar visibility as read/write flag
+        return root.getTop() == null;
+    }
+
     /** Set Model
      *  @param model Model to show and edit
      */
@@ -557,6 +633,7 @@ public class DisplayEditor
         // Create representation for model items
         try
         {
+            configureReadonly(EditorUtil.isDisplayReadOnly(model));
             toolkit.representModel(widget_parent, model);
         }
         catch (final Exception ex)
@@ -657,6 +734,9 @@ public class DisplayEditor
             final List<Widget> widgets = model.getChildren();
             logger.log(Level.FINE, "Pasted {0} widgets", widgets.size());
 
+            Point2D constr = selection_tracker.gridConstrain(x, y);
+            x = (int)constr.getX();
+            y = (int)constr.getY();
             GeometryTools.moveWidgets(x, y, widgets);
             final Rectangle2D bounds = GeometryTools.getBounds(widgets);
             // Potentially activate group at drop point
@@ -667,6 +747,65 @@ public class DisplayEditor
         {
             logger.log(Level.WARNING, "Failed to paste content of clipboard", ex);
         }
+    }
+
+    /** Remove (delete) selected widgets */
+    public void removeWidgets()
+    {
+        if (selection_tracker.isInlineEditorActive())
+            return;
+
+        final List<Widget> widgets = selection.getSelection();
+        if (widgets.isEmpty())
+            return;
+
+        undo.execute(new RemoveWidgetsAction(selection, widgets));
+    }
+
+    /** Duplicate currently selected widgets without overwriting clipboard
+     *  @return Widgets that were duplicated or <code>null</code>
+     */
+    public List<Widget> duplicateWidgets()
+    {
+        if (selection_tracker.isInlineEditorActive())
+            return null;
+
+        List<Widget> widgets = selection.getSelection();
+        if (widgets.isEmpty())
+            return null;
+
+        final String xml;
+        try
+        {
+        	//Export to XML
+            xml = ModelWriter.getXML(widgets);
+            List<Rectangle2D> display_bounds = new ArrayList<>();
+            for (Widget widget : widgets)
+            {
+                display_bounds.add(GeometryTools.getDisplayBounds(widget));
+            }
+            //Import back from XML
+            final DisplayModel model = ModelReader.parseXML(xml);
+            widgets = model.getChildren();
+            logger.log(Level.FINE, "Duplicated {0} widgets", widgets.size());
+
+            for (int index = 0; index < widgets.size(); index++)
+            {
+                widgets.get(index).propX().setValue((int)display_bounds.get(index).getMinX() + 20);
+                widgets.get(index).propY().setValue((int)display_bounds.get(index).getMinY() + 20);
+            }
+            final Rectangle2D bounds = GeometryTools.getBounds(widgets);
+            // Potentially activate group at duplicate point
+            group_handler.locateParent(bounds.getMinX(), bounds.getMinY(), bounds.getWidth(), bounds.getHeight());
+            addWidgets(widgets, false);
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot duplicate widgets", ex);
+            return null;
+        }
+
+        return widgets;
     }
 
     /** @param pattern (Partial) name of widgets to select */
@@ -761,15 +900,96 @@ public class DisplayEditor
         // Update pref about last show state
         saveCoords(show);
     }
-    
+
     /** @param show Show Coordinates on/off */
     public static void saveCoords(final boolean show)
     {
         prefs.putBoolean(SHOW_COORDS, show);
     }
 
+    private final Line vLine = new Line();
+    private final Line hline = new Line();
+    private final Label xLabel = createCrosshairLabel();
+    private final Label yLabel = createCrosshairLabel();
+    private double lastMouseX = 0;
+    private double lastMouseY = 0;
+
+    /** Toggle crosshair cursor and refresh button look, from key handler  */
+    public void toggleCrosshair()
+    {
+        crosshair.setSelected(!crosshair.isSelected());
+    }
+
+    /** @param crosshair Enable crosshair cursor? */
+    public void setCrosshair(boolean crosshair)
+    {
+        if (crosshair)
+        {
+            widget_parent.getChildren().add(vLine);
+            widget_parent.getChildren().add(hline);
+            widget_parent.getChildren().add(xLabel);
+            widget_parent.getChildren().add(yLabel);
+            setCrosshairCoordinates();
+        }
+        else
+        {
+            widget_parent.getChildren().remove(vLine);
+            widget_parent.getChildren().remove(hline);
+            widget_parent.getChildren().remove(xLabel);
+            widget_parent.getChildren().remove(yLabel);
+        }
+    }
+
+    /** Refresh coordinates from mouse handler */
+    private void setCrosshairCoordinates() {
+        double wpX = model_root.getViewportBounds().getMinX() / getZoom();
+        double wpY = model_root.getViewportBounds().getMinY() / getZoom();
+        //double w = model_root.getViewportBounds().getWidth();
+        //double h = model_root.getViewportBounds().getHeight();
+        double mX = lastMouseX / getZoom();
+        double mY = lastMouseY / getZoom();
+        //System.out.println("WPx" + wpX);
+        //System.out.println("WPy" + wpY);
+        vLine.setStartX(mX);
+        vLine.setStartY(0);
+        vLine.setEndX(mX);
+        vLine.setEndY(Math.floor(widget_parent.getHeight()-1));
+        hline.setStartX(0);
+        hline.setStartY(mY);
+        hline.setEndX(Math.floor(widget_parent.getWidth()-1));
+        hline.setEndY(mY);
+        final double gap = 3.;
+        xLabel.relocate(mX + gap, -wpY + gap);
+        yLabel.relocate(-wpX + gap, mY + gap);
+        xLabel.setText(MessageFormat.format("\u00A0\u00A0{0,number,###0}\u00A0\u00A0", mX));
+        yLabel.setText(MessageFormat.format("\u00A0\u00A0{0,number,###0}\u00A0\u00A0", mY));
+    }
+
+    /** At start, hook event filters */
+    private void hookCrosshair() {
+        widget_parent.getParent().addEventFilter(MouseEvent.MOUSE_MOVED, this::handleMouseMove);
+        widget_parent.getParent().addEventFilter(MouseEvent.MOUSE_DRAGGED, this::handleMouseMove);
+    }
+
+    /** Create labels for X and Y coordinates */
+    private Label createCrosshairLabel()
+    {
+        // Initial text is used to determine size
+        final Label lbl = new Label("\u00A0\u00A000\u00A0\u00A0");
+
+        lbl.getStyleClass().add("location_size");
+        lbl.setTextAlignment(TextAlignment.LEFT);
+        lbl.setAlignment(Pos.TOP_LEFT);
+        // Don't allow the label to capture mouse clicks.
+        lbl.setMouseTransparent(true);
+
+        return lbl;
+    }
+
+    /** Release resources */
     public void dispose()
     {
+        autoScrollHandler.enable(false);
         if (model != null)
             toolkit.disposeRepresentation(model);
         model = null;

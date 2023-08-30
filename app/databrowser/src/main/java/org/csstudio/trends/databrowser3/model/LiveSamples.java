@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -24,7 +24,7 @@ public class LiveSamples extends PlotSamples
     // No locking in here, all access is via PVSamples
 
     private RingBuffer<PlotSample> samples =
-        new RingBuffer<PlotSample>(Preferences.buffer_size);
+        new RingBuffer<PlotSample>(Preferences.live_buffer_size);
 
     /** Waveform index */
     final private AtomicInteger waveform_index;

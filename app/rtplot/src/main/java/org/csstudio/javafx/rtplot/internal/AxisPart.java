@@ -18,6 +18,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
+import javafx.util.Pair;
 import org.csstudio.javafx.rtplot.Axis;
 import org.csstudio.javafx.rtplot.AxisRange;
 import org.csstudio.javafx.rtplot.RTPlot;
@@ -259,23 +260,28 @@ public abstract class AxisPart<T extends Comparable<T>> extends PlotPart impleme
 
     /** {@inheritDoc} */
     @Override
-    public boolean setValueRange(final T low, final T high)
+    public boolean setValueRange(T low, T high)
     {
         synchronized (this)
-        {   // Any change at all?
-            if (low.equals(range.getLow())  &&  high.equals(range.getHigh()))
-                return false;
+        {
             logger.log(Level.FINE, "Axis {0}: Value range {1} ... {2}",
                                    new Object[] { getName(), low, high });
-            // Can axis handle this range?
-            if (! ticks.isSupportedRange(low, high))
+            // Adjust range if necessary
+            Pair<T, T> possiblyNewLowAndHigh = ticks.adjustRange(low, high);
+            T newLow = possiblyNewLowAndHigh.getKey();
+            T newHigh = possiblyNewLowAndHigh.getValue();
+            if (newLow != low || newHigh != high)
             {
-                logger.log(Level.WARNING, "Axis {0}: Bad value range {1} ... {2}",
-                                          new Object[] { getName(), low, high });
-                return false;
+                logger.log(Level.WARNING, "Axis {0}: Invalid value range {1,number,#.###############E0} ... {2,number,#.###############E0}. Adjusting the range to {3,number,#.###############E0} ... {4,number,#.###############E0}.",
+                                          new Object[] { getName(), low, high, newLow, newHigh });
             }
-            range = new AxisRange<>(low, high);
-            transform.config(low, high, low_screen, high_screen);
+
+            // Any change at all?
+            if (newLow.equals(range.getLow())  &&  newHigh.equals(range.getHigh()))
+                return false;
+
+            range = new AxisRange<>(newLow, newHigh);
+            transform.config(newLow, newHigh, low_screen, high_screen);
         }
         dirty_ticks = true;
         requestLayout();
@@ -358,11 +364,11 @@ public abstract class AxisPart<T extends Comparable<T>> extends PlotPart impleme
     {
         if (! dirty_ticks)
             return;
-        final AxisRange<T> safe_range = range;
+        setValueRange(range.getLow(), range.getHigh()); // Performs checks and possibly adjusts range.
         if (horizontal)
-            ticks.compute(safe_range.getLow(), safe_range.getHigh(), gc, getBounds().width);
+            ticks.compute(range.getLow(), range.getHigh(), gc, getBounds().width);
         else
-            ticks.compute(safe_range.getLow(), safe_range.getHigh(), gc, getBounds().height);
+            ticks.compute(range.getLow(), range.getHigh(), gc, getBounds().height);
         // If ticks changed, the layout of tick labels may change
         requestLayout();
         requestRefresh();

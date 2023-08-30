@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -56,6 +56,7 @@ public class ArrayWidget extends PVWidget
     /** {@link ChildrenProperty} wrapper that adjusts writing to XML*/
     public static class ArrayWidgetChildrenProperty extends ChildrenProperty
     {
+        /** @param widget Widget */
         public ArrayWidgetChildrenProperty(Widget widget)
         {
             super(widget);
@@ -75,6 +76,7 @@ public class ArrayWidget extends PVWidget
     private volatile WidgetProperty<WidgetColor> background;
     private volatile WidgetProperty<int[]> insets;
 
+    /** Constructor */
     public ArrayWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 100, 300);
@@ -93,17 +95,20 @@ public class ArrayWidget extends PVWidget
         properties.add(insets = runtimePropInsets.createProperty(this, new int[] { 0, 0 }));
     }
 
-    /**
-     * Array widget extends parent macros
-     *
-     * @return {@link Macros}
-     */
+    /** {@inheritDoc} */
+    @Override
+    public void expandMacros(final Macros input)
+    {
+        macros.getValue().expandValues(input);
+        for (Widget child : children.getValue())
+            child.expandMacros(macros.getValue());
+    }
+
+    /** {@inheritDoc} */
     @Override
     public Macros getEffectiveMacros()
     {
-        final Macros base = super.getEffectiveMacros();
-        final Macros my_macros = propMacros().getValue();
-        return Macros.merge(base, my_macros);
+        return propMacros().getValue();
     }
 
     /** @return 'macros' property */

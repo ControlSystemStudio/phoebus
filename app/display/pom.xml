@@ -5,15 +5,20 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app</artifactId>
-    <version>4.6.0-SNAPSHOT</version>
+    <version>4.7.3-SNAPSHOT</version>
   </parent>
   <modules>
     <module>model</module>
     <module>representation</module>
     <module>representation-javafx</module>
+    <module>fonts</module>
     <module>runtime</module>
     <module>editor</module>
     <module>convert-medm</module>
     <module>convert-edm</module>
+    <module>navigation</module>
+    <module>adapters</module>
+    <module>thumbwheel</module>
+    <module>linearmeter</module>
   </modules>
 </project>

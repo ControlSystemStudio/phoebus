@@ -2,21 +2,51 @@ package org.phoebus.ui.application;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import javafx.event.ActionEvent;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.SubJobMonitor;
@@ -52,24 +82,13 @@ import org.phoebus.ui.welcome.Welcome;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckMenuItem;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuButton;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.ToolBar;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
@@ -85,96 +104,167 @@ import javafx.stage.Window;
  */
 @SuppressWarnings("nls")
 public class PhoebusApplication extends Application {
-    /** Logger for all application messages */
+    /**
+     * Logger for all application messages
+     */
     public static final Logger logger = Logger.getLogger(PhoebusApplication.class.getName());
 
-    /** JavaFx {@link Application}
+    /**
+     * JavaFx {@link Application}
      *
-     *  <p>Set on {@link #start()},
-     *  may be used to for example get HostServices
+     * <p>Set on {@link #start(Stage)},
+     * may be used to for example get HostServices
      */
-    public static Application INSTANCE;
+    public static PhoebusApplication INSTANCE;
 
-    /** Memento keys */
+    /**
+     * Application parameters
+     * <p>
+     * Copy of original parameters that various code sections might digest.
+     */
+    private final CopyOnWriteArrayList<String> application_parameters = new CopyOnWriteArrayList<>();
+
+    /**
+     * Memento keys
+     */
     public static final String LAST_OPENED_FILE = "last_opened_file",
-                               DEFAULT_APPLICATION = "default_application",
-                               SHOW_TABS = "show_tabs",
-                               SHOW_TOOLBAR = "show_toolbar";
+            DEFAULT_APPLICATION = "default_application",
+            SHOW_TABS = "show_tabs",
+            SHOW_MENU = "show_menu",
+            SHOW_TOOLBAR = "show_toolbar",
+            SHOW_STATUSBAR = "show_statusbar";
 
-    /** Menu item for top resources */
+    /**
+     * Menu item for top resources
+     */
     private Menu top_resources_menu;
 
-    /** Menu item to show/hide tabs */
+    /**
+     * Menu item to show/hide tabs
+     */
     private CheckMenuItem show_tabs;
 
-    /** Tool bar, may be hidden */
+    /**
+     * Menu bar, may be hidden via memento
+     */
+    private MenuBar menuBar;
+
+    /**
+     * Tool bar, may be hidden
+     */
     private ToolBar toolbar;
 
-    /** Menu item to show/hide toolbar */
+    /**
+     * Menu item to show/hide toolbar
+     */
     private CheckMenuItem show_toolbar;
 
-    /** Menu item to save layout */
-    private SaveLayoutMenuItem save_layout;
+    /**
+     * Menu item to show/hide status bar
+     */
+    private CheckMenuItem show_statusbar;
 
-    /** Menu item to delete layouts */
+    /**
+     * Menu item to select a tab
+     */
+    private Menu selectTabMenu = new Menu(Messages.SelectTab);
+
+    /**
+     * Menu item to close all tabs in all windows
+     */
+    private MenuItem closeAllTabsMenuItem = new MenuItem(Messages.CloseAllTabs);
+
+    /**
+     * Menu item to save layout
+     */
+    private MenuItem save_layout;
+
+    /**
+     * Menu item to delete layouts
+     */
     private DeleteLayoutsMenuItem delete_layouts;
 
-    /** Menu to load past layouts */
+    /**
+     * Menu to load past layouts
+     */
     private final Menu load_layout = new Menu(Messages.LoadLayout, ImageCache.getImageView(ImageCache.class, "/icons/layouts.png"));
 
-    /** List of memento names
-     *
-     *  <p>This list contains the basic layout name,
-     *  without the ".memento" suffix and without the 'user'
-     *  location path.
+    /**
+     * Menu to add a layout to the current layout
      */
-    private final List<String> memento_files = new CopyOnWriteArrayList<>();
+    private final Menu add_layout = new Menu(Messages.AddLayout, ImageCache.getImageView(ImageCache.class, "/icons/layouts.png"));
+    
+    /**
+     * List of memento names
+     *
+     * <p>This list contains the basic layout name,
+     * without the ".memento" suffix and without the 'user'
+     * location path.
+     */
+    public final List<String> memento_files = new CopyOnWriteArrayList<>();
 
-    /** Toolbar button for top resources */
+    /**
+     * Toolbar button for top resources
+     */
     private MenuButton top_resources_button;
 
-    /** Toolbar button for home layout */
+    /**
+     * Toolbar button for home layout
+     */
     private Button home_display_button;
 
-    /** Toolbar button for past layouts */
+    /**
+     * Toolbar button for past layouts
+     */
     private MenuButton layout_menu_button;
 
-    /** Last file used by 'File, Open' menu
-     *  (the _directory_ is actually used by the file-open dialog)
+    /**
+     * Last file used by 'File, Open' menu
+     * (the _directory_ is actually used by the file-open dialog)
      */
     private File last_opened_file = null;
 
-    /** Application last picked when prompted for app to use */
+    /** Show the 'Welcome' tab?
+     *  Suppressed on -clean, specific -layout,
+     *  or when restored state has content.
+     */
+    private boolean show_welcome = true;
+
+    /**
+     * Application last picked when prompted for app to use
+     */
     private String default_application;
 
-    /** 'Main' stage which holds menu bar.
-     *  <p>Closing this one exits the application.
+    /**
+     * 'Main' stage which holds menu bar.
+     * <p>Closing this one exits the application.
      */
     private Stage main_stage;
 
     private static final WeakReference<DockItemWithInput> NO_ACTIVE_ITEM_WITH_INPUT = new WeakReference<>(null);
 
-    /** Active {@link DockItemWithInput}
+    public static KeyCombination closeAllTabsKeyCombination = PlatformInfo.is_mac_os_x ?
+        new KeyCodeCombination(KeyCode.W, KeyCombination.SHIFT_DOWN, KeyCodeCombination.SHORTCUT_DOWN) :
+        new KeyCodeCombination(KeyCode.F4, KeyCombination.SHIFT_DOWN, KeyCombination.CONTROL_DOWN);
+
+
+    /**
+     * Active {@link DockItemWithInput}
      *
-     *  <p><code>null</code> when there's no active item with input.
-     *  Weak reference so that we don't hold on to a closed tab
-     *  (although closing a tab does tend to activate another tab,
-     *   so that is an unlikely scenario)
+     * <p><code>null</code> when there's no active item with input.
+     * Weak reference so that we don't hold on to a closed tab
+     * (although closing a tab does tend to activate another tab,
+     * so that is an unlikely scenario)
      */
     private WeakReference<DockItemWithInput> active_item_with_input = NO_ACTIVE_ITEM_WITH_INPUT;
 
-    private final DockPaneListener dock_pane_listener = new DockPaneListener()
-    {
+    private final DockPaneListener dock_pane_listener = new DockPaneListener() {
         @Override
-        public void activeDockItemChanged(final DockItem item)
-        {
-            if (item instanceof DockItemWithInput)
-            {
+        public void activeDockItemChanged(final DockItem item) {
+            if (item instanceof DockItemWithInput) {
                 logger.log(Level.INFO, "Activated " + item);
                 active_item_with_input = new WeakReference<>((DockItemWithInput) item);
-            }
-            else
-            {
+            } else {
                 logger.log(Level.INFO, "Activated " + item + ", no input");
                 active_item_with_input = NO_ACTIVE_ITEM_WITH_INPUT;
             }
@@ -184,12 +274,17 @@ public class PhoebusApplication extends Application {
     private ResponsivenessMonitor freezeup_check;
 
 
-    /** JavaFX entry point
-     *  @param initial_stage Initial Stage created by JavaFX
+    /**
+     * JavaFX entry point
+     *
+     * @param initial_stage Initial Stage created by JavaFX
      */
     @Override
     public void start(final Stage initial_stage) throws Exception {
         INSTANCE = this;
+
+        // Save original application parameters
+        application_parameters.addAll(getParameters().getRaw());
 
         // Show splash screen as soon as possible..
         final Splash splash = Preferences.splash ? new Splash(initial_stage) : null;
@@ -202,13 +297,14 @@ public class PhoebusApplication extends Application {
         });
     }
 
-    /** Perform potentially slow startup task off the UI thread
-     *  @param monitor
-     *  @param splash
-     *  @throws Exception
+    /**
+     * Perform potentially slow startup task off the UI thread
+     *
+     * @param monitor
+     * @param splash
+     * @throws Exception
      */
-    private void backgroundStartup(final JobMonitor monitor, final Splash splash) throws Exception
-    {
+    private void backgroundStartup(final JobMonitor monitor, final Splash splash) throws Exception {
         // Assume there's 100 percent of work do to,
         // not knowing, yet, how many applications to start etc.
         monitor.beginTask(Messages.MonitorTaskApps, 100);
@@ -218,7 +314,7 @@ public class PhoebusApplication extends Application {
 
         // Load saved state (slow file access) off UI thread, allocating 30% to that
         monitor.beginTask(Messages.MonitorTaskSave);
-        final MementoTree memento = loadDefaultMemento(new SubJobMonitor(monitor, 30));
+        final MementoTree memento = loadDefaultMemento(application_parameters, new SubJobMonitor(monitor, 30));
 
         // Trigger initialization of authentication service
         AuthorizationService.init();
@@ -226,13 +322,10 @@ public class PhoebusApplication extends Application {
         // Back to UI thread
         Platform.runLater(() ->
         {
-            try
-            {
+            try {
                 // Leaving remaining 40% to the UI startup
                 startUI(memento, new SubJobMonitor(monitor, 40));
-            }
-            catch (Throwable ex)
-            {
+            } catch (Throwable ex) {
                 logger.log(Level.SEVERE, "Application cannot start up", ex);
             }
             monitor.done();
@@ -241,12 +334,11 @@ public class PhoebusApplication extends Application {
         });
     }
 
-    private void startUI(final MementoTree memento, final JobMonitor monitor) throws Exception
-    {
+    private void startUI(final MementoTree memento, final JobMonitor monitor) throws Exception {
         monitor.beginTask(Messages.MonitorTaskUi, 4);
 
         main_stage = new Stage();
-        final MenuBar menuBar = createMenu(main_stage);
+        menuBar = createMenu(main_stage);
         toolbar = createToolbar();
         createTopResourcesMenu();
 
@@ -263,6 +355,7 @@ public class PhoebusApplication extends Application {
         // Update items now that methods like isToolbarVisible()
         // can function since the scene has been populated
         show_toolbar.setSelected(isToolbarVisible());
+        show_statusbar.setSelected(isStatusbarVisible());
 
         // Main stage may still be moved, resized, and restored apps are added.
         // --> Would be nice to _not_ show it, yet.
@@ -274,13 +367,18 @@ public class PhoebusApplication extends Application {
         // If there's nothing to restore from a previous instance,
         // start with welcome
         monitor.updateTaskName(Messages.MonitorTaskTabs);
-        if (! restoreState(memento))
+        if (application_parameters.contains("-clean") || restoreState(memento))
+            show_welcome = false;
+        if (show_welcome)
             new Welcome().create();
         monitor.worked(1);
 
+        // Launch background job to list saved layouts
+        createLoadLayoutsMenu();
+
         // Check command line parameters
         monitor.updateTaskName(Messages.MonitorTaskCmdl);
-        handleParameters(getParameters().getRaw());
+        handleParameters(application_parameters);
         monitor.worked(1);
 
         // In 'server' mode, handle parameters received from client instances
@@ -293,16 +391,16 @@ public class PhoebusApplication extends Application {
             handleClientParameters(parameters);
         });
 
-        // Closing the primary window is like calling File/Exit.
-        // When the primary window is the only open stage, that's OK.
-        // If there are other stages still open,
-        // closing them all might be unexpected to the user,
-        // so prompt for confirmation.
-        main_stage.setOnCloseRequest(event -> {
-            if (closeMainStage(main_stage))
-                stop();
-            // Else: At least one tab in one stage didn't want to close
+        // DockStage.configureStage() installs an OnCloseRequest
+        // handler that will close the associated stage/window.
+        // For the primary window, replace with one that is like calling File/Exit,
+        // i.e. it closes _all_ stages and ends the application.
+        main_stage.setOnCloseRequest(event ->
+        {
+            // Prevent closing right now..
             event.consume();
+            // .. but schedule preparation to close
+            closeMainStage();
         });
 
         DockPane.addListener(dock_pane_listener);
@@ -315,30 +413,36 @@ public class PhoebusApplication extends Application {
         // as the UI loads style sheets etc.
         if (Preferences.ui_monitor_period > 0)
             freezeup_check = new ResponsivenessMonitor(3 * Preferences.ui_monitor_period,
-                                                       Preferences.ui_monitor_period, TimeUnit.MILLISECONDS);
+                    Preferences.ui_monitor_period, TimeUnit.MILLISECONDS);
+
+        closeAllTabsMenuItem.acceleratorProperty().setValue(closeAllTabsKeyCombination);
+
     }
 
-    /** Handle parameters from clients, logging errors
-     *  @param parameters Command-line parameters from client
+    /**
+     * Handle parameters from clients, logging errors
+     *
+     * @param parameters Command-line parameters from client
      */
-    private void handleClientParameters(final List<String> parameters)
-    {
-        try
-        {
+    private void handleClientParameters(final List<String> parameters) {
+        try {
             handleParameters(parameters);
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             logger.log(Level.SEVERE, "Cannot handle client parameters " + parameters, ex);
         }
     }
 
-    /** Handle command line parameters
-     *  @param parameters Command-line parameters
-     *  @throws Exception on error
+    /**
+     * Handle command line parameters
+     *
+     * @param parameters Command-line parameters
+     * @throws Exception on error
      */
-    private void handleParameters(final List<String> parameters) throws Exception
-    {
+    private void handleParameters(final List<String> parameters) throws Exception {
+        if (parameters.contains("-clean"))
+        {   // Clean removes everything, including 'Welcome'
+            return;
+        }
         // List of applications to launch as specified via cmd line args
         final List<String> launchApps = new ArrayList<>();
 
@@ -358,8 +462,7 @@ public class PhoebusApplication extends Application {
                     throw new Exception("Missing -resource resource file name");
                 final URI resource = ResourceParser.createResourceURI(parametersIterator.next());
                 launchResources.add(resource);
-            }
-            else
+            } else
                 logger.log(Level.WARNING, "Ignoring launch parameter '" + cmd + "'");
         }
 
@@ -394,39 +497,32 @@ public class PhoebusApplication extends Application {
         top_resources_menu.setDisable(true);
 
         final MenuItem file_save = new MenuItem(Messages.Save, ImageCache.getImageView(getClass(), "/icons/save_edit.png"));
-        file_save.setOnAction(event -> JobManager.schedule(Messages.Save, monitor -> active_item_with_input.get().save(monitor)));
+        file_save.setOnAction(event -> JobManager.schedule(Messages.Save, monitor -> active_item_with_input.get().save(monitor, active_item_with_input.get().getTabPane().getScene().getWindow())));
 
         final MenuItem file_save_as = new MenuItem(Messages.SaveAs, ImageCache.getImageView(getClass(), "/icons/saveas_edit.png"));
-        file_save_as.setOnAction(event ->JobManager.schedule(Messages.SaveAs, monitor -> active_item_with_input.get().save_as(monitor)));
+        file_save_as.setOnAction(event -> JobManager.schedule(Messages.SaveAs, monitor -> active_item_with_input.get().save_as(monitor, active_item_with_input.get().getTabPane().getScene().getWindow())));
 
         final MenuItem exit = new MenuItem(Messages.Exit);
-        exit.setOnAction(event ->
-        {
-            if (closeMainStage(null))
-                stop();
-        });
+        exit.setOnAction(event -> closeMainStage());
 
         final Menu file = new Menu(Messages.File, null,
-                                   open,
-                                   open_with,
-                                   top_resources_menu,
-                                   new SeparatorMenuItem(),
-                                   file_save,
-                                   file_save_as,
-                                   new SeparatorMenuItem(),
-                                   exit);
+                open,
+                open_with,
+                top_resources_menu,
+                new SeparatorMenuItem(),
+                file_save,
+                file_save_as,
+                new SeparatorMenuItem(),
+                exit);
         file.setOnShowing(event ->
         {
             final DockItemWithInput input_item = active_item_with_input.get();
-            if (input_item == null)
-            {
+            if (input_item == null) {
                 file_save.setDisable(true);
                 file_save_as.setDisable(true);
-            }
-            else
-            {
-                file_save.setDisable(! input_item.isDirty());
-                file_save_as.setDisable(! input_item.isSaveAsSupported());
+            } else {
+                file_save.setDisable(!input_item.isDirty());
+                file_save_as.setDisable(!input_item.isSaveAsSupported());
             }
         });
         menuBar.getMenus().add(file);
@@ -440,33 +536,36 @@ public class PhoebusApplication extends Application {
         // Window
         show_tabs = new CheckMenuItem(Messages.AlwaysShowTabs);
         show_tabs.setSelected(DockPane.isAlwaysShowingTabs());
-        show_tabs.setOnAction(event ->  DockPane.alwaysShowTabs(show_tabs.isSelected()));
+        show_tabs.setOnAction(event -> DockPane.alwaysShowTabs(show_tabs.isSelected()));
+
 
         show_toolbar = new CheckMenuItem(Messages.ShowToolbar);
         show_toolbar.setOnAction(event -> showToolbar(show_toolbar.isSelected()));
 
-        save_layout = new SaveLayoutMenuItem(this, memento_files);
-        delete_layouts = new DeleteLayoutsMenuItem(this, memento_files);
+        show_statusbar = new CheckMenuItem(Messages.ShowStatusbar);
+        show_statusbar.setOnAction(event -> showStatusbar(show_statusbar.isSelected()));
+
+        save_layout = new MenuItem(Messages.SaveLayoutAs, ImageCache.getImageView(getClass(), "/icons/new_layout.png"));
+        save_layout.setOnAction(event -> SaveLayoutHelper.saveLayout(DockStage.getDockStages(), Messages.SaveLayoutAs));
+
+        delete_layouts = new DeleteLayoutsMenuItem();
 
         final Menu menu = new Menu(Messages.Window, null,
                 show_tabs,
                 show_toolbar,
+                show_statusbar,
+                new SeparatorMenuItem(),
+                selectTabMenu,
+                closeAllTabsMenuItem,
                 new SeparatorMenuItem(),
                 save_layout,
                 load_layout,
+                add_layout,
                 delete_layouts,
                 new SeparatorMenuItem(),
                 /* Full Screen placeholder */
                 new FullScreenAction(stage));
-        // Update Full screen action when shown to get correct enter/exit FS mode
-        menu.setOnShowing(event ->
-        {   // Last menu item
-            final int full_screen_index = menu.getItems().size()-1;
-            final FullScreenAction full_screen = new FullScreenAction(stage);
-            if (! AuthorizationService.hasAuthorization("full_screen"))
-                full_screen.setDisable(true);
-            menu.getItems().set(full_screen_index, full_screen);
-        });
+
         menuBar.getMenus().add(menu);
 
         // Help
@@ -474,12 +573,38 @@ public class PhoebusApplication extends Application {
         final MenuItem about = createMenuItem(new OpenAbout());
         menuBar.getMenus().add(new Menu(Messages.Help, null, about, content));
 
+        selectTabMenu.getParentMenu().setOnShowing(e -> {
+            List<MenuItem> menuItems = new ArrayList<>();
+            for (Stage s : DockStage.getDockStages()) {
+                for (DockPane dockPane : DockStage.getDockPanes(s)) {
+                    for (DockItem dockItem : dockPane.getDockItems()) {
+                        CheckMenuItem menuItem = new CheckMenuItem(dockItem.getLabel());
+                        menuItem.setSelected(dockItem.isSelected());
+                        menuItem.setOnAction(ae -> dockItem.select());
+                        menuItems.add(menuItem);
+                    }
+                }
+            }
+            menuItems.sort(Comparator.comparing(MenuItem::getText));
+            selectTabMenu.getItems().clear();
+            selectTabMenu.getItems().addAll(menuItems);
+
+            // Update Full screen action when shown to get correct enter/exit FS mode
+            final int full_screen_index = menu.getItems().size() - 1;
+            final FullScreenAction full_screen = new FullScreenAction(stage);
+            if (!AuthorizationService.hasAuthorization("full_screen"))
+                full_screen.setDisable(true);
+            menu.getItems().set(full_screen_index, full_screen);
+        });
+
+        closeAllTabsMenuItem.setOnAction(ae -> closeAllTabs());
         return menuBar;
     }
 
-    /** Create the load past layouts menu */
-    void createLoadLayoutsMenu()
-    {
+    /**
+     * Create the load past layouts menu
+     */
+    void createLoadLayoutsMenu() {
         // Schedule on background thread. Looking for files so can't be on UI thread.
         JobManager.schedule("Create Load Layouts Menu", (monitor) ->
         {
@@ -488,81 +613,109 @@ public class PhoebusApplication extends Application {
 
             final List<MenuItem> menuItemList = new ArrayList<>();
             final List<MenuItem> toolbarMenuItemList = new ArrayList<>();
+            final List<MenuItem> addLayoutMenuItemList = new ArrayList<>();
+
+            final Map<String, File> layoutFiles = new HashMap<String, File>();
 
             // Get every file in the default directory.
             final File dir = new File(Locations.user().getAbsolutePath());
-            final File[] filesArray = dir.listFiles();
-            // For every non default memento file create a menu item for the load layout menu.
-            if (filesArray != null)
-            {
-                // Sort layout files alphabetically.
-                Arrays.sort(filesArray, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+            final File[] userLayoutFiles = dir.listFiles();
+            if (userLayoutFiles != null) {
+                Arrays.stream(userLayoutFiles).forEach(file -> {
+                    layoutFiles.put(file.getName(), file);
+                });
+            }
 
-                for (final File file : filesArray)
-                {
-                    String filename = file.getName();
-                    // Skip "memento", the default. Only list SOME_NAME.memento
-                    if (file.isFile() && filename.endsWith(".memento"))
-                    {
-                        // Remove ".memento"
-                        filename = filename.substring(0, filename.length() - 8);
-
-                        // Build the list of memento files.
-                        memento_files.add(filename);
-                        final MenuItem menuItem = new MenuItem(filename);
-                        menuItem.setMnemonicParsing(false);
-                        menuItem.setOnAction(event -> startLayoutReplacement(file));
-                        // Add the item to the load layout menu.
-                        menuItemList.add(menuItem);
-
-                        // Repeat for the same menu in the toolbar. They can't share menu items.
-                        final MenuItem toolbarMenuItem = new MenuItem(filename);
-                        toolbarMenuItem.setMnemonicParsing(false);
-                        toolbarMenuItem.setOnAction(event -> startLayoutReplacement(file));
-                        toolbarMenuItemList.add(toolbarMenuItem);
+            // Get every momento file from the configured layout
+            if (Preferences.layout_dir != null && !Preferences.layout_dir.isBlank()) {
+                final File layoutDir = new File(Preferences.layout_dir);
+                if (layoutDir.exists()) {
+                    final File[] systemLayoutFiles = layoutDir.listFiles();
+                    if (systemLayoutFiles != null) {
+                        Arrays.stream(systemLayoutFiles).forEach(file -> {
+                            if (!layoutFiles.containsKey(file.getName()) && file.getName().endsWith(".memento")) {
+                                layoutFiles.put(file.getName(), file);
+                            }
+                        });
                     }
                 }
             }
 
+
+            // For every non default memento file create a menu item for the load layout menu.
+            if (!layoutFiles.keySet().isEmpty()) {
+                // Sort layout files alphabetically.
+                layoutFiles.keySet().stream().sorted((a, b) -> a.compareToIgnoreCase(b))
+                        .forEach(key -> {
+
+                            File file = layoutFiles.get(key);
+                            String filename = file.getName();
+                            // Skip "memento", the default. Only list SOME_NAME.memento
+                            if (file.isFile() && filename.endsWith(".memento")) {
+                                // Remove ".memento"
+                                filename = filename.substring(0, filename.length() - 8);
+
+                                // Build the list of memento files.
+                                memento_files.add(filename);
+                                final MenuItem menuItem = new MenuItem(filename);
+                                menuItem.setMnemonicParsing(false);
+                                menuItem.setOnAction(event -> startLayoutReplacement(file));
+                                // Add the item to the load layout menu.
+                                menuItemList.add(menuItem);
+
+                                // Repeat for the same menu in the toolbar. They can't share menu items.
+                                final MenuItem toolbarMenuItem = new MenuItem(filename);
+                                toolbarMenuItem.setMnemonicParsing(false);
+                                toolbarMenuItem.setOnAction(event -> startLayoutReplacement(file));
+                                toolbarMenuItemList.add(toolbarMenuItem);
+
+                                // Create menu for adding a layout:
+                                final MenuItem addLayoutMenuItem = new MenuItem(filename);
+                                addLayoutMenuItem.setMnemonicParsing(false);
+                                addLayoutMenuItem.setOnAction(event -> startAddingLayout(file));
+                                addLayoutMenuItemList.add(addLayoutMenuItem);
+                            }
+                        });
+            }
+
             // Update the menu with the menu items on the UI thread.
-            Platform.runLater(()->
+            Platform.runLater(() ->
             {
                 load_layout.getItems().setAll(menuItemList);
+                add_layout.getItems().setAll(addLayoutMenuItemList);
                 layout_menu_button.getItems().setAll(toolbarMenuItemList);
                 delete_layouts.setDisable(memento_files.isEmpty());
             });
         });
     }
 
-    /** @param entry {@link MenuEntry}
-     *  @return {@link MenuItem}
+    /**
+     * @param entry {@link MenuEntry}
+     * @return {@link MenuItem}
      */
-    private MenuItem createMenuItem(final MenuEntry entry)
-    {
+    private MenuItem createMenuItem(final MenuEntry entry) {
         final MenuItem item = new MenuItem(entry.getName());
         final Image icon = entry.getIcon();
         if (icon != null)
             item.setGraphic(new ImageView(icon));
         item.setOnAction(event ->
         {
-            try
-            {
+            try {
                 entry.call();
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 logger.log(Level.WARNING, "Error invoking menu " + entry.getName(), ex);
             }
         });
         return item;
     }
 
-    /** Open file dialog to open a resource
-     *  @param stage Parent stage
-     *  @param prompt Prompt for application (if there are multiple options), or use default app?
+    /**
+     * Open file dialog to open a resource
+     *
+     * @param stage  Parent stage
+     * @param prompt Prompt for application (if there are multiple options), or use default app?
      */
-    private void fileOpen(final Stage stage, final boolean prompt)
-    {
+    private void fileOpen(final Stage stage, final boolean prompt) {
         final File the_file = new OpenFileDialog().promptForFile(stage, Messages.Open, last_opened_file, null);
         if (the_file == null)
             return;
@@ -570,11 +723,12 @@ public class PhoebusApplication extends Application {
         openResource(ResourceParser.getURI(the_file), prompt);
     }
 
-    /** Fill the {@link #top_resources_menu} and {@link #top_resources_button} */
-    private void createTopResourcesMenu()
-    {
+    /**
+     * Fill the {@link #top_resources_menu} and {@link #top_resources_button}
+     */
+    private void createTopResourcesMenu() {
         // Create top resources menu items off UI thread
-        JobManager.schedule("Get top resources", monitor->
+        JobManager.schedule("Get top resources", monitor ->
         {
             final TopResources tops = TopResources.parse(Preferences.top_resources);
             final int N = tops.size();
@@ -582,8 +736,7 @@ public class PhoebusApplication extends Application {
                 return;
             final MenuItem[] menu_items = new MenuItem[N];
             final MenuItem[] toolbar_items = new MenuItem[N];
-            for (int i=0; i<N; ++i)
-            {
+            for (int i = 0; i < N; ++i) {
                 final String description = tops.getDescription(i);
                 final URI resource = tops.getResource(i);
 
@@ -595,11 +748,9 @@ public class PhoebusApplication extends Application {
 
                 // Lookup application icon
                 final AppResourceDescriptor application = findApplication(resource, false);
-                if (application != null)
-                {
+                if (application != null) {
                     final Image icon = ImageCache.getImage(application.getIconURL());
-                    if (icon != null)
-                    {
+                    if (icon != null) {
                         menu_items[i].setGraphic(new ImageView(icon));
                         toolbar_items[i].setGraphic(new ImageView(icon));
                     }
@@ -666,8 +817,7 @@ public class PhoebusApplication extends Application {
             final Image icon = entry.getIcon();
             if (icon == null)
                 button.setText(entry.getName());
-            else
-            {
+            else {
                 button.setGraphic(new ImageView(icon));
                 button.setTooltip(new Tooltip(entry.getName()));
             }
@@ -709,51 +859,80 @@ public class PhoebusApplication extends Application {
         return toolBar;
     }
 
-    /** @return <code>true</code> if toolbar is visible */
-    boolean isToolbarVisible()
-    {
+    /**
+     * @return <code>true</code> if menu is visible
+     */
+    boolean isMenuVisible() {
+        final BorderPane layout = DockStage.getLayout(main_stage);
+        final VBox top = (VBox) layout.getTop();
+        return top.getChildren().contains(menuBar);
+    }
+
+    private void showMenu(final boolean show) {
+        final BorderPane layout = DockStage.getLayout(main_stage);
+        final VBox top = (VBox) layout.getTop();
+        if (show) {
+            if (!top.getChildren().contains(menuBar))
+                top.getChildren().add(0, menuBar);
+        } else
+            top.getChildren().remove(menuBar);
+    }
+
+    /**
+     * @return <code>true</code> if toolbar is visible
+     */
+    boolean isToolbarVisible() {
         final BorderPane layout = DockStage.getLayout(main_stage);
         final VBox top = (VBox) layout.getTop();
         return top.getChildren().contains(toolbar);
     }
 
-    private void showToolbar(final boolean show)
-    {
+    /**
+     * @return <code>true</code> if status bar is visible
+     */
+    boolean isStatusbarVisible() {
+        final BorderPane layout = DockStage.getLayout(main_stage);
+        return layout.getBottom() == StatusBar.getInstance();
+    }
+
+    private void showToolbar(final boolean show) {
         final BorderPane layout = DockStage.getLayout(main_stage);
         final VBox top = (VBox) layout.getTop();
-        if (show)
-        {
-            if (! top.getChildren().contains(toolbar))
-            {
+        if (show) {
+            if (!top.getChildren().contains(toolbar)) {
                 // Reload layouts menu on showing.
                 createLoadLayoutsMenu();
                 top.getChildren().add(toolbar);
             }
-        }
-        else
+        } else
             top.getChildren().remove(toolbar);
     }
 
-    /** @param resource Resource
-     *  @param prompt Prompt if there are multiple applications, or use first one?
-     *  @return Application for opening resource, or <code>null</code> if none found
+    private void showStatusbar(final boolean show) {
+        final BorderPane layout = DockStage.getLayout(main_stage);
+        if (show)
+            layout.setBottom(StatusBar.getInstance());
+        else
+            layout.setBottom(null);
+    }
+
+    /**
+     * @param resource Resource
+     * @param prompt   Prompt if there are multiple applications, or use first one?
+     * @return Application for opening resource, or <code>null</code> if none found
      */
-    private AppResourceDescriptor findApplication(final URI resource, final boolean prompt)
-    {
+    private AppResourceDescriptor findApplication(final URI resource, final boolean prompt) {
         // Does resource request a specific application?
         final String app_name = ResourceParser.getAppName(resource);
-        if (app_name != null)
-        {
+        if (app_name != null) {
             final AppDescriptor app = ApplicationService.findApplication(app_name);
-            if (app == null)
-            {
+            if (app == null) {
                 logger.log(Level.WARNING, "Unknown application '" + app_name + "'");
                 return null;
             }
             if (app instanceof AppResourceDescriptor)
                 return (AppResourceDescriptor) app;
-            else
-            {
+            else {
                 logger.log(Level.WARNING, "'" + app_name + "' application does not handle resources");
                 return null;
             }
@@ -761,8 +940,7 @@ public class PhoebusApplication extends Application {
 
         // Check all applications
         final List<AppResourceDescriptor> applications = ApplicationService.getApplications(resource);
-        if (applications.isEmpty())
-        {
+        if (applications.isEmpty()) {
             logger.log(Level.WARNING, "No application found for opening " + resource);
             return null;
         }
@@ -772,8 +950,7 @@ public class PhoebusApplication extends Application {
             return applications.get(0);
 
         // Pick default application based on preference setting?
-        if (! prompt)
-        {
+        if (!prompt) {
             for (AppResourceDescriptor app : applications)
                 for (String part : Preferences.default_apps)
                     if (app.getName().contains(part))
@@ -791,7 +968,7 @@ public class PhoebusApplication extends Application {
         which.setWidth(300);
         which.setHeight(300);
         final Optional<String> result = which.showAndWait();
-        if (! result.isPresent())
+        if (!result.isPresent())
             return null;
         default_application = result.get();
         return applications.get(options.indexOf(result.get()));
@@ -799,42 +976,30 @@ public class PhoebusApplication extends Application {
 
     /**
      * @param resource Resource received as command line argument
-     *  @param prompt Prompt if there are multiple applications, or use first one?
+     * @param prompt   Prompt if there are multiple applications, or use first one?
      */
-    private void openResource(final URI resource, final boolean prompt)
-    {
+    private void openResource(final URI resource, final boolean prompt) {
         final AppResourceDescriptor application = findApplication(resource, prompt);
         if (application == null)
             return;
 
         final String query = resource.getQuery();
 
-        if (query != null)
-        {
+        if (query != null) {
             // Query could contain _anything_, to be used by the application.
             // Perform a simplistic search for "target=window" or "target=pane_name".
             final int i = query.indexOf("target=");
-            if (i >= 0)
-            {
-                int end = query.indexOf('&', i+7);
+            if (i >= 0) {
+                int end = query.indexOf('&', i + 7);
                 if (end < 0)
                     end = query.length();
-                final String target = query.substring(i+7, end);
-                if (target.equals("window"))
-                {
-                    // Open new Stage in which this app will be opened
-                    final Stage new_stage = new Stage();
-                    DockStage.configureStage(new_stage);
-                    new_stage.show();
-                }
-                else
-                {
+                final String target = query.substring(i + 7, end);
+                if (!target.startsWith("window")) {
                     // Should the new panel open in a specific, named pane?
                     final DockPane existing = DockStage.getDockPaneByName(target);
                     if (existing != null)
                         DockPane.setActiveDockPane(existing);
-                    else
-                    {
+                    else {
                         // Open new Stage with pane for that name
                         final Stage new_stage = new Stage();
                         DockStage.configureStage(new_stage);
@@ -852,18 +1017,18 @@ public class PhoebusApplication extends Application {
     /**
      * Launch application
      *
-     * @param appName
-     *            Application name received as '-app ..' command line argument
+     * @param appName Application name received as '-app ..' command line argument
      */
     private void launchApp(final String appName) {
         ApplicationService.createInstance(appName);
     }
 
-    /** Initiate replacing current layout with a different one
-     *  @param memento_file Memento for the desired layout
+    /**
+     * Initiate replacing current layout with a different one
+     *
+     * @param memento_file Memento for the desired layout
      */
-    private void startLayoutReplacement(final File memento_file)
-    {
+    private void startLayoutReplacement(final File memento_file) {
         JobManager.schedule(memento_file.getName(), monitor ->
         {
             // Load memento in background
@@ -875,74 +1040,164 @@ public class PhoebusApplication extends Application {
         });
     }
 
-    /** @param memento Memento for new layout that should replace current one */
-    private void replaceLayout(final MementoTree memento)
-    {
+    /**
+     * Initiate adding a layout to the current layout
+     *
+     * @param mementoFile Memento for the desired layout
+     */
+    private void startAddingLayout(File mementoFile) {
+        JobManager.schedule(mementoFile.getName(), monitor ->
+        {
+            MementoTree mementoTree;
+            try {
+                mementoTree = loadMemento(mementoFile);
+            } catch (FileNotFoundException fileNotFoundException) {
+                logger.log(Level.SEVERE, "Unable to add a layout to the existing layout due to an error when opening the file '" + mementoFile.getAbsolutePath() + "'.");
+                return;
+            } catch (Exception exception) {
+                logger.log(Level.SEVERE, "Unable to add a layout to the existing layout due to an error when parsing the file '" + mementoFile.getAbsolutePath() + "'.");
+                return;
+            }
+            Platform.runLater(() -> addLayoutToCurrentLayout(mementoTree));
+        });
+    }
+
+    /**
+     * @param memento Memento for new layout that should replace current one
+     */
+    private void replaceLayout(final MementoTree memento) {
         final List<Stage> stages = DockStage.getDockStages();
 
         // To switch layout, 'fixed' panes must be cleared
         for (Stage stage : stages)
             DockStage.clearFixedPanes(stage);
 
-        // Remove the main stage from the list of stages to close.
-        stages.remove(main_stage);
+        JobManager.schedule("Close all stages", monitor ->
+        {
+            boolean shouldReplaceLayout = confirmationDialogWhenUnsavedChangesExist(stages,
+                                                                                    Messages.UnsavedChanges_wouldYouLikeToSaveAnyChangesBeforeReplacingTheLayout,
+                                                                                    Messages.UnsavedChanges_replace,
+                                                                                    main_stage,
+                                                                                    monitor);
 
-        // If any stages failed to close, return.
-        if (!closeStages(stages))
-            return;
+            if (shouldReplaceLayout) {
+                for (Stage stage : stages) {
+                    if (!DockStage.prepareToCloseItems(stage)) {
+                        return;
+                    }
+                }
 
-        // Go into the main stage and close all of the tabs. If any of them refuse, return.
-        final Node node = DockStage.getPaneOrSplit(main_stage);
-        if (! MementoHelper.closePaneOrSplit(node))
-            return;
+                // All stages OK to close
+                Platform.runLater(() ->
+                {
+                    for (Stage stage : stages) {
+                        DockStage.closeItems(stage);
+                        // Don't wait for Platform.runLater-based tab handlers
+                        // that will merge splits and eventually close the empty panes,
+                        // but close all non-main stages right away
+                        if (stage != main_stage)
+                            stage.close();
+                    }
 
-        // Allow handlers for tab changes etc. to run as everything closed.
+                    // Go into the main stage and close all of the tabs. If any of them refuse, return.
+                    final Node node = DockStage.getPaneOrSplit(main_stage);
+                    if (!MementoHelper.closePaneOrSplit(node))
+                        return;
 
-        // On next UI tick, load content from memento file.
-        Platform.runLater(() -> restoreState(memento));
+                    // Allow handlers for tab changes etc. to run as everything closed.
+                    // On next UI tick, load content from memento file.
+                    Platform.runLater(() -> restoreState(memento));
+                });
+            }
+        });
     }
 
-    /** @param monitor {@link JobMonitor}
-     *  @return Memento for previously persisted state or <code>null</code> if none found
+    /**
+     * @param parameters Command line parameters that may contain '-layout /path/to/Example.memento'
+     * @param monitor    {@link JobMonitor}
+     * @return Memento for previously persisted state or <code>null</code> if none found
      */
-    private MementoTree loadDefaultMemento(final JobMonitor monitor)
-    {
+    private MementoTree loadDefaultMemento(final List<String> parameters, final JobMonitor monitor) {
         monitor.beginTask(Messages.MonitorTaskPers, 1);
-        final File memfile = XMLMementoTree.getDefaultFile();
-        try
-        {
-            if (memfile.canRead())
-            {
+        File memfile = XMLMementoTree.getDefaultFile();
+        try {
+            for (int i = 0; i < parameters.size(); ++i)
+                if ("-layout".equals(parameters.get(i))) {
+                    if (i >= parameters.size() - 1)
+                        throw new Exception("Missing /path/to/Example.memento for -layout option");
+                    // Restoring a specific layout, even if empty, disables the 'Welcome' tab
+                    show_welcome = false;
+                    memfile = new File(parameters.get(i + 1));
+                    // Remove -layout and path because they have been handled
+                    parameters.remove(i + 1);
+                    parameters.remove(i);
+                    break;
+                }
+            if (memfile.canRead()) {
                 logger.log(Level.INFO, "Loading state from " + memfile);
                 return loadMemento(memfile);
-            }
-        }
-        catch (Exception ex)
-        {
+            } else
+                logger.log(Level.WARNING, "Cannot load state from " + memfile + ", no such file");
+        } catch (Exception ex) {
             logger.log(Level.SEVERE, "Error restoring saved state from " + memfile, ex);
-        }
-        finally
-        {
+        } finally {
             monitor.done();
         }
         return null;
     }
 
-    /** Load the contents of an XML memento file into a MementoTree.
-     *  @param memfile Memento file.
-     *  @return {@link MementoTree}
-     *  @throws Exception on error
+    /**
+     * Load the contents of an XML memento file into a MementoTree.
+     *
+     * @param memfile Memento file.
+     * @return {@link MementoTree}
+     * @throws Exception on error
      */
-    private MementoTree loadMemento(final File memfile) throws Exception
-    {
+    private MementoTree loadMemento(final File memfile) throws Exception {
         return XMLMementoTree.read(new FileInputStream(memfile));
     }
 
-    /** Restore stages from memento
-     *  @return <code>true</code> if any tab was restored
+    /**
+     * Adds a layout from a MementoTree to the current layout.
      */
-    private boolean restoreState(final MementoTree memento)
-    {
+    private void addLayoutToCurrentLayout(MementoTree mementoTree) {
+
+        List<Runnable> restoreSelectedTabFunctions = new LinkedList<>();
+        for (Stage stage : DockStage.getDockStages()) {
+            for (DockPane pane : DockStage.getDockPanes(stage)) {
+                DockItem tab = (DockItem) pane.getSelectionModel().getSelectedItem();
+                restoreSelectedTabFunctions.add(() -> tab.select());
+            }
+        }
+
+        List<Runnable> focusNewlyCreatedStageFunctions = new LinkedList<>();
+        for (MementoTree childMementoTree : mementoTree.getChildren()) {
+            Stage stage = new Stage();
+            DockStage.configureStage(stage);
+            MementoHelper.restoreStage(childMementoTree, stage);
+
+            DockStage.deferUntilAllPanesOfStageHaveScenes(stage, () ->
+            {
+                long numberOfRestoredTabsInStage = DockStage.getDockPanes(stage).stream()
+                                                            .flatMap(pane -> pane.getTabs().stream())
+                                                            .count();
+                if (numberOfRestoredTabsInStage > 0) {
+                    focusNewlyCreatedStageFunctions.add(() -> stage.requestFocus());
+                } else {
+                    stage.close();
+                }
+                restoreSelectedTabFunctions.forEach(f -> f.run());
+                focusNewlyCreatedStageFunctions.forEach(f -> f.run());
+            });
+        }
+    }
+
+    /**
+     * Restore stages from memento
+     *
+     * @return <code>true</code> if any tab was restored
+     */
+    private boolean restoreState(final MementoTree memento) {
         boolean any = false;
 
         if (memento == null)
@@ -950,11 +1205,10 @@ public class PhoebusApplication extends Application {
 
         // There should be just one, empty stage
         final List<Stage> stages = DockStage.getDockStages();
-        if (stages.size() > 1  ||
-            stages.stream().map(DockStage::getDockPanes).count() > 1)
-        {
+        if (stages.size() > 1 ||
+                stages.stream().map(DockStage::getDockPanes).count() > 1) {
             // More than one stage, or a stage with more than one pane
-            logger.log(Level.WARNING, "Expected single, empty stage for restoring state");
+            logger.log(Level.WARNING, "Expected single, empty stage for restoring state", new Exception("Stack Trace"));
             final StringBuilder buf = new StringBuilder();
             buf.append("Found:\n");
             for (Stage stage : stages)
@@ -962,10 +1216,7 @@ public class PhoebusApplication extends Application {
             logger.log(Level.WARNING, buf.toString());
         }
 
-        createLoadLayoutsMenu();
-
-        try
-        {
+        try {
             // Global settings
             memento.getString(LAST_OPENED_FILE).ifPresent(path -> last_opened_file = new File(path));
             memento.getString(DEFAULT_APPLICATION).ifPresent(app -> default_application = app);
@@ -974,15 +1225,20 @@ public class PhoebusApplication extends Application {
                 DockPane.alwaysShowTabs(show);
                 show_tabs.setSelected(show);
             });
+            memento.getBoolean(SHOW_MENU).ifPresent(this::showMenu);
             memento.getBoolean(SHOW_TOOLBAR).ifPresent(show ->
             {
                 showToolbar(show);
                 show_toolbar.setSelected(show);
             });
+            memento.getBoolean(SHOW_STATUSBAR).ifPresent(show ->
+            {
+                showStatusbar(show);
+                show_statusbar.setSelected(show);
+            });
 
             // Settings for each stage
-            for (MementoTree stage_memento : memento.getChildren())
-            {
+            for (MementoTree stage_memento : memento.getChildren()) {
                 final String id = stage_memento.getName();
                 Stage stage = DockStage.getDockStageByID(id);
                 if (stage == null) {
@@ -995,96 +1251,402 @@ public class PhoebusApplication extends Application {
 
                 any |= MementoHelper.restoreStage(stage_memento, stage);
             }
-        }
-        catch (Throwable ex) {
+        } catch (Throwable ex) {
             logger.log(Level.WARNING, "Error restoring saved state", ex);
         }
         return any;
     }
 
-    /** Close the main stage
+    /**
+     * Close the main stage
      *
-     *  <p>If there are more stages open, warn user that they will be closed.
+     * <p>If there are more stages open, warn user that they will be closed.
      *
-     *  <p>When called from the onCloseRequested handler of the primary stage, we must
-     *  _not_ send another close request to it because that would create an infinite
-     *  loop.
-     *
-     *  @param main_stage_already_closing
-     *            Primary stage when called from its onCloseRequested handler, else <code>null</code>
-     *  @return <code>true</code> on success, <code>false</code> when some panel doesn't want to close
+     * <p>Then save memento, close _all_ stages and stop application.
      */
-    private boolean closeMainStage(final Stage main_stage_already_closing)
-    {
+    private void closeMainStage() {
         final List<Stage> stages = DockStage.getDockStages();
 
-        if (stages.size() > 1)
-        {
+        // If there are other stages still open,
+        // closing them all might be unexpected to the user,
+        // so prompt for confirmation.
+        if (stages.size() > 1) {
             final Alert dialog = new Alert(AlertType.CONFIRMATION);
             dialog.setTitle(Messages.ExitTitle);
             dialog.setHeaderText(Messages.ExitHdr);
             dialog.setContentText(Messages.ExitContent);
             DialogHelper.positionDialog(dialog, stages.get(0).getScene().getRoot(), -200, -200);
             if (dialog.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK)
-                return false;
+                return;
         }
-
-        // If called from the main stage that's already about to close,
-        // skip that one when closing all stages
-        if (main_stage_already_closing != null)
-            stages.remove(main_stage_already_closing);
 
         // Save current state, _before_ tabs are closed and thus
         // there's nothing left to save
         final File memfile = XMLMementoTree.getDefaultFile();
-        MementoHelper.saveState(memfile, last_opened_file, default_application, isToolbarVisible());
+        MementoHelper.saveState(DockStage.getDockStages(), memfile, last_opened_file, default_application, isMenuVisible(), isToolbarVisible(), isStatusbarVisible());
 
-        if (!closeStages(stages))
-            return false;
-
-        // Once all other stages are closed,
-        // potentially check the main stage.
-        if (main_stage_already_closing != null && !DockStage.isStageOkToClose(main_stage_already_closing))
-            return false;
-        return true;
-    }
-
-    /** Close several stages
-     *  @param stages_to_check  Stages that will be asked to close
-     *  @return <code>true</code> if all stages closed,
-     *          <code>false</code> if one stage didn't want to close.
-     */
-    private boolean closeStages(final List<Stage> stages_to_check)
-    {
-        for (Stage stage : stages_to_check)
-        {
-            // Could close via event, but then still need to check if the stage remained open
-            // stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
-            if (DockStage.isStageOkToClose(stage))
-                stage.close();
-            else
-                return false;
+        // TODO Necessary to close main_stage last?
+        if (stages.contains(main_stage)) {
+            stages.remove(main_stage);
+            stages.add(main_stage);
         }
-        return true;
+
+        JobManager.schedule("Close all stages", monitor ->
+        {
+            boolean shouldExit = confirmationDialogWhenUnsavedChangesExist(stages,
+                                                                           Messages.UnsavedChanges_wouldYouLikeToSaveAnyChangesBeforeExiting,
+                                                                           Messages.UnsavedChanges_exit,
+                                                                           main_stage,
+                                                                           monitor);
+
+            if (shouldExit) {
+                for (Stage stage : stages)
+                    if (!DockStage.prepareToCloseItems(stage)) {
+                        return;
+                    }
+
+                exitPhoebus();
+            }
+        });
     }
+
+    private static SortedMap<String, List<DockItemWithInput>> listOfDockItems2ApplicationNameToDockItemsWithInput(List<DockItem> dockItems) {
+        SortedMap<String, List<DockItemWithInput>> applicationNameToDockItemsWithInput = new TreeMap<>();
+        for (DockItem dockItem : dockItems) {
+            if (dockItem instanceof DockItemWithInput) {
+                DockItemWithInput dockItemWithInput = (DockItemWithInput) dockItem;
+                if (dockItemWithInput.isDirty()) {
+                    String applicationName = dockItemWithInput.getApplication().getAppDescriptor().getDisplayName();
+                    if (!applicationNameToDockItemsWithInput.containsKey(applicationName)) {
+                        applicationNameToDockItemsWithInput.put(applicationName, new LinkedList<>());
+                    }
+
+                    applicationNameToDockItemsWithInput.get(applicationName).add(dockItemWithInput);
+                }
+            }
+        }
+        return applicationNameToDockItemsWithInput;
+    }
+
+    private static SortedMap<String, SortedMap<String, List<DockItemWithInput>>> stages2WindowNameToApplicationNameToDockItemsWithInput(List<Stage> stages) {
+        SortedMap<String, SortedMap<String, List<DockItemWithInput>>> windowNameToApplicationNameToDockItemsWithInput = new TreeMap<>();
+        {
+            int currentWindowNr = 1;
+
+            for (Stage stage : stages) {
+                String currentWindowName;
+                if (stage == DockStage.getDockStages().get(0)) {
+                    currentWindowName = Messages.UnsavedChanges_mainWindow;
+                }
+                else {
+                    currentWindowName = Messages.UnsavedChanges_secondaryWindow + " " + currentWindowNr;
+                    currentWindowNr++;
+                }
+
+                List<DockItem> dockItems = DockStage.getDockPanes(stage).stream().flatMap(dockPane -> dockPane.getDockItems().stream()).collect(Collectors.toList());
+                SortedMap<String, List<DockItemWithInput>> applicationNameToDockItemsWithInput = PhoebusApplication.listOfDockItems2ApplicationNameToDockItemsWithInput(dockItems);
+                windowNameToApplicationNameToDockItemsWithInput.put(currentWindowName, applicationNameToDockItemsWithInput);
+            }
+        }
+        return windowNameToApplicationNameToDockItemsWithInput;
+    }
+
+    public static boolean confirmationDialogWhenUnsavedChangesExist(Stage stage,
+                                                                    String question,
+                                                                    String closeActionName,
+                                                                    JobMonitor monitor) throws ExecutionException, InterruptedException {
+        List<DockItem> dockItems = DockStage.getDockPanes(stage).stream().flatMap(dockPane -> dockPane.getDockItems().stream()).collect(Collectors.toList());
+        SortedMap<String, List<DockItemWithInput>> applicationNameToDockItemsWithInput = PhoebusApplication.listOfDockItems2ApplicationNameToDockItemsWithInput(dockItems);
+        SortedMap<String, SortedMap<String, List<DockItemWithInput>>> windowNameToApplicationNameToDockItemsWithInput = new TreeMap<>();
+        windowNameToApplicationNameToDockItemsWithInput.put("Window", applicationNameToDockItemsWithInput);
+
+        return confirmationDialogWhenUnsavedChangesExist(windowNameToApplicationNameToDockItemsWithInput,
+                                                         question,
+                                                         closeActionName,
+                                                         stage,
+                                                         monitor);
+    }
+
+    public static boolean confirmationDialogWhenUnsavedChangesExist(ArrayList<DockItem> dockItems, // "ArrayList<DockItem>" is used instead of "List<DockItem>" to prevent a conflict with "List<DockItem>" after type erasure.
+                                                                    String question,
+                                                                    String closeActionName,
+                                                                    Stage stage,
+                                                                    JobMonitor monitor) throws ExecutionException, InterruptedException {
+        SortedMap<String, List<DockItemWithInput>> applicationNameToDockItemsWithInput = PhoebusApplication.listOfDockItems2ApplicationNameToDockItemsWithInput(dockItems);
+        SortedMap<String, SortedMap<String, List<DockItemWithInput>>> windowNameToApplicationNameToDockItemsWithInput = new TreeMap<>();
+        windowNameToApplicationNameToDockItemsWithInput.put("Window", applicationNameToDockItemsWithInput);
+
+        return confirmationDialogWhenUnsavedChangesExist(windowNameToApplicationNameToDockItemsWithInput,
+                                                         question,
+                                                         closeActionName,
+                                                         stage,
+                                                         monitor);
+    }
+
+    public static boolean confirmationDialogWhenUnsavedChangesExist(List<Stage> stages,
+                                                                    String question,
+                                                                    String closeActionName,
+                                                                    Stage stage,
+                                                                    JobMonitor monitor) throws ExecutionException, InterruptedException {
+        return confirmationDialogWhenUnsavedChangesExist(stages2WindowNameToApplicationNameToDockItemsWithInput(stages),
+                                                         question,
+                                                         closeActionName,
+                                                         stage,
+                                                         monitor);
+    }
+
+    private enum SaveStatus {
+        SUCCESS,
+        FAILURE,
+        NOTHING
+    };
+
+    public static boolean confirmationDialogWhenUnsavedChangesExist(SortedMap<String, SortedMap<String, List<DockItemWithInput>>> windowNrToApplicationNameToDockItemsWithInput,
+                                                                    String question,
+                                                                    String closeActionName,
+                                                                    Stage stage,
+                                                                    JobMonitor monitor) throws ExecutionException, InterruptedException {
+
+            Stage stageToPositionTheConfirmationDialogOver;
+            if (stage != null) {
+                stageToPositionTheConfirmationDialogOver = stage;
+            }
+            else {
+                stageToPositionTheConfirmationDialogOver = INSTANCE.main_stage;
+            }
+
+            ButtonType clearSelectionOfCheckboxes = new ButtonType(Messages.UnsavedChanges_clearButtonText);
+            ButtonType selectAllCheckboxes = new ButtonType(Messages.UnsavedChanges_selectAllButtonText);
+            ButtonType saveSelectedItems = new ButtonType(Messages.UnsavedChanges_saveButtonText);
+            ButtonType exitPhoebusWithoutSavingUnsavedChanges = new ButtonType(Messages.UnsavedChanges_discardButtonText_discardAnd + " " + closeActionName);
+
+            FutureTask displayConfirmationWindow = new FutureTask(() -> {
+                Alert prompt = new Alert(AlertType.CONFIRMATION);
+
+                prompt.getDialogPane().getButtonTypes().remove(ButtonType.OK);
+                ((ButtonBar) prompt.getDialogPane().lookup(".button-bar")).setButtonOrder(ButtonBar.BUTTON_ORDER_NONE); // Set the button order manually (since they are non-standard)
+                prompt.getDialogPane().getButtonTypes().add(clearSelectionOfCheckboxes);
+                prompt.getDialogPane().getButtonTypes().add(selectAllCheckboxes);
+                prompt.getDialogPane().getButtonTypes().add(saveSelectedItems);
+                prompt.getDialogPane().getButtonTypes().add(exitPhoebusWithoutSavingUnsavedChanges);
+
+                Button cancel_button = (Button) prompt.getDialogPane().lookupButton(ButtonType.CANCEL);
+                cancel_button.setTooltip(new Tooltip(cancel_button.getText()));
+
+                Button clearSelectionOfCheckboxes_button = (Button) prompt.getDialogPane().lookupButton(clearSelectionOfCheckboxes);
+                clearSelectionOfCheckboxes_button.setTooltip(new Tooltip(clearSelectionOfCheckboxes_button.getText()));
+
+                Button selectAllCheckboxes_button = (Button) prompt.getDialogPane().lookupButton(selectAllCheckboxes);
+                selectAllCheckboxes_button.setTooltip(new Tooltip(selectAllCheckboxes_button.getText()));
+
+                Button saveSelectedItems_button = (Button) prompt.getDialogPane().lookupButton(saveSelectedItems);
+                saveSelectedItems_button.setTooltip(new Tooltip(saveSelectedItems_button.getText()));
+
+                Button exitPhoebusWithoutSavingUnsavedChanges_button = (Button) prompt.getDialogPane().lookupButton(exitPhoebusWithoutSavingUnsavedChanges);
+                exitPhoebusWithoutSavingUnsavedChanges_button.setTooltip(new Tooltip(exitPhoebusWithoutSavingUnsavedChanges_button.getText()));
+                List<Consumer<Boolean>> setCheckBoxStatusActions = new LinkedList<>();
+                List<Supplier<Boolean>> getCheckBoxStatusActions = new LinkedList<>();
+                List<Supplier<SaveStatus>> saveActions = new LinkedList<>();
+
+                Runnable enableAndDisableButtons = () -> {
+                    if (getCheckBoxStatusActions.stream().anyMatch(getCheckBoxStatus -> getCheckBoxStatus.get())) {
+                        clearSelectionOfCheckboxes_button.setDisable(false);
+                        saveSelectedItems_button.setDisable(false);
+                        exitPhoebusWithoutSavingUnsavedChanges_button.setDisable(true);
+                    }
+                    else {
+                        clearSelectionOfCheckboxes_button.setDisable(true);
+                        saveSelectedItems_button.setDisable(true);
+                        exitPhoebusWithoutSavingUnsavedChanges_button.setDisable(false);
+                    }
+
+                    if (getCheckBoxStatusActions.stream().allMatch(getCheckBoxStatus -> getCheckBoxStatus.get())) {
+                        selectAllCheckboxes_button.setDisable(true);
+                        saveSelectedItems_button.setText(Messages.UnsavedChanges_saveButtonText_saveAnd + " " + closeActionName);
+                        saveSelectedItems_button.setTooltip(new Tooltip(saveSelectedItems_button.getText()));
+                    }
+                    else {
+                        selectAllCheckboxes_button.setDisable(false);
+                        saveSelectedItems_button.setText(Messages.UnsavedChanges_saveButtonText);
+                        saveSelectedItems_button.setTooltip(new Tooltip(saveSelectedItems_button.getText()));
+                    }
+                };
+
+                GridPane gridPane = new GridPane();
+                gridPane.setVgap(4);
+                int currentRow = 0;
+                for (String windowName : windowNrToApplicationNameToDockItemsWithInput.keySet()) {
+                    var applicationNameToDockItemsWithInput = windowNrToApplicationNameToDockItemsWithInput.get(windowName);
+
+                    if (applicationNameToDockItemsWithInput.size() > 0) {    // Only print unsaved changes for a window if it actually containts any unsaved changes.
+                        if (windowNrToApplicationNameToDockItemsWithInput.size() >= 2) {    // Only print the window names if two or more windows are in the process of being closed.
+                            Text windowTitle = new Text(windowName);
+                            windowTitle.setStyle("-fx-font-size: 16; -fx-font-weight: bold");
+                            gridPane.add(windowTitle, 0, currentRow);
+                            currentRow++;
+                        }
+
+                        for (var applicationName : applicationNameToDockItemsWithInput.keySet()) {
+                            for (var dockItemWithInput : applicationNameToDockItemsWithInput.get(applicationName)) {
+                                CheckBox checkBox = new CheckBox();
+                                checkBox.selectedProperty().addListener((observableValue, old_value, new_value) -> enableAndDisableButtons.run());
+
+                                Text applicationName_text = new Text(applicationName + ":");
+                                applicationName_text.setStyle("-fx-font-weight: bold");
+                                Text instanceName_text = new Text(dockItemWithInput.getLabel());
+
+                                HBox hBox = new HBox(checkBox, applicationName_text, instanceName_text);
+                                hBox.setSpacing(4);
+                                gridPane.add(hBox, 0, currentRow);
+
+                                Consumer<Boolean> setCheckboxStatus = bool -> checkBox.setSelected(bool);
+                                setCheckBoxStatusActions.add(setCheckboxStatus);
+
+                                Supplier<Boolean> getCheckBoxStatus = () -> checkBox.isSelected();
+                                getCheckBoxStatusActions.add(getCheckBoxStatus);
+
+                                hBox.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseEvent -> checkBox.setSelected(!checkBox.isSelected())); // Enable toggling checkbox by clicking on its label.
+
+                                Supplier<SaveStatus> saveIfCheckboxEnabled = () -> {
+                                    if (checkBox.isSelected()) {
+
+                                        Text saving = new Text("[" + Messages.UnsavedChanges_saving + "]");
+                                        saving.setFill(Color.ORANGE);
+                                        saving.setStyle("-fx-font-weight: bold;");
+                                        hBox.getChildren().set(0, saving);
+                                        boolean saveSuccessful = dockItemWithInput.save(monitor, prompt.getDialogPane().getScene().getWindow());
+
+                                        if (saveSuccessful) {
+                                            // The functions setCheckboxStatus() and getCheckBoxStatus should not be available anymore:
+                                            setCheckBoxStatusActions.remove(setCheckboxStatus);
+                                            getCheckBoxStatusActions.remove(getCheckBoxStatus);
+                                            setCheckboxStatus.accept(false);
+
+                                            Text saved = new Text("[" + Messages.UnsavedChanges_saved + "]");
+                                            saved.setFill(Color.GREEN);
+                                            saved.setStyle("-fx-font-weight: bold;");
+                                            hBox.getChildren().set(0, saved);
+                                            return SaveStatus.SUCCESS;
+                                        }
+                                        else {
+                                            Text savingFailed_text = new Text("[" + Messages.UnsavedChanges_savingFailed + "]");
+                                            savingFailed_text.setFill(Color.RED);
+                                            savingFailed_text.setStyle("-fx-font-weight: bold;");
+
+                                            HBox savingFailed = new HBox(checkBox, savingFailed_text);
+                                            savingFailed.setSpacing(6);
+                                            hBox.getChildren().set(0, savingFailed);
+                                            return SaveStatus.FAILURE;
+                                        }
+                                    }
+                                    else {
+                                        return SaveStatus.NOTHING;
+                                    }
+                                };
+                                saveActions.add(saveIfCheckboxEnabled);
+
+                                currentRow++;
+                            }
+                        }
+                    }
+                }
+
+                ScrollPane scrollPane = new ScrollPane();
+                scrollPane.setContent(gridPane);
+
+                prompt.getDialogPane().setContent(scrollPane);
+
+                clearSelectionOfCheckboxes_button.addEventFilter(ActionEvent.ACTION, event -> {
+                    event.consume();
+
+                    setCheckBoxStatusActions.forEach(setCheckboxAction -> {
+                        setCheckboxAction.accept(false);
+                    });
+                });
+
+                selectAllCheckboxes_button.addEventFilter(ActionEvent.ACTION, event -> {
+                    event.consume();
+
+                    setCheckBoxStatusActions.forEach(setCheckboxAction -> {
+                        setCheckboxAction.accept(true);
+                    });
+                });
+
+                saveSelectedItems_button.addEventFilter(ActionEvent.ACTION, event -> {
+                    event.consume();
+
+                    List<Supplier<SaveStatus>> saveActionsThatHaveBeenCompleted = new LinkedList<>();
+                    for (var saveAction : saveActions) {
+                        SaveStatus result = saveAction.get();
+                        if (result == SaveStatus.SUCCESS) {
+                            saveActionsThatHaveBeenCompleted.add(saveAction);
+                        }
+                        else if (result == SaveStatus.FAILURE) {
+                            break;
+                        }
+                        // If result == SaveStatus.NOTHING, continue.
+                    }
+
+                    for (var saveActionThatHasBeenCompleted : saveActionsThatHaveBeenCompleted) {
+                        saveActions.remove(saveActionThatHasBeenCompleted);
+                    }
+
+                    if (saveActions.size() == 0) {
+                        exitPhoebusWithoutSavingUnsavedChanges_button.fire();
+                    }
+                });
+
+                // Initialize state of buttons:
+                enableAndDisableButtons.run();
+
+                prompt.setHeaderText(Messages.UnsavedChanges_theFollowingApplicationInstancesHaveUnsavedChanges + " " + question);
+                prompt.setTitle(Messages.UnsavedChanges);
+
+                int prefWidth = 750;
+                int prefHeight = 400;
+                prompt.getDialogPane().setPrefSize(prefWidth, prefHeight);
+                prompt.getDialogPane().setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+                prompt.setResizable(false);
+
+                DialogHelper.positionDialog(prompt, stageToPositionTheConfirmationDialogOver.getScene().getRoot(), -prefWidth/2, -prefHeight/2);
+
+                return prompt.showAndWait().orElse(ButtonType.CANCEL) == exitPhoebusWithoutSavingUnsavedChanges ? true : false;
+            });
+
+        if (windowNrToApplicationNameToDockItemsWithInput.isEmpty() || windowNrToApplicationNameToDockItemsWithInput.values().stream().allMatch(sortedMap -> sortedMap.values().stream().allMatch(Collection::isEmpty))) {
+            // No unsaved changes.
+            return true;
+        }
+        else {
+            Platform.runLater(displayConfirmationWindow);
+            boolean shouldClose = (boolean) displayConfirmationWindow.get();
+            return shouldClose;
+        }
+    }
+
+    private void exitPhoebus() {
+        Platform.runLater(() ->
+        {
+            for (Stage stage : DockStage.getDockStages()) {
+                DockStage.closeItems(stage);
+            }
+            stop();
+        });
+    };
 
     /**
      * Start all applications
+     *
      * @param monitor
      */
-    private void startApplications(final JobMonitor monitor)
-    {
+    private void startApplications(final JobMonitor monitor) {
         final Collection<AppDescriptor> apps = ApplicationService.getApplications();
         monitor.beginTask(Messages.MonitorTaskApps, apps.size());
-        for (AppDescriptor app : apps)
-        {
+        for (AppDescriptor app : apps) {
             monitor.updateTaskName(Messages.MonitorTaskStarting + app.getDisplayName());
-            try
-            {
+            try {
                 app.start();
-            }
-            catch (Throwable ex)
-            {
+            } catch (Throwable ex) {
                 logger.log(Level.SEVERE, app.getDisplayName() + " startup failed", ex);
             }
             monitor.worked(1);
@@ -1111,5 +1673,31 @@ public class PhoebusApplication extends Application {
         // might keep us from quitting the VM
         Platform.exit();
         System.exit(0);
+    }
+
+    /**
+     * Closes all tabs in all windows. Side effect is that all detached windows are also
+     * closed. Main window is not closed.
+     */
+    public static void closeAllTabs(){
+        final List<Stage> stages = DockStage.getDockStages();
+        JobManager.schedule("Close All Tabs", monitor ->
+        {
+            boolean shouldCloseTabs = PhoebusApplication.confirmationDialogWhenUnsavedChangesExist(stages,
+                                                                                                   Messages.UnsavedChanges_wouldYouLikeToSaveAnyChangesBeforeClosingAllTabs,
+                                                                                                   Messages.UnsavedChanges_close,
+                                                                                                   PhoebusApplication.INSTANCE.main_stage,
+                                                                                                   monitor);
+
+            if (shouldCloseTabs) {
+                for (Stage stage : stages){
+                    if (!DockStage.prepareToCloseItems(stage)){
+                        return;
+                    }
+                }
+
+                Platform.runLater(() -> stages.forEach(stage -> DockStage.closeItems(stage)));
+            }
+        });
     }
 }

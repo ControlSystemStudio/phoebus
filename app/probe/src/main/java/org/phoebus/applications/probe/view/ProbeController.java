@@ -1,10 +1,12 @@
 package org.phoebus.applications.probe.view;
 
+import static org.phoebus.applications.probe.Probe.logger;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
@@ -14,22 +16,21 @@ import org.epics.vtype.VEnum;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VType;
 import org.phoebus.applications.probe.Messages;
-import org.phoebus.applications.probe.Probe;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.javafx.JFXUtil;
 import org.phoebus.ui.pv.SeverityColors;
 import org.phoebus.ui.vtype.FormatOption;
 import org.phoebus.ui.vtype.FormatOptionHandler;
 import org.phoebus.util.time.TimestampFormats;
 
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.disposables.Disposable;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
@@ -37,10 +38,8 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
-import javafx.scene.paint.Color;
 
 @SuppressWarnings("nls")
 public class ProbeController {
@@ -75,6 +74,22 @@ public class ProbeController {
         search();
     }
 
+    public FormatOption getFormat() {
+        return format.getValue();
+    }
+
+    public void setFormat(final FormatOption option) {
+        format.setValue(option);
+    }
+
+    public int getPrecision() {
+        return precision.getValue();
+    }
+
+    public void setPrecision(final int digits) {
+        precision.getValueFactory().setValue(digits);
+    }
+
     private void setEditing(final boolean editing)
     {
         if (editing == this.editing)
@@ -87,7 +102,7 @@ public class ProbeController {
             txtValue.setStyle("");
             // Restore current value
             // (which might soon be replaced by update from PV if we're writing)
-            update(pv.read());
+            setValue(pv.read());
         }
     }
 
@@ -117,8 +132,7 @@ public class ProbeController {
                 }
                 catch (Exception ex)
                 {
-                    Logger.getLogger(Probe.class.getPackageName())
-                    .log(Level.WARNING, "Cannot write '" + entered + "' to PV " + pv.getName(), ex);
+                    logger.log(Level.WARNING, "Cannot write '" + entered + "' to PV " + pv.getName(), ex);
                 }
                 break;
             default:
@@ -154,14 +168,16 @@ public class ProbeController {
         {
 
             menu.getItems().clear();
-            SelectionService.getInstance().setSelection("Probe", List.of(new ProcessVariable(txtPVName.getText().trim())));
+            if (!txtPVName.getText().isBlank()) {
+                SelectionService.getInstance().setSelection("Probe",
+                        List.of(new ProcessVariable(txtPVName.getText().trim())));
+            }
             ContextMenuHelper.addSupportedEntries(txtPVName, menu);
             menu.show(txtPVName.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
-        
-        txtPVName.setOnDragOver((EventHandler<? super DragEvent>) new EventHandler <DragEvent>() {
-            public void handle(DragEvent event) {
-                /* accept it only if it is  not dragged from the same node 
+
+        txtPVName.setOnDragOver(event -> {
+                /* accept it only if it is  not dragged from the same node
                  * and if it has a string data */
                 if (event.getGestureSource() != txtPVName &&
                         event.getDragboard().hasString()) {
@@ -169,11 +185,9 @@ public class ProbeController {
                     event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
                 }
                 event.consume();
-            }
         });
-        
-        txtPVName.setOnDragDropped(new EventHandler <DragEvent>() {
-            public void handle(DragEvent event) {
+
+        txtPVName.setOnDragDropped(event -> {
                 /* data dropped */
                 /* if there is a string data on dragboard, read it and use it */
                 Dragboard db = event.getDragboard();
@@ -182,13 +196,12 @@ public class ProbeController {
                     setPVName(db.getString());
                     success = true;
                 }
-                /* let the source know whether the string was successfully 
+                /* let the source know whether the string was successfully
                  * transferred and used */
                 event.setDropCompleted(success);
-                
+
                 event.consume();
                 txtPVName.requestFocus();
-            }
         });
     }
 
@@ -196,11 +209,6 @@ public class ProbeController {
     private Disposable pv_flow, permission_flow;
     /** Most recent value, used to update formatting */
     private VType last_value = null;
-
-    private void update(final VType value)
-    {
-        Platform.runLater(() -> setValue(value));
-    }
 
     private void updateWritable(final Boolean writable)
     {
@@ -243,7 +251,7 @@ public class ProbeController {
             pv = PVPool.getPV(txtPVName.getText());
             pv_flow = pv.onValueEvent()
                         .throttleLatest(10, TimeUnit.MILLISECONDS)
-                        .subscribe(this::update);
+                        .subscribe(this::setValue);
             permission_flow = pv.onAccessRightsEvent()
                     .throttleLatest(10, TimeUnit.MILLISECONDS)
                     .subscribe(this::updateWritable);
@@ -254,16 +262,51 @@ public class ProbeController {
         }
     }
 
-    private void setValue(final VType value) {
+    /** Value with 'text' already computed */
+    private class FormattedValue
+    {
+        final VType value;
+        final String text;
+
+        FormattedValue(final VType value)
+        {
+            this.value = value;
+            this.text = FormatOptionHandler.format(value, format.getValue(), precision.getValue(), true);
+        }
+    }
+
+    /** Formatted value to show
+     *
+     *  Set in thread that receives the data.
+     *  Used to throttle calls to UI.
+     */
+    private final AtomicReference<FormattedValue> update_value = new AtomicReference<>();
+
+    private void setValue(final VType value)
+    {
         if (editing)
             return;
 
         last_value = value;
+        // If the 'update_value' was null, schedule a UI update.
+        // Otherwise, a UI update is already scheduled,
+        // in which case we replaced the update_value with a latest data.
+        // Once the UI update actually runs, it will use the latest data.
+        if (update_value.getAndSet(new FormattedValue(value)) == null)
+            Platform.runLater(() -> updateValueUI());
+    }
 
-        txtValue.setText(FormatOptionHandler.format(value, format.getValue(), precision.getValue(), true));
-        setTime(Time.timeOf(value));
-        setAlarm(Alarm.alarmOf(value, value != null));
-        setMetadata(value);
+    private void updateValueUI()
+    {
+        final FormattedValue fmt = update_value.getAndSet(null);
+        // Hard limit for amount of text to show for value
+        if (fmt.text.length() > 2000)
+            txtValue.setText(fmt.text.substring(0, 2000) + "...");
+        else
+            txtValue.setText(fmt.text);
+        setTime(Time.timeOf(fmt.value));
+        setAlarm(Alarm.alarmOf(fmt.value, fmt.value != null));
+        setMetadata(fmt.value);
     }
 
     private void setTime(final Time time) {
@@ -276,17 +319,9 @@ public class ProbeController {
 
     private void setAlarm(final Alarm alarm)
     {
-        if (alarm == null  ||  alarm.getSeverity() == AlarmSeverity.NONE)
-            txtAlarm.setText("");
-        else
-        {
-            final Color col = SeverityColors.getTextColor(alarm.getSeverity());
-            txtAlarm.setStyle("-fx-text-fill: rgba(" + (int)(col.getRed()*255) + ',' +
-                                                       (int)(col.getGreen()*255) + ',' +
-                                                       (int)(col.getBlue()*255) + ',' +
-                                                             col.getOpacity()*255 + ");");
-            txtAlarm.setText(alarm.getSeverity() + " - " + alarm.getName());
-        }
+        AlarmSeverity alarmSeverity = alarm.getSeverity();
+        txtAlarm.setStyle("-fx-text-fill: " + JFXUtil.webRGB(SeverityColors.getTextColor(alarmSeverity)) + "; -fx-control-inner-background: " + JFXUtil.webRGB(SeverityColors.getBackgroundColor(alarmSeverity)));
+        txtAlarm.setText(alarm.getSeverity() + " - " + alarm.getName());
     }
 
     private void setMetadata(final VType value)
@@ -305,7 +340,8 @@ public class ProbeController {
             final Display dis = ((VNumber) value).getDisplay();
             buf.append(Messages.Units).append(dis.getUnit()).append("\n");
             buf.append(Messages.Format).append(dis.getFormat().format(0.123456789)).append("\n");
-            buf.append(Messages.Range).append(dis.getControlRange().getMinimum()).append(" .. ").append(dis.getControlRange().getMaximum()).append("\n");
+            buf.append(Messages.DisplayRange).append(dis.getDisplayRange().getMinimum()).append(" .. ").append(dis.getDisplayRange().getMaximum()).append("\n");
+            buf.append(Messages.ControlRange).append(dis.getControlRange().getMinimum()).append(" .. ").append(dis.getControlRange().getMaximum()).append("\n");
             buf.append(Messages.Warnings).append(dis.getWarningRange().getMinimum()).append(" .. ").append(dis.getWarningRange().getMaximum()).append("\n");
             buf.append(Messages.Alarms).append(dis.getAlarmRange().getMinimum()).append(" .. ").append(dis.getAlarmRange().getMaximum()).append("\n");
         }

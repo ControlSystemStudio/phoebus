@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,6 +23,7 @@ import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.ImageCursor;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -50,6 +51,7 @@ public class PointsEditor
 {
     private static ImageCursor cursor_add, cursor_remove;
 
+    private final Parent bounds;
     private PointConstraint constrain;
     private Points points;
     private PointsEditorListener listener;
@@ -64,6 +66,15 @@ public class PointsEditor
     }
 
     private Mode mode;
+
+    private final EventHandler<MouseEvent> bounds_filter = event ->
+    {
+        if (mode == Mode.APPEND)
+        {
+            endMode();
+            startMode(Mode.EDIT);
+        }
+    };
 
     private final EventHandler<KeyEvent> key_filter = event ->
     {
@@ -159,6 +170,11 @@ public class PointsEditor
     }
 
     /** Create points editor
+     *
+     *  The 'root' needs to be a group within a parent that defines
+     *  the boundaries of where points can be added.
+     *  Leaving that boundary will revert from APPEND to EDIT mode.
+     *
      *  @param root Parent group where editor can host its UI elements
      *  @param constrain Point constrain
      *  @param points Points to edit
@@ -168,6 +184,7 @@ public class PointsEditor
     {
         init();
 
+        this.bounds = root.getParent();
         this.constrain = constrain;
         this.points = points;
         this.listener = listener;
@@ -180,7 +197,11 @@ public class PointsEditor
                   ? Mode.APPEND // No points, first append some
                   : Mode.EDIT); // Start by editing existing points
 
+        // Keyboard for switching modes etc.
         handle_group.getScene().addEventFilter(KeyEvent.KEY_PRESSED, key_filter);
+
+        // Leave APPEND mode for EDIT when mouse leaves bounds
+        bounds.addEventHandler(MouseEvent.MOUSE_EXITED, bounds_filter);
     }
 
     /** Activate mode
@@ -231,6 +252,7 @@ public class PointsEditor
     /** Must be called to remove UI elements and detach event handlers */
     public void dispose()
     {
+        bounds.removeEventHandler(MouseEvent.MOUSE_EXITED, bounds_filter);
         endMode();
         handle_group.getScene().removeEventFilter(KeyEvent.KEY_PRESSED, key_filter);
     }

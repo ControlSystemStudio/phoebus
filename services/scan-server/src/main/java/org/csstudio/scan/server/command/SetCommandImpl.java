@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.csstudio.scan.command.SetCommand;
-import org.csstudio.scan.device.VTypeHelper;
 import org.csstudio.scan.server.MacroContext;
 import org.csstudio.scan.server.ScanCommandImpl;
 import org.csstudio.scan.server.ScanContext;
@@ -27,6 +26,7 @@ import org.csstudio.scan.server.SimulationContext;
 import org.csstudio.scan.server.WriteHelper;
 import org.csstudio.scan.server.device.SimulatedDevice;
 import org.csstudio.scan.server.internal.JythonSupport;
+import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.util.time.TimeDuration;
 
 /** {@link ScanCommandImpl} that sets a device to a value
@@ -103,6 +103,7 @@ public class SetCommandImpl extends ScanCommandImpl<SetCommand>
                                 command.getValue(),
                                 command.getCompletion(), command.getWait(),
                                 macros.resolveMacros(command.getReadback()),
+                                command.getReadbackValue(),
                                 command.getTolerance(),
                                 TimeDuration.ofSeconds(command.getTimeout()));
         try

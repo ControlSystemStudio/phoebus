@@ -49,6 +49,7 @@ import org.w3c.dom.Element;
  */
 public class KnobWidget extends WritablePVWidget {
 
+    /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR = new WidgetDescriptor(
         "knob",
         WidgetCategory.CONTROL,
@@ -65,31 +66,55 @@ public class KnobWidget extends WritablePVWidget {
         }
     };
 
+    /** Property */
     public static final WidgetPropertyDescriptor<String>      propReadbackPVName    = newPVNamePropertyDescriptor (WidgetPropertyCategory.WIDGET,   "readback_pv_name",    Messages.WidgetProperties_ReadbackPVName);
+    /** Property */
     public static final WidgetPropertyDescriptor<VType>       propReadbackPVValue   = newRuntimeValue             (                                 "readback_pv_value",   Messages.WidgetProperties_ReadbackPVValue);
 
+    /** Property */
     public static final WidgetPropertyDescriptor<Boolean>     propDragDisabled      = newBooleanPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "drag_disabled",       Messages.WidgetProperties_DragDisabled);
+    /** Property */
     public static final WidgetPropertyDescriptor<Boolean>     propSyncedKnob        = newBooleanPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "synced_knob",         Messages.WidgetProperties_SyncedKnob);
+    /** Property */
     public static final WidgetPropertyDescriptor<Boolean>     propUnitFromPV        = newBooleanPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "unit_from_pv",        Messages.WidgetProperties_UnitFromPV);
+    /** Property */
     public static final WidgetPropertyDescriptor<Boolean>     propWriteOnRelease    = newBooleanPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "write_on_release",    Messages.WidgetProperties_WriteOnRelease);
+    /** Property */
     public static final WidgetPropertyDescriptor<Boolean>     propZeroDetentEnabled = newBooleanPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "zero_detent_enabled", Messages.WidgetProperties_ZeroDetentEnabled);
 
+    /** Property */
     public static final WidgetPropertyDescriptor<Boolean>     propExtremaVisible    = newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY,  "extrema_visible",     Messages.WidgetProperties_ExtremaVisible);
+    /** Property */
     public static final WidgetPropertyDescriptor<Double>      propLevelHiHi         = newDoublePropertyDescriptor (WidgetPropertyCategory.DISPLAY,  "level_hihi",          Messages.WidgetProperties_LevelHiHi);
+    /** Property */
     public static final WidgetPropertyDescriptor<Double>      propLevelHigh         = newDoublePropertyDescriptor (WidgetPropertyCategory.DISPLAY,  "level_high",          Messages.WidgetProperties_LevelHigh);
+    /** Property */
     public static final WidgetPropertyDescriptor<Double>      propLevelLoLo         = newDoublePropertyDescriptor (WidgetPropertyCategory.DISPLAY,  "level_lolo",          Messages.WidgetProperties_LevelLoLo);
+    /** Property */
     public static final WidgetPropertyDescriptor<Double>      propLevelLow          = newDoublePropertyDescriptor (WidgetPropertyCategory.DISPLAY,  "level_low",           Messages.WidgetProperties_LevelLow);
+    /** Property */
     public static final WidgetPropertyDescriptor<Boolean>     propShowHiHi          = newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY,  "show_hihi",           Messages.WidgetProperties_ShowHiHi);
+    /** Property */
     public static final WidgetPropertyDescriptor<Boolean>     propShowHigh          = newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY,  "show_high",           Messages.WidgetProperties_ShowHigh);
+    /** Property */
     public static final WidgetPropertyDescriptor<Boolean>     propShowLoLo          = newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY,  "show_lolo",           Messages.WidgetProperties_ShowLoLo);
+    /** Property */
     public static final WidgetPropertyDescriptor<Boolean>     propShowLow           = newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY,  "show_low",            Messages.WidgetProperties_ShowLow);
+    /** Property */
     public static final WidgetPropertyDescriptor<Boolean>     propShowOK            = newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY,  "show_ok",             Messages.WidgetProperties_ShowOK);
+    /** Property */
     public static final WidgetPropertyDescriptor<WidgetColor> propTagColor          = newColorPropertyDescriptor  (WidgetPropertyCategory.DISPLAY,  "tag_color",           Messages.WidgetProperties_TagColor);
+    /** Property */
     public static final WidgetPropertyDescriptor<Boolean>     propTagVisible        = newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY,  "tag_visible",         Messages.WidgetProperties_TagVisible);
+    /** Property */
     public static final WidgetPropertyDescriptor<Boolean>     propTargetVisible     = newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY,  "target_visible",      Messages.WidgetProperties_TargetVisible);
+    /** Property */
     public static final WidgetPropertyDescriptor<WidgetColor> propTextColor         = newColorPropertyDescriptor  (WidgetPropertyCategory.DISPLAY,  "text_color",          Messages.WidgetProperties_TextColor);
+    /** Property */
     public static final WidgetPropertyDescriptor<WidgetColor> propThumbColor        = newColorPropertyDescriptor  (WidgetPropertyCategory.DISPLAY,  "thumb_color",         Messages.WidgetProperties_ThumbColor);
+    /** Property */
     public static final WidgetPropertyDescriptor<String>      propUnit              = newStringPropertyDescriptor (WidgetPropertyCategory.DISPLAY,  "unit",                Messages.WidgetProperties_Unit);
+    /** Property */
     public static final WidgetPropertyDescriptor<WidgetColor> propValueColor        = newColorPropertyDescriptor  (WidgetPropertyCategory.DISPLAY,  "value_color",         Messages.WidgetProperties_ValueColor);
 
     private volatile WidgetProperty<WidgetColor> background_color;
@@ -125,6 +150,7 @@ public class KnobWidget extends WritablePVWidget {
     private volatile WidgetProperty<Boolean>     write_on_release;
     private volatile WidgetProperty<Boolean>     zero_detent_enabled;
 
+    /** Constructor */
     public KnobWidget ( ) {
         super(WIDGET_DESCRIPTOR.getType(), 220, 220);
     }
@@ -138,130 +164,162 @@ public class KnobWidget extends WritablePVWidget {
         return new KnobConfigurator(persistedVersion);
     }
 
+    /** @return Property */
     public WidgetProperty<WidgetColor> propBackgroundColor ( ) {
         return background_color;
     }
 
+    /** @return Property */
     public WidgetProperty<WidgetColor> propColor ( ) {
         return color;
     }
 
+    /** @return Property */
     public WidgetProperty<Boolean> propDragDisabled ( ) {
         return drag_disabled;
     }
 
+    /** @return Property */
     public WidgetProperty<Boolean> propEnabled ( ) {
         return enabled;
     }
 
+    /** @return Property */
     public WidgetProperty<Boolean> propExtremaVisible ( ) {
         return extrema_visible;
     }
 
+    /** @return Property */
     public WidgetProperty<Double> propLevelHiHi ( ) {
         return level_hihi;
     }
 
+    /** @return Property */
     public WidgetProperty<Double> propLevelHigh ( ) {
         return level_high;
     }
 
+    /** @return Property */
     public WidgetProperty<Double> propLevelLoLo ( ) {
         return level_lolo;
     }
 
+    /** @return Property */
     public WidgetProperty<Double> propLevelLow ( ) {
         return level_low;
     }
 
+    /** @return Property */
     public WidgetProperty<Boolean> propLimitsFromPV ( ) {
         return limits_from_pv;
     }
 
+    /** @return Property */
     public WidgetProperty<Double> propMaximum ( ) {
         return maximum;
     }
 
+    /** @return Property */
     public WidgetProperty<Double> propMinimum ( ) {
         return minimum;
     }
 
+    /** @return Property */
     public WidgetProperty<Integer> propPrecision ( ) {
         return precision;
     }
 
+    /** @return Property */
     public WidgetProperty<String> propReadbackPVName ( ) {
         return readback_pv_name;
     }
 
+    /** @return Property */
     public WidgetProperty<VType> propReadbackPVValue ( ) {
         return readback_pv_value;
     }
 
+    /** @return Property */
     public WidgetProperty<Boolean> propShowHiHi ( ) {
         return show_hihi;
     }
 
+    /** @return Property */
     public WidgetProperty<Boolean> propShowHigh ( ) {
         return show_high;
     }
 
+    /** @return Property */
     public WidgetProperty<Boolean> propShowLoLo ( ) {
         return show_lolo;
     }
 
+    /** @return Property */
     public WidgetProperty<Boolean> propShowLow ( ) {
         return show_low;
     }
 
+    /** @return Property */
     public WidgetProperty<Boolean> propShowOK ( ) {
         return show_ok;
     }
 
+    /** @return Property */
     public WidgetProperty<Boolean> propSyncedKnob ( ) {
         return synced_knob;
     }
 
+    /** @return Property */
     public WidgetProperty<WidgetColor> propTagColor ( ) {
         return tag_color;
     }
 
+    /** @return Property */
     public WidgetProperty<Boolean> propTagVisible ( ) {
         return tag_visible;
     }
 
+    /** @return Property */
     public WidgetProperty<Boolean> propTargetVisible ( ) {
         return target_visible;
     }
 
+    /** @return Property */
     public WidgetProperty<WidgetColor> propTextColor ( ) {
         return text_color;
     }
 
+    /** @return Property */
     public WidgetProperty<WidgetColor> propThumbColor ( ) {
         return thumb_color;
     }
 
+    /** @return Property */
     public WidgetProperty<Boolean> propTransparent ( ) {
         return transparent;
     }
 
+    /** @return Property */
     public WidgetProperty<String> propUnit ( ) {
         return unit;
     }
 
+    /** @return Property */
     public WidgetProperty<Boolean> propUnitFromPV ( ) {
         return unit_from_pv;
     }
 
+    /** @return Property */
     public WidgetProperty<WidgetColor> propValueColor ( ) {
         return value_color;
     }
 
+    /** @return Property */
     public WidgetProperty<Boolean> propWriteOnRelease ( ) {
         return write_on_release;
     }
 
+    /** @return Property */
     public WidgetProperty<Boolean> propZeroDetentEnabled ( ) {
         return zero_detent_enabled;
     }

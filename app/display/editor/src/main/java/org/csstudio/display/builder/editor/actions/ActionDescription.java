@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,22 +7,41 @@
  *******************************************************************************/
 package org.csstudio.display.builder.editor.actions;
 
+import static org.csstudio.display.builder.editor.Plugin.logger;
+
+import java.io.File;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.logging.Level;
+import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
 import org.csstudio.display.builder.editor.DisplayEditor;
 import org.csstudio.display.builder.editor.Messages;
+import org.csstudio.display.builder.editor.app.DisplayEditorInstance;
 import org.csstudio.display.builder.editor.undo.SetWidgetPropertyAction;
+import org.csstudio.display.builder.editor.undo.SortWidgetsAction;
 import org.csstudio.display.builder.editor.undo.UpdateWidgetOrderAction;
 import org.csstudio.display.builder.model.ChildrenProperty;
+import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
+import org.phoebus.framework.preferences.PhoebusPreferenceService;
+import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.framework.util.ResourceParser;
+import org.phoebus.ui.application.ApplicationLauncherService;
+import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.NumericInputDialog;
 import org.phoebus.ui.javafx.PlatformInfo;
+import org.phoebus.ui.undo.CompoundReversedUndoableAction;
 import org.phoebus.ui.undo.CompoundUndoableAction;
 import org.phoebus.ui.undo.UndoableActionManager;
+
+import javafx.geometry.Point2D;
+import javafx.stage.Stage;
 
 /** Description of an action
  *
@@ -45,7 +64,29 @@ public abstract class ActionDescription
         }
     };
 
+    /** Duplicate selected widgets */
+    public static final ActionDescription DUPLICATE =
+        new ActionDescription("icons/duplicate.png", Messages.Duplicate + " [" + PlatformInfo.SHORTCUT + "-D]")
+    {
+        @Override
+        public void run(final DisplayEditor editor, final boolean selected)
+        {
+            editor.duplicateWidgets();
+        }
+    };
+
     /** Delete selected widgets */
+    public static final ActionDescription DELETE =
+        new ActionDescription("icons/delete.png", Messages.Delete + " [Delete]")
+    {
+        @Override
+        public void run(final DisplayEditor editor, final boolean selected)
+        {
+            editor.removeWidgets();
+        }
+    };
+
+    /** Delete selected widgets after copying to clipboard */
     public static final ActionDescription CUT =
         new ActionDescription("icons/cut_edit.png", Messages.Cut + " [" + PlatformInfo.SHORTCUT + "-X]")
     {
@@ -95,6 +136,17 @@ public abstract class ActionDescription
         }
     };
 
+    /** Enable/disable showing crosshair cursor */
+    public static final ActionDescription ENABLE_CROSS =
+        new ActionDescription("icons/crosshair.png", Messages.ShowCrosshair)
+        {
+            @Override
+            public void run(final DisplayEditor editor, final boolean selected)
+            {
+                editor.setCrosshair(selected);
+            }
+        };
+
     /** Order widgets by their index in the parent's list of children
      *  <p>Original list will not be modified
      *  @param widgets Widgets in any order, because user may have selected them in random order
@@ -121,9 +173,11 @@ public abstract class ActionDescription
             // -- move 'b' up -> [ b, a, c ]
             // -- move 'c' up -> [ b, c, a ]
             // Doing this in reverse original order would leave the list unchanged.
-            final List<Widget> widgets = orderWidgetsByIndex(editor.getWidgetSelectionHandler().getSelection());
+            List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
             if (widgets.isEmpty())
                 return;
+            if (widgets.size() > 1)
+                widgets = orderWidgetsByIndex(widgets);
             final CompoundUndoableAction compound = new CompoundUndoableAction(Messages.MoveUp);
             for (Widget widget : widgets)
             {
@@ -132,7 +186,8 @@ public abstract class ActionDescription
                 if (orig > 0)
                     compound.add(new UpdateWidgetOrderAction(widget, orig, orig-1));
                 else
-                    compound.add(new UpdateWidgetOrderAction(widget, orig, -1));
+                    // This would result in moving this widget to the bottom, let's not move at all
+                    return;
             }
             editor.getUndoableActionManager().execute(compound);
         }
@@ -145,10 +200,24 @@ public abstract class ActionDescription
         @Override
         public void run(final DisplayEditor editor, final boolean selected)
         {
-            final List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
+            List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
             if (widgets.isEmpty())
                 return;
-            final CompoundUndoableAction compound = new CompoundUndoableAction(Messages.MoveToBack);
+            if (widgets.size() > 1)
+            {
+                // When multiple widgets are selected, they are moved to back
+                // in reverse original order:
+                // Move 'b, c' to back in [ a, b, c ]
+                // -- move 'c' to back -> [ c, a, b ]
+                // -- move 'b' to back -> [ b, c, a ]
+                // Doing this in the original order would reverse the order of selection.
+                widgets = orderWidgetsByIndex(widgets);
+                Collections.reverse(widgets);
+            }
+
+            // Without CompoundReversedUndoableAction, widgets would actually end up in back,
+            // but un-doing the operation would then misplace them.
+            final CompoundReversedUndoableAction compound = new CompoundReversedUndoableAction(Messages.MoveToBack);
             for (Widget widget : widgets)
                 compound.add(new UpdateWidgetOrderAction(widget, 0));
             editor.getUndoableActionManager().execute(compound);
@@ -171,8 +240,11 @@ public abstract class ActionDescription
             List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
             if (widgets.isEmpty())
                 return;
-            widgets = orderWidgetsByIndex(widgets);
-            Collections.reverse(widgets);
+            if (widgets.size() > 1)
+            {
+                widgets = orderWidgetsByIndex(widgets);
+                Collections.reverse(widgets);
+            }
 
             final CompoundUndoableAction compound = new CompoundUndoableAction(Messages.MoveDown);
             for (Widget widget : widgets)
@@ -182,7 +254,8 @@ public abstract class ActionDescription
                 if (orig < children.size()-1)
                     compound.add(new UpdateWidgetOrderAction(widget, orig, orig+1));
                 else
-                    compound.add(new UpdateWidgetOrderAction(widget, orig, 0));
+                    // This would result in moving this widget to the top, let's not move at all
+                    return;
             }
             editor.getUndoableActionManager().execute(compound);
         }
@@ -195,15 +268,21 @@ public abstract class ActionDescription
         @Override
         public void run(final DisplayEditor editor, final boolean selected)
         {
+            // When multiple widgets are selected, they are moved to front
+            // in their original order:
+            // Move 'a, b' up in [ a, b, c ]
+            // -- move 'a' up -> [ b, c, a ]
+            // -- move 'b' up -> [ c, a, b ]
+            // Doing this in reverse original order would reverse the order of selection
             List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
             if (widgets.isEmpty())
                 return;
-            // Same reasoning as in MOVE_DOWN
-            // Without reversing, widgets would actually end up in front,
-            // but un-doing the operation would them misplace them.
-            widgets = orderWidgetsByIndex(widgets);
-            Collections.reverse(widgets);
-            final CompoundUndoableAction compound = new CompoundUndoableAction(Messages.MoveToFront);
+            if (widgets.size() > 1)
+                widgets = orderWidgetsByIndex(widgets);
+            // Same reasoning as in TO_BACK;
+            // Without CompoundReversedUndoableAction, widgets would actually end up in front,
+            // but un-doing the operation would then misplace them.
+            final CompoundReversedUndoableAction compound = new CompoundReversedUndoableAction(Messages.MoveToFront);
             for (Widget widget : widgets)
                 compound.add(new UpdateWidgetOrderAction(widget, -1));
             editor.getUndoableActionManager().execute(compound);
@@ -341,6 +420,29 @@ public abstract class ActionDescription
             for (Widget w : widgets)
                 undo.execute(new SetWidgetPropertyAction<>(w.propY(),
                                                            max - w.propHeight().getValue()));
+        }
+    };
+
+    /** Align widgets on the grid constraint */
+    public static final ActionDescription ALIGN_GRID =
+        new ActionDescription("icons/grid.png", Messages.AlignGrid)
+    {
+        @Override
+        public void run(final DisplayEditor editor, final boolean selected)
+        {
+            final List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
+            final UndoableActionManager undo = editor.getUndoableActionManager();
+            for (Widget w : widgets)
+            {
+                int x = w.propX().getValue();
+                int y = w.propY().getValue();
+                Point2D constr = editor.getSelectedWidgetUITracker().gridConstrain(x, y);
+                x = (int)constr.getX();
+                y = (int)constr.getY();
+                // Keeping it simple, two actions (possible enhancement use one action for both coordinates)
+                undo.execute(new SetWidgetPropertyAction<>(w.propX(), x));
+                undo.execute(new SetWidgetPropertyAction<>(w.propY(), y));
+            }
         }
     };
 
@@ -492,7 +594,7 @@ public abstract class ActionDescription
         }
     };
 
-    /** Distribute widgets horizontally */
+    /** Distribute widgets vertically */
     public static final ActionDescription DIST_VERT =
         new ActionDescription("icons/distribute_vc.png", Messages.DistributeVertically)
     {
@@ -619,6 +721,159 @@ public abstract class ActionDescription
         }
     };
 
+    private static final String DISTRIBUTION_VGAP = "distribution_vgap";
+    private static final String DISTRIBUTION_HGAP = "distribution_hgap";
+
+    /** Distribute widgets horizontally with preset gap */
+    public static final ActionDescription DIST_HORIZ_GAP =
+        new ActionDescription("icons/distribute_hcg.png", Messages.DistributeHorizontallyGap)
+    {
+        @Override
+        public void run(final DisplayEditor editor, final boolean selected)
+        {
+            final List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
+            final UndoableActionManager undo = editor.getUndoableActionManager();
+            final int N = widgets.size();
+            final Preferences prefs = PhoebusPreferenceService.userNodeForClass(DisplayEditorInstance.class);
+
+            if (N < 2)
+                return;
+
+            int offset = prefs.getInt(DISTRIBUTION_HGAP, editor.getModel().propGridStepX().getValue());
+
+            NumericInputDialog input = new NumericInputDialog(Messages.DistributeGapTitle, Messages.DistributeGapMessage, offset, val -> null);
+            DialogHelper.positionDialog(input, editor.getContextMenuNode(), 0, 0);
+            final double res = input.prompt();
+            if (Double.isNaN(res))
+                return;
+            offset = (int)res;
+            prefs.putInt(DISTRIBUTION_HGAP, offset);
+
+            final List<Widget> sortedWidgets = widgets.stream()
+                                                      .sorted(( w1, w2 ) ->
+            {
+                    final int w1x = w1.propX().getValue().intValue();
+                    final int w1w = w1.propWidth().getValue().intValue();
+                    final int w2x = w2.propX().getValue().intValue();
+                    final int w2w = w2.propWidth().getValue().intValue();
+                    // Description see DIST_HORIZ above
+                    if ( w1x <= w2x && w1x + w1w <= w2x + w2w )
+                        return -1;
+                    else if ( w1x >= w2x && w1x + w1w >= w2x + w2w )
+                        return 1;
+                    else
+                        return ( w1x + w1w / 2 ) - ( w2x + w2w / 2 );
+                })
+                .collect(Collectors.toList());
+
+            //  Equal gap distribution...
+            //  ------------------------------------------------------------
+            Widget widget = sortedWidgets.get(0);
+            int location = widget.propX().getValue();
+            int width = widget.propWidth().getValue();
+
+            for ( int i = 1; i < N; i++ )
+            {
+                widget = sortedWidgets.get(i);
+                location += width + offset;
+
+                undo.execute(new SetWidgetPropertyAction<>(widget.propX(), location));
+
+                width = widget.propWidth().getValue();
+            }
+        }
+    };
+
+    /** Distribute widgets vertically with preset gap*/
+    public static final ActionDescription DIST_VERT_GAP =
+        new ActionDescription("icons/distribute_vcg.png", Messages.DistributeVerticallyGap)
+    {
+        @Override
+        public void run(final DisplayEditor editor, final boolean selected)
+        {
+            final List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
+            final UndoableActionManager undo = editor.getUndoableActionManager();
+            final int N = widgets.size();
+            final Preferences prefs = PhoebusPreferenceService.userNodeForClass(DisplayEditorInstance.class);
+
+            if (N < 2)
+                return;
+
+            int offset = prefs.getInt(DISTRIBUTION_VGAP, editor.getModel().propGridStepY().getValue());
+
+            NumericInputDialog input = new NumericInputDialog(Messages.DistributeGapTitle, Messages.DistributeGapMessage, offset, val -> null);
+            DialogHelper.positionDialog(input, editor.getContextMenuNode(), 0, 0);
+            final double res = input.prompt();
+            if (Double.isNaN(res))
+                return;
+            offset = (int)res;
+            prefs.putInt(DISTRIBUTION_VGAP, offset);
+
+            final List<Widget> sortedWidgets = widgets.stream()
+                                                      .sorted(( w1, w2 ) ->
+            {
+                    final int w1y = w1.propY().getValue().intValue();
+                    final int w1h = w1.propHeight().getValue().intValue();
+                    final int w2y = w2.propY().getValue().intValue();
+                    final int w2h = w2.propHeight().getValue().intValue();
+                    // Description see DIST_VERT above
+                    if ( w1y <= w2y && w1y + w1h <= w2y + w2h )
+                        return -1;
+                    else if ( w1y >= w2y && w1y + w1h >= w2y + w2h )
+                        return 1;
+                    else
+                        return ( w1y + w1h / 2 ) - ( w2y + w2h / 2 );
+            }).collect(Collectors.toList());
+
+            //  Equal gap distribution...
+            //  ------------------------------------------------------------
+            Widget widget = sortedWidgets.get(0);
+            int location = widget.propY().getValue();
+            int height = widget.propHeight().getValue();
+
+            for ( int i = 1; i < N; i++ )
+            {
+                widget = sortedWidgets.get(i);
+                location += height + offset;
+                undo.execute(new SetWidgetPropertyAction<>(widget.propY(), location));
+                height = widget.propHeight().getValue();
+            }
+        }
+    };
+
+    /** Sort widgets */
+    public static final ActionDescription SORT_WIDGETS =
+        new ActionDescription("icons/sort.png", Messages.SortWidgets)
+    {
+        @Override
+        public void run(final DisplayEditor editor, final boolean selected)
+        {
+            editor.getUndoableActionManager().execute(new SortWidgetsAction(editor));
+        }
+    };
+
+    /** Open in external Editor */
+    public static final ActionDescription OPEN_EXTERNAL =
+        new ActionDescription("icons/file.png", Messages.OpenInExternalEditor)
+    {
+        @Override
+        public void run(final DisplayEditor editor, final boolean selected)
+        {
+            String resource = editor.getModel().getUserData(DisplayModel.USER_DATA_INPUT_FILE);
+            try {
+                AppResourceDescriptor application = ApplicationLauncherService.findApplication(new URI("display.xml"), true, (Stage)editor.getContextMenuNode().getScene().getWindow());
+                if (application == null)
+                    return;
+                logger.log(Level.INFO, "Opening " + resource + " with " + application.getName());
+                application.create(ResourceParser.getURI(new File(resource)));
+            }
+            catch (Exception e)
+            {
+                logger.log(Level.WARNING, "Opening " + resource + " failed.", e);
+            }
+        }
+    };
+
     private final String icon;
     private final String tool_tip;
 
@@ -631,11 +886,13 @@ public abstract class ActionDescription
         this.tool_tip = tool_tip;
     }
 
+    /** @return Icon name */
     public String getIcon()
     {
         return icon;
     }
 
+    /** @return Icon resource */
     public URL getIconResourcePath()
     {
         return DisplayEditor.class.getResource("/" + icon);

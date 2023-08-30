@@ -7,11 +7,11 @@
  *******************************************************************************/
 package org.phoebus.framework.workbench;
 
-import static org.junit.Assert.fail;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /** JUnit test/demo of {@link Locations}
  *  @author Kay Kasemir

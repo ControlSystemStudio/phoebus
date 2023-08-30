@@ -18,6 +18,7 @@ import javafx.scene.image.Image;
  *
  * @author Kunal Shroff
  */
+@SuppressWarnings("nls")
 public class ProbeMenuEntry implements MenuEntry {
 
     @Override

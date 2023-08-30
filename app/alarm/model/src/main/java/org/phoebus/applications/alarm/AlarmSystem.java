@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,89 +8,86 @@
 package org.phoebus.applications.alarm;
 
 import java.io.File;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.time.temporal.TemporalAmount;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.phoebus.applications.alarm.client.IdentificationHelper;
+import org.phoebus.framework.macros.MacroOrSystemProvider;
+import org.phoebus.framework.macros.MacroValueProvider;
+import org.phoebus.framework.macros.Macros;
+import org.phoebus.framework.preferences.AnnotatedPreferences;
+import org.phoebus.framework.preferences.Preference;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.util.time.SecondsParser;
+import org.phoebus.util.time.TimeParser;
 
 /** Common alarm system code
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class AlarmSystem
+public class AlarmSystem extends AlarmSystemConstants
 {
-    /** Alarm system logger */
-    public static final Logger logger = Logger.getLogger(AlarmSystem.class.getPackageName());
-
-    /** Path prefix for config updates */
-    public static final String CONFIG_PREFIX = "config:";
-
-    /** Path prefix for state updates */
-    public static final String STATE_PREFIX = "state:";
-
-    /** Path prefix for commands */
-    public static final String COMMAND_PREFIX = "command:";
-
-    /** Path prefix for talk messages */
-    public static final String TALK_PREFIX = "talk:";
-
-    // In principle, all messages can be sent via the same topic,
-    // which also asserts that their order is preserved.
-    // The command and talk topics are sent via separate topics
-    // because they are one-directional and Kafka can be configured
-    // to delete older talk and command messages,
-    // while state and config need to be compacted (or kept forever).
-
-    /** Suffix for the topic that clients use to send commands to alarm server */
-    public static final String COMMAND_TOPIC_SUFFIX = "Command";
-
-    /** Suffix for the topic that server uses to send annunciations */
-    public static final String TALK_TOPIC_SUFFIX = "Talk";
-
-    /** Suffix for the topic that contains non compacted aggregate of other topics. */
-    public static final String LONG_TERM_TOPIC_SUFFIX = "LongTerm";
-
     /** Kafka Server host:port */
-    public static final String server;
+    @Preference public static String server;
 
-    /** Name of alarm tree root */
-    public static final String config_name;
+    /** Kafka settings file */
+    @Preference public static String kafka_properties;
+
+    /** Name of alarm tree root
+     *
+     *  <p>Default name from preferences.
+     *  UI instances may select different one at runtime,
+     *  but this remains unchanged.
+     */
+    @Preference public static String config_name;
 
     /** Names of selectable alarm configurations */
-    public static final List<String> config_names;
+    @Preference public static String[] config_names;
 
     /** Timeout in seconds for initial PV connection */
-    public static final int connection_timeout;
+    @Preference public static int connection_timeout;
+
+    /** Timeout in seconds for "sevrpv:" updates */
+    @Preference public static int severity_pv_timeout;
 
     /** Item level of alarm area. A level of 2 would show all the root levels children. */
-    public static final int alarm_area_level;
+    @Preference public static int alarm_area_level;
 
     /** Number of columns in the alarm area */
-    public static final int alarm_area_column_count;
+    @Preference public static int alarm_area_column_count;
 
     /** Gap between alarm area panel items */
-    public static final int alarm_area_gap;
+    @Preference public static int alarm_area_gap;
 
     /** Font size for the alarm area view */
-    public static final int alarm_area_font_size;
+    @Preference public static int alarm_area_font_size;
 
     /** Limit for the number of context menu items */
-    public static final int alarm_menu_max_items;
+    @Preference public static int alarm_menu_max_items;
+
+    /** Initial Alarm Tree UI update delay [ms] */
+    @Preference public static int alarm_tree_startup_ms;
+
+    /** Alarm table columns */
+    @Preference public static String[] alarm_table_columns;
+
+    /** Use text(!) color for background to indicate alarm severity,
+     *  instead of the common alarm severity text and background colors?
+     */
+    @Preference public static boolean alarm_table_color_legacy_background;
 
     /** Alarm table row limit */
-    public static final int alarm_table_max_rows;
+    @Preference public static int alarm_table_max_rows;
 
     /** Directory used for executing commands */
-    public static final File command_directory;
+    @Preference public static File command_directory;
 
     /** Annunciator threshold */
-    public static final int annunciator_threshold;
+    @Preference public static int annunciator_threshold;
 
     /** Annunciator message retention count */
-    public static final int annunciator_retention_count;
+    @Preference public static int annunciator_retention_count;
 
     /** Timeout in milliseconds at which server sends idle state updates
      *  for the 'root' element if there's no real traffic
@@ -98,40 +95,36 @@ public class AlarmSystem
     public static final long idle_timeout_ms;
 
     /** Name of the sender, the 'from' field of automated email actions */
-    public static final String automated_email_sender;
+    @Preference  public static String automated_email_sender;
 
     /** Automated actions that request follow-up when alarm no longer active */
-    public static final List<String> automated_action_followup;
+    @Preference public static String[] automated_action_followup;
 
     /** Optional heartbeat PV */
-    public static final String heartbeat_pv;
+    @Preference public static String heartbeat_pv;
 
     /** Heartbeat PV period in milliseconds */
     public static final long heartbeat_ms;
 
-    /** Nag period in seconds */
+    /** Nag period in milliseconds */
     public static final long nag_period_ms;
+
+    /** Connection validation period in seconds */
+    @Preference public static long connection_check_secs;
+
+    /** Disable notify feature */
+    @Preference public static boolean disable_notify_visible;
+
+    /** "Disable until.." shortcuts */
+    @Preference public static String[] shelving_options;
+
+    /** Macros used in UI display/command/web links */
+    public static MacroValueProvider macros;
 
     static
     {
-        final PreferencesReader prefs = new PreferencesReader(AlarmSystem.class, "/alarm_preferences.properties");
-        server = prefs.get("server");
-        config_name = prefs.get("config_name");
-        config_names = getItems(prefs.get("config_names"));
-        connection_timeout = prefs.getInt("connection_timeout");
-        alarm_area_level = prefs.getInt("alarm_area_level");
-        alarm_area_column_count = prefs.getInt("alarm_area_column_count");
-        alarm_area_gap = prefs.getInt("alarm_area_gap");
-        alarm_area_font_size = prefs.getInt("alarm_area_font_size");
-        alarm_menu_max_items = prefs.getInt("alarm_menu_max_items");
-        alarm_table_max_rows = prefs.getInt("alarm_table_max_rows");
-        command_directory = new File(PreferencesReader.replaceProperties(prefs.get("command_directory")));
-        annunciator_threshold = prefs.getInt("annunciator_threshold");
-        annunciator_retention_count = prefs.getInt("annunciator_retention_count");
+    	final PreferencesReader prefs = AnnotatedPreferences.initialize(AlarmSystem.class, "/alarm_preferences.properties");
         idle_timeout_ms = prefs.getInt("idle_timeout") * 1000L;
-        automated_email_sender = prefs.get("automated_email_sender");
-        automated_action_followup = getItems(prefs.get("automated_action_followup"));
-        heartbeat_pv = prefs.get("heartbeat_pv");
         heartbeat_ms = prefs.getInt("heartbeat_secs") * 1000L;
 
         double secs = 0.0;
@@ -145,15 +138,33 @@ public class AlarmSystem
         }
         nag_period_ms = Math.round(Math.max(0, secs) * 1000.0);
 
-        IdentificationHelper.initialize();
-    }
+        // Check if the provided options can be parsed to avoid later runtime errors
+        final LocalDateTime now = LocalDateTime.now();
+        for (String option : shelving_options)
+        {
+            try
+            {
+                final TemporalAmount amount = TimeParser.parseTemporalAmount(option);
+                final LocalDateTime end = now.plus(amount);
+                if (! end.isAfter(now))
+                    throw new Exception("Invalid 'shelving_options' value '" + option + "'");
+            }
+            catch (Throwable ex)
+            {
+                logger.log(Level.WARNING, "Error in 'shelving_options'", ex);
+            }
+        }
 
-    private static List<String> getItems(final String comma_options)
-    {
-        final String[] split = comma_options.split("\\s*,\\s*");
-        if (split.length == 1  &&  split[0].isEmpty())
-            return List.of();
-        else
-            return List.of(split);
+        try
+        {
+            macros = new MacroOrSystemProvider(Macros.fromSimpleSpec(prefs.get("macros")));
+        }
+        catch (Exception ex)
+        {
+            logger.log(Level.WARNING, "Invalid macros '" + prefs.get("macros") + "'", ex);
+            macros = new MacroOrSystemProvider(new Macros());
+        }
+
+        IdentificationHelper.initialize();
     }
 }

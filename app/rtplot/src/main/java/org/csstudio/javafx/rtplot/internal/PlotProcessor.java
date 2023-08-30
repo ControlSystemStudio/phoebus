@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,7 +11,6 @@ import static org.csstudio.javafx.rtplot.Activator.logger;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
@@ -20,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
+import javafx.util.Pair;
 import org.csstudio.javafx.rtplot.Axis;
 import org.csstudio.javafx.rtplot.AxisRange;
 import org.csstudio.javafx.rtplot.Messages;
@@ -74,41 +74,19 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                     throw new TimeoutException("Cannot lock data for " + trace + ": " + data);
                 try
                 {
+                    // Position range tends to be ordered, which would allow to simply
+                    // use position 0 and N-1, but order is not guaranteed...
                     final int N = data.size();
-                    if (N <= 0)
-                        continue;
-                    // Try to only check the first and last position,
-                    // assuming all samples are ordered as common
-                    // for a time axis or position axis
-                    XTYPE pos = data.get(0).getPosition();
-                    // If first sample is Double (not Instant), AND NaN/inf, skip this trace
-                    if ((pos instanceof Double)  &&  !Double.isFinite((Double) pos))
-                        continue;
-                    if (start == null  ||  start.compareTo(pos) > 0)
-                        start = pos;
-                    if (end == null  ||  end.compareTo(pos) < 0)
-                        end = pos;
-                    // Last position
-                    pos = data.get(N-1).getPosition();
-                    if ((pos instanceof Double)  &&  !Double.isFinite((Double) pos))
-                        continue;
-                    if (start.compareTo(pos) > 0)
-                        start = pos;
-                    if (end.compareTo(pos) < 0)
-                        end = pos;
-                    // Need to check all values?
-                    if (Objects.equals(start, end))
+                    for (int i=0; i<N; ++i)
                     {
-                        for (int i=N-2; i>0; --i)
-                        {
-                            pos = data.get(i).getPosition();
-                            if ((pos instanceof Double)  &&  !Double.isFinite((Double) pos))
-                                continue;
-                            if (start.compareTo(pos) > 0)
-                                start = pos;
-                            if (end.compareTo(pos) < 0)
-                                end = pos;
-                        }
+                        XTYPE pos = data.get(i).getPosition();
+                        // If sample is Double (not Instant), AND NaN/inf, skip this trace
+                        if ((pos instanceof Double)  &&  !Double.isFinite((Double) pos))
+                            continue;
+                        if (start == null  ||  start.compareTo(pos) > 0)
+                            start = pos;
+                        if (end == null  ||  end.compareTo(pos) < 0)
+                            end = pos;
                     }
                 }
                 finally
@@ -122,7 +100,24 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
         return new AxisRange<>(start, end);
     }
 
-
+    /** @param data {@link PlotDataProvider} with values
+     *  @return <code>true</code> if the 'positions' are in order
+     */
+    private boolean isOrdered(final PlotDataProvider<XTYPE> data)
+    {
+        final int N = data.size();
+        if (N <= 0)
+            return false;
+        XTYPE prev = data.get(0).getPosition();
+        for (int i=1; i<N; ++i)
+        {
+            final XTYPE current = data.get(i).getPosition();
+            if (prev.compareTo(current) > 0)
+                return false;
+            prev = current;
+        }
+        return true;
+    }
 
     /** Submit background job to determine value range
      *  @param data {@link PlotDataProvider} with values
@@ -146,17 +141,29 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                 {
                     if (data.size() > 0)
                     {
-                        // Consider first sample at-or-before start
-                        int start = search.findSampleLessOrEqual(data, position_range.getLow());
-                        if (start < 0)
+                        int start, stop;
+                        if (isOrdered(data))
+                        {
+                            // Find start..stop indices from ordered positions to match axis range.
+                            // Consider first sample at-or-before start
+                            start = search.findSampleLessOrEqual(data, position_range.getLow());
+                            if (start < 0)
+                                start = 0;
+                            // Last sample is the one just inside end of range.
+                            stop = search.findSampleLessOrEqual(data, position_range.getHigh());
+                            if (stop < 0)
+                                stop = 0;
+                            if (logger.isLoggable(Level.FINE))
+                                logger.log(Level.FINE, "For " + data.size() + " samples, checking elements " + start + " .. " + stop +
+                                           " which are positioned within " + position_range.getLow() + " .. " + position_range.getHigh());
+                        }
+                        else
+                        {
+                            // Data does not have ordered 'positions', so consider all samples
                             start = 0;
-                        // Last sample is the one just inside end of range.
-                        int stop = search.findSampleLessOrEqual(data, position_range.getHigh());
-                        if (stop < 0)
-                            stop = 0;
-                        if (logger.isLoggable(Level.FINE))
-                            logger.log(Level.FINE, "For " + data.size() + " samples, checking elements " + start + " .. " + stop +
-                                       " which are positioned within " + position_range.getLow() + " .. " + position_range.getHigh());
+                            stop = data.size()-1;
+                        }
+
                         // If data is completely outside the position_range,
                         // we end up using just data[0]
                         // Check [start .. stop], including stop
@@ -187,6 +194,15 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
         });
     }
 
+    /** @param trace Trace
+     *  @return Is trace visible?
+     */
+    private boolean isTraceVisible(final Trace<XTYPE> trace)
+    {
+        return trace.isVisible() &&
+              (trace.getType() != TraceType.NONE  ||  trace.getPointType() != PointType.NONE);
+    }
+
     /** Submit background job to determine value range
      *  @param axis {@link YAxisImpl} for which to determine range
      *  @param position_range Range of positions to consider
@@ -202,8 +218,7 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                 // In parallel, determine range of all traces in this axis
                 final List<Future<ValueRange>> ranges = new ArrayList<>();
                 for (Trace<XTYPE> trace : axis.getTraces())
-                    if (trace.isVisible() &&
-                        (trace.getType() != TraceType.NONE  ||  trace.getPointType() != PointType.NONE))
+                    if (isTraceVisible(trace))
                         ranges.add(determineValueRange(trace.getData(), position_range));
 
                 // Merge the trace ranges into overall axis range
@@ -258,6 +273,7 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
             final List<AxisRange<Double>> original_ranges = new ArrayList<>();
             final List<AxisRange<Double>> new_ranges = new ArrayList<>();
             final List<Future<ValueRange>> ranges = new ArrayList<>();
+            int spans = 0;
             for (YAxisImpl<XTYPE> axis : plot.getYAxes())
             {
                 y_axes.add(axis);
@@ -265,14 +281,32 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                 new_ranges.add(axis.getValueRange());
                 original_ranges.add(axis.getValueRange());
                 ranges.add(determineValueRange(axis, plot.getXAxis().getValueRange()));
+                // How many spans for non-empty axes do we need?
+                for (Trace<XTYPE> trace : axis.getTraces())
+                    if (isTraceVisible(trace))
+                    {
+                        ++spans;
+                        break;
+                    }
             }
             final int N = y_axes.size();
+            int span_idx = 0;
             for (int i=0; i<N; ++i)
             {
                 final YAxisImpl<XTYPE> axis = y_axes.get(i);
                 // Does axis handle itself in another way?
                 if (axis.isAutoscale())
                    continue;
+                // Does axis have any traces?
+                boolean any = false;
+                for (Trace<XTYPE> trace : axis.getTraces())
+                    if (isTraceVisible(trace))
+                    {
+                        any = true;
+                        break;
+                    }
+                if (! any)
+                    continue;
 
                 // Fetch range of values on this axis
                 final ValueRange axis_range;
@@ -293,9 +327,17 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                     continue;
                 if (low == high)
                 {   // Center trace with constant value (empty range)
-                    final double half = Math.abs(low/2);
-                    low -= half;
-                    high += half;
+                    double half = Math.abs(low/2);
+                    if (half > 0)
+                    {
+                        low -= half;
+                        high += half;
+                    }
+                    else
+                    {
+                        low = -1.0;
+                        high = 1.0;
+                    }
                 }
                 if (axis.isLogarithmic())
                 {   // Transition into log space
@@ -311,8 +353,10 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                 // With N axes, assign 1/Nth of the vertical plot space to this axis
                 // by shifting the span down according to the axis index,
                 // using a total of N*range.
-                low -= (N-i-1)*span;
-                high += i*span;
+                logger.log(Level.FINE, "Axis " + axis.getName() + " staggers into span " + span_idx + " of " + spans);
+                low -= (spans-span_idx-1)*span;
+                high += span_idx*span;
+                ++span_idx;
 
                 final ValueRange rounded = roundValueRange(low, high);
                 low = rounded.getLow();
@@ -328,10 +372,10 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                 if (low < high  &&
                     !Double.isInfinite(low) && !Double.isInfinite(high))
                 {
-                	final AxisRange<Double> orig = original_ranges.get(i);
-                	final boolean normal = orig.getLow() < orig.getHigh();
-                	new_ranges.set(i, normal ? new AxisRange<>(low, high)
-                			                 : new AxisRange<>(high, low));
+                    final AxisRange<Double> orig = original_ranges.get(i);
+                    final boolean normal = orig.getLow() < orig.getHigh();
+                    new_ranges.set(i, normal ? new AxisRange<>(low, high)
+                                             : new AxisRange<>(high, low));
                 }
             }
 
@@ -402,8 +446,7 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                 final AxisRange<XTYPE> range = determinePositionRange(all_y_axes);
                 if (range != null)
                 {
-                    if (logger.isLoggable(Level.FINE))
-                        logger.log(Level.FINE, plot.getXAxis().getName() + " range " + range.getLow() + " .. " + range.getHigh());
+                    logger.log(Level.FINE, () -> plot.getXAxis().getName() + " range " + range.getLow() + " .. " + range.getHigh());
                     plot.getXAxis().setValueRange(range.getLow(), range.getHigh());
                     plot.fireXAxisChange();
                 }
@@ -436,45 +479,47 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
                     if (low == high)
                     {   // Center trace with constant value (empty range)
                         final double half = Math.abs(low/2);
-                        low -= half;
-                        high += half;
+                        if (half > 0)
+                        {
+                            low -= half;
+                            high += half;
+                        }
+                        else
+                        {   // low = high = half = 0, default to [-1, 1]
+                            low = -1.0;
+                            high = 1.0;
+                        }
                     }
-                    if (axis.isLogarithmic())
-                    {   // Perform adjustment in log space.
-                        // But first, refuse to deal with <= 0
-                        if (low <= 0.0)
-                            low = 1;
-                        if (high <= low)
-                            high = low * 100.0;
-                        low = Log10.log10(low);
-                        high = Log10.log10(high);
-                    }
-                    final ValueRange rounded = roundValueRange(low, high);
-                    low = rounded.getLow();
-                    high = rounded.getHigh();
                     if (axis.isLogarithmic())
                     {
-                        low = Log10.pow10(low);
-                        high = Log10.pow10(high);
+                        low = Log10.pow10(Math.floor(Log10.log10(low))); // Note: may set "low" to 0.0.
+                        high = Log10.pow10(Math.ceil(Log10.log10(high)));
+                        Pair<Double, Double> adjustedRange = axis.ticks.adjustRange(low, high);
+                        low = adjustedRange.getKey();
+                        high = adjustedRange.getValue();
+
                     }
-                    else
-                    {   // Stretch range a little bit
+                    else {
+                        final ValueRange rounded = roundValueRange(low, high);
+                        low = rounded.getLow();
+                        high = rounded.getHigh();
+                        // Stretch range a little bit
                         // (but not for log scale, where low just above 0
                         //  could be stretched to <= 0)
                         final double headroom = (high - low) * 0.05;
                         low -= headroom;
                         high += headroom;
-
                     }
+
                     // Autoscale happens 'all the time'.
                     // Do not use undo, but notify listeners.
                     if (low != high)
                     {
-                    	final AxisRange<Double> orig = axis.getValueRange();
-                    	final boolean normal = orig.getLow() < orig.getHigh();
-                    	final boolean changed = normal ? axis.setValueRange(low, high)
-            										   : axis.setValueRange(high, low);
-            			if (changed)
+                        final AxisRange<Double> orig = axis.getValueRange();
+                        final boolean normal = orig.getLow() < orig.getHigh();
+                        final boolean changed = normal ? axis.setValueRange(low, high)
+                                                       : axis.setValueRange(high, low);
+                        if (changed)
                             plot.fireYAxisChange(axis);
                     }
                 }

@@ -22,21 +22,36 @@ import org.phoebus.channelfinder.Channel.Builder;
 public interface ChannelFinderClient {
 
 	/**
-	 * Get a list of names of all the properties currently present on the
+	 * Get a list of all the properties currently present on the
 	 * channelfinder service.
 	 * 
+	 * @return list of all existing {@link Property}s.
+	 */
+	public Collection<Property> getAllProperties();
+
+	/**
+	 * Get a list of names of all the properties currently present on the
+	 * channelfinder service.
+	 *
 	 * @return list of names of all existing {@link Property}s.
 	 */
-	public Collection<String> getAllProperties();
-	
+	public Collection<String> getAllPropertyNames();
+
 	public Collection<Channel> getAllChannels();
+
+	/**
+	 * GEt a list of all the tags
+	 * @return list of all tags
+	 */
+	public Collection<Tag> getAllTags();
+
 	/**
 	 * Get a list of names of all the tags currently present on the
 	 * channelfinder service.
 	 * 
 	 * @return a list of names of all the existing {@link Tag}s.
 	 */
-	public Collection<String> getAllTags();
+	public Collection<String> getAllTagNames();
 
 	/**
 	 * Returns a channel that exactly matches the channelName

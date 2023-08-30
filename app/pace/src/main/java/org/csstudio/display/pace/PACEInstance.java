@@ -26,8 +26,8 @@ import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
-import org.phoebus.logbook.ui.write.LogEntryDialog;
-import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.logbook.ui.write.LogEntryEditorStage;
+import org.phoebus.logbook.ui.write.LogEntryModel;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
@@ -100,38 +100,39 @@ public class PACEInstance implements AppInstance
         builder.appendDescription(text);
 
         final LogEntry entry = builder.createdDate(Instant.now()).build();
-        final LogEntryDialog dialog = new LogEntryDialog(gui, entry);
-        DialogHelper.positionDialog(dialog, gui, -200, -400);
 
-        final LogEntry submitted = dialog.showAndWait().orElse(null);
-        if (submitted != null)
-        {
-            final String user = dialog.getUsername();
-            try
-            {   // Change PVs
-                model.saveUserValues(user);
+        LogEntryModel logEntryModel = new LogEntryModel(entry);
 
-                // On success, clear user values
-                model.clearUserValues();
-            }
-            catch (Exception ex)
+        new LogEntryEditorStage(gui, logEntryModel, logEntry -> {
+            if (logEntry != null)
             {
-                logger.log(Level.WARNING, "Save failed", ex);
-                // At least some saves failed, to revert
+                final String user = logEntryModel.getUsername();
                 try
-                {
-                    model.revertOriginalValues();
+                {   // Change PVs
+                    model.saveUserValues(user);
+
+                    // On success, clear user values
+                    model.clearUserValues();
                 }
-                catch (Exception ex2)
+                catch (Exception ex)
                 {
-                    // Since saving didn't work, restoral will also fail.
-                    // Hopefully those initial PVs that did get updated will
-                    // also be restored...
-                    logger.log(Level.WARNING, "Restore failed", ex2);
+                    logger.log(Level.WARNING, "Save failed", ex);
+                    // At least some saves failed, to revert
+                    try
+                    {
+                        model.revertOriginalValues();
+                    }
+                    catch (Exception ex2)
+                    {
+                        // Since saving didn't work, restoral will also fail.
+                        // Hopefully those initial PVs that did get updated will
+                        // also be restored...
+                        logger.log(Level.WARNING, "Restore failed", ex2);
+                    }
+                    ExceptionDetailsErrorDialog.openError(gui, Messages.SaveError, Messages.PVWriteError, ex);
                 }
-                ExceptionDetailsErrorDialog.openError(gui, Messages.SaveError, Messages.PVWriteError, ex);
             }
-        }
+        }).show();
     }
 
     /** Create the 'body', the main text of the ELog entry which

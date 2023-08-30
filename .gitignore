@@ -1,13 +1,23 @@
 *~
 target/
+
+## Generated Documentation ##
+docs/build/
+
+
+### release files ###
+
+release.log
 pom.xml.tag
 pom.xml.releaseBackup
 pom.xml.versionsBackup
 pom.xml.next
 release.properties
+
 .settings
 logs.txt
 settings.xml
+!.github/maven/settings.xml
 nohup.out
 
 # Generated help files, html/generated
@@ -86,6 +96,7 @@ local.properties
 # These could be committed, but let's ignore them for now.
 *.iml
 .idea/
+*${project.build.directory}*
 
 ### Maven ###
 target/
@@ -101,5 +112,11 @@ buildNumber.properties
 # Avoid ignoring Maven wrapper jar file (.jar files are usually ignored)
 !/.mvn/wrapper/maven-wrapper.jar
 
+# Exclude complete settings template file if it is created
+phoebus-product/settings_template.ini
 
 # End of https://www.gitignore.io/api/maven,eclipse
+/.gitignore
+
+# hs_err* files
+**/hs_err*

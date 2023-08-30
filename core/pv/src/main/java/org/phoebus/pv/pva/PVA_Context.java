@@ -20,9 +20,13 @@ public class PVA_Context
 
     private PVA_Context() throws Exception
     {
+        PVA_Preferences.getInstance().installPreferences();
         client = new PVAClient();
     }
 
+    /** @return Singleton instance
+     *  @throws Exception on error
+     */
     public static synchronized PVA_Context getInstance() throws Exception
     {
         if (instance == null)

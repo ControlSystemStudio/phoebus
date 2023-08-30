@@ -5,10 +5,26 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmSeverity;
+import org.epics.vtype.AlarmStatus;
+import org.epics.vtype.VType;
 import org.phoebus.channelfinder.Channel;
 import org.phoebus.channelfinder.ChannelUtil;
+import org.phoebus.pv.PV;
+import org.phoebus.pv.PVPool;
+import org.phoebus.ui.vtype.FormatOption;
+import org.phoebus.ui.vtype.FormatOptionHandler;
 
+import static org.phoebus.channel.views.ui.ChannelFinderController.logger;
+
+/**
+ * A representation of a node in the channelfinder tree
+ * @author Kunal Shroff
+ */
 public class ChannelTreeByPropertyNode {
 
     // The model that contains the node, used to access all data
@@ -17,11 +33,12 @@ public class ChannelTreeByPropertyNode {
 
     // Channels represented by this node and down
     private List<Channel> nodeChannels;
+
     // 0 for root, 1 for children, 2 for grandchildren...
     private final int depth;
-    // null for root, first property value for children, second property value
-    // for grandchildren,
-    // channelName for leaf
+    // null for root,
+    // first property value for children, second property value for grandchildren,....
+    // channelName (pv value) for leaf
     private final String displayName;
     // Next property value for root and descendents, names of channels for first
     // to last node,
@@ -30,6 +47,13 @@ public class ChannelTreeByPropertyNode {
     // Parent of the node, or null if root
     private final ChannelTreeByPropertyNode parentNode;
 
+    /**
+     * Create the node in the channel tree ordered by a set of properties
+     * @param model
+     * @param parentNode
+     * @param displayName
+     * @param connect
+     */
     public ChannelTreeByPropertyNode(ChannelTreeByPropertyModel model, ChannelTreeByPropertyNode parentNode, String displayName) {
         this.model = model;
         this.parentNode = parentNode;
@@ -53,6 +77,18 @@ public class ChannelTreeByPropertyNode {
             for (Channel channel : parentNode.nodeChannels) {
                 if (this.displayName.equals(channel.getName())) {
                     nodeChannels.add(channel);
+                    if(this.model.isConnect())
+                    {
+                        try {
+                            final PV pv = PVPool.getPV(channel.getName());
+                            pv.onValueEvent().throttleLatest(100, TimeUnit.MILLISECONDS).subscribe(value -> {
+                                this.model.nodePVValues.put(pv.getName(), value);
+                            });
+                            this.model.nodePVs.add(pv);
+                        } catch (Exception e) {
+                            logger.log(Level.WARNING, "failed to create an active pv connection for pv: " + channel.getName(), e);
+                        }
+                    }
                 }
             }
         } else {
@@ -87,7 +123,8 @@ public class ChannelTreeByPropertyNode {
      *
      * @return property name or null if leaf node
      */
-    public String getPropertyName() {
+    public String getPropertyName()
+    {
         // Root node does not have any property associated with it
         if (depth == 0)
             return null;
@@ -100,8 +137,35 @@ public class ChannelTreeByPropertyNode {
         return model.properties.get(index);
     }
 
-    public String getDisplayName() {
+    public String getDisplayName()
+    {
         return displayName;
+    }
+
+    public String getDisplayValue()
+    {
+        if (model.nodePVValues.containsKey(displayName))
+        {
+            return formatVType(model.nodePVValues.get(displayName));
+        }
+        return null;
+    }
+
+    private String formatVType(VType value )
+    {
+        Alarm alarm = Alarm.alarmOf(value);
+        StringBuffer sb = new StringBuffer();
+        sb.append(FormatOptionHandler.format(value, FormatOption.DEFAULT, -1, true));
+        if (!alarm.getSeverity().equals(AlarmSeverity.NONE)) 
+        {
+            sb.append(alarm.getSeverity().toString());
+        }
+        if (!alarm.getStatus().equals(AlarmStatus.NONE))
+        {
+            sb.append(" - ");
+            sb.append(alarm.getStatus().toString());
+        }
+        return sb.toString();
     }
 
     public List<String> getChildrenNames() {

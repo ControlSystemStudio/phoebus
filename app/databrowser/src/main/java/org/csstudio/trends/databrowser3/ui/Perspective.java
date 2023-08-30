@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,7 @@ import static org.csstudio.trends.databrowser3.Activator.logger;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.prefs.BackingStoreException;
@@ -32,15 +33,16 @@ import org.csstudio.trends.databrowser3.ui.properties.PropertyPanel;
 import org.csstudio.trends.databrowser3.ui.properties.RemoveUnusedAxes;
 import org.csstudio.trends.databrowser3.ui.sampleview.SampleView;
 import org.csstudio.trends.databrowser3.ui.search.SearchView;
+import org.csstudio.trends.databrowser3.ui.selection.DatabrowserSelection;
 import org.csstudio.trends.databrowser3.ui.waveformview.WaveformView;
-import org.phoebus.applications.email.actions.SendEmailAction;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
-import org.phoebus.logbook.ui.menu.SendLogbookAction;
+import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
-import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.PrintAction;
+import org.phoebus.ui.spi.ContextMenuEntry;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.application.Platform;
@@ -53,6 +55,7 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 
@@ -87,6 +90,7 @@ public class Perspective extends SplitPane
     private Tab search_tab, properties_tab, export_tab, inspect_tab, waveform_tab = null;
 
 
+    /** @param minimal Only show the essentials? */
     public Perspective(final boolean minimal)
     {
         property_panel = new PropertyPanel(model, plot.getPlot().getUndoableActionManager());
@@ -128,6 +132,8 @@ public class Perspective extends SplitPane
         // As pane is resized, assert that the minimzed left or bottom region stays minimized
         widthProperty().addListener(prop -> Platform.runLater(() -> autoMinimizeLeft()));
         heightProperty().addListener(prop -> Platform.runLater(() -> autoMinimizeBottom()));
+
+        plot.setConfigDialogSupported(org.csstudio.trends.databrowser3.preferences.Preferences.config_dialog_supported);
     }
 
     /** @return {@link Model} */
@@ -178,6 +184,8 @@ public class Perspective extends SplitPane
             createWaveformTab();
             showBottomTab(waveform_tab);
         });
+        final MenuItem refresh = new MenuItem(Messages.Refresh, Activator.getIcon("refresh_remote"));
+        refresh.setOnAction(event -> controller.refresh());
 
         final ContextMenu menu = new ContextMenu();
         final ObservableList<MenuItem> items = menu.getItems();
@@ -190,17 +198,30 @@ public class Perspective extends SplitPane
             items.addAll(add_data);
 
             items.add(new SeparatorMenuItem());
-            items.add(new PrintAction(plot.getPlot()));
-            items.add(new SaveSnapshotAction(plot.getPlot()));
-            items.add(new SendEmailAction(this, Messages.ActionEmailTitle, Messages.ActionEmailBody, () ->  plot.getPlot().getImage()));
-            items.add(new SendLogbookAction(DockPane.getActiveDockPane(), Messages.ActionLogbookTitle, Messages.ActionLogbookBody, () ->  plot.getPlot().getImage()));
+            // Get screenshot of actual plot without optional toolbar
+            items.add(new PrintAction(plot.getPlot().getCenter()));
+            items.add(new SaveSnapshotAction(plot.getPlot().getCenter()));
+
+            SelectionService.getInstance().setSelection(this, Arrays.asList(DatabrowserSelection.of(model, plot)));
+            List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
+            supported.stream().forEach(action -> {
+                MenuItem menuItem = new MenuItem(action.getName(), new ImageView(action.getIcon()));
+                menuItem.setOnAction((e) -> {
+                    try {
+                        action.call(plot.getPlot(), SelectionService.getInstance().getSelection());
+                    } catch (Exception ex) {
+                        logger.log(Level.WARNING, "Failed to exectute " + action.getName() + " from databrowser plot.", ex);
+                    }
+                });
+                items.add(menuItem);
+            });
 
             if (model.getEmptyAxis().isPresent())
             {
                 items.add(new SeparatorMenuItem());
                 items.add(new RemoveUnusedAxes(model, undo));
             }
-            items.addAll(new SeparatorMenuItem(), show_search, show_properties, show_export, show_samples, show_waveform);
+            items.addAll(new SeparatorMenuItem(), show_search, show_properties, show_export, show_samples, show_waveform, refresh);
 
             menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
@@ -462,6 +483,7 @@ public class Perspective extends SplitPane
             memento.setBoolean(SHOW_WAVEFORM, true);
     }
 
+    /** Reclaim resources */
     public void dispose()
     {
         try
@@ -472,7 +494,13 @@ public class Perspective extends SplitPane
         {
             logger.log(Level.WARNING, "Unable to flush preferences", ex);
         }
-        plot.dispose();
+        // Stop PVs etc. ASAP
         controller.stop();
+        // Then dispose plot
+        plot.dispose();
+        // Not specifically disposing property_panel.
+        // Their model listeners have been removed when controller stopped
+        // and 'disposed' model.
     }
+
 }

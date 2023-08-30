@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,7 @@ import static org.csstudio.trends.databrowser3.Activator.logger;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.Objects;
 import java.util.Optional;
@@ -47,6 +48,7 @@ import javafx.stage.Screen;
 @SuppressWarnings("nls")
 public class DataBrowserInstance implements AppInstance
 {
+    /** File extensions used by plot */
     public static final ExtensionFilter[] file_extensions = new ExtensionFilter[] { new ExtensionFilter(Messages.FileFilterDesc, "*.plt") };
 
     /** Width of the display in pixels. Used to scale negative plot_bins */
@@ -93,7 +95,12 @@ public class DataBrowserInstance implements AppInstance
 
         @Override
         public void changedAxis(final Optional<AxisConfig> axis)
-        {   setDirty(true);   }
+        {
+            if (!axis.isPresent() || !axis.get().autoScaleUpdateInProgress)
+            {
+                setDirty(true);
+            }
+        }
 
         @Override
         public void itemAdded(final ModelItem item)
@@ -112,7 +119,7 @@ public class DataBrowserInstance implements AppInstance
         {   setDirty(true);   }
 
         @Override
-        public void changedItemDataConfig(PVItem item)
+        public void changedItemDataConfig(final PVItem item, final boolean archive_invalid)
         {   setDirty(true);   }
 
         @Override
@@ -120,6 +127,9 @@ public class DataBrowserInstance implements AppInstance
         {   setDirty(true);   }
     };
 
+    /** @param app App
+     *  @param minimal Minimize what's shown?
+     */
     public DataBrowserInstance(final DataBrowserApp app, final boolean minimal)
     {
         this.app = app;
@@ -145,11 +155,7 @@ public class DataBrowserInstance implements AppInstance
         dock_item = new DockItemWithInput(this, perspective, null, file_extensions, this::doSave);
         DockPane.getActiveDockPane().addTab(dock_item);
 
-        dock_item.addCloseCheck(() ->
-        {
-            dispose();
-            return true;
-        });
+        dock_item.addClosedNotification(this::dispose);
 
         perspective.getModel().addListener(model_listener);
     }
@@ -185,9 +191,6 @@ public class DataBrowserInstance implements AppInstance
             final Model new_model = new Model();
             try
             {
-                // Load model from file in background
-                XMLPersistence.load(new_model, ResourceParser.getContent(input));
-
                 // Check for macros
                 final Macros macros = new Macros();
                 ResourceParser.getQueryItemStream(input)
@@ -195,6 +198,24 @@ public class DataBrowserInstance implements AppInstance
                               .forEach(item -> macros.add(item.getKey(),
                                                           item.getValue()));
                 new_model.setMacros(macros);
+
+                // Load model from file in background
+                // (strip 'query' from input)
+                final InputStream stream = ResourceParser.getContent(
+                        new URI(input.getScheme(),
+                                input.getAuthority(),
+                                input.getPath(),
+                                null,
+                                null));
+                if (input.getPath().endsWith(".stp"))
+                {
+                    StripToolParser.load(input, new_model, stream);
+                    // Tread *.plt as 'read-only', not supporting 'save'.
+                    // 'save-as' is supported, and will enforce *.plt extension.
+                    new_model.setSaveChanges(false);
+                }
+                else
+                    XMLPersistence.load(new_model, stream);
 
                 Platform.runLater(() ->
                 {

@@ -4,7 +4,6 @@
   <target name="app-diag" depends="compile-app">
     <jar destfile="${build}/app-diag-${version}.jar">
       <fileset dir="${classes}"/>
-      <fileset dir="${src}" includes="**/*.fxml"/>
       <fileset dir="${resources}"/>
     </jar>
   </target>

@@ -41,6 +41,15 @@ public class AlarmURI
     {
         if (! SCHEMA.equals(resource.getScheme()))
             throw new Exception("Cannot parse " + resource + ", expecting " + SCHEMA + "://{host}:{port}/{config_name}");
+
+	String[] splitURI = (resource.toString()).split("://");
+	// If user provides multiple kafka hosts i.e. host1:port1,host2:port2,host3:port3
+	if (splitURI[1].contains(","))
+	{
+	    String[] splitAuthorityPath = splitURI[1].split("/");
+	    return new String[] { splitAuthorityPath[0], splitAuthorityPath[1] };
+	}
+
         // Default to port 9092
         int port = resource.getPort();
         if (port < 0)

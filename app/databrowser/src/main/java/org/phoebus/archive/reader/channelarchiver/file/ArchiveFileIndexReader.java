@@ -34,9 +34,7 @@ public class ArchiveFileIndexReader implements AutoCloseable
     private final File indexParent;
     private final HashMap<String, TreeAnchor> anchors;
 
-    /** Anchor of an RTree
-     *
-     */
+    /** Anchor of an RTree */
     private class TreeAnchor
     {
         public final String name;
@@ -58,6 +56,9 @@ public class ArchiveFileIndexReader implements AutoCloseable
         }
     }
 
+    /** @param indexFile Index file to read
+     *  @throws IOException on error
+     */
     public ArchiveFileIndexReader(final File indexFile) throws IOException
     {
         buffer = new ArchiveFileBuffer(indexFile);
@@ -122,8 +123,8 @@ public class ArchiveFileIndexReader implements AutoCloseable
      *  at or before the given end time, an empty list will be returned.
      *
      *  @param channelName Channel name
-     *  @param startTime
-     *  @param endTime
+     *  @param startTime Start time
+     *  @param endTime End time
      *  @return data file entries (file + offset) for the given time range
      *  @throws UnknownChannelException If the index has no data for the given channel name.
      *  @throws Exception on error
@@ -257,6 +258,7 @@ public class ArchiveFileIndexReader implements AutoCloseable
         buffer.close();
     }
 
+    /** @return Channel names found in index */
     public java.util.Set<String> getChannelNames()
     {
         return anchors.keySet();

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -241,8 +241,30 @@ public class WidgetRuntime<MW extends Widget>
 
         RuntimeUtil.getExecutor().execute(this::startRules);
 
-        // Start scripts in pool because Jython setup is expensive
-        RuntimeUtil.getExecutor().execute(this::startScripts);
+        if (hasScripts())
+            // Start scripts in pool because Jython setup is expensive
+            RuntimeUtil.getExecutor().execute(this::startScripts);
+        else
+            started.countDown();
+    }
+
+    /** Are Scripts or Rules defined for Widget? */
+    private boolean hasScripts()
+    {
+        if (widget.propScripts().getValue().size() > 0)
+            return true;
+        if (widget.propRules().getValue().size() > 0)
+            return true;
+        final List<ActionInfo> actions = widget.propActions().getValue().getActions();
+        if (actions.size() > 0)
+        {
+            for (ActionInfo action_info : actions)
+            {
+                if (action_info instanceof ExecuteScriptActionInfo)
+                    return true;
+            }
+        }
+        return false;
     }
     
     private void startRules()
@@ -356,7 +378,7 @@ public class WidgetRuntime<MW extends Widget>
         try
         {
             if (! started.await(10, TimeUnit.SECONDS))
-                logger.log(Level.WARNING, "Runtime startup not completed for " + widget);
+                logger.log(Level.WARNING, "Runtime startup not completed for " + widget, new Exception("Stack trace"));
         }
         catch (InterruptedException ex)
         {
@@ -365,7 +387,7 @@ public class WidgetRuntime<MW extends Widget>
     }
 
     /** Write a value to the primary PV
-     *  @param value
+     *  @param value Value to write
      */
     public void writePrimaryPV(final Object value)
     {

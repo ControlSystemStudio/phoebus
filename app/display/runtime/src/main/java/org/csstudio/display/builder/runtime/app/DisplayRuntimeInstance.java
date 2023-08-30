@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,15 +9,19 @@ package org.csstudio.display.builder.runtime.app;
 
 import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
+
+import java.awt.geom.Rectangle2D;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
-import org.csstudio.display.builder.model.macros.DisplayMacroExpander;
+import org.csstudio.display.builder.model.Preferences;
+import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.ModelLoader;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
@@ -29,20 +33,26 @@ import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
+import org.phoebus.ui.docking.DockStage;
+import org.phoebus.ui.docking.Geometry;
 import org.phoebus.ui.javafx.ToolbarHelper;
 
 import javafx.application.Platform;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.ButtonBase;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.Label;
 import javafx.scene.control.ToolBar;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
 
 /** PV Table Application
  *  @author Kay Kasemir
@@ -84,11 +94,43 @@ public class DisplayRuntimeInstance implements AppInstance
     /** Toolbar button for navigation */
     private ButtonBase navigate_backward, navigate_forward;
 
+    /** Obtain the DisplayRuntimeInstance of a display
+     *  @param model {@link DisplayModel}
+     *  @return {@link DisplayRuntimeInstance}
+     */
+    public static DisplayRuntimeInstance ofDisplayModel(final DisplayModel model)
+    {
+        final Parent model_parent = Objects.requireNonNull(model.getUserData(Widget.USER_DATA_TOOLKIT_PARENT));
+        return (DisplayRuntimeInstance) model_parent.getProperties().get(DisplayRuntimeInstance.MODEL_PARENT_DISPLAY_RUNTIME);
+    }
+
     DisplayRuntimeInstance(final AppDescriptor app)
+    {
+        this(app, null);
+    }
+
+    DisplayRuntimeInstance(final AppDescriptor app, String prefTarget)
     {
         this.app = app;
 
-        final DockPane dock_pane = DockPane.getActiveDockPane();
+        DockPane dock_pane = null;
+        if (prefTarget != null)
+        {
+            if (prefTarget.startsWith("window"))
+            {
+                // Open new Stage in which this app will be opened, its DockPane is a new active one
+                final Stage new_stage = new Stage();
+                if (prefTarget.startsWith("window@"))
+                    DockStage.configureStage(new_stage, new Geometry(prefTarget.substring(7)));
+                else
+                    DockStage.configureStage(new_stage);
+                new_stage.show();
+            }
+            else
+                dock_pane = DockStage.getDockPaneByName(prefTarget);
+        }
+        if (dock_pane == null)
+            dock_pane = DockPane.getActiveDockPane();
         dock_pane.deferUntilInScene(JFXRepresentation::setSceneStyle);
 
         representation = new DockItemRepresentation(this);
@@ -134,7 +176,7 @@ public class DisplayRuntimeInstance implements AppInstance
     }
 
     /** @return DockItem in which this display is contained */
-    DockItem getDockItem()
+    public DockItem getDockItem()
     {
         return dock_item;
     }
@@ -227,7 +269,7 @@ public class DisplayRuntimeInstance implements AppInstance
     }
 
     /** Load display file, represent it, start runtime
-     *  @param info Display file to load & represent
+     *  @param info Display file to load and represent
      */
     public void loadDisplayFile(final DisplayInfo info)
     {
@@ -251,13 +293,61 @@ public class DisplayRuntimeInstance implements AppInstance
         // load model off UI thread
         JobManager.schedule("Load Display", monitor ->
         {
-            final DisplayModel model = loadModel(monitor, info);
+            try
+            {
+                final DisplayModel model = loadModel(monitor, info);
 
-            final Future<Void> represented = representation.submit(() -> representModel(model));
-            represented.get();
+                final Future<Void> represented = representation.submit(() -> representModel(model));
+                represented.get();
 
-            // Start runtime for the model
-            RuntimeUtil.startRuntime(model);
+                // Start runtime for the model
+                RuntimeUtil.startRuntime(model);
+
+                logger.log(Level.FINE, "Waiting for representation of model " + info.getPath());
+
+                try
+                {
+                    representation.awaitRepresentation(30, TimeUnit.SECONDS);
+                    logger.log(Level.FINE, "Done with representing model of " + info.getPath());
+                }
+                catch (TimeoutException | InterruptedException ex)
+                {
+                    logger.log(Level.SEVERE, "Cannot wait for representation of " + info.getPath(), ex);
+                }
+
+                // Check if there were widget errors
+                if (model.isClean() == false)
+                    showRepresentationError();
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.SEVERE, "Cannot load model from " + info.getPath(), ex);
+
+                final String exception_message;
+
+                if (ex.getCause() != null)
+                    exception_message = ":\n" + ex.getCause().getLocalizedMessage();
+                else
+                    exception_message = "";
+
+                ExceptionDetailsErrorDialog.openError("Cannot load model",
+                        "Cannot load model from\n" + info.getPath() + exception_message, ex);
+
+                display_info = Optional.empty();
+
+                boolean shouldClose = dock_item.okToClose().get();
+
+                if (shouldClose) {
+                    dock_item.prepareToClose();
+                    Platform.runLater(() ->
+                    {
+                        final Parent parent = representation.getModelParent();
+                        JFXRepresentation.getChildren(parent).clear();
+
+                        close();
+                    });
+                }
+            }
         });
     }
 
@@ -272,54 +362,39 @@ public class DisplayRuntimeInstance implements AppInstance
      *  @param info Display to load
      *  @return Model that has been loaded
      */
-    private DisplayModel loadModel(final JobMonitor monitor, final DisplayInfo info)
+    private DisplayModel loadModel(final JobMonitor monitor, final DisplayInfo info) throws Exception
     {
         monitor.beginTask(info.toString());
-        try
-        {
-            final DisplayModel model = info.shouldResolve()
-                ? ModelLoader.resolveAndLoadModel(null, info.getPath())
-                : ModelLoader.loadModel(info.getPath());
+        final DisplayModel model = info.shouldResolve()
+            ? ModelLoader.resolveAndLoadModel(null, info.getPath())
+            : ModelLoader.loadModel(info.getPath());
 
-            // This code is called
-            // 1) When opening a new display
-            //    No macros in info.
-            // 2) On application restart with DisplayInfo from memento
-            //    Info contains snapshot of macros from last run
-            //    Could simply use info's macros if they are non-empty,
-            //    but merging macros with those loaded from model file
-            //    allows for newly added macros in the display file.
-            final Macros macros = Macros.merge(model.propMacros().getValue(), info.getMacros());
-            model.propMacros().setValue(macros);
+        // This code is called
+        // 1) When opening a new display
+        //    No macros in info.
+        // 2) On application restart with DisplayInfo from memento
+        //    Info contains snapshot of macros from last run
+        //    Could simply use info's macros if they are non-empty,
+        //    but merging macros with those loaded from model file
+        //    allows for newly added macros in the display file.
+        final Macros environment = new Macros();
+        Preferences.getMacros().forEachSpec(environment::add);
+        info.getMacros().forEachSpec(environment::add);
 
-            // For runtime, expand macros
-            if (! representation.isEditMode())
-                DisplayMacroExpander.expandDisplayMacros(model);
-            return model;
-        }
-        catch (Exception ex)
-        {
-            showError("Error loading " + info, ex);
-        }
-        return null;
+        model.expandMacros(environment);
+
+        return model;
     }
 
     /** Represent model
      *  @param model Model to represent
      *  @return {@link Void} to allow use in {@link Callable}
      */
-    private Void representModel(final DisplayModel model)
+    private Void representModel(final DisplayModel model) throws Exception
     {
-        try
-        {
-            final Parent parent = representation.getModelParent();
-            JFXRepresentation.getChildren(parent).clear();
-            representation.representModel(parent, model);
-        }
-        catch (Exception ex)
-        {
-            showError("Cannot represent model", ex);
-        }
+        final Parent parent = representation.getModelParent();
+        JFXRepresentation.getChildren(parent).clear();
+        representation.representModel(parent, model);
         return null;
     }
 
@@ -335,6 +410,7 @@ public class DisplayRuntimeInstance implements AppInstance
     {
         final DisplayInfo old_info = display_info.orElse(null);
         final DisplayInfo info = DisplayInfo.forModel(model);
+
         // A display might be loaded without macros,
         // but the DisplayModel may then have macros configured in the display itself.
         //
@@ -378,21 +454,6 @@ public class DisplayRuntimeInstance implements AppInstance
             ActionUtil.handleClose(model);
     }
 
-    /** Show error message and stack trace
-     *  @param message Message
-     *  @param error
-     */
-    private void showError(final String message, final Throwable error)
-    {
-        logger.log(Level.WARNING, message, error);
-
-        final ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        final PrintStream out = new PrintStream(buf);
-        out.append(message).append("\n\n");
-        error.printStackTrace(out);
-        showMessage(buf.toString());
-    }
-
     /** Show message
      *  @param message Message
      */
@@ -400,11 +461,28 @@ public class DisplayRuntimeInstance implements AppInstance
     {
         Platform.runLater(() ->
         {
-            final TextArea text = new TextArea(message);
-            text.setEditable(false);
-            text.setPrefSize(800, 600);
-            JFXRepresentation.getChildren(representation.getModelParent()).setAll(text);
+            final Label text = new Label(message);
+            final Parent parent = representation.getModelParent();
+            text.setWrapText(true);
+            text.setAlignment(Pos.TOP_LEFT);
+            if (parent instanceof Pane)
+            {
+                text.prefWidthProperty().bind(((Pane)parent).widthProperty());
+                text.prefHeightProperty().bind(((Pane)parent).heightProperty());
+            }
+            else
+                text.setPrefSize(800, 600);
+            JFXRepresentation.getChildren(parent).setAll(text);
         });
+    }
+
+    /** Inform user that there were representation errors
+     *
+     */
+    private void showRepresentationError()
+    {
+        ExceptionDetailsErrorDialog.openError("Errors while loading model",
+                "There were some errors while loading model from " + display_info.get().getPath() + "\nNot all widgets are displayed correctly. Please check the log for details.", null);
     }
 
     /** DockItem closed */
@@ -417,4 +495,23 @@ public class DisplayRuntimeInstance implements AppInstance
 
         navigation.dispose();
     }
+
+    @Override
+    public Optional<Rectangle2D> getPositionAndSizeHint() {
+        return Optional.ofNullable(active_model).flatMap(displayModel -> {
+            Integer width = displayModel.propWidth().getValue();
+            Integer height = displayModel.propHeight().getValue();
+            if(width != null && width > 0 && height != null && height > 0) {
+                return Optional.of(new Rectangle2D.Double(
+                        displayModel.propX().getValue(),
+                        displayModel.propY().getValue(),
+                        width,
+                        height
+                ));
+            } else {
+                return Optional.empty();
+            }
+        });
+    }
+
 }

@@ -114,6 +114,20 @@ public class LabelRepresentation extends RegionBaseRepresentation<Label, LabelWi
     public void updateChanges()
     {
         super.updateChanges();
+        // First check text because autosize might change size..
+        if (dirty_content.checkAndClear())
+        {
+            final String text = model_widget.propText().getValue();
+            jfx_node.setText(text);
+            if (model_widget.propAutoSize().getValue())
+            {
+                final Dimension2D size = TextUtils.computeTextSize(JFXUtil.convert(model_widget.propFont().getValue()), text);
+                model_widget.propWidth().setValue(  (int) Math.ceil(size.getWidth()) );
+                model_widget.propHeight().setValue( (int) Math.ceil(size.getHeight()) );
+                dirty_style.mark();
+            }
+        }
+        // .. and then check for size changes
         if (dirty_style.checkAndClear())
         {
             final int width = model_widget.propWidth().getValue();
@@ -159,17 +173,6 @@ public class LabelRepresentation extends RegionBaseRepresentation<Label, LabelWi
                 jfx_node.setBackground(new Background(new BackgroundFill(color, CornerRadii.EMPTY, Insets.EMPTY)));
             }
             jfx_node.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
-        }
-        if (dirty_content.checkAndClear())
-        {
-            final String text = model_widget.propText().getValue();
-            jfx_node.setText(text);
-            if (model_widget.propAutoSize().getValue())
-            {
-                final Dimension2D size = TextUtils.computeTextSize(JFXUtil.convert(model_widget.propFont().getValue()), text);
-                model_widget.propWidth().setValue(  (int) Math.ceil(size.getWidth()) );
-                model_widget.propHeight().setValue( (int) Math.ceil(size.getHeight()) );
-            }
         }
     }
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,7 +19,9 @@ import java.util.List;
 import java.util.Optional;
 
 import org.csstudio.scan.data.ScanSample;
+import org.csstudio.scan.info.ScanState;
 import org.csstudio.scan.server.device.Device;
+import org.csstudio.scan.server.internal.ExecutableScan;
 import org.csstudio.scan.server.log.DataLog;
 
 /** Context in which the {@link ScanCommandImpl}s of a {@link ExecutableScan} are executed.
@@ -38,6 +40,9 @@ import org.csstudio.scan.server.log.DataLog;
  */
 public interface ScanContext
 {
+    /** @return {@link ScanState} */
+    public ScanState getScanState();
+
     /** @return Macro support */
     public MacroContext getMacros();
 

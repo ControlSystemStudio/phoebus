@@ -32,7 +32,7 @@ class DestroyChannelHandler implements CommandHandler<ClientTCPHandler>
     {
         if (buffer.remaining() < 4+4)
             throw new Exception("Incomplete Destroy Channel Response");
-        // Protocol description claims CID followed by SID,
+        // Early protocol description suggested CID followed by SID,
         // but as of May 2019 both the C++ and Java server expect SID, CID
         final int sid = buffer.getInt();
         final int cid = buffer.getInt();

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,7 +26,6 @@ import org.csstudio.apputil.formula.node.GreaterThanNode;
 import org.csstudio.apputil.formula.node.IfNode;
 import org.csstudio.apputil.formula.node.LessEqualNode;
 import org.csstudio.apputil.formula.node.LessThanNode;
-import org.csstudio.apputil.formula.node.MathFuncNode;
 import org.csstudio.apputil.formula.node.MaxNode;
 import org.csstudio.apputil.formula.node.MinNode;
 import org.csstudio.apputil.formula.node.MulNode;
@@ -99,39 +98,6 @@ public class Formula implements Node
         new VariableNode("PI", Math.PI)
     };
 
-    /** Names of functions that take one argument. */
-    private static final String one_arg_funcs[] = new String[]
-    {
-        "abs",
-        "acos",
-        "asin",
-        "atan",
-        "ceil",
-        "cos",
-        "cosh",
-        "exp",
-        "expm1",
-        "floor",
-        "log",
-        "log10",
-        "round",
-        "sin",
-        "sinh",
-        "sqrt",
-        "tan",
-        "tanh",
-        "toDegrees",
-        "toRadians"
-    };
-
-    /** Names of functions that take two arguments, */
-    private static final String two_arg_funcs[] = new String[]
-    {
-        "atan2",
-        "hypot",
-        "pow"
-    };
-
     /** SPI-provided functions mapped by name */
     private static final Map<String, FormulaFunction> spi_functions = new HashMap<>();
 
@@ -140,7 +106,7 @@ public class Formula implements Node
         // Locate SPI-provided functions
         for (FormulaFunction func : ServiceLoader.load(FormulaFunction.class))
         {
-            logger.log(Level.FINE, () -> "SPI FormulaFunction '" + func.getName() + "', " + func.getArgumentCount() + " arguments");
+            logger.log(Level.FINE, () -> "SPI FormulaFunction " + func.getSignature());
             spi_functions.put(func.getName(), func);
         }
     }
@@ -349,28 +315,12 @@ public class Formula implements Node
         final FormulaFunction function = spi_functions.get(name);
         if (function != null)
         {
-            if (args.length != function.getArgumentCount())
-                throw new Exception("Function '" + function.getName() + "' takes " +
-                                    function.getArgumentCount() + " arguments but received " + Arrays.toString(args));
+            if (args.length != function.getArguments().size() &&
+                !function.isVarArgs())
+                throw new Exception("Function " + function.getSignature() + " takes " +
+                                    function.getArguments().size() + " arguments but received " + Arrays.toString(args));
             return new SPIFuncNode(function, args);
         }
-
-        // Check functions with one arg
-        for (int i=0; i<one_arg_funcs.length; ++i)
-            if (name.equalsIgnoreCase(one_arg_funcs[i]))
-            {
-                if (args.length != 1)
-                    throw new Exception("Expected 1 arg, got " + args.length);
-                return new MathFuncNode(name, args);
-            }
-        // ... two args...
-        for (int i=0; i<two_arg_funcs.length; ++i)
-            if (name.equalsIgnoreCase(two_arg_funcs[i]))
-            {
-                if (args.length != 2)
-                    throw new Exception("Expected 2 arg, got " + args.length);
-                return new MathFuncNode(name, args);
-            }
         // ... oddballs
         if (name.equalsIgnoreCase("rnd"))
         {

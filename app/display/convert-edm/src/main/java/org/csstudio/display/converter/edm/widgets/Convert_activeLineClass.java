@@ -28,6 +28,15 @@ import org.csstudio.opibuilder.converter.model.Edm_activeLineClass;
 @SuppressWarnings("nls")
 public class Convert_activeLineClass extends ConverterBase<Widget>
 {
+    // EDM has one 'line' widget with options 'close polygon' and 'fill'.
+    // Display Builder has Polyline (just lines, may use arrow) and Polygon (filled).
+    //
+    // In either tool, the 'filled' area is always 'closed',
+    // but in EDM the 'line' drawn on top of the area can remain 'open'.
+    //
+    // In rare cases where an EDM 'open' line on top of a 'filled' area is needed,
+    // maybe including 'arrows', the EDM screen needs to be adapted by
+    // placing a non-filled line for the Polyline on top of the filled Polygon.
     public Convert_activeLineClass(final EdmConverter converter, final Widget parent, final Edm_activeLineClass r)
     {
         super(converter, parent, r);
@@ -47,6 +56,7 @@ public class Convert_activeLineClass extends ConverterBase<Widget>
             widget.setPropertyValue(CommonWidgetProperties.propPoints, points);
         }
 
+        // EDM line width '0' is still creating a line of width 1
         widget.setPropertyValue(CommonWidgetProperties.propLineWidth, Math.max(1, r.getLineWidth()));
 
         if (widget instanceof PolygonWidget)

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Oak Ridge National Laboratory.
+ * Copyright (c) 2013-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -51,7 +51,7 @@ public class ScanDataSAXHandler extends DefaultHandler
     private State state = State.NeedDevice;
 
     /** Most recently parsed XML text data */
-    private String cdata;
+    private StringBuilder cdata = new StringBuilder();
 
     /** Currently parsed device */
     private String device = null;
@@ -75,7 +75,7 @@ public class ScanDataSAXHandler extends DefaultHandler
     public void startElement(final String uri, final String localName, final String qName,
             final Attributes attributes) throws SAXException
     {
-        cdata = "";
+        cdata.setLength(0);
         switch (state)
         {
         case NeedDevice:
@@ -105,7 +105,7 @@ public class ScanDataSAXHandler extends DefaultHandler
         case NeedName:
             if ("name".equalsIgnoreCase(qName))
             {
-                device = cdata;
+                device = cdata.toString();
                 samples = new ArrayList<>();
                 data.put(device, samples);
                 state = State.NeedSample;
@@ -116,7 +116,7 @@ public class ScanDataSAXHandler extends DefaultHandler
             {
                 try
                 {
-                    time = Instant.ofEpochMilli(Long.parseLong(cdata));
+                    time = Instant.ofEpochMilli(Long.parseLong(cdata.toString()));
                 }
                 catch (NumberFormatException ex)
                 {
@@ -127,7 +127,7 @@ public class ScanDataSAXHandler extends DefaultHandler
             {
                 try
                 {
-                    value = Double.parseDouble(cdata);
+                    value = Double.parseDouble(cdata.toString());
                 }
                 catch (NumberFormatException ex)
                 {
@@ -161,7 +161,7 @@ public class ScanDataSAXHandler extends DefaultHandler
     public void characters(final char[] ch, final int start, final int length)
             throws SAXException
     {
-        cdata = new String(ch, start, length);
+        cdata.append(ch, start, length);
     }
 
     /** @return {@link ScanData} parsed from XML */

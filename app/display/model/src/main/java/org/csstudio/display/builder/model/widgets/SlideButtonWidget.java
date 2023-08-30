@@ -64,7 +64,9 @@ public class SlideButtonWidget extends WritablePVWidget {
         }
     };
 
+    /** 'label' */
     public static final WidgetPropertyDescriptor<String>  propLabel    = newStringPropertyDescriptor (WidgetPropertyCategory.WIDGET, "label",      Messages.SlideButton_Label);
+    /** 'auto_size' */
     public static final WidgetPropertyDescriptor<Boolean> propAutoSize = newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "auto_size", Messages.AutoSize);
 
     private volatile WidgetProperty<Boolean>       auto_size;
@@ -79,6 +81,7 @@ public class SlideButtonWidget extends WritablePVWidget {
     private volatile WidgetProperty<WidgetColor>   on_color;
     private volatile WidgetProperty<String>        password;
 
+    /** Constructor */
     public SlideButtonWidget () {
         super(WIDGET_DESCRIPTOR.getType(), 100, 30);
     }

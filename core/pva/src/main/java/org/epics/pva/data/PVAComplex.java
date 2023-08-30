@@ -18,6 +18,7 @@ import java.nio.ByteBuffer;
 @SuppressWarnings("nls")
 class PVAComplex
 {
+    /** Type descriptor */
     public static final byte FIELD_DESC_TYPE = (byte)0b10000000;
 
     public static final byte BOUNDED_STRING = 0b011;
@@ -36,7 +37,9 @@ class PVAComplex
         {
             if (array == PVAFieldDesc.Array.SCALAR)
                 return new PVAny(name);
-            throw new Exception("Cannot handle " + array + " any '" + name + "'");
+            else if (array == PVAFieldDesc.Array.VARIABLE_SIZE)
+                return new PVAAnyArray(name);
+            throw new Exception("Cannot handle " + array + " any '" + name + "'"); //
         }
         else if (cplx == UNION)
         {

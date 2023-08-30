@@ -36,6 +36,7 @@ import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
+import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
@@ -47,8 +48,10 @@ import org.w3c.dom.Element;
 @SuppressWarnings("nls")
 public class SymbolWidget extends PVWidget {
 
+    /** Default symbol */
     public final static String DEFAULT_SYMBOL = "examples:/icons/default_symbol.png";
 
+    /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR = new WidgetDescriptor(
         "symbol",
         WidgetCategory.MONITOR,
@@ -67,20 +70,40 @@ public class SymbolWidget extends PVWidget {
         }
     };
 
+    /** Property */
     public static final WidgetPropertyDescriptor<Integer>                       propInitialIndex  = newIntegerPropertyDescriptor (WidgetPropertyCategory.DISPLAY,  "initial_index",  Messages.WidgetProperties_InitialIndex, 0, Integer.MAX_VALUE);
+    /** Property */
     public static final WidgetPropertyDescriptor<Boolean>                       propShowIndex     = newBooleanPropertyDescriptor (WidgetPropertyCategory.DISPLAY,  "show_index",     Messages.WidgetProperties_ShowIndex);
+    /** Property */
     public static final WidgetPropertyDescriptor<Double>                        propRotation      = newDoublePropertyDescriptor  (WidgetPropertyCategory.DISPLAY,  "rotation",       Messages.WidgetProperties_Rotation);
+    private static final WidgetPropertyDescriptor<WidgetColor>                  propDisconnectOverlayColor = CommonWidgetProperties.newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "disconnect_overlay_color", Messages.WidgetProperties_DisconnectOverlayColor);
 
+    /** Property */
     public static final WidgetPropertyDescriptor<Integer>                       propArrayIndex    = newIntegerPropertyDescriptor (WidgetPropertyCategory.BEHAVIOR, "array_index",    Messages.WidgetProperties_ArrayIndex, 0, Integer.MAX_VALUE);
+    /** Property */
     public static final WidgetPropertyDescriptor<Boolean>                       propAutoSize      = newBooleanPropertyDescriptor (WidgetPropertyCategory.BEHAVIOR, "auto_size",      Messages.WidgetProperties_AutoSize);
+    /** Property */
     public static final WidgetPropertyDescriptor<Boolean>                       propPreserveRatio = newBooleanPropertyDescriptor (WidgetPropertyCategory.BEHAVIOR, "preserve_ratio", Messages.WidgetProperties_PreserveRatio);
+    /** Property */
+    public static final WidgetPropertyDescriptor<String>                        propFallbackSymbol = newFilenamePropertyDescriptor (WidgetPropertyCategory.BEHAVIOR, "fallback_symbol", Messages.WidgetProperties_FallbackSymbol);
+    public static final WidgetPropertyDescriptor<Boolean>                       propRunActionsOnMouseClick = newBooleanPropertyDescriptor (WidgetPropertyCategory.BEHAVIOR, "run_actions_on_mouse_click", Messages.WidgetProperties_RunActionsOnMouseClick);
 
     /** 'items' property: list of items (string properties) for combo box */
     public static final ArrayWidgetProperty.Descriptor<WidgetProperty<String> > propSymbols       = new ArrayWidgetProperty.Descriptor< >(
         WidgetPropertyCategory.WIDGET,
         "symbols",
         Messages.WidgetProperties_Symbols,
-        (widget, index) -> propSymbol(index).createProperty(widget, DEFAULT_SYMBOL),
+        (widget, index) -> {
+            String symbol = DEFAULT_SYMBOL;
+            try {
+                if (index > 0)
+                    symbol = ((SymbolWidget)widget).propSymbols().getElement(index - 1).getValue();
+            } catch (IndexOutOfBoundsException e) {
+                // It is expected when a widget with more than 2 symbols is parsed
+                // and the property is being populated --> safe to ignore
+            }
+            return propSymbol(index).createProperty(widget, symbol);
+        },
         0
     );
 
@@ -95,16 +118,23 @@ public class SymbolWidget extends PVWidget {
     private volatile ArrayWidgetProperty<WidgetProperty<String>> symbols;
     private volatile WidgetProperty<Boolean>                     transparent;
     private volatile String                                      importedFrom = null;
+    private volatile WidgetProperty<String>                      fallbackSymbol;
+    private volatile WidgetProperty<WidgetColor>                 disconnectOverlayColor;
+    private volatile WidgetProperty<Boolean>                     run_actions_on_mouse_click;
 
     /** Returns 'symbol' property: element for list of 'symbols' property */
     private static WidgetPropertyDescriptor<String> propSymbol( int index ) {
         return newFilenamePropertyDescriptor(WidgetPropertyCategory.WIDGET, "symbol", Messages.WidgetProperties_Symbol + " " + index);
     }
 
+    /** Constructor */
     public SymbolWidget ( ) {
         super(WIDGET_DESCRIPTOR.getType(), 100, 100);
     }
 
+    /** @param index Symbol index
+     *  @param fileName Symbol file
+     */
     public void addOrReplaceSymbol( int index, String fileName ) {
         if ( index == symbols.size() ) {
             symbols.addElement(propSymbol(index).createProperty(this, fileName));
@@ -115,6 +145,7 @@ public class SymbolWidget extends PVWidget {
         }
     }
 
+    /** Clear imported flag */
     public void clearImportedFrom ( ) {
         importedFrom = null;
     }
@@ -124,48 +155,74 @@ public class SymbolWidget extends PVWidget {
         return new SymbolConfigurator(persistedVersion);
     }
 
+    /** @return imported info */
     public String getImportedFrom ( ) {
         return importedFrom;
     }
 
+    /** @return property */
     public WidgetProperty<Integer> propArrayIndex ( ) {
         return array_index;
     }
 
+    /** @return property */
     public WidgetProperty<Boolean> propAutoSize ( ) {
         return auto_size;
     }
 
+    /** @return property */
     public WidgetProperty<WidgetColor> propBackgroundColor ( ) {
         return background;
     }
 
+    /** @return property */
     public WidgetProperty<Boolean> propEnabled ( ) {
         return enabled;
     }
 
+    /** @return property */
     public WidgetProperty<Integer> propInitialIndex ( ) {
         return initial_index;
     }
 
+    /** @return property */
     public WidgetProperty<Boolean> propPreserveRatio ( ) {
         return preserve_ratio;
     }
 
+    /** @return property */
     public WidgetProperty<Double> propRotation ( ) {
         return rotation;
     }
 
+    /** @return property */
     public WidgetProperty<Boolean> propShowIndex ( ) {
         return show_index;
     }
 
+    /** @return property */
     public ArrayWidgetProperty<WidgetProperty<String>> propSymbols ( ) {
         return symbols;
     }
 
+    /** @return property */
     public WidgetProperty<Boolean> propTransparent ( ) {
         return transparent;
+    }
+
+    /** @return property */
+    public WidgetProperty<String> propFallbackSymbol(){
+        return fallbackSymbol;
+    }
+
+    /** @return property */
+    public WidgetProperty<WidgetColor> propDiconnectOverlayColor(){
+        return disconnectOverlayColor;
+    }
+
+    /** @return property */
+    public WidgetProperty<Boolean> propRunActionsOnMouseClick() {
+        return run_actions_on_mouse_click;
     }
 
     @Override
@@ -185,6 +242,17 @@ public class SymbolWidget extends PVWidget {
         properties.add(auto_size      = propAutoSize.createProperty(this, false));
         properties.add(enabled        = propEnabled.createProperty(this, true));
         properties.add(preserve_ratio = propPreserveRatio.createProperty(this, true));
+        properties.add(fallbackSymbol = propFallbackSymbol.createProperty(this, DEFAULT_SYMBOL));
+        WidgetColor alarmInvalidColor =
+                WidgetColorService.getColor(NamedWidgetColors.ALARM_INVALID);
+        WidgetColor defaultDisconnectedOverlayColor =
+                new WidgetColor(alarmInvalidColor.getRed(), alarmInvalidColor.getGreen(), alarmInvalidColor.getBlue(), 128);
+        properties.add(disconnectOverlayColor = propDisconnectOverlayColor.createProperty(this, defaultDisconnectedOverlayColor));
+        {
+            int indexOfPropActions = properties.indexOf(propActions());
+            run_actions_on_mouse_click = propRunActionsOnMouseClick.createProperty(this, false);
+            properties.add(indexOfPropActions + 1, run_actions_on_mouse_click);
+        }
 
     }
 
@@ -236,4 +304,9 @@ public class SymbolWidget extends PVWidget {
 
     }
 
+    @Override
+    protected String getInitialTooltip()
+    {
+        return "$(pv_name)\\n$(pv_value)\\n$(actions)";
+    }
 }

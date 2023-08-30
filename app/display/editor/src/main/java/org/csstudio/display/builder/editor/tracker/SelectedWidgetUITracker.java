@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.RecursiveTask;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -41,6 +42,8 @@ import org.phoebus.ui.undo.CompoundUndoableAction;
 import org.phoebus.ui.undo.UndoableAction;
 import org.phoebus.ui.undo.UndoableActionManager;
 
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Group;
@@ -166,11 +169,13 @@ public class SelectedWidgetUITracker extends Tracker
         getChildren().add(0, widget_highlights);
     }
 
+    /** @param model Model where to track selection */
     public void setModel(final DisplayModel model)
     {
         grid_constraint.configure(model);
     }
 
+    /** @return Model where to track selection */
     public DisplayModel getModel()
     {
         return grid_constraint.getModel();
@@ -238,7 +243,7 @@ public class SelectedWidgetUITracker extends Tracker
         else
         {
             event.consume();
-            if (widgets.size() == 1  &&  inline_editor == null)
+            if (enable_changes  &&  widgets.size() == 1  &&  inline_editor == null)
                 createInlineEditor(widgets.get(0));
         }
     }
@@ -251,9 +256,7 @@ public class SelectedWidgetUITracker extends Tracker
             super.mouseReleased(event);
     }
 
-    /** Is the inline editor active?
-     *
-     *  <p>The 'global' key handlers for copy/paste/delete
+    /** The 'global' key handlers for copy/paste/delete
      *  must be suppressed when the inline editor is active,
      *  because otherwise trying to paste a PV name will
      *  paste a new widget, or deleting a part of a PV name
@@ -262,6 +265,8 @@ public class SelectedWidgetUITracker extends Tracker
      *  <p>Since both RCP and JavaFX listen to the keys,
      *  the most practical solution was to have global actions
      *  check this flag
+     *
+     *  @return Is the inline editor active?
      */
     public boolean isInlineEditorActive()
     {
@@ -310,28 +315,38 @@ public class SelectedWidgetUITracker extends Tracker
         if (property.getName().equals(CommonWidgetProperties.propPVName.getName()))
             PVAutocompleteMenu.INSTANCE.attachField(inline_editor);
 
-        // On enter, update the property. On Escape, just close.
+        // On enter or lost focus, update the property. On Escape, just close.
+        final ChangeListener<? super Boolean> focused_listener = (prop, old, focused) ->
+        {
+            if (! focused)
+            {
+                if (!property.getSpecification().equals(inline_editor.getText()))
+                    undo.execute(new SetMacroizedWidgetPropertyAction(property, inline_editor.getText()));
+                // Close when focus lost
+                closeInlineEditor();
+            }
+        };
+
         inline_editor.setOnAction(event ->
         {
             undo.execute(new SetMacroizedWidgetPropertyAction(property, inline_editor.getText()));
+            inline_editor.focusedProperty().removeListener(focused_listener);
             closeInlineEditor();
         });
+
         inline_editor.setOnKeyPressed(event ->
         {
             switch (event.getCode())
             {
             case ESCAPE:
                 event.consume();
+                inline_editor.focusedProperty().removeListener(focused_listener);
                 closeInlineEditor();
             default:
             }
         });
-        // Close when focus lost
-        inline_editor.focusedProperty().addListener((prop, old, focused) ->
-        {
-            if (! focused)
-                closeInlineEditor();
-        });
+
+        inline_editor.focusedProperty().addListener(focused_listener);
 
         inline_editor.selectAll();
         inline_editor.requestFocus();
@@ -341,6 +356,77 @@ public class SelectedWidgetUITracker extends Tracker
     {
         getChildren().remove(inline_editor);
         inline_editor = null;
+    }
+
+    private boolean requestFocusIsDisabled = false;
+    public void setDisableRequestFocus(boolean requestFocusIsDisabled) {
+        this.requestFocusIsDisabled = requestFocusIsDisabled;
+    }
+
+    /** Locate widgets that would be 'clicked' by a mouse event's location */
+    private class ClickWidgets extends RecursiveTask<Boolean>
+    {
+        private static final long serialVersionUID = 7120422764377430463L;
+        private final MouseEvent event;
+        private final List<Widget> widgets;
+
+        ClickWidgets(final MouseEvent event, final List<Widget> widgets)
+        {
+            this.event = event;
+            this.widgets = widgets;
+        }
+
+        @Override
+        protected Boolean compute()
+        {
+            return click(widgets);
+        }
+
+        /** @param widgets Widgets to click
+         *  @return Was at least one widget clicked?
+         */
+        private Boolean click(final List<Widget> widgets)
+        {
+            boolean clicked = false;
+
+            final int N = widgets.size();
+            if (N > TrackerSnapConstraint.PARALLEL_THRESHOLD)
+            {
+                final int split = N / 2;
+                final ClickWidgets sub1 = new ClickWidgets(event, widgets.subList(0, split));
+                final ClickWidgets sub2 = new ClickWidgets(event, widgets.subList(split, N));
+                // Spawn sub1, handle sub2 in this thread
+                sub1.fork();
+                clicked = sub2.compute();
+                if (sub1.join())
+                    clicked = true;
+
+            }
+            else
+            {
+                for (Widget widget : widgets)
+                {
+                    // If there are child widgets, first check those.
+                    // If one of them gets clicked, skip checking the parent (e.g. group)
+                    // since 'selecting' a child should not toggle the parent's selection.
+                    final ChildrenProperty children = ChildrenProperty.getChildren(widget);
+                    if (children != null  &&
+                        click(children.getValue()))
+                        clicked = true;
+
+                    // If no child widget got clicked, check widget itself
+                    if (! clicked)
+                        if (GeometryTools.getDisplayBounds(widget).contains(event.getX(), event.getY()))
+                        {
+                            logger.log(Level.FINE, () -> "Tracker passes click through to " + widget);
+                            toolkit.execute(() -> toolkit.fireClick(widget, event.isShortcutDown()));
+                            clicked = true;
+                        }
+                }
+            }
+
+            return clicked;
+        }
     }
 
     /** Tracker is in front of the widgets that it handles,
@@ -353,12 +439,9 @@ public class SelectedWidgetUITracker extends Tracker
      */
     private void passClickToWidgets(final MouseEvent event)
     {
-        for (Widget widget : widgets)
-            if (GeometryTools.getDisplayBounds(widget).contains(event.getX(), event.getY()))
-            {
-                logger.log(Level.FINE, "Tracker passes click through to {0}", widget);
-                toolkit.fireClick(widget, event.isShortcutDown());
-            }
+        final DisplayModel model = getModel();
+        if (model != null)
+            new ClickWidgets(event, model.getChildren()).compute();
     }
 
     @Override
@@ -557,8 +640,10 @@ public class SelectedWidgetUITracker extends Tracker
 
         bindToWidgets();
 
-        // Get focus to allow use of arrow keys
-        tracker.requestFocus();
+        if (!requestFocusIsDisabled) {
+            // Get focus to allow use of arrow keys
+            Platform.runLater(() -> tracker.requestFocus());
+        }
     }
 
     @Override

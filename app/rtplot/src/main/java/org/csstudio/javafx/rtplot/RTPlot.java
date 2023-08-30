@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -56,13 +56,19 @@ import javafx.stage.Stage;
  *  @author Amanda Carpenter - added manual control for axis limits
  */
 @SuppressWarnings("nls")
-public class RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
+public class  RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
 {
     final protected Plot<XTYPE> plot;
     final protected ToolbarHandler<XTYPE> toolbar;
     private boolean handle_keys = false;
 	private TextField axisLimitsField; //Field for adjusting the limits of the axes
 	private final Pane center = new Pane();
+    /**
+     * Flag indicating whether the plot should launch the configuration dialog or not on
+     * key press (o). For the Data Browser app this may not be wanted as the
+     * various tabs provide the same functionality.
+     */
+	private boolean configDialogSupported = true;
 
     /** Constructor
      *  @param active Active mode where plot reacts to mouse/keyboard?
@@ -230,7 +236,7 @@ public class RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
             plot.getUndoableActionManager().undoLast();
         else if (event.getCode() == KeyCode.Y)
             plot.getUndoableActionManager().redoLast();
-        else if (event.getCode() == KeyCode.O)
+        else if (event.getCode() == KeyCode.O && configDialogSupported)
             showConfigurationDialog();
         else if (event.getCode() == KeyCode.T)
             showToolbar(! isToolbarVisible());
@@ -521,7 +527,8 @@ public class RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
         plot.setUpdateThrottle(dormant_time, unit);
     }
 
-    // Used to request a complete redraw of the plot with new layout of node,
+    // requestCompleteUpdate() used to be called 'requestLayout', overriding the JFX method,
+    // to also request a complete redraw of the plot with new layout of node,
     // but that creates loops:
     // layout -> compute new image -> set image -> trigger another layout
     // @Override
@@ -530,7 +537,13 @@ public class RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
     //     plot.requestLayout();
     // }
 
-    /** Request a complete redraw of the plot */
+    /** Request a complete redraw of the plot after new layout */
+    public void requestCompleteUpdate()
+    {
+        plot.requestLayout();
+    }
+
+    /** Request a complete redraw of the plot with current layout */
     public void requestUpdate()
     {
         plot.requestUpdate();
@@ -577,5 +590,22 @@ public class RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
     public void dispose()
     {
         plot.dispose();
+    }
+
+    /**
+     * Resets the X and Y axis ranges to the initial values, i.e. the values they had before
+     * any zoom or pan actions.
+    */
+    public void resetAxisRanges(){
+        plot.resetAxisRanges();
+    }
+
+    /**
+     * Sets the {@link #configDialogSupported} flag.
+     * @param configDialogSupported <code>true</code> if the dialog should be launched on
+     *                                   key press (o), otherwise <code>false</code>.
+     */
+    public void setConfigDialogSupported(boolean configDialogSupported){
+        this.configDialogSupported = configDialogSupported;
     }
 }

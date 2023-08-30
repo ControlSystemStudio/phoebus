@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,6 +19,7 @@ import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
+import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.util.time.SecondsParser;
 
 /** An ArchiveChannel that stores value in a periodic scan.
@@ -32,7 +33,8 @@ public class ScannedArchiveChannel extends ArchiveChannel implements Runnable
     final private int max_repeats;
     private int repeats = 0;
 
-    /** @see ArchiveChannel#ArchiveChannel(String, int, IValue)
+    /**
+     * @see ArchiveChannel#ArchiveChannel(String, String, Enablement, int, VType)
      * @deprecated Use {@link #ScannedArchiveChannel(String,String,Enablement,int,VType,double,int)} instead*/
     @Deprecated
     public ScannedArchiveChannel(final String name,
@@ -45,7 +47,9 @@ public class ScannedArchiveChannel extends ArchiveChannel implements Runnable
         this(name, null, enablement, buffer_capacity, last_archived_value, scan_period, max_repeats);
     }
 
-    /** @see ArchiveChannel#ArchiveChannel(String, String, int, IValue) */
+    /**
+     *  @see ArchiveChannel#ArchiveChannel(String, String, Enablement, int, VType)
+     */
     public ScannedArchiveChannel(final String name,
                                  final String retention,
                                  final Enablement enablement,
@@ -105,7 +109,7 @@ public class ScannedArchiveChannel extends ArchiveChannel implements Runnable
                 ++repeats ;
                 if (repeats < max_repeats)
                 {
-                    logger.log(Level.FINE, "{0} skips {1}: repeat {2}", new Object[] { getName(), VTypeHelper.toString(most_recent_value), repeats });
+                    logger.log(Level.FINE, "{0} skips {1}: repeat {2}", new Object[] { getName(), ValueButcher.format(most_recent_value), repeats });
                     return;
                 }
                 // No new value, but we'd like to write a sample every once in a while
@@ -117,7 +121,7 @@ public class ScannedArchiveChannel extends ArchiveChannel implements Runnable
                     return;
                 }
                 logger.log(Level.FINE, "{0} writes {1} as {2}",
-                    new Object[] { getName(), VTypeHelper.toString(most_recent_value), TimestampHelper.format(VTypeHelper.getTimestamp(value)) });
+                    new Object[] { getName(), ValueButcher.format(most_recent_value), TimestampHelper.format(VTypeHelper.getTimestamp(value)) });
             }
             else
             {   // It's a new value, so we should be able to write it

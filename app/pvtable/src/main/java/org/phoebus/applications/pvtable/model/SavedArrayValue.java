@@ -33,7 +33,7 @@ public class SavedArrayValue extends SavedValue
 
     /** Initialize from text
      *
-     * @param value_text
+     * @param value_texts Values to save
      */
     public SavedArrayValue(final List<String> value_texts)
     {
@@ -63,7 +63,7 @@ public class SavedArrayValue extends SavedValue
         if (current_value instanceof VByteArray & Settings.treat_byte_array_as_string)
         {
             // Compare as text
-            final String text = VTypeHelper.toString(current_value);
+            final String text = VTypeFormatter.toString(current_value);
             final int N = Math.min(text.length(), saved_value.size());
             for (int i = 0; i < N; ++i)
             {

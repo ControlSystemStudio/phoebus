@@ -12,8 +12,10 @@ package org.epics.pva.data;
  */
 abstract class PVADataWithID extends PVAData
 {
+    /** Type ID */
     protected volatile short type_id = 0;
 
+    /** @param name Name */
     protected PVADataWithID(final String name)
     {
         super(name);

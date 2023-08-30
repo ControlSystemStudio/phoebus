@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,37 +12,45 @@ import static org.csstudio.display.builder.representation.ToolkitRepresentation.
 import java.util.List;
 import java.util.logging.Level;
 
+import javafx.scene.control.Alert;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
+import org.csstudio.display.builder.model.properties.ConfirmDialog;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.BoolButtonWidget;
 import org.csstudio.display.builder.model.widgets.BoolButtonWidget.Mode;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.csstudio.display.builder.representation.javafx.Messages;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VType;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.Styles;
 
 import javafx.application.Platform;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Paint;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.Ellipse;
+import javafx.scene.text.TextAlignment;
 
 /** Creates JavaFX item for model widget
  *  @author Megan Grodowitz
  */
 @SuppressWarnings("nls")
-public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBase, BoolButtonWidget>
+public class BoolButtonRepresentation extends RegionBaseRepresentation<Pane, BoolButtonWidget>
 {
     private final DirtyFlag dirty_representation = new DirtyFlag();
     private final DirtyFlag dirty_enablement = new DirtyFlag();
@@ -81,9 +89,12 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
     private final WidgetPropertyListener<Integer> bitChangedListener = this::bitChanged;
     private final WidgetPropertyListener<Boolean> enablementChangedListener = this::enablementChanged;
     private final WidgetPropertyListener<VType> valueChangedListener = this::valueChanged;
+    private final WidgetPropertyListener<Mode> modeChangeListener = this::modeChanged;
+    private final WidgetPropertyListener<ConfirmDialog> confirmDialogWidgetPropertyListener = this::confirmationDialogChanged;
+    private volatile Pos pos;
 
     @Override
-    public ButtonBase createJFXNode() throws Exception
+    public Pane createJFXNode() throws Exception
     {
         led = new Ellipse();
         led.getStyleClass().add("led");
@@ -110,7 +121,16 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
             }
         }
 
-        return button;
+        Pane pane = new Pane();
+        pane.getChildren().setAll(button);
+        return pane;
+    }
+
+    @Override
+    protected void attachTooltip()
+    {
+        model_widget.checkProperty(CommonWidgetProperties.propTooltip)
+                .ifPresent(prop -> TooltipSupport.attach(button, prop));
     }
 
     /** Respond to button press
@@ -168,6 +188,8 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
     {
         super.registerListeners();
         representationChanged(null,null,null);
+        pos = JFXUtil.computePos(model_widget.propHorizontalAlignment().getValue(),
+                model_widget.propVerticalAlignment().getValue());
         model_widget.propWidth().addUntypedPropertyListener(representationChangedListener);
         model_widget.propHeight().addUntypedPropertyListener(representationChangedListener);
         model_widget.propOffLabel().addUntypedPropertyListener(representationChangedListener);
@@ -180,15 +202,20 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
         model_widget.propFont().addUntypedPropertyListener(representationChangedListener);
         model_widget.propForegroundColor().addUntypedPropertyListener(representationChangedListener);
         model_widget.propBackgroundColor().addUntypedPropertyListener(representationChangedListener);
+        model_widget.propHorizontalAlignment().addUntypedPropertyListener(representationChangedListener);
+        model_widget.propVerticalAlignment().addUntypedPropertyListener(representationChangedListener);
         model_widget.propEnabled().addPropertyListener(enablementChangedListener);
         model_widget.runtimePropPVWritable().addPropertyListener(enablementChangedListener);
         model_widget.propBit().addPropertyListener(bitChangedListener);
         model_widget.runtimePropValue().addPropertyListener(valueChangedListener);
+        model_widget.propMode().addPropertyListener(modeChangeListener);
+        model_widget.propConfirmDialog().addPropertyListener(confirmDialogWidgetPropertyListener);
 
         imagesChanged(null, null, null);
         bitChanged(model_widget.propBit(), null, model_widget.propBit().getValue());
         enablementChanged(null, null, null);
         valueChanged(null, null, model_widget.runtimePropValue().getValue());
+
     }
 
     @Override
@@ -206,11 +233,24 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
         model_widget.propFont().removePropertyListener(representationChangedListener);
         model_widget.propForegroundColor().removePropertyListener(representationChangedListener);
         model_widget.propBackgroundColor().removePropertyListener(representationChangedListener);
+        model_widget.propHorizontalAlignment().removePropertyListener(representationChangedListener);
+        model_widget.propVerticalAlignment().removePropertyListener(representationChangedListener);
         model_widget.propEnabled().removePropertyListener(enablementChangedListener);
         model_widget.runtimePropPVWritable().removePropertyListener(enablementChangedListener);
         model_widget.propBit().removePropertyListener(bitChangedListener);
         model_widget.runtimePropValue().removePropertyListener(valueChangedListener);
+        model_widget.propMode().removePropertyListener(modeChangeListener);
+        model_widget.propConfirmDialog().removePropertyListener(confirmDialogWidgetPropertyListener);
         super.unregisterListeners();
+    }
+
+    private void computeBackground()
+    {
+        // When LED is off, use the on/off colors for the background
+        if (model_widget.propShowLED().getValue() == false)
+            background = JFXUtil.shadedStyle(on_state == 0 ? model_widget.propOffColor().getValue() : model_widget.propOnColor().getValue());
+        else
+            background = JFXUtil.shadedStyle(model_widget.propBackgroundColor().getValue());
     }
 
     private void stateChanged()
@@ -220,9 +260,7 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
         value_label = state_labels[on_state];
         value_image = state_images[on_state];
 
-        // When LED is off, use the on/off colors for the background
-        if (model_widget.propShowLED().getValue() == false)
-            background = JFXUtil.shadedStyle(on_state == 0 ? model_widget.propOffColor().getValue() : model_widget.propOnColor().getValue());
+        computeBackground();
 
         dirty_value.mark();
         toolkit.scheduleUpdate(this);
@@ -251,6 +289,20 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
         stateChanged();
     }
 
+    private void modeChanged(final WidgetProperty<Mode> property, final Mode old_value, final Mode new_value){
+        if(!new_value.equals(Mode.TOGGLE) && !model_widget.propConfirmDialog().getValue().equals(ConfirmDialog.NONE)){
+            showUnsupportedConfigurationDialog();
+            Platform.runLater(() -> model_widget.propMode().setValue(old_value));
+        }
+    }
+
+    private void confirmationDialogChanged(final WidgetProperty<ConfirmDialog> property, final ConfirmDialog old_value, final ConfirmDialog new_value){
+        if(!new_value.equals(ConfirmDialog.NONE) && !model_widget.propMode().getValue().equals(Mode.TOGGLE)){
+            showUnsupportedConfigurationDialog();
+            Platform.runLater(() -> model_widget.propConfirmDialog().setValue(old_value));
+        }
+    }
+
     private void imagesChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
         state_images = new ImageView[]
@@ -258,6 +310,8 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
             loadImage(model_widget.propOffImage().getValue()),
             loadImage(model_widget.propOnImage().getValue())
         };
+        // The 'value_image' needs to be updated
+        stateChanged();
     }
 
     private ImageView loadImage(final String path)
@@ -281,7 +335,7 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
     private void representationChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
         foreground = JFXUtil.convert(model_widget.propForegroundColor().getValue());
-        background = JFXUtil.shadedStyle(model_widget.propBackgroundColor().getValue());
+
         state_colors = new Color[]
         {
             JFXUtil.convert(model_widget.propOffColor().getValue()),
@@ -291,6 +345,12 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
         state_labels = new String[] { model_widget.propOffLabel().getValue(), model_widget.propOnLabel().getValue() };
         value_color = state_colors[on_state];
         value_label = state_labels[on_state];
+
+        computeBackground();
+        
+        pos = JFXUtil.computePos(model_widget.propHorizontalAlignment().getValue(),
+                model_widget.propVerticalAlignment().getValue());
+
         dirty_representation.mark();
         toolkit.scheduleUpdate(this);
     }
@@ -320,10 +380,10 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
         {
             final int wid = model_widget.propWidth().getValue(),
                       hei = model_widget.propHeight().getValue();
-            jfx_node.setPrefSize(wid, hei);
-            jfx_node.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
-            jfx_node.setTextFill(foreground);
-            jfx_node.setStyle(background);
+            button.setPrefSize(wid, hei);
+            button.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
+            button.setTextFill(foreground);
+            button.setStyle(background);
 
             if (model_widget.propShowLED().getValue())
             {
@@ -345,30 +405,50 @@ public class BoolButtonRepresentation extends RegionBaseRepresentation<ButtonBas
         {
             final boolean enabled = model_widget.propEnabled().getValue()  &&
                                     model_widget.runtimePropPVWritable().getValue();
-            jfx_node.setDisable(! enabled);
-            Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
+            button.setDisable(! enabled);
+            Styles.update(button, Styles.NOT_ENABLED, !enabled);
         }
         if (update_value)
         {
-            jfx_node.setText(value_label);
+            button.setText(value_label);
             final ImageView image = value_image;
             if (image == null)
             {
                 if (model_widget.propShowLED().getValue())
                 {
-                    jfx_node.setGraphic(led);
+                    button.setGraphic(led);
                     // Put highlight in top-left corner, about 0.2 wide,
                     // relative to actual size of LED
                     led.setFill(toolkit.isEditMode() ? computeEditColors() : value_color);
                 }
                 else
                 {
-                    jfx_node.setGraphic(null);
-                    jfx_node.setStyle(background);
+                    button.setGraphic(null);
+                    button.setStyle(background);
                 }
             }
             else
-                jfx_node.setGraphic(image);
+                button.setGraphic(image);
         }
+        button.setAlignment(pos);
+        button.setTextAlignment(TextAlignment.values()[model_widget.propHorizontalAlignment().getValue().ordinal()]);
+    }
+
+    @Override
+    protected boolean isFilteringEditModeClicks()
+    {
+        return true;
+    }
+
+    /**
+     * Displays an error message. To be called when an unsupported
+     * combination of mode and confirmation dialog is selected.
+     */
+    private void showUnsupportedConfigurationDialog(){
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(Messages.BoolButtonError_Title);
+        alert.setHeaderText(Messages.BoolButtonError_Body);
+        DialogHelper.positionDialog(alert, jfx_node, 25, 25);
+        alert.showAndWait();
     }
 }

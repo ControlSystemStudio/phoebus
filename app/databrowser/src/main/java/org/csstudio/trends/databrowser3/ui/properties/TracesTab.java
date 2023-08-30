@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -222,7 +222,7 @@ public class TracesTab extends Tab
         }
 
         @Override
-        public void changedItemDataConfig(final PVItem item)
+        public void changedItemDataConfig(final PVItem item, final boolean archive_invalid)
         {
             trace_table.refresh();
         }
@@ -237,7 +237,7 @@ public class TracesTab extends Tab
             }
             // In case an axis _name_ changed, this needs to be shown
             // in the "Axis" column.
-            updateFromModel();
+            updateAxisNames();
         }
 
         @Override
@@ -352,10 +352,17 @@ public class TracesTab extends Tab
     private void updateFromModel()
     {
         trace_table.getItems().setAll(model.getItems());
+        updateAxisNames();
+    }
+
+    private void updateAxisNames()
+    {
         final List<String> names = new ArrayList<>(model.getAxes().size());
         for (AxisConfig ai : model.getAxes())
             names.add(ai.getName());
-        axis_names.setAll(names);
+
+        if (! names.equals(axis_names))
+            axis_names.setAll(names);
     }
 
     private void createTraceTable()
@@ -394,7 +401,7 @@ public class TracesTab extends Tab
 
         // Trace PV/Formula Column ----------
         TableColumn<ModelItem, String> col = new TableColumn<>(Messages.ItemName);
-        col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getName()));
+        col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getResolvedName()));
         col.setCellFactory(TextFieldTableCell.forTableColumn());
         col.setOnEditCommit(event ->
         {
@@ -413,7 +420,7 @@ public class TracesTab extends Tab
 
         // Display Name Column ----------
         col = new TableColumn<>(Messages.TraceDisplayName);
-        col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getDisplayName()));
+        col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getResolvedDisplayName()));
         col.setCellFactory(TextFieldTableCell.forTableColumn());
         col.setOnEditCommit(event ->
         {
@@ -720,12 +727,15 @@ public class TracesTab extends Tab
             if (selection.size() == 1)
                 items.add(new MoveItemAction(model, undo, selection.get(0), false));
 
+            if (selection.size() > 1)
+                items.add(new EditMultipleItemsAction(trace_table, model, undo, selection));
+
             items.add(new SeparatorMenuItem());
 
             // Add PV-based entries
             final List<ProcessVariable> pvs = selection.stream()
                                                        .filter(item -> item instanceof PVItem)
-                                                       .map(item -> new ProcessVariable(item.getName()))
+                                                       .map(item -> new ProcessVariable(item.getResolvedName()))
                                                        .collect(Collectors.toList());
             if (pvs.size() > 0)
             {

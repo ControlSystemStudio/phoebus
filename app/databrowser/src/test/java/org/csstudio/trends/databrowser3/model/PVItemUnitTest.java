@@ -7,12 +7,12 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3.model;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test for PVSamples
  *  @author Kay Kasemir
@@ -57,7 +57,9 @@ public class PVItemUnitTest
         System.out.println(samples);
         assertThat(samples.hasNewSamples(), equalTo(true));
 
+        samples.getLock().lock();
         final int count = samples.size();
+        samples.getLock().unlock();
         final int perc_diff = Math.abs(count - expected) * 100 / expected;
         System.out.println("Got " + count + " samples, expected " + expected + ", difference of " + perc_diff + "%");
         assertThat(perc_diff < 50, equalTo(true));

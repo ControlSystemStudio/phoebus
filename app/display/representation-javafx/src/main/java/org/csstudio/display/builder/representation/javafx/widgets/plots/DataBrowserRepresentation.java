@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -81,6 +81,10 @@ public class DataBrowserRepresentation extends RegionBaseRepresentation<Pane, Da
      */
     private volatile Controller controller;
 
+    private final WidgetPropertyListener<Instant> config_dialog_listener = (p, o, n) -> plot.getPlot().showConfigurationDialog();
+    private final WidgetPropertyListener<Instant> open_databrowser_listener = (p, o, n) ->
+        DataBrowserRepresentation.openFullDataBrowser(model, model_widget.getMacrosOrProperties(), model_widget.propShowToolbar().getValue());
+    private final WidgetPropertyListener<Instant> refresh_plot_listener = (p, o, n) -> controller.refresh();
 
     /** Listener to model's selected sample, updates widget.propSelectionValue() */
     private class ModelSampleSelectionListener implements ModelListener
@@ -162,9 +166,9 @@ public class DataBrowserRepresentation extends RegionBaseRepresentation<Pane, Da
 
         if (! toolkit.isEditMode())
         {
-            model_widget.runtimePropConfigure().addPropertyListener((p, o, n) -> plot.getPlot().showConfigurationDialog());
-            model_widget.runtimePropOpenFull().addPropertyListener((p, o, n) ->
-                openFullDataBrowser(model, model_widget.getMacrosOrProperties(), model_widget.propShowToolbar().getValue()));
+            model_widget.runtimePropConfigure().addPropertyListener(config_dialog_listener);
+            model_widget.runtimePropOpenFull().addPropertyListener(open_databrowser_listener);
+            model_widget.runtimePropRefreshPlot().addPropertyListener(refresh_plot_listener);
 
             // Track selected sample?
             // 'selection_value_pv' must be set when runtime starts,
@@ -181,6 +185,14 @@ public class DataBrowserRepresentation extends RegionBaseRepresentation<Pane, Da
         model_widget.propHeight().removePropertyListener(sizeChangedListener);
         model_widget.propShowToolbar().removePropertyListener(optsChangedListener);
         model_widget.propFile().removePropertyListener(fileChangedListener);
+
+        if (! toolkit.isEditMode())
+        {
+            model_widget.runtimePropConfigure().removePropertyListener(config_dialog_listener);
+            model_widget.runtimePropOpenFull().removePropertyListener(open_databrowser_listener);
+            model_widget.runtimePropRefreshPlot().removePropertyListener(refresh_plot_listener);
+        }
+
         super.unregisterListeners();
     }
 

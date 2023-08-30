@@ -14,20 +14,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+import org.epics.archiverappliance.retrieval.client.DataRetrieval;
+import org.epics.archiverappliance.retrieval.client.EpicsMessage;
+import org.epics.archiverappliance.retrieval.client.GenMsgIterator;
+import org.epics.archiverappliance.retrieval.client.RawDataRetrieval;
 import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.UnknownChannelException;
 import org.phoebus.archive.reader.ValueIterator;
 import org.phoebus.archive.vtype.TimestampHelper;
 import org.phoebus.ui.text.RegExHelper;
-import org.epics.archiverappliance.retrieval.client.DataRetrieval;
-import org.epics.archiverappliance.retrieval.client.EpicsMessage;
-import org.epics.archiverappliance.retrieval.client.GenMsgIterator;
-import org.epics.archiverappliance.retrieval.client.RawDataRetrieval;
 
 /**
  * Appliance archive reader which reads data from EPICS archiver appliance.
  *
- * @author Miha Novak <miha.novak@cosylab.com>
+ * @author Miha Novak miha.novak@cosylab.com
  */
 public class ApplianceArchiveReader implements ArchiveReader, IteratorListener {
 
@@ -70,13 +70,17 @@ public class ApplianceArchiveReader implements ArchiveReader, IteratorListener {
         this.useStatistics = useStatistics;
         this.useNewOptimizedOperator = useNewOptimizedOperator;
         this.pbrawURL = url;
-        this.httpURL = pbrawURL.replace("pbraw://", "http://");
+        this.httpURL = AppliancePreferences.useHttps
+                     ? pbrawURL.replace("pbraw://", "https://")
+                     : pbrawURL.replace("pbraw://", "http://");
     }
 
+    /** @return Server name */
     public String getServerName() {
         return ApplianceArchiveReaderConstants.ARCHIVER_NAME;
     }
 
+    /** @return Data source URL */
     public String getURL() {
         return pbrawURL;
     }
@@ -89,6 +93,7 @@ public class ApplianceArchiveReader implements ArchiveReader, IteratorListener {
         return description.toString();
     }
 
+    /** @return Version */
     public int getVersion() {
         return ApplianceArchiveReaderConstants.VERSION;
     }
@@ -184,7 +189,7 @@ public class ApplianceArchiveReader implements ArchiveReader, IteratorListener {
     /**
      * Creates and returns DataRetrieval
      *
-     * @param dataRetrievalURL
+     * @param dataRetrievalURL URL
      * @return dataRetrieval instance
      */
     public DataRetrieval createDataRetriveal(String dataRetrievalURL) {

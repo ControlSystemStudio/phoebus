@@ -9,7 +9,7 @@
     <width>181</width>
     <height>31</height>
     <font>
-      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      <font name="Header 1" family="Source Sans Pro" style="BOLD_ITALIC" size="36.0">
       </font>
     </font>
   </widget>
@@ -26,6 +26,15 @@ one for the "X" and one for the "Y" axis.</text>
     <y>91</y>
     <width>511</width>
     <height>340</height>
+    <show_toolbar>true</show_toolbar>
+    <rules>
+      <rule name="Interactive" prop_id="marker[0].interactive" out_exp="false">
+        <exp bool_exp="pv0&lt;1">
+          <value>false</value>
+        </exp>
+        <pv_name>loc://interactive(1)</pv_name>
+      </rule>
+    </rules>
     <traces>
       <trace>
         <name></name>
@@ -39,8 +48,10 @@ one for the "X" and one for the "Y" axis.</text>
           </color>
         </color>
         <line_width>3</line_width>
+        <line_style>0</line_style>
         <point_type>0</point_type>
         <point_size>10</point_size>
+        <visible>true</visible>
       </trace>
       <trace>
         <name></name>
@@ -54,8 +65,10 @@ one for the "X" and one for the "Y" axis.</text>
           </color>
         </color>
         <line_width>1</line_width>
+        <line_style>0</line_style>
         <point_type>2</point_type>
         <point_size>5</point_size>
+        <visible>true</visible>
       </trace>
     </traces>
     <marker>
@@ -71,7 +84,7 @@ one for the "X" and one for the "Y" axis.</text>
   </widget>
   <widget type="picture" version="2.0.0">
     <name>Picture</name>
-    <file>platform:/plugin/org.csstudio.javafx.rtplot/icons/pan.png</file>
+    <file>pic/pan.png</file>
     <y>681</y>
     <width>16</width>
     <height>16</height>
@@ -82,7 +95,7 @@ one for the "X" and one for the "Y" axis.</text>
     <y>441</y>
     <width>221</width>
     <font>
-      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      <font name="Header 2" family="Source Sans Pro" style="BOLD_ITALIC" size="21.0">
       </font>
     </font>
   </widget>
@@ -95,14 +108,14 @@ one for the "X" and one for the "Y" axis.</text>
   </widget>
   <widget type="picture" version="2.0.0">
     <name>Picture_1</name>
-    <file>platform:/plugin/org.csstudio.javafx.rtplot/icons/crosshair.png</file>
+    <file>pic/crosshair.png</file>
     <y>541</y>
     <width>16</width>
     <height>16</height>
   </widget>
   <widget type="picture" version="2.0.0">
     <name>Picture_2</name>
-    <file>platform:/plugin/org.csstudio.javafx.rtplot/icons/stagger.png</file>
+    <file>pic/stagger.png</file>
     <y>571</y>
     <width>16</width>
     <height>16</height>
@@ -123,7 +136,7 @@ one for the "X" and one for the "Y" axis.</text>
   </widget>
   <widget type="picture" version="2.0.0">
     <name>Picture_3</name>
-    <file>platform:/plugin/org.csstudio.javafx.rtplot/icons/zoom_in.png</file>
+    <file>pic/zoom_in.png</file>
     <y>601</y>
     <width>16</width>
     <height>16</height>
@@ -139,7 +152,7 @@ Double-click zooms back out.</text>
   </widget>
   <widget type="picture" version="2.0.0">
     <name>Picture_4</name>
-    <file>platform:/plugin/org.csstudio.javafx.rtplot/icons/zoom_out.png</file>
+    <file>pic/zoom_out.png</file>
     <y>651</y>
     <width>16</width>
     <height>16</height>
@@ -160,7 +173,7 @@ Double-click zooms back out.</text>
   </widget>
   <widget type="picture" version="2.0.0">
     <name>Picture_9</name>
-    <file>platform:/plugin/org.csstudio.javafx.rtplot/icons/pointer.png</file>
+    <file>pic/pointer.png</file>
     <y>711</y>
     <width>16</width>
     <height>16</height>
@@ -181,14 +194,14 @@ Double-click zooms back out.</text>
   </widget>
   <widget type="picture" version="2.0.0">
     <name>Picture_10</name>
-    <file>platform:/plugin/org.csstudio.javafx.rtplot/icons/undo.png</file>
+    <file>pic/undo.png</file>
     <y>741</y>
     <width>16</width>
     <height>16</height>
   </widget>
   <widget type="picture" version="2.0.0">
     <name>Picture_11</name>
-    <file>platform:/plugin/org.csstudio.javafx.rtplot/icons/redo.png</file>
+    <file>pic/redo.png</file>
     <y>771</y>
     <width>16</width>
     <height>16</height>
@@ -280,7 +293,7 @@ Double-click zooms back out.</text>
     <y>471</y>
     <width>221</width>
     <font>
-      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      <font name="Header 3" family="Source Sans Pro" style="BOLD_ITALIC" size="18.0">
       </font>
     </font>
   </widget>
@@ -317,17 +330,19 @@ pvs[1].write(err)
     <x_axis>
       <title>X</title>
       <autoscale>false</autoscale>
+      <log_scale>false</log_scale>
       <minimum>0.0</minimum>
       <maximum>10.0</maximum>
       <show_grid>false</show_grid>
       <title_font>
-        <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+        <font name="Default Bold" family="Source Sans Pro" style="BOLD" size="16.0">
         </font>
       </title_font>
       <scale_font>
-        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        <font name="Default" family="Source Sans Pro" style="REGULAR" size="16.0">
         </font>
       </scale_font>
+      <visible>true</visible>
     </x_axis>
     <y_axes>
       <y_axis>
@@ -338,11 +353,11 @@ pvs[1].write(err)
         <maximum>120.0</maximum>
         <show_grid>false</show_grid>
         <title_font>
-          <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+          <font name="Default Bold" family="Source Sans Pro" style="BOLD" size="16.0">
           </font>
         </title_font>
         <scale_font>
-          <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+          <font name="Default" family="Source Sans Pro" style="REGULAR" size="16.0">
           </font>
         </scale_font>
         <visible>true</visible>
@@ -361,8 +376,10 @@ pvs[1].write(err)
           </color>
         </color>
         <line_width>3</line_width>
+        <line_style>0</line_style>
         <point_type>2</point_type>
         <point_size>10</point_size>
+        <visible>true</visible>
       </trace>
       <trace>
         <name>Demo</name>
@@ -376,8 +393,10 @@ pvs[1].write(err)
           </color>
         </color>
         <line_width>1</line_width>
+        <line_style>0</line_style>
         <point_type>0</point_type>
         <point_size>10</point_size>
+        <visible>true</visible>
       </trace>
     </traces>
   </widget>
@@ -388,7 +407,7 @@ pvs[1].write(err)
     <y>441</y>
     <width>221</width>
     <font>
-      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      <font name="Header 2" family="Source Sans Pro" style="BOLD_ITALIC" size="21.0">
       </font>
     </font>
   </widget>
@@ -427,7 +446,7 @@ That local PV is then used as the error bar waveform.</text>
     <width>429</width>
     <height>69</height>
     <font>
-      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      <font name="Comment" family="Source Sans Pro" style="ITALIC" size="16.0">
       </font>
     </font>
   </widget>
@@ -474,17 +493,19 @@ plot.setPropertyValue("y_axes[0].autoscale", True)
     <x_axis>
       <title>X</title>
       <autoscale>false</autoscale>
+      <log_scale>false</log_scale>
       <minimum>-2.0</minimum>
       <maximum>22.0</maximum>
       <show_grid>false</show_grid>
       <title_font>
-        <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+        <font name="Default Bold" family="Source Sans Pro" style="BOLD" size="16.0">
         </font>
       </title_font>
       <scale_font>
-        <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+        <font name="Default" family="Source Sans Pro" style="REGULAR" size="16.0">
         </font>
       </scale_font>
+      <visible>true</visible>
     </x_axis>
     <y_axes>
       <y_axis>
@@ -495,11 +516,11 @@ plot.setPropertyValue("y_axes[0].autoscale", True)
         <maximum>10.0</maximum>
         <show_grid>false</show_grid>
         <title_font>
-          <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+          <font name="Default Bold" family="Source Sans Pro" style="BOLD" size="16.0">
           </font>
         </title_font>
         <scale_font>
-          <font name="Default" family="Liberation Sans" style="REGULAR" size="14.0">
+          <font name="Default" family="Source Sans Pro" style="REGULAR" size="16.0">
           </font>
         </scale_font>
         <visible>true</visible>
@@ -518,8 +539,10 @@ plot.setPropertyValue("y_axes[0].autoscale", True)
           </color>
         </color>
         <line_width>0</line_width>
+        <line_style>0</line_style>
         <point_type>0</point_type>
         <point_size>10</point_size>
+        <visible>true</visible>
       </trace>
       <trace>
         <name>Bars</name>
@@ -533,8 +556,10 @@ plot.setPropertyValue("y_axes[0].autoscale", True)
           </color>
         </color>
         <line_width>5</line_width>
+        <line_style>0</line_style>
         <point_type>0</point_type>
         <point_size>10</point_size>
+        <visible>true</visible>
       </trace>
     </traces>
   </widget>
@@ -557,7 +582,7 @@ For a "Line Width" of zero, the bar graph turns into a histogram-type display wi
     <y>900</y>
     <width>221</width>
     <font>
-      <font name="Header 2" family="Liberation Sans" style="BOLD" size="18.0">
+      <font name="Header 2" family="Source Sans Pro" style="BOLD_ITALIC" size="21.0">
       </font>
     </font>
   </widget>
@@ -576,20 +601,21 @@ For a "Line Width" of zero, the bar graph turns into a histogram-type display wi
   <widget type="label" version="2.0.0">
     <name>Label_31</name>
     <class>COMMENT</class>
-    <text>(Can also move marker with mouse)</text>
-    <x>300</x>
-    <y>461</y>
-    <width>250</width>
-    <height>30</height>
-    <font use_class="true">
-      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+    <text>(Can also move marker with mouse when 'interactive')</text>
+    <x>410</x>
+    <y>500</y>
+    <width>140</width>
+    <height>60</height>
+    <font>
+      <font name="Comment" family="Source Sans Pro" style="ITALIC" size="16.0">
       </font>
     </font>
-    <foreground_color use_class="true">
-      <color name="Text" red="0" green="0" blue="0">
-      </color>
-    </foreground_color>
-    <transparent use_class="true">true</transparent>
-    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="checkbox" version="2.0.0">
+    <name>Check Box</name>
+    <pv_name>loc://interactive(1)</pv_name>
+    <label>  Interactive</label>
+    <x>380</x>
+    <y>470</y>
   </widget>
 </display>

@@ -42,8 +42,7 @@ public class PropertyPanel extends BorderPane
     private final PropertyPanelSection section;
     private final TextField            searchField = new ClearingTextField();
 
-    /** @param selection Selection handler
-     *  @param undo 'Undo' manager
+    /** @param editor {@link DisplayEditor}
      */
     public PropertyPanel (final DisplayEditor editor)
     {
@@ -73,6 +72,14 @@ public class PropertyPanel extends BorderPane
         editor.getWidgetSelectionHandler().addListener(this::setSelectedWidgets);
 
         setMinHeight(0);
+    }
+
+    /**
+     *  @return Whether one of the property editors has focus
+     */
+    public boolean hasFocus()
+    {
+        return section.hasFocus();
     }
 
     /** Populate UI with properties of widgets

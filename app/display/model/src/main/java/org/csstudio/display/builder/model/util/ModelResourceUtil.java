@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,18 +19,11 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLDecoder;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.logging.Level;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.ModelPlugin;
@@ -47,32 +40,11 @@ public class ModelResourceUtil
     /** Schema used for the built-in display examples */
     public static final String EXAMPLES_SCHEMA = "examples";
 
-    /** Used by trustAnybody() to only initialize once */
-    private static boolean trusting_anybody = false;
 
     /** Cache for content read from a URL */
     private static final Cache<byte[]> url_cache = new Cache<>(Duration.ofSeconds(Preferences.cache_timeout));
 
     private static int timeout_ms = Preferences.read_timeout;
-
-    /** Enforce a file extension
-     *
-     *  @param file File with any or no extension
-     *  @param desired_extension Desired file extension
-     *  @return {@link File} with the desired file extension
-     */
-    public static File enforceFileExtension(final File file, final String desired_extension)
-    {
-        final String path = file.getPath();
-        final int sep = path.lastIndexOf('.');
-        if (sep < 0)
-            return new File(path + "." + desired_extension);
-        final String ext = path.substring(sep + 1);
-        if (! ext.equals(desired_extension))
-            return new File(path.substring(0, sep) + "." + desired_extension);
-
-        return file;
-    }
 
     // Many basic String operations since paths
     // may include " ", which URL won't handle,
@@ -87,62 +59,46 @@ public class ModelResourceUtil
 
     private static boolean isAbsolute(final String path)
     {
-        return path.startsWith("/")  ||
+        return new File(path).isAbsolute() ||
                isURL(path);
     }
 
-    private static String[] splitPath(final String path)
-    {
-        // If path starts with "/",
-        // this would result in a list initial empty element.
-        if (path.startsWith("/"))
-            return path.substring(1).split("/");
-        return path.split("/");
-    }
-
-    /** Obtain a relative path
+    /** Creates a relative path between two file path strings.
      *
-     *  <p>Returns original 'path' if it cannot be expressed
-     *  relative to the 'parent'.
      *  @param parent Parent file, for example "/one/of/my/directories/parent.bob"
      *  @param path Path to make relative, for example "/one/of/my/alternate_dirs/example.bob"
      *  @return Relative path, e.d. "../alternate_dirs/example.bob"
      */
-    public static String getRelativePath(final String parent, String path)
-    {
-        // If path already appears to be relative, leave it that way
+    private static String relativizePaths(String parent, String path) {
+        Path parentDirectory = Paths.get(parent).getParent();
+        Path searchPath = Paths.get(path);
+        String relativePath = parentDirectory.relativize(searchPath).toString();
+        return normalize(relativePath);
+    }
+
+    /** Obtain a relative path for both filepaths or URLs. Also normalizes paths such that they always conform to unix.
+     *
+     *  <p>Returns original 'path' if it cannot be expressed
+     *  relative to the 'parent'. (But normalized to unix)
+     *  @param parent Parent file, for example "/directory/parent.bob" or "http://server/directory/common.bob"
+     *  @param path Path to make relative, for example "/alternate_dirs/example.bob" or "http://server/alternate_dirs/example.bob"
+     *  @return Relative path, e.g. "../alternate_dirs/example.bob"
+     */
+    public static String getRelativePath(final String parent, String path) {
         path = normalize(path);
-        if (! isAbsolute(path))
+        if (!isAbsolute(path)) {
             return path;
-
-        // Locate common path elements
-        final String[] parent_elements = splitPath(getDirectory(parent));
-        final String[] path_elements = splitPath(path);
-        final int len = Math.min(parent_elements.length, path_elements.length);
-        int common;
-        for (common=0; common<len; ++common)
-            if (! parent_elements[common].equals(path_elements[common]))
-                break;
-        final int difference = parent_elements.length - common;
-
-        // Go 'up' from the parent directory to the common directory
-        final StringBuilder relative = new StringBuilder();
-        for (int up = difference; up > 0; --up)
-        {
-            if (relative.length() > 0)
-                relative.append("/");
-            relative.append("..");
         }
-
-        // Go down from common directory
-        for (/**/; common<path_elements.length; ++common)
-        {
-            if (relative.length() > 0)
-                relative.append("/");
-            relative.append(path_elements[common]);
+        if(isURL(parent) != isURL(path)) {
+            return path;
         }
-
-        return relative.toString();
+        if(isURL(parent)) {
+            String parentNoProtocol = parent.split("://")[1];
+            String pathNoProtocol = path.split("://")[1];
+            return relativizePaths(parentNoProtocol, pathNoProtocol);
+        } else {
+            return relativizePaths(parent, path);
+        }
     }
 
     /** Normalize path
@@ -156,22 +112,30 @@ public class ModelResourceUtil
      */
     public static String normalize(String path)
     {
+        String protocol = "";
+        if(isURL(path)) {
+            String[] splitPath = path.split("://");
+            protocol = splitPath[0] + "://";
+            path = splitPath[1];
+        }
+
+        path = path.replaceAll("\\\\(?!\\\\)", "/");
+
+        // Collapse "something/../" into "something/"
+        if(path.contains(":")){
+            String[] pathsplit = path.split(":");
+            String pathbefore = pathsplit[0];
+            String pathafter = pathsplit[1];
+            pathafter = Paths.get(pathafter).normalize().toString();
+            path = pathbefore + ":" + pathafter;
+        }else{
+            path = Paths.get(path).normalize().toString();
+        }
+
         // Pattern: '\(?!\)', i.e. backslash _not_ followed by another one.
         // Each \ is doubled as \\ to get one '\' into the string,
         // then doubled once more to tell regex that we want a '\'
-        path = path.replaceAll("\\\\(?!\\\\)", "/");
-        // Collapse "something/../" into "something/"
-        int up = path.indexOf("/../");
-        while (up >=0)
-        {
-            final int prev = path.lastIndexOf('/', up-1);
-            if (prev >= 0)
-                path = path.substring(0, prev) + path.substring(up+3);
-            else
-                break;
-            up = path.indexOf("/../");
-        }
-        return path;
+        return protocol + path.replaceAll("\\\\(?!\\\\)", "/");
     }
 
     /** Obtain directory of file. For URL, this is the path up to the last element
@@ -275,21 +239,15 @@ public class ModelResourceUtil
         if (resource_name.endsWith("." + DisplayModel.LEGACY_FILE_EXTENSION))
         {   // Check if there is an updated file for a legacy resource
             final String updated_resource = resource_name.substring(0, resource_name.length()-3) + DisplayModel.FILE_EXTENSION;
-            final String test = doResolveResource(parent_display, updated_resource);
+            final String test = doResolveResource(parent_display, updated_resource, true);
             if (test != null)
             {
                 logger.log(Level.FINE, "Using updated {0} instead of {1}", new Object[] { test, resource_name });
                 return test;
             }
         }
-        final String result = doResolveResource(parent_display, resource_name);
-        if (result != null)
-            return result;
 
-        // TODO Search along a configurable list of lookup paths?
-
-        // Give up, returning original name
-        return resource_name;
+        return doResolveResource(parent_display, resource_name, false);
     }
 
     private static String URLdecode(final String text)
@@ -312,9 +270,10 @@ public class ModelResourceUtil
      *
      * @param parent_display
      * @param resource_name
+     * @param check_if_exists whether to return null if the resource does not exist as a plain file
      * @return
      */
-    private static String doResolveResource(final String parent_display, final String resource_name)
+    private static String doResolveResource(final String parent_display, final String resource_name, boolean check_if_exists)
     {
         // Actual, existing URL?
         if (canOpenUrl(resource_name))
@@ -333,20 +292,9 @@ public class ModelResourceUtil
 
         // Can display be opened as file?
         File file = new File(URLdecode(combined));
-        if (file.exists())
+        if (check_if_exists == false || file.exists())
         {
             logger.log(Level.FINE, "Found file {0} relative to parent display", file);
-            return file.getAbsolutePath();
-        }
-
-        // Try the resource name as is.
-        // Resolves relative links based on the current working directory,
-        // which is inferior to resolving relative to a known parent display,
-        // but nevertheless supported as a fallback.
-        file = new File(URLdecode(resource_name));
-        if (file.exists())
-        {
-            logger.log(Level.FINE, "Found file {0} relative to current working directory", file);
             return file.getAbsolutePath();
         }
 
@@ -555,57 +503,13 @@ public class ModelResourceUtil
      */
     public static InputStream openURL(final String resource_name, final int timeout_ms) throws Exception
     {
-        if (resource_name.startsWith("https"))
-            trustAnybody();
-
-        final URL url = new URL(resource_name);
-        final URLConnection connection = url.openConnection();
-        connection.setReadTimeout(timeout_ms);
-        return connection.getInputStream();
+        // Received name may be the result of resolving "some file.png"
+        // relative to "http://server/displays/main.bob" as a string,
+        // i.e. "http://server/displays/some file.png"
+        // This would be acceptable for a file path, but URL() expects spaces to be escaped
+        final String escaped = resource_name.replace(" ", "%20");
+        return ResourceParser.getContent(new URL(escaped).toURI(), timeout_ms);
     }
-
-    /** Allow https:// access to self-signed certificates
-     *  @throws Exception on error
-     */
-    // From Eric Berryman's code in org.csstudio.opibuilder.util.ResourceUtil.
-    private static synchronized void trustAnybody() throws Exception
-    {
-        if (trusting_anybody)
-            return;
-
-        // Create a trust manager that does not validate certificate chains.
-        final TrustManager[] trustAllCerts = new TrustManager[]
-        {
-            new X509TrustManager()
-            {
-                @Override
-                public void checkClientTrusted(X509Certificate[] arg0,
-                                               String arg1) throws CertificateException
-                { /* NOP */ }
-
-                @Override
-                public void checkServerTrusted(X509Certificate[] arg0,
-                                               String arg1) throws CertificateException
-                { /* NOP */ }
-
-                @Override
-                public X509Certificate[] getAcceptedIssuers()
-                {
-                    return null;
-                }
-            }
-        };
-        final SSLContext sc = SSLContext.getInstance("SSL");
-        sc.init(null, trustAllCerts, new java.security.SecureRandom());
-        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-
-        // All-trusting host name verifier
-        final HostnameVerifier allHostsValid = (hostname, session) -> true;
-        HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
-
-        trusting_anybody = true;
-    }
-
 
     /** Write a resource.
      *

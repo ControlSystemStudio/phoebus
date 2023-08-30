@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -21,8 +21,10 @@ import java.util.BitSet;
 @SuppressWarnings("nls")
 public abstract class PVAData
 {
+    /** Name */
     protected final String name;
 
+    /** @param name Name for data item */
     protected PVAData(final String name)
     {
         this.name = name;
@@ -40,6 +42,10 @@ public abstract class PVAData
      *  for the specific data type.
      *  This method allows setting the value from
      *  generic {@link Object}.
+     *
+     *  <p>Not all types are supported,
+     *  but the matching type as well as double and String
+     *  generally are.
      *
      *  @param new_value New value for this data item
      *  @throws Exception on error, including incompatible data type
@@ -88,13 +94,22 @@ public abstract class PVAData
      *  @param level Indentation level
      *  @param buffer Buffer to which to add this type
      */
-    protected abstract void formatType(int level, StringBuilder buffer);
+    protected void formatType(final int level, final StringBuilder buffer)
+    {
+        indent(level, buffer);
+        buffer.append(getType()).append(" ").append(name);
+    }
 
     /** Format the type and data with indentation
      *  @param level Indentation level
      *  @param buffer Buffer to which to add this value
      */
     protected abstract void format(int level, StringBuilder buffer);
+
+    /**
+     * Retrieve the type of the pvData.
+     */
+    public abstract String getType();
 
     /** Add indentation
      *  @param level Indentation level

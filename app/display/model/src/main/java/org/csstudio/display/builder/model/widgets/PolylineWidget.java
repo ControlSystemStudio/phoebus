@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,7 +12,6 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineStyle;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineWidth;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPoints;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,7 +30,6 @@ import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.properties.EnumWidgetProperty;
 import org.csstudio.display.builder.model.properties.LineStyle;
-import org.csstudio.display.builder.model.properties.Points;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Document;
@@ -41,7 +39,7 @@ import org.w3c.dom.Element;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PolylineWidget extends VisibleWidget
+public class PolylineWidget extends PolyBaseWidget
 {
     /** Legacy polyline used 1.0.0 */
     private static final Version version = new Version(2, 0, 0);
@@ -67,10 +65,15 @@ public class PolylineWidget extends VisibleWidget
         //The order of these enum constants is important.
         //The bits of the number returned by calling ordinal() on one
         //of them is useful for determining which arrows are used.
-        NONE(Messages.Arrows_None), //NONE.ordinal() = 0 = 0b00 has no arrows
-        FROM(Messages.Arrows_From), //FROM.ordinal() = 1 = 0b01 has only a from-arrow
-        TO(Messages.Arrows_To),     //  TO.ordinal() = 2 = 0b10 has only a to-arrow
-        BOTH(Messages.Arrows_Both); //BOTH.ordinal() = 3 = 0b11 has both arrows
+
+        /** NONE.ordinal() = 0 = 0b00 has no arrows */
+        NONE(Messages.Arrows_None),
+        /** FROM.ordinal() = 1 = 0b01 has only a from-arrow */
+        FROM(Messages.Arrows_From),
+        /** TO.ordinal() = 2 = 0b10 has only a to-arrow */
+        TO(Messages.Arrows_To),
+        /** BOTH.ordinal() = 3 = 0b11 has both arrows */
+        BOTH(Messages.Arrows_Both);
 
         private final String name;
 
@@ -88,14 +91,14 @@ public class PolylineWidget extends VisibleWidget
 
     /** Display 'arrows' */
     private static final WidgetPropertyDescriptor<Arrows> propArrows =
-        new WidgetPropertyDescriptor<Arrows>(
+        new WidgetPropertyDescriptor<>(
             WidgetPropertyCategory.DISPLAY, "arrows", Messages.Arrows)
     {
         @Override
         public EnumWidgetProperty<Arrows> createProperty(final Widget widget,
                                                         final Arrows default_value)
         {
-            return new EnumWidgetProperty<Arrows>(this, widget, default_value);
+            return new EnumWidgetProperty<>(this, widget, default_value);
         }
     };
 
@@ -127,6 +130,8 @@ public class PolylineWidget extends VisibleWidget
                     line.appendChild(c.cloneNode(true));
                     widget_xml.appendChild(line);
                     widget_xml.removeChild(xml);
+
+                    MacroWidget.importPVName(model_reader, widget, widget_xml);
                 }
                 // In case a re-parse is triggered, prevent another XMLPoints adjustment
                 // by marking as current version
@@ -141,10 +146,10 @@ public class PolylineWidget extends VisibleWidget
     private volatile WidgetProperty<WidgetColor> line_color;
     private volatile WidgetProperty<Integer> line_width;
     private volatile WidgetProperty<LineStyle> line_style;
-    private volatile WidgetProperty<Points> points;
     private volatile WidgetProperty<Arrows> arrows;
     private volatile WidgetProperty<Integer> arrow_length;
 
+    /** Constructor */
     public PolylineWidget()
     {
         super(WIDGET_DESCRIPTOR.getType());
@@ -165,7 +170,6 @@ public class PolylineWidget extends VisibleWidget
         properties.add(line_style = propLineStyle.createProperty(this, LineStyle.SOLID));
         properties.add(arrows = propArrows.createProperty(this, Arrows.NONE));
         properties.add(arrow_length = propArrowLength.createProperty(this, 20));
-        properties.add(points = propPoints.createProperty(this, new Points()));
     }
 
     @Override
@@ -217,11 +221,5 @@ public class PolylineWidget extends VisibleWidget
     public WidgetProperty<Integer> propArrowLength()
     {
         return arrow_length;
-    }
-
-    /** @return 'points' property */
-    public WidgetProperty<Points> propPoints()
-    {
-        return points;
     }
 }

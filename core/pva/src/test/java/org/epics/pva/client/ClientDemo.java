@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,22 +7,23 @@
  ******************************************************************************/
 package org.epics.pva.client;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import org.epics.pva.PVASettings;
+import org.epics.pva.data.PVAData;
+import org.epics.pva.data.PVAStructure;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.LogManager;
 
-import org.epics.pva.PVASettings;
-import org.epics.pva.data.PVAData;
-import org.epics.pva.data.PVAStructure;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /** Demo using demo.db from test resources:
  *    softIocPVA -m N='' -d demo.db
@@ -47,20 +48,37 @@ public class ClientDemo
     @Test
     public void testSimplestGet() throws Exception
     {
-        // Create a client
-        final PVAClient pva = new PVAClient();
+        try
+        (   // Create a client and channel (will be auto-closed)
+            final PVAClient pva = new PVAClient();
+            final PVAChannel ch = pva.getChannel("ramp")
+        )
+        {
+            // Connect
+            ch.connect().get(5, TimeUnit.SECONDS);
 
-        // Connect
-        final PVAChannel ch = pva.getChannel("ramp");
-        ch.connect().get(5, TimeUnit.SECONDS);
+            // Get data
+            final Future<PVAStructure> data = ch.read("");
+            System.out.println(ch.getName() + " = " + data.get());
+        }
+    }
 
-        // Get data
-        final Future<PVAStructure> data = ch.read("");
-        System.out.println(ch.getName() + " = " + data.get());
+    @Test
+    public void testInfo() throws Exception
+    {
+        try
+        (
+            final PVAClient pva = new PVAClient();
+            final PVAChannel ch = pva.getChannel("ramp");
+        )
+        {
+            // Connect
+            ch.connect().get(5, TimeUnit.SECONDS);
 
-        // Close channel and client
-        ch.close();
-        pva.close();
+            // Get structure info (no data)
+            final Future<PVAStructure> info = ch.info("");
+            System.out.println(ch.getName() + " = " + info.get().formatType());
+        }
     }
 
     @Test
@@ -76,12 +94,23 @@ public class ClientDemo
         final PVAChannel ch2 = pva.getChannel("saw", listener);
         CompletableFuture.allOf(ch1.connect(), ch2.connect()).get(5, TimeUnit.SECONDS);
 
-        // Get data
-        Future<PVAStructure> data = ch1.read("");
-        System.out.println(ch1.getName() + " = " + data.get());
+        System.out.println("Connected.. Stop IOC in next 10 seconds to test disconnect");
+        TimeUnit.SECONDS.sleep(10);
 
-        data = ch2.read("");
-        System.out.println(ch2.getName() + " = " + data.get());
+        // Get data
+        try
+        {
+            Future<PVAStructure> data = ch1.read("");
+            System.out.println(ch1.getName() + " = " + data.get());
+
+            data = ch2.read("");
+            System.out.println(ch2.getName() + " = " + data.get());
+        }
+        catch (Exception ex)
+        {
+            System.out.println("Read failed");
+            ex.printStackTrace();
+        }
 
         // Close channels
         ch2.close();
@@ -91,8 +120,51 @@ public class ClientDemo
         pva.close();
     }
 
+
     @Test
     public void testMonitor() throws Exception
+    {
+        // Create a client (auto-close)
+        try (final PVAClient pva = new PVAClient())
+        {
+            // Handler for received values
+            final CountDownLatch done = new CountDownLatch(300000);
+            final MonitorListener handle_values = (channel, changes, overruns, data) ->
+            {
+                System.out.println(channel.getName() + " = " + data);
+                done.countDown();
+            };
+
+            // When channel (re-)connects, subscribe.
+            // When channel disconnects, subscription is automatically dropped.
+            final ClientChannelListener handle_state = (channel, state) ->
+            {
+                if (state == ClientChannelState.CONNECTED)
+                    try
+                    {
+                        channel.subscribe("", handle_values);
+                    }
+                    catch (Exception ex)
+                    {
+                        ex.printStackTrace();
+                    }
+                else
+                    System.out.println(channel.getName() + ": " + state);
+            };
+
+            // Create channel which then subscribes on connect
+            final PVAChannel ch1 = pva.getChannel("demo", handle_state);
+
+            done.await();
+
+            // Close channels
+            ch1.close();
+        }
+    }
+
+
+    @Test
+    public void testPipeline() throws Exception
     {
         // pipeline=10 fails with Base 7.0.2.2
         for (int pipeline : new int[] { 0, 4 /*, 10*/ })
@@ -202,6 +274,13 @@ public class ClientDemo
         pva.close();
     }
 
+    /** Write ('put') test
+     *
+     *  Includes a pause to allow manual stopping of the server.
+     *
+     *  May be used with read-only access security on IOC
+     *  to test failed write.
+     */
     @Test
     public void testPut() throws Exception
     {
@@ -209,11 +288,25 @@ public class ClientDemo
         final PVAClient pva = new PVAClient();
 
         // Connect to one or more channels
-        final PVAChannel channel = pva.getChannel("ramp");
+        final PVAChannel channel = pva.getChannel("saw");
         channel.connect().get(5, TimeUnit.SECONDS);
 
+
+        System.out.println("CONNECTED!");
+        System.out.println("Optionally stop the IOC within the next 10 seconds...");
+        TimeUnit.SECONDS.sleep(10);
+        System.out.println("Writing '2'...");
+
         // Write data
-        channel.write("value", 2.0).get(2, TimeUnit.SECONDS);
+        try
+        {
+            channel.write("value", 2.0).get(2, TimeUnit.SECONDS);
+        }
+        catch (Exception ex)
+        {
+            System.out.println("Write failed");
+            ex.printStackTrace();
+        }
 
         // Close channels
         channel.close();
@@ -246,9 +339,7 @@ public class ClientDemo
 
         // Connect to one or more channels
         final ClientChannelListener channel_listener = (ch, state) ->
-        {
-            System.out.println(ch.getName() + ": " + state);
-        };
+                System.out.println(ch.getName() + ": " + state);
         final PVAChannel ch1 = pva.getChannel("ramp", channel_listener);
         final PVAChannel ch2 = pva.getChannel("saw", channel_listener);
 
@@ -303,5 +394,58 @@ public class ClientDemo
 
         // Check if anything else happens after channels were closed
         Thread.sleep(10000);
+    }
+
+    /** pvxs 'countdown' test: We close early */
+    @Test
+    public void testCountdownMonitorClosedEarly() throws Exception
+    {
+        final PVAClient pva = new PVAClient();
+        final PVAChannel channel = pva.getChannel("countdown");
+        channel.connect().get(5, TimeUnit.SECONDS);
+
+        // Server sends 5 updates, but we close after the 3rd
+        final CountDownLatch updates = new CountDownLatch(3);
+        final AutoCloseable subscription = channel.subscribe("", (ch, changes, overruns, data) ->
+        {
+            System.out.println(data);
+            updates.countDown();
+        });
+        updates.await(10, TimeUnit.SECONDS);
+        subscription.close();
+        System.out.println("Closing subscription after 3 updates, before server stops it");
+
+        channel.close();
+        pva.close();
+    }
+
+    /** pvxs 'countdown' test: Server closes after N updates */
+    @Test
+    public void testCountdownMonitorClosedByServer() throws Exception
+    {
+        final PVAClient pva = new PVAClient();
+        final PVAChannel channel = pva.getChannel("countdown");
+        channel.connect().get(5, TimeUnit.SECONDS);
+
+        // Server sends 6 updates
+        final CountDownLatch updates = new CountDownLatch(6);
+        final AutoCloseable subscription = channel.subscribe("", (ch, changes, overruns, data) ->
+        {
+            System.out.println(data);
+            updates.countDown();
+        });
+        updates.await(10, TimeUnit.SECONDS);
+        System.out.println("Server sent 6 updates. Anything else?");
+
+        TimeUnit.SECONDS.sleep(5);
+
+        System.out.println("Closing subscription that server already abandoned");
+        subscription.close();
+
+        // System.out.println("Closing subscription AGAIN, causing warning but otherwise OK");
+        // subscription.close();
+
+        channel.close();
+        pva.close();
     }
 }

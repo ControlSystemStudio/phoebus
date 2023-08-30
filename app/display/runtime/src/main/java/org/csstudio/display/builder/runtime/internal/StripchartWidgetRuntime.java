@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -39,6 +39,20 @@ public class StripchartWidgetRuntime  extends WidgetRuntime<StripchartWidget>
         }
     }
 
+    private class RefreshPlotAction extends RuntimeAction
+    {
+        RefreshPlotAction()
+        {
+            super(Messages.Refresh, "/icons/refresh_remote.png");
+        }
+
+        @Override
+        public void run()
+        {
+            widget.runtimePropRefreshPlot().trigger();
+        }
+    }
+
     private final List<RuntimeAction> runtime_actions = new ArrayList<>(3);
 
     @Override
@@ -48,6 +62,9 @@ public class StripchartWidgetRuntime  extends WidgetRuntime<StripchartWidget>
         runtime_actions.add(new ConfigureAction("Configure Plot", widget.runtimePropConfigure()));
         runtime_actions.add(new ToggleToolbarAction(widget));
         runtime_actions.add(new OpenDataBrowserAction());
+        runtime_actions.add(new PrintWidgetAction(widget, Messages.PrintPlot));
+        runtime_actions.add(new SaveWidgetSnapshotAction(widget, Messages.SavePlotSnapshot));
+        runtime_actions.add(new RefreshPlotAction());
     }
 
     @Override

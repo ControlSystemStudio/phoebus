@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,6 +8,10 @@
 package org.phoebus.ui.docking;
 
 import java.lang.ref.WeakReference;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -16,8 +20,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.stage.Window;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.application.Messages;
+import org.phoebus.ui.application.PhoebusApplication;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Styles;
 
@@ -27,6 +36,8 @@ import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
@@ -65,6 +76,8 @@ public class DockPane extends TabPane
     private static WeakReference<DockPane> active = new WeakReference<>(null);
 
     private static boolean always_show_tabs = true;
+
+    private List<DockPaneEmptyListener> dockPaneEmptyListeners = new ArrayList<>();
 
     /** @param listener Listener to add
      *  @throws IllegalStateException if listener already added
@@ -183,6 +196,9 @@ public class DockPane extends TabPane
     {
         super(tabs);
 
+        // Show 'x' to close on all tabs
+        setTabClosingPolicy(TabClosingPolicy.ALL_TABS);
+
         // Allow dropping a DockItem
         setOnDragOver(this::handleDragOver);
         setOnDragEntered(this::handleDragEntered);
@@ -209,7 +225,19 @@ public class DockPane extends TabPane
         getTabs().addListener((InvalidationListener) change -> handleTabChanges());
 
         setOnContextMenuRequested(this::showContextMenu);
+
+        getSelectionModel().selectedItemProperty().addListener((observable, previous_item, new_item) -> {
+            Platform.runLater(() -> {
+                // Keep track of the order of focus of tabs:
+                if (new_item != null) {
+                    tabsInOrderOfFocus.remove(new_item);
+                    tabsInOrderOfFocus.push((DockItem) new_item);
+                }
+            });
+        });
     }
+
+    protected LinkedList<DockItem> tabsInOrderOfFocus = new LinkedList<>();
 
     private void showContextMenu(final ContextMenuEvent event)
     {
@@ -235,7 +263,28 @@ public class DockPane extends TabPane
                     ((SplitDock) dock_parent).canMerge())
                 {
                     final MenuItem close = new MenuItem(Messages.DockClose, new ImageView(close_icon));
-                    close.setOnAction(evt -> mergeEmptyAnonymousSplit());
+                    close.setOnAction(evt ->
+                    {
+                        if (!getName().isBlank())
+                        {
+                            // Warn about named pane
+                            final Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                            alert.initOwner(dock_parent.getScene().getWindow());
+                            alert.setTitle(Messages.DockCloseNamedPaneTitle);
+                            alert.setContentText(MessageFormat.format(Messages.DockCloseNamedPaneText, getName()));
+                            alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
+                            DialogHelper.positionDialog(alert, this, 0, 0);
+                            alert.showAndWait().ifPresent(type ->
+                            {
+                                if (type == ButtonType.NO)
+                                    return; // Keep open
+                                // Turn into un-named pane so it'll be merged
+                                setName("");
+                            });
+                        }
+                        // Merge/close unnamed panes
+                        mergeEmptyAnonymousSplit();
+                    });
                     items.addAll(new SeparatorMenuItem(), close);
                 }
             }
@@ -300,15 +349,30 @@ public class DockPane extends TabPane
             if (item instanceof DockItemWithInput)
             {
                 final DockItemWithInput active_item_with_input = (DockItemWithInput) item;
-                if (active_item_with_input.isDirty())
-                    JobManager.schedule(Messages.Save, monitor -> active_item_with_input.save(monitor));
+
+                if (event.isShiftDown()) {
+                    JobManager.schedule(Messages.SaveAs, monitor -> active_item_with_input.save_as(monitor, active_item_with_input.getTabPane().getScene().getWindow()));
+                }
+                else if (active_item_with_input.isDirty()) {
+                    JobManager.schedule(Messages.Save, monitor -> active_item_with_input.save(monitor, active_item_with_input.getTabPane().getScene().getWindow()));
+                }
             }
             event.consume();
         }
         else if (key == KeyCode.W)
         {
             if (!isFixed())
-                item.close();
+            {
+                JobManager.schedule("Close " + item.getLabel(), monitor ->
+                {
+                    boolean shouldClose = item instanceof DockItemWithInput ? ((DockItemWithInput) item).okToClose().get() : true;
+
+                    if (shouldClose) {
+                        item.prepareToClose();
+                        Platform.runLater(item::close);
+                    }
+                });
+            }
             event.consume();
         }
     }
@@ -329,14 +393,16 @@ public class DockPane extends TabPane
     private void handleTabChanges()
     {
         logger.log(Level.INFO, "DockPane handling tab changes");
-        // Schedule merge no later UI tick.
+        // Schedule merge on later UI tick.
         // That way an ongoing scene graph change that might move
         // (i.e. remove item and then add it elsewhere)
         // can complete before we merge,
         // instead of remove, merge, .. add fails because scene graph
         // change in unforeseen ways
-        if (getTabs().isEmpty())
+        if (getTabs().isEmpty()) {
             Platform.runLater(this::mergeEmptyAnonymousSplit);
+
+        }
         else
             // Update tabs on next UI tick so that findTabHeader() can succeed
             // in case this is in a newly created SplitDock
@@ -354,38 +420,58 @@ public class DockPane extends TabPane
         return null;
     }
 
-    /** Somewhat hacky:
-     *  Need the scene of this dock pane to adjust the style sheet
+    private Deque<Consumer<Scene>> functionsDeferredUntilInScene = new LinkedList<>();
+    private boolean changeListenerAdded = false;
+    /** Need the scene of this dock pane to adjust the style sheet
      *  or to interact with the Window.
      *
      *  We _have_ added this DockPane to a scene graph, so getScene() should
      *  return the scene.
      *  But if this dock pane is nested inside a newly created {@link SplitDock},
      *  it will not have a scene until it is rendered.
-     *  So keep deferring to the next UI pulse until there is a scene.
-     *  @param user_of_scene Something that needs to run once there is a scene
+     *
+     *  If calls to deferUntilInScene() are not nested (i.e., there is no
+     *  call of the form deferUntilInScene(f) where f() in turn contains further
+     *  calls of the form deferUntilInScene(g) for some g), then the relative
+     *  ordering in time of deferred function calls is preserved: if f1() is
+     *  deferred before f2() is deferred, then f1() will be invoked before f2()
+     *  is invoked.
+     *
+     *  If, on the other hand, there *is* a call of the form deferUntilInScene(f)
+     *  where f() in turn contains a nested call of the form deferUntilInScene(g),
+     *  then the invocation of g() that is deferred by the call deferUntilInScene(g)
+     *  will occur as part of the (possibly deferred) invocation of f(). I.e.,  it
+     *  will *not* be deferred until after all other deferred function invocations
+     *  have completed, but will be invoked as part of the (possibly deferred)
+     *  invocation of f().
+     *
+     *  @param function Something that needs to run once there is a scene
      */
-    public void deferUntilInScene(final Consumer<Scene> user_of_scene)
-    {
-        // Tried to optimize this based on
-        //     sceneProperty().addListener(...),
-        // creating list of registered users_of_scene,
-        // invoking once the scene property changes to != null,
-        // then deleting the list and removing the listener,
-        // but that added quite some code and failed for
-        // strange endless-loop type reasons.
-        deferUntilInScene(0, user_of_scene);
-    }
+    public void deferUntilInScene(Consumer<Scene> function) {
+        Scene scene = sceneProperty().get();
+        if (scene != null) {
+            function.accept(scene);
+        }
+        else {
+            functionsDeferredUntilInScene.addLast(function);
 
-    // See deferUntilInScene, giving up after 10 attempts
-    private void deferUntilInScene(final int level, final Consumer<Scene> user_of_scene)
-    {
-        if (getScene() != null)
-            user_of_scene.accept(getScene());
-        else if (level < 10)
-            Platform.runLater(() -> deferUntilInScene(level+1, user_of_scene));
-        else
-            logger.log(Level.WARNING, this + " has no scene for deferred call to " + user_of_scene);
+            if (!changeListenerAdded) {
+                ChangeListener changeListener = new ChangeListener() {
+                    @Override
+                    public void changed(ObservableValue observableValue, Object oldValue, Object newValue) {
+                        if (newValue != null) {
+                            while(!functionsDeferredUntilInScene.isEmpty()) {
+                                Consumer<Scene> f = functionsDeferredUntilInScene.removeFirst();
+                                f.accept((Scene) newValue);
+                            }
+                            sceneProperty().removeListener(this);
+                        }
+                    }
+                };
+                sceneProperty().addListener(changeListener);
+                changeListenerAdded = true;
+            }
+        }
     }
 
     /** Hide or show tabs
@@ -483,6 +569,9 @@ public class DockPane extends TabPane
     /** Accept a dropped tab */
     private void handleDrop(final DragEvent event)
     {
+        if (!event.getDragboard().hasContent(DockItem.DOCK_ITEM)){
+            return;
+        }
         final DockItem item = DockItem.dragged_item.getAndSet(null);
         if (item == null)
             logger.log(Level.SEVERE, "Empty drop, " + event);
@@ -543,6 +632,7 @@ public class DockPane extends TabPane
             parent.setCenter(null);
             // Place in split alongside a new dock pane
             final DockPane new_pane = new DockPane();
+            dockPaneEmptyListeners.stream().forEach(new_pane::addDockPaneEmptyListener);
             split = new SplitDock(parent, horizontally, this, new_pane);
             setDockParent(split);
             new_pane.setDockParent(split);
@@ -556,6 +646,7 @@ public class DockPane extends TabPane
             final boolean first = parent.removeItem(this);
             // Place in split alongside a new dock pane
             final DockPane new_pane = new DockPane();
+            dockPaneEmptyListeners.stream().forEach(new_pane::addDockPaneEmptyListener);
             split = new SplitDock(parent, horizontally, this, new_pane);
             setDockParent(split);
             new_pane.setDockParent(split);
@@ -583,10 +674,16 @@ public class DockPane extends TabPane
     void mergeEmptyAnonymousSplit()
     {
         if (! (dock_parent instanceof SplitDock))
+        {
+            dockPaneEmptyListeners.forEach(DockPaneEmptyListener::allTabsClosed);
             return;
+        }
         if (name.length() > 0)
             return;
-        ((SplitDock) dock_parent).merge();
+
+        SplitDock splitDock = (SplitDock)dock_parent;
+        splitDock.merge();
+        dockPaneEmptyListeners.forEach(DockPaneEmptyListener::allTabsClosed);
     }
 
     @Override
@@ -594,5 +691,13 @@ public class DockPane extends TabPane
     {
         return (isFixed() ? "FIXED DockPane " : "DockPane ") +
                Integer.toHexString(System.identityHashCode(this)) + " '" + name + "' "+ getTabs();
+    }
+
+    public void addDockPaneEmptyListener(DockPaneEmptyListener listener){
+        dockPaneEmptyListeners.add(listener);
+    }
+
+    public void removeDockPaneEmptyListener(DockPaneEmptyListener listener){
+        dockPaneEmptyListeners.remove(listener);
     }
 }

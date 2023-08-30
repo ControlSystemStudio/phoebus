@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -39,27 +39,44 @@ public class WidgetFontPropertyBinding
     /** Update model from user input */
     private final EventHandler<ActionEvent> action_handler = event ->
     {
-        if (popover == null)
-            popover = new WidgetFontPopOver(widget_property, font ->
+        final WidgetFontPopOver previous = popover;
+        popover = null;
+        if (previous != null)
+        {
+            if (previous.isShowing())
             {
-                undo.execute(new SetWidgetPropertyAction<>(widget_property, font));
-                if (! other.isEmpty())
+                previous.hide();
+                return;
+            }
+        }
+        // When editing just one widget,
+        // enable the 'OK' button if the font is actually changed.
+        // When editing multiple widgets, enable 'OK' after any change,
+        // even when later changed back to the original value,
+        // since the goal might be to apply that font to all widgets.
+        final boolean ok_on_any_change = !other.isEmpty();
+        popover = new WidgetFontPopOver(widget_property, font ->
+        {
+            undo.execute(new SetWidgetPropertyAction<>(widget_property, font));
+            if (! other.isEmpty())
+            {
+                final String path = widget_property.getPath();
+                for (final Widget w : other)
                 {
-                    final String path = widget_property.getPath();
-                    for (final Widget w : other)
-                    {
-                        final FontWidgetProperty other_prop = (FontWidgetProperty) w.getProperty(path);
-                        undo.execute(new SetWidgetPropertyAction<>(other_prop, font));
-                    }
+                    final FontWidgetProperty other_prop = (FontWidgetProperty) w.getProperty(path);
+                    undo.execute(new SetWidgetPropertyAction<>(other_prop, font));
                 }
-            });
+            }
+        }, ok_on_any_change);
 
-        if (popover.isShowing())
-            popover.hide();
-        else
-            popover.show(jfx_node);
+        popover.show(jfx_node);
     };
 
+    /** @param undo Undo manager
+     *  @param field Button that opens dialog
+     *  @param widget_property Font property
+     *  @param other Other selected widgets
+     */
     public WidgetFontPropertyBinding(final UndoableActionManager undo,
                                      final Button field,
                                      final FontWidgetProperty widget_property,

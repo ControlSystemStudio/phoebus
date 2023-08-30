@@ -11,10 +11,18 @@ import static org.csstudio.display.builder.representation.ToolkitRepresentation.
 
 import java.util.logging.Level;
 
+import javafx.application.Platform;
+import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.persist.NamedWidgetColors;
+import org.csstudio.display.builder.model.persist.WidgetColorService;
+import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.SpinnerWidget;
+import org.csstudio.display.builder.representation.javafx.Cursors;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.Display;
 import org.epics.vtype.VNumber;
@@ -31,11 +39,6 @@ import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.Region;
-import javafx.scene.paint.Color;
 import javafx.util.StringConverter;
 
 /** Creates JavaFX item for model widget
@@ -52,53 +55,67 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
     private final UntypedWidgetPropertyListener styleListener = this::styleChanged;
     private final UntypedWidgetPropertyListener behaviourListener = this::behaviorChanged;
     private final UntypedWidgetPropertyListener contentListener = this::contentChanged;
+    private final WidgetPropertyListener<String> pvNameListener = this::pvnameChanged;
 
     protected volatile String value_text = "<?>";
     protected volatile VType value = null;
     private volatile double value_max  = 100.0;
     private volatile double value_min  = 0.0;
+    private volatile Pos pos;
+
+    private static WidgetColor active_color = WidgetColorService.getColor(NamedWidgetColors.ACTIVE_TEXT);
+
 
     @Override
     protected final Spinner<String> createJFXNode() throws Exception
     {
         final Spinner<String> spinner = new Spinner<>();
+
         spinner.setValueFactory(createSVF());
-        styleChanged(null, null, null);
-        spinner.setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
-        spinner.focusedProperty().addListener((property, oldval, newval)->
+
+        spinner.getEditor().focusedProperty().addListener((property, oldval, focused)->
         {
-            if (!spinner.isFocused())
-                restore();
-            active = false;
-        });
-        spinner.getEditor().setOnKeyPressed((final KeyEvent event) ->
-        {
-            switch (event.getCode())
+            if (active && !focused)
             {
-            case ESCAPE: //TODO: fix: escape key event not sensed
-                // Revert original value, leave active state
                 restore();
-                active = false;
-                break;
-            case ENTER:
-                // Submit value, leave active state
-                submit();
-                active = false;
-                break;
-            //incrementing by keyboard
-            case UP:
-            case PAGE_UP:
-                if (!active)
-                    jfx_node.getValueFactory().increment(1);
-                break;
-            case DOWN:
-            case PAGE_DOWN:
-                if (!active)
-                    jfx_node.getValueFactory().decrement(1);
-                break;
-            default:
-                // Any other key results in active state
-                active = true;
+                setActive(false);
+            }
+            else if(focused){
+                // Need to call selectAll() in this fashion, even if already on JavaFX application thread.
+                Platform.runLater(() -> spinner.getEditor().selectAll());
+            }
+        });
+
+        spinner.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            switch(event.getCode()){
+                case ESCAPE:
+                    if (active)
+                    {   // Revert original value, leave active state
+                        restore();
+                        setActive(false);
+                    }
+                    break;
+                case ENTER: // ENTER event is triggered twice by native JavaFX Spinner
+                    // Submit value, leave active state
+                    if(active){
+                        submit();
+                        setActive(false);
+                    }
+                    break;
+                //incrementing by keyboard
+                case UP:
+                case PAGE_UP:
+                    if (!active)
+                        spinner.getValueFactory().increment(1);
+                    break;
+                case DOWN:
+                case PAGE_DOWN:
+                    if (!active)
+                        spinner.getValueFactory().decrement(1);
+                    break;
+                default:
+                    // Any other key results in active state
+                    setActive(true);
             }
         });
 
@@ -116,6 +133,25 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         // expensive Node.notifyParentOfBoundsChange() recursing up the scene graph
         spinner.setManaged(false);
 
+        spinner.getEditor().setOnContextMenuRequested((event) ->
+        {
+            event.consume();
+            toolkit.fireContextMenu(model_widget, (int)event.getScreenX(), (int)event.getScreenY());
+        });
+
+        spinner.getEditor().setPadding(new Insets(0, 0, 0, 0));
+
+        spinner.getEditor().setOnMouseClicked(event -> {
+            // Secondary mouse button should bring up context menu
+            // but not enable editing.
+            if(event.getButton().equals(MouseButton.PRIMARY)){
+                setActive(true);
+            }
+            else{
+                spinner.getEditor().setEditable(false);
+            }
+        });
+
         return spinner;
     }
 
@@ -125,7 +161,7 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
     private void restore()
     {
         //The old value is restored.
-        jfx_node.getEditor().setText(jfx_node.getValueFactory().getValue());
+        jfx_node.getEditor().setText(value_text);
     }
 
     /** Submit value entered by user */
@@ -271,6 +307,11 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
                 return "vtypeValue";
             }
 
+            @Override
+            public String toString(){
+                return get().toString();
+            }
+
         };
         public final void setVTypeValue(VType value)
         {
@@ -289,15 +330,21 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         @Override
         public void decrement(int steps)
         {
-            if (!toolkit.isEditMode() && model_widget.propEnabled().getValue())
+            if (!toolkit.isEditMode() && model_widget.propEnabled().getValue()){
+                active = false;
                 writeResultingValue(-steps*getStepIncrement());
+            }
+
         }
 
         @Override
         public void increment(int steps)
         {
-            if (!toolkit.isEditMode() && model_widget.propEnabled().getValue())
+            if (!toolkit.isEditMode() && model_widget.propEnabled().getValue()){
+                active = false;
                 writeResultingValue(steps*getStepIncrement());
+            }
+
         }
 
         private void writeResultingValue(double change)
@@ -334,13 +381,19 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
     protected void registerListeners()
     {
         super.registerListeners();
+        pos = JFXUtil.computePos(model_widget.propHorizontalAlignment().getValue(),
+                model_widget.propVerticalAlignment().getValue());
         model_widget.propWidth().addUntypedPropertyListener(styleListener);
         model_widget.propHeight().addUntypedPropertyListener(styleListener);
         model_widget.propButtonsOnLeft().addUntypedPropertyListener(styleListener);
 
         model_widget.propForegroundColor().addUntypedPropertyListener(styleListener);
         model_widget.propBackgroundColor().addUntypedPropertyListener(styleListener);
+        model_widget.propFont().addUntypedPropertyListener(styleListener);
+        model_widget.propHorizontalAlignment().addUntypedPropertyListener(styleListener);
+        model_widget.propVerticalAlignment().addUntypedPropertyListener(styleListener);
         model_widget.propEnabled().addUntypedPropertyListener(styleListener);
+        model_widget.runtimePropPVWritable().addUntypedPropertyListener(styleListener);
 
         model_widget.propIncrement().addUntypedPropertyListener(behaviourListener);
         model_widget.propMinimum().addUntypedPropertyListener(behaviourListener);
@@ -351,6 +404,8 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         model_widget.propPrecision().addUntypedPropertyListener(contentListener);
         model_widget.propShowUnits().addUntypedPropertyListener(contentListener);
         model_widget.runtimePropValue().addUntypedPropertyListener(contentListener);
+
+        model_widget.propPVName().addPropertyListener(pvNameListener);
 
         behaviorChanged(null, null, null);
         contentChanged(null, null, null);
@@ -364,7 +419,9 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         model_widget.propButtonsOnLeft().removePropertyListener(styleListener);
         model_widget.propForegroundColor().removePropertyListener(styleListener);
         model_widget.propBackgroundColor().removePropertyListener(styleListener);
+        model_widget.propFont().removePropertyListener(styleListener);
         model_widget.propEnabled().removePropertyListener(styleListener);
+        model_widget.runtimePropPVWritable().removePropertyListener(styleListener);
         model_widget.propIncrement().removePropertyListener(behaviourListener);
         model_widget.propMinimum().removePropertyListener(behaviourListener);
         model_widget.propMaximum().removePropertyListener(behaviourListener);
@@ -373,6 +430,7 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         model_widget.propPrecision().removePropertyListener(contentListener);
         model_widget.propShowUnits().removePropertyListener(contentListener);
         model_widget.runtimePropValue().removePropertyListener(contentListener);
+        model_widget.propPVName().removePropertyListener(pvNameListener);
         super.unregisterListeners();
     }
 
@@ -384,6 +442,8 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
 
     private void styleChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
+        pos = JFXUtil.computePos(model_widget.propHorizontalAlignment().getValue(),
+                model_widget.propVerticalAlignment().getValue());
         dirty_style.mark();
         toolkit.scheduleUpdate(this);
     }
@@ -407,6 +467,17 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         scheduleContentUpdate();
     }
 
+    private void pvnameChanged(final WidgetProperty<String> property, final String old_value, final String new_value)
+    {   // PV name typically changes in edit mode.
+        // -> Show new PV name.
+        // Runtime could deal with disconnect/reconnect for new PV name
+        // -> Also OK to show disconnected state until runtime
+        //    subscribes to new PV, so we eventually get values from new PV.
+        value_text = computeText(null);
+        dirty_content.mark();
+        toolkit.scheduleUpdate(this);
+    }
+
     private void scheduleContentUpdate()
     {
         dirty_content.mark();
@@ -420,15 +491,27 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         super.updateChanges();
         if (dirty_style.checkAndClear())
         {
-            final String color = JFXUtil.webRGB(model_widget.propForegroundColor().getValue());
-            jfx_node.editorProperty().getValue().setStyle("-fx-text-fill:" + color);
-            final Color background = JFXUtil.convert(model_widget.propBackgroundColor().getValue());
-            jfx_node.editorProperty().getValue().setBackground(new Background(new BackgroundFill(background, CornerRadii.EMPTY, Insets.EMPTY)));
+            final StringBuilder style = new StringBuilder(100);
+            style.append("-fx-text-fill:");
+            JFXUtil.appendWebRGB(style, model_widget.propForegroundColor().getValue()).append(";");
+
+            // http://stackoverflow.com/questions/27700006/how-do-you-change-the-background-color-of-a-textfield-without-changing-the-border
+            final WidgetColor back_color = active ? active_color : model_widget.propBackgroundColor().getValue();
+            style.append("-fx-control-inner-background: ");
+            JFXUtil.appendWebRGB(style, back_color).append(";");
+
+            jfx_node.editorProperty().getValue().setStyle(style.toString());
+            jfx_node.editorProperty().getValue().setAlignment(pos);
             jfx_node.resize(model_widget.propWidth().getValue(), model_widget.propHeight().getValue());
 
-            final boolean enabled = model_widget.propEnabled().getValue();
+            // Enable if enabled by user and there's write access
+            final boolean enabled = model_widget.propEnabled().getValue()  &&
+                                    model_widget.runtimePropPVWritable().getValue();
             Styles.update(jfx_node, Styles.NOT_ENABLED, !enabled);
             jfx_node.setEditable(!toolkit.isEditMode() && enabled);
+            jfx_node.getEditor().setCursor(enabled ? Cursor.DEFAULT : Cursors.NO_WRITE);
+
+            jfx_node.getEditor().setFont(JFXUtil.convert(model_widget.propFont().getValue()));
 
             int x = jfx_node.getStyleClass().indexOf(Spinner.STYLE_CLASS_ARROWS_ON_LEFT_VERTICAL);
             if (model_widget.propButtonsOnLeft().getValue())
@@ -443,8 +526,8 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
         {
             ( (TextSpinnerValueFactory)jfx_node.getValueFactory() ).setVTypeValue(value);
             jfx_node.getValueFactory().setValue(value_text);
-
         }
+
         jfx_node.layout();
     }
 
@@ -469,14 +552,18 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
 
             if (display_info != null)
             {
-                double infoMin = display_info.getControlRange().getMinimum();
-                double infoMax = display_info.getControlRange().getMaximum();
-
-                if (!Double.isNaN(infoMin) && !Double.isNaN(infoMax) && infoMin < infoMax)
+                // Use control range, falling back to display
+                if (display_info.getControlRange().isFinite())
                 {
-                    newMin = infoMin;
-                    newMax = infoMax;
+                    newMin = display_info.getControlRange().getMinimum();
+                    newMax = display_info.getControlRange().getMaximum();
                 }
+                else if (display_info.getDisplayRange().isFinite())
+                {
+                    newMin = display_info.getDisplayRange().getMinimum();
+                    newMax = display_info.getDisplayRange().getMaximum();
+                }
+                // else: Leave at 0..100
             }
         }
 
@@ -484,5 +571,34 @@ public class SpinnerRepresentation extends RegionBaseRepresentation<Spinner<Stri
             value_min = newMin;
         if (Double.compare(value_max, newMax) != 0)
             value_max = newMax;
+    }
+
+    @Override
+    protected void attachTooltip()
+    {
+        // Use the formatted text for "$(pv_value)"
+        TooltipSupport.attach(jfx_node, model_widget.propTooltip(), () -> value_text);
+        // Show the tooltip for the editor part too
+        TooltipSupport.attach(jfx_node.getEditor(), model_widget.propTooltip(), () -> value_text);
+    }
+
+    private void setActive(final boolean active)
+    {
+        if (this.active == active)
+            return;
+
+        // When activated, start by selecting all in a plain text.
+        // For multi-line, leave it to the user to click or cursor around,
+        // because when all is selected, there's a larger risk of accidentally
+        // replacing some long, carefully crafted text.
+        if (active)
+            jfx_node.getEditor().selectAll();
+
+        // Don't enable when widget is disabled
+        if (active  &&  !model_widget.propEnabled().getValue())
+            return;
+        this.active = active;
+        dirty_style.mark();
+        updateChanges();
     }
 }

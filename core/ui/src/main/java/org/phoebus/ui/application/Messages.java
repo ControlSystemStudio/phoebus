@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,9 +12,14 @@ import org.phoebus.framework.nls.NLS;
 public class Messages
 {
     // Keep in alphabetical order and aligned with messages.properties
+    public static String AddLayout;
     public static String AllFiles;
     public static String AlwaysShowTabs;
     public static String Applications;
+    public static String AppVersion;
+    public static String AppRevision;
+    public static String AppVersionHeader;
+    public static String CloseAllTabs;
     public static String DeleteLayouts;
     public static String DeleteLayoutsConfirmFmt;
     public static String DeleteLayoutsInfo;
@@ -24,6 +29,8 @@ public class Messages
     public static String DockAppName;
     public static String DockClose;
     public static String DockCloseAll;
+    public static String DockCloseNamedPaneText;
+    public static String DockCloseNamedPaneTitle;
     public static String DockCloseOthers;
     public static String DockDetach;
     public static String DockInfo;
@@ -46,11 +53,13 @@ public class Messages
     public static String HelpAboutHdr;
     public static String HelpAboutColName;
     public static String HelpAboutColValue;
+    public static String HelpAboutEnv;
     public static String HelpAboutInst;
     public static String HelpAboutJava;
     public static String HelpAboutJfx;
     public static String HelpAboutMenuPath;
     public static String HelpAboutOpenLocation;
+    public static String HelpAboutPID;
     public static String HelpAboutPrefs;
     public static String HelpAboutSysFea;
     public static String HelpAboutTitle;
@@ -92,8 +101,10 @@ public class Messages
     public static String PVListPlaceholder;
     public static String PVListRefreshTT;
     public static String PVListTblConnected;
+    public static String PVListTblDisconnected;
     public static String PVListTblPVName;
     public static String PVListTblReferences;
+    public static String PVListTblValue;
     public static String Save;
     public static String SaveAs;
     public static String SaveAsErrHdr;
@@ -102,7 +113,13 @@ public class Messages
     public static String SaveAsPrompt;
     public static String SaveDlgErrHdr;
     public static String SaveDlgHdr;
+    public static String SaveAsFileAlreadyOpen_content;
+    public static String SaveAsFileAlreadyOpen_header;
+    public static String SaveAsFileAlreadyOpen_title;
     public static String SaveLayoutAs;
+    public static String SaveLayoutOfContainingWindowAs;
+    public static String SaveLayoutWarningApplicationNoSaveFile;
+    public static String SaveLayoutWarningApplicationNoSaveFileTitle;
     public static String SaveSnapshot;
     public static String SaveSnapshotSelectFilename;
     public static String Saving;
@@ -112,6 +129,8 @@ public class Messages
     public static String SavingHdr;
     public static String ScreenshotErrHdr;
     public static String ScreenshotErrMsg;
+    public static String SelectTab;
+    public static String ShowStatusbar;
     public static String ShowToolbar;
     public static String Time12h;
     public static String Time1d;
@@ -130,9 +149,28 @@ public class Messages
     public static String TimeYear;
     public static String TopResources;
     public static String UnLockPane;
+    public static String UnsavedChanges;
+    public static String UnsavedChanges_clearButtonText;
+    public static String UnsavedChanges_close;
+    public static String UnsavedChanges_discardButtonText_discardAnd;
+    public static String UnsavedChanges_exit;
+    public static String UnsavedChanges_mainWindow;
+    public static String UnsavedChanges_replace;
+    public static String UnsavedChanges_saveButtonText;
+    public static String UnsavedChanges_saveButtonText_saveAnd;
+    public static String UnsavedChanges_saved;
+    public static String UnsavedChanges_saving;
+    public static String UnsavedChanges_savingFailed;
+    public static String UnsavedChanges_secondaryWindow;
+    public static String UnsavedChanges_selectAllButtonText;
+    public static String UnsavedChanges_theFollowingApplicationInstancesHaveUnsavedChanges;
+    public static String UnsavedChanges_wouldYouLikeToSaveAnyChangesBeforeClosingAllTabs;
+    public static String UnsavedChanges_wouldYouLikeToSaveAnyChangesBeforeClosingTheTabs;
+    public static String UnsavedChanges_wouldYouLikeToSaveAnyChangesBeforeClosingTheWindow;
+    public static String UnsavedChanges_wouldYouLikeToSaveAnyChangesBeforeExiting;
+    public static String UnsavedChanges_wouldYouLikeToSaveAnyChangesBeforeReplacingTheLayout;
     public static String WebBrowser;
     public static String Welcome;
-    public static String WelcomeLabel;
     public static String Window;
 
     static

@@ -1,6 +1,7 @@
 package org.phoebus.channel.views.ui;
 
 import java.util.Collection;
+import java.util.logging.Logger;
 
 import org.phoebus.channelfinder.Channel;
 import org.phoebus.channelfinder.ChannelFinderClient;
@@ -11,8 +12,8 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import javafx.application.Platform;
 
 /**
- * A basic controller for any ui performing channelfinder queries. The
- * controller takes care of performing the query off the ui thread using
+ * A basic controller for any UI performing channelfinder queries. The
+ * controller takes care of performing the query off the UI thread using
  * {@link Job}s and then invokes the setChannels method on the UI thread after
  * the query has been completed.
  * 
@@ -21,6 +22,7 @@ import javafx.application.Platform;
  */
 public abstract class ChannelFinderController {
 
+    public static Logger logger = Logger.getLogger(ChannelFinderController.class.getName());
     private ChannelFinderClient client;
 
     private Job channelSearchJob;
@@ -43,5 +45,9 @@ public abstract class ChannelFinderController {
 
     }
 
+    /**
+     * Set a new list of channels. This method is called after the successful execution of a channelfinder query. 
+     * @param channels - the new list of channels
+     */
     public abstract void setChannels(Collection<Channel> channels);
 }

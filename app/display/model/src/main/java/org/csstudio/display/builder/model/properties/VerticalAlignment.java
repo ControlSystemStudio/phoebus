@@ -14,7 +14,13 @@ import org.csstudio.display.builder.model.Messages;
  */
 public enum VerticalAlignment
 {
-    TOP(Messages.Top), MIDDLE(Messages.Middle), BOTTOM(Messages.Bottom);
+    /** Top */
+    TOP(Messages.Top),
+    /** Middle */
+    MIDDLE(Messages.Middle),
+    /** Bottom */
+    BOTTOM(Messages.Bottom);
+
     private final String label;
 
     private VerticalAlignment(final String label)

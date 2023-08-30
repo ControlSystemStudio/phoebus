@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -40,7 +40,9 @@ public class Convert_xyGraphClass extends ConverterBase<XYPlotWidget>
 
         convertColor(r.getBgColor(), widget.propBackground());
         convertColor(r.getFgColor(), widget.propForeground());
-        convertColor(r.getFgColor(), widget.propGridColor());
+        widget.propYAxes().getValue().forEach(propYAxis -> {
+            convertColor(r.getFgColor(), propYAxis.color());
+        });
 
         // X Axis
         if (r.getXLabel() == null)
@@ -118,6 +120,14 @@ public class Convert_xyGraphClass extends ConverterBase<XYPlotWidget>
                 final TraceWidgetProperty trace = widget.propTraces().getElement(i);
                 trace.traceYPV().setValue(entry.getValue().get());
                 trace.traceName().setValue("");
+
+                // Is there an X PV?
+                if (r.getXPv().isExistInEDL())
+                {
+                    final EdmString name = r.getXPv().getEdmAttributesMap().get(Integer.toString(i));
+                    if (name != null)
+                        trace.traceXPV().setValue(name.get());
+                }
             }
 
         if (r.getPlotColor().isExistInEDL())

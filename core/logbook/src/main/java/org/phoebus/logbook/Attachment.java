@@ -9,9 +9,19 @@ import java.io.File;
  */
 public interface Attachment {
 
-    public static final String CONTENT_IMAGE = "image";
-    public static final String CONTENT_FILE = "file";
+    /**
+     * @return A unique id set by either client or log service.
+     */
+    default String getId(){
+        return null;
+    }
 
+    /**
+     * In some cases the client must be able to set the (unique) id.
+     * @param id
+     */
+    default void setId(String id){}
+    
     public String getName();
 
     public File getFile();

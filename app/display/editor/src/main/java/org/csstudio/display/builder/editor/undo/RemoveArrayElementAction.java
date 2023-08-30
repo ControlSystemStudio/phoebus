@@ -20,6 +20,7 @@ public class RemoveArrayElementAction<WPE extends WidgetProperty<?>> extends Und
     private final ArrayWidgetProperty<WPE> property;
     private WPE element;
 
+    /** @param property Array property */
     public RemoveArrayElementAction(final ArrayWidgetProperty<WPE> property)
     {
         super(Messages.RemoveElement);

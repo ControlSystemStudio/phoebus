@@ -18,6 +18,7 @@ public class ChannelInfo extends ProcessVariable
     /** Default ID for {@link Serializable} */
     private static final long serialVersionUID = 1L;
 
+    /** Data source */
     final private ArchiveDataSource archive;
 
     /** Initialize

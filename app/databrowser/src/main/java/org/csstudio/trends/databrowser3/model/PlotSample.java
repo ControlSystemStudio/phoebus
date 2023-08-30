@@ -20,11 +20,12 @@ import org.epics.vtype.VDouble;
 import org.epics.vtype.VStatistics;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
+import org.epics.vtype.VEnum;
 import org.phoebus.archive.vtype.VTypeHelper;
 import org.phoebus.pv.TimeHelper;
 
 /** Data Sample from control system ({@link VType})
- *  with interface for XYGraph ({@link ISample})
+ *  with interface for XYGraph
  *  @author Kay Kasemir
  *  @author Takashi Nakamoto changed PlotSample to handle waveform index.
  */
@@ -47,6 +48,11 @@ public class PlotSample implements PlotDataItem<Instant>
     /** Waveform index */
     private AtomicInteger waveform_index;
 
+    /** Designates if this is a real data point, or just a 'virtual' one
+     * created only for mechanical purposes (i.e. to connect the last data point to 'now')
+     */
+    private boolean isVirtualSample = false;
+
     /** Initialize with valid control system value
      *  @param waveform_index Waveform index
      *  @param source Info about the source of this sample
@@ -62,8 +68,13 @@ public class PlotSample implements PlotDataItem<Instant>
         {
             this.info = decodeAlarm(value);
             // For string PV add the text to info
-            if (value instanceof VString)
-                this.info = ((VString) value).getValue() + (" " + this.info).trim();
+            if (value instanceof VString) {
+                this.info = (((VString) value).getValue() + " " + this.info).trim();
+            }
+            else if (value instanceof VEnum) {
+                this.info = (((VEnum) value).getValue() + " " + this.info).trim();
+            }
+                
         }
         else
             this.info = info;
@@ -84,7 +95,7 @@ public class PlotSample implements PlotDataItem<Instant>
     /** Initialize with valid control system value
      *  @param waveform_index Waveform index
      *  @param source Info about the source of this sample
-     *  @param value
+     *  @param value Value
      */
     PlotSample(final AtomicInteger waveform_index, final  String source, final VType value)
     {
@@ -93,14 +104,21 @@ public class PlotSample implements PlotDataItem<Instant>
 
     /** Initialize with valid control system value
      *  @param source Info about the source of this sample
-     *  @param value
+     *  @param value Value
      */
     public PlotSample(final String source, final VType value)
     {
         this(default_waveform_index, source, value);
     }
 
+    public PlotSample(final String source, final VType value, boolean isVirtualSample)
+    {
+        this(default_waveform_index, source, value);
+        this.isVirtualSample = isVirtualSample;
+    }
+
     /** Initialize with (error) info, creating a non-plottable sample 'now'
+     *  @param source Data source hint
      *  @param info Text used for info as well as error message
      */
     public PlotSample(final String source, final String info)
@@ -159,7 +177,7 @@ public class PlotSample implements PlotDataItem<Instant>
     @Override
     public double getValue()
     {
-        return VTypeHelper.toDouble(value, waveform_index.get());
+        return org.phoebus.core.vtypes.VTypeHelper.toDouble(value, waveform_index.get());
     }
 
     /** @return {@link VStatistics} or <code>null</code> */
@@ -207,6 +225,11 @@ public class PlotSample implements PlotDataItem<Instant>
     public String getInfo()
     {
         return info;
+    }
+
+    @Override
+    public boolean isVirtual() {
+        return this.isVirtualSample;
     }
 
     @Override

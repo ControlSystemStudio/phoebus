@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -43,12 +43,15 @@ import org.csstudio.javafx.rtplot.internal.undo.ChangeAxisRanges;
 import org.csstudio.javafx.rtplot.internal.undo.UpdateAnnotationAction;
 import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
 import org.csstudio.javafx.rtplot.internal.util.ScreenTransform;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.BufferUtil;
 import org.phoebus.ui.javafx.DoubleBuffer;
 import org.phoebus.ui.javafx.PlatformInfo;
+import org.phoebus.ui.undo.UndoableAction;
 
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
+import javafx.scene.control.Alert;
 import javafx.scene.input.MouseEvent;
 
 /** Plot with axes and area that displays the traces
@@ -663,7 +666,7 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
         final ScreenTransform<XTYPE> x_transform = x_axis.getScreenTransform();
         for (YAxisImpl<XTYPE> y_axis : y_axes)
         {
-            y_axis.setGridColor(grid);
+            y_axis.setGridColor(GraphicsUtils.convert(y_axis.getColor()));
             y_axis.paint(gc, plot_bounds);
         }
 
@@ -690,6 +693,9 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
         // Annotations use label font
         for (AnnotationImpl<XTYPE> annotation : annotations)
         {
+            // Hide annotation when the associated trace is not visible
+            if (! annotation.getTrace().isVisible())
+                continue;
             try
             {
                 annotation.updateValue(annotation.getPosition());
@@ -1344,5 +1350,59 @@ public class Plot<XTYPE extends Comparable<XTYPE>> extends PlotCanvasBase
         listeners.clear();
         plot_markers.clear();
         plot_marker = null;
+    }
+
+    /**
+     * Resets the X and Y axis ranges to the initial values. These initial values
+     * are found by looking for the first {@link ChangeAxisRanges} action in the undo stack
+     * obtained from the {@link org.phoebus.ui.undo.UndoableActionManager}. A
+     * {@link ChangeAxisRanges} is created upon
+     * the first zoom or pan action and hence contains the information about the initial X and
+     * Y axes ranges.
+     * The action taken in this method is itself a {@link ChangeAxisRanges} using the plot's current X and Y axis ranges
+     * are used as the "original" ranges. It is executed as an {@link UndoableAction} and
+     * can therefore be undone to return to the previous zoom/pan state.
+     * If the undo stack is empty or does not contain any {@link ChangeAxisRanges} actions,
+     * nothing happens.
+     * A check is performed to determine if the number of traces (Y axes) in the current plot is the same as it
+     * was initially. If not, an error dialog is shown to the effect that a reset is not possible.
+     */
+    public void resetAxisRanges()
+    {
+        final List<UndoableAction> undoableActions = undo.getUndoStack();
+        if(undoableActions.isEmpty())
+            return;
+
+        for(UndoableAction undoableAction : undoableActions)
+        {
+            if (undoableAction instanceof ChangeAxisRanges)
+            {
+                @SuppressWarnings("unchecked")
+                final ChangeAxisRanges<XTYPE> changeAxisRanges = (ChangeAxisRanges<XTYPE>)undoableAction;
+                final AxisRange<XTYPE> originalXRange = changeAxisRanges.getOriginalXRange();
+                final List<AxisRange<Double>> originalYRanges = changeAxisRanges.getOriginalYRanges();
+                final AxisRange<XTYPE> currentXRange = x_axis.getValueRange();
+                if (y_axes.size() != originalYRanges.size())
+                {
+                    final Alert error = new Alert(Alert.AlertType.ERROR);
+                    error.setTitle(Messages.resetAxisRangesErrorTitle);
+                    error.setHeaderText(Messages.resetAxisRangesErrorHeaderText);
+                    DialogHelper.positionDialog(error, this, -100, -50);
+                    error.showAndWait();
+                    return;
+                }
+                final List<AxisRange<Double>> currentYRanges =  new ArrayList<>(y_axes.size());
+                final List<Boolean> currentAutoScaleValues = new ArrayList<>(y_axes.size());
+                for (YAxisImpl<XTYPE> axis : y_axes)
+                {
+                    currentYRanges.add(axis.getValueRange());
+                    currentAutoScaleValues.add(axis.isAutoscale());
+                }
+                final ChangeAxisRanges<XTYPE> restoreAxisRanges = new ChangeAxisRanges<>(this, Messages.Zoom_In, x_axis, currentXRange, originalXRange, x_axis.isAutoscale(), false,
+                        y_axes, currentYRanges, originalYRanges, currentAutoScaleValues);
+                undo.execute(restoreAxisRanges);
+                break;
+            }
+        }
     }
 }

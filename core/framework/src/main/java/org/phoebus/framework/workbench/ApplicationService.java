@@ -1,11 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.phoebus.framework.workbench;
+    package org.phoebus.framework.workbench;
 
 import static org.phoebus.framework.workbench.WorkbenchPreferences.logger;
 
@@ -40,6 +40,7 @@ public class ApplicationService
 
     private ApplicationService()
     {
+
         // SPI-provided applications that handle a resource
         for (AppResourceDescriptor app : ServiceLoader.load(AppResourceDescriptor.class))
         {
@@ -107,6 +108,11 @@ public class ApplicationService
     public static List<AppResourceDescriptor> getApplications(final URI resource)
     {
         final String path = resource.getPath();
+        if (path == null)
+        {
+            logger.log(Level.WARNING, "Invalid resource URI '" + resource + "', missing path");
+            return Collections.emptyList();
+        }
         final String ext = path.substring(path.lastIndexOf(".") + 1).toLowerCase();
         if (INSTANCE.extensions.containsKey(ext))
             return INSTANCE.extensions.get(ext);
@@ -158,5 +164,29 @@ public class ApplicationService
             return null;
         }
         return (AI) app.create(resource);
+    }
+
+    /**
+     * Determines the list of file extensions for which an external app has
+     * been configured. A {@link AppResourceDescriptor} may use this to avoid
+     * override, i.e. a Phoebus app should not override an app that user
+     * has configured for a particular file extension.
+     *
+     * @return A list of file extensions supported by external apps.
+     */
+    public static List<String> getExtensionsHandledByExternalApp(){
+        List<String> extensionsHandledByExternalApp = new ArrayList<>();
+        for (String definition : WorkbenchPreferences.external_apps) {
+            if (definition.isEmpty()) {
+                continue;
+            }
+            final String[] items = definition.split(",");
+            if (items.length != 3) {
+                continue;
+            }
+            extensionsHandledByExternalApp.addAll(List.of(items[1].split("\\|")));
+        }
+
+        return extensionsHandledByExternalApp;
     }
 }

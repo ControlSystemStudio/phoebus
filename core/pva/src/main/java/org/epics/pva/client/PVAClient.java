@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,9 +15,12 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
 import java.util.logging.Level;
 
 import org.epics.pva.PVASettings;
+import org.epics.pva.client.ClientUDPHandler.BeaconHandler;
+import org.epics.pva.common.AddressInfo;
 import org.epics.pva.common.Network;
 import org.epics.pva.server.Guid;
 
@@ -38,12 +41,14 @@ import org.epics.pva.server.Guid;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVAClient
+public class PVAClient implements AutoCloseable
 {
     /** Default channel listener logs state changes */
     private static final ClientChannelListener DEFAULT_CHANNEL_LISTENER = (ch, state) ->  logger.log(Level.INFO, ch.toString());
 
     private final ClientUDPHandler udp;
+
+    private final BeaconTracker beacons = new BeaconTracker();
 
     final ChannelSearch search;
 
@@ -73,12 +78,33 @@ public class PVAClient
      */
     public PVAClient() throws Exception
     {
-        List<InetSocketAddress> search_addresses = Network.parseAddresses(PVASettings.EPICS_PVA_ADDR_LIST.split("\\s+"));
-        if (PVASettings.EPICS_PVA_AUTO_ADDR_LIST)
-            search_addresses.addAll(Network.getBroadcastAddresses(PVASettings.EPICS_PVA_BROADCAST_PORT));
+        final List<AddressInfo> name_server_addresses = Network.parseAddresses(PVASettings.EPICS_PVA_NAME_SERVERS, PVASettings.EPICS_PVA_SERVER_PORT);
 
+        final List<AddressInfo> udp_search_addresses = Network.parseAddresses(PVASettings.EPICS_PVA_ADDR_LIST, PVASettings.EPICS_PVA_BROADCAST_PORT);
+        if (PVASettings.EPICS_PVA_AUTO_ADDR_LIST)
+            udp_search_addresses.addAll(Network.getBroadcastAddresses(PVASettings.EPICS_PVA_BROADCAST_PORT));
+
+        // Handler for UDP traffic
         udp = new ClientUDPHandler(this::handleBeacon, this::handleSearchResponse);
-        search = new ChannelSearch(udp, search_addresses);
+
+        // TCP traffic is handled by one ClientTCPHandler per address (IP, socket).
+        // Pass helper to channel search for getting such a handler.
+        final BiFunction<InetSocketAddress, Boolean, ClientTCPHandler> tcp_provider = (the_addr, use_tls) ->
+            tcp_handlers.computeIfAbsent(the_addr, addr ->
+            {
+                try
+                {
+                    // If absent, create with initial empty GUID
+                    return new ClientTCPHandler(this, addr, Guid.EMPTY, use_tls);
+                }
+                catch (Exception ex)
+                {
+                    logger.log(Level.WARNING, "Cannot connect to TCP " + addr, ex);
+                }
+                return null;
+
+            });
+        search = new ChannelSearch(udp, udp_search_addresses, tcp_provider, name_server_addresses);
 
         udp.start();
         search.start();
@@ -112,6 +138,12 @@ public class PVAClient
         return request_ids.incrementAndGet();
     }
 
+    /** @return Last request ID used by this client and all its connections */
+    int getLastRequestID()
+    {
+        return request_ids.get();
+    }
+
     /** Create channel by name
     *
     *  <p>Starts search.
@@ -135,7 +167,9 @@ public class PVAClient
     public PVAChannel getChannel(final String channel_name, final ClientChannelListener listener)
     {
         final PVAChannel channel = new PVAChannel(this, channel_name, listener);
-        channels_by_id.putIfAbsent(channel.getId(), channel);
+        channels_by_id.putIfAbsent(channel.getCID(), channel);
+
+        // Register with search
         search.register(channel, true);
         return channel;
     }
@@ -159,7 +193,7 @@ public class PVAClient
      */
     void forgetChannel(final PVAChannel channel)
     {
-        channels_by_id.remove(channel.getId());
+        channels_by_id.remove(channel.getCID());
 
         // Did channel have a connection?
         final ClientTCPHandler tcp = channel.tcp.get();
@@ -169,27 +203,20 @@ public class PVAClient
         tcp.removeChannel(channel);
     }
 
+    /** {@link BeaconHandler}
+     *
+     *  @param server Server that sent a beacon
+     *  @param guid  Globally unique ID of the server
+     *  @param changes Change count, increments & rolls over as server has different channels
+     */
     private void handleBeacon(final InetSocketAddress server, final Guid guid, final int changes)
     {
-        final ClientTCPHandler tcp = tcp_handlers.get(server);
-        if (tcp == null)
-            logger.log(Level.FINER, () -> "Beacon from new server " + server);
-        else
-        {
-            if (tcp.checkBeaconChanges(changes))
-                logger.log(Level.FINER, () -> "Beacon from " + server + " indicates changes");
-            else if (! tcp.getGuid().equals(guid))
-                logger.log(Level.FINER, () -> "Beacon from " + server +
-                                              " has new GUID " + guid +
-                                              " (was " + tcp.getGuid() + ")");
-            else
-                return;
-        }
-        // Beacon indicates changes or new GUID, so re-search missing channels
-        search.boost();
+        // Does beacon suggest re-search of missing channels?
+        if (beacons.check(guid, server, changes))
+            search.boost();
     }
 
-    private void handleSearchResponse(final int channel_id, final InetSocketAddress server, final int version, final Guid guid)
+    void handleSearchResponse(final int channel_id, final InetSocketAddress server, final int version, final Guid guid, final boolean tls)
     {
         // Generic server 'list' response?
         if (channel_id < 0)
@@ -221,13 +248,13 @@ public class PVAClient
             return;
         }
         channel.setState(ClientChannelState.FOUND);
-        logger.log(Level.FINE, () -> "Reply for " + channel + " from " + server + " " + guid);
+        logger.log(Level.FINE, () -> "Reply for " + channel + " from " + (tls ? "TLS " : "TCP ") + server + " " + guid);
 
         final ClientTCPHandler tcp = tcp_handlers.computeIfAbsent(server, addr ->
         {
             try
             {
-                return new ClientTCPHandler(this, addr, guid);
+                return new ClientTCPHandler(this, addr, guid, tls);
             }
             catch (Exception ex)
             {
@@ -235,10 +262,20 @@ public class PVAClient
             }
             return null;
         });
-        // In case of connection errors (TCP connection blocked by firewall),
-        // tcp will be null
-        if (tcp != null)
+        // In case of connection errors, tcp will be null
+        if (tcp == null)
+        {   // Cannot connect to server on provided port? Likely a server or firewall problem.
+            // On the next search, that same server might reply and then we fail the same way on connect.
+            // Still, no way around re-registering the search so we succeed once the server is fixed.
+            search.register(channel, false /* not "now" but eventually */);
+        }
+        else
+        {
+            if (tcp.updateGuid(guid))
+                logger.log(Level.FINE, "Search-only TCP handler received GUID, now " + tcp);
+
             channel.registerWithServer(tcp);
+        }
     }
 
     /** Called by {@link ClientTCPHandler} when connection is lost or closed because unused
@@ -286,6 +323,7 @@ public class PVAClient
      *
      *  <p>Waits a little for all channels to be closed.
      */
+    @Override
     public void close()
     {
         // Stop searching for missing channels

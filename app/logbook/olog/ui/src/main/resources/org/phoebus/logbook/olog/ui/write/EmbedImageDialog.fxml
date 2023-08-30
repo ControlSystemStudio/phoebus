@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (C) 2020 European Spallation Source ERIC.
+  ~
+  ~  This program is free software; you can redistribute it and/or
+  ~  modify it under the terms of the GNU General Public License
+  ~  as published by the Free Software Foundation; either version 2
+  ~  of the License, or (at your option) any later version.
+  ~
+  ~  This program is distributed in the hope that it will be useful,
+  ~  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~  GNU General Public License for more details.
+  ~
+  ~  You should have received a copy of the GNU General Public License
+  ~  along with this program; if not, write to the Free Software
+  ~  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+  -->
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ButtonType?>
+<?import javafx.scene.control.DialogPane?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<DialogPane fx:id="dialogPane" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.phoebus.logbook.olog.ui.write.EmbedImageDialogController">
+
+    <header>
+    </header>
+    <buttonTypes>
+        <ButtonType fx:constant="CANCEL"/>
+        <ButtonType fx:constant="OK"/>
+    </buttonTypes>
+
+    <content>
+        <VBox VBox.vgrow="ALWAYS">
+            <children>
+                <HBox>
+                    <children>
+                        <Label fx:id="fileLabel" alignment="CENTER" contentDisplay="CENTER" prefHeight="27.0"
+                               prefWidth="19.0" text="%File">
+                            <HBox.margin>
+                                <Insets right="5.0"/>
+                            </HBox.margin>
+                        </Label>
+                        <TextField fx:id="fileName" editable="false" opacity="0.5" HBox.hgrow="ALWAYS">
+                            <HBox.margin>
+                                <Insets left="5.0" right="5.0"/>
+                            </HBox.margin>
+                        </TextField>
+                        <Button fx:id="browseButton" onAction="#browse" prefWidth="100.0" text="%BrowseButton">
+                            <HBox.margin>
+                                <Insets right="5.0"/>
+                            </HBox.margin>
+                        </Button>
+                        <Button fx:id="clipboardButton" onAction="#pasteClipboard" prefWidth="100.0" text="%ClipboardButton">
+                            <HBox.margin>
+                                <Insets/>
+                            </HBox.margin>
+                        </Button>
+                    </children>
+                    <VBox.margin>
+                        <Insets bottom="10.0" top="10.0"/>
+                    </VBox.margin>
+                </HBox>
+                <HBox VBox.vgrow="ALWAYS">
+                    <children>
+                        <Label fx:id="scaleLabel" alignment="CENTER_RIGHT" prefHeight="27.0" prefWidth="80.0"
+                               text="%ScalingFactor" HBox.hgrow="ALWAYS">
+                            <HBox.margin>
+                                <Insets right="5.0"/>
+                            </HBox.margin>
+                        </Label>
+                        <TextField fx:id="scale" maxWidth="100.0">
+                            <HBox.margin>
+                                <Insets right="5.0"/>
+                            </HBox.margin>
+                        </TextField>
+                        <Label fx:id="widthLabel" alignment="CENTER_RIGHT" prefHeight="27.0" prefWidth="40.0"
+                               text="%ImageWidth">
+                            <HBox.margin>
+                                <Insets right="5.0"/>
+                            </HBox.margin>
+                        </Label>
+                        <TextField fx:id="width" editable="false" maxWidth="100.0" opacity="0.5"/>
+                        <Label fx:id="heightLabel" alignment="CENTER_RIGHT" prefHeight="27.0" prefWidth="40.0"
+                               text="%ImageHeight">
+                            <HBox.margin>
+                                <Insets left="5.0" right="5.0"/>
+                            </HBox.margin>
+                        </Label>
+                        <TextField fx:id="height" editable="false" maxWidth="100.0" opacity="0.5"/>
+                    </children>
+                    <VBox.margin>
+                        <Insets bottom="10.0" top="10.0"/>
+                    </VBox.margin>
+                </HBox>
+            </children>
+        </VBox>
+    </content>
+</DialogPane>

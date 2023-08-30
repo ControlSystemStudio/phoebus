@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,11 +13,13 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Objects;
 
+import org.epics.pva.PVASettings;
+
 /** 'Primitive' PV Access data type
  *   @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVAStringArray extends PVAData implements PVAArray
+public class PVAStringArray extends PVAData implements PVAArray, PVAValue
 {
     private volatile String[] value = new String[0];
 
@@ -25,18 +27,10 @@ public class PVAStringArray extends PVAData implements PVAArray
      *  @param name Data item name
      *  @param value Initial value
      */
-    public PVAStringArray(final String name, final String[] value)
+    public PVAStringArray(final String name, final String... value)
     {
         super(name);
         this.value = value;
-    }
-
-    /** Construct variable-size string array
-     *  @param name Data item name
-     */
-    public PVAStringArray(final String name)
-    {
-        this(name, new String[0]);
     }
 
     /** @return Current value */
@@ -54,7 +48,12 @@ public class PVAStringArray extends PVAData implements PVAArray
     @Override
     public void setValue(final Object new_value) throws Exception
     {
-        if (new_value instanceof String[])
+        if (new_value instanceof PVAStringArray)
+        {
+            final String[] other = ((PVAStringArray) new_value).value;
+            value = Arrays.copyOf(other, other.length);
+        }
+        else if (new_value instanceof String[])
             value = (String[]) new_value;
         else if (new_value instanceof List)
         {
@@ -110,7 +109,7 @@ public class PVAStringArray extends PVAData implements PVAArray
     @Override
     protected int update(final int index, final PVAData new_value, final BitSet changes) throws Exception
     {
-        if (new_value instanceof PVALongArray)
+        if (new_value instanceof PVAStringArray)
         {
             final PVAStringArray other = (PVAStringArray) new_value;
             if (! Arrays.equals(other.value, value))
@@ -123,17 +122,37 @@ public class PVAStringArray extends PVAData implements PVAArray
     }
 
     @Override
-    protected void formatType(final int level, final StringBuilder buffer)
+    public String getType()
     {
-        indent(level, buffer);
-        buffer.append("string[] ").append(name);
+        return "string[]";
     }
 
     @Override
     protected void format(final int level, final StringBuilder buffer)
     {
         formatType(level, buffer);
-        buffer.append(" ").append(Arrays.toString(value));
+        buffer.append(" [");
+        final String[] safe = value;
+        if (safe == null)
+            buffer.append("null");
+        else
+        {
+            final int show = Math.min(PVASettings.EPICS_PVA_MAX_ARRAY_FORMATTING, safe.length);
+            for (int i=0; i<show; ++i)
+            {
+                if (i > 0)
+                    buffer.append(", ");
+                buffer.append(safe[i]);
+            }
+            if (safe.length > show)
+                buffer.append(", ...");
+        }
+        buffer.append("]");
+    }
+
+    @Override
+    public String formatValue() {
+        return Arrays.toString(get());
     }
 
     @Override

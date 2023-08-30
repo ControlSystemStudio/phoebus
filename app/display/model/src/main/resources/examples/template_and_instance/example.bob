@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Display</name>
+  <width>650</width>
+  <height>605</height>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <class>TITLE</class>
+    <text>Template and Instances</text>
+    <x use_class="true">0</x>
+    <y use_class="true">0</y>
+    <width>550</width>
+    <height>31</height>
+    <font use_class="true">
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>The Template &amp; Instances widget is similar to the Embedded Display widget.
+It loads a display file as a "template", which is then presented in N "instances".
+Each instance has its own macros.
+Each instance is shown at its original size, and consecutive instances are layed out horizontally or vertically with an optional gap.</text>
+    <y>40</y>
+    <width>470</width>
+    <height>140</height>
+  </widget>
+  <widget type="template" version="2.0.0">
+    <name>Template/Instance_2</name>
+    <file>template.bob</file>
+    <instances>
+      <instance>
+        <macros>
+          <I>1</I>
+        </macros>
+      </instance>
+      <instance>
+        <macros>
+          <I>2</I>
+        </macros>
+      </instance>
+      <instance>
+        <macros>
+          <I>3</I>
+        </macros>
+      </instance>
+      <instance>
+        <macros>
+          <I>99</I>
+        </macros>
+      </instance>
+    </instances>
+    <x>10</x>
+    <y>170</y>
+    <width>220</width>
+    <height>175</height>
+    <gap>5</gap>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>The optional "Wrap Count" results in starting a new row of the horizontal layout respectively a new column in the vertical layout .</text>
+    <y>360</y>
+    <width>470</width>
+    <height>60</height>
+  </widget>
+  <widget type="template" version="2.0.0">
+    <name>Template/Instance_3</name>
+    <file>template.bob</file>
+    <instances>
+      <instance>
+        <macros>
+          <I>1</I>
+        </macros>
+      </instance>
+      <instance>
+        <macros>
+          <I>2</I>
+        </macros>
+      </instance>
+      <instance>
+        <macros>
+          <I>3</I>
+        </macros>
+      </instance>
+      <instance>
+        <macros>
+          <I>99</I>
+        </macros>
+      </instance>
+    </instances>
+    <x>10</x>
+    <y>410</y>
+    <width>445</width>
+    <height>85</height>
+    <gap>5</gap>
+    <wrap_count>2</wrap_count>
+  </widget>
+  <widget type="template" version="2.0.0">
+    <name>Template/Instance_4</name>
+    <file>template.bob</file>
+    <instances>
+      <instance>
+        <macros>
+          <I>1</I>
+        </macros>
+      </instance>
+      <instance>
+        <macros>
+          <I>2</I>
+        </macros>
+      </instance>
+      <instance>
+        <macros>
+          <I>3</I>
+        </macros>
+      </instance>
+      <instance>
+        <macros>
+          <I>99</I>
+        </macros>
+      </instance>
+    </instances>
+    <x>10</x>
+    <y>520</y>
+    <width>445</width>
+    <height>85</height>
+    <horizontal>true</horizontal>
+    <gap>5</gap>
+    <wrap_count>2</wrap_count>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>4 instances, vertical layout, wrap count 2.</text>
+    <x>480</x>
+    <y>430</y>
+    <width>170</width>
+    <height>50</height>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>4 instances, horizontal layout, wrap count 2.</text>
+    <x>480</x>
+    <y>530</y>
+    <width>170</width>
+    <height>50</height>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>4 instances, vertical layout.</text>
+    <x>270</x>
+    <y>240</y>
+    <width>170</width>
+    <height>50</height>
+    <font>
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+  </widget>
+</display>

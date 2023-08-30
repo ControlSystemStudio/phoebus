@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.TreeTableColumn?>
+<?import javafx.scene.control.TreeTableView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.ui.LogPropertiesController">
+   <children>
+      <VBox prefWidth="200.0">
+         <children>
+            <TreeTableView fx:id="treeTableView" editable="true" prefWidth="200.0">
+              <columns>
+                <TreeTableColumn fx:id="name" editable="false" prefWidth="75.0" text="Name" />
+                <TreeTableColumn fx:id="value" prefWidth="75.0" text="Value" />
+              </columns>
+               <columnResizePolicy>
+                  <TreeTableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+               </columnResizePolicy>
+            </TreeTableView>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

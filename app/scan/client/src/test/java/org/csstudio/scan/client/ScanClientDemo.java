@@ -7,15 +7,16 @@
  ******************************************************************************/
 package org.csstudio.scan.client;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertThat;
+import org.csstudio.scan.info.ScanInfo;
+import org.csstudio.scan.info.ScanServerInfo;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import org.csstudio.scan.info.ScanInfo;
-import org.csstudio.scan.info.ScanServerInfo;
-import org.junit.Before;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
+
 
 /** {@link ScanClient} demo
  *  @author Kay Kasemir
@@ -23,10 +24,10 @@ import org.junit.Test;
 @SuppressWarnings("nls")
 public class ScanClientDemo
 {
-    private ScanClient client;
+    private static ScanClient client;
 
-    @Before
-    public void setup()
+    @BeforeAll
+    public static void setup()
     {
         client = new ScanClient("localhost", ScanClient.DEFAULT_PORT);
     }

@@ -20,6 +20,9 @@ public class ArchiveFileTime
     /** Seconds from Posix epoch (1917) to EPICS epoch (1990) */
     public static long EPICS_OFFSET = 631152000L;
 
+    /** @param timestamp Instant
+     *  @return Is that 'zero'?
+     */
     public static boolean isZeroTime(final Instant timestamp)
     {
         return timestamp.getEpochSecond() == EPICS_OFFSET  &&

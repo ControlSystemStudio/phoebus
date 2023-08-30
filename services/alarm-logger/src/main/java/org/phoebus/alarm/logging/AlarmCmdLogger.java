@@ -21,8 +21,10 @@ import org.apache.kafka.streams.kstream.Transformer;
 import org.apache.kafka.streams.kstream.TransformerSupplier;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.TimestampExtractor;
+import org.phoebus.applications.alarm.client.KafkaHelper;
 import org.phoebus.applications.alarm.messages.AlarmCommandMessage;
 import org.phoebus.applications.alarm.messages.MessageParser;
+import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.util.indexname.IndexNameHelper;
 
 /**
@@ -34,6 +36,8 @@ import org.phoebus.util.indexname.IndexNameHelper;
  */
 public class AlarmCmdLogger implements Runnable {
 
+    private static final PreferencesReader prefs = new PreferencesReader(AlarmLoggingService.class, "/application.properties");
+
     private static final String INDEX_FORMAT = "_alarms_cmd";
     private final String topic;
     private final Serde<AlarmCommandMessage> alarmCommandMessageSerde;
@@ -44,8 +48,8 @@ public class AlarmCmdLogger implements Runnable {
     /**
      * Create a alarm command message logger for the given topic. 
      * This runnable will create the kafka streams for the given alarm messages which match the format 'topicCommand'
-     * @param topic
-     * @throws Exception
+     * @param topic the alarm topic
+     * @throws Exception - parsing the alarm command messages
      */
     public AlarmCmdLogger(String topic) throws Exception {
         super();
@@ -62,9 +66,15 @@ public class AlarmCmdLogger implements Runnable {
 
         Properties props = new Properties();
         props.putAll(PropertiesHelper.getProperties());
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-" + topic + "-alarm-cmd");
-        if (!props.containsKey(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG)) {
-            props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+
+        Properties kafkaProps = KafkaHelper.loadPropsFromFile(props.getProperty("kafka_properties",""));
+        kafkaProps.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-" + topic + "-alarm-cmd");
+
+        if (props.containsKey(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG)){
+            kafkaProps.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG,
+                           props.get(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG));
+        } else {
+            kafkaProps.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         }
 
         StreamsBuilder builder = new StreamsBuilder();
@@ -79,10 +89,10 @@ public class AlarmCmdLogger implements Runnable {
                 }));
 
         final String indexDateSpanUnits = props.getProperty("date_span_units");
-        final Integer indexDateSpanValue = Integer.parseInt(props.getProperty("date_span_value"));
+        final boolean useDatedIndexNames = Boolean.parseBoolean(props.getProperty("use_dated_index_names"));
 
         try {
-            indexNameHelper = new IndexNameHelper(topic + INDEX_FORMAT , indexDateSpanUnits, indexDateSpanValue);
+            indexNameHelper = new IndexNameHelper(topic + INDEX_FORMAT, useDatedIndexNames, indexDateSpanUnits);
         } catch (Exception ex) {
             logger.log(Level.SEVERE, "Time based index creation failed.", ex);
         }
@@ -119,7 +129,7 @@ public class AlarmCmdLogger implements Runnable {
             String topic_name = indexNameHelper.getIndexName(v.getMessage_time());
             ElasticClientHelper.getInstance().indexAlarmCmdDocument(topic_name, v);
         });
-        final KafkaStreams streams = new KafkaStreams(builder.build(), props);
+        final KafkaStreams streams = new KafkaStreams(builder.build(), kafkaProps);
         final CountDownLatch latch = new CountDownLatch(1);
 
         // attach shutdown handler to catch control-c

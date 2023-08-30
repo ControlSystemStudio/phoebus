@@ -18,6 +18,25 @@ public class Points implements Iterable<Point>, Cloneable
 {
     private final List<Double> points = new ArrayList<>();
 
+    /** Empty points */
+    public Points()
+    {
+    }
+
+    /** Initialize from array
+     *  @param points Array of x, y, x, y, ...
+     */
+    public Points(double... points)
+    {
+        if ((points.length % 2) == 1)
+            throw new IllegalArgumentException("Number of points must be even");
+
+        for (int i = 0; i < points.length; i += 2)
+        {
+            add(points[i], points[i + 1]);
+        }
+    }
+
     /** @return Number of points */
     public int size()
     {

@@ -143,8 +143,9 @@ public class ApplicationLauncherService {
                     if (app.getName().contains(part))
                         return app;
             // , not just the first one, which may be undefined
-            logger.log(Level.WARNING, "No default application found for opening " + resource + ", using first one");
-            return applications.get(0);
+            final AppResourceDescriptor first = applications.get(0);
+            logger.log(Level.WARNING, "No default application found for opening " + resource + ", using first one, \"" + first.getDisplayName() + "\"");
+            return first;
         }
 
         // Prompt user which application to use for this resource

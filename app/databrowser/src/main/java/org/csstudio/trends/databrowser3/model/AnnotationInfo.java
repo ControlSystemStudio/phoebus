@@ -13,6 +13,7 @@ import java.time.ZonedDateTime;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.csstudio.trends.databrowser3.persistence.XMLPersistence;
+import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.phoebus.util.time.TimestampFormats;
 import org.w3c.dom.Element;
@@ -26,7 +27,7 @@ import javafx.geometry.Point2D;
  *
  *  <p>This class is used by the model to read initial annotations
  *  from the {@link Model}'s XML file,
- *  and to later read them back from the {@link ModelBasedPlotSWT} for writing
+ *  and to later read them back from the {@link ModelBasedPlot} for writing
  *  them to the XML file.
  *
  *  @author Kay Kasemir
@@ -41,6 +42,13 @@ public class AnnotationInfo
     final private Point2D offset;
     final private String text;
 
+    /** @param internal Internal?
+     *  @param item_index Index of item
+     *  @param time Time axis location
+     *  @param value Value
+     *  @param point2d Position in plot
+     *  @param text Text to show
+     */
     public AnnotationInfo(final boolean internal, final int item_index, final Instant time, final double value, final Point2D point2d, final String text)
     {
         this.internal = internal;

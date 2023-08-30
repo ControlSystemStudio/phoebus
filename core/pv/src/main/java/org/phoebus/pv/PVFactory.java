@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,7 +14,7 @@ package org.phoebus.pv;
  *
  *  <p>Each type of {@link PV} provides a factory
  *  for creating that type of PV and registers it
- *  with the {@link PVPool}.
+ *  with the {@link PVPool} via Java SPI.
  *
  *  <p>A full PV name can have the form <code>type://name&lt;type&gt;(params)</code>,
  *  for example <code>loc://x(42.3)</code>
@@ -28,12 +28,8 @@ package org.phoebus.pv;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public interface PVFactory
 {
-    /** ID of the Eclipse extension point for providing implementations */
-    final public static String EXTENSION_POINT = "org.csstudio.vtype.pv.pvfactory";
-
     /** @return Type prefix that this PV factory supports */
     public String getType();
 

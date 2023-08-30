@@ -15,9 +15,9 @@ import org.csstudio.display.builder.model.Widget;
  *  for the corresponding model widget, i.e. a LabelWidget.
  *
  *  @author Kay Kasemir
- *  @param <TWP> Toolkit widget parent class
- *  @param <TW> Toolkit widget base class
- *  @param <MW> Toolkit widget base class
+ *  @param <TWP> Toolkit widget parent class (JFX 'Parent')
+ *  @param <TW> Toolkit widget base class (JFX 'Node')
+ *  @param <MW> Model widget base class ('Widget')
  */
 abstract public class WidgetRepresentation<TWP, TW, MW extends Widget>
 {
@@ -68,6 +68,13 @@ abstract public class WidgetRepresentation<TWP, TW, MW extends Widget>
      *  <p>Override must call base class.
      */
     abstract public void updateChanges();
+
+    /** Update the order of widget to match model.
+     *
+     * <p>Invoked by toolkit when the widget's order changes
+     *
+     */
+    abstract public void updateOrder();
 
     /** Remove toolkit items.
      *

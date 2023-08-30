@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,28 +7,37 @@
  *******************************************************************************/
 package org.phoebus.ui.docking;
 
+import static org.phoebus.ui.docking.DockPane.getActiveDockPane;
 import static org.phoebus.ui.docking.DockPane.logger;
+import static org.phoebus.ui.docking.DockStage.getDockPanes;
 
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.PointerInfo;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
+import javafx.event.Event;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.application.Messages;
+import org.phoebus.ui.application.PhoebusApplication;
+import org.phoebus.ui.application.SaveLayoutHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Styles;
 
 import javafx.application.Platform;
 import javafx.beans.property.StringProperty;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -75,6 +84,9 @@ import javafx.stage.Window;
  *  {@link Tab#setOnClosed(EventHandler)}
  *  are used internally and should not be called.
  *
+ *  <p>Instead of `setOnCloseRequest`, use {@link DockItem#addCloseCheck}.
+ *  <p>Instead of `setOnClosed`, use {@link DockItem#addClosedNotification}.
+ *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -87,6 +99,7 @@ public class DockItem extends Tab
                                detach_icon = ImageCache.getImage(DockItem.class, "/icons/detach.png"),
                                split_horiz_icon = ImageCache.getImage(DockItem.class, "/icons/split_horiz.png"),
                                split_vert_icon = ImageCache.getImage(DockItem.class, "/icons/split_vert.png"),
+                               save_window_layout_icon = ImageCache.getImage(DockItem.class, "/icons/new_layout.png"),
                                close_many_icon = ImageCache.getImage(DockItem.class, "/icons/remove_multiple.png");
 
 
@@ -107,7 +120,7 @@ public class DockItem extends Tab
      *
      *  Custom format to prevent dropping a tab into e.g. a text editor
      */
-    private static final DataFormat DOCK_ITEM = new DataFormat("dock_item.custom");
+    protected static final DataFormat DOCK_ITEM = new DataFormat("dock_item.custom");
 
     /** Name of the tab */
     protected String name;
@@ -116,13 +129,16 @@ public class DockItem extends Tab
     protected final Label name_tab;
 
     /** Called to check if OK to close the tab */
-    private List<BooleanSupplier> close_check = null;
+    private List<Supplier<Future<Boolean>>> close_check = new ArrayList<>();
+
+    /** Has 'prepareToClose' been called? */
+    private volatile boolean prepared_do_close = false;
 
     /** Called after tab was closed */
     private List<Runnable> closed_callback = null;
 
     /** Create dock item for instance of an application
-     *  @param application {@link AppInstance}
+     *  @param applicationInstance {@link AppInstance}
      *  @param content Content for this application instance
      */
     public DockItem(final AppInstance applicationInstance, final Node content)
@@ -161,7 +177,38 @@ public class DockItem extends Tab
 
         createContextMenu();
 
-        setOnClosed(this::handleClosed);
+        setOnCloseRequest(event -> handleCloseRequest(event));
+        setOnClosed(event -> handleClosed());
+    }
+
+    private void handleCloseRequest(Event event) {
+        // For now, prevent closing
+        event.consume();
+
+        // Invoke all the ok-to-close checks in background threads
+        // since those that save files might take time.
+        JobManager.schedule("Close " + getLabel(), monitor ->
+        {
+            boolean shouldClose = this instanceof DockItemWithInput ? ((DockItemWithInput) this).okToClose().get() : true;
+
+            if (shouldClose) {
+                var dockPane = getDockPane();
+                Platform.runLater(() -> {
+                    // Select the previously selected tab:
+                    dockPane.tabsInOrderOfFocus.remove(this);
+
+                    if (dockPane.tabsInOrderOfFocus.size() > 0) {
+                        var tabToSelect = dockPane.tabsInOrderOfFocus.getFirst();
+                        var selectionModel = dockPane.getSelectionModel();
+                        selectionModel.select(tabToSelect);
+                    }
+                });
+
+                // Close the tab:
+                prepareToClose();
+                Platform.runLater(() -> close());
+            }
+        });
     }
 
     /** This tab should be in a DockPane, not a plain TabPane
@@ -189,19 +236,38 @@ public class DockItem extends Tab
         final MenuItem split_vert = new MenuItem(Messages.DockSplitV, new ImageView(split_vert_icon));
         split_vert.setOnAction(event -> split(false));
 
+        final MenuItem save_window = new MenuItem(Messages.SaveLayoutOfContainingWindowAs, new ImageView(save_window_layout_icon));
+        save_window.setOnAction(event -> {
+            DockPane activeDockPane = getActiveDockPane();
+            List<Stage> stagesContainingActiveDockPane = DockStage.getDockStages().stream().filter(stage -> getDockPanes(stage).contains(activeDockPane)).collect(Collectors.toList());
+            if (stagesContainingActiveDockPane.size() == 1) {
+                SaveLayoutHelper.saveLayout(stagesContainingActiveDockPane, Messages.SaveLayoutOfContainingWindowAs);
+            }
+            else if (stagesContainingActiveDockPane.size() == 0) {
+                logger.log(Level.SEVERE, "No stage contains the active dock pane! Unable to save the layout of the containing window.");
+            }
+            else {
+                logger.log(Level.SEVERE, "More than one stage contains the active dock pane! Unable to save the layout of the containing window.");
+            }
+        });
+
         final MenuItem close = new MenuItem(Messages.DockClose, new ImageView(DockPane.close_icon));
-        close.setOnAction(event -> close());
+        ArrayList<DockItem> arrayList = new ArrayList<DockItem>();
+        arrayList.add(this);
+        close.setOnAction(event -> close(arrayList));
 
         final MenuItem close_other = new MenuItem(Messages.DockCloseOthers, new ImageView(close_many_icon));
         close_other.setOnAction(event ->
         {
             // Close all other tabs in non-fixed panes of this window
             final Stage stage = (Stage) getDockPane().getScene().getWindow();
-            for (DockPane pane : DockStage.getDockPanes(stage))
+            final ArrayList<DockItem> tabs = new ArrayList<>();
+            for (DockPane pane : getDockPanes(stage))
                 if (! pane.isFixed())
                     for (Tab tab : new ArrayList<>(pane.getTabs()))
                         if ((tab instanceof DockItem)  &&  tab != DockItem.this)
-                            ((DockItem)tab).close();
+                            tabs.add((DockItem)tab);
+            close(tabs);
         });
 
         final MenuItem close_all = new MenuItem(Messages.DockCloseAll, new ImageView(close_many_icon));
@@ -209,13 +275,14 @@ public class DockItem extends Tab
         {
             // Close all tabs in non-fixed panes of this window
             final Stage stage = (Stage) getDockPane().getScene().getWindow();
-            for (DockPane pane : DockStage.getDockPanes(stage))
+            final ArrayList<DockItem> tabs = new ArrayList<>();
+            for (DockPane pane : getDockPanes(stage))
                 if (! pane.isFixed())
                     for (Tab tab : new ArrayList<>(pane.getTabs()))
                         if ((tab instanceof DockItem))
-                            ((DockItem)tab).close();
+                            tabs.add((DockItem)tab);
+            close(tabs);
         });
-
 
         final ContextMenu menu = new ContextMenu(info);
 
@@ -246,9 +313,36 @@ public class DockItem extends Tab
                                        new SeparatorMenuItem(),
                                        close_all);
             }
+            menu.getItems().addAll(new SeparatorMenuItem(), save_window);
         });
 
         name_tab.setContextMenu(menu);
+    }
+
+    /** @param tabs Tabs to prepare and then close */
+    private void close(final ArrayList<DockItem> tabs)
+    {
+        JobManager.schedule("Close", monitor ->
+        {
+            Window window = getDockPane().getScene().getWindow();
+            boolean shouldCloseTabs = PhoebusApplication.confirmationDialogWhenUnsavedChangesExist(tabs,
+                                                                                                   Messages.UnsavedChanges_wouldYouLikeToSaveAnyChangesBeforeClosingTheTabs,
+                                                                                                   Messages.UnsavedChanges_close,
+                                                                                                   window instanceof Stage ? (Stage) window : null,
+                                                                                                   monitor);
+
+            if (shouldCloseTabs) {
+                for (DockItem tab : tabs)
+                    if (! tab.prepareToClose())
+                        return;
+
+                Platform.runLater(() ->
+                {
+                    for (DockItem tab : tabs)
+                        tab.close();
+                });
+            }
+        });
     }
 
     /** @return Unique ID of this dock item */
@@ -375,7 +469,7 @@ public class DockItem extends Tab
     /** Accept a dropped tab */
     private void handleDrop(final DragEvent event)
     {
-        if (getDockPane().isFixed())
+        if (getDockPane().isFixed() || !event.getDragboard().hasContent(DOCK_ITEM))
             return;
 
         final DockItem item = dragged_item.getAndSet(null);
@@ -418,19 +512,46 @@ public class DockItem extends Tab
             // but event.getX(), getSceneX(), getScreenX() are all 0.0.
             // --> Using MouseInfo, which is actually AWT code
             final Stage other = item.detach();
-            final PointerInfo pi = MouseInfo.getPointerInfo();
-            if (pi != null)
-            {
-                final Point loc = pi.getLocation();
-                other.setX(loc.getX());
-                other.setY(loc.getY());
-            }
+
+            // Try to use the x/y location of the stage using the dimension hint if it
+            // has been specified; Otherwise, use the pointer location
+            AppInstance application = this.getApplication();
+            application.getPositionAndSizeHint().ifPresentOrElse(dimension -> {
+                // If the x and y position are default values (zero) then
+                // use the cursor position
+                if (isDefaultPosition(dimension.getX()) && isDefaultPosition(dimension.getY())) {
+                    setLocationToMousePointer(other);
+                }
+                // Otherwise use the position hint
+                else {
+                    other.setX(dimension.getX());
+                    other.setY(dimension.getY());
+                }
+            }, () -> {
+                setLocationToMousePointer(other);
+            });
+
         }
         event.consume();
     }
 
+    private void setLocationToMousePointer(Stage stage) {
+        final PointerInfo pi = MouseInfo.getPointerInfo();
+        if (pi != null)
+        {
+            final Point loc = pi.getLocation();
+            stage.setX(loc.getX());
+            stage.setY(loc.getY());
+        }
+    }
+
+    private boolean isDefaultPosition(double pos) {
+        return pos > -1.0 && pos < 1.0;
+    }
+
     private Stage detach()
     {
+
         // For size of new stage, approximate the
         // current size of the item, i.e. the size
         // of its DockPane, adding some extra space
@@ -447,9 +568,24 @@ public class DockItem extends Tab
         old_parent.getTabs().remove(this);
 
         final Stage other = new Stage();
+        other.setTitle(UUID.randomUUID().toString());
+
         DockStage.configureStage(other, this);
-        other.setWidth(old_parent.getWidth() + extra_width);
-        other.setHeight(old_parent.getHeight() + extra_height);
+
+        // Set the dimensions of the stage using the dimension hint from the
+        // application (e.g. the width and height of the Display widget if
+        // it's the display application). Otherwise, use the parent window dimensions.
+        AppInstance application = this.getApplication();
+        application.getPositionAndSizeHint().ifPresentOrElse(dimension -> {
+            // use the dimension hints suggested by the application
+            // such as possibly Display widget dimensions
+            other.setWidth(dimension.getWidth() + extra_width);
+            other.setHeight(dimension.getHeight() + extra_height);
+        }, () -> {
+            // use the parent window dimensions if no dimension hints
+            other.setWidth(old_parent.getWidth() + extra_width);
+            other.setHeight(old_parent.getHeight() + extra_height);
+        });
 
         // Assert that styles used in old scene are still available
         for (String css : old_scene.getStylesheets())
@@ -489,29 +625,65 @@ public class DockItem extends Tab
 
     /** Register check for closing the tab
      *
-     *  @param ok_to_close Will be called when tab is about to close.
-     *                     Should return <code>true</code> if OK to close,
+     *  @param ok_to_close Will be called when tab prepares to close.
+     *                     Will be invoked on a background (non-UI) thread, so callers
+     *                     must handle UI interaction (e.g. prompt or choose file) accordingly.
+     *                     May return a completed future right away,
+     *                     or start a background thread to for example
+     *                     save the tab's content which will complete
+     *                     the future when done.
+     *                     Future must be <code>true</code> if OK to close,
      *                     <code>false</code> to leave the tab open.
      */
-    public void addCloseCheck(final BooleanSupplier ok_to_close)
+    public void addCloseCheck(final Supplier<Future<Boolean>> ok_to_close)
     {
-        if (close_check == null)
-        {
-            close_check = new ArrayList<>();
-            setOnCloseRequest(event ->
-            {
-                for (BooleanSupplier check : close_check)
-                    if (! check.getAsBoolean())
-                    {
-                        event.consume();
-                        return;
-                    }
-                // Clear entries, but don't reset to null
-                // since onCloseRequest handler still registered
-                close_check.clear();
-            });
-        }
         close_check.add(ok_to_close);
+    }
+
+    /** Prepare dock item to close
+     *
+     *  Invokes all ok-to-close checks,
+     *  which may start "save" threads and take some time
+     *  before returning result.
+     *
+     *  @return <code>true</code> when OK to close
+     *  @throws Exception on error
+     */
+    public boolean prepareToClose() throws Exception
+    {
+        if (Platform.isFxApplicationThread())
+            logger.log(Level.SEVERE, "'prepareToClose' must not be called on UI thread because it can block/deadlock", new Exception("Stack Trace"));
+
+        if (close_check != null)
+            try
+            {    // Allow DockItem to close gracefully. It may ask to defer closing
+                for (Supplier<Future<Boolean>> check : close_check)
+                {
+                    final CompletableFuture<Boolean> result = new CompletableFuture<>();
+                    JobManager.schedule("Check if OK to close", monitor ->
+                    {
+                        try
+                        {
+                            result.complete(check.get().get());
+                        }
+                        catch (Exception ex)
+                        {
+                            result.completeExceptionally(ex);
+                        }
+                    });
+                    if (! result.get())
+                        return false;
+                }
+            }
+            catch (Exception ex)
+            {   // Internal error prevented an orderly shutdown.
+                // Log, but don't allow a crashing part to prevent shutdown
+                // of other parts and overall application
+                logger.log(Level.SEVERE, this + " failed to shut down cleanly, forcing to close", ex);
+            }
+        
+        prepared_do_close = true;
+        return true;
     }
 
     /** Register for notification when tab was closed
@@ -525,8 +697,15 @@ public class DockItem extends Tab
         closed_callback.add(closed);
     }
 
-    /** Tab has been closed */
-    protected void handleClosed(final Event event)
+    /** Tab has been closed
+     *
+     *  <p>Called via 'ON_CLOSED' event,
+     *  and programmatically from close().
+     *
+     *  Implementation must be idempotent,
+     *  since it might be called several times.
+     */
+    protected void handleClosed()
     {
         // If there are callbacks, invoke them
         if (closed_callback != null)
@@ -541,31 +720,45 @@ public class DockItem extends Tab
         setContent(null);
         // Remove "application" entry which otherwise holds on to application data model
         getProperties().remove(KEY_APPLICATION);
+
+        // Ensure that the tab is removed from dockPane.tabsInOrderOfFocus
+        // to avoid memory leaks. (The tab may have been closed without
+        // calling the OnCloseRequest event-handler.)
+        var dockPane = getDockPane();
+        if (dockPane != null) {
+            Platform.runLater(() -> {
+                dockPane.tabsInOrderOfFocus.remove(this);
+            });
+        }
     }
 
     /** Programmatically close this tab
      *
-     *  <p>Will invoke on-close-request handler that can abort the action,
-     *  otherwise invoke the on-closed handler and remove the tab
+     *  <p>Should be called after {@link #prepareToClose) has been used
+     *  to allow "save".
      *
      *  @return <code>true</code> if tab closed, <code>false</code> if it remained open
      */
-    public boolean close()
+    public void close()
     {
-        EventHandler<Event> handler = getOnCloseRequest();
-        if (handler != null)
-        {
-            final Event event = new Event(Tab.TAB_CLOSE_REQUEST_EVENT);
-            handler.handle(event);
-            if (event.isConsumed())
-                return false;
-        }
+        // Helper for detecting errors in the handling of prepareToClose() and close().
+        //
+        // Check if prepareToClose() has been called at least once
+        // before close()ing the dock item.
+        // Log a warning to maintainers, but otherwise continue.
+        //
+        // Check is imperfect.
+        // Assume closing a window with many dock items, several of them 'dirty'.
+        // User attempts to close the window, prepareToClose() prompts user "Do you want to save?",
+        // user cancels. The "prepared_do_close" flag remains set,
+        // and if we later close the panel by other means we won't really check if
+        // prepareToClose() has been called again.
+        if (! prepared_do_close)
+            logger.log(Level.SEVERE, "Failed to call prepareToClose", new Exception("Stack Trace"));
 
-        handleClosed(null);
+        handleClosed();
 
         getDockPane().getTabs().remove(this);
-
-        return true;
     }
 
     @Override

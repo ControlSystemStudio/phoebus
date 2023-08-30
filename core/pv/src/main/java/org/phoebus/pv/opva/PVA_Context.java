@@ -57,7 +57,9 @@ public class PVA_Context
         return String.format("%-24s - not set", key);
     }
 
-    /** @return Singleton instance */
+    /** @return Singleton instance
+     *  @throws Exception on error
+     */
     public static synchronized PVA_Context getInstance() throws Exception
     {
         if (instance == null)

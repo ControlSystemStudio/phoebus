@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,11 +23,13 @@ import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.plots.PlotWidgetPointType;
 import org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.AxisWidgetProperty;
 import org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.TraceWidgetProperty;
+import org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.YAxisWidgetProperty;
 import org.csstudio.display.builder.model.widgets.plots.PlotWidgetTraceType;
 import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget;
 import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget.MarkerProperty;
 import org.csstudio.display.builder.representation.Preferences;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.csstudio.display.builder.representation.javafx.Messages;
 import org.csstudio.display.builder.representation.javafx.widgets.RegionBaseRepresentation;
 import org.csstudio.javafx.rtplot.Activator;
 import org.csstudio.javafx.rtplot.Axis;
@@ -41,13 +43,18 @@ import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.javafx.rtplot.TraceType;
 import org.csstudio.javafx.rtplot.YAxis;
 import org.csstudio.javafx.rtplot.internal.NumericAxis;
+import org.csstudio.javafx.rtplot.internal.YAxisImpl;
+import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
 import org.epics.util.array.ArrayDouble;
 import org.epics.util.array.ListNumber;
+import org.epics.vtype.Display;
+import org.epics.vtype.VImage;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
 import org.phoebus.ui.javafx.UpdateThrottle;
 
+import javafx.scene.control.Button;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
@@ -63,7 +70,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
     private final DirtyFlag dirty_position = new DirtyFlag();
     private final DirtyFlag dirty_range = new DirtyFlag();
     private final DirtyFlag dirty_config = new DirtyFlag();
-    private final WidgetPropertyListener<List<AxisWidgetProperty>> yaxes_listener = this::yAxesChanged;
+    private final WidgetPropertyListener<List<YAxisWidgetProperty>> yaxes_listener = this::yAxesChanged;
     private final UntypedWidgetPropertyListener position_listener = this::positionChanged;
     private final WidgetPropertyListener<List<TraceWidgetProperty>> traces_listener = this::tracesChanged;
     private final WidgetPropertyListener<Instant> configure_listener = (p, o, n) -> plot.showConfigurationDialog();
@@ -228,6 +235,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
                                   map(model_trace.tracePointType().getValue()),
                                   model_trace.tracePointSize().getValue(),
                                   model_trace.traceYAxis().getValue());
+            trace.setVisible(model_trace.traceVisible().getValue());
 
             model_trace.traceName().addUntypedPropertyListener(trace_listener);
             // Not tracking X and Error PVs. Only matter to runtime.
@@ -248,7 +256,8 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
 
         private void traceChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
         {
-            trace.setName(model_trace.traceName().getValue());
+            // Changed trace name requires layout of axes and legend
+            boolean need_layout = trace.setName(model_trace.traceName().getValue());
             trace.setType(map(model_trace.traceType().getValue()));
             trace.setColor(JFXUtil.convert(model_trace.traceColor().getValue()));
             trace.setWidth(model_trace.traceWidth().getValue());
@@ -260,8 +269,11 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
             final int desired = model_trace.traceYAxis().getValue();
             if (desired != trace.getYAxis())
                 plot.moveTrace(trace, desired);
-            plot.requestLayout();
-        };
+            if (need_layout)
+                plot.requestCompleteUpdate();
+            else
+                plot.requestUpdate();
+        }
 
         // PV changed value -> runtime updated X/Y value property -> valueChanged()
         private void valueChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
@@ -279,11 +291,22 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
                 return;
 
             final ListNumber x_data, y_data, error;
-            final VType y_value = model_trace.traceYValue().getValue();
+            VType y_value = model_trace.traceYValue().getValue();
+
+            if (y_value instanceof VImage)
+            {   // Extract VNumberArray from image, then continue with that
+                final VImage image = (VImage) y_value;
+                y_value = VNumberArray.of(image.getData(), image.getAlarm(), image.getTime(), Display.none());
+            }
 
             if (y_value instanceof VNumberArray)
             {
-                final VType x_value = model_trace.traceXValue().getValue();
+                VType x_value = model_trace.traceXValue().getValue();
+                if (x_value instanceof VImage)
+                {   // Extract VNumberArray from image, then continue with that
+                    final VImage image = (VImage) x_value;
+                    x_value = VNumberArray.of(image.getData(), image.getAlarm(), image.getTime(), Display.none());
+                }
                 x_data = (x_value instanceof VNumberArray) ? ((VNumberArray)x_value).getData() : null;
 
                 final VNumberArray y_array = (VNumberArray)y_value;
@@ -316,7 +339,12 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
             else
             {   // No Y Data.
                 // Do we have X data?
-                final VType x_value = model_trace.traceXValue().getValue();
+                VType x_value = model_trace.traceXValue().getValue();
+                if (x_value instanceof VImage)
+                {   // Extract VNumberArray from image, then continue with that
+                    final VImage image = (VImage) x_value;
+                    x_value = VNumberArray.of(image.getData(), image.getAlarm(), image.getTime(), Display.none());
+                }
                 if (x_value instanceof VNumberArray)
                 {
                     x_data = ((VNumberArray)x_value).getData();
@@ -388,7 +416,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
             model_trace.traceErrorValue().removePropertyListener(value_listener);
             plot.removeTrace(trace);
         }
-    };
+    }
 
     private final List<TraceHandler> trace_handlers = new CopyOnWriteArrayList<>();
 
@@ -408,28 +436,36 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
             for (MarkerProperty marker : model_widget.propMarkers().getValue())
                 createMarker(marker);
 
+        // Add button to reset ranges of X and Y axes to the values when plot was first rendered.
+        Button resetAxisRanges =
+                plot.addToolItem(JFXUtil.getIcon("reset_axis_ranges.png"), Messages.Reset_Axis_Ranges);
+
+        resetAxisRanges.setOnMouseClicked(me -> {
+            plot.resetAxisRanges();
+        });
+
         return plot;
     }
 
     private void createMarker(final MarkerProperty model_marker)
     {
         final PlotMarker<Double> plot_marker = plot.addMarker(JFXUtil.convert(model_marker.color().getValue()),
-                                                      model_marker.interactive().getValue(),
-                                                      model_marker.value().getValue());
+                                                              model_marker.interactive().getValue(),
+                                                              model_marker.value().getValue());
 
-        // For now _not_ listening to runtime changes of model_marker.interactive()
-
-        // Listen to model_marker.value(), .. and update plot_marker
-        final WidgetPropertyListener<Double> model_marker_listener = (o, old, value) ->
+        // Listen to model_marker.value(), interactive() .. and update plot_marker
+        final UntypedWidgetPropertyListener model_marker_listener = (o, old, value) ->
         {
             if (changing_marker)
                 return;
             changing_marker = true;
+            plot_marker.setInteractive(model_marker.interactive().getValue());
             plot_marker.setPosition(model_marker.value().getValue());
             changing_marker = false;
             plot.requestUpdate();
         };
-        model_marker.value().addPropertyListener(model_marker_listener);
+        model_marker.value().addUntypedPropertyListener(model_marker_listener);
+        model_marker.interactive().addUntypedPropertyListener(model_marker_listener);
     }
 
     @Override
@@ -439,7 +475,6 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
 
         model_widget.propBackground().addUntypedPropertyListener(config_listener);
         model_widget.propForeground().addUntypedPropertyListener(config_listener);
-        model_widget.propGridColor().addUntypedPropertyListener(config_listener);
         model_widget.propTitle().addUntypedPropertyListener(config_listener);
         model_widget.propTitleFont().addUntypedPropertyListener(config_listener);
         model_widget.propToolbar().addUntypedPropertyListener(config_listener);
@@ -448,7 +483,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         trackAxisChanges(model_widget.propXAxis());
 
         // Track initial Y axis
-        final List<AxisWidgetProperty> y_axes = model_widget.propYAxes().getValue();
+        final List<YAxisWidgetProperty> y_axes = model_widget.propYAxes().getValue();
         trackAxisChanges(y_axes.get(0));
         // Create additional Y axes from model
         if (y_axes.size() > 1)
@@ -472,14 +507,13 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
     {
         model_widget.propBackground().removePropertyListener(config_listener);
         model_widget.propForeground().removePropertyListener(config_listener);
-        model_widget.propGridColor().removePropertyListener(config_listener);
         model_widget.propTitle().removePropertyListener(config_listener);
         model_widget.propTitleFont().removePropertyListener(config_listener);
         model_widget.propToolbar().removePropertyListener(config_listener);
         model_widget.propLegend().removePropertyListener(config_listener);
 
         ignoreAxisChanges(model_widget.propXAxis());
-        final List<AxisWidgetProperty> y_axes = model_widget.propYAxes().getValue();
+        final List<YAxisWidgetProperty> y_axes = model_widget.propYAxes().getValue();
         for (AxisWidgetProperty axis : y_axes)
             ignoreAxisChanges(axis);
         model_widget.propYAxes().removePropertyListener(yaxes_listener);
@@ -510,6 +544,10 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         axis.titleFont().addUntypedPropertyListener(config_listener);
         axis.scaleFont().addUntypedPropertyListener(config_listener);
         axis.visible().addUntypedPropertyListener(config_listener);
+        if (axis instanceof YAxisWidgetProperty) {
+            ((YAxisWidgetProperty) axis).onRight().addUntypedPropertyListener(config_listener);
+            ((YAxisWidgetProperty) axis).color().addUntypedPropertyListener(config_listener);
+        }
     }
 
     /** Ignore changed axis properties
@@ -526,15 +564,19 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         axis.titleFont().removePropertyListener(config_listener);
         axis.scaleFont().removePropertyListener(config_listener);
         axis.visible().removePropertyListener(config_listener);
+        if (axis instanceof YAxisWidgetProperty) {
+            ((YAxisWidgetProperty) axis).onRight().removePropertyListener(config_listener);
+            ((YAxisWidgetProperty) axis).color().removePropertyListener(config_listener);
+        }
     }
 
-    private void yAxesChanged(final WidgetProperty<List<AxisWidgetProperty>> property,
-                              final List<AxisWidgetProperty> removed, final List<AxisWidgetProperty> added)
+    private void yAxesChanged(final WidgetProperty<List<YAxisWidgetProperty>> property,
+                              final List<YAxisWidgetProperty> removed, final List<YAxisWidgetProperty> added)
     {
         // Remove axis
         if (removed != null)
         {   // Notification holds the one removed axis, which was the last one
-            final AxisWidgetProperty axis = removed.get(0);
+            final YAxisWidgetProperty axis = removed.get(0);
             final int index = plot.getYAxes().size()-1;
             ignoreAxisChanges(axis);
             plot.removeYAxis(index);
@@ -544,7 +586,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         // Notification will hold the one added axis,
         // but initial call from registerListeners() will hold all axes to add
         if (added != null)
-            for (AxisWidgetProperty axis : added)
+            for (YAxisWidgetProperty axis : added)
             {
                 plot.addYAxis(axis.title().getValue());
                 trackAxisChanges(axis);
@@ -594,7 +636,6 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         final Color foreground = JFXUtil.convert(model_widget.propForeground().getValue());
         plot.setForeground(foreground);
         plot.setBackground(JFXUtil.convert(model_widget.propBackground().getValue()));
-        plot.setGridColor(JFXUtil.convert(model_widget.propGridColor().getValue()));
         plot.setTitleFont(JFXUtil.convert(model_widget.propTitleFont().getValue()));
         plot.setTitle(model_widget.propTitle().getValue());
 
@@ -610,7 +651,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         plot.setLegendFont(JFXUtil.convert(model_widget.propXAxis().titleFont().getValue()));
 
         // Update Y Axes
-        final List<AxisWidgetProperty> model_y = model_widget.propYAxes().getValue();
+        final List<YAxisWidgetProperty> model_y = model_widget.propYAxes().getValue();
         if (plot.getYAxes().size() != model_y.size())
         {
             logger.log(Level.WARNING, "Plot has " + plot.getYAxes().size() + " while model has " + model_y.size() + " Y axes");
@@ -621,6 +662,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         {
             plot_axis.useTraceNames(!legend);
             updateAxisConfig(plot_axis, model_y.get(i));
+            plot_axis.setOnRight(model_y.get(i).onRight().getValue());
             ++i;
         }
     }
@@ -636,6 +678,18 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         plot_axis.setLabelFont(JFXUtil.convert(model_axis.titleFont().getValue()));
         plot_axis.setScaleFont(JFXUtil.convert(model_axis.scaleFont().getValue()));
         plot_axis.setVisible(model_axis.visible().getValue());
+        if(plot_axis instanceof YAxisImpl) {
+            ((YAxisImpl)plot_axis).setGridColor(
+                    GraphicsUtils.convert(
+                            JFXUtil.convert(
+                                    ((YAxisWidgetProperty) model_axis).color().getValue()
+                            )
+                    )
+            );
+            plot_axis.setColor(JFXUtil.convert(
+                    ((YAxisWidgetProperty) model_axis).color().getValue()
+            ));
+        }
     }
 
     private void updateRanges()
@@ -644,7 +698,7 @@ public class XYPlotRepresentation extends RegionBaseRepresentation<Pane, XYPlotW
         updateAxisRange(plot.getXAxis(), model_widget.propXAxis());
 
         // Update Y Axes
-        final List<AxisWidgetProperty> model_y = model_widget.propYAxes().getValue();
+        final List<YAxisWidgetProperty> model_y = model_widget.propYAxes().getValue();
         if (plot.getYAxes().size() != model_y.size())
         {
             logger.log(Level.WARNING, "Plot has " + plot.getYAxes().size() + " while model has " + model_y.size() + " Y axes");

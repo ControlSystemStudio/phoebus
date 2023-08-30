@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -44,7 +44,7 @@ public class PVAUnion extends PVADataWithID
             values.add(value);
         }
 
-        return new PVAUnion(name, union_name, values);
+        return new PVAUnion(name, union_name, -1, values);
     }
 
     /** Union type name */
@@ -57,17 +57,37 @@ public class PVAUnion extends PVADataWithID
      */
     private final List<PVAData> elements;
 
-    private volatile int selected = -1;
+    private volatile int selected;
 
+    /** @param name Variable name
+     *  @param struct_name Type name
+     *  @param elements Element definitions (typically without data)
+     */
     public PVAUnion(final String name, final String struct_name, final PVAData... elements)
     {
-        this(name, struct_name, Arrays.asList(elements));
+        this(name, struct_name, -1, Arrays.asList(elements));
     }
 
-    public PVAUnion(final String name, final String struct_name, final List<PVAData> elements)
+    /** @param name Variable name
+     *  @param struct_name Type name
+     *  @param selected Selected union element
+     *  @param elements Element definitions (typically without data except for 'selected' entry)
+     */
+    public PVAUnion(final String name, final String struct_name, int selected, final PVAData... elements)
+    {
+        this(name, struct_name, selected, Arrays.asList(elements));
+    }
+
+    /** @param name Variable name
+     *  @param struct_name Type name
+     *  @param selected Selected union element
+     *  @param elements Element definitions (typically without data except for 'selected' entry)
+     */
+    public PVAUnion(final String name, final String struct_name, int selected, final List<PVAData> elements)
     {
         super(name);
         this.union_name = struct_name;
+        this.selected = selected;
         this.elements = Collections.unmodifiableList(elements);
     }
 
@@ -124,7 +144,7 @@ public class PVAUnion extends PVADataWithID
         final List<PVAData> copy = new ArrayList<>(elements.size());
         for (PVAData element : elements)
             copy.add(element.cloneType(element.getName()));
-        final PVAUnion clone = new PVAUnion(name, union_name, copy);
+        final PVAUnion clone = new PVAUnion(name, union_name, -1, copy);
         clone.type_id = type_id;
         return clone;
     }
@@ -136,9 +156,8 @@ public class PVAUnion extends PVADataWithID
         // Deep copy
         for (PVAData element : elements)
             copy.add(element.cloneData());
-        final PVAUnion clone = new PVAUnion(name, union_name, copy);
+        final PVAUnion clone = new PVAUnion(name, union_name, selected, copy);
         clone.type_id = type_id;
-        clone.selected = selected;
         return clone;
     }
 
@@ -164,8 +183,6 @@ public class PVAUnion extends PVADataWithID
             }
         }
 
-        buffer.put((byte) 0x10000001);
-
         // Encode 'UNION' type, name
         buffer.put((byte) (PVAComplex.FIELD_DESC_TYPE | PVAComplex.UNION));
         PVAString.encodeString(union_name, buffer);
@@ -183,6 +200,11 @@ public class PVAUnion extends PVADataWithID
     public void decode(final PVATypeRegistry types, final ByteBuffer buffer) throws Exception
     {
         selected = PVASize.decodeSize(buffer);
+        if (selected < 0)
+        {   // -1 (we're treating any negative number like that) selects no value
+            logger.log(Level.FINER, () -> "Union element selector is " + selected + ", no value");
+            return;
+        }
         if (selected < 0  ||  selected >= elements.size())
             throw new Exception("Invalid union selector " + selected + " for " + formatType());
         final PVAData element = elements.get(selected);
@@ -193,8 +215,11 @@ public class PVAUnion extends PVADataWithID
     @Override
     public void encode(final ByteBuffer buffer) throws Exception
     {
-        PVASize.encodeSize(selected, buffer);
-        elements.get(selected).encode(buffer);
+        final int safe_sel = selected;
+        // What's selected might now change, we encode what was in safe_sel
+        PVASize.encodeSize(safe_sel, buffer);
+        if (safe_sel >= 0)
+            elements.get(safe_sel).encode(buffer);
     }
 
     @Override
@@ -209,7 +234,7 @@ public class PVAUnion extends PVADataWithID
                     throw new Exception("Incompatible unions");
                 selected = other.selected;
                 if (selected > 0)
-                    elements.set(selected, other.get().cloneData());
+                    elements.get(selected).setValue(other.get());
                 changes.set(index);
             }
         }
@@ -217,13 +242,16 @@ public class PVAUnion extends PVADataWithID
     }
 
     @Override
+    public String getType()
+    {
+        return "union";
+    }
+
+    @Override
     public void formatType(int level, StringBuilder buffer)
     {
         indent(level, buffer);
-        if (union_name.isEmpty())
-            buffer.append("union ");
-        else
-            buffer.append(union_name).append(" ");
+        buffer.append(getUnionName().isEmpty() ? getType() : getUnionName()).append(" ");
         buffer.append(name);
         if (type_id > 0)
             buffer.append(" [#").append(type_id).append("]");
@@ -244,7 +272,11 @@ public class PVAUnion extends PVADataWithID
             buffer.append(union_name).append(" ");
         buffer.append(name);
         if (selected < 0)
-            buffer.append("\n - nothing selected -\n");
+        {
+            buffer.append("\n");
+            indent(level+1, buffer);
+            buffer.append("- nothing selected -");
+        }
         else
         {
             buffer.append("\n");

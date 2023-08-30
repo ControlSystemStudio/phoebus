@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 
 /** File Based Authorization Implementation
  *  @author Evan Smith
+ *  @author Tanvi Ashwarya
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -30,7 +31,12 @@ public class FileBasedAuthorization implements Authorization
 {
     private final String user_name;
     private final Authorizations user_authorizations;
+    private final List<String> rules = new ArrayList<>();
 
+    /** @param config_stream File to read
+     *  @param user_name User name
+     *  @throws Exception on error
+     */
     public FileBasedAuthorization(final InputStream config_stream, final String user_name) throws Exception
     {
         this.user_name = user_name;
@@ -48,6 +54,7 @@ public class FileBasedAuthorization implements Authorization
         for(Entry<String, List<Pattern>> rule : rules.entrySet())
         {
             final String permission = rule.getKey();
+            this.rules.add(permission);
             final List<Pattern> patterns = rule.getValue();
             if (userMatchesPattern(patterns))
                 authorizations.add(permission);
@@ -55,10 +62,8 @@ public class FileBasedAuthorization implements Authorization
         return new Authorizations(authorizations);
     }
 
-    /**
-     * <p> Returns true if the user's user name matches in the list of users for this action.
-     * @param patterns
-     * @return
+    /** @param patterns User name pattern
+     *  @return Does the user's user name matche any entry in the list of users for this action?
      */
     private boolean userMatchesPattern(List<Pattern> patterns)
     {
@@ -70,10 +75,6 @@ public class FileBasedAuthorization implements Authorization
         return false;
     }
 
-    /**
-     * @return
-     * @throws Exception
-     */
     private Map<String, List<Pattern>> readConfigurationFile(final InputStream config_stream) throws Exception
     {
         final Properties settings = new Properties();
@@ -94,7 +95,13 @@ public class FileBasedAuthorization implements Authorization
     }
 
     @Override
-    public boolean hasAuthorization(String authorization)
+    public boolean isAuthorizationDefined(final String authorization)
+    {
+        return this.rules.contains(authorization);
+    }
+
+    @Override
+    public boolean hasAuthorization(final String authorization)
     {
         if (null == user_authorizations)
             return false;

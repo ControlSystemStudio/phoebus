@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -48,10 +48,6 @@ import java.util.logging.Level;
 @SuppressWarnings("nls")
 public class PVAStructure extends PVADataWithID
 {
-    static
-    {
-    }
-
     static PVAStructure decodeType(final PVATypeRegistry types, final String name, final ByteBuffer buffer) throws Exception
     {
         final String struct_name = PVAString.decodeString(buffer);
@@ -189,13 +185,14 @@ public class PVAStructure extends PVADataWithID
                 logger.log(Level.FINER, () -> "Getting data for indexed element " + i + ": " + se.getStructureName());
                 final int count = se.decodeElements(types, buffer);
                 logger.log(Level.FINER, () -> "Decoded elements " + i + ".." + (i + count));
-                to_decode.clear(index, index + count);
+                // Mark all struct elements i .. i+count (incl.) as read
+                to_decode.clear(i, i + count + 1);
             }
             else
             {
                 logger.log(Level.FINER, () -> "Getting data for indexed element " + i + ": " + element.formatType());
                 element.decode(types, buffer);
-                to_decode.clear(index);
+                to_decode.clear(i);
             }
             logger.log(Level.FINER, () -> "Remaining elements to read: " + to_decode);
 
@@ -305,6 +302,46 @@ public class PVAStructure extends PVADataWithID
             if (element.getName().equals(element_name))
                 return (PVA) element;
         return null;
+    }
+
+    /** Get structure element by path
+    *
+    *  <p>Performs descending search of this structure
+    *
+    *  @param dot_path "element.sub-element.sub-sub-element.final"
+    *  @return Located "final" element
+    *  @param <PVA> PVAData or subclass
+     * @throws Exception on error, for example a sub-element
+     *         that is not a structure and prevents further descent.
+    */
+    public <PVA extends PVAData> PVA locate(final String dot_path) throws Exception
+    {
+        PVAStructure sub = this;
+        int start = 0;
+        while (start < dot_path.length())
+        {
+            final int dot = dot_path.indexOf('.', start);
+            if (dot < 0)
+            {   // No more dot, get last (or maybe only) path element
+                final String element = dot_path.substring(start);
+                final PVA found = sub.get(element);
+                if (found == null)
+                    throw new Exception("Cannot locate '" + element + "' for '" + dot_path + "'");
+                return found;
+            }
+            final String element = dot_path.substring(start, dot);
+            if (element.isEmpty())
+                throw new Exception("Empty path element in '" + dot_path + "'");
+            final PVAData sub_element = sub.get(element);
+            if (sub_element == null)
+                throw new Exception("Cannot locate '" + element + "' for '" + dot_path + "'");
+            if (! (sub_element instanceof PVAStructure))
+                throw new Exception("Element '" + element + "' of '" + dot_path + "' is not a structure");
+            sub = (PVAStructure) sub_element;
+
+            start = dot + 1;
+        }
+        throw new Exception("Cannot locate '" + dot_path + "'");
     }
 
     /** Get structure element by index
@@ -490,13 +527,16 @@ public class PVAStructure extends PVADataWithID
     }
 
     @Override
+    public String getType()
+    {
+        return "structure";
+    }
+
+    @Override
     public void formatType(int level, StringBuilder buffer)
     {
         indent(level, buffer);
-        if (getStructureName().isEmpty())
-            buffer.append("structure ");
-        else
-            buffer.append(getStructureName()).append(" ");
+        buffer.append(getStructureName().isEmpty() ? getType() : getStructureName()).append(" ");
         buffer.append(name);
         if (type_id > 0)
             buffer.append(" [#").append(type_id).append("]");
@@ -561,4 +601,3 @@ public class PVAStructure extends PVADataWithID
         }
     }
 }
-

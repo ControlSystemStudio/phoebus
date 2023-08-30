@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -193,7 +193,15 @@ public class ImageRepresentation extends RegionBaseRepresentation<Pane, ImageWid
             image_plot.requestUpdate();
         });
 
-        // For now _not_ listening to runtime changes of roi.interactive() or roi.file() ...
+        // Allow interactive adjustment of ROI?
+        model_roi.interactive().addPropertyListener((prop, old, interactive) ->
+        {
+            plot_roi.setInteractive(interactive);
+            // Cancel tracker which might have been active
+            if (! interactive)
+                Platform.runLater(() -> image_plot.removeROITracker());
+        });
+        // For now _not_ listening to runtime changes of roi.file() ...
 
         // Listen to roi.x_value(), .. and update plot_roi
         final WidgetPropertyListener<Double> model_roi_listener = (o, old, value) ->
@@ -416,13 +424,19 @@ public class ImageRepresentation extends RegionBaseRepresentation<Pane, ImageWid
     {
         final VType value = model_widget.runtimePropValue().getValue();
         if (value instanceof VNumberArray)
-            image_plot.setValue(model_widget.propDataWidth().getValue(),
-                                model_widget.propDataHeight().getValue(),
+        {
+            // Can't get size from PV, use data_width, .._height
+            final int width = model_widget.propDataWidth().getValue();
+            final int height = model_widget.propDataHeight().getValue();
+            if (model_widget.propLimitsFromPV().getValue())
+                image_plot.setAxisRange(0.0, width, height, 0.0);
+            image_plot.setValue(width, height,
                                 ((VNumberArray) value).getData(),
                                 model_widget.propDataUnsigned().getValue(),
                                 model_widget.propDataColorMode().getValue());
+        }
         else if (value instanceof VImage)
-        {
+        {   // Use VImage metadata
             final VImage image = (VImage) value;
             boolean isUnsigned;
             switch (image.getDataType())
@@ -436,7 +450,35 @@ public class ImageRepresentation extends RegionBaseRepresentation<Pane, ImageWid
             	default:
             		isUnsigned = false;
             }
-            image_plot.setValue(image.getWidth(), image.getHeight(), image.getData(),
+
+            final int width = image.getWidth();
+            final int height = image.getHeight();
+            if (model_widget.propLimitsFromPV().getValue())
+            {
+                final int x0, x1, y0, y1;
+                if (image.isXReversed())
+                {
+                    x1 = image.getXOffset();
+                    x0 = image.getXOffset() + width;
+                }
+                else
+                {
+                    x0 = image.getXOffset();
+                    x1 = image.getXOffset() + width;
+                }
+                if (image.isYReversed())
+                {
+                    y1 = image.getYOffset() + height;
+                    y0 = image.getYOffset();
+                }
+                else
+                {
+                    y0 = image.getYOffset() + height;
+                    y1 = image.getYOffset();
+                }
+                image_plot.setAxisRange(x0, x1, y0, y1);
+            }
+            image_plot.setValue(width, height, image.getData(),
                                 isUnsigned, image.getVImageType());
         }
         else if (value != null)

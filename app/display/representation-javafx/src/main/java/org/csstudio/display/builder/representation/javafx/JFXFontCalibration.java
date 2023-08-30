@@ -53,6 +53,7 @@ public class JFXFontCalibration extends Application implements FontCalibration
         return factor;
     }
 
+    /** @param args Command line args */
     public static void main(final String[] args)
     {
         launch(args);

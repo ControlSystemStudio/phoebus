@@ -17,10 +17,17 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.event.Event;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumn.CellEditEvent;
+import javafx.scene.control.TablePosition;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 
 /**
  * Info class for property-based item table.
@@ -29,12 +36,15 @@ import javafx.scene.control.TextField;
  * @version 1.0.0 7 Feb 2018
  */
 public class PVTableItem {
-
+    /** @param info Script PV
+     *  @return Table item for PV
+     */
     public static PVTableItem forPV ( final ScriptPV info ) {
         return new PVTableItem(info.getName(), info.isTrigger());
     }
-
+    /** Name of PV */
     private final StringProperty  name    = new SimpleStringProperty();
+    /** Does it trigger the script? */
     private final BooleanProperty trigger = new SimpleBooleanProperty(true);
 
     /**
@@ -46,14 +56,17 @@ public class PVTableItem {
         this.trigger.set(trigger);
     }
 
+    /** @return Property for name */
     public StringProperty nameProperty ( ) {
         return name;
     }
 
+    /** @return ScriptPV */
     public ScriptPV toScriptPV ( ) {
         return new ScriptPV(name.get(), trigger.get());
     }
 
+    /** @return Trigger property */
     public BooleanProperty triggerProperty ( ) {
         return trigger;
     }
@@ -68,12 +81,20 @@ public class PVTableItem {
         private final Node             focusedOnCommit;
         private TextField              textField;
 
+        /** @param focusedOnCommit Node on which to focus when done */
         public AutoCompletedTableCell (final Node focusedOnCommit ) {
 
             this.focusedOnCommit = focusedOnCommit;
 
             setAlignment(Pos.CENTER_LEFT);
 
+            this.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+                if (event.getCode() == KeyCode.ESCAPE) {
+                    textField.setText(getItem());
+                    cancelEdit();
+                    event.consume();
+                }
+            });
         }
 
         @Override
@@ -85,7 +106,19 @@ public class PVTableItem {
 
         @Override
         public void commitEdit ( String newValue ) {
-            super.commitEdit(newValue);
+            if (!isEditing() && !newValue.equals(getItem())) {
+                TableView<PVTableItem> table = getTableView();
+                if (table != null) {
+                    TableColumn<PVTableItem, String> column = getTableColumn();
+                    TableColumn.CellEditEvent<PVTableItem, String> event = new CellEditEvent<PVTableItem, String>(table,
+                            new TablePosition<PVTableItem, String>(table, getIndex(), column),
+                            TableColumn.editCommitEvent(), newValue);
+                    Event.fireEvent(column, event);
+                }
+            }
+            else {
+                super.commitEdit(newValue);
+            }
             Platform.runLater( ( ) -> focusedOnCommit.requestFocus());
         }
 
@@ -101,7 +134,6 @@ public class PVTableItem {
                 setGraphic(textField);
 
                 textField.selectAll();
-
             }
 
             Platform.runLater( ( ) -> textField.requestFocus());
@@ -142,7 +174,7 @@ public class PVTableItem {
                 textField.setOnAction(event -> commitEdit(textField.getText()));
                 textField.focusedProperty().addListener( ( ob, o, n ) -> {
                     if ( !n ) {
-                        cancelEdit();
+                        commitEdit(textField.getText());
                     }
                 });
                 PVAutocompleteMenu.INSTANCE.attachField(textField);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -118,13 +118,17 @@ public class OpenAbout implements MenuEntry
         infos.add(Arrays.asList(Messages.HelpAboutInst, Locations.install().toString()));
         infos.add(Arrays.asList(Messages.HelpAboutUserDir, System.getProperty("user.dir")));
         infos.add(Arrays.asList(Messages.HelpJavaHome, System.getProperty("java.home")));
+        // Check if revision is set, if not, fall back to version
+        String revision = Messages.AppRevision;
+        infos.add(Arrays.asList(Messages.AppVersionHeader, "${revision}".equals(revision) ? Messages.AppVersion : revision));
         infos.add(Arrays.asList(Messages.HelpAboutJava, System.getProperty("java.specification.vendor") + " " + System.getProperty("java.runtime.version")));
         infos.add(Arrays.asList(Messages.HelpAboutJfx, System.getProperty("javafx.runtime.version")));
+        infos.add(Arrays.asList(Messages.HelpAboutPID, Long.toString(ProcessHandle.current().pid())));
 
         // Display in TableView
         final TableView<List<String>> info_table = new TableView<>(infos);
         info_table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        info_table.setPrefHeight(260.0);
+        info_table.setPrefHeight(290.0);
 
         final TableColumn<List<String>, String> name_col = new TableColumn<>(Messages.HelpAboutColName);
         name_col.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().get(0)));
@@ -174,6 +178,18 @@ public class OpenAbout implements MenuEntry
         area.setEditable(false);
         final Tab apps = new Tab(Messages.HelpAboutAppFea, area);
 
+        // Environment variables
+        final StringBuilder props_env = new StringBuilder();
+        System.getenv()
+              .keySet()
+              .stream()
+              .sorted()
+              .forEach(var ->  props_env.append(var).append(" = ").append(System.getenv(var)).append("\n"));
+
+        area = new TextArea(props_env.toString());
+        area.setEditable(false);
+        final Tab envs = new Tab(Messages.HelpAboutEnv, area);
+
         // System properties
         final StringBuilder props_text = new StringBuilder();
         System.getProperties()
@@ -209,7 +225,7 @@ public class OpenAbout implements MenuEntry
 
         final Tab prefs = new Tab(Messages.HelpAboutPrefs, new VBox(5, area, bottom_row));
 
-        final TabPane tabs = new TabPane(apps, props, prefs);
+        final TabPane tabs = new TabPane(apps, envs, props, prefs);
         return tabs;
     }
 

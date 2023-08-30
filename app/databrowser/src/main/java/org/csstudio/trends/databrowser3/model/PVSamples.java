@@ -91,7 +91,7 @@ public class PVSamples extends PlotSamples
         if (raw <= 0)
             return raw;
         final PlotSample last = get(raw-1);
-        if (VTypeHelper.getSeverity(last.getVType()) == AlarmSeverity.UNDEFINED)
+        if (org.phoebus.core.vtypes.VTypeHelper.getSeverity(last.getVType()) == AlarmSeverity.UNDEFINED)
             return raw;
         // Last sample is valid, so it should still apply 'now'
         return raw+1;
@@ -111,15 +111,21 @@ public class PVSamples extends PlotSamples
     @Override
     public PlotSample get(final int index)
     {
+        // For debugging, show stack trace when missing lock
+        if (lock.getReadHoldCount() <= 0  && ! lock.isWriteLockedByCurrentThread())
+            logger.log(Level.WARNING, "Missing lock", new Exception("Stack Trace"));
+
+        // If the data point is 'real'/raw then return it
         final int raw_count = getRawSize();
         if (index < raw_count)
             return getRawSample(index);
-        // Last sample is valid, so it should still apply 'now'
+        // Else, create a 'virtual' point by transforming its
+        // timestamp to 'now' to display the currently implied value
         final PlotSample sample = getRawSample(raw_count-1);
         if (Instant.now().compareTo(sample.getPosition()) < 0)
             return sample;
         else
-            return new PlotSample(sample.getSource(), VTypeHelper.transformTimestampToNow(sample.getVType()));
+            return new PlotSample(sample.getSource(), VTypeHelper.transformTimestampToNow(sample.getVType()), true);
     }
 
     /** Get 'raw' sample, no continuation until 'now'
@@ -193,7 +199,7 @@ public class PVSamples extends PlotSamples
     }
 
     /** Add another 'live' sample
-     *  @param value 'Live' sample
+     *  @param sample 'Live' sample
      */
     public void addLiveSample(final PlotSample sample)
     {
@@ -203,7 +209,7 @@ public class PVSamples extends PlotSamples
         {
             // Skip the initial UNDEFINED/Disconnected sample sent by PVManager
             if (live.size() == 0  &&
-                VTypeHelper.getSeverity(sample.getVType()) == AlarmSeverity.UNDEFINED)
+                org.phoebus.core.vtypes.VTypeHelper.getSeverity(sample.getVType()) == AlarmSeverity.UNDEFINED)
                 return;
             live.add(sample);
             // History ends before the start of 'live' samples.

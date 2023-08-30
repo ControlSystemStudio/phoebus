@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -54,6 +54,7 @@ import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.csstudio.display.builder.model.widgets.VisibleWidget;
 import org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.AxisWidgetProperty;
 import org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.TraceWidgetProperty;
+import org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.YAxisWidgetProperty;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 
@@ -102,9 +103,13 @@ public class XYPlotWidget extends VisibleWidget
                                ));
         }
 
+        /** @return Marker color */
         public WidgetProperty<WidgetColor> color()     { return getElement(0); }
+        /** @return Marker PV name */
         public WidgetProperty<String> pv()             { return getElement(1); }
+        /** @return Is marker interactive? */
         public WidgetProperty<Boolean> interactive()   { return getElement(2); }
+        /** @return Marker value */
         public WidgetProperty<Double> value()          { return getElement(3); }
     };
 
@@ -116,6 +121,18 @@ public class XYPlotWidget extends VisibleWidget
 
     /** Legacy properties that have already triggered a warning */
     private final CopyOnWriteArraySet<String> warnings_once = new CopyOnWriteArraySet<>();
+
+    /** Moving gridline color to individual Y-Axes was a backwards-incompatible change
+     *  So the major was incremented from 2.0.0 to 3.0.0
+     */
+    private static final Version VERSION = Version.parse("3.0.0");
+
+    /** @return Widget version number */
+    @Override
+    public Version getVersion()
+    {
+        return VERSION;
+    }
 
     /** Configurator that handles legacy properties */
     private static class Configurator extends WidgetConfigurator
@@ -131,6 +148,7 @@ public class XYPlotWidget extends VisibleWidget
         {
             configureAllPropertiesFromMatchingXML(model_reader, widget, xml);
 
+            // Legacy widget
             if (xml_version.getMajor() < 2)
             {
                 if (StripchartWidget.isLegacyStripchart(xml))
@@ -149,6 +167,13 @@ public class XYPlotWidget extends VisibleWidget
                 readLegacyAxis(model_reader, 0, xml, plot.x_axis, pv_macro);
 
                 handleLegacyYAxes(model_reader, widget, xml, pv_macro);
+
+		// Map BOY 'plot_area_background_color' to 'background_color'
+		final Element plotAreaColor = XMLUtil.getChildElement(xml, "plot_area_background_color");
+		if (plotAreaColor != null)
+		    plot.propBackground().readFromXML(model_reader, plotAreaColor);
+		else
+                    plot.propBackground().setValue(WidgetColorService.getColor(NamedWidgetColors.BACKGROUND));
 
                 // Turn 'transparent' flag into transparent background color
                 if (XMLUtil.getChildBoolean(xml, "transparent").orElse(false))
@@ -170,6 +195,24 @@ public class XYPlotWidget extends VisibleWidget
                 if (! plot.propLegend().getValue())
                     for (TraceWidgetProperty trace : plot.propTraces().getValue())
                         trace.traceName().setValue("");
+            }
+
+            // Newer widgets with some high-level properties moved to individual axes
+            if (xml_version.getMajor() < 3) {
+
+                final XYPlotWidget plot = (XYPlotWidget) widget;
+
+                // If grid color was specified, then use it on each axis
+                Element gridColor = XMLUtil.getChildElement(xml, "grid_color");
+                if(gridColor != null) {
+                    plot.y_axes.getValue().forEach(axis -> {
+                        try {
+                            axis.color().readFromXML(model_reader, gridColor);
+                        } catch (Exception e) {
+                            logger.log(Level.WARNING, "Could not read widget color from grid_color of V2 X/Y Plot Widget");
+                        }
+                    });
+                }
             }
             return true;
         }
@@ -219,10 +262,10 @@ public class XYPlotWidget extends VisibleWidget
                 // Count actual Y axes, because legacy_axis includes skipped X axes
                 ++y_count;
 
-                final AxisWidgetProperty y_axis;
+                final YAxisWidgetProperty y_axis;
                 if (plot.y_axes.size() < y_count)
                 {
-                    y_axis = AxisWidgetProperty.create(propYAxis, widget, "");
+                    y_axis = YAxisWidgetProperty.create(propYAxis, widget, "");
                     plot.y_axes.addElement(y_axis);
                 }
                 else
@@ -281,6 +324,9 @@ public class XYPlotWidget extends VisibleWidget
                 XMLUtil.getChildInteger(xml, "trace_" + legacy_trace + "_point_style")
                        .ifPresent(style -> trace.tracePointType().setValue(StripchartWidget.mapPointType(style)));
 
+                XMLUtil.getChildInteger(xml, "trace_" + legacy_trace + "_line_width")
+                       .ifPresent(width -> trace.traceWidth().setValue(width));
+
                 // Name
                 String name = XMLUtil.getChildString(xml, "trace_" + legacy_trace + "_name").orElse("");
                 name = name.replace("$(trace_" + legacy_trace + "_y_pv)", "$(traces[" + legacy_trace + "].y_pv)");
@@ -298,17 +344,17 @@ public class XYPlotWidget extends VisibleWidget
 
     private volatile WidgetProperty<WidgetColor> foreground;
     private volatile WidgetProperty<WidgetColor> background;
-    private volatile WidgetProperty<WidgetColor> grid;
     private volatile WidgetProperty<String> title;
     private volatile WidgetProperty<WidgetFont> title_font;
     private volatile WidgetProperty<Boolean> show_toolbar;
     private volatile WidgetProperty<Boolean> show_legend;
     private volatile AxisWidgetProperty x_axis;
-    private volatile ArrayWidgetProperty<AxisWidgetProperty> y_axes;
+    private volatile ArrayWidgetProperty<YAxisWidgetProperty> y_axes;
     private volatile ArrayWidgetProperty<TraceWidgetProperty> traces;
     private volatile ArrayWidgetProperty<MarkerProperty> markers;
     private volatile RuntimeEventProperty configure;
 
+    /** Constructor */
     public XYPlotWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 400, 300);
@@ -326,13 +372,12 @@ public class XYPlotWidget extends VisibleWidget
         super.defineProperties(properties);
         properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BACKGROUND)));
-        properties.add(grid = propGridColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.GRID)));
         properties.add(title = PlotWidgetProperties.propTitle.createProperty(this, ""));
         properties.add(title_font = PlotWidgetProperties.propTitleFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.HEADER2)));
         properties.add(show_toolbar = propToolbar.createProperty(this,false));
         properties.add(show_legend = PlotWidgetProperties.propLegend.createProperty(this, true));
         properties.add(x_axis = AxisWidgetProperty.create(propXAxis, this, Messages.PlotWidget_X));
-        properties.add(y_axes = PlotWidgetProperties.propYAxes.createProperty(this, Arrays.asList(AxisWidgetProperty.create(propYAxis, this, Messages.PlotWidget_Y))));
+        properties.add(y_axes = PlotWidgetProperties.propYAxes.createProperty(this, Arrays.asList(YAxisWidgetProperty.create(propYAxis, this, Messages.PlotWidget_Y))));
         properties.add(traces = PlotWidgetProperties.propTraces.createProperty(this, Arrays.asList(new TraceWidgetProperty(this, 0))));
         properties.add(markers = propMarkers.createProperty(this, Collections.emptyList()));
         properties.add(configure = (RuntimeEventProperty) runtimePropConfigure.createProperty(this, null));
@@ -393,12 +438,6 @@ public class XYPlotWidget extends VisibleWidget
         return foreground;
     }
 
-    /** @return 'grid_color' property */
-    public WidgetProperty<WidgetColor> propGridColor()
-    {
-        return grid;
-    }
-
     /** @return 'title' property */
     public WidgetProperty<String> propTitle()
     {
@@ -430,7 +469,7 @@ public class XYPlotWidget extends VisibleWidget
     }
 
     /** @return 'y_axes' property */
-    public ArrayWidgetProperty<AxisWidgetProperty> propYAxes()
+    public ArrayWidgetProperty<YAxisWidgetProperty> propYAxes()
     {
         return y_axes;
     }

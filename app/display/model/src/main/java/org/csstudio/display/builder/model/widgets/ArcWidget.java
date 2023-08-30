@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2016-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,7 @@ package org.csstudio.display.builder.model.widgets;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.newDoublePropertyDescriptor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineColor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineStyle;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineWidth;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propTransparent;
 
@@ -27,6 +28,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
+import org.csstudio.display.builder.model.properties.LineStyle;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
@@ -35,7 +37,7 @@ import org.w3c.dom.Element;
  *  @author Megan Grodowitz
  */
 @SuppressWarnings("nls")
-public class ArcWidget extends VisibleWidget
+public class ArcWidget extends MacroWidget
 {
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
@@ -62,23 +64,28 @@ public class ArcWidget extends VisibleWidget
         }
 
         @Override
-        public boolean configureFromXML(final ModelReader model_reader, final Widget widget, final Element xml)
+        public boolean configureFromXML(final ModelReader model_reader, final Widget widget, final Element widget_xml)
                 throws Exception
         {
-            if (! super.configureFromXML(model_reader, widget, xml))
+            if (! super.configureFromXML(model_reader, widget, widget_xml))
                 return false;
 
             if (xml_version.getMajor() < 2)
             {
                 final ArcWidget arc = (ArcWidget) widget;
                 // Foreground color has been renamed to line color
-                final Element el = XMLUtil.getChildElement(xml, "foreground_color");
+                final Element el = XMLUtil.getChildElement(widget_xml, "foreground_color");
                 if (el != null)
                     arc.propLineColor().readFromXML(model_reader, el);
 
                 // 'Fill' is similar to the new 'transparent' option
-                XMLUtil.getChildBoolean(xml, "fill")
+                XMLUtil.getChildBoolean(widget_xml, "fill")
                        .ifPresent(fill -> arc.propTransparent().setValue(! fill));
+
+                MacroWidget.importPVName(model_reader, widget, widget_xml);
+
+                // Legacy arc supported 'border', but that was a rectangular border
+                // unrelated to the arc and not supported by this widget
             }
             return true;
         }
@@ -96,11 +103,13 @@ public class ArcWidget extends VisibleWidget
     // line color and width
     private WidgetProperty<WidgetColor> line_color;
     private WidgetProperty<Integer> line_width;
+    private volatile WidgetProperty<LineStyle> line_style;
     // start/size degree of arc (0-365)
     private WidgetProperty<Double> arc_start;
     private WidgetProperty<Double> arc_size;
 
 
+    /** Constructor */
 	public ArcWidget()
 	{
 		super(WIDGET_DESCRIPTOR.getType(), 100, 100);
@@ -122,6 +131,7 @@ public class ArcWidget extends VisibleWidget
         properties.add(arc_size = propAngleSize.createProperty(this, 90.0));
         properties.add(line_width = propLineWidth.createProperty(this, 3));
         properties.add(line_color = propLineColor.createProperty(this, new WidgetColor(0, 0, 255)));
+        properties.add(line_style = propLineStyle.createProperty(this, LineStyle.SOLID));
         properties.add(background = propBackgroundColor.createProperty(this, new WidgetColor(30, 144, 255)));
         properties.add(transparent = propTransparent.createProperty(this, false));
     }
@@ -148,6 +158,12 @@ public class ArcWidget extends VisibleWidget
     public WidgetProperty<Integer> propLineWidth()
     {
         return line_width;
+    }
+
+    /** @return 'line_style' property */
+    public WidgetProperty<LineStyle> propLineStyle()
+    {
+        return line_style;
     }
 
     /** @return 'arc_start' property */

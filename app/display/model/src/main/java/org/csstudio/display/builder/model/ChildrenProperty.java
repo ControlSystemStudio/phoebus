@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -78,7 +78,7 @@ public class ChildrenProperty extends RuntimeWidgetProperty<List<Widget>>
      *  @param widget Widget where parent (plain or TabWidget) is checked for
      *  @return {@link ChildrenProperty} that contains the widget
      *  @throws NoSuchElementException if widget has no parent
-     *  @throws IllegalArgumentException If no tab of parent {@link TabWidget} contains the widget,
+     *  @throws IllegalArgumentException If no tab of parent {@link TabsWidget} contains the widget,
      *  @throws IllegalStateException If parent has no children
      */
     public static ChildrenProperty getParentsChildren(final Widget widget)
@@ -102,6 +102,7 @@ public class ChildrenProperty extends RuntimeWidgetProperty<List<Widget>>
         throw new IllegalStateException("Parent of " + widget + " has no 'children': " + parent);
     }
 
+    /** @param widget Parent widget */
     public ChildrenProperty(final Widget widget)
     {
         super(DESCRIPTOR, widget, Collections.emptyList());
@@ -132,6 +133,11 @@ public class ChildrenProperty extends RuntimeWidgetProperty<List<Widget>>
             value.clear();
             value.addAll(new_value);
         }
+        // Inform widgets of their (new) parent
+        for (Widget child : old)
+            child.setParent(null);
+        for (Widget child : value)
+            child.setParent(getWidget());
         firePropertyChange(old, new_value);
     }
 
@@ -226,6 +232,41 @@ public class ChildrenProperty extends RuntimeWidgetProperty<List<Widget>>
         }
         child.setParent(null);
         firePropertyChange(Arrays.asList(child), null);
+        return index;
+    }
+
+    /** @param index Desired index of child
+     *  @param child Widget to move
+     *  @return Actual index
+     */
+    public int moveChildTo(int index, final Widget child)
+    {
+        if (child == null)
+            throw new NullPointerException("Cannot move null in " + getWidget());
+        final List<Widget> list = value;
+        final int current_index;
+        synchronized (list)
+        {
+            current_index = list.indexOf(child);
+            if (current_index < 0)
+                throw new IllegalArgumentException("Widget hierarchy error: " + child + " is not known to " + this);
+            if (index < 0)
+                index = list.size() - 1;
+
+            final int index_diff = index - current_index;
+            if (index_diff == 1 || index_diff == -1)
+            {
+                // Move up/down by 1 step
+                Collections.swap(list, current_index, index);
+            }
+            else
+            {
+                // Move to front/back
+                Collections.rotate(list.subList(java.lang.Math.min(index, current_index), java.lang.Math.max(index, current_index) + 1), index_diff);
+            }
+        }
+        final List change = Arrays.asList(child);
+        firePropertyChange(change, change, true);
         return index;
     }
 

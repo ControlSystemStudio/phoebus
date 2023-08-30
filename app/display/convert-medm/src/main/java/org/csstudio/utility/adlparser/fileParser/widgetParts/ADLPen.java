@@ -32,7 +32,7 @@ public class ADLPen extends WidgetPart {
         else {
             ret = new Object[2];
         }
-        ret[0] = new ADLResource(ADLResource.PEN_COLOR, new Integer(lineColor));
+        ret[0] = new ADLResource(ADLResource.PEN_COLOR, Integer.valueOf(lineColor));
         ret[1] = new ADLResource(ADLResource.CHANNEL, channel);
         if (_hasLimits){
             ret[2] = new ADLResource(ADLResource.ADL_LIMITS, _adlLimit);
@@ -75,6 +75,8 @@ public class ADLPen extends WidgetPart {
                     setLineColor(FileLine.getIntValue(row[1]));
                 }else if(FileLine.argEquals(row[0], "chan")){ //$NON-NLS-1$
                     setChannel(FileLine.getTrimmedValue(row[1]));
+                }else if(FileLine.argEquals(row[0], "utilChan")){ //$NON-NLS-1$
+                    // Ignore
                 }else {
                     throw new WrongADLFormatException(Messages.ADLMonitor_WrongADLFormatException_Parameter_Begin+row[0]+Messages.ADLMonitor_WrongADLFormatException_Parameter_End+parameter);
                 }

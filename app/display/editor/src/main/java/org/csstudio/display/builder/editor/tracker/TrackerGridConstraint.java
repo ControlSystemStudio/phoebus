@@ -22,6 +22,7 @@ public class TrackerGridConstraint extends TrackerConstraint
 {
     private volatile DisplayModel model = null;
 
+    /** @param model DisplayModel to use */
     public void configure(final DisplayModel model)
     {
         this.model = model;
@@ -43,6 +44,7 @@ public class TrackerGridConstraint extends TrackerConstraint
         );
     }
 
+    /** @return DisplayModel */
     public DisplayModel getModel()
     {
         return model;

@@ -19,6 +19,7 @@ public class ZoomAction extends ComboBox<String>
 {
     private boolean updating = false;
 
+    /** @param instance {@link DisplayRuntimeInstance} */
     public ZoomAction(final DisplayRuntimeInstance instance)
     {
         setEditable(true);
@@ -26,7 +27,11 @@ public class ZoomAction extends ComboBox<String>
         getItems().addAll(JFXRepresentation.ZOOM_LEVELS);
         setValue(JFXRepresentation.DEFAULT_ZOOM_LEVEL);
         // For Ctrl-Wheel zoom gesture
-        instance.getRepresentation().setZoomListener(txt -> getEditor().setText(txt));
+        instance.getRepresentation().setZoomListener(txt ->
+        {
+            getSelectionModel().clearSelection();
+            getEditor().setText(txt);
+        });
         setOnAction(event -> zoom(instance.getRepresentation()));
     }
 
@@ -35,7 +40,10 @@ public class ZoomAction extends ComboBox<String>
         if (updating)
             return;
         // Request zoom, get actual zoom level.
-        final String actual = representation.requestZoom(getValue());
+        final String before = getValue();
+        if (before == null)
+            return;
+        final String actual = representation.requestZoom(before);
 
         // For "100 %" request, actual is the same.
         // For "100" request, actual would be the correct "100 %" format.

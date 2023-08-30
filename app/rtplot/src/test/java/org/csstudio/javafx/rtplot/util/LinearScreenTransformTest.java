@@ -7,12 +7,12 @@
  ******************************************************************************/
 package org.csstudio.javafx.rtplot.util;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
 import org.csstudio.javafx.rtplot.internal.util.LinearScreenTransform;
 import org.csstudio.javafx.rtplot.internal.util.ScreenTransform;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test of {@link LinearScreenTransform}.
  *  @author Kay Kasemir

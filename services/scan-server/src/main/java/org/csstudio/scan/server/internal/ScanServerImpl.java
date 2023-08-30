@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,6 +20,7 @@ import static org.csstudio.scan.server.ScanServerInstance.logger;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -34,6 +35,7 @@ import org.csstudio.scan.info.MemoryInfo;
 import org.csstudio.scan.info.Scan;
 import org.csstudio.scan.info.ScanInfo;
 import org.csstudio.scan.info.ScanServerInfo;
+import org.csstudio.scan.info.ScanState;
 import org.csstudio.scan.info.SimulationResult;
 import org.csstudio.scan.server.ScanCommandImpl;
 import org.csstudio.scan.server.ScanCommandImplTool;
@@ -78,7 +80,7 @@ public class ScanServerImpl implements ScanServer
     {
         return new ScanServerInfo(ScanServerInstance.VERSION,
                 start_time,
-                ScanServerInstance.getScanConfigPath(),
+                ScanServerInstance.getScanConfigURL().toExternalForm(),
                 ScanServerInstance.getScanConfig().getScriptPaths(),
                 ScanServerInstance.getScanConfig().getMacros());
     }
@@ -134,6 +136,7 @@ public class ScanServerImpl implements ScanServer
     public SimulationResult simulateScan(final String commands_as_xml)
             throws Exception
     {
+        logger.log(Level.INFO, "Starting simulation...");
         try
         (   // Create Jython interpreter for this scan
             final JythonSupport jython = new JythonSupport();
@@ -152,7 +155,7 @@ public class ScanServerImpl implements ScanServer
 
             // Simulate
             final SimulationContext simulation = new SimulationContext(jython, log_out);
-            simulation.simulate(scan);
+            simulation.performSimulation(scan);
 
             // Close log
             log_out.println("--------");
@@ -168,6 +171,7 @@ public class ScanServerImpl implements ScanServer
             scan.clear();
             commands.clear();
 
+            logger.log(Level.INFO, "Completed simulation.");
             return new SimulationResult(simulation.getSimulationSeconds(), log_text);
         }
         catch (Exception ex)
@@ -182,7 +186,9 @@ public class ScanServerImpl implements ScanServer
     public long submitScan(final String scan_name,
                            final String commands_as_xml,
                            final boolean queue,
-                           final boolean pre_post) throws Exception
+                           final boolean pre_post,
+                           final long timeout_secs,
+                           final LocalDateTime deadline) throws Exception
     {
         cullScans();
 
@@ -196,11 +202,25 @@ public class ScanServerImpl implements ScanServer
             {
                 pre_commands = new ArrayList<>();
                 for (String path : ScanServerInstance.getScanConfig().getPreScanPaths())
-                    pre_commands.addAll(XMLCommandReader.readXMLStream(PathStreamTool.openStream(path)));
+                    try
+                    {
+                        pre_commands.addAll(XMLCommandReader.readXMLStream(PathStreamTool.openStream(path)));
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("Pre-scan parse errro in " + path, ex);
+                    }
 
                 post_commands = new ArrayList<>();
                 for (String path : ScanServerInstance.getScanConfig().getPostScanPaths())
-                    post_commands.addAll(XMLCommandReader.readXMLStream(PathStreamTool.openStream(path)));
+                    try
+                    {
+                        post_commands.addAll(XMLCommandReader.readXMLStream(PathStreamTool.openStream(path)));
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("Post-scan parse errro in " + path, ex);
+                    }
             }
             else
                 pre_commands = post_commands = Collections.emptyList();
@@ -217,7 +237,7 @@ public class ScanServerImpl implements ScanServer
             final DeviceContext devices = new DeviceContext();
 
             // Submit scan to engine for execution
-            final ExecutableScan scan = new ExecutableScan(scan_engine, jython, scan_name, devices, pre_impl, main_impl, post_impl);
+            final ExecutableScan scan = new ExecutableScan(scan_engine, jython, scan_name, devices, pre_impl, main_impl, post_impl, timeout_secs, deadline);
             scan_engine.submit(scan, queue);
             logger.log(Level.CONFIG, "Submitted ID " + scan.getId() + " \"" + scan.getName() + "\"");
             return scan.getId();
@@ -232,6 +252,22 @@ public class ScanServerImpl implements ScanServer
     /** If memory consumption is high, remove some older scans */
     private void cullScans() throws Exception
     {
+        // Is there a limit to the number of completed scans we keep?
+        final int limit = ScanServerInstance.getScanConfig().getLogLimit();
+        if (limit > 0)
+        {
+            final int to_remove = scan_engine.getScanCount() - limit;
+            for (int i=0; i<to_remove; ++i)
+            {
+                // Find a completed scan, remove from engine 
+                final Scan removed = scan_engine.removeOldestCompletedScan();
+                if (removed == null)
+                    break;
+                logger.log(Level.INFO, "Keeping only " + limit + " scans, removed: " + removed);
+            }
+        }
+
+        // Convert scans with commands into just the logged data to keep enough runtime memory
         final double threshold = ScanServerInstance.getScanConfig().getOldScanRemovalMemoryThreshold();
         int count = 0;
 
@@ -415,13 +451,27 @@ public class ScanServerImpl implements ScanServer
         if (id >= 0)
         {
             final ExecutableScan scan = scan_engine.getExecutableScan(id);
-            scan.abort();
+            scan.doAbort(scan.prepareAbort());
         }
         else
         {
+            logger.log(Level.INFO, "Abort all scans");
             final List<ExecutableScan> scans = scan_engine.getExecutableScans();
-            for (ExecutableScan scan : scans)
-                scan.abort();
+            // List is ordered from old (running) to new (idle).
+            // First abort idle scans at the top of the queue so they won't ever start.
+            // Otherwise, a running scan would get aborted first,
+            // then the next scan in the queue would start only to get aborted.
+            // Worst case, when the running-then-aborted scan ends,
+            // it finds other Idle scans and marks the scan-active PV as 1.
+            // To prevent that, first mark all scans to be aborted as such,
+            // which once more prevents their start and also avoids them
+            // being counted as 'active'.
+            final ScanState[] previous = new ScanState[scans.size()];
+            for (int i=scans.size()-1; i>=0; --i)
+                previous[i] = scans.get(i).prepareAbort();
+            // Then actually abort all which are already marked as aborted
+            for (int i=scans.size()-1; i>=0; --i)
+                scans.get(i).doAbort(previous[i]);
         }
     }
 

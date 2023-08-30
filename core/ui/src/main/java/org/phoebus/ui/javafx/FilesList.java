@@ -70,13 +70,25 @@ public class FilesList extends VBox
 
     public FilesList()
     {
+        this(true);
+    }
+
+    public FilesList(boolean editable)
+    {
         files.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         files.setCellFactory(list -> new FileCell());
 
-        final Node buttons = createButtons();
+        if(editable)
+        {
+            final Node buttons = createButtons();
+            getChildren().setAll(new Label(Messages.AttachedFiles), files, buttons);
+        }
+        else
+        {
+            getChildren().setAll(new Label(Messages.AttachedFiles), files);
+        }
 
         setSpacing(5);
-        getChildren().setAll(new Label(Messages.AttachedFiles), files, buttons);
         setPadding(new Insets(5));
     }
 

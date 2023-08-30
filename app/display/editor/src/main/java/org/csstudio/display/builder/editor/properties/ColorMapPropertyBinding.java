@@ -58,6 +58,11 @@ public class ColorMapPropertyBinding
         }
     };
 
+    /** @param undo Undo manager
+     *  @param field Button that opens dialog
+     *  @param widget_property Color map property
+     *  @param other Other selected widgets
+     */
     public ColorMapPropertyBinding(final UndoableActionManager undo,
                                    final Button field,
                                    final ColorMapWidgetProperty widget_property,

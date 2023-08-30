@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,23 +12,24 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 
+import org.epics.pva.PVASettings;
+
 /** 'Primitive' PV Access data type
  *   @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVADoubleArray extends PVAData implements PVAArray
+public class PVADoubleArray extends PVAData implements PVAArray, PVAValue
 {
     private volatile double[] value;
 
-    public PVADoubleArray(final String name, final double[] value)
+    /** Construct variable-size array
+     *  @param name Data item name
+     *  @param value Initial value
+     */
+    public PVADoubleArray(final String name, final double... value)
     {
         super(name);
         this.value = value;
-    }
-
-    public PVADoubleArray(final String name)
-    {
-        this(name, new double[0]);
     }
 
     /** @return Current value */
@@ -46,7 +47,12 @@ public class PVADoubleArray extends PVAData implements PVAArray
     @Override
     public void setValue(final Object new_value) throws Exception
     {
-        if (new_value instanceof double[])
+        if (new_value instanceof PVADoubleArray)
+        {
+            final double[] other = ((PVADoubleArray) new_value).value;
+            value = Arrays.copyOf(other, other.length);
+        }
+        else if (new_value instanceof double[])
             set(((double[]) new_value));
         else if (new_value instanceof List)
         {
@@ -80,8 +86,11 @@ public class PVADoubleArray extends PVAData implements PVAArray
     }
 
     @Override
-    public void encodeType(ByteBuffer buffer, BitSet described) throws Exception
+    public void encodeType(final ByteBuffer buffer, final BitSet described) throws Exception
     {
+        // 010 floating-point            PVAFloat.FIELD_DESC_TYPE
+        // 01  variable-size array flag  PVAFieldDesc.Array.VARIABLE_SIZE
+        // 011 double binary64
         buffer.put((byte) 0b01001011);
     }
 
@@ -89,9 +98,7 @@ public class PVADoubleArray extends PVAData implements PVAArray
     public void decode(final PVATypeRegistry types, final ByteBuffer buffer) throws Exception
     {
         final int size = PVASize.decodeSize(buffer);
-        double[] new_value = value;
-        if (new_value == null  ||  new_value.length != size)
-            new_value = new double[size];
+        final double[] new_value = new double[size];
         for (int i=0; i<size; ++i)
             new_value[i] = buffer.getDouble();
         value = new_value;
@@ -125,10 +132,9 @@ public class PVADoubleArray extends PVAData implements PVAArray
     }
 
     @Override
-    protected void formatType(final int level, final StringBuilder buffer)
+    public String getType()
     {
-        indent(level, buffer);
-        buffer.append("double[] ").append(name);
+        return "double[]";
     }
 
     @Override
@@ -141,14 +147,22 @@ public class PVADoubleArray extends PVAData implements PVAArray
             buffer.append("null");
         else
         {
-            for (int i=0; i<safe.length; ++i)
+            final int show = Math.min(PVASettings.EPICS_PVA_MAX_ARRAY_FORMATTING, safe.length);
+            for (int i=0; i<show; ++i)
             {
                 if (i > 0)
                     buffer.append(", ");
                 buffer.append(safe[i]);
             }
+            if (safe.length > show)
+                buffer.append(", ...");
         }
         buffer.append("]");
+    }
+
+    @Override
+    public String formatValue() {
+        return Arrays.toString(get());
     }
 
     @Override

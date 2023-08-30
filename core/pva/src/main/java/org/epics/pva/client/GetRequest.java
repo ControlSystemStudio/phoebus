@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -74,7 +74,7 @@ class GetRequest extends CompletableFuture<PVAStructure> implements RequestEncod
             final int size_offset = buffer.position() + PVAHeader.HEADER_OFFSET_PAYLOAD_SIZE;
             PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_GET, 4+4+1+6);
             final int payload_start = buffer.position();
-            buffer.putInt(channel.sid);
+            buffer.putInt(channel.getSID());
             buffer.putInt(request_id);
             buffer.put(PVAHeader.CMD_SUB_INIT);
 
@@ -89,7 +89,7 @@ class GetRequest extends CompletableFuture<PVAStructure> implements RequestEncod
         {
             logger.log(Level.FINE, () -> "Sending get GET request #" + request_id + " for " + channel);
             PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_GET, 4+4+1);
-            buffer.putInt(channel.sid);
+            buffer.putInt(channel.getSID());
             buffer.putInt(request_id);
             buffer.put(PVAHeader.CMD_SUB_DESTROY);
         }
@@ -104,7 +104,7 @@ class GetRequest extends CompletableFuture<PVAStructure> implements RequestEncod
         final byte subcmd = buffer.get();
         PVAStatus status = PVAStatus.decode(buffer);
         if (! status.isSuccess())
-            throw new Exception(channel + " Get Response for " + request + ": " + status);
+            fail(new Exception(channel + " Get Response for " + request + ": " + status));
 
         if (subcmd == PVAHeader.CMD_SUB_INIT)
         {
@@ -147,6 +147,12 @@ class GetRequest extends CompletableFuture<PVAStructure> implements RequestEncod
         }
     }
 
+    /** Handle failure by both notifying whoever waits for this request to complete
+     *  and by throwing exception
+     *
+     *  @param ex Error description
+     *  @throws Exception
+     */
     private void fail(final Exception ex) throws Exception
     {
         completeExceptionally(ex);

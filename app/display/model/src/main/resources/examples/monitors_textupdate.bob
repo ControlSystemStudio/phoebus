@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <display version="2.0.0">
   <name>Text Update</name>
-  <height>800</height>
+  <width>1060</width>
+  <height>1000</height>
   <widget type="label" version="2.0.0">
     <name>Label</name>
     <class>TITLE</class>
@@ -271,7 +272,7 @@ while the DMS specialization maps 2 pi to 360 degrees.
     <pv_name>loc://Text("Hello there how are you doing?")</pv_name>
     <x>191</x>
     <y>800</y>
-    <width>109</width>
+    <width>238</width>
     <format>1</format>
     <precision>4</precision>
   </widget>
@@ -293,8 +294,8 @@ while the DMS specialization maps 2 pi to 360 degrees.
   <widget type="textupdate" version="2.0.0">
     <name>Text Update_8</name>
     <pv_name>sim://sine</pv_name>
-    <x>460</x>
-    <y>121</y>
+    <x>420</x>
+    <y>120</y>
     <width>160</width>
     <horizontal_alignment>1</horizontal_alignment>
     <rotation_step>2</rotation_step>
@@ -302,8 +303,8 @@ while the DMS specialization maps 2 pi to 360 degrees.
   <widget type="textupdate" version="2.0.0">
     <name>Text Update_18</name>
     <pv_name>sim://sine</pv_name>
-    <x>636</x>
-    <y>91</y>
+    <x>596</x>
+    <y>90</y>
     <width>40</width>
     <height>80</height>
     <horizontal_alignment>1</horizontal_alignment>
@@ -313,8 +314,8 @@ while the DMS specialization maps 2 pi to 360 degrees.
   <widget type="label" version="2.0.0">
     <name>Label_20</name>
     <text>The widget can be rotated:</text>
-    <x>450</x>
-    <y>91</y>
+    <x>410</x>
+    <y>90</y>
     <width>186</width>
     <height>28</height>
   </widget>
@@ -354,13 +355,14 @@ while the DMS specialization maps 2 pi to 360 degrees.
     <text>By default, Text Update widgets simply display the value of a PV.
 They allow no interaction.
 
-When you set the  'interactive' property to true, the widget allows selecting the current value so users and 'copy' it.
+When you set the  'interactive' property to true, the widget allows selecting the current value so users can 'copy' it.
 In addition, a scrollbar appears when the text exceeds the widget area.
+With vertical alignment set to 'bottom', the scrollbar will default to the bottom as well.
 </text>
     <x>450</x>
     <y>800</y>
     <width>350</width>
-    <height>160</height>
+    <height>200</height>
     <font>
       <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
       </font>
@@ -437,13 +439,54 @@ In addition, a scrollbar appears when the text exceeds the widget area.
   </widget>
   <widget type="textupdate" version="2.0.0">
     <name>Text Update_15</name>
-    <pv_name>loc://Text("Hello there how are you doing?")</pv_name>
+    <pv_name>loc://MultilineText("Hello there!
+
+How are you doing?
+Nice to \"meet\" you!
+
+Bye..")</pv_name>
     <x>191</x>
-    <y>830</y>
-    <width>69</width>
-    <height>60</height>
+    <y>870</y>
+    <width>238</width>
+    <height>80</height>
     <format>1</format>
     <precision>4</precision>
     <interactive>true</interactive>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_26</name>
+    <text>Alignment Options:</text>
+    <x>690</x>
+    <y>90</y>
+    <width>186</width>
+    <height>28</height>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_19</name>
+    <pv_name>sim://sine</pv_name>
+    <x>690</x>
+    <y>120</y>
+    <width>90</width>
+    <height>50</height>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_20</name>
+    <pv_name>sim://sine</pv_name>
+    <x>830</x>
+    <y>120</y>
+    <width>90</width>
+    <height>50</height>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_21</name>
+    <pv_name>sim://sine</pv_name>
+    <x>970</x>
+    <y>120</y>
+    <width>90</width>
+    <height>50</height>
+    <horizontal_alignment>2</horizontal_alignment>
+    <vertical_alignment>2</vertical_alignment>
   </widget>
 </display>

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,15 +7,24 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.rules;
 
-import java.util.Arrays;
-
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
-import org.csstudio.display.builder.model.properties.ScriptPV;
+import org.csstudio.display.builder.model.properties.Points;
 import org.csstudio.display.builder.model.properties.WidgetColor;
+
+import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.csstudio.display.builder.model.properties.WidgetFontStyle;
+import org.csstudio.display.builder.model.rules.RuleInfo.ExprInfoString;
+import org.csstudio.display.builder.model.rules.RuleInfo.ExprInfoValue;
 import org.csstudio.display.builder.model.widgets.LabelWidget;
+import org.csstudio.display.builder.model.widgets.PolylineWidget;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test of Rules
  *  @author Kay Kasemir
@@ -25,7 +34,7 @@ public class RulesTest
 {
     /** Rule that checks pv0>10 and picks a certain value for that */
     @Test
-    public void testValueForCondition() throws Exception
+    public void testValueForCondition()
     {
         final ImageWidget widget = new ImageWidget();
 
@@ -33,7 +42,7 @@ public class RulesTest
         width.setValue(47);
 
         final RuleInfo rule = new RuleInfo("WidthBasedOnPV", "data_width", false,
-                Arrays.asList(new RuleInfo.ExpressionInfo<WidgetProperty<Integer>>("pv0>10", true, width)));
+                List.of(new ExprInfoValue<>("pv0>10", width)));
 
         System.out.println(rule);
 //        final String script = RuleToScript.generatePy(widget, rule);
@@ -44,11 +53,11 @@ public class RulesTest
 
     /** Rules that uses the value of a PV within an expression */
     @Test
-    public void testValueAsExpression() throws Exception
+    public void testValueAsExpression()
     {
         final Widget widget = new ImageWidget();
         final RuleInfo rule = new RuleInfo("WidthFromPV", "data_width", true,
-                Arrays.asList(new RuleInfo.ExpressionInfo("true", false, "pv0")));
+                List.of(new ExprInfoString("true", "pv0")));
 
         System.out.println(rule);
 //        final String script = RuleToScript.generatePy(widget, rule);
@@ -59,20 +68,54 @@ public class RulesTest
 
     /** Rule that uses color */
     @Test
-    public void testColorRule() throws Exception
+    public void testColorRule()
     {
         final LabelWidget widget = new LabelWidget();
 
         final WidgetProperty<WidgetColor> color = widget.propForegroundColor().clone();
-        color.setValue(new WidgetColor(1, 2, 3));
+        color.setValue(new WidgetColor(1, 2, 3, 4));
 
         final RuleInfo rule = new RuleInfo("Color", "foreground_color", false,
-                Arrays.asList(new RuleInfo.ExpressionInfo<WidgetProperty<WidgetColor>>("pv0 > 10", true, color)));
+                List.of(new ExprInfoValue<>("pv0 > 10", color)));
 
         System.out.println(rule);
-//        final String script = RuleToScript.generatePy(widget, rule);
-//        System.out.println(script);
-//        // Script must create variables for colors
-//        assertThat(script, containsString("colorVal"));
+    }
+
+    /** Rule that uses font */
+    @Test
+    public void testFontRule()
+    {
+        final LabelWidget widget = new LabelWidget();
+
+        final WidgetProperty<WidgetFont> font = widget.propFont().clone();
+        font.setValue(new WidgetFont("Liberation Sans", WidgetFontStyle.ITALIC, 18.0));
+
+        final RuleInfo rule = new RuleInfo("Font", "font", false,
+                List.of(new ExprInfoValue<>("pv0 > 10", font)));
+
+        System.out.println(rule);
+        final String script = RuleToScript.generatePy(widget, rule);
+        System.out.println(script);
+        // Script must create WidgetFont for fonts
+        assertThat(script, containsString("WidgetFont(\"" + font.getValue().getFamily() + "\", WidgetFontStyle." + font.getValue().getStyle().name() + ", " + font.getValue().getSize() + ")"));
+    }
+
+    /** Rule that uses points */
+    @Test
+    public void testPointsRule()
+    {
+        final PolylineWidget widget = new PolylineWidget();
+
+        final WidgetProperty<Points> points = widget.propPoints().clone();
+        points.setValue(new Points(0.0, 0.0, 42.0, 42.0));
+
+        final RuleInfo rule = new RuleInfo("Points", "points", false,
+                List.of(new ExprInfoValue<>("pv0 > 10", points)));
+
+        System.out.println(rule);
+        final String script = RuleToScript.generatePy(widget, rule);
+        System.out.println(script);
+        // Script must create Points for points
+        assertThat(script, containsString("Points([0.0, 0.0, 42.0, 42.0])"));
     }
 }

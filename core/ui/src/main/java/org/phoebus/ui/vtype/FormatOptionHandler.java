@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 
 import org.epics.util.array.ListNumber;
 import org.epics.vtype.Display;
+import org.epics.vtype.VBoolean;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VEnumArray;
@@ -30,6 +31,7 @@ import org.epics.vtype.VStringArray;
 import org.epics.vtype.VTable;
 import org.epics.vtype.VType;
 import org.phoebus.pv.LongString;
+import org.phoebus.ui.Preferences;
 
 /** Utility for formatting data as string.
  *  @author Kay Kasemir
@@ -89,6 +91,11 @@ public class FormatOptionHandler
 
         if (value == null)
             return "<null>";
+
+        // Check roughly in order of likelyhood:
+        // We mostly expect numbers, then strings, then enum.
+        // For the arrays, handling any of them is expensive,
+        // so there the order of checking doesn't much matter.
         if (value instanceof VNumber)
         {
             final VNumber number = (VNumber) value;
@@ -101,6 +108,8 @@ public class FormatOptionHandler
             return ((VString)value).getValue();
         else if (value instanceof VEnum)
             return formatEnum((VEnum) value, option);
+        else if (value instanceof VBoolean)
+            return formatBoolean((VBoolean)value);
         else if (value instanceof VNumberArray)
         {
             final VNumberArray array = (VNumberArray) value;
@@ -111,11 +120,14 @@ public class FormatOptionHandler
                 return "[]";
             final StringBuilder buf = new StringBuilder("[");
             buf.append(formatNumber(data.getDouble(0), array.getDisplay(), option, precision));
-            for (int i=1; i<data.size(); ++i)
+            final int show = Math.min(data.size(), Preferences.max_array_formatting);
+            for (int i=1; i<show; ++i)
             {
                 buf.append(", ");
                 buf.append(formatNumber(data.getDouble(i), array.getDisplay(), option, precision));
             }
+            if (data.size() > show)
+                buf.append(", ...");
             buf.append("]");
             if (show_units  &&  !array.getDisplay().getUnit().isEmpty())
                 buf.append(" ").append(array.getDisplay().getUnit());
@@ -146,6 +158,7 @@ public class FormatOptionHandler
 
         return "<" + value.getClass().getName() + ">";
     }
+
 
     private static NumberFormat getDecimalFormat(final int precision)
     {
@@ -253,6 +266,15 @@ public class FormatOptionHandler
         if (option == FormatOption.DEFAULT  ||  option == FormatOption.STRING)
             return value.getValue();
         return Integer.toString(value.getIndex());
+    }
+
+    /**
+     * @param value {@link VBoolean}
+     * @return String representation for the VBoolean value
+     */
+    private static String formatBoolean(VBoolean value)
+    {
+        return value.getValue().toString();
     }
 
     /** Format table as text
@@ -388,10 +410,15 @@ public class FormatOptionHandler
                 final int sep = text.lastIndexOf(' ');
                 if (sep > 0)
                     text = text.substring(0, sep).trim();
-                text = text.toUpperCase();
-                if (text.startsWith("0X"))
-                    text = text.substring(2);
-                return Long.parseLong(text, 16);
+                // Hex numbers are almost exclusively used to check the binary
+                // representation of data.
+                // A 64bit number 0x8000000000000000 is used to check if the highest
+                // bit is set, so needs to be parsed 'unsigned' because otherwise
+                // 0x7... would be the largest positive value that can be handled.
+                if (text.startsWith("0x")  ||  text.startsWith("0X"))
+                    return Long.parseUnsignedLong(text.substring(2), 16);
+                else
+                    return Long.parseUnsignedLong(text, 16);
             }
             case BINARY:
             {   // Remove trailing text (units or part of units)

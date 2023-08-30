@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,25 +12,27 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 
+import org.epics.pva.PVASettings;
+
 /** 'Primitive' PV Access data type
  *   @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVAShortArray extends PVAData implements PVAArray
+public class PVAShortArray extends PVAData implements PVAArray, PVAValue
 {
     private final boolean unsigned;
     private volatile short[] value;
 
-    public PVAShortArray(final String name, final boolean unsigned, final short[] value)
+    /** Construct variable-size array
+     *  @param name Data item name
+     *  @param unsigned Data signed/unsigned type
+     *  @param value Initial value
+     */
+    public PVAShortArray(final String name, final boolean unsigned, final short... value)
     {
         super(name);
         this.unsigned = unsigned;
         this.value = value;
-    }
-
-    public PVAShortArray(final String name, final boolean unsigned)
-    {
-        this(name, unsigned, new short[0]);
     }
 
     /** @return Is value unsigned? */
@@ -54,7 +56,16 @@ public class PVAShortArray extends PVAData implements PVAArray
     @Override
     public void setValue(final Object new_value) throws Exception
     {
-        if (new_value instanceof short[])
+        if (new_value instanceof PVAShortArray)
+        {
+            final short[] other = ((PVAShortArray) new_value).value;
+            value = Arrays.copyOf(other, other.length);
+        }
+        else if (new_value instanceof PVADoubleArray)
+            set(Convert.toShort(((PVADoubleArray) new_value).get()));
+        else if (new_value instanceof double[])
+            set(Convert.toShort((double[]) new_value));
+        else if (new_value instanceof short[])
             set(((short[]) new_value));
         else if (new_value instanceof List)
         {
@@ -101,9 +112,7 @@ public class PVAShortArray extends PVAData implements PVAArray
     {
         final int size = PVASize.decodeSize(buffer);
         // Try to re-use existing array
-        short[] new_value = value;
-        if (new_value == null  ||  new_value.length != size)
-            new_value = new short[size];
+        final short[] new_value = new short[size];
         // Considered using
         //   buffer.asShortBuffer().get(new_value);
         // but debugger shows that it ends up in the same loop:
@@ -139,12 +148,11 @@ public class PVAShortArray extends PVAData implements PVAArray
     }
 
     @Override
-    protected void formatType(final int level, final StringBuilder buffer)
+    public String getType()
     {
-        indent(level, buffer);
         if (unsigned)
-            buffer.append('u');
-        buffer.append("short[] ").append(name);
+            return "ushort[]";
+        return "short[]";
     }
 
     @Override
@@ -157,7 +165,8 @@ public class PVAShortArray extends PVAData implements PVAArray
             buffer.append("null");
         else
         {
-            for (int i=0; i<safe.length; ++i)
+            final int show = Math.min(PVASettings.EPICS_PVA_MAX_ARRAY_FORMATTING, safe.length);
+            for (int i=0; i<show; ++i)
             {
                 if (i > 0)
                     buffer.append(", ");
@@ -166,8 +175,15 @@ public class PVAShortArray extends PVAData implements PVAArray
                 else
                     buffer.append(safe[i]);
             }
+            if (safe.length > show)
+                buffer.append(", ...");
         }
         buffer.append("]");
+    }
+
+    @Override
+    public String formatValue() {
+        return Arrays.toString(get());
     }
 
     @Override

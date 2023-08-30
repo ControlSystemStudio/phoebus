@@ -14,9 +14,13 @@ import org.csstudio.display.builder.model.Messages;
  */
 public enum RotationStep
 {
+    /** Zero degrees */
     NONE(Messages.Rotation_0, 0.0),
+    /** 90 degrees */
     NINETY(Messages.Rotation_90, 90.0),
+    /** 180 degrees */
     ONEEIGHTY(Messages.Rotation_180, 180.0),
+    /** -90 or 270 degrees */
     MINUS_NINETY(Messages.Rotation_270, 270.0);
 
     private final String label;

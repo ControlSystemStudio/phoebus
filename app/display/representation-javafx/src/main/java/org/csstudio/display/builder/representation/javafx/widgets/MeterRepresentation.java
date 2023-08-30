@@ -104,8 +104,15 @@ public class MeterRepresentation extends RegionBaseRepresentation<Pane, MeterWid
             // Try display range from PV
             if (display_info != null)
             {
-                min_val = display_info.getDisplayRange().getMinimum();
-                max_val = display_info.getDisplayRange().getMaximum();
+                // If the PV is a number, then use the values from the PV
+                double pv_min_val = display_info.getDisplayRange().getMinimum();
+                if(!Double.isNaN(pv_min_val)) {
+                    min_val = pv_min_val;
+                }
+                double pv_max_val = display_info.getDisplayRange().getMaximum();
+                if(!Double.isNaN(pv_max_val)) {
+                    max_val = pv_max_val;
+                }
             }
         }
         meter.setRange(min_val, max_val);

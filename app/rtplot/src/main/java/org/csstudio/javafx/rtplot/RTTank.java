@@ -92,6 +92,9 @@ public class RTTank extends Canvas
         if (image != null)
             synchronized (image)
             {
+                // Clear the canvas for e.g. transparent pixels (otherwise image appears drawn over previous)
+                gc.clearRect(0, 0, gc.getCanvas().getWidth(), gc.getCanvas().getHeight());
+                // Draw the updated image
                 gc.drawImage(image, 0, 0);
             }
     };
@@ -183,6 +186,13 @@ public class RTTank extends Canvas
             scale_visible = visible;
             need_layout.set(true);
         }
+    }
+
+    /** @param logscale Use log scale for y-axis? */
+    public void setLogScale(final boolean logscale)
+    {
+        scale.setLogarithmic(logscale);
+        requestUpdate();
     }
 
     /** Set value range

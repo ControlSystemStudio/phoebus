@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,25 +12,27 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 
+import org.epics.pva.PVASettings;
+
 /** 'Primitive' PV Access data type
  *   @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVAIntArray extends PVAData implements PVAArray
+public class PVAIntArray extends PVAData implements PVAArray, PVAValue
 {
     private final boolean unsigned;
     private volatile int[] value;
 
-    public PVAIntArray(final String name, final boolean unsigned, final int[] value)
+    /** Construct variable-size array
+     *  @param name Data item name
+     *  @param unsigned Unsigned data?
+     *  @param value Initial value
+     */
+    public PVAIntArray(final String name, final boolean unsigned, final int... value)
     {
         super(name);
         this.unsigned = unsigned;
         this.value = value;
-    }
-
-    public PVAIntArray(final String name, final boolean unsigned)
-    {
-        this(name, unsigned, new int[0]);
     }
 
     /** @return Is value unsigned? */
@@ -54,7 +56,16 @@ public class PVAIntArray extends PVAData implements PVAArray
     @Override
     public void setValue(final Object new_value) throws Exception
     {
-        if (new_value instanceof int[])
+        if (new_value instanceof PVAIntArray)
+        {
+            final int[] other = ((PVAIntArray) new_value).value;
+            value = Arrays.copyOf(other, other.length);
+        }
+        else if (new_value instanceof PVADoubleArray)
+            set(Convert.toInt(((PVADoubleArray) new_value).get()));
+        else if (new_value instanceof double[])
+            set(Convert.toInt((double[]) new_value));
+        else if (new_value instanceof int[])
             set(((int[]) new_value));
         else if (new_value instanceof List)
         {
@@ -100,9 +111,7 @@ public class PVAIntArray extends PVAData implements PVAArray
     public void decode(final PVATypeRegistry types, final ByteBuffer buffer) throws Exception
     {
         final int size = PVASize.decodeSize(buffer);
-        int[] new_value = value;
-        if (new_value == null  ||  new_value.length != size)
-            new_value = new int[size];
+        final int[] new_value = new int[size];
         for (int i=0; i<size; ++i)
             new_value[i] = buffer.getInt();
         value = new_value;
@@ -133,12 +142,11 @@ public class PVAIntArray extends PVAData implements PVAArray
     }
 
     @Override
-    protected void formatType(final int level, final StringBuilder buffer)
+    public String getType()
     {
-        indent(level, buffer);
         if (unsigned)
-            buffer.append('u');
-        buffer.append("int[] ").append(name);
+            return "uint[]";
+        return "int[]";
     }
 
     @Override
@@ -151,7 +159,8 @@ public class PVAIntArray extends PVAData implements PVAArray
             buffer.append("null");
         else
         {
-            for (int i=0; i<safe.length; ++i)
+            final int show = Math.min(PVASettings.EPICS_PVA_MAX_ARRAY_FORMATTING, safe.length);
+            for (int i=0; i<show; ++i)
             {
                 if (i > 0)
                     buffer.append(", ");
@@ -160,8 +169,15 @@ public class PVAIntArray extends PVAData implements PVAArray
                 else
                     buffer.append(safe[i]);
             }
+            if (safe.length > show)
+                buffer.append(", ...");
         }
         buffer.append("]");
+    }
+
+    @Override
+    public String formatValue() {
+        return Arrays.toString(get());
     }
 
     @Override

@@ -70,9 +70,11 @@ public class SQL
         chan_grp_delete_by_engine_id = "DELETE FROM " + schema + "chan_grp WHERE eng_id=?";
         chan_grp_insert = "INSERT INTO " + schema + "chan_grp (grp_id, name, eng_id, enabling_chan_id) VALUES (?,?,?,null)";
         chan_grp_next_id = "SELECT MAX(grp_id) FROM " + schema + "chan_grp";
-        chan_grp_sel_by_channel = "SELECT g.grp_id, g.name FROM " + schema + "chan_grp g " +
+        chan_grp_sel_by_channel = "SELECT g.grp_id, g.name, e.name FROM " + schema + "chan_grp g " +
                                   "JOIN " + schema + "channel c ON g.grp_id = c.grp_id " +
+                                  "JOIN " + schema + "smpl_eng e ON g.eng_id = e.eng_id " +
                                   "WHERE c.name=?";
+
         chan_grp_set_enable_channel = "UPDATE " + schema + "chan_grp SET enabling_chan_id=? WHERE grp_id=?";
 
         // 'channel' table

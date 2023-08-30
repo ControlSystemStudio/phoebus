@@ -71,14 +71,11 @@ Connects widgets to PVs, executes Jython and JavaScript in background threads.
 Throttled updates on user interface thread.
 Resolves embedded displays relative to parent.
 
-New widgets do not necessarily need to register their own runtime,
-but can do so via an extension point.
-
 The base `WidgetRuntime` handles the following:
 
- * If widget has "pv_name" and "value" properties, a primary PV is created for
-   the "pv_name". The "value" is updated with the current VType.
-   Representation then needs to reflect the current "value".
+ * If widget has `pv_name` and `pv_value` properties, a primary PV is created for
+   the `pv_name`. The `pv_value` is updated with each `VType` received from that PV.
+   Representation then needs to reflect the current `pv_value`.
    
  * Widget can 'write' to the primary PV.
     
@@ -86,6 +83,11 @@ The base `WidgetRuntime` handles the following:
    and the script is triggered when any of its input PVs change.
    The script can then update widget properties.
    Similarly, "rules" are converted into scripts and then executed.
+
+Most new widgets can simply use the base `WidgetRuntime`,
+they do not necessarily need to register their own runtime.
+Widgets that rely on several PVs or other runtime functionality,
+however, can register their own runtime via SPI.
 
 #### Editor: `org.csstudio.display.builder.editor`
 

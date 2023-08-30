@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.phoebus.channel.views.ui.ChannelTreeController;
+import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;
@@ -21,6 +22,9 @@ import javafx.fxml.FXMLLoader;
  *
  */
 public class ChannelTree implements AppInstance {
+
+    private static final String CF_TREE_QUERY = "cf_tree_query";
+
     private final ChannelTreeApp app;
     private ChannelTreeController controller;
     private DockItem tab;
@@ -33,6 +37,9 @@ public class ChannelTree implements AppInstance {
             tab = new DockItem(this, loader.load());
             controller = loader.getController();
             controller.setClient(app.getClient());
+            tab.addClosedNotification(() -> {
+                controller.dispose();
+            });
             DockPane.getActiveDockPane().addTab(tab);
         } catch (IOException e) {
             Logger.getLogger(getClass().getName()).log(Level.WARNING, "Cannot load UI", e);
@@ -51,5 +58,19 @@ public class ChannelTree implements AppInstance {
             return s.startsWith("query");
         }).map(s->{return s.split("=")[1];}).collect(Collectors.joining(" "));
         controller.setQuery(parsedQuery);
+    }
+
+    @Override
+    public void restore(final Memento memento)
+    {
+        memento.getString(CF_TREE_QUERY).ifPresent(query -> controller.setQuery(query));
+    }
+
+    @Override
+    public void save(final Memento memento)
+    {
+        if(!controller.getQuery().isBlank()) {
+            memento.setString(CF_TREE_QUERY, controller.getQuery().trim());
+        }
     }
 }

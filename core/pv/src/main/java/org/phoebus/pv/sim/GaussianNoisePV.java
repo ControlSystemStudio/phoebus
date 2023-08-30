@@ -21,6 +21,11 @@ public class GaussianNoisePV extends SimulatedDoublePV
     private static final Random rand = new Random();
     private final double center, std_dev;
 
+    /** @param name Name
+     *  @param parameters Parameters
+     *  @return PV
+     *  @throws Exception on error
+     */
     public static PV forParameters(final String name, List<Double> parameters) throws Exception
     {
         if (parameters.isEmpty())
@@ -30,6 +35,11 @@ public class GaussianNoisePV extends SimulatedDoublePV
         throw new Exception("sim://gaussianNoise needs no parameters or (center, std_dev, update_seconds)");
     }
 
+    /** @param name Name
+     *  @param center Center value
+     *  @param std_dev Std deviation
+     *  @param update_seconds Seconds between updates
+     */
     public GaussianNoisePV(final String name, final double center, final double std_dev, final double update_seconds)
     {
         super(name);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,7 +9,6 @@ package org.csstudio.display.builder.model.widgets.plots;
 
 import static org.csstudio.display.builder.model.ModelPlugin.logger;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFile;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMacros;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.runtimePropConfigure;
 import static org.csstudio.display.builder.model.widgets.plots.PlotWidgetProperties.propToolbar;
 
@@ -32,9 +31,8 @@ import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.RuntimeEventProperty;
-import org.csstudio.display.builder.model.widgets.VisibleWidget;
+import org.csstudio.display.builder.model.widgets.MacroWidget;
 import org.epics.vtype.VType;
-import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 
@@ -45,7 +43,7 @@ import org.w3c.dom.Element;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class DataBrowserWidget extends VisibleWidget
+public class DataBrowserWidget extends MacroWidget
 {
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
@@ -86,23 +84,31 @@ public class DataBrowserWidget extends VisibleWidget
         }
     }
 
+    /** 'selection_value_pv' */
     public static final WidgetPropertyDescriptor<String> propSelectionValuePV =
         CommonWidgetProperties.newStringPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "selection_value_pv", Messages.PlotWidget_SelectionValuePV);
 
+    /** 'selection_value' */
     public static final WidgetPropertyDescriptor<VType> propSelectionValue =
         CommonWidgetProperties.newRuntimeValue("selection_value", "Selection Value");
 
+    /** 'open_full' */
     public static final WidgetPropertyDescriptor<Instant> runtimePropOpenFull =
             CommonWidgetProperties.newRuntimeEvent("open_full", "Open Full Data Browser");
 
+    /** 'refresh_plot' */
+    public static final WidgetPropertyDescriptor<Instant> runtimePropRefreshPlot =
+            CommonWidgetProperties.newRuntimeEvent("refresh_plot", "Refresh Plot");
+
     private volatile WidgetProperty<Boolean> show_toolbar;
     private volatile WidgetProperty<String> file;
-    private volatile WidgetProperty<Macros> macros;
     private volatile RuntimeEventProperty configure;
     private volatile WidgetProperty<String> selection_value_pv;
     private volatile WidgetProperty<VType> selection_value;
     private volatile RuntimeEventProperty open_full;
+    private volatile RuntimeEventProperty refresh_plot;
 
+    /** Constructor */
     public DataBrowserWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 400, 300);
@@ -114,11 +120,11 @@ public class DataBrowserWidget extends VisibleWidget
         super.defineProperties(properties);
         properties.add(file = propFile.createProperty(this, ""));
         properties.add(show_toolbar = propToolbar.createProperty(this, false));
-        properties.add(macros = propMacros.createProperty(this, new Macros()));
         properties.add(configure = (RuntimeEventProperty) runtimePropConfigure.createProperty(this, null));
         properties.add(selection_value_pv = propSelectionValuePV.createProperty(this, ""));
         properties.add(selection_value = propSelectionValue.createProperty(this, null));
         properties.add(open_full = (RuntimeEventProperty) runtimePropOpenFull.createProperty(this, null));
+        properties.add(refresh_plot = (RuntimeEventProperty) runtimePropRefreshPlot.createProperty(this, null));
     }
 
     @Override
@@ -152,23 +158,6 @@ public class DataBrowserWidget extends VisibleWidget
             logger.log(Level.WARNING, "Cannot obtain data browser model", ex);
         }
         return null;
-    }
-
-    /** Databrowser widget extends parent macros
-     *  @return {@link Macros}
-     */
-    @Override
-    public Macros getEffectiveMacros()
-    {
-        final Macros base = super.getEffectiveMacros();
-        final Macros my_macros = propMacros().getValue();
-        return Macros.merge(base, my_macros);
-    }
-
-    /** @return 'macros' property */
-    public WidgetProperty<Macros> propMacros()
-    {
-        return macros;
     }
 
     /** @return 'file' property */
@@ -205,5 +194,11 @@ public class DataBrowserWidget extends VisibleWidget
     public RuntimeEventProperty runtimePropOpenFull()
     {
         return open_full;
+    }
+
+    /** @return 'refresh_plot' property */
+    public RuntimeEventProperty runtimePropRefreshPlot()
+    {
+        return refresh_plot;
     }
 }

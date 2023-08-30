@@ -31,24 +31,24 @@ public class CreateDirectoryAction extends MenuItem
     /** @param node Node used to position confirmation dialog
      *  @param item Item under which to create a new folder
      */
-    public CreateDirectoryAction(final Node node, final TreeItem<File> item)
+    public CreateDirectoryAction(final Node node, final TreeItem<FileInfo> item)
     {
         super(Messages.NewFolder, new ImageView(FileTreeCell.folder_icon));
 
         setOnAction(event ->
         {
             // Prompt for new name
-            final File file = item.getValue();
+            final File file = item.getValue().file;
             final TextInputDialog prompt = new TextInputDialog(file.getName());
             prompt.setTitle(getText());
-            prompt.setHeaderText(Messages.CreateDirectoryHdr + item.getValue());
+            prompt.setHeaderText(Messages.CreateDirectoryHdr + item.getValue().file.getName());
             DialogHelper.positionDialog(prompt, node, 0, 0);
             final String new_name = prompt.showAndWait().orElse(null);
             if (new_name == null)
                 return;
 
             // Abort if folder already exists
-            final File new_folder = new File(item.getValue(), new_name);
+            final File new_folder = new File(item.getValue().file, new_name);
             if (new_folder.exists())
             {
                 final Alert alert = new Alert(AlertType.WARNING);
@@ -68,7 +68,7 @@ public class CreateDirectoryAction extends MenuItem
                 // Add new folder to tree
                 Platform.runLater(() ->
                 {
-                    final ObservableList<TreeItem<File>> children = item.getChildren();
+                    final ObservableList<TreeItem<FileInfo>> children = item.getChildren();
                     children.add(new FileTreeItem(((FileTreeItem)item).getMonitor(), new_folder));
                     FileTreeItem.sortSiblings(children);
                 });

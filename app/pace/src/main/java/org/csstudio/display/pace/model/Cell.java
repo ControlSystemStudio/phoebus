@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,12 +14,13 @@ import java.util.concurrent.TimeUnit;
 
 import org.csstudio.display.pace.Messages;
 import org.epics.vtype.VType;
+import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.util.time.TimestampFormats;
 
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.disposables.Disposable;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 
@@ -318,25 +319,25 @@ public class Cell
 
     private void updateValue(final VType value)
     {
-        current_value = VTypeHelper.getString(value);
+        current_value = VTypeHelper.toString(value);
         instance.getModel().fireCellUpdate(this);
     }
 
     private void updateLastName(final VType value)
     {
-        last_name = VTypeHelper.getString(value);
+        last_name = VTypeHelper.toString(value);
         instance.getModel().fireCellUpdate(this);
     }
 
     private void updateLastDate(final VType value)
     {
-        last_date = VTypeHelper.getString(value);
+        last_date = VTypeHelper.toString(value);
         instance.getModel().fireCellUpdate(this);
     }
 
     private void updateLastComment(final VType value)
     {
-        last_comment = VTypeHelper.getString(value);
+        last_comment = VTypeHelper.toString(value);
         instance.getModel().fireCellUpdate(this);
     }
 

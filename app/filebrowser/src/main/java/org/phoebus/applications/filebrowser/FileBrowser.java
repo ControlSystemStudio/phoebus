@@ -2,9 +2,7 @@ package org.phoebus.applications.filebrowser;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
-import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,6 +17,7 @@ import org.phoebus.ui.docking.DockPane;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.TreeTableColumn;
 
 @SuppressWarnings("nls")
 public class FileBrowser implements AppInstance
@@ -26,7 +25,10 @@ public class FileBrowser implements AppInstance
     /** Logger for all file browser code */
     public static final Logger logger = Logger.getLogger(FileBrowser.class.getPackageName());
 
-    private static final String DIRECTORY = "directory";
+    /** Memento tags */
+    private static final String DIRECTORY = "directory",
+                                SHOW_COLUMN = "show_col",
+                                WIDTH = "col_width";
 
     private final AppDescriptor app;
 
@@ -42,8 +44,7 @@ public class FileBrowser implements AppInstance
         try
         {
             final URL fxml = getClass().getResource("FileBrowser.fxml");
-            final InputStream iStream = NLS.getMessages(FileBrowser.class);
-            final ResourceBundle bundle = new PropertyResourceBundle(iStream);
+            final ResourceBundle bundle = NLS.getMessages(FileBrowser.class);
             fxmlLoader = new FXMLLoader(fxml, bundle);
             content = (Node) fxmlLoader.load();
             controller = fxmlLoader.getController();
@@ -69,17 +70,33 @@ public class FileBrowser implements AppInstance
         return app;
     }
 
-
     @Override
     public void restore(final Memento memento)
     {
         memento.getString(DIRECTORY).ifPresent(dir -> controller.setRoot(new File(dir)));
+        int i = 0;
+        for (TreeTableColumn<?,?> col : controller.getView().getColumns())
+        {
+            if (! memento.getBoolean(SHOW_COLUMN+i).orElse(true))
+                col.setVisible(false);
+            memento.getNumber(WIDTH+i).ifPresent(width -> col.setPrefWidth(width.doubleValue()));
+            ++i;
+        }
     }
 
     @Override
     public void save(final Memento memento)
     {
-        if (controller != null)
-            memento.setString(DIRECTORY, controller.getRoot().toString());
+        if (controller == null)
+            return;
+        memento.setString(DIRECTORY, controller.getRoot().toString());
+        int i = 0;
+        for (TreeTableColumn<?,?> col : controller.getView().getColumns())
+        {
+            if (! col.isVisible())
+                memento.setBoolean(SHOW_COLUMN+i, false);
+            memento.setNumber(WIDTH+i, col.getWidth());
+            ++i;
+        }
     }
 }

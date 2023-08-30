@@ -22,6 +22,9 @@ public class FormulaDialog extends Dialog<Boolean>
 {
     private final FormulaPane form_pane;
 
+    /** @param formula Expression
+     *  @param inputs Variables
+     */
     public FormulaDialog(final String formula, final List<InputItem> inputs)
     {
         setTitle(Messages.Formula);

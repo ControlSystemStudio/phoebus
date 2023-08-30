@@ -20,11 +20,6 @@ package org.phoebus.applications.saveandrestore.model;
 
 import java.util.Objects;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 /**
  * Class encapsulating data to describe a PV subject to a save operation. A read-back PV name
  * is optionally associated with the PV name. A PV record is uniquely identified by both the PV name
@@ -32,31 +27,48 @@ import lombok.NoArgsConstructor;
  * @author georgweiss
  * Created 1 Oct 2018
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class ConfigPv implements Comparable<ConfigPv>{
-	
-	private int id;
+
 	private String pvName;
 	private String readbackPvName;
-	@Builder.Default
 	private boolean readOnly = false;
-	
-	
+
+	public String getPvName() {
+		return pvName;
+	}
+
+	public void setPvName(String pvName) {
+		this.pvName = pvName;
+	}
+
+	public String getReadbackPvName() {
+		return readbackPvName;
+	}
+
+	public void setReadbackPvName(String readbackPvName) {
+		this.readbackPvName = readbackPvName;
+	}
+
+	public boolean isReadOnly() {
+		return readOnly;
+	}
+
+	public void setReadOnly(boolean readOnly) {
+		this.readOnly = readOnly;
+	}
+
 	@Override
 	public boolean equals(Object other) {
 		if(other instanceof ConfigPv) {
 			ConfigPv otherConfigPv = (ConfigPv)other;
-			return Objects.equals(pvName, otherConfigPv.getPvName()) && Objects.equals(readbackPvName, otherConfigPv.getReadbackPvName());
+			return Objects.equals(pvName, otherConfigPv.getPvName()) && Objects.equals(readbackPvName, otherConfigPv.getReadbackPvName()) && Objects.equals(readOnly, otherConfigPv.isReadOnly());
 		}
 		return false;
 	}
 	
 	@Override
 	public int hashCode() {
-		return Objects.hash(pvName, readbackPvName);
+		return Objects.hash(pvName, readbackPvName, readOnly);
 	}
 	
 	@Override
@@ -64,7 +76,8 @@ public class ConfigPv implements Comparable<ConfigPv>{
 		
 		return new StringBuffer()
 				.append("PV name=").append(pvName)
-				.append(", redback PV name=").append(readbackPvName)
+				.append(", readback PV name=").append(readbackPvName)
+				.append(", readOnly=").append(readOnly)
 				.toString();
 	}
 	
@@ -76,5 +89,37 @@ public class ConfigPv implements Comparable<ConfigPv>{
 	@Override
 	public int compareTo(ConfigPv other) {
 		return pvName.compareTo(other.getPvName());
+	}
+
+	public static Builder builder(){
+		return new Builder();
+	}
+
+	public static class Builder{
+
+		private ConfigPv configPv;
+
+		private Builder(){
+			configPv = new ConfigPv();
+		}
+
+		public Builder pvName(String pvName){
+			configPv.setPvName(pvName);
+			return this;
+		}
+
+		public Builder readbackPvName(String readbackPvName){
+			configPv.setReadbackPvName(readbackPvName);
+			return this;
+		}
+
+		public Builder readOnly(boolean readOnly){
+			configPv.setReadOnly(readOnly);
+			return this;
+		}
+
+		public ConfigPv build(){
+			return configPv;
+		}
 	}
 }

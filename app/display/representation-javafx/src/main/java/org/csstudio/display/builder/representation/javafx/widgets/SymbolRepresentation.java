@@ -23,6 +23,12 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import javafx.scene.effect.ColorAdjust;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import org.csstudio.display.builder.model.ArrayWidgetProperty;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
@@ -30,11 +36,13 @@ import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.macros.MacroHandler;
+import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.SymbolWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.csstudio.display.builder.representation.javafx.SVGHelper;
 import org.epics.util.array.ListNumber;
 import org.epics.vtype.VBoolean;
 import org.epics.vtype.VEnum;
@@ -71,6 +79,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
 
+
 /**
  * @author claudiorosati, European Spallation Source ERIC
  * @version 1.0.0 19 Jun 2017
@@ -80,9 +89,9 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
     private static final double INDEX_LABEL_SIZE = 32.0;
 
     private int                                  arrayIndex             = 0;
+    private boolean                              defaultSymbolVisible   = false;
     private volatile boolean                     autoSize               = false;
     private Symbol                               symbol;
-    private final Symbol                         defaultSymbol;
     private final DefaultSymbolNode              defaultSymbolNode      = new DefaultSymbolNode();
     private final DirtyFlag                      dirtyContent           = new DirtyFlag();
     private final DirtyFlag                      dirtyGeometry          = new DirtyFlag();
@@ -99,13 +108,16 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
     private final ImageView                      imageView              = new ImageView();
     private final Label                          indexLabel             = new Label();
     private final Circle                         indexLabelBackground   = new Circle(INDEX_LABEL_SIZE / 2, Color.BLACK.deriveColor(0.0, 0.0, 0.0, 0.75));
+    private final Rectangle                      disconnectedRectangle  = new Rectangle();
     private Dimension2D                          maxSize                = new Dimension2D(0, 0);
     private final WidgetPropertyListener<String> symbolPropertyListener = this::symbolChanged;
     private final AtomicReference<List<Symbol>>  symbols                = new AtomicReference<>(Collections.emptyList());
     private final AtomicBoolean                  updatingValue          = new AtomicBoolean(false);
+    private Symbol fallbackSymbol;
+
 
     // ---- imageIndex property
-    private IntegerProperty imageIndex = new SimpleIntegerProperty(-1);
+    private final IntegerProperty imageIndex = new SimpleIntegerProperty(-1);
 
     private int getImageIndex ( ) {
         return imageIndex.get();
@@ -113,29 +125,6 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
     private IntegerProperty imageIndexProperty ( ) {
         return imageIndex;
-    }
-
-    private void setImageIndex ( int imageIndex ) {
-
-        int oldIndex = getImageIndex();
-        List<Symbol> symbolsList = symbols.get();
-
-        if ( imageIndex < 0 || symbolsList.isEmpty() ) {
-            symbol = getDefaultSymbol();
-        } else {
-            symbol = symbolsList.get(Math.min(imageIndex, symbolsList.size() - 1));
-        }
-
-        if ( oldIndex != imageIndex ) {
-            dirtyGeometry.mark();
-            toolkit.scheduleUpdate(SymbolRepresentation.this);
-        }
-
-        toolkit.execute(() -> {
-            this.imageIndex.set(imageIndex);
-            jfx_node.getChildren().set(0, getSymbolNode());
-        });
-
     }
 
     /**
@@ -149,7 +138,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
         Double[] max_size = new Double[] { 0.0, 0.0 };
 
-        widget.propSymbols().getValue().stream().forEach(s -> {
+        widget.propSymbols().getValue().forEach(s -> {
 
             final String imageFile = s.getValue();
 
@@ -176,6 +165,10 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
     }
 
+    /** @param widget Widget
+     *  @param imageFileName File name to resolve
+     *  @return Resolved file name
+     */
     public static String resolveImageFile ( SymbolWidget widget, String imageFileName ) {
 
         try {
@@ -191,7 +184,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
         } catch ( Exception ex ) {
 
-            logger.log(Level.WARNING, "Failure resolving image path: {0} [{1}].", new Object[] { imageFileName, ex.getMessage() });
+            logger.log(Level.WARNING, String.format("Failure resolving image path: %s", imageFileName), ex);
 
             return null;
 
@@ -211,14 +204,9 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
     }
 
+    /** Constructor */
     public SymbolRepresentation ( ) {
-
         super();
-
-        //  This initialization must be performed here, to allow defaultSymbolNode
-        //  to be initialized first.
-        defaultSymbol = new Symbol();
-
     }
 
     @Override
@@ -231,6 +219,26 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         symbols.set(null);
     }
 
+    private void setArrayIndex ( ) {
+        Object value = model_widget.propArrayIndex().getValue();
+
+        if ( !Objects.equals(value, arrayIndex) ) {
+            arrayIndex = Math.max(0, (int) value);
+        }
+    }
+
+    private Symbol getSymbol (final int idx, final List<Symbol> symbolsList) {
+        if ( idx < 0 || symbolsList.isEmpty() ) {
+            return new Symbol();
+        }
+
+        else if(idx > symbolsList.size() - 1){
+            return fallbackSymbol;
+        }
+
+        return symbolsList.get(idx);
+    }
+
     @Override
     public void updateChanges ( ) {
 
@@ -241,11 +249,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         //  Must be the first "if" statement to be executed, because it select the array index for the value.
         if ( dirtyContent.checkAndClear() ) {
 
-            value = model_widget.propArrayIndex().getValue();
-
-            if ( !Objects.equals(value, arrayIndex) ) {
-                arrayIndex = Math.max(0, (int) value);
-            }
+            setArrayIndex();
 
             dirtyValue.mark();
 
@@ -261,6 +265,8 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
                 value = model_widget.runtimePropValue().getValue();
 
                 if ( value != null ) {
+                    disconnectedRectangle.setVisible(false);
+
                     if ( PVWidget.RUNTIME_VALUE_NO_PV == value ) {
                         idx = model_widget.propInitialIndex().getValue();
                     } else if ( value instanceof VBoolean ) {
@@ -269,7 +275,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
                         try {
                             idx = Integer.parseInt(( (VString) value ).getValue());
                         } catch ( NumberFormatException nfex ) {
-                            logger.log(Level.FINE, "Failure parsing the string value: {0} [{1}].", new Object[] { ( (VString) value ).getValue(), nfex.getMessage() });
+                            logger.log(Level.SEVERE, "Failure parsing the string value: {0} [{1}].", new Object[] { ( (VString) value ).getValue(), nfex.getMessage() });
                         }
                     } else if ( value instanceof VNumber ) {
                         idx = ( (VNumber) value ).getValue().intValue();
@@ -291,17 +297,40 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
                             idx = array.getInt(Math.min(arrayIndex, array.size() - 1));
                         }
 
+                    } else {
+                        logger.log(Level.SEVERE, "Cannot interpret value: " + value);
                     }
+                } else if (! toolkit.isEditMode()) {
+                    disconnectedRectangle.setVisible(true);
+                } else {
+                    idx = model_widget.propInitialIndex().getValue();
                 }
 
             } finally {
                 updatingValue.set(false);
             }
 
-            if ( idx != Integer.MIN_VALUE ) {
-                // Valid value.
-                setImageIndex(idx);
+            List<Symbol> symbolsList = symbols.get();
+            int oldIndex = getImageIndex();
+
+            if ( idx == Integer.MIN_VALUE ) {
+                // Keep current index
+                idx = oldIndex;
+
+                // PV is disconnected (or has no valid value) so let's switch to the initial index if current image is null
+                // This tries to mimic what a rule changing the visibility would do
+                if ( getSymbol(idx, symbolsList).isHidden() )
+                    idx = model_widget.propInitialIndex().getValue();
             }
+
+            symbol = getSymbol(idx, symbolsList);
+
+            if ( oldIndex != idx ) {
+                dirtyGeometry.mark();
+            }
+
+            imageIndex.set(idx);
+            jfx_node.getChildren().set(0, getSymbolNode(true));
 
         }
 
@@ -343,6 +372,9 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
                 setSymbolSize(w, h, model_widget.propPreserveRatio().getValue());
             }
 
+            disconnectedRectangle.setWidth(w);
+            disconnectedRectangle.setHeight(h);
+
             jfx_node.setLayoutX(model_widget.propX().getValue());
             jfx_node.setLayoutY(model_widget.propY().getValue());
             jfx_node.setPrefSize(w, h);
@@ -367,7 +399,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
             }
 
-            value = model_widget.propShowIndex().getValue();
+            value = model_widget.propShowIndex().getValue() || defaultSymbolVisible;
 
             if ( !Objects.equals(value, indexLabel.isVisible()) ) {
                 indexLabel.setVisible((boolean) value);
@@ -387,8 +419,10 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
     @Override
     protected StackPane createJFXNode ( ) throws Exception {
 
+        PictureRepresentation.setCacheHintAccordingToPreferences(imageView);
+
         autoSize = model_widget.propAutoSize().getValue();
-        symbol = getDefaultSymbol();
+        symbol = new Symbol(); //getDefaultSymbol();
 
         StackPane symbolPane = new StackPane();
 
@@ -401,7 +435,13 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         indexLabel.setVisible(model_widget.propShowIndex().getValue());
         indexLabel.textProperty().bind(Bindings.convert(imageIndexProperty()));
 
-        symbolPane.getChildren().addAll(getSymbolNode(), indexLabelBackground, indexLabel);
+        WidgetColor rect_color = model_widget.propDiconnectOverlayColor().getValue();
+        //WidgetColor arect_color = new WidgetColor(rect_color.getRed(), rect_color.getGreen(), rect_color.getBlue(), 128);
+        disconnectedRectangle.setFill(JFXUtil.convert(rect_color));
+        if (toolkit.isEditMode())
+            disconnectedRectangle.setVisible(false);
+
+        symbolPane.getChildren().addAll(getSymbolNode(false), indexLabelBackground, indexLabel, disconnectedRectangle);
 
         if ( model_widget.propTransparent().getValue() ) {
             symbolPane.setBackground(null);
@@ -411,13 +451,137 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
         enabled = model_widget.propEnabled().getValue();
 
+        // Initialize imageIndex to inital_index
+        imageIndex.set(model_widget.propInitialIndex().getValue());
+
+        // Set array index here so that we can clear dirtyContent --> dirtyContent sets dirtyValue and we don't want that
+        setArrayIndex();
+        dirtyContent.checkAndClear();
+
         Styles.update(symbolPane, Styles.NOT_ENABLED, !enabled);
 
-        initialIndexChanged(null, null, null);
+        // Clear dirtyValue, we have nothing to show yet
+        dirtyValue.checkAndClear();
+
         symbolChanged(null, null, null);
+
+        if (!toolkit.isEditMode() && model_widget.propEnabled().getValue() && model_widget.propRunActionsOnMouseClick().getValue()) {
+            enableRunActionsOnMouseClick();
+        }
 
         return symbolPane;
 
+    }
+
+    private void enableRunActionsOnMouseClick() {
+        imageView.focusTraversableProperty().set(true);
+        imageView.setStyle("-fx-cursor: hand;");
+
+        ColorAdjust[] clickEffect = { null }; // Values are wrapped in arrays as a workaround of the fact that Java doesn't allow non-final variables to be captured by closures.
+        DropShadow[] focusEffect = { null };
+        Runnable setEffect = () -> {
+            if (focusEffect[0] != null) {
+                focusEffect[0].setInput(clickEffect[0]);
+                imageView.setEffect(focusEffect[0]);
+            }
+            else {
+                imageView.setEffect(clickEffect[0]);
+            }
+        };
+
+        Runnable runActions = () -> {
+            model_widget.propActions().getValue().getActions().forEach(actionInfo -> toolkit.fireAction(model_widget, actionInfo));
+        };
+
+        ColorAdjust increaseBrightness = new ColorAdjust(0, 0, 0.3, 0);
+        ColorAdjust decreaseBrightness = new ColorAdjust(0, 0, -0.3, 0);
+
+        boolean[] buttonIsClicked = { false }; // Value is wrapped in an array as a workaround of the fact that Java doesn't allow non-final variables to be captured by closures.
+
+        imageView.addEventFilter(MouseEvent.MOUSE_ENTERED, mouseEvent -> {
+            if (!buttonIsClicked[0]) {
+                clickEffect[0] = increaseBrightness;
+            }
+            else {
+                clickEffect[0] = decreaseBrightness;
+            }
+            setEffect.run();
+            mouseEvent.consume();
+        });
+
+        imageView.addEventFilter(MouseEvent.MOUSE_EXITED, mouseEvent -> {
+            clickEffect[0] = null;
+            setEffect.run();
+        });
+
+        imageView.addEventFilter(MouseEvent.MOUSE_PRESSED, mouseEvent -> {
+            if (mouseEvent.isPrimaryButtonDown()) {
+                buttonIsClicked[0] = true;
+                clickEffect[0] = decreaseBrightness;
+                mouseEvent.consume();
+            }
+
+            setEffect.run();
+        });
+
+        imageView.addEventFilter(MouseEvent.MOUSE_RELEASED, mouseEvent -> {
+            buttonIsClicked[0] = false;
+        });
+
+        imageView.addEventFilter(MouseEvent.MOUSE_CLICKED, mouseEvent -> {
+            if (mouseEvent.getButton() == MouseButton.PRIMARY) {
+                runActions.run();
+                clickEffect[0] = null;
+                setEffect.run();
+                mouseEvent.consume();
+            }
+
+            imageView.requestFocus();
+        });
+
+        Color focusColor = Color.web("rgba(3,158,211,1)");
+        DropShadow dropShadow = new DropShadow(5, focusColor);
+        imageView.focusedProperty().addListener((observable, old_value, new_value) -> {
+            if (new_value) {
+                focusEffect[0] = dropShadow;
+                setEffect.run();
+            }
+            else {
+                focusEffect[0] = null;
+                setEffect.run();
+            }
+        });
+
+        imageView.addEventFilter(KeyEvent.KEY_PRESSED, keyEvent -> {
+            if (keyEvent.getCode() == KeyCode.ENTER || keyEvent.getCode() == KeyCode.SPACE) {
+                clickEffect[0] = decreaseBrightness;
+                setEffect.run();
+
+                buttonIsClicked[0] = true;
+
+                keyEvent.consume();
+            }
+            else if (keyEvent.getCode() == KeyCode.TAB) {
+                clickEffect[0] = null;
+                focusEffect[0] = null;
+                setEffect.run();
+
+                buttonIsClicked[0] = false;
+            }
+        });
+
+        imageView.addEventFilter(KeyEvent.KEY_RELEASED, keyEvent -> {
+            if (keyEvent.getCode() == KeyCode.ENTER || keyEvent.getCode() == KeyCode.SPACE) {
+                runActions.run();
+
+                clickEffect[0] = null;
+                setEffect.run();
+
+                buttonIsClicked[0] = false;
+
+                keyEvent.consume();
+            }
+        });
     }
 
     @Override
@@ -429,7 +593,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         model_widget.propPVName().addUntypedPropertyListener(contentListener);
 
         model_widget.propSymbols().addPropertyListener(symbolsListener);
-        model_widget.propSymbols().getValue().stream().forEach(p -> p.addPropertyListener(symbolPropertyListener));
+        model_widget.propSymbols().getValue().forEach(p -> p.addPropertyListener(symbolPropertyListener));
 
         model_widget.propInitialIndex().addPropertyListener(indexListener);
 
@@ -447,13 +611,8 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         model_widget.propShowIndex().addUntypedPropertyListener(styleListener);
         model_widget.propTransparent().addUntypedPropertyListener(styleListener);
 
-        if (toolkit.isEditMode())
-            dirtyValue.checkAndClear();
-        else
-        {
+        if (!toolkit.isEditMode())
             model_widget.runtimePropValue().addPropertyListener(valueListener);
-            valueChanged(null, null, null);
-        }
     }
 
     @Override
@@ -463,7 +622,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         model_widget.propPVName().removePropertyListener(contentListener);
 
         model_widget.propSymbols().removePropertyListener(symbolsListener);
-        model_widget.propSymbols().getValue().stream().forEach(p -> p.removePropertyListener(symbolPropertyListener));
+        model_widget.propSymbols().getValue().forEach(p -> p.removePropertyListener(symbolPropertyListener));
 
         model_widget.propInitialIndex().removePropertyListener(indexListener);
 
@@ -576,21 +735,35 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         toolkit.scheduleUpdate(this);
     }
 
-    private Symbol getDefaultSymbol ( ) {
-        return defaultSymbol;
-    }
-
     private DefaultSymbolNode getDefaultSymbolNode ( ) {
         return defaultSymbolNode;
     }
 
-    Node getSymbolNode ( ) {
+    Node getSymbolNode ( boolean setDefault ) {
 
         Image image = symbol.getImage();
 
+        if ( symbol.isHidden() ) {
+            imageView.setImage(null);
+            return imageView;
+        }
+
         if ( image == null ) {
+            if (!setDefault)
+                return imageView;
+
+            if (!defaultSymbolVisible) {
+                defaultSymbolVisible = true;
+                dirtyStyle.mark();
+            }
+
             return getDefaultSymbolNode();
         } else {
+
+            if (defaultSymbolVisible) {
+                defaultSymbolVisible = false;
+                dirtyStyle.mark();
+            }
 
             imageView.setImage(image);
 
@@ -606,13 +779,11 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
     }
 
     void setSymbolSize ( double width, double height, boolean preserveRatio ) {
-        if ( symbol != null ) {
+        if ( symbol != null  &&  !symbol.isHidden() ) {
             if ( symbol.getImage() == null ) {
                 getDefaultSymbolNode().setSize(width, height);
-            } else {
-                imageView.setFitWidth(width);
-                imageView.setFitHeight(height);
-                imageView.setPreserveRatio(preserveRatio);
+            }else{
+                symbol.resize(width, height, preserveRatio);
             }
         }
     }
@@ -630,11 +801,11 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         ModelThreadPool.getExecutor().execute( ( ) -> {
 
             if ( oldValue != null ) {
-                oldValue.stream().forEach(p -> p.removePropertyListener(symbolPropertyListener));
+                oldValue.forEach(p -> p.removePropertyListener(symbolPropertyListener));
             }
 
             if ( newValue != null ) {
-                newValue.stream().forEach(p -> p.addPropertyListener(symbolPropertyListener));
+                newValue.forEach(p -> p.addPropertyListener(symbolPropertyListener));
             }
 
             updateSymbols();
@@ -648,7 +819,6 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         List<Symbol> symbolsList = new ArrayList<>(fileNames.size());
         Map<String, Symbol> symbolsMap = new HashMap<>(fileNames.size());
         Map<String, Symbol> currentSymbolsMap = symbols.get().stream().distinct().collect(Collectors.toMap(Symbol::getFileName, sc -> sc));
-        int currentIndex = getImageIndex();
 
         try {
 
@@ -656,7 +826,13 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
                 fixImportedSymbolNames();
             }
 
-            fileNames.stream().forEach(f -> {
+            fallbackSymbol =
+                    new Symbol(model_widget.propFallbackSymbol().getValue().isEmpty() ?
+                            SymbolWidget.DEFAULT_SYMBOL :
+                            model_widget.propFallbackSymbol().getValue(),
+                            model_widget.propWidth().getValue(), model_widget.propHeight().getValue());
+
+            fileNames.forEach(f -> {
 
                 String fileName = f.getValue();
                 Symbol s = symbolsMap.get(fileName);
@@ -666,7 +842,7 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
                     s = currentSymbolsMap.get(fileName);
 
                     if ( s == null ) { // Neither previously loaded.
-                        s = new Symbol(fileName);
+                        s = new Symbol(fileName, model_widget.propWidth().getValue(), model_widget.propHeight().getValue());
                     }
 
                     symbolsMap.put(fileName, s);
@@ -679,17 +855,12 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
 
         } finally {
 
-            int newImageIndex = Math.min(Math.max(currentIndex, 0), symbolsList.size() - 1);
-
             maxSize = new Dimension2D(
                 symbolsList.stream().mapToDouble(Symbol::getOriginalWidth).max().orElse(0.0),
                 symbolsList.stream().mapToDouble(Symbol::getOriginalHeight).max().orElse(0.0)
             );
 
             symbols.set(symbolsList);
-
-            setImageIndex(-1);
-            setImageIndex(newImageIndex);
 
             dirtyGeometry.mark();
             dirtyValue.mark();
@@ -762,39 +933,57 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
         private Image image = null;
         private double originalHeight = 100;
         private double originalWidth = 100;
+        private boolean hidden = false;
 
         Symbol ( ) {
             fileName = null;
         }
 
-        Symbol ( String fileName ) {
+        Symbol ( String fileName, double width, double height ) {
 
             this.fileName = fileName;
 
-            String imageFileName = resolveImageFile(model_widget, fileName);
+            final String imageFileName;
+            // an empty filename means 'display no image'
+            if ( fileName.isEmpty() ) {
+                hidden = true;
+                originalWidth = width;
+                originalHeight = height;
+                imageFileName = null;
+            } else
+                imageFileName = resolveImageFile(model_widget, fileName);
 
             if ( imageFileName != null ) {
-                if (toolkit.isEditMode())
+                if (toolkit.isEditMode()) {
                     ImageCache.remove(imageFileName);
+                }
 
-                image = ImageCache.cache(imageFileName, () ->
-                {
-                    try
+                if(imageFileName.toLowerCase().endsWith("svg")){
+                    image = loadSVG(imageFileName, width, height);
+                }
+                else{
+                    image = ImageCache.cache(imageFileName, () ->
                     {
                         // Open the image from the stream created from the
                         // resource file.
-                        return new Image(ModelResourceUtil.openResourceStream(imageFileName));
-                    } catch ( Exception ex ) {
-                        logger.log(Level.WARNING, "Failure loading image: ({0}) {1} [{2}].", new Object[] { fileName, imageFileName, ex.getMessage() });
-                    }
-                    return null;
-                });
+                        try{
+                            return new Image(ModelResourceUtil.openResourceStream(imageFileName));
+                        } catch ( Exception ex ) {
+                            logger.log(Level.WARNING, "Failure loading image: ({0}) {1} [{2}].", new Object[] { fileName, imageFileName, ex.getMessage() });
+                        }
+                        return null;
+                    });
+                }
 
                 if ( image != null ) {
                     originalWidth = image.getWidth();
                     originalHeight = image.getHeight();
                 }
             }
+        }
+
+        boolean isHidden ( ) {
+            return hidden;
         }
 
         String getFileName ( ) {
@@ -813,6 +1002,32 @@ public class SymbolRepresentation extends RegionBaseRepresentation<StackPane, Sy
             return image;
         }
 
-    }
+        /**
+         * Resizes the image. If the underlying resource is a SVG, it is reloaded.
+         * @param width Wanted width
+         * @param height Wnated height
+         * @param preserveRatio Whether to maintain aspect ratio
+         */
+        void resize(double width, double height, boolean preserveRatio){
+            if(fileName.toLowerCase().endsWith("svg")) {
+                image = loadSVG(resolveImageFile(model_widget, fileName), width, height);
+                imageView.setImage(image);
+            }
+            imageView.setFitWidth(width);
+            imageView.setFitHeight(height);
+            imageView.setPreserveRatio(preserveRatio);
+        }
 
+        /**
+         * Loads a SVG resource. The image cache is used, but the key to the SVG resource depends
+         * on the width and height of the image. Reason is that when resizing a image the underlying
+         * SVG must be transcoded again with the new size.
+         * @param width Wanted width
+         * @param height Wanted height
+         * @return An {@link Image} or <code>null</code>.
+         */
+        Image loadSVG(final String imageFileName, double width, double height){
+            return SVGHelper.loadSVG(imageFileName, width, height);
+        }
+    }
 }

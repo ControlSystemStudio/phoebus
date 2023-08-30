@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.phoebus.channel.views.ui.ChannelTableController;
+import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;
@@ -21,6 +22,9 @@ import javafx.fxml.FXMLLoader;
  *
  */
 public class ChannelTable implements AppInstance {
+
+    private static final String CF_TABLE_QUERY = "cf_table_query";
+
     private final ChannelTableApp app;
     private ChannelTableController controller;
     private DockItem tab;
@@ -52,5 +56,19 @@ public class ChannelTable implements AppInstance {
         }).map(s->{return s.split("=")[1];}).collect(Collectors.joining(" "));
 
         controller.setQuery(parsedQuery);
+    }
+
+    @Override
+    public void restore(final Memento memento)
+    {
+        memento.getString(CF_TABLE_QUERY).ifPresent(query -> controller.setQuery(query));
+    }
+
+    @Override
+    public void save(final Memento memento)
+    {
+        if(!controller.getQuery().isBlank()) {
+            memento.setString(CF_TABLE_QUERY, controller.getQuery().trim());
+        }
     }
 }

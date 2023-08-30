@@ -25,7 +25,7 @@ public class ApplianceNonNumericOptimizedValueIterator extends ApplianceValueIte
      * @param start start of the time period
      * @param end end of the time period
      * @param requestedPoints number of requested points
-     * @param totalNumberofPoints the number of all points in the archive
+     * @param totalNumberOfPoints the number of all points in the archive
      * @param listener the listener that is notified when the iterator is closed
      *
      * @throws IOException if there was an error during the data fetch process

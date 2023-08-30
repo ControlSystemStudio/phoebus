@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,8 @@ package org.phoebus.applications.alarm.ui.tree;
 
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -21,6 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
@@ -29,8 +32,9 @@ import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.BasicState;
 import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
 import org.phoebus.applications.alarm.ui.AlarmUI;
-import org.phoebus.applications.email.actions.SendEmailAction;
-import org.phoebus.logbook.ui.menu.SendLogbookAction;
+import org.phoebus.framework.selection.Selection;
+import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockPane;
@@ -38,8 +42,9 @@ import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.ToolbarHelper;
-import org.phoebus.ui.javafx.TreeHelper;
 import org.phoebus.ui.javafx.UpdateThrottle;
+import org.phoebus.ui.selection.AppSelection;
+import org.phoebus.ui.spi.ContextMenuEntry;
 import org.phoebus.util.text.CompareNatural;
 
 import javafx.application.Platform;
@@ -57,6 +62,7 @@ import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
@@ -80,7 +86,27 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     private final Label no_server = AlarmUI.createNoServerLabel();
     private final TreeView<AlarmTreeItem<?>> tree_view = new TreeView<>();
 
+    /** Model with current alarm tree, sends updates */
     private final AlarmClient model;
+
+    /** Latch for initially pausing model listeners
+     *
+     *  Imagine a large alarm tree that changes.
+     *  The alarm table can periodically display the current
+     *  alarms, it does not need to display every change right away.
+     *  The tree on the other hand must reflect every added or removed item,
+     *  because updates cannot be applied once the tree structure gets out of sync.
+     *  When the model is first started, there is a flurry of additions and removals,
+     *  which arrive in the order in which the tree was generated, not necessarily
+     *  in the order they're laid out in the hierarchy.
+     *  These can be slow to render, especially if displaying via a remote desktop (ssh-X).
+     *  The alarm tree view thus starts in stages:
+     *  1) Wait for model to receive the bulk of initial additions and removals
+     *  2) Add listeners to model changes, but block them via this latch
+     *  3) Represent the initial model
+     *  4) Release this latch to handle changes (blocked and those that arrive from now on)
+     */
+    private final CountDownLatch block_item_changes = new CountDownLatch(1);
 
     /** Map from alarm tree path to view's TreeItem */
     private final ConcurrentHashMap<String, TreeItem<AlarmTreeItem<?>>> path2view = new ConcurrentHashMap<>();
@@ -141,13 +167,49 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         setTop(createToolbar());
         setCenter(tree_view);
 
-        tree_view.setRoot(createViewItem(model.getRoot()));
-
-        model.addListener(this);
-
         createContextMenu();
         addClickSupport();
         addDragSupport();
+
+        if (AlarmSystem.alarm_tree_startup_ms <= 0)
+        {
+            // Original implementation:
+            // Create initial (empty) representation,
+            // register listener, then model gets started
+            block_item_changes.countDown();
+            tree_view.setRoot(createViewItem(model.getRoot()));
+            model.addListener(AlarmTreeView.this);
+        }
+        else
+            UpdateThrottle.TIMER.schedule(this::startup, AlarmSystem.alarm_tree_startup_ms, TimeUnit.MILLISECONDS);
+
+        // Caller will start the model once we return from constructor
+    }
+
+    private void startup()
+    {
+        // Waited for model to receive the bulk of initial additions and removals...
+        Platform.runLater(() ->
+        {
+            if (! model.isRunning())
+            {
+                logger.log(Level.WARNING, model.getRoot().getName() + " was disposed while waiting for alarm tree startup");
+                return;
+            }
+            // Listen to model changes, but they're blocked,
+            // so this blocks model changes from now on
+            model.addListener(AlarmTreeView.this);
+
+            // Represent model that should by now be fairly complete
+            tree_view.setRoot(createViewItem(model.getRoot()));
+
+            // Set change indicator so that it clears when there are no more changes
+            indicateChange();
+            showServerState(model.isServerAlive());
+
+            // Un-block to handle changes from now on
+            block_item_changes.countDown();
+        });
     }
 
     private ToolBar createToolbar()
@@ -165,7 +227,13 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                 ImageCache.getImageView(AlarmUI.class, "/icons/expand_alarms.png"));
         show_alarms.setTooltip(new Tooltip("Expand alarm tree to show active alarms"));
         show_alarms.setOnAction(event -> expandAlarms(tree_view.getRoot()));
-        return new ToolBar(no_server, ToolbarHelper.createSpring(), collapse, show_alarms);
+
+        final Button show_disabled = new Button("",
+                ImageCache.getImageView(AlarmUI.class, "/icons/expand_disabled.png"));
+        show_disabled.setTooltip(new Tooltip("Expand alarm tree to show disabled PVs"));
+        show_disabled.setOnAction(event -> expandDisabledPVs(tree_view.getRoot()));
+
+        return new ToolBar(no_server, changing, ToolbarHelper.createSpring(), collapse, show_alarms, show_disabled);
     }
 
     ToolBar getToolbar()
@@ -186,6 +254,29 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         node.setExpanded(expand);
         for (TreeItem<AlarmTreeItem<?>> sub : node.getChildren())
             expandAlarms(sub);
+    }
+
+    /** @param node Subtree node where to expand disabled PVs
+     *  @return Does subtree contain disabled PVs?
+     */
+    private boolean expandDisabledPVs(final TreeItem<AlarmTreeItem<?>> node)
+    {
+        if (node != null  &&  (node.getValue() instanceof AlarmClientLeaf))
+        {
+            AlarmClientLeaf pv = (AlarmClientLeaf) node.getValue();
+            if (! pv.isEnabled())
+                return true;
+        }
+
+        // Always expand the root, which itself is not visible,
+        // but this will show all the top-level elements.
+        // In addition, expand those items which contain disabled PV.
+        boolean expand = node == tree_view.getRoot();
+        for (TreeItem<AlarmTreeItem<?>> sub : node.getChildren())
+            if (expandDisabledPVs(sub))
+                expand = true;
+        node.setExpanded(expand);
+        return expand;
     }
 
     private TreeItem<AlarmTreeItem<?>> createViewItem(final AlarmTreeItem<?> model_item)
@@ -217,25 +308,29 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             logger.log(Level.INFO, "Alarm tree changes start");
             setCursor(Cursor.WAIT);
             final ObservableList<Node> items = getToolbar().getItems();
-            items.add(1, changing);
+            if (! items.contains(changing))
+                items.add(1, changing);
         }
         else
             previous.cancel(false);
+    }
+
+    /** @param alive Have we seen server messages? */
+    private void showServerState(final boolean alive)
+    {
+        final ObservableList<Node> items = getToolbar().getItems();
+        items.remove(no_server);
+        if (! alive)
+            // Place left of spring, collapse, expand_alarms,
+            // i.e. right of potential AlarmConfigSelector
+            items.add(items.size()-3, no_server);
     }
 
     // AlarmClientModelListener
     @Override
     public void serverStateChanged(final boolean alive)
     {
-        Platform.runLater(() ->
-        {
-            final ObservableList<Node> items = getToolbar().getItems();
-            items.remove(no_server);
-            if (! alive)
-                // Place left of spring, collapse, expand_alarms,
-                // i.e. right of potential AlarmConfigSelector
-                items.add(items.size()-3, no_server);
-        });
+        Platform.runLater(() -> showServerState(alive));
     }
 
     // AlarmClientModelListener
@@ -247,9 +342,30 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
     // AlarmClientModelListener
     @Override
+    public void serverDisableNotifyChanged(final boolean disable_notify)
+    {
+        // NOP
+    }
+
+    /** Block until changes to items should be shown */
+    private void blockItemChanges()
+    {
+        try
+        {
+            block_item_changes.await();
+        }
+        catch (InterruptedException ex)
+        {
+            logger.log(Level.WARNING, "Blocker for item changes got interrupted", ex);
+        }
+    }
+
+    // AlarmClientModelListener
+    @Override
     public void itemAdded(final AlarmTreeItem<?> item)
     {
-        // System.out.println("Add " + item.getPathName());
+        blockItemChanges();
+        // System.out.println(Thread.currentThread() + " Add " + item.getPathName());
 
         // Parent must already exist
         final AlarmTreeItem<BasicState> model_parent = item.getParent();
@@ -299,7 +415,8 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     @Override
     public void itemRemoved(final AlarmTreeItem<?> item)
     {
-        // System.out.println("Removed " + item.getPathName());
+        blockItemChanges();
+        // System.out.println(Thread.currentThread() + " Removed " + item.getPathName());
 
         // Remove item and all sub-items from model2ui
         final TreeItem<AlarmTreeItem<?>> view_item = removeViewItems(item);
@@ -353,7 +470,8 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     @Override
     public void itemUpdated(final AlarmTreeItem<?> item)
     {
-        // System.out.println("Updated " + item.getPathName());
+        blockItemChanges();
+        // System.out.println(Thread.currentThread() + " Updated " + item.getPathName());
         final TreeItem<AlarmTreeItem<?>> view_item = path2view.get(item.getPathName());
         if (view_item == null)
         {
@@ -376,9 +494,10 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     }
 
     /** Called by throttle to perform accumulated updates */
+    @SuppressWarnings("unchecked")
     private void performUpdates()
     {
-        final TreeItem<?>[] view_items;
+        final TreeItem<AlarmTreeItem<?>>[] view_items;
         synchronized (items_to_update)
         {
             // Creating a direct copy, i.e. another new LinkedHashSet<>(items_to_update),
@@ -390,8 +509,38 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             items_to_update.clear();
         }
 
-        for (final TreeItem<?> view_item : view_items)
-            TreeHelper.triggerTreeItemRefresh(view_item);
+        // How to update alarm tree cells when data changed?
+        // `setValue()` with a truly new value (not 'equal') should suffice,
+        // but there are two problems:
+        // Since we're currently using the alarm tree model item as a value,
+        // the value as seen by the TreeView remains the same.
+        // We could use a model item wrapper class as the cell value
+        // and replace it (while still holding the same model item!)
+        // for the TreeView to see a different wrapper value, but
+        // as shown in org.phoebus.applications.alarm.TreeItemUpdateDemo,
+        // replacing a tree cell value fails to trigger refreshes
+        // for certain hidden items.
+        // Only replacing the TreeItem gives reliable refreshes.
+        for (final TreeItem<AlarmTreeItem<?>> view_item : view_items)
+            // Top-level item has no parent, and is not visible, so we keep it
+            if (view_item.getParent() != null)
+            {
+                // Locate item in tree parent
+                final TreeItem<AlarmTreeItem<?>> parent = view_item.getParent();
+                final int index = parent.getChildren().indexOf(view_item);
+
+                // Create new TreeItem for that value
+                final AlarmTreeItem<?> value = view_item.getValue();
+                final TreeItem<AlarmTreeItem<?>> update = new TreeItem<>(value);
+                // Move child links to new item
+                final ArrayList<TreeItem<AlarmTreeItem<?>>> children = new ArrayList<>(view_item.getChildren());
+                view_item.getChildren().clear();
+                update.getChildren().addAll(children);
+                update.setExpanded(view_item.isExpanded());
+
+                path2view.put(value.getPathName(), update);
+                parent.getChildren().set(index, update);
+            }
     }
 
     /** Context menu, details depend on selected items */
@@ -411,7 +560,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             if (menu_items.size() > 0)
                 menu_items.add(new SeparatorMenuItem());
 
-            if (AlarmUI.mayConfigure())
+            if (AlarmUI.mayConfigure(model))
             {
                 if (selection.size() <= 0)
                     // Add first item to empty config
@@ -443,8 +592,28 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             menu_items.add(new SeparatorMenuItem());
             menu_items.add(new PrintAction(tree_view));
             menu_items.add(new SaveSnapshotAction(DockPane.getActiveDockPane()));
-            menu_items.add(new SendEmailAction(tree_view, "Alarm Screenshot", "See alarm tree screenshot", () -> Screenshot.imageFromNode(tree_view)));
-            menu_items.add(new SendLogbookAction(tree_view, "Alarm Screenshot", "See alarm tree screenshot", () -> Screenshot.imageFromNode(tree_view)));
+
+            // Add context menu actions based on the selection (i.e. email, logbook, etc...)
+            final Selection originalSelection = SelectionService.getInstance().getSelection();
+            final List<AppSelection> newSelection = Arrays.asList(AppSelection.of(tree_view, "Alarm Screenshot", "See alarm tree screenshot", () -> Screenshot.imageFromNode(tree_view)));
+            SelectionService.getInstance().setSelection("AlarmTree", newSelection);
+            List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
+            supported.stream().forEach(action -> {
+                MenuItem menuItem = new MenuItem(action.getName(), new ImageView(action.getIcon()));
+                menuItem.setOnAction((e) -> {
+                    try
+                    {
+                        SelectionService.getInstance().setSelection("AlarmTree", newSelection);
+                        action.call(tree_view, SelectionService.getInstance().getSelection());
+                    } catch (Exception ex)
+                    {
+                        logger.log(Level.WARNING, "Failed to execute " + action.getName() + " from AlarmTree.", ex);
+                    }
+                });
+                menu_items.add(menuItem);
+            });
+            SelectionService.getInstance().setSelection("AlarmTree", originalSelection);
+
             menu.show(tree_view.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
     }
@@ -454,14 +623,14 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
     {
         tree_view.setOnMouseClicked(event ->
         {
-            if (!AlarmUI.mayConfigure()       ||
+            if (!AlarmUI.mayConfigure(model)       ||
                 event.getClickCount() != 2    ||
                 tree_view.getSelectionModel().getSelectedItems().size() != 1)
                 return;
 
             final AlarmTreeItem<?> item = tree_view.getSelectionModel().getSelectedItems().get(0).getValue();
             final ItemConfigDialog dialog = new ItemConfigDialog(model, item);
-            DialogHelper.positionDialog(dialog, tree_view, -250, -400);
+            DialogHelper.positionDialog(dialog, tree_view, -150, -300);
             // Show dialog, not waiting for it to close with OK or Cancel
             dialog.show();
         });

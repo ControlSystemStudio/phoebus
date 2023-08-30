@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,6 +20,7 @@ import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget.ROIWidgetProperty;
+import org.csstudio.display.builder.runtime.Messages;
 import org.csstudio.display.builder.runtime.RuntimeAction;
 import org.csstudio.display.builder.runtime.WidgetRuntime;
 import org.csstudio.display.builder.runtime.pv.PVFactory;
@@ -164,6 +165,8 @@ public class ImageWidgetRuntime extends WidgetRuntime<ImageWidget>
         super.initialize(widget);
         runtime_actions.add(new ConfigureAction("Configure Image", widget.runtimePropConfigure()));
         runtime_actions.add(new ToggleToolbarAction(widget));
+        runtime_actions.add(new PrintWidgetAction(widget, Messages.PrintImage));
+        runtime_actions.add(new SaveWidgetSnapshotAction(widget, Messages.SaveImageSnapshot));
     }
 
     @Override

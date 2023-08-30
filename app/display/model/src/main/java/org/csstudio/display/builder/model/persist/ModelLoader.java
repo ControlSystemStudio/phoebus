@@ -87,7 +87,7 @@ public class ModelLoader
      */
     public static DisplayModel loadModel(final InputStream stream, final String display_file) throws Exception
     {
-        final ModelReader reader = new ModelReader(stream);
+        final ModelReader reader = new ModelReader(stream, display_file);
         final DisplayModel model = reader.readModel();
         model.setUserData(DisplayModel.USER_DATA_INPUT_FILE, display_file);
 

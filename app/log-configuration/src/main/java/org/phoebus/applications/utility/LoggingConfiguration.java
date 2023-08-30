@@ -1,12 +1,14 @@
 package org.phoebus.applications.utility;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+import javafx.scene.control.Button;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.docking.DockItem;
@@ -180,11 +182,21 @@ public class LoggingConfiguration implements AppInstance {
         treeTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         treeTableView.getSelectionModel().setCellSelectionEnabled(true);
 
-        AnchorPane.setTopAnchor(treeTableView, 10.0);
+        Button refresh = new Button();
+        refresh.setOnAction(event -> updateLoggerMap());
+        refresh.setText("refresh");
+        refresh.setPrefWidth(80);
+        refresh.setPrefHeight(15);
+
+        AnchorPane.setTopAnchor(refresh, 5.0);
+        AnchorPane.setRightAnchor(refresh, 10.0);
+
+        AnchorPane.setTopAnchor(treeTableView, 35.0);
         AnchorPane.setBottomAnchor(treeTableView, 10.0);
         AnchorPane.setLeftAnchor(treeTableView, 10.0);
         AnchorPane.setRightAnchor(treeTableView, 10.0);
 
+        anchorpane.getChildren().add(refresh);
         anchorpane.getChildren().add(treeTableView);
 
         updateLoggerMap();
@@ -267,6 +279,7 @@ public class LoggingConfiguration implements AppInstance {
                                 manager.getLogger(fullName), manager.getLogger(fullName) != null ? true : false));
                         newNode.setExpanded(true);
                         parent.getChildren().add(newNode);
+                        FXCollections.sort(parent.getChildren(), Comparator.comparing(o -> o.getValue().getFullName()));
                         parent = newNode;
                     }
                 }

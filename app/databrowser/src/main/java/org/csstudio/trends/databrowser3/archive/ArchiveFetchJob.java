@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -51,6 +52,9 @@ public class ArchiveFetchJob implements JobRunnable
     /** Poll period in millisecs */
     private static final int POLL_PERIOD_MS = 1000;
 
+    /** Limit the number of concurrently running jobs */
+    private static final Semaphore concurrent_requests = new Semaphore(Preferences.concurrent_requests, true);
+
     /** Item for which to fetch samples */
     private final PVItem item;
 
@@ -72,7 +76,7 @@ public class ArchiveFetchJob implements JobRunnable
      */
     class WorkerThread implements Runnable
     {
-        private volatile String message = "";
+        private volatile String message = "Queued";
         private volatile boolean cancelled = false;
 
         /** Archive reader that's currently queried */
@@ -128,30 +132,30 @@ public class ArchiveFetchJob implements JobRunnable
                 )
                 {
                     reader.set(the_reader);
-                    final ValueIterator value_iter;
                     try
+                    (
+                        final ValueIterator value_iter = (item.getRequestType() == RequestType.RAW)
+                                            ? the_reader.getRawValues(item.getResolvedName(), start, end)
+                                            : the_reader.getOptimizedValues(item.getResolvedName(), start, end, bins)
+                    )
                     {
-                        if (item.getRequestType() == RequestType.RAW)
-                            value_iter = the_reader.getRawValues(item.getResolvedName(), start, end);
-                        else
-                            value_iter = the_reader.getOptimizedValues(item.getResolvedName(), start, end, bins);
+                        // Get samples into array
+                        final List<VType> result = new ArrayList<>();
+                        while (value_iter.hasNext())
+                            result.add(value_iter.next());
+                        samples += result.size();
+                        item.mergeArchivedSamples(archive.getName(), result);
                     }
                     catch (UnknownChannelException e)
                     {
                         // Do not immediately notify about unknown channels. First search for the data in all archive
                         // sources and only report this kind of errors at the end
                         archives_without_channel.add(archive);
-                        continue;
                     }
-                    // Get samples into array
-                    final List<VType> result = new ArrayList<>();
-                    while (value_iter.hasNext())
-                        result.add(value_iter.next());
-                    value_iter.close();
-                    samples += result.size();
-                    item.mergeArchivedSamples(archive.getName(), result);
-                    if (cancelled)
-                        break;
+                    finally
+                    {
+                        reader.set(null);
+                    }
                 }
                 catch (Exception ex)
                 {   // Tell listener unless it's the result of a 'cancel'?
@@ -160,7 +164,6 @@ public class ArchiveFetchJob implements JobRunnable
                     // Continue with the next data source
                 }
             }
-            reader.set(null);
             final long end_time = System.currentTimeMillis();
             logger.log(Level.FINE,
                     "Ended {0} with {1} samples in {2} secs",
@@ -220,29 +223,54 @@ public class ArchiveFetchJob implements JobRunnable
         if (MacroHandler.containsMacros(item.getResolvedName()))
             return;
 
-        monitor.beginTask(Messages.ArchiveFetchStart);
-        final WorkerThread worker = new WorkerThread();
-        final Future<?> done = Activator.thread_pool.submit(worker);
-        // Poll worker and progress monitor
-        long start = System.currentTimeMillis();
-        while (!done.isDone())
-        {   // Wait until worker is done, or time out to update info message
-            try
-            {
-                done.get(POLL_PERIOD_MS, TimeUnit.MILLISECONDS);
+        monitor.beginTask("Pending...");
+
+        // When a model is loaded, items added,
+        // or user zooms/pans, this can result in jobs being added
+        // and then soon canceled to add updated jobs.
+        // Wait a little to then check if we're already cancelled,
+        // instead of starting the request right away only to then
+        // have a hard time cancelling the ongoing query.
+        // (For zoom/pan, this delay is actually used twice:
+        //  before starting the fetch job, then right here)
+        TimeUnit.MILLISECONDS.sleep(Preferences.archive_fetch_delay);
+
+        // Cancelled before even started the worker?
+        if (monitor.isCanceled())
+            return;
+
+        concurrent_requests.acquire();
+        try
+        {
+            monitor.beginTask(Messages.ArchiveFetchStart);
+
+            final WorkerThread worker = new WorkerThread();
+            final Future<?> done = Activator.thread_pool.submit(worker);
+            // Poll worker and progress monitor
+            long start = System.currentTimeMillis();
+            while (!done.isDone())
+            {   // Wait until worker is done, or time out to update info message
+                try
+                {
+                    done.get(POLL_PERIOD_MS, TimeUnit.MILLISECONDS);
+                }
+                catch (Exception ex)
+                {
+                    // Ignore
+                }
+                final long seconds = (System.currentTimeMillis() - start) / 1000;
+                final String info = MessageFormat.format(Messages.ArchiveFetchProgressFmt,
+                                                         worker.getMessage(), seconds);
+                monitor.updateTaskName(info);
+                // Try to cancel the worker in response to user's cancel request.
+                // Continues to cancel the worker until isDone()
+                if (monitor.isCanceled())
+                    worker.cancel();
             }
-            catch (Exception ex)
-            {
-                // Ignore
-            }
-            final long seconds = (System.currentTimeMillis() - start) / 1000;
-            final String info = MessageFormat.format(Messages.ArchiveFetchProgressFmt,
-                                                     worker.getMessage(), seconds);
-            monitor.updateTaskName(info);
-            // Try to cancel the worker in response to user's cancel request.
-            // Continues to cancel the worker until isDone()
-            if (monitor.isCanceled())
-                worker.cancel();
+        }
+        finally
+        {
+            concurrent_requests.release();
         }
     }
 

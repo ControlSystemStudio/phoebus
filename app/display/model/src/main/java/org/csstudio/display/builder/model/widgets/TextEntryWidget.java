@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,8 +14,10 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFormat;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontalAlignment;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPrecision;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propShowUnits;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propVerticalAlignment;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propWrapWords;
 
 import java.util.Arrays;
@@ -39,6 +41,9 @@ import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.persist.XMLTags;
+import org.csstudio.display.builder.model.properties.HorizontalAlignment;
+import org.csstudio.display.builder.model.properties.StringWidgetProperty;
+import org.csstudio.display.builder.model.properties.VerticalAlignment;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.phoebus.framework.persistence.XMLUtil;
@@ -68,6 +73,7 @@ public class TextEntryWidget extends WritablePVWidget
         }
     };
 
+    /** 'multi_line' */
     public static final WidgetPropertyDescriptor<Boolean> propMultiLine =
         newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "multi_line", Messages.WidgetProperties_MultiLine);
 
@@ -87,7 +93,7 @@ public class TextEntryWidget extends WritablePVWidget
             if (xml_version.getMajor() < 3)
             {
                 final TextEntryWidget text_widget = (TextEntryWidget)widget;
-                TextUpdateWidget.readLegacyFormat(xml, text_widget.format, text_widget.precision, text_widget.propPVName());
+                TextEntryWidget.readLegacyFormat(xml, text_widget.format, text_widget.precision, text_widget.propPVName());
 
                 Optional<String> text = XMLUtil.getChildString(xml, "multiline_input");
                 if (text.isPresent()  &&  Boolean.parseBoolean(text.get()))
@@ -121,9 +127,13 @@ public class TextEntryWidget extends WritablePVWidget
                     // Might be NativeText or TextInput
                     if (type != null  &&  type.contains("Text"))
                     {
+                        // BOY 'TextInput' was at 2.0.0 or higher.
+                        // Down-grade to label 1.0.0 to handle legacy border etc.
+                        // for that version, not mistaking it for a Label version >= 2.0.0
                         xml.setAttribute("typeId", "org.csstudio.opibuilder.widgets.Label");
+                        xml.setAttribute("version", "1.0.0");
                         // XMLUtil.dump(xml);
-                        throw new ParseAgainException();
+                        throw new ParseAgainException("Replace text entry with label");
                     }
                 }
 
@@ -193,6 +203,74 @@ public class TextEntryWidget extends WritablePVWidget
         }
     }
 
+    /** Read legacy widget's format
+     *  @param xml Widget XML
+     *  @param format Format property to update
+     *  @param precision Precision property to update
+     *  @param pv_name PV name property to update
+     */
+    // package-level access for TextEntryWidget
+    static void readLegacyFormat(final Element xml, final WidgetProperty<FormatOption> format,
+                                 final WidgetProperty<Integer> precision,
+                                 final WidgetProperty<String> pv_name) throws Exception
+    {
+        XMLUtil.getChildInteger(xml, "format_type").ifPresent(legacy_format ->
+        {
+            switch (legacy_format)
+            {
+            case 1: // DECIMAL
+                format.setValue(FormatOption.DECIMAL);
+                break;
+            case 2: // EXP
+                format.setValue(FormatOption.EXPONENTIAL);
+                break;
+            case 3: // HEX (32)
+                format.setValue(FormatOption.HEX);
+                precision.setValue(8);
+                break;
+            case 4: // STRING
+                format.setValue(FormatOption.STRING);
+                break;
+            case 5: // HEX64
+                format.setValue(FormatOption.HEX);
+                precision.setValue(16);
+                break;
+            case 6: // COMPACT
+                format.setValue(FormatOption.COMPACT);
+                break;
+            case 7: // ENG (since Aug. 2016)
+                format.setValue(FormatOption.ENGINEERING);
+                break;
+            case 8: // SEXA (since Dec. 2016)
+                format.setValue(FormatOption.SEXAGESIMAL);
+                break;
+            case 9: // SEXA_HMS (since Dec. 2016)
+                format.setValue(FormatOption.SEXAGESIMAL_HMS);
+                break;
+            case 10: // SEXA_DMS (since Dec. 2016)
+                format.setValue(FormatOption.SEXAGESIMAL_DMS);
+                break;
+            default:
+                format.setValue(FormatOption.DEFAULT);
+            }
+        });
+
+        // If legacy requested precision-from-PV, mark that in precision
+        final Element element = XMLUtil.getChildElement(xml, "precision_from_pv");
+        if (element != null  &&  Boolean.parseBoolean(XMLUtil.getString(element)))
+            precision.setValue(-1);
+
+        // Remove legacy longString attribute from PV,
+        // instead use STRING formatting
+        String pv = ((StringWidgetProperty)pv_name).getSpecification();
+        if (pv.endsWith(" {\"longString\":true}"))
+        {
+            pv = pv.substring(0, pv.length() - 20);
+            ((StringWidgetProperty)pv_name).setSpecification(pv);
+            format.setValue(FormatOption.STRING);
+        }
+    }
+
     private volatile WidgetProperty<Boolean> enabled;
     private volatile WidgetProperty<WidgetColor> foreground;
     private volatile WidgetProperty<WidgetColor> background;
@@ -202,7 +280,10 @@ public class TextEntryWidget extends WritablePVWidget
     private volatile WidgetProperty<Boolean> show_units;
     private volatile WidgetProperty<Boolean> wrap_words;
     private volatile WidgetProperty<Boolean> multi_line;
+    private volatile WidgetProperty<HorizontalAlignment> horizontal_alignment;
+    private volatile WidgetProperty<VerticalAlignment> vertical_alignment;
 
+    /** Constructor */
     public TextEntryWidget()
     {
         super(WIDGET_DESCRIPTOR.getType());
@@ -230,6 +311,8 @@ public class TextEntryWidget extends WritablePVWidget
         properties.add(format = propFormat.createProperty(this, FormatOption.DEFAULT));
         properties.add(precision = propPrecision.createProperty(this, -1));
         properties.add(show_units = propShowUnits.createProperty(this, true));
+        properties.add(horizontal_alignment = propHorizontalAlignment.createProperty(this, HorizontalAlignment.LEFT));
+        properties.add(vertical_alignment = propVerticalAlignment.createProperty(this, VerticalAlignment.MIDDLE));
         properties.add(enabled = propEnabled.createProperty(this, true));
         properties.add(wrap_words = propWrapWords.createProperty(this, false));
         properties.add(multi_line = propMultiLine.createProperty(this, false));
@@ -288,5 +371,17 @@ public class TextEntryWidget extends WritablePVWidget
     public WidgetProperty<Boolean> propMultiLine()
     {
         return multi_line;
+    }
+
+    /** @return 'horizontal_alignment' property */
+    public WidgetProperty<HorizontalAlignment> propHorizontalAlignment()
+    {
+        return horizontal_alignment;
+    }
+
+    /** @return 'vertical_alignment' property */
+    public WidgetProperty<VerticalAlignment> propVerticalAlignment()
+    {
+        return vertical_alignment;
     }
 }

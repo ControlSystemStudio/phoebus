@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,6 +8,7 @@
 package org.phoebus.applications.alarm.client;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -15,6 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.phoebus.applications.alarm.model.AlarmTreeItemWithState;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
+import org.phoebus.applications.alarm.model.EnabledState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 
 /** Alarm tree leaf
@@ -27,7 +29,6 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
 {
     private volatile String description;
 
-    private final AtomicBoolean enabled = new AtomicBoolean(true);
     private final AtomicBoolean latching = new AtomicBoolean(true);
     private final AtomicBoolean annunciating = new AtomicBoolean(true);
 
@@ -35,10 +36,14 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
     private final AtomicInteger count = new AtomicInteger(0);
 
     private volatile String filter = "";
+    private volatile EnabledState enabled = new EnabledState(true);
 
-    public AlarmClientLeaf(final AlarmClientNode parent, final String name)
+    /** @param parent_path Path to parent
+     *  @param name Name of this leaf
+     */
+    public AlarmClientLeaf(final String parent_path, final String name)
     {
-        super(parent, name, Collections.emptyList());
+        super(parent_path, name, Collections.emptyList());
         description = name;
         state = new ClientState(SeverityLevel.OK, "", "", Instant.now(), SeverityLevel.OK, "");
     }
@@ -51,7 +56,7 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
     {
         final AlarmClientLeaf pv = new AlarmClientLeaf(null, getName());
         pv.setDescription(getDescription());
-        pv.setEnabled(isEnabled());
+        pv.setEnabled(getEnabled());
         pv.setLatching(isLatching());
         pv.setAnnunciating(isAnnunciating());
         pv.setDelay(getDelay());
@@ -87,7 +92,7 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
     @Override
     public boolean isEnabled()
     {
-        return enabled.get();
+        return enabled.enabled;
     }
 
     /** @param enable Enable the PV?
@@ -96,7 +101,52 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
     @Override
     public boolean setEnabled(final boolean enable)
     {
-        return enabled.compareAndSet(! enable, enable);
+        final EnabledState new_enabled_state = new EnabledState(enable);
+        if (enabled.equals(new_enabled_state)) {
+            return false;
+        }
+        enabled = new_enabled_state;
+        return true;
+    }
+
+    /** @param enabled_state Enable the PV?
+     *  @return <code>true</code> if this is a change
+     */
+    @Override
+    public boolean setEnabled(final EnabledState enabled_state)
+    {
+        if (enabled.equals(enabled_state)) {
+            return false;
+        }
+        enabled = enabled_state;
+        return true;
+    }
+
+    /** @param enabled_date (Re-)Enable the PV at some future date?
+     *  @return <code>true</code> if this is a change
+     */
+    @Override
+    public boolean setEnabledDate(final LocalDateTime enabled_date)
+    {
+        final EnabledState new_enabled_state = new EnabledState(enabled_date);
+        if ((enabled.equals(new_enabled_state)) || enabled_date.isBefore(LocalDateTime.now())) {
+            return false;
+        }
+        setEnabled(false);
+        enabled = new_enabled_state;
+        return true;
+    }
+
+    /** @return object representing enabled state */
+    @Override
+    public LocalDateTime getEnabledDate() {
+        return enabled.enabled_date;
+    }
+
+    /** @return object representing enabled state */
+    @Override
+    public EnabledState getEnabled() {
+        return enabled;
     }
 
     /** @return <code>true</code> if alarms from PV are latched */
@@ -122,7 +172,7 @@ public class AlarmClientLeaf extends AlarmTreeItemWithState<ClientState> impleme
         return annunciating.get();
     }
 
-    /** @param latch Annunciate alarms from the PV?
+    /** @param annunciate Annunciate alarms from the PV?
      *  @return <code>true</code> if this is a change
      */
     @Override

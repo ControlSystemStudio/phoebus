@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,11 +11,14 @@ import static org.phoebus.pv.PV.logger;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.logging.Level;
 
-import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.framework.preferences.AnnotatedPreferences;
+import org.phoebus.framework.preferences.Preference;
 import org.phoebus.pv.RefCountMap.ReferencedEntry;
 import org.phoebus.pv.formula.FormulaPVFactory;
 
@@ -48,8 +51,6 @@ import org.phoebus.pv.formula.FormulaPVFactory;
 @SuppressWarnings("nls")
 public class PVPool
 {
-    public static final String DEFAULT = "default";
-
     /** Separator between PV type indicator and rest of PV name.
      *  <p>
      *  This one is URL-like, and works OK with EPICS PVs because
@@ -62,7 +63,7 @@ public class PVPool
     final private static Map<String, PVFactory> factories = new HashMap<>();
 
     /** Default PV name type prefix */
-    private static String default_type = "ca";
+    @Preference(name="default") public static String default_type;
 
     static
     {
@@ -76,8 +77,7 @@ public class PVPool
                 factories.put(type, factory);
             }
 
-            final PreferencesReader prefs = new PreferencesReader(PVPool.class, "/pv_preferences.properties");
-            default_type = prefs.get(DEFAULT);
+            AnnotatedPreferences.initialize(PVPool.class, "/pv_preferences.properties");
 
             logger.log(Level.INFO, "Default PV type " + default_type + "://");
         }
@@ -85,6 +85,92 @@ public class PVPool
         {
             logger.log(Level.SEVERE, "Cannot initialize PVPool", ex);
         }
+    }
+
+    /** Combination of type and name, <code>type://name</code> */
+    public static class TypedName
+    {
+        /** PV Type */
+        public final String type;
+        /** Name */
+        public final String name;
+
+        /** Analyze PV name
+         *  @param type_name PV Name, "name..." or  "type://name..."
+         *  @return {@link TypedName}
+         */
+        public static TypedName analyze(final String type_name)
+        {
+            final String type, name;
+
+            if (type_name.startsWith("="))
+            {   // Special handling of equations, treating "=...." as "eq://...."
+                type = FormulaPVFactory.TYPE;
+                name = type_name.substring(1);
+            }
+            else
+            {
+                final int sep = type_name.indexOf(SEPARATOR);
+                if (sep > 0)
+                {
+                    type = type_name.substring(0, sep);
+                    name = type_name.substring(sep+SEPARATOR.length());
+                }
+                else
+                {
+                    type = default_type;
+                    name = type_name;
+                }
+            }
+            return new TypedName(type, name);
+        }
+
+        /** @param type "type"
+         *  @param name "name"
+         *  @return "type://name"
+         */
+        public static String format(final String type, final String name)
+        {
+            return type + SEPARATOR + name;
+        }
+
+        private TypedName(final String type, final String name)
+        {
+            this.type = type;
+            this.name = name;
+        }
+
+        @Override
+        public String toString()
+        {
+            return format(type, name);
+        }
+    }
+
+    /** @param name PV Name, may be "xxx" or "type://xxx"
+     *  @param equivalent_pv_prefixes List of equivalent PV prefixes (types), e.g. "ca", "pva"
+     *  @return Set of equivalent names, e.g. "xxx", "ca://xxx", "pva://xxx"
+     */
+    public static Set<String> getNameVariants(final String name, final String [] equivalent_pv_prefixes)
+    {
+        final String _name = name.trim();
+        // First, look for name as given
+        final Set<String> variants = new LinkedHashSet<>();
+        variants.add(_name);
+        if (equivalent_pv_prefixes != null  &&  equivalent_pv_prefixes.length > 0)
+        {   // Optionally, if the original name is one of the equivalent types ...
+            final TypedName typed = TypedName.analyze(_name);
+            for (String type : equivalent_pv_prefixes)
+                if (type.equals(typed.type))
+                {
+                    // .. add equivalent prefixes, starting with base name
+                    variants.add(typed.name);
+                    for (String variant : equivalent_pv_prefixes)
+                        variants.add(TypedName.format(variant, typed.name));
+                    break;
+                }
+        }
+        return variants;
     }
 
     /** PV Pool
@@ -116,15 +202,16 @@ public class PVPool
      */
     public static PV getPV(final String name) throws Exception
     {
-        if (name.isBlank())
+        final String _name = name.trim();
+        if (_name.isBlank())
             throw new Exception("Empty PV name");
-        final String[] prefix_base = analyzeName(name);
-        final PVFactory factory = factories.get(prefix_base[0]);
+        final TypedName type_name = TypedName.analyze(_name);
+        final PVFactory factory = factories.get(type_name.type);
         if (factory == null)
-            throw new Exception(name + " has unknown PV type '" + prefix_base[0] + "'");
+            throw new Exception(_name + " has unknown PV type '" + type_name.type + "'");
 
-        final String core_name = factory.getCoreName(name);
-        final ReferencedEntry<PV> ref = pool.createOrGet(core_name, () -> createPV(factory, name, prefix_base[1]));
+        final String core_name = factory.getCoreName(_name);
+        final ReferencedEntry<PV> ref = pool.createOrGet(core_name, () -> createPV(factory, _name, type_name.name));
         logger.log(Level.CONFIG, () -> "PV '" + ref.getEntry().getName() + "' references: " + ref.getReferences());
         return ref.getEntry();
     }
@@ -140,36 +227,6 @@ public class PVPool
             logger.log(Level.WARNING, "Cannot create PV '" + name + "'", ex);
         }
         return null;
-    }
-
-    /** Analyze PV name
-     *  @param name PV Name, "base..." or  "prefix://base..."
-     *  @return Array with type (or default) and base name
-     */
-    private static String[] analyzeName(final String name)
-    {
-        final String type, base;
-
-        if (name.startsWith("="))
-        {   // Special handling of equations, treating "=...." as "eq://...."
-            type = FormulaPVFactory.TYPE;
-            base = name.substring(1);
-        }
-        else
-        {
-            final int sep = name.indexOf(SEPARATOR);
-            if (sep > 0)
-            {
-                type = name.substring(0, sep);
-                base = name.substring(sep+SEPARATOR.length());
-            }
-            else
-            {
-                type = default_type;
-                base = name;
-            }
-        }
-        return new String[] { type, base };
     }
 
     /** @param pv PV to be released */

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,18 +7,18 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model;
 
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propX;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propY;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import org.csstudio.display.builder.model.widgets.GroupWidget;
+import org.junit.jupiter.api.Test;
+import org.phoebus.framework.macros.Macros;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.csstudio.display.builder.model.widgets.GroupWidget;
-import org.junit.Test;
-import org.phoebus.framework.macros.Macros;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propX;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propY;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test of widget property subscriptions
  *  @author Kay Kasemir
@@ -102,7 +102,7 @@ public class WidgetPropertySubscriptionUnitTest
 
         final MacroizedWidgetProperty<String> name_prop = (MacroizedWidgetProperty<String>) widget.propName();
         final AtomicInteger updates = new AtomicInteger();
-        final AtomicReference<String> received_value = new AtomicReference<String>(null);
+        final AtomicReference<String> received_value = new AtomicReference<>(null);
         name_prop.addPropertyListener((prop, old_value, new_value) ->
         {
             System.out.println(prop.getName() + " changes from " + old_value + " to " + new_value);

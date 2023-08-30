@@ -1,17 +1,16 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app</artifactId>
-    <version>4.6.0-SNAPSHOT</version>
+    <version>4.7.3-SNAPSHOT</version>
   </parent>
   <artifactId>app-databrowser</artifactId>
   <dependencies>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.12</version>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -28,52 +27,53 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-framework</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.7.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-ui</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.7.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-pv</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.7.3-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>core-util</artifactId>
+      <version>4.7.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-formula</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.7.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-types</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.7.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-rtplot</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.phoebus</groupId>
-      <artifactId>app-email</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.phoebus</groupId>
-      <artifactId>app-logbook-ui</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.7.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java</artifactId>
-      <version>2.4.1</version>
+      <version>3.21.9</version>
     </dependency>
     <dependency>
       <groupId>org.epics</groupId>
       <artifactId>pbrawclient</artifactId>
-      <version>0.0.8</version>
+      <version>0.0.10</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-math3 -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-math3</artifactId>
+      <version>${apache.commons.math.version}</version>
     </dependency>
   </dependencies>
 </project>

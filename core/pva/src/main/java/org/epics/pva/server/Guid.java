@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,6 +17,9 @@ import java.util.Arrays;
 @SuppressWarnings("nls")
 public class Guid
 {
+    /** Empty Guid */
+    public static final Guid EMPTY = new Guid(new byte[]{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 });
+
     // Random number generator in holder to defer initialization
     private static class Holder
     {
@@ -37,6 +40,16 @@ public class Guid
     public Guid(final ByteBuffer buffer)
     {
         buffer.get(guid);
+    }
+
+    /** Set Guid from value
+     *  @param value 12-byte Guid value
+     */
+    private Guid(final byte[] value)
+    {
+        if (value.length != guid.length)
+            throw new IllegalArgumentException("Need 12, got " + guid.length + " bytes");
+        System.arraycopy(value, 0, guid, 0, guid.length);
     }
 
     /** @param buffer Buffer into which to encode Guid */
@@ -60,11 +73,10 @@ public class Guid
         return Arrays.equals(guid, other.guid);
     }
 
-    @Override
-    public String toString()
+    /** @return GUID as "FE1A.." type text */
+    public String asText()
     {
         final StringBuilder buf = new StringBuilder(35);
-        buf.append("GUID 0x");
         for (byte b : guid)
         {
             final int i = Byte.toUnsignedInt(b);
@@ -73,5 +85,12 @@ public class Guid
             buf.append(Integer.toHexString(i).toUpperCase());
         }
         return buf.toString();
+    }
+
+    /** @return String representation "GUID 0xFE1A.." */
+    @Override
+    public String toString()
+    {
+        return "GUID 0x" + asText();
     }
 }

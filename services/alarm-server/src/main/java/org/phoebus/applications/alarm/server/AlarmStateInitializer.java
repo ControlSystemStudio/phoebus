@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -43,7 +43,13 @@ import org.phoebus.applications.alarm.model.json.JsonModelReader;
 @SuppressWarnings("nls")
 public class AlarmStateInitializer
 {
-    private final ResettableTimeout timer = new ResettableTimeout(4);
+    /** Timeout for receiving the first update, a quasi connection timeout. Default is 10 seconds. */
+    public static long CONNECTION_SECS = 10;
+
+    /** Time the model must be stable for. Unit is seconds. Default is 4 seconds. */
+    public static long STABILIZATION_SECS = 4;
+    
+    private final ResettableTimeout timer = new ResettableTimeout(CONNECTION_SECS);
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final Consumer<String, String> consumer;
     private final Thread thread;
@@ -51,10 +57,11 @@ public class AlarmStateInitializer
 
     /** @param server Kafka Server host:port
      *  @param config_name Name of alarm tree root
+     *  @param kafka_props Additional properties to pass to the kafka client
      */
-    public AlarmStateInitializer(final String server, final String config_name)
+    public AlarmStateInitializer(final String server, final String config_name, final String kafka_props_file)
     {
-        consumer = KafkaHelper.connectConsumer(server, List.of(config_name), List.of(config_name));
+        consumer = KafkaHelper.connectConsumer(server, List.of(config_name), List.of(config_name), kafka_props_file);
 
         thread = new Thread(this::run, "AlarmStateInitializer");
         thread.setDaemon(true);
@@ -104,7 +111,7 @@ public class AlarmStateInitializer
                     if (node_config == null)
                     {   // No config -> Delete node
                         inititial_severity.remove(path);
-                        timer.reset();
+                        timer.reset(STABILIZATION_SECS);
                     }
                     else
                     {
@@ -118,7 +125,7 @@ public class AlarmStateInitializer
                                 inititial_severity.remove(path);
                             else
                                 inititial_severity.put(path, state);
-                            timer.reset();
+                            timer.reset(STABILIZATION_SECS);
                         }
                     }
                 }

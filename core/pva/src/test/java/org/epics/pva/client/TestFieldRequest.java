@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,13 +7,13 @@
  ******************************************************************************/
 package org.epics.pva.client;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
 import org.epics.pva.data.Hexdump;
 import org.epics.pva.data.PVAData;
 import org.epics.pva.data.PVATypeRegistry;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 @SuppressWarnings("nls")
 public class TestFieldRequest
@@ -124,6 +124,15 @@ public class TestFieldRequest
     public void testPipeline() throws Exception
     {
         FieldRequest request = new FieldRequest(10, "field(value)");
+        System.out.println(request);
+        ByteBuffer buffer = encode(request);
+        System.out.println(Hexdump.toHexdump(buffer));
+    }
+
+    @Test
+    public void testCompletion() throws Exception
+    {
+        FieldRequest request = new FieldRequest(true, "field(value)");
         System.out.println(request);
         ByteBuffer buffer = encode(request);
         System.out.println(Hexdump.toHexdump(buffer));

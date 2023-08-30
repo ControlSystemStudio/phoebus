@@ -23,6 +23,11 @@ public class SineWavePV extends SimulatedDoubleArrayPV
     private final int size;
     private final Instant start = Instant.now();
 
+    /** @param name Name
+     *  @param parameters Parameters
+     *  @return PV
+     *  @throws Exception on error
+     */
     public static PV forParameters(final String name, List<Double> parameters) throws Exception
     {
         if (parameters.isEmpty())
@@ -37,6 +42,14 @@ public class SineWavePV extends SimulatedDoubleArrayPV
                             "(period_seconds, wavelength, size, update_seconds, min, max)");
     }
 
+    /** @param name Name
+     *  @param period_seconds Period in which the running wave moves
+     *  @param sample_wavelength Wavelength
+     *  @param size Array size
+     *  @param update_seconds Seconds between updates
+     *  @param min Minimum value
+     *  @param max Maximum value
+     */
     public SineWavePV(final String name, final double period_seconds, double sample_wavelength,
                       int size, final double update_seconds, final double min, final double max)
     {

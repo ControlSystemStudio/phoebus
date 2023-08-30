@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,10 +9,13 @@ package org.epics.pva.common;
 
 import static org.epics.pva.PVASettings.logger;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
+import java.nio.ByteOrder;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -57,14 +60,24 @@ abstract public class TCPHandler
     /** Is this the client, expecting received messages to be marked as server messages? */
     private final boolean client_mode;
 
-    /** TCP socket to PVA peer */
-    private final SocketChannel socket;
+    /** TCP socket to PVA peer
+     * 
+     *  Reading and writing is handled by receive and send threads,
+     *  but 'protected' so that derived classes may peek at socket properties.
+     */
+    protected final Socket socket;
 
     /** Flag to indicate that 'close' was called to close the 'socket' */
     protected volatile boolean running = true;
 
     /** Buffer used to receive data via {@link TCPHandler#receive_thread} */
     protected ByteBuffer receive_buffer = ByteBuffer.allocate(PVASettings.EPICS_PVA_RECEIVE_BUFFER_SIZE);
+
+    /** Buffer for assembling parts of segmented message
+     *
+     *  <p>Created and then grown as needed
+     */
+    private ByteBuffer segments = null;
 
     /** Buffer used to send data via {@link TCPHandler#send_thread} */
     protected final ByteBuffer send_buffer = ByteBuffer.allocate(PVASettings.EPICS_PVA_SEND_BUFFER_SIZE);
@@ -83,6 +96,7 @@ abstract public class TCPHandler
     };
 
     /** Pool for sender and receiver threads */
+    // Default keeps idle threads for one minute
     private static final ExecutorService thread_pool = Executors.newCachedThreadPool(runnable ->
     {
         final Thread thread = new Thread(runnable);
@@ -106,10 +120,16 @@ abstract public class TCPHandler
      *  @param client_mode Is this the client, expecting to receive messages from server?
      *  @see #startSender()
      */
-    public TCPHandler(final SocketChannel socket, final boolean client_mode)
+    public TCPHandler(final Socket socket, final boolean client_mode)
     {
         this.socket = socket;
         this.client_mode = client_mode;
+
+        // Receive buffer byte order is set based on header flag of each received message.
+        // Send buffer of server and client starts out with native byte order.
+        // For server, it stays that way.
+        // For client, order is updated during connection validation (PVAHeader.CTRL_SET_BYTE_ORDER)
+        send_buffer.order(ByteOrder.nativeOrder());
 
         // Start receiving data
         receive_thread = thread_pool.submit(this::receiver);
@@ -133,7 +153,7 @@ abstract public class TCPHandler
     /** @return Remote address of this end of the TCP socket */
     public InetSocketAddress getRemoteAddress()
     {
-        return new InetSocketAddress(socket.socket().getInetAddress(), socket.socket().getPort());
+        return new InetSocketAddress(socket.getInetAddress(), socket.getPort());
     }
 
     /** @return Is the send queue idle/empty? */
@@ -160,8 +180,8 @@ abstract public class TCPHandler
     {
         try
         {
-            Thread.currentThread().setName("TCP sender " + socket.getRemoteAddress());
-            logger.log(Level.FINER, Thread.currentThread().getName() + " started");
+            Thread.currentThread().setName("TCP sender from " + socket.getLocalSocketAddress() + " to " + socket.getRemoteSocketAddress());
+            logger.log(Level.FINER, () -> Thread.currentThread().getName() + " started");
             while (true)
             {
                 send_buffer.clear();
@@ -199,42 +219,33 @@ abstract public class TCPHandler
      */
     protected void send(final ByteBuffer buffer) throws Exception
     {
-        logger.log(Level.FINER, () -> Thread.currentThread().getName() + ":\n" + Hexdump.toHexdump(buffer));
+        logger.log(Level.FINER, () -> Thread.currentThread().getName() + " sends:\n" + Hexdump.toHexdump(buffer));
 
         // Original AbstractCodec.send() mentions
         // Microsoft KB article KB823764:
         // Limiting buffer size increases performance.
         final int batch_limit = server_buffer_size / 2;
         final int total = buffer.limit();
-        int batch = total - buffer.position();
+        int pos = buffer.position();
+        int batch = total - pos;
         if (batch > batch_limit)
         {
             batch = batch_limit;
-            buffer.limit(buffer.position() + batch);
+            buffer.limit(pos + batch);
         }
 
-        int tries = 0;
+        final OutputStream out = socket.getOutputStream();
         while (batch > 0)
         {
-            final int sent = socket.write(buffer);
-            if (sent < 0)
-                throw new Exception("Connection closed");
-            else if (sent == 0)
-            {
-                logger.log(Level.FINER, "Send buffer full after " + buffer.position() + " of " + total + " bytes.");
-                Thread.sleep(Math.max(++tries * 100, 1000));
-            }
-            else
-            {
-                // Wrote _something_
-                tries = 0;
-                // Determine next batch
-                batch = total - buffer.position();
-                if (batch > batch_limit)
-                    batch = batch_limit;
-                // In case batch > 0, move limit to write that batch
-                buffer.limit(buffer.position() + batch);
-            }
+            out.write(buffer.array(), pos, batch);
+            pos += batch;
+            buffer.position(pos);
+            // Determine next batch
+            batch = total - pos;
+            if (batch > batch_limit)
+                batch = batch_limit;
+            // Move limit to write that batch
+            buffer.limit(buffer.position() + batch);
         }
     }
 
@@ -243,10 +254,11 @@ abstract public class TCPHandler
     {
         try
         {
-            Thread.currentThread().setName("TCP receiver " + socket.getRemoteAddress());
-            logger.log(Level.FINER, Thread.currentThread().getName() + " started");
+            Thread.currentThread().setName("TCP receiver " + socket.getLocalSocketAddress());
+            logger.log(Level.FINER, () -> Thread.currentThread().getName() + " started for " + socket.getRemoteSocketAddress());
             logger.log(Level.FINER, "Native byte order " + receive_buffer.order());
             receive_buffer.clear();
+            final InputStream in = socket.getInputStream();
             while (true)
             {
                 // Read at least one complete message,
@@ -254,8 +266,8 @@ abstract public class TCPHandler
                 int message_size = PVAHeader.checkMessageAndGetSize(receive_buffer, client_mode);
                 while (receive_buffer.position() < message_size)
                 {
-                    checkReceiveBufferSize(message_size);
-                    final int read = socket.read(receive_buffer);
+                    receive_buffer = assertBufferSize(receive_buffer, message_size);
+                    final int read = in.read(receive_buffer.array(), receive_buffer.position(), receive_buffer.remaining());
                     if (read < 0)
                     {
                         logger.log(Level.FINER, () -> Thread.currentThread().getName() + ": socket closed");
@@ -263,20 +275,33 @@ abstract public class TCPHandler
                     }
                     if (read > 0)
                         logger.log(Level.FINER, () -> Thread.currentThread().getName() + ": " + read + " bytes");
+                   receive_buffer.position(receive_buffer.position() + read);
                     // and once we get the header, it will tell
                     // us how large the message actually is
                     message_size = PVAHeader.checkMessageAndGetSize(receive_buffer, client_mode);
                 }
                 // .. then decode
                 receive_buffer.flip();
-                logger.log(Level.FINER, () -> Thread.currentThread().getName() + ":\n" + Hexdump.toHexdump(receive_buffer));
+                logger.log(Level.FINER, () -> Thread.currentThread().getName() + " received:\n" + Hexdump.toHexdump(receive_buffer));
 
                 // While buffer may contain more data,
                 // limit it to the end of this message to prevent
                 // message handler from reading beyond message boundary.
                 final int actual_limit = receive_buffer.limit();
                 receive_buffer.limit(message_size);
-                handleMessage(receive_buffer);
+                try
+                {
+                    handleMessage(receive_buffer);
+                }
+                catch (Exception ex)
+                {
+                    // Once we fail to decode and handle a message,
+                    // it is likely that the server/client protocol gets
+                    // out of step and never recovers.
+                    // Still, log error and keep reading in case
+                    // the issue is limited to just this one message.
+                    logger.log(Level.WARNING, Thread.currentThread().getName() + " message error. Protocol might be broken from here on.", ex);
+                }
 
                 receive_buffer.limit(actual_limit);
                 // No matter if message handler read the complete message,
@@ -312,25 +337,30 @@ abstract public class TCPHandler
         // NOP
     }
 
-    /** Check receive buffer size, grow if needed
+    /** Check buffer size, grow if needed
+     *
+     *  <p>When necessary, a new buffer is allocated,
+     *  existing data copied.
+     *
+     *  @param buffer Original buffer
      *  @param message_size Required receive buffer size
+     *  @return Original buffer, or larger buffer with copied data
      */
-    private void checkReceiveBufferSize(final int message_size)
+    private ByteBuffer assertBufferSize(final ByteBuffer buffer, final int size)
     {
-        if (receive_buffer.capacity() >= message_size)
-            return;
+        if (buffer.capacity() >= size)
+            return buffer;
 
-        final ByteBuffer new_buffer = ByteBuffer.allocate(message_size);
-        new_buffer.order(receive_buffer.order());
-        receive_buffer.flip();
-        new_buffer.put(receive_buffer);
+        final ByteBuffer new_buffer = ByteBuffer.allocate(size);
+        new_buffer.order(buffer.order());
+        buffer.flip();
+        new_buffer.put(buffer);
 
         logger.log(Level.INFO,
-                   Thread.currentThread().getName() + " extends receive buffer from " +
-                   receive_buffer.capacity() + " to " + new_buffer.capacity() +
+                   Thread.currentThread().getName() + " extends buffer from " +
+                   buffer.capacity() + " to " + new_buffer.capacity() +
                    ", copied " + new_buffer.position() + " bytes to new buffer");
-
-        receive_buffer = new_buffer;
+        return new_buffer;
     }
 
     /** Handle a received message
@@ -339,25 +369,128 @@ abstract public class TCPHandler
      *  to contain a valid protocol version and a complete
      *  message has been received.
      *
-     *  @param buffer Buffer positioned at start of header
+     *  @param buffer Buffer positioned at start of header, limit set to size of message
      *  @throws Exception on error
      */
-    protected void handleMessage(final ByteBuffer buffer) throws Exception
+    private void handleMessage(final ByteBuffer buffer) throws Exception
     {
-        final boolean control = (buffer.get(2) & PVAHeader.FLAG_CONTROL) != 0;
-        final byte command = buffer.get(3);
-        // Move to start of potential payload
-        buffer.position(8);
-        if (control)
-            handleControlMessage(command, buffer);
+        final byte flags = buffer.get(2);
+        final byte segemented = (byte) (flags & PVAHeader.FLAG_SEGMENT_MASK);
+        if (segemented != 0)
+            handleSegmentedMessage(segemented, buffer);
         else
-            handleApplicationMessage(command, buffer);
+        {
+            final boolean control = (flags & PVAHeader.FLAG_CONTROL) != 0;
+            final byte command = buffer.get(3);
+            // Move to start of potential payload
+            if (buffer.limit() >= 8)
+                buffer.position(8);
+            else
+                logger.log(Level.SEVERE, Thread.currentThread().getName() + " received buffer with only " +
+                           buffer.limit() + " bytes:" + Hexdump.toHex(buffer));
+            if (control)
+                handleControlMessage(command, buffer);
+            else
+                handleApplicationMessage(command, buffer);
+        }
+    }
+
+    /** Handle a segmented message
+     *
+     *  <p>Assembles parts of a segmented message,
+     *  then handles it when last part has been received.
+     *
+     *  @param segmented {@link PVAHeader#FLAG_SEGMENT_MASK} bits of the message
+     *  @param buffer Buffer set to one part of a segmented message
+     *  @throws Exception on error
+     */
+    private void handleSegmentedMessage(final byte segmented, final ByteBuffer buffer) throws Exception
+    {
+        // This implementation does copy data from the original receive buffer
+        // into the 'segmented' buffer where they are combined.
+        // Original Java implementation also copied received bytes,
+        // albeit within the same socketBuffer.
+        if (segmented == PVAHeader.FLAG_FIRST)
+        {
+            if (segments == null)
+            {
+                logger.log(Level.INFO,
+                           () -> Thread.currentThread().getName() + " allocates segmented message accumulator buffer for " + buffer.limit() + " bytes");
+                segments = ByteBuffer.allocate(buffer.limit());
+                segments.order(buffer.order());
+            }
+            else if (segments.position() > 0)
+                throw new Exception("Received new first message segment while still handling previous one");
+
+            segments = assertBufferSize(segments, buffer.limit());
+            segments.put(buffer);
+            // Clear the 'segmented' flags in the accumulator buffer
+            segments.put(2, (byte) (buffer.get(2) & 0b11001111));
+
+            if (logger.isLoggable(Level.FINER))
+            {
+                final int pos = segments.position();
+                segments.flip();
+                logger.log(Level.FINER, "First message segment:\n" + Hexdump.toHexdump(segments));
+                segments.position(pos);
+            }
+        }
+        else
+        {
+            final boolean last = segmented == PVAHeader.FLAG_LAST;
+
+            if (segments == null  ||  segments.position() <= 0)
+                throw new Exception("Received " + (last ? "last" : "middle") + " message segment without first segment");
+            // Check if command matches the one in first segment
+            final byte seg_command = segments.get(3);
+            if (seg_command != buffer.get(3))
+                throw new Exception(String.format("Received " + (last ? "last" : "middle") +
+                                                  " message segment for command 0x%02X after first segment for command 0x%02X",
+                                                  buffer.get(3), seg_command));
+
+            // Size of segments accumulated so far..
+            final int seg_size = segments.getInt(PVAHeader.HEADER_OFFSET_PAYLOAD_SIZE);
+            // Payload of segment to add
+            final int payload = buffer.getInt(PVAHeader.HEADER_OFFSET_PAYLOAD_SIZE);
+            final int total = seg_size + payload;
+            segments = assertBufferSize(segments, PVAHeader.HEADER_SIZE + total);
+            // Skip header, add payload to segments
+            buffer.position(PVAHeader.HEADER_SIZE);
+            segments.put(buffer);
+            // Update total size
+            segments.putInt(PVAHeader.HEADER_OFFSET_PAYLOAD_SIZE, total);
+
+            if (logger.isLoggable(Level.FINER))
+            {
+                final int pos = segments.position();
+                segments.flip();
+                logger.log(Level.FINER, (last ? "Last" : "Middle") + " message segment:\n" + Hexdump.toHexdump(segments));
+                segments.position(pos);
+            }
+
+            if (last)
+            {
+                try
+                {   // Handle the merged message
+                    segments.flip();
+                    handleMessage(segments);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Error handling assembled segmented message", ex);
+                }
+                finally
+                {   // Reset segments buffer to allow starting with another 'first' message
+                    segments.clear();
+                }
+            }
+        }
     }
 
     /** Handle a received control message
      *
      *  @param command Control command
-     *  @param buffer Buffer positioned at start of header
+     *  @param buffer Buffer with complete message, positioned at start of payload
      *  @throws Exception on error
      */
     protected void handleControlMessage(final byte command, final ByteBuffer buffer) throws Exception
@@ -368,7 +501,7 @@ abstract public class TCPHandler
     /** Handle a received application message
      *
      *  @param command Application command
-     *  @param buffer Buffer positioned at start of header
+     *  @param buffer Buffer with complete message, positioned at start of payload
      *  @throws Exception on error
      */
     protected void handleApplicationMessage(final byte command, final ByteBuffer buffer) throws Exception
@@ -442,7 +575,7 @@ abstract public class TCPHandler
         buf.append("TCPHandler");
         try
         {
-            final SocketAddress server = socket.getRemoteAddress();
+            final SocketAddress server = socket.getRemoteSocketAddress();
             buf.append(" ").append(server);
         }
         catch (Exception ex)

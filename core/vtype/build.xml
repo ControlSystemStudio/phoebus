@@ -1,0 +1,17 @@
+<project default="core-vtype">
+  <import file="../../dependencies/ant_settings.xml"/>
+
+  <target name="core-vtype">
+    <mkdir dir="${classes}"/>
+    <javac srcdir="${src}" destdir="${classes}" debug="${debug}">
+      <classpath>
+        <fileset dir="${dependencies}/phoebus-target/target/lib">
+          <include name="*.jar"/>
+        </fileset>
+      </classpath>
+    </javac>
+  	<jar destfile="${build}/core-vtype-${version}.jar">
+      <fileset dir="${classes}"/>
+    </jar>
+  </target>
+</project>

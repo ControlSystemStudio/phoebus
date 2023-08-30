@@ -20,11 +20,17 @@ import javafx.scene.image.Image;
  */
 public class ImagesTab extends Tab
 {
-    private ImageList images = new ImageList();
+    private ImageList images;
 
-    /** @param root_node Node that will be used to obtain a screenshot */
     public ImagesTab()
     {
+        this(true);
+    }
+
+    public ImagesTab(boolean editable)
+    {
+        images = new ImageList(editable);
+
         setText(Messages.Images);
         setClosable(false);
         setTooltip(new Tooltip(Messages.AddImages));

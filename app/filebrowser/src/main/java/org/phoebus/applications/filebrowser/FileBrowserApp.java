@@ -3,7 +3,8 @@ package org.phoebus.applications.filebrowser;
 import java.io.File;
 import java.net.URI;
 
-import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.framework.preferences.AnnotatedPreferences;
+import org.phoebus.framework.preferences.Preference;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 
@@ -15,16 +16,14 @@ public class FileBrowserApp implements AppResourceDescriptor {
     public static final String DisplayName = Messages.DisplayName;
 
     /** Initial root directory for newly opened file browser */
-    public static final File default_root;
+    @Preference public static File default_root;
 
     /** Show hidden files (File.isHidden)? */
-    public static final boolean show_hidden;
+    @Preference public static boolean show_hidden;
 
     static
     {
-        final PreferencesReader prefs = new PreferencesReader(FileBrowserApp.class, "/filebrowser_preferences.properties");
-        default_root = new File(PreferencesReader.replaceProperties(prefs.get("default_root")));
-        show_hidden = prefs.getBoolean("show_hidden");
+    	AnnotatedPreferences.initialize(FileBrowserApp.class, "/filebrowser_preferences.properties");
     }
 
     @Override

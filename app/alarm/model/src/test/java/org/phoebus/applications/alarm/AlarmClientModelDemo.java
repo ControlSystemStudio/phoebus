@@ -7,13 +7,13 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm;
 
-import java.util.concurrent.TimeUnit;
-
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientListener;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.print.ModelPrinter;
+
+import java.util.concurrent.TimeUnit;
 
 /** Demo of the {@link AlarmClient}
  *  @author Kay Kasemir
@@ -24,7 +24,7 @@ public class AlarmClientModelDemo
     @Test
     public void testClientModel() throws Exception
     {
-        final AlarmClient client = new AlarmClient(AlarmDemoSettings.SERVERS, AlarmDemoSettings.ROOT);
+        final AlarmClient client = new AlarmClient(AlarmDemoSettings.SERVERS, AlarmDemoSettings.ROOT, AlarmDemoSettings.KAFKA_PROPERTIES_FILE);
         client.start();
         TimeUnit.SECONDS.sleep(4);
 
@@ -44,6 +44,12 @@ public class AlarmClientModelDemo
             public void serverModeChanged(final boolean maintenance_mode)
             {
                 System.out.println(maintenance_mode ? "MAINTENANCE mode" : "NORMAL mode");
+            }
+
+	     @Override
+            public void serverDisableNotifyChanged(final boolean disable_notify)
+            {
+                System.out.println(disable_notify ? "DISABLED notify" : "ENABLED notify");
             }
 
             @Override

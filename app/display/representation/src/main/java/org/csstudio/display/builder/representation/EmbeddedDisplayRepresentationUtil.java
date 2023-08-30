@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2016-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -27,33 +27,39 @@ import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.LabelWidget;
 import org.csstudio.display.builder.model.widgets.NavigationTabsWidget;
+import org.csstudio.display.builder.model.widgets.TemplateInstanceWidget;
 import org.csstudio.display.builder.model.widgets.VisibleWidget;
 
-/** Helper for common (SWT, JFX) representation code of {@link EmbeddedDisplayWidget} and {@link NavigationTabsWidget}
+/** Helper for common (SWT, JFX) representation code of {@link EmbeddedDisplayWidget}, {@link TemplateInstanceWidget} and {@link NavigationTabsWidget}
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class EmbeddedDisplayRepresentationUtil
 {
     /** Timeout used to await UI thread operations to prevent deadlock */
-    private static final long TIMEOUT_MS = 5000;
+    private static final long TIMEOUT_MS = Preferences.embedded_timeout;
 
     /** Display file name and optional group within that display */
     public static class DisplayAndGroup
     {
         private final String display_file, group_name;
 
+        /** @param file Display file path
+         *  @param group Optional group (or "")
+         */
         public DisplayAndGroup(final String file, final String group)
         {
             display_file = file;
             group_name = group;
         }
 
+        /** @return Display file path */
         public String getDisplayFile()
         {
             return display_file;
         }
 
+        /** @return Group within that display or "" to load complete display */
         public String getGroupName()
         {
             return group_name;
@@ -69,8 +75,8 @@ public class EmbeddedDisplayRepresentationUtil
     }
 
     /** Load display model, optionally trimmed to group
-     *  @param display_file
-     *  @param group_name
+     *  @param model_widget Parent widget, provides basis for expanding macros in the loaded model
+     *  @param display_and_group Display (and optional group) to load
      *  @return {@link DisplayModel}
      */
     public static DisplayModel loadDisplayModel(final VisibleWidget model_widget, final DisplayAndGroup display_and_group)
@@ -99,6 +105,11 @@ public class EmbeddedDisplayRepresentationUtil
                 // Tell embedded model that it is held by this widget,
                 // which provides access to macros of model_widget.
                 embedded_model.setUserData(DisplayModel.USER_DATA_EMBEDDING_WIDGET, model_widget);
+
+                // reduceDisplayModelToGroup() might need macros to resolve a group name,
+                // so expand macros down the embedded model
+                embedded_model.expandMacros(model_widget.getEffectiveMacros());
+
                 if (!display_and_group.getGroupName().isEmpty())
                     reduceDisplayModelToGroup(model_widget, embedded_model, display_and_group);
                 // Adjust model name to reflect source file
@@ -118,9 +129,9 @@ public class EmbeddedDisplayRepresentationUtil
 
 
     /** Reduce display model to content of one named group
-     *  @param display_file Name of the display file
+     *  @param model_widget Container widget
      *  @param model Model loaded from that file
-     *  @param group_name Name of group to use
+     *  @param display_and_group Name of display and the group to use
      */
     private static void reduceDisplayModelToGroup(final Widget model_widget, final DisplayModel model, final DisplayAndGroup display_and_group)
     {
@@ -220,9 +231,10 @@ public class EmbeddedDisplayRepresentationUtil
      *  Using a timeout, then moving on without waiting for the submitted UI thread,
      *  would resolve that deadlock.
      *
-     *  @param completion
-     *  @param message
-     *  @throws Exception
+     *  @param model_widget Parent widget
+     *  @param completion Future for loading embedded content
+     *  @param message Error message
+     *  @throws Exception on error
      */
     public static void checkCompletion(final Widget model_widget, final Future<Object> completion, final String message) throws Exception
     {

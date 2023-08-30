@@ -7,7 +7,6 @@
  *******************************************************************************/
 package org.phoebus.applications.filebrowser;
 
-import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,7 +24,7 @@ import javafx.scene.input.ClipboardContent;
 public class CopyPath extends MenuItem
 {
     /** @param items Items which paths to copy to clipboard */
-    public CopyPath(final List<TreeItem<File>> items)
+    public CopyPath(final List<TreeItem<FileInfo>> items)
     {
         super(Messages.CopyPathClp, ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));
 
@@ -33,8 +32,8 @@ public class CopyPath extends MenuItem
         {
             final Clipboard clipboard = Clipboard.getSystemClipboard();
             final ClipboardContent content = new ClipboardContent();
-            content.putString(items.stream().map(item -> item.getValue().getAbsolutePath()).collect(Collectors.joining(", ")));
-            content.putFiles(items.stream().map(item -> item.getValue()).collect(Collectors.toList()));
+            content.putString(items.stream().map(item -> item.getValue().file.getAbsolutePath()).collect(Collectors.joining(", ")));
+            content.putFiles(items.stream().map(item -> item.getValue().file).collect(Collectors.toList()));
             clipboard.setContent(content);
         });
     }

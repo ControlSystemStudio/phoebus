@@ -14,13 +14,17 @@ public class ArchiverApplianceInvalidTypeException extends ArchiverApplianceExce
 
     private static final long serialVersionUID = 9135411767906251819L;
 
+    /** Type */
     private final PayloadType type;
+    /** PV */
     private final String pv;
 
     /**
      * Constructs a new exception.
      *
      * @param message the message of the exception
+     * @param pv  PV
+     * @param type type
      */
     public ArchiverApplianceInvalidTypeException(String message, String pv, PayloadType type) {
         super(message);

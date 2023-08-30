@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,10 +10,12 @@ package org.csstudio.display.builder.representation.javafx;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.javafx.EditCell;
 
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
@@ -32,10 +34,12 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
-import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.util.Callback;
+import javafx.util.converter.DefaultStringConverter;
 
 /** JFX Table for editing {@link Macros}
  *
@@ -44,23 +48,35 @@ import javafx.util.Callback;
 @SuppressWarnings("nls")
 public class MacrosTable
 {
+    private final AtomicBoolean editing = new AtomicBoolean(false);
+
     /** Java FX type observable property for a macro (name, value) pair */
     public static class MacroItem
     {
+        /** Name of macro and value */
         private StringProperty name, value;
 
+        /** @param name Name
+         *  @param value Value
+         */
         public MacroItem(final String name, final String value)
         {
             this.name = new SimpleStringProperty(name);
             this.value = new SimpleStringProperty(value);
         }
 
+        /** @return Name property */
         public StringProperty nameProperty()     { return name;                  }
+        /** @param name Name to set */
         public void setName(final String name)   { nameProperty().set(name);     }
+        /** @return Name */
         public String getName()                  { return nameProperty().get();  }
 
+        /** @return Value property */
         public StringProperty valueProperty()    { return value;                 }
+        /** @param value Value to set */
         public void setValue(final String value) { valueProperty().set(value);   }
+        /** @return Value */
         public String getValue()                 { return valueProperty().get(); }
     };
 
@@ -72,6 +88,7 @@ public class MacrosTable
 
     private List<InvalidationListener> listeners = new CopyOnWriteArrayList<>();
 
+    private boolean enterHit = false;
 
     /** Create dialog
      *  @param initial_macros Initial {@link Macros}
@@ -95,6 +112,12 @@ public class MacrosTable
         final TableColumn<MacroItem, String> name_col = new TableColumn<>(Messages.MacrosDialog_NameCol);
         final TableColumn<MacroItem, String> value_col = new TableColumn<>(Messages.MacrosDialog_ValueCol);
 
+        table.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                enterHit = true;
+            }
+        });
+
         name_col.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<MacroItem,String>, ObservableValue<String>>()
         {
             @Override
@@ -102,20 +125,47 @@ public class MacrosTable
             {
                 final String name = param.getValue().getName();
                 if (name.isEmpty())
+                {
                     return new ReadOnlyStringWrapper(Messages.MacrosTable_NameHint);
+                }
                 return new ReadOnlyStringWrapper(name);
             }
         });
-        name_col.setCellFactory(TextFieldTableCell.<MacroItem>forTableColumn());
+        name_col.setCellFactory((column) -> new EditCell<>(new DefaultStringConverter() {
+            /** {@inheritDoc} */
+            @Override public String toString(String value) {
+                if(editing.get())
+                {
+                    if(value != null && value.equalsIgnoreCase(Messages.MacrosTable_NameHint))
+                        return "";
+                }
+                return (value != null) ? value : "";
+            }
+
+        }));
+        name_col.setOnEditStart(event ->
+        {
+            editing.set(true);
+        });
+        name_col.setOnEditCancel(event -> {
+            editing.set(false);
+        });
         name_col.setOnEditCommit(event ->
         {
+            editing.set(false);
             final int row = event.getTablePosition().getRow();
             final String name = event.getNewValue();
             final String error = Macros.checkMacroName(name);
             // Empty name is an error, but we allow that for deleting a row
             if (name.isEmpty()  ||  error == null)
             {
-                data.get(row).setName(name);
+                if(row < data.size())
+                    data.get(row).setName(name);
+                if (!enterHit)
+                {
+                    name_col.setVisible(false);
+                    name_col.setVisible(true);
+                }
                 fixup(row);
             }
             else
@@ -131,10 +181,14 @@ public class MacrosTable
                 return;
             }
             // Next edit the value
-            ModelThreadPool.getTimer().schedule(() ->
+            if (enterHit)
             {
-                Platform.runLater(() -> table.edit(row, value_col));
-            }, 123, TimeUnit.MILLISECONDS);
+                enterHit = false;
+                ModelThreadPool.getTimer().schedule(() ->
+                {
+                    Platform.runLater(() -> table.edit(row, value_col));
+                }, 123, TimeUnit.MILLISECONDS);
+            }
         });
 
         value_col.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<MacroItem,String>, ObservableValue<String>>()
@@ -148,17 +202,45 @@ public class MacrosTable
                 return new ReadOnlyStringWrapper(name);
             }
         });
-        value_col.setCellFactory(TextFieldTableCell.<MacroItem>forTableColumn());
+        value_col.setCellFactory((column) -> new EditCell<>(new DefaultStringConverter() {
+            /** {@inheritDoc} */
+            @Override public String toString(String value) {
+                if(editing.get())
+                {
+                    if(value != null && value.equalsIgnoreCase(Messages.MacrosTable_ValueHint))
+                        return "";
+                }
+                return (value != null) ? value : "";
+            }
+
+        }));
+        value_col.setOnEditStart(event ->
+        {
+            editing.set(true);
+        });
+        value_col.setOnEditCancel(event -> {
+            editing.set(false);
+        });
         value_col.setOnEditCommit(event ->
         {
+            editing.set(false);
             final int row = event.getTablePosition().getRow();
             data.get(row).setValue(event.getNewValue());
+            if (!enterHit)
+            {
+                value_col.setVisible(false);
+                value_col.setVisible(true);
+            }
             fixup(row);
             // Edit next row
-            ModelThreadPool.getTimer().schedule(() ->
+            if (enterHit)
             {
-                Platform.runLater(() -> table.edit(row+1, name_col));
-            }, 123, TimeUnit.MILLISECONDS);
+                enterHit = false;
+                ModelThreadPool.getTimer().schedule(() ->
+                {
+                    Platform.runLater(() -> table.edit(row+1, name_col));
+                }, 123, TimeUnit.MILLISECONDS);
+            }
         });
 
         table.getColumns().add(name_col);
@@ -251,7 +333,7 @@ public class MacrosTable
     public void setMacros(final Macros macros)
     {
         data.clear();
-        macros.forEach((name, value) -> data.add(new MacroItem(name, value)));
+        macros.forEachSpec((name, value) -> data.add(new MacroItem(name, value)));
         // Add empty final row
         data.add(new MacroItem("", ""));
     }

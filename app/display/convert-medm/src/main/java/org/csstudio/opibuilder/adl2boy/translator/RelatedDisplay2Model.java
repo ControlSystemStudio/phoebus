@@ -29,7 +29,6 @@ import org.phoebus.framework.macros.Macros;
  *
  */
 public class RelatedDisplay2Model extends AbstractADL2Model<ActionButtonWidget> {
-    // MenuButtonModel menuModel = new MenuButtonModel();
 
     public RelatedDisplay2Model(ADLWidget adlWidget, WidgetColor[] colorMap,
             Widget parentModel) throws Exception {
@@ -38,8 +37,6 @@ public class RelatedDisplay2Model extends AbstractADL2Model<ActionButtonWidget> 
 
     @Override
     public void makeModel(ADLWidget adlWidget, Widget parentModel){
-        final RelatedDisplay rdWidget = new RelatedDisplay(adlWidget);
-        final RelatedDisplayItem[] rdDisplays = rdWidget.getRelatedDisplayItems();
         widgetModel = new ActionButtonWidget();
         ChildrenProperty.getChildren(parentModel).addChild(widgetModel);
     }
@@ -57,21 +54,23 @@ public class RelatedDisplay2Model extends AbstractADL2Model<ActionButtonWidget> 
 
         final List<ActionInfo> actions = new ArrayList<>();
         final RelatedDisplayItem[] displays = rdWidget.getRelatedDisplayItems();
-        if (displays == null  ||  displays.length < 0)
-            return;
-        // For menu, always new tab because menu button doesn't
-        // allow user to use 'Ctrl' etc at runtime.
-        // Users can always close the new tab, but have no other way
-        // to get new tab.
-        final Target target = displays.length == 1 ? Target.REPLACE : Target.TAB;
-        for (RelatedDisplayItem display : displays)
+        if (displays != null  &&  displays.length > 0)
         {
-            final ActionInfo action = createOpenDisplayAction(display, target);
-            if (action != null)
-                actions.add(action);
+            // For menu, always new tab because menu button doesn't
+            // allow user to use 'Ctrl' etc at runtime.
+            // Users can always close the new tab, but have no other way
+            // to get new tab.
+            final Target target = displays.length == 1 ? Target.REPLACE : Target.TAB;
+            for (RelatedDisplayItem display : displays)
+            {
+                final ActionInfo action = createOpenDisplayAction(display, target);
+                if (action != null)
+                    actions.add(action);
+            }
+
+            widgetModel.propActions().setValue(new ActionInfos(actions));
         }
 
-        widgetModel.propActions().setValue(new ActionInfos(actions));
         String label = rdWidget.getLabel();
         if (label != null)
         {

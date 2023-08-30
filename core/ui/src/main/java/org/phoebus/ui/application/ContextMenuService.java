@@ -2,6 +2,7 @@ package org.phoebus.ui.application;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.ServiceLoader.Provider;
@@ -41,9 +42,13 @@ public class ContextMenuService {
     }
 
     /**
-     *
-     * @param selectionType
-     * @return
+     * Using the current selection from the {@link SelectionService} and checking
+     * the {@link AdapterService} for all additionally supported types via adapters.
+     * The {@link ContextMenuService} returns a list of context menu actions
+     * supported for the current selection.
+     * 
+     * @return A list of {@link ContextMenuEntry}'s supported for the current
+     *         selection
      */
     public List<ContextMenuEntry> listSupportedContextMenuEntries() {
         // List of types of the current selection
@@ -59,11 +64,9 @@ public class ContextMenuService {
             Class sc = s;
             do
             {
-                // System.out.println("Selection is of type " + sc);
                 allAdaptableSelectionType.add(sc);
                 for (Class inter : sc.getInterfaces())
                 {
-                    // System.out.println(".. and interface " + inter);
                     allAdaptableSelectionType.add(inter);
                 }
                 sc = sc.getSuperclass();
@@ -75,14 +78,15 @@ public class ContextMenuService {
             });
         });
 
-        //
+        // Return the context menu entries that can handle the given selection type,
+        // either directly or by adapting it to a supported type.
         final List<ContextMenuEntry> result = contextMenuEntries
             .stream()
             .filter(p -> {
-                  return !Collections.disjoint(p.getSupportedTypes(), allAdaptableSelectionType);
+                return p.isEnabled() && allAdaptableSelectionType.contains(p.getSupportedType());
             })
             .collect(Collectors.toList());
-        result.sort((a, b) -> a.getName().compareTo(b.getName()));
+        result.sort(Comparator.comparing(ContextMenuEntry::getName));
         return result;
     }
 }

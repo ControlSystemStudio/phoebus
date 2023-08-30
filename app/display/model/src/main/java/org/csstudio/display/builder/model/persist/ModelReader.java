@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,15 +22,18 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Preferences;
 import org.csstudio.display.builder.model.Version;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.WidgetConfigurator;
 import org.csstudio.display.builder.model.WidgetConfigurator.ParseAgainException;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetFactory;
 import org.csstudio.display.builder.model.WidgetFactory.WidgetTypeException;
+import org.csstudio.display.builder.model.widgets.PlaceholderWidget;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 
 /** Read model from XML.
  *
+ *  <pre>
  *  Stream (SAX, StAX) or DOM (JAXB, JDOM, org.w3c.dom)?
  *  ==============================================
  *  JAXB would allow direct mapping of XML elements into widget properties.
@@ -49,9 +52,9 @@ import org.w3c.dom.Element;
  *  How to get from XML to widgets?
  *  ===============================
  *  1) As before:
- *  Read <widget type="xy">,
+ *  Read &lt;widget type="xy">,
  *  create xyWidget,
- *  then for each property <x>,
+ *  then for each property &lt;x>,
  *  use widget.getProperty("x").readFromXML(reader)
  *
  *  + Properties know how to read their own data
@@ -63,19 +66,21 @@ import org.w3c.dom.Element;
  *
  *  2) Each widget registers a WidgetConfigurator.
  *  Default implementation behaves as above:
- *  For each property <x> in XML,
+ *  For each property &lt;x> in XML,
  *  use widget.getProperty("x").readFromXML(reader).
  *  .. but widget can provide a custom WidgetConfigurator
  *  and handle legacy properties in a different way.
+ *  </pre>
  *
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class ModelReader
 {
-    private final static int MAX_PARSE_AGAIN = Preferences.max_reparse;
     private final Element root;
     private final Version version;
+    private final String xml_file;
+    private int widget_errors_during_parse;
 
     /** Parse display from XML
      *  @param xml XML text
@@ -84,7 +89,7 @@ public class ModelReader
      */
     public static DisplayModel parseXML(final String xml) throws Exception
     {
-        final ByteArrayInputStream stream = new ByteArrayInputStream(xml.getBytes());
+        final ByteArrayInputStream stream = new ByteArrayInputStream(xml.getBytes(XMLUtil.ENCODING));
         final ModelReader reader = new ModelReader(stream);
         return reader.readModel();
     }
@@ -95,8 +100,33 @@ public class ModelReader
      */
     public ModelReader(final InputStream stream) throws Exception
     {
+        this(stream, null);
+    }
+
+    /** Create reader.
+     *  @param stream Input stream to read, will be closed
+     *  @param xml_file Name of input file. Can be null if not applicable
+     *  @throws Exception on error
+     */
+    public ModelReader(final InputStream stream, final String xml_file) throws Exception
+    {
         root = XMLUtil.openXMLDocument(stream, XMLTags.DISPLAY);
         version = readVersion(root);
+        widget_errors_during_parse = 0;
+        this.xml_file = xml_file;
+    }
+
+    /** Create reader.
+     *  @param elementRoot XML DOM element root to read from
+     *  @param xml_file Name of input file. Can be null if not applicable
+     *  @throws Exception on error
+     */
+    public ModelReader(final Element elementRoot, final String xml_file) throws Exception
+    {
+        root = elementRoot;
+        version = readVersion(root);
+        widget_errors_during_parse = 0;
+        this.xml_file = xml_file;
     }
 
     /** @return XML root element for custom access */
@@ -113,6 +143,12 @@ public class ModelReader
         return version;
     }
 
+    /** @return number of widget errors occured during parse */
+    public int getNumberOfWidgetErrors()
+    {
+        return widget_errors_during_parse;
+    }
+
     /** Read model from XML.
      *  @return Model
      *  @throws Exception on error
@@ -123,10 +159,19 @@ public class ModelReader
 
         model.setUserData(DisplayModel.USER_DATA_INPUT_VERSION, version);
 
+        widget_errors_during_parse = 0;
+
         // Read display's own properties
-        model.getConfigurator(version).configureFromXML(this, model, root);
+        final WidgetConfigurator configurator = model.getConfigurator(version);
+        configurator.configureFromXML(this, model, root);
+        if (! configurator.isClean())
+            ++widget_errors_during_parse;
+
         // Read widgets of model
         readWidgets(model.runtimeChildren(), root);
+        if (widget_errors_during_parse > 0)
+            logger.log(Level.SEVERE, "There were " + widget_errors_during_parse + " error(s) during loading display from " + (xml_file != null ? xml_file : "stream"));
+        model.setReaderResult(this);
         return model;
     }
 
@@ -142,19 +187,24 @@ public class ModelReader
      */
     public void readWidgets(final ChildrenProperty children, final Element parent_xml)
     {
+        // Save the number of errors we had so far
+        int saved_widget_errors_during_parse = widget_errors_during_parse;
         // Limit the number of retries to avoid infinite loop
-        for (int retries=0; retries < MAX_PARSE_AGAIN; ++retries)
+        for (int retries=0; retries < Preferences.max_reparse_iterations; ++retries)
         {
             final List<Widget> widgets = readWidgetsAllowingRetry(parent_xml);
             if (widgets != null)
             {
                 for (Widget child : widgets)
                     children.addChild(child);
+
+                // Update the number of errors
+                widget_errors_during_parse += saved_widget_errors_during_parse;
                 return;
             }
         }
 
-        throw new IllegalStateException("Too many requests to parse again, limited to " + MAX_PARSE_AGAIN + " requests");
+        throw new IllegalStateException("Too many requests to parse again, limited to " + Preferences.max_reparse_iterations + " requests");
     }
 
     /** Read all '&lt;widget>..' child entries
@@ -169,11 +219,16 @@ public class ModelReader
         // don't add them as children, yet,
         // because ParseAgainException could rearrange the XML on this level.
         final List<Widget> widgets = new ArrayList<>();
+        final String source = xml_file == null ? "line" : xml_file;
+        widget_errors_during_parse = 0;
         for (final Element widget_xml : XMLUtil.getChildElements(parent_xml, XMLTags.WIDGET))
         {
+            boolean added = false;
+
             try
             {
                 widgets.add(readWidget(widget_xml));
+                added = true;
             }
             catch (ParseAgainException ex)
             {
@@ -185,27 +240,37 @@ public class ModelReader
                 // Mention missing widget only once per reader
                 if (! unknown_widget_type.contains(ex.getType()))
                 {
-                    logger.log(Level.WARNING, ex.getMessage() + ", line " + XMLUtil.getLineInfo(widget_xml));
+                    logger.log(Level.SEVERE, ex.getMessage() + ", " + source + ":" + XMLUtil.getLineInfo(widget_xml) + "\tnote: each unknown widget type is reported only once for each model it appears in");
                     unknown_widget_type.add(ex.getType());
                 }
                 // Continue with next widget
             }
             catch (final Throwable ex)
             {
-                logger.log(Level.WARNING,
-                           "Widget configuration file error, line " + XMLUtil.getLineInfo(widget_xml), ex);
+                logger.log(Level.SEVERE,
+                           "Widget configuration file error, " + source + ":" + XMLUtil.getLineInfo(widget_xml), ex);
                 // Continue with next widget
+            }
+
+            if (! added)
+            {
+                ++widget_errors_during_parse;
+                Widget widget = createPlaceholderWidget(widget_xml);
+                // Check for ParseAgainException
+                if (widget == null)
+                    return null;
+
+                widgets.add(widget);
             }
         }
         return widgets;
     }
 
-    /** Read widget from XML
-     *  @param widget_xml Widget's XML element
-     *  @return Widget
+    /** @param widget_xml Widget's XML element
+     *  @return Widget type name
      *  @throws Exception on error
      */
-    private Widget readWidget(final Element widget_xml) throws Exception
+    private static String getWidgetType(final Element widget_xml) throws Exception
     {
         String type = widget_xml.getAttribute(XMLTags.TYPE);
         if (type.isEmpty())
@@ -216,6 +281,17 @@ public class ModelReader
             if (type.isEmpty())
                 throw new Exception("Missing widget type");
         }
+        return type;
+    }
+
+    /** Read widget from XML
+     *  @param widget_xml Widget's XML element
+     *  @return Widget
+     *  @throws Exception on error
+     */
+    private Widget readWidget(final Element widget_xml) throws Exception
+    {
+        final String type = getWidgetType(widget_xml);
         final Widget widget = createWidget(type, widget_xml);
 
         final ChildrenProperty children = ChildrenProperty.getChildren(widget);
@@ -243,10 +319,39 @@ public class ModelReader
         for (WidgetDescriptor desc : WidgetFactory.getInstance().getAllWidgetDescriptors(type))
         {
             final Widget widget = desc.createWidget();
-            if (widget.getConfigurator(xml_version).configureFromXML(this, widget, widget_xml))
+            final WidgetConfigurator configurator = widget.getConfigurator(xml_version);
+            if (configurator.configureFromXML(this, widget, widget_xml))
+            {
+                widget.setConfiguratorResult(configurator);
+                if (! configurator.isClean())
+                    ++widget_errors_during_parse;
+
                 return widget;
+            }
         }
         throw new WidgetTypeException(type, "No suitable widget for " + type);
+    }
+
+    private Widget createPlaceholderWidget(final Element widget_xml)
+    {
+        try
+        {
+            final String type = getWidgetType(widget_xml);
+            final PlaceholderWidget widget = new PlaceholderWidget(type);
+            logger.log(Level.FINE, "Adding placeholder PlaceholderWidget");
+            widget.getConfigurator(readVersion(widget_xml)).configureFromXML(this, widget, widget_xml);
+            return widget;
+        }
+        catch (ParseAgainException ex)
+        {
+            // ignore
+        }
+        catch (Exception ex)
+        {
+            // ignore but log
+            logger.log(Level.SEVERE, ex.getMessage() + " while configuring PlaceholderWidget");
+        }
+        return null;
     }
 
     /** @param element Element
@@ -257,7 +362,18 @@ public class ModelReader
     {
         final String text = element.getAttribute(XMLTags.VERSION);
         if (text.isEmpty())
+        {
+            // Does widget look like a legacy widget without a type?
+            // Then assume 1.0.0
+            if (element.getAttribute(XMLTags.TYPE).isEmpty() &&
+                element.getAttribute("typeId") != null  &&
+                element.getAttribute("typeId").startsWith("org.csstudio.opibuilder.widgets."))
+                return Widget.TYPICAL_LEGACY_WIDGET_VERSION;
+
+            // Otherwise assume it's a new version but created by a script or manually
+            // so didn't bother to populate more than absolutely necessary
             return Widget.BASE_WIDGET_VERSION;
+        }
         return Version.parse(text);
     }
 }

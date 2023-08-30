@@ -1,6 +1,9 @@
 package org.csstudio.utility.adlparser.fileParser.widgetParts;
 
+import static  org.csstudio.display.converter.medm.Converter.logger;
+
 import java.util.ArrayList;
+import java.util.logging.Level;
 
 import org.csstudio.utility.adlparser.fileParser.ADLResource;
 import org.csstudio.utility.adlparser.fileParser.ADLWidget;
@@ -36,8 +39,8 @@ public class ADLPlotData extends WidgetPart {
         ArrayList<Object> ret = new ArrayList<>();
         ret.add(new ADLResource(ADLResource.PLOT_AXIS_STYLE, axisStyle));
         ret.add(new ADLResource(ADLResource.PLOT_RANGE_STYLE, rangeStyle));
-        ret.add(new ADLResource(ADLResource.PLOT_RANGE_MIN, new Float(minRange)));
-        ret.add(new ADLResource(ADLResource.PLOT_RANGE_MAX, new Float(maxRange)));
+        ret.add(new ADLResource(ADLResource.PLOT_RANGE_MIN, Float.valueOf(minRange)));
+        ret.add(new ADLResource(ADLResource.PLOT_RANGE_MAX, Float.valueOf(maxRange)));
         return ret.toArray();
     }
 
@@ -67,6 +70,9 @@ public class ADLPlotData extends WidgetPart {
                     setAxisStyle(FileLine.getTrimmedValue(row[1]));
                 }else if(FileLine.argEquals(row[0], "rangeStyle")){ //$NON-NLS-1$
                     setRangeStyle(FileLine.getTrimmedValue(row[1]));
+                }else if(FileLine.argEquals(row[0], "timeFormat")){ //$NON-NLS-1$
+                    // Ignore
+                    logger.log(Level.WARNING, "Ignoring " + parameter.getLine());
                 }else {
                     throw new WrongADLFormatException(Messages.ADLControl_WrongADLFormatException_Parameter_Begin+parameter+Messages.ADLControl_WrongADLFormatException_Parameter_End);
                 }

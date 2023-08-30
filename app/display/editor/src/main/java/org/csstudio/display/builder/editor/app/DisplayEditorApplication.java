@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.Optional;
 
 import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.model.DisplayModel;
@@ -24,17 +25,22 @@ import org.csstudio.display.builder.representation.javafx.FilenameSupport;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
+import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.dialog.SaveAsDialog;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
+import org.phoebus.util.FileExtensionUtil;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Window;
+import javafx.util.Duration;
 
 /** Display Runtime Application
  *  @author Kay Kasemir
@@ -43,8 +49,12 @@ import javafx.stage.Window;
 public class DisplayEditorApplication implements AppResourceDescriptor
 {
     private static final List<String> FILE_EXTENSIONS = List.of(DisplayModel.FILE_EXTENSION, DisplayModel.LEGACY_FILE_EXTENSION, WidgetClassSupport.FILE_EXTENSION);
+
+    /** App name */
     public static final String NAME = "display_editor";
-    public static final String DISPLAY_NAME = "Display Editor";
+
+    /** Human readable name */
+    public static final String DISPLAY_NAME = Messages.DisplayApplicationName;
 
     /** Last local file that was opened.
      *  Used to offer as a location for downloading remote files.
@@ -78,6 +88,27 @@ public class DisplayEditorApplication implements AppResourceDescriptor
     @Override
     public DisplayEditorInstance create()
     {
+        if (!AuthorizationService.hasAuthorization("edit_display"))
+        {
+            // User does not have a permission to start editor
+            final Alert alert = new Alert(Alert.AlertType.WARNING);
+            DialogHelper.positionDialog(alert, DockPane.getActiveDockPane(), -200, -100);
+            alert.initOwner(DockPane.getActiveDockPane().getScene().getWindow());
+            alert.setResizable(true);
+            alert.setTitle(DISPLAY_NAME);
+            alert.setHeaderText(Messages.DisplayApplicationMissingRight);
+            // Autohide in some seconds, also to handle the situation after
+            // startup without edit_display rights but opening editor from memento
+            PauseTransition wait = new PauseTransition(Duration.seconds(7));
+            wait.setOnFinished((e) -> {
+                Button btn = (Button)alert.getDialogPane().lookupButton(ButtonType.OK);
+                btn.fire();
+            });
+            wait.play();
+
+            alert.showAndWait();
+            return null;
+        }
         return new DisplayEditorInstance(this);
     }
 
@@ -102,20 +133,28 @@ public class DisplayEditorApplication implements AppResourceDescriptor
         else
         {   // Nothing found, create new one
             instance = create();
+            if (instance == null) return null;
             instance.loadDisplay(file_resource);
         }
         return instance;
     }
 
-    /** Prompt for a file name to "save".
+    /**
+     *  Prompt for a file name to "save".
      *
-     *  <p>Used to download a remote file,
-     *  or to create a new file.
-     *
-     *  <p>File extension will be enforced.
+     *  There are some corner cases to consider.
+     *  <ol>
+     *      <li>If user selects an existing file (irrespective of its file name extension), the native file
+     *      chooser will prompt for overwrite. If user accepts to overwrite, a {@link File} object for
+     *      that file will be returned.</li>
+     *      <li>If user specifies a file name corresponding to an existing file when the .bob extension
+     *      has been added, user will be presented with a prompt to confirm overwrite or cancel. If overwrite
+     *      is selected, a {@link File} object for the existing file will be returned. If user does not wish
+     *      to overwrite, <code>null</code> is returned.</li>
+     *  </ol>
      *
      *  @param title Dialog title
-     *  @return File with proper file extension, or <code>null</code>
+     *  @return A {@link File} object, or <code>null</code> (e.g. if file selection was cancelled).
      */
     static File promptForFilename(final String title)
     {
@@ -127,9 +166,28 @@ public class DisplayEditorApplication implements AppResourceDescriptor
                 last_local_file = null;
         }
         File file = new SaveAsDialog().promptForFile(window, title, last_local_file, FilenameSupport.file_extensions);
-        if (file == null)
+        if (file == null) {
             return null;
-        file = ModelResourceUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);
+        }
+        // Check if file exists on the file system. This is true only if user selects to overwrite an existing file
+        // when prompted by the native file chooser.
+        if(file.exists()){
+            return file;
+        }
+        file = FileExtensionUtil.enforceFileExtension(file, DisplayModel.FILE_EXTENSION);
+        // Check if the file exists on the file system when .bob extension has been enforced.
+        // If it does, prompt user to cancel or overwrite.
+        if(file.exists()){
+            final Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle(Messages.NewDisplayOverwriteExistingTitle);
+            alert.setHeaderText(MessageFormat.format(Messages.NewDisplayOverwriteExisting, file.getName(), file.getParentFile().getName()));
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get().equals(ButtonType.CANCEL)) {
+                // User selects Cancel, or dismisses prompt
+                return null;
+            }
+        }
+
         last_local_file = file;
         return file;
     }
@@ -155,6 +213,7 @@ public class DisplayEditorApplication implements AppResourceDescriptor
             // Does user want to download into local file?
             final Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             DialogHelper.positionDialog(alert, DockPane.getActiveDockPane(), -200, -100);
+            alert.initOwner(DockPane.getActiveDockPane().getScene().getWindow());
             alert.setResizable(true);
             alert.setTitle(Messages.DownloadTitle);
             alert.setHeaderText(MessageFormat.format(Messages.DownloadPromptFMT,

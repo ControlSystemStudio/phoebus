@@ -11,6 +11,7 @@ import java.io.File;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.time.temporal.TemporalAmount;
+import java.util.function.BiConsumer;
 
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
@@ -23,19 +24,22 @@ import org.csstudio.trends.databrowser3.export.SpreadsheetExportJob;
 import org.csstudio.trends.databrowser3.export.ValueFormatter;
 import org.csstudio.trends.databrowser3.export.ValueWithInfoFormatter;
 import org.csstudio.trends.databrowser3.model.Model;
-import org.csstudio.trends.databrowser3.ui.TimeRangeDialog;
+import org.csstudio.trends.databrowser3.ui.TimeRangePopover;
 import org.phoebus.archive.vtype.Style;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.dialog.PopOver;
 import org.phoebus.ui.dialog.SaveAsDialog;
+import org.phoebus.ui.time.TimeRelativeIntervalPane;
 import org.phoebus.util.time.SecondsParser;
 import org.phoebus.util.time.TimeInterval;
 import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimeRelativeInterval;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
@@ -52,6 +56,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 /** Panel for exporting data into files
@@ -85,6 +90,10 @@ public class ExportView extends VBox
     private final RadioButton source_raw = new RadioButton(Source.RAW_ARCHIVE.toString()),
                               type_matlab = new RadioButton(Messages.ExportTypeMatlab);
 
+    private final CheckBox useUnixTimeStamp = new CheckBox(Messages.UseUnixTimeStamp);
+    private SimpleBooleanProperty unixTimeStamp = new SimpleBooleanProperty(false);
+
+    /** @param model Model from which to export */
     public ExportView(final Model model)
     {
         this.model = model;
@@ -112,16 +121,19 @@ public class ExportView extends VBox
         GridPane.setHgrow(end, Priority.ALWAYS);
         grid.add(end, 1, 1);
 
+        BiConsumer<TimeRelativeIntervalPane, PopOver> closeCallback = (timePane, popOver) -> {
+            popOver.hide();
+        };
+        BiConsumer<TimeRelativeIntervalPane, PopOver> applyCallback = (timePane, popOver) -> {
+            final String[] range = Model.getTimerangeText(timePane.getInterval());
+            start.setText(range[0]);
+            end.setText(range[1]);
+            popOver.hide();
+        };
+        final TimeRangePopover popover = TimeRangePopover.withDefaultTimePane(model, closeCallback, applyCallback);
         sel_times.setOnAction(event ->
         {
-            final TimeRangeDialog dlg = new TimeRangeDialog(model.getTimerange());
-            DialogHelper.positionDialog(dlg, this, -200, -200);
-            dlg.showAndWait().ifPresent(interval ->
-            {
-                final String[] range = Model.getTimerangeText(interval);
-                start.setText(range[0]);
-                end.setText(range[1]);
-            });
+            popover.show((Region) event.getSource());
         });
 
         use_plot_times.setTooltip(new Tooltip(Messages.ExportPlotStartEndTT));
@@ -167,7 +179,7 @@ public class ExportView extends VBox
         linear.setTooltip(new Tooltip(Messages.ExportDefaultLinearInterpolationTT));
         linear.disableProperty().bind(source_lin.selectedProperty().not());
 
-        final HBox source_options = new HBox(5, source_plot, source_raw, source_opt, optimize, source_lin, linear);
+        final HBox source_options = new HBox(5, source_plot, source_raw, source_opt, optimize, source_lin, linear, useUnixTimeStamp);
         source_options.setAlignment(Pos.CENTER_LEFT);
         grid.add(source_options, 1, 2, 2, 1);
 
@@ -274,6 +286,8 @@ public class ExportView extends VBox
 
         // Enter in filename suggests to next start export
         filename.setOnAction(event -> export.requestFocus());
+
+        useUnixTimeStamp.selectedProperty().bindBidirectional(unixTimeStamp);
     }
 
     /** @return <code>true</code> if the min/max (error) column option should be enabled */
@@ -384,9 +398,23 @@ public class ExportView extends VBox
             if (type_matlab.isSelected())
             {   // Matlab file export
                 if (filename.endsWith(".m"))
-                    export = new MatlabScriptExportJob(model, start_end.getStart(), start_end.getEnd(), source, optimize_parameter, filename, this::handleError);
+                    export = new MatlabScriptExportJob(model,
+                            start_end.getStart(),
+                            start_end.getEnd(),
+                            source,
+                            optimize_parameter,
+                            filename,
+                            this::handleError,
+                            unixTimeStamp.get());
                 else if (filename.endsWith(".mat"))
-                    export = new MatlabFileExportJob(model, start_end.getStart(), start_end.getEnd(), source, optimize_parameter, filename, this::handleError);
+                    export = new MatlabFileExportJob(model,
+                            start_end.getStart(),
+                            start_end.getEnd(),
+                            source,
+                            optimize_parameter,
+                            filename,
+                            this::handleError,
+                            unixTimeStamp.get());
                 else
                 {
                     ExceptionDetailsErrorDialog.openError(this.filename, Messages.Error, Messages.ExportMatlabFilenameError, new Exception(filename));
@@ -427,10 +455,10 @@ public class ExportView extends VBox
                 formatter.useMinMaxColumn(minMaxAllowed() && min_max_col.isSelected());
                 if (tabular.isSelected())
                     export = new SpreadsheetExportJob(model, start_end.getStart(), start_end.getEnd(), source,
-                            optimize_parameter, formatter, filename, this::handleError);
+                            optimize_parameter, formatter, filename, this::handleError, unixTimeStamp.get());
                 else
                     export = new PlainExportJob(model, start_end.getStart(), start_end.getEnd(), source,
-                            optimize_parameter, formatter, filename, this::handleError);
+                            optimize_parameter, formatter, filename, this::handleError, unixTimeStamp.get());
             }
 
             JobManager.schedule(filename, export);
@@ -446,6 +474,7 @@ public class ExportView extends VBox
         ExceptionDetailsErrorDialog.openError(this, Messages.Error, "Export error", ex);
     }
 
+    /** @param memento Where to save current state */
     public void save(final Memento memento)
     {
         memento.setNumber(TAG_SOURCE, sources.getToggles().indexOf(sources.getSelectedToggle()));
@@ -457,6 +486,7 @@ public class ExportView extends VBox
         memento.setString(TAG_FILE, filename.getText());
     }
 
+    /** @param memento From where to restore saved state */
     public void restore(final Memento memento)
     {
         memento.getNumber(TAG_SOURCE).ifPresent(index -> sources.selectToggle(sources.getToggles().get(index.intValue())));

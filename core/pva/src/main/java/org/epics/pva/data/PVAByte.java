@@ -19,11 +19,18 @@ public class PVAByte extends PVANumber
     private final boolean unsigned;
     private volatile byte value;
 
+    /** @param name Name
+     *  @param unsigned Unsigned?
+     */
     public PVAByte(final String name, final boolean unsigned)
     {
         this(name, unsigned, (byte)0);
     }
 
+    /** @param name Name
+     *  @param unsigned Unsigned?
+     *  @param value Initial value
+     */
     public PVAByte(final String name, final boolean unsigned, final byte value)
     {
         super(name);
@@ -117,12 +124,11 @@ public class PVAByte extends PVANumber
     }
 
     @Override
-    protected void formatType(final int level, final StringBuilder buffer)
+    public String getType()
     {
-        indent(level, buffer);
         if (unsigned)
-            buffer.append('u');
-        buffer.append("byte ").append(name);
+            return "ubyte";
+        return "byte";
     }
 
     @Override

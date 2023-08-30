@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,6 +10,7 @@ package org.phoebus.applications.alarm.server;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -25,6 +26,7 @@ import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.client.KafkaHelper;
+import org.phoebus.applications.alarm.model.AlarmState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.applications.alarm.model.BasicState;
@@ -68,14 +70,24 @@ class ServerModel
     private long last_state_update = 0;
     private long last_annunciation = 0;
 
+    /** Time of last connectivity check */
+    private long last_connection_check = System.currentTimeMillis();
+
+    /** Did the last connectivity check fail? */
+    private boolean connection_lost = false;
+
+
     /** @param kafka_servers Servers
      *  @param config_name Name of alarm tree root
-     * @param initial_states
+     *  @param initial_states
+     *  @param listener
+     *  @param kafka_properties_file Additional properties to pass to the kafka client
      *  @throws Exception on error
      */
     public ServerModel(final String kafka_servers, final String config_name,
                        final ConcurrentHashMap<String, ClientState> initial_states,
-                       final ServerModelListener listener) throws Exception
+                       final ServerModelListener listener,
+                       final String kafka_properties_file) throws Exception
     {
         this.initial_states = initial_states;
         // initial_states.entrySet().forEach(state ->
@@ -90,8 +102,9 @@ class ServerModel
 
         consumer = KafkaHelper.connectConsumer(Objects.requireNonNull(kafka_servers),
                                                List.of(config_state_topic, command_topic),
-                                               List.of(config_state_topic));
-        producer = KafkaHelper.connectProducer(kafka_servers);
+                                               List.of(config_state_topic),
+                                               kafka_properties_file);
+        producer = KafkaHelper.connectProducer(kafka_servers, kafka_properties_file);
 
         thread = new Thread(this::run, "ServerModel");
         thread.setDaemon(true);
@@ -115,7 +128,12 @@ class ServerModel
         return root;
     }
 
-    /** Background thread loop that checks for alarm tree updates */
+    /** Background thread
+     *
+     *  <p>Checks for alarm tree updates,
+     *  emits idle or nag messages,
+     *  validates connection
+     */
     private void run()
     {
         try
@@ -126,6 +144,7 @@ class ServerModel
                 final long now = System.currentTimeMillis();
                 checkIdle(now);
                 checkNag(now);
+                checkConnectivity(now);
             }
         }
         catch (Throwable ex)
@@ -140,10 +159,64 @@ class ServerModel
         }
     }
 
+    /** Periodically check for Kafka connectivity
+     *  @param now Current millisec
+     */
+    private void checkConnectivity(final long now)
+    {
+        if (AlarmSystem.connection_check_secs < 0  ||
+            (now - last_connection_check)  <  AlarmSystem.connection_check_secs*1000)
+            return;
+
+        boolean connected = false;
+        try
+        {
+            // There is no consumer.isConnected() type of API?
+            // https://stackoverflow.com/questions/38103198/how-to-check-kafka-consumer-state
+            // suggest calling listTopics with timeout
+            logger.log(Level.FINE, "Testing Kafka connectitity");
+            consumer.listTopics(Duration.ofSeconds(1));
+            connected = true;
+        }
+        catch (Throwable ex)
+        {
+            logger.log(Level.FINE, "No Kafka connectitity", ex);
+        }
+
+        // While disconnected, the Kafka API still allows sending messages
+        // but silently drops them, so clients will get out of sync,
+        // and since Kafka is down, it won't track the most recent alarm state
+        // for future clients...
+        if (connected == false  &&  connection_lost == false)
+            logger.log(Level.WARNING, "Lost Kafka connectitity");
+        else if (connected &&  connection_lost)
+        {
+            logger.log(Level.WARNING, "Regained Kafka connectitity");
+            // Update Kafka and thus clients with current state
+            // as soon as connectivity is restored
+            resend(getRoot());
+            sendAnnunciatorMessage(root.getPathName(), SeverityLevel.OK, "* Alarm server re-connected");
+        }
+
+        connection_lost = ! connected;
+        last_connection_check = now;
+    }
+
     /** Perform one check for updates */
     private void checkUpdates()
     {
-        final ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+        final ConsumerRecords<String, String> records;
+        try
+        {
+            records = consumer.poll(Duration.ofMillis(100));
+        }
+        catch (Throwable ex)
+        {
+            // This typically doesn't happen, 'poll' will simply not return any new
+            // records while disconnected from Kafka...
+            logger.log(Level.WARNING, "Error reading updates from Kafka", ex);
+            return;
+        }
         for (ConsumerRecord<String, String> record : records)
         {
             final int sep = record.key().indexOf(':');
@@ -170,12 +243,20 @@ class ServerModel
                     {   // No config -> Delete node
                         final AlarmTreeItem<?> node = deleteNode(path);
                         if (node != null)
-                            stopPVs(node);
+                            stopDeletedPVs(node);
+                        // else: Deletion message for node we never created
                     }
                     else
                     {
                         // Get node_config as JSON map to check for "pv" key
                         final Object json = JsonModelReader.parseJsonText(node_config);
+
+                        // Ignore 'delete' messages because they don't update the config
+                        // and would result in superfluous PV stop() and re-start().
+                        // The follow-up message with config == null will actually delete the AlarmServerPV
+                        if (JsonModelReader.isConfigDeletion(json))
+                            continue;
+
                         AlarmTreeItem<?> node = findNode(path);
 
                         // New node? Create it.
@@ -201,6 +282,12 @@ class ServerModel
                             // before the PV connects
                             pv.getParent().maximizeSeverity();
                             pv.start();
+
+                            //check if using past disabled date
+                            LocalDateTime enabled_date = pv.getEnabledDate();
+                            if (enabled_date != null && enabled_date.isBefore(LocalDateTime.now())) {
+                                pv.setEnabled(true);
+                            }
                         }
                     }
                 }
@@ -302,9 +389,16 @@ class ServerModel
             {   // Done when creating leaf
                 // Use the known initial state, but only once (remove from map)
                 if (last &&  is_leaf)
-                    return new AlarmServerPV(this, parent, name, initial_states.remove(path));
+                {
+                    final AlarmServerPV pv = new AlarmServerPV(this, parent.getPathName(), name, initial_states.remove(path));
+                    pv.addToParent(parent);
+                    return pv;
+                }
                 else
-                    node = new AlarmServerNode(this, parent, name);
+                {
+                    node = new AlarmServerNode(this, parent.getPathName(), name);
+                    node.addToParent(parent);
+                }
             }
             // Reached desired node?
             if (last)
@@ -353,14 +447,18 @@ class ServerModel
     /** Stop PVs in a subtree of the alarm hierarchy
      *  @param node Node where to start
      */
-    private void stopPVs(final AlarmTreeItem<?> node)
+    private void stopDeletedPVs(final AlarmTreeItem<?> node)
     {
-        // If this was a known PV, notify listener
         if (node instanceof AlarmServerPV)
+        {
+            // Stop the PV, i.e. no longer react to value updates
             ((AlarmServerPV) node).stop();
+            // Send a null "tombstone" status update
+            sendStateUpdate(node.getPathName(), null);
+        }
         else
             for (AlarmTreeItem<?> child : node.getChildren())
-                stopPVs(child);
+                stopDeletedPVs(child);
     }
 
     /** Send alarm update to 'state' topic
@@ -371,7 +469,7 @@ class ServerModel
     {
         try
         {
-            final String json = new_state == null ? null : new String(JsonModelWriter.toJsonBytes(new_state, AlarmLogic.getMaintenanceMode()));
+            final String json = new_state == null ? null : new String(JsonModelWriter.toJsonBytes(new_state, AlarmLogic.getMaintenanceMode(), AlarmLogic.getDisableNotify()));
             final ProducerRecord<String, String> record = new ProducerRecord<>(config_state_topic, AlarmSystem.STATE_PREFIX + path, json);
             producer.send(record);
             last_state_update = System.currentTimeMillis();
@@ -379,6 +477,24 @@ class ServerModel
         catch (Throwable ex)
         {
             logger.log(Level.WARNING, "Cannot send state update for " + path, ex);
+        }
+    }
+
+    /** Send alarm update to 'config' topic
+     *  @param path Path of item that has a new state
+     *  @param new_state That new state
+     */
+    public void sendConfigUpdate(final String path, final AlarmTreeItem<AlarmState> config)
+    {
+        try
+        {
+            final String json = config == null ? null : new String(JsonModelWriter.toJsonBytes(config));
+            final ProducerRecord<String, String> record = new ProducerRecord<>(config_state_topic, AlarmSystem.CONFIG_PREFIX + path, json);
+            producer.send(record);
+        }
+        catch (Throwable ex)
+        {
+            logger.log(Level.WARNING, "Cannot send config update for " + path, ex);
         }
     }
 
@@ -402,6 +518,30 @@ class ServerModel
             logger.log(Level.WARNING, "Cannot send talk message for " + path, ex);
         }
     }
+
+    /** Re-send current state (after e.g. network trouble)
+     *  @param node Node from which on to send state update, recursively
+     */
+    public void resend(final AlarmTreeItem<?> node)
+    {
+        final BasicState state;
+        if (node instanceof AlarmServerPV)
+        {
+            final AlarmServerPV pv = (AlarmServerPV) node;
+            final AlarmState current = pv.getCurrentState();
+            state = new ClientState(pv.getState(), current.getSeverity(), current.getMessage());
+            sendStateUpdate(pv.getPathName(), state);
+        }
+        else
+            state = node.getState();
+
+        logger.log(Level.INFO, "Resend state:" + node.getPathName() + ": " + state);
+        sendStateUpdate(node.getPathName(), state);
+
+        for (AlarmTreeItem<?> child : node.getChildren())
+            resend(child);
+    }
+
 
     /** Check if 'idle' message should be sent since there were no state updates
      *  @param now Current millisec
@@ -435,12 +575,13 @@ class ServerModel
      */
     private int countAlarmPVs(final AlarmTreeItem<?> item)
     {
+        // Only count enabled items
         if (item instanceof AlarmServerPV)
-            return item.getState().severity.isActive() ? 1 : 0;
+            return ((AlarmServerPV) item).isEnabled() &&  item.getState().severity.isActive() ? 1 : 0;
         int active = 0;
         for (AlarmTreeItem<?> child : item.getChildren())
             if (child.getState().severity.isActive())
-                ++active;
+                active += countAlarmPVs(child);
         return active;
     }
 

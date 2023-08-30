@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,23 +9,27 @@ package org.csstudio.display.builder.model.widgets;
 
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineColor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineStyle;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineWidth;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propTransparent;
 
 import java.util.Arrays;
 import java.util.List;
 
+import org.csstudio.display.builder.model.Version;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetCategory;
+import org.csstudio.display.builder.model.WidgetConfigurator;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.properties.LineStyle;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 
 /** Widget that displays a static ellipse
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class EllipseWidget extends VisibleWidget
+public class EllipseWidget extends MacroWidget
 {
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
@@ -46,7 +50,9 @@ public class EllipseWidget extends VisibleWidget
     private volatile WidgetProperty<Boolean> transparent;
     private volatile WidgetProperty<WidgetColor> line_color;
     private volatile WidgetProperty<Integer> line_width;
+    private volatile WidgetProperty<LineStyle> line_style;
 
+    /** Constructor */
     public EllipseWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 100, 50);
@@ -58,8 +64,16 @@ public class EllipseWidget extends VisibleWidget
         super.defineProperties(properties);
         properties.add(line_width = propLineWidth.createProperty(this, 3));
         properties.add(line_color = propLineColor.createProperty(this, new WidgetColor(0, 0, 255)));
+        properties.add(line_style = propLineStyle.createProperty(this, LineStyle.SOLID));
         properties.add(background = propBackgroundColor.createProperty(this, new WidgetColor(30, 144, 255)));
         properties.add(transparent = propTransparent.createProperty(this, false));
+    }
+
+    @Override
+    public WidgetConfigurator getConfigurator(final Version persisted_version)
+            throws Exception
+    {
+        return new MacroWidget.LegacyWidgetConfigurator(persisted_version);
     }
 
     /** @return 'background_color' property */
@@ -84,5 +98,11 @@ public class EllipseWidget extends VisibleWidget
     public WidgetProperty<Integer> propLineWidth()
     {
         return line_width;
+    }
+
+    /** @return 'line_style' property */
+    public WidgetProperty<LineStyle> propLineStyle()
+    {
+        return line_style;
     }
 }

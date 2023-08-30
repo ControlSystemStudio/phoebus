@@ -4,9 +4,13 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLConnection;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -16,6 +20,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 /**
  * A utility class for parsing user defined resources
@@ -34,6 +44,53 @@ public class ResourceParser
     /** URI query tag used to specify the application name */
     private static final String APP_QUERY_TAG = "app=";
 
+    /** URI query tag used to specify the destination pane */
+    private static final String TARGET_QUERY_TAG = "target=";
+
+    /** Used by trustAnybody() to only initialize once */
+    private static boolean trusting_anybody = false;
+
+    /** Allow https:// access to self-signed certificates
+     *  @throws Exception on error
+     */
+    // From Eric Berryman's code in org.csstudio.opibuilder.util.ResourceUtil.
+    public static synchronized void trustAnybody() throws Exception
+    {
+        if (trusting_anybody)
+            return;
+
+        // Create a trust manager that does not validate certificate chains.
+        final TrustManager[] trustAllCerts = new TrustManager[]
+        {
+            new X509TrustManager()
+            {
+                @Override
+                public void checkClientTrusted(X509Certificate[] arg0,
+                                               String arg1) throws CertificateException
+                { /* NOP */ }
+
+                @Override
+                public void checkServerTrusted(X509Certificate[] arg0,
+                                               String arg1) throws CertificateException
+                { /* NOP */ }
+
+                @Override
+                public X509Certificate[] getAcceptedIssuers()
+                {
+                    return null;
+                }
+            }
+        };
+        final SSLContext sc = SSLContext.getInstance("SSL");
+        sc.init(null, trustAllCerts, new java.security.SecureRandom());
+        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+        // All-trusting host name verifier
+        final HostnameVerifier allHostsValid = (hostname, session) -> true;
+        HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+
+        trusting_anybody = true;
+    }
 
     /** Create URI for a resource
      *
@@ -122,8 +179,29 @@ public class ResourceParser
      */
     public static InputStream getContent(final URI resource) throws Exception
     {
+        // Check for https, but beware that scheme may be null
+        if ("https".equals(resource.getScheme()))
+            trustAnybody();
+
         final URL url = resource.toURL();
         return url.openStream();
+    }
+
+    /** Open a resource that can be read (file, web link) with timeout
+     *  @param resource URI for a resource
+     *  @param timeout_ms Read timeout [milliseconds]
+     *  @return {@link InputStream} for the content of the resource
+     *  @throws Exception on error: Not a URI that can be read
+     */
+    public static InputStream getContent(final URI resource, final int timeout_ms) throws Exception
+    {
+        if ("https".equals(resource.getScheme()))
+            trustAnybody();
+
+        final URL url = resource.toURL();
+        final URLConnection connection = url.openConnection();
+        connection.setReadTimeout(timeout_ms);
+        return connection.getInputStream();
     }
 
     /** Get list of PVs from a "pv://?PV1&PV2" type URL
@@ -143,6 +221,7 @@ public class ResourceParser
         if (! PV_SCHEMA.equals(scheme))
             return List.of();
         final List<String> pvs = getQueryStream(resource).filter(pv -> !pv.startsWith(APP_QUERY_TAG))
+                                                         .filter(pv -> !pv.startsWith(TARGET_QUERY_TAG))
                                                          .collect(Collectors.toList());
         if (pvs.isEmpty())
             throw new Exception("No PVs found in '" + resource + "'");
@@ -161,9 +240,21 @@ public class ResourceParser
                                        .orElse(null);
     }
 
+    /** Get target name hint from resource
+     *  @param resource URI that might contain "?...target=the_pane_name"
+     *  @return "the_pane_name" or <code>null</code>
+     */
+    public static String getTargetName(final URI resource)
+    {
+        return getQueryStream(resource).filter(q -> q.startsWith(TARGET_QUERY_TAG))
+                                       .map(app_name -> app_name.substring(TARGET_QUERY_TAG.length()))
+                                       .findFirst()
+                                       .orElse(null);
+    }
+
     /** Get stream of query items
      *
-     *  <p>Filters the "app=.." item,
+     *  <p>Filters the "app=.." and "target=.." items,
      *  passing only the remaining query items
      *
      *  @param resource Resource with optional query
@@ -172,12 +263,13 @@ public class ResourceParser
     public static Stream<Map.Entry<String, String>> getQueryItemStream(final URI resource)
     {
         return getQueryStream(resource).filter(pv -> !pv.startsWith(APP_QUERY_TAG))
+                                       .filter(pv -> !pv.startsWith(TARGET_QUERY_TAG))
                                        .map(ResourceParser::splitQueryParameter);
     }
 
     /** Get map of query items
     *
-    *  <p>Filters the "app=.." item,
+    *  <p>Filters the "app=.." and "target=.." items,
     *  passing only the remaining query items
     *
     *  @param resource Resource with optional query
@@ -209,7 +301,7 @@ public class ResourceParser
     {
         final int idx = item.indexOf("=");
         final String key = idx > 0 ? item.substring(0, idx) : item;
-        final String value = idx > 0 && item.length() > idx + 1 ? item.substring(idx + 1) : null;
+        final String value = idx > 0 && item.length() > idx + 1 ? item.substring(idx + 1) : "";
         return new SimpleImmutableEntry<String, String>(decode(key), decode(value));
     }
 
@@ -229,6 +321,26 @@ public class ResourceParser
         {
             Logger.getLogger(ResourceParser.class.getPackageName())
                   .log(Level.WARNING, "Error decoding '" + text + "'", ex);
+            return text;
+        }
+    }
+
+    /** Encode string to URI format
+     *  @param text string
+     *  @return Encoded URI formatted string
+     */
+    public static String encode(final String text)
+    {
+        if (text == null)
+            return null;
+        try
+        {
+            return URLEncoder.encode(text, UTF_8);
+        }
+        catch (Exception ex)
+        {
+            Logger.getLogger(ResourceParser.class.getPackageName())
+                  .log(Level.WARNING, "Error encoding '" + text + "'", ex);
             return text;
         }
     }

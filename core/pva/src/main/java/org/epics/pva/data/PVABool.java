@@ -14,10 +14,17 @@ import java.util.BitSet;
  *   @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVABool extends PVAData
+public class PVABool extends PVAData implements PVAValue
 {
+    /** Type descriptor */
     public static final byte FIELD_DESC_TYPE = (byte)0b00000000;
 
+    /** @param name Name of 'bool' to decode
+     *  @param field_desc  Field description
+     *  @param buffer Source buffer
+     *  @return Decoded PVABool or PVABoolArray
+     *  @throws Exception on error
+     */
     public static PVAData decodeType(final String name, final byte field_desc, final ByteBuffer buffer) throws Exception
     {
         final PVAFieldDesc.Array array = PVAFieldDesc.Array.forFieldDesc(field_desc);
@@ -30,11 +37,15 @@ public class PVABool extends PVAData
 
     private volatile boolean value;
 
+    /** @param name Name */
     public PVABool(final String name)
     {
         this(name, false);
     }
 
+    /** @param name Name
+     *  @param value Initial value
+     */
     public PVABool(final String name, final boolean value)
     {
         super(name);
@@ -132,10 +143,9 @@ public class PVABool extends PVAData
     }
 
     @Override
-    protected void formatType(final int level, final StringBuilder buffer)
+    public String getType()
     {
-        indent(level, buffer);
-        buffer.append("boolean ").append(name);
+        return "boolean";
     }
 
     @Override
@@ -143,6 +153,11 @@ public class PVABool extends PVAData
     {
         formatType(level, buffer);
         buffer.append(" ").append(value);
+    }
+
+    @Override
+    public String formatValue() {
+        return Boolean.toString(get());
     }
 
     @Override

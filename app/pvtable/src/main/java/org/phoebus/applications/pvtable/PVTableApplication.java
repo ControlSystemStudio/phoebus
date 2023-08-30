@@ -29,7 +29,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 @SuppressWarnings("nls")
 public class PVTableApplication implements AppResourceDescriptor
 {
-
+    /** Shared logger */
     public static final Logger logger = Logger.getLogger(PVTableApplication.class.getPackageName());
 
     static final ExtensionFilter[] file_extensions = new ExtensionFilter[]
@@ -39,7 +39,9 @@ public class PVTableApplication implements AppResourceDescriptor
         new ExtensionFilter("Autosave", "*." + PVTableAutosavePersistence.FILE_EXTENSION)
     };
 
+    /** Application ID */
     public static final String NAME = "pv_table";
+    /** Application name */
     public static final String DISPLAY_NAME = "PV Table";
 
     @Override

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -42,7 +42,7 @@ public class MQTT_PVConn implements MqttCallback
     /** Mapping from topic to PVs */
     final ConcurrentHashMap<String, CopyOnWriteArrayList<MQTT_PV>> subscribers = new ConcurrentHashMap<>();
 
-    volatile private String brokerURL = MQTT_Preferences.brokerURL;
+    volatile private String brokerURL = MQTT_Preferences.mqtt_broker;
     volatile private String clientID;
 
     //Random integer in case
@@ -66,6 +66,10 @@ public class MQTT_PVConn implements MqttCallback
             pv.messageArrived(topic, msg);
     }
 
+    /** @param topicStr Topic
+     *  @param pv PV
+     *  @throws Exception on error
+     */
     public void subscribeTopic (String topicStr, MQTT_PV pv) throws Exception
     {
         if (!connect())
@@ -91,6 +95,10 @@ public class MQTT_PVConn implements MqttCallback
         pvs.add(pv);
     }
 
+    /** @param topicStr Topic
+     *  @param pv PV
+     *  @throws Exception on error
+     */
     public void unsubscribeTopic (String topicStr, MQTT_PV pv) throws Exception
     {
         if (!connect())
@@ -118,6 +126,12 @@ public class MQTT_PVConn implements MqttCallback
         }
     }
 
+    /** @param topicStr Topic
+     *  @param pubMsg Message
+     *  @param pubQoS QOS
+     *  @param retained Retain message?
+     *  @throws Exception on error
+     */
     public void publishTopic(String topicStr, String pubMsg, int pubQoS, boolean retained) throws Exception
     {
         if (!connect())

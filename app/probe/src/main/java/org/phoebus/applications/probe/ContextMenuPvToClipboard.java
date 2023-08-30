@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,7 +7,6 @@
  *******************************************************************************/
 package org.phoebus.applications.probe;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,16 +20,16 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 
 // Not strictly related to probe, but seemed too small to start
-// its own application, so added it to the 'simplest' appliation
+// its own application, so added it to the 'simplest' application
 // which deals with PVs and already makes context menu contributions.
 
 /** Context menu entry for PV that copies PV name to clipboard
  *  @author Kay Kasemir
  */
-@SuppressWarnings({ "rawtypes", "nls" })
-public class ContextMenuPvToClipboard implements ContextMenuEntry<ProcessVariable>
+@SuppressWarnings("nls")
+public class ContextMenuPvToClipboard implements ContextMenuEntry
 {
-    private static final List<Class> supportedTypes = Arrays.asList(ProcessVariable.class);
+    private static final Class<?> supportedTypes = ProcessVariable.class;
 
     private static final Image icon = ImageCache.getImage(ImageCache.class, "/icons/copy.png");
 
@@ -47,22 +46,24 @@ public class ContextMenuPvToClipboard implements ContextMenuEntry<ProcessVariabl
     }
 
     @Override
-    public List<Class> getSupportedTypes()
+    public Class<?> getSupportedType()
     {
         return supportedTypes;
     }
 
+    protected String createText(final List<ProcessVariable> pvs)
+    {
+        return pvs.stream().map(ProcessVariable::getName).collect(Collectors.joining(System.lineSeparator()));
+    }
+
     @Override
-    public ProcessVariable callWithSelection(final Selection selection)
-            throws Exception
+    public void call(final Selection selection) throws Exception
     {
         final List<ProcessVariable> pvs = selection.getSelections();
 
         final Clipboard clipboard = Clipboard.getSystemClipboard();
         final ClipboardContent content = new ClipboardContent();
-        content.putString(pvs.stream().map(ProcessVariable::getName).collect(Collectors.joining(" ")));
+        content.putString(createText(pvs));
         clipboard.setContent(content);
-        return null;
     }
-
 }

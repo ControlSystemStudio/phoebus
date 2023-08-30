@@ -12,9 +12,14 @@ import static org.csstudio.javafx.rtplot.Activator.logger;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Level;
+import java.util.stream.IntStream;
 
+import javafx.util.Pair;
 import org.csstudio.javafx.rtplot.internal.util.Log10;
 
 /** Helper for creating tick marks.
@@ -32,20 +37,47 @@ public class LogTicks extends LinearTicks
         detailed_num_fmt = createExponentialFormat(3);
     }
 
+    @Override
+    public Pair<Double, Double> adjustRange(Double low, Double high) {
+        // Only support 'normal' order, low < high:
+        if (!Double.isFinite(low) || low <= 0.0) {
+            low = Math.ulp(0.0);
+        }
+        if (!Double.isFinite(high)) {
+            high = Double.MAX_VALUE;
+        }
+        if (Math.abs(high - low) < 3*Math.ulp(low)) {
+            high = low + 3*Math.ulp(low);
+        }
+        if (high < low) {
+            double new_high = low;
+            low = high;
+            high = new_high;
+        }
+
+        return new Pair<>(low, high);
+    }
+
     /** {@inheritDoc} */
     @Override
-    public void compute(final Double low, final Double high, final Graphics2D gc, final int screen_width)
+    public void compute(Double low, Double high, final Graphics2D gc, final int screen_width)
     {
+        Pair<Double, Double> adjustedRange = adjustRange(low, high);
+        double newLow = adjustedRange.getKey();
+        double newHigh = adjustedRange.getValue();
+
+        if (newLow != low || newHigh != high) {
+            logger.log(Level.WARNING, "Invalid value range for a logarithmic scale {0,number,#.###############E0} ... {1,number,#.###############E0}. Adjusting the range to {2,number,#.###############E0} ... {3,number,#.###############E0}.",
+                    new Object[] {low, high, newLow, newHigh });
+            high = newHigh;
+            low = newLow;
+        }
+
         logger.log(Level.FINE, "Compute log ticks, width {0}, for {1} - {2}",
-                               new Object[] { screen_width, low, high });
+                new Object[] { screen_width, low, high });
 
-        // Only support 'normal' order, low < high
-        if (! isSupportedRange(low, high)  ||   high <= low)
-            throw new Error("Unsupported range " + low + " .. " + high);
-
-        // Determine range of values on axis
-        final double low_exp = (int) Math.floor(Log10.log10(low));
-        final double high_exp = (int) Math.floor(Log10.log10(high));
+        double low_exp_exact = Log10.log10(low);
+        double high_exp_exact = Log10.log10(high);
 
         // Test format
         int precision = 2;
@@ -62,95 +94,81 @@ public class LogTicks extends LinearTicks
         final List<MajorTick<Double>> major_ticks = new ArrayList<>();
         final List<MinorTick<Double>> minor_ticks = new ArrayList<>();
 
-        // Try major tick distance between __exponents__
-        double exp_dist = (high_exp - low_exp) / num_that_fits;
+        List<Integer> exponentsOfPowersOfTenInInterval = new ArrayList<>();
+        List<Double> minorTickValuesInInterval = new LinkedList<>();
+        for(int exponent : IntStream.rangeClosed((int) Math.floor(low_exp_exact), (int) Math.ceil(high_exp_exact)).toArray()) {
+            double powerOfTen = Log10.pow10(exponent);
+            if (powerOfTen >= low && powerOfTen <= high) {
+                exponentsOfPowersOfTenInInterval.add(exponent);
+            }
 
-        if (exp_dist < 1.0)
-        {
-            // All values have the same exponent, can't create a useful log scale.
-            // Pick a format that shows significant detail for mantissa.
-            final double low_power = Log10.pow10(low_exp);
-            final double low_mantissa = low / low_power;
-            final double high_power = Log10.pow10(high_exp);
-            final double high_mantissa = high / high_power;
-
-            final double distance = Math.abs(high_mantissa - low_mantissa);
-            precision = determinePrecision(distance) + 1;
-            num_fmt = createExponentialFormat(precision);
-            detailed_num_fmt = createExponentialFormat(precision+1);
-            zero_threshold = low / 100.0;
-
-            // System.out.println("\nDegraded dist: " + exp_dist + " for range "+ num_fmt.format(low) + " .. " + num_fmt.format(high));
-            // Use 4 major ticks, no minors
-            for (int i=0; i<=4; ++i)
-            {
-                double value = low + (high - low) * i / 4;
-                major_ticks.add(new MajorTick<>(value, format(value)));
+            for (int i = 1; i < 10; i++) {
+                double minorTickValue = i * powerOfTen;
+                if (minorTickValue >= low && minorTickValue <= high) {
+                    minorTickValuesInInterval.add(minorTickValue);
+                }
             }
         }
-        else
-        {
-            // System.out.println("\nExp dist: " + exp_dist + " for range "+ num_fmt.format(low) + " .. " + num_fmt.format(high));
-            // Round up to a 'nice' step size
-            exp_dist = selectNiceStep(exp_dist);
-            // System.out.println("-> Nice Exp dist: " + exp_dist);
 
-            int minor_count;
-            if (exp_dist < 1.0)
-            {   // Range isn't really large enough for a useful log scale,
-                // ticks share the same exponent
-                // -> Remove the minor ticks
-                minor_count = 0;
-                // Keep precision = 2
-            }
-            else if (exp_dist == 1)
-            {
-                // Example: 1e2, 1e3, 1e4 with dist==1 between exponents
-                precision = 0;
-                minor_count = 10;
-            }
-            else
-            {
-                // Example: 1e2, 1e4, 1e6 with dist==2 between exponents
-                precision = 0;
-                minor_count = 10;
-            }
+        zero_threshold = 0.0;
+        if (exponentsOfPowersOfTenInInterval.size() >= 2 && exponentsOfPowersOfTenInInterval.size() > num_that_fits) {
+            precision = 0;
             num_fmt = createExponentialFormat(precision);
-            detailed_num_fmt = createExponentialFormat(precision+1);
-
-            // Compute major tick marks
-            final double start = Log10.pow10(Math.ceil(Log10.log10(low) / exp_dist) * exp_dist);
-            final double major_factor = Log10.pow10(exp_dist);
-            double value = start;
-            double prev = start / major_factor;
-            zero_threshold = start - prev;
-            while (value <= high*major_factor)
-            {
-                if (value >= low  &&  value <= high)
-                    major_ticks.add(new MajorTick<>(value, format(value)));
-
-                if (minor_count > 0)
-                {   // Fill major tick marks with minor ticks
-                    // Minor ticks use 1/N of the _linear range.
-                    // Example:
-                    // Major ticks 0,   10: Minors at  1,  2,  3,  4, ..,  9
-                    // Major ticks 0,  100: Minors at 10, 20, 30, 40, .., 90
-                    final double minor_step = value  / minor_count;
-                    for (int i=1; i<minor_count; ++i)
-                    {
-                        final double min_val = prev + i * minor_step;
-                        if (min_val <= low || min_val >= high)
-                            continue;
-                        minor_ticks.add(new MinorTick<>(min_val));
-                    }
+            while (exponentsOfPowersOfTenInInterval.size() > num_that_fits) {
+                List<Integer> newExponentsOfPowersOfTenInInterval = new LinkedList<>();
+                for (int i=0; i < exponentsOfPowersOfTenInInterval.size()/2; i++) {
+                    newExponentsOfPowersOfTenInInterval.add(i, exponentsOfPowersOfTenInInterval.get(2*i));
                 }
-                prev = value;
+                if (exponentsOfPowersOfTenInInterval.size() % 2 == 1) {
+                    newExponentsOfPowersOfTenInInterval.add(exponentsOfPowersOfTenInInterval.get(exponentsOfPowersOfTenInInterval.size() - 1));
+                }
+                exponentsOfPowersOfTenInInterval = newExponentsOfPowersOfTenInInterval;
+            }
+            for (int exponent : exponentsOfPowersOfTenInInterval) {
+                double majorTickValueInInterval = Log10.pow10(exponent);
+                major_ticks.add(new MajorTick<>(majorTickValueInInterval, format(majorTickValueInInterval)));
+            }
+        }
+        else if (exponentsOfPowersOfTenInInterval.size() >= 2 && exponentsOfPowersOfTenInInterval.size() <= num_that_fits) {
+            precision = 0;
+            num_fmt = createExponentialFormat(precision);
+            for (int exponent : exponentsOfPowersOfTenInInterval) {
+                double majorTickValueInInterval = Log10.pow10(exponent);
+                major_ticks.add(new MajorTick<>(majorTickValueInInterval, format(majorTickValueInInterval)));
+            }
 
-                value *= major_factor;
-                // Rounding errors can result in a situation where
-                // we don't make any progress...
-                if (value <= prev)
-                    break;
+            for (double minorTickValueInInterval : minorTickValuesInInterval) {
+                minor_ticks.add(new MinorTick<>(minorTickValueInInterval));
+            }
+        }
+        else linearScale: {
+            // Compute scale with linearly spaced values:
+            int logOfSignificantDecimal = (int) Math.floor(Math.log10(high - low));
+            double significantDecimal = Log10.pow10(logOfSignificantDecimal);
+            Set<Double> tickValues = new TreeSet<>();
+            double stepSize = significantDecimal;
+            int steps = 0;
+            do  {
+                double tickValue = low - (low % significantDecimal) - stepSize;
+                if (!Double.isFinite(tickValue) || tickValue + stepSize == tickValue) {
+                    // The precision of the double is insufficient for the calculation.
+                    break linearScale;
+                }
+                while (tickValue <= high) {
+                    if (tickValue >= low && tickValue <= high) {
+                        tickValues.add(tickValue);
+                    }
+                    tickValue += stepSize;
+                }
+                steps++;
+                stepSize /= 2;
+            } while (tickValues.size() < num_that_fits / 2);
+
+            for (double tickValue : tickValues) {
+                precision = (int) Math.floor(Math.log10(tickValue)) - logOfSignificantDecimal + steps;
+                num_fmt = createExponentialFormat(precision-1);
+                detailed_num_fmt = createExponentialFormat(precision+1);
+                major_ticks.add(new MajorTick<>(tickValue, format(tickValue)));
             }
         }
 
@@ -158,6 +176,9 @@ public class LogTicks extends LinearTicks
         {   // If the best-laid plans of mice and men fail
             // and we end up with just one or no tick,
             // add the low and high markers
+            precision = 17;
+            num_fmt = createExponentialFormat(precision-1);
+            detailed_num_fmt = createExponentialFormat(precision+1);
             major_ticks.add(0, new MajorTick<>(low, format(low)));
             major_ticks.add(new MajorTick<>(high, format(high)));
         }

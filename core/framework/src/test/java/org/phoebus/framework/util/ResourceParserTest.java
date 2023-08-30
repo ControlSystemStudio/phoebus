@@ -1,19 +1,6 @@
 package org.phoebus.framework.util;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.hasItems;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-import static org.phoebus.framework.util.ResourceParser.PV_SCHEMA;
-import static org.phoebus.framework.util.ResourceParser.createResourceURI;
-import static org.phoebus.framework.util.ResourceParser.getAppName;
-import static org.phoebus.framework.util.ResourceParser.getContent;
-import static org.phoebus.framework.util.ResourceParser.getFile;
-import static org.phoebus.framework.util.ResourceParser.getURI;
-import static org.phoebus.framework.util.ResourceParser.parsePVs;
-import static org.phoebus.framework.util.ResourceParser.parseQueryArgs;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.InputStream;
@@ -22,7 +9,22 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.phoebus.framework.util.ResourceParser.PV_SCHEMA;
+import static org.phoebus.framework.util.ResourceParser.createResourceURI;
+import static org.phoebus.framework.util.ResourceParser.getAppName;
+import static org.phoebus.framework.util.ResourceParser.getContent;
+import static org.phoebus.framework.util.ResourceParser.getFile;
+import static org.phoebus.framework.util.ResourceParser.getTargetName;
+import static org.phoebus.framework.util.ResourceParser.getURI;
+import static org.phoebus.framework.util.ResourceParser.parsePVs;
+import static org.phoebus.framework.util.ResourceParser.parseQueryArgs;
 
 /**
  * JUnit test of {@link ResourceParser}
@@ -34,11 +36,10 @@ import org.junit.Test;
 public class ResourceParserTest
 {
 
-    private static String OS = System.getProperty("os.name").toLowerCase();
+    private static final String OS = System.getProperty("os.name").toLowerCase();
 
     @Test
-    public void checkFileToURI() throws Exception
-    {
+    public void checkFileToURI() throws Exception {
         // File URL
         URI uri = createResourceURI("file:/some/file/path");
         System.out.println(uri);
@@ -87,13 +88,10 @@ public class ResourceParserTest
         System.out.println(bogus);
         assertThat(bogus.exists(), equalTo(false));
 
-        try
-        {
+        try {
             getContent(uri);
             fail("Read nonexisting file?");
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             // Good, caught it
         }
 
@@ -103,8 +101,8 @@ public class ResourceParserTest
         assertThat(uri, not(nullValue()));
         assertThat(new File(uri).getCanonicalFile(), equalTo(spacey.getCanonicalFile()));
         assertThat(uri.getScheme(), equalTo("file"));
-        if(OS.indexOf("win") >= 0) {
-            assertThat(uri.toString(), equalTo("file:/C:/some/dir%20with%20space/file.abc"));
+        if (OS.indexOf("win") >= 0) {
+            assertTrue(uri.toString().matches("file:/[a-zA-Z]:/some/dir%20with%20space/file.abc"));
         } else {
             assertThat(uri.toString(), equalTo("file:/some/dir%20with%20space/file.abc"));
         }
@@ -135,7 +133,7 @@ public class ResourceParserTest
         assertThat(pvs, hasItems("Fred"));
 
         // Several PVs (but don't include the application hint)
-        uri = createResourceURI("pv://?Fred&Jane&AnotherPV&app=probe");
+        uri = createResourceURI("pv://?Fred&Jane&AnotherPV&app=probe&target=test");
         System.out.println(uri);
         assertThat(uri.getScheme(), equalTo(PV_SCHEMA));
 
@@ -181,20 +179,40 @@ public class ResourceParserTest
     }
 
     @Test
+    public void checkTargetHint() throws Exception
+    {
+        // Plain URL, no pane hint
+        URI uri = createResourceURI("pv://?Fred");
+        String target = getTargetName(uri);
+        assertThat(target, nullValue());
+
+        // PVs with pane hint
+        uri = createResourceURI("pv://?Fred&target=test");
+        target = getTargetName(uri);
+        assertThat(target, equalTo("test"));
+
+        // File URL with pane hint
+        uri = createResourceURI("file:/path/to/file?target=test");
+        target = getTargetName(uri);
+        assertThat(target, equalTo("test"));
+    }
+
+    @Test
     public void checkQueryItems() throws Exception
     {
         // URI with a bunch of query itens
-        URI uri = createResourceURI("file://some/file?Fred&X=1&Y=2+3&app=probe&Z=2%2B3");
+        URI uri = createResourceURI("file://some/file?Fred&X=1&Y=2+3&app=probe&Z=2%2B3&target=test");
 
         final Map<String, List<String>> items = parseQueryArgs(uri);
         System.out.println(items);
 
         assertThat(items.keySet(), hasItems("Fred", "X", "Y", "Z"));
         assertThat(items.keySet(), not(hasItems("app")));
+        assertThat(items.keySet(), not(hasItems("test")));
 
         List<String> values = items.get("Fred");
         assertThat(values.size(), equalTo(1));
-        assertThat(values.get(0), nullValue());
+        assertThat(values.get(0), equalTo(""));
 
         values = items.get("Y");
         assertThat(values.size(), equalTo(1));

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,6 +16,8 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propEnabled;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propHorizontalAlignment;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propVerticalAlignment;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLabelsFromPV;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propOffColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propOffLabel;
@@ -42,6 +44,8 @@ import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.ConfirmDialog;
 import org.csstudio.display.builder.model.properties.EnumWidgetProperty;
+import org.csstudio.display.builder.model.properties.HorizontalAlignment;
+import org.csstudio.display.builder.model.properties.VerticalAlignment;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.phoebus.framework.persistence.XMLUtil;
@@ -69,10 +73,14 @@ public class BoolButtonWidget extends WritablePVWidget
         }
     };
 
+    /** Button mode */
     public static enum Mode
     {
+        /** Toggle on/off with each click */
         TOGGLE(Messages.BoolWidget_Toggle),
+        /** On while pushed */
         PUSH(Messages.BoolWidget_Push),
+        /** Off while pushed */
         PUSH_INVERTED(Messages.BoolWidget_PushInverted);
 
         private final String label;
@@ -104,16 +112,36 @@ public class BoolButtonWidget extends WritablePVWidget
             if (! super.configureFromXML(model_reader, widget, xml))
                 return false;
 
-            final BoolButtonWidget button = (BoolButtonWidget) widget;
-            // If legacy widgets was configured to not use labels, clear them
-            XMLUtil.getChildBoolean(xml, "show_boolean_label").ifPresent(show ->
+            // BOY used 1.0.0, this button is at least 2.0.0
+            if (xml_version.getMajor() < 2)
             {
-                if (!show)
+                final BoolButtonWidget button = (BoolButtonWidget) widget;
+
+                // Translate 'toggle_button' into 'mode'.
+                if (! XMLUtil.getChildBoolean(xml, "toggle_button").orElse(true))
+                    button.propMode().setValue(Mode.PUSH);
+
+                // If legacy widgets was configured to not use labels, clear them
+                XMLUtil.getChildBoolean(xml, "show_boolean_label").ifPresent(show ->
                 {
-                    button.propOffLabel().setValue("");
-                    button.propOnLabel().setValue("");
+                    if (!show)
+                    {
+                        button.propOffLabel().setValue("");
+                        button.propOnLabel().setValue("");
+                    }
+                });
+
+                if (! button.propShowLED().getValue())
+                {
+                    // When LED indicator is hidden, BOY filled button with background color.
+                    // This implementation uses the on/off colors, so set those to old background.
+                    WidgetColor color = button.propBackgroundColor().getValue();
+                    button.propOffColor().setValue(color);
+                    // Darken for 'pressed' state
+                    color = new WidgetColor(color.getRed()*80/100, color.getGreen()*80/100, color.getBlue()*80/100);
+                    button.propOnColor().setValue(color);
                 }
-            });
+            }
             return true;
         }
     };
@@ -124,6 +152,7 @@ public class BoolButtonWidget extends WritablePVWidget
         newFilenamePropertyDescriptor(WidgetPropertyCategory.DISPLAY, "on_image", Messages.WidgetProperties_OnImage);
     private static final WidgetPropertyDescriptor<Boolean> propShowLED =
         newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "show_led", Messages.WidgetProperties_ShowLED);
+    /** 'mode' */
     public static final WidgetPropertyDescriptor<Mode> propMode =
         new WidgetPropertyDescriptor<>(WidgetPropertyCategory.BEHAVIOR, "mode", Messages.BoolWidget_Mode)
     {
@@ -145,6 +174,8 @@ public class BoolButtonWidget extends WritablePVWidget
     private volatile WidgetProperty<WidgetFont> font;
     private volatile WidgetProperty<WidgetColor> background;
     private volatile WidgetProperty<WidgetColor> foreground;
+    private volatile WidgetProperty<HorizontalAlignment> horizontal_alignment;
+    private volatile WidgetProperty<VerticalAlignment> vertical_alignment;
     private volatile WidgetProperty<Boolean> labels_from_pv;
     private volatile WidgetProperty<Boolean> enabled;
     private volatile WidgetProperty<Mode> mode;
@@ -152,6 +183,7 @@ public class BoolButtonWidget extends WritablePVWidget
     private volatile WidgetProperty<String> confirm_message;
     private volatile WidgetProperty<String> password;
 
+    /** Constructor */
     public BoolButtonWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 100, 30);
@@ -179,6 +211,8 @@ public class BoolButtonWidget extends WritablePVWidget
         properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BUTTON_BACKGROUND)));
+        properties.add(horizontal_alignment = propHorizontalAlignment.createProperty(this, HorizontalAlignment.CENTER));
+        properties.add(vertical_alignment = propVerticalAlignment.createProperty(this, VerticalAlignment.MIDDLE));
         properties.add(labels_from_pv = propLabelsFromPV.createProperty(this, false));
         properties.add(enabled = propEnabled.createProperty(this, true));
         properties.add(mode = propMode.createProperty(this, Mode.TOGGLE));
@@ -251,6 +285,18 @@ public class BoolButtonWidget extends WritablePVWidget
     public WidgetProperty<WidgetColor> propForegroundColor()
     {
         return foreground;
+    }
+    
+    /** @return 'horizontal_alignment' property */
+    public WidgetProperty<HorizontalAlignment> propHorizontalAlignment()
+    {
+        return horizontal_alignment;
+    }
+    
+    /** @return 'vertical_alignment' property */
+    public WidgetProperty<VerticalAlignment> propVerticalAlignment()
+    {
+        return vertical_alignment;
     }
 
     /** @return 'labels_from_pv' property */

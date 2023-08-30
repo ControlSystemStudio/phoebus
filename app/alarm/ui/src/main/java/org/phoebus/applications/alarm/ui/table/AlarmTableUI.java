@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,11 +7,20 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.table;
 
+import static org.phoebus.applications.alarm.AlarmSystem.logger;
+
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
@@ -19,16 +28,21 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.applications.alarm.ui.tree.ConfigureComponentAction;
-import org.phoebus.applications.email.actions.SendEmailAction;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.persistence.Memento;
-import org.phoebus.logbook.ui.menu.SendLogbookAction;
+import org.phoebus.framework.selection.Selection;
+import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
+import org.phoebus.ui.javafx.Brightness;
 import org.phoebus.ui.javafx.ClearingTextField;
 import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.JFXUtil;
 import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.ToolbarHelper;
+import org.phoebus.ui.selection.AppSelection;
+import org.phoebus.ui.spi.ContextMenuEntry;
 import org.phoebus.ui.text.RegExHelper;
 import org.phoebus.util.text.CompareNatural;
 import org.phoebus.util.time.TimestampFormats;
@@ -59,10 +73,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 
 /** Alarm Table UI
  *
@@ -108,7 +120,9 @@ public class AlarmTableUI extends BorderPane
 
     private final Button server_mode = new Button();
 
-    private ToolBar toolbar = createToolbar();
+    private final Button server_notify = new Button();
+
+    private final ToolBar toolbar;
 
     /** Enable dragging the PV name from a table cell.
      *  @param cell Table cell
@@ -182,19 +196,33 @@ public class AlarmTableUI extends BorderPane
         }
 
         @Override
-        protected void updateItem(final SeverityLevel item, final boolean empty)
+        protected void updateItem(final SeverityLevel severityLevel, final boolean empty)
         {
-            super.updateItem(item, empty);
+            super.updateItem(severityLevel, empty);
 
-            if (empty  ||  item == null)
+            if (empty  ||  severityLevel == null)
             {
+                setStyle("-fx-text-fill: black;  -fx-background-color: transparent");
                 setText("");
-                setTextFill(Color.BLACK);
             }
             else
             {
-                setText(item.toString());
-                setTextFill(AlarmUI.getColor(item));
+                setText(severityLevel.toString());
+                if (AlarmSystem.alarm_table_color_legacy_background)
+                {
+                    final Background bg = AlarmUI.getLegacyTableBackground(severityLevel);
+                    setBackground(bg);
+                    final Paint p = bg.getFills().get(0).getFill();
+                    if (p instanceof Color &&
+                        Brightness.of((Color) p) < Brightness.BRIGHT_THRESHOLD)
+                        setTextFill(Color.WHITE);
+                    else
+                        setTextFill(Color.BLACK);
+                }
+                else
+                {
+                    setStyle("-fx-alignment: center; -fx-border-color: transparent; -fx-border-width: 2 0 2 0; -fx-background-insets: 2 0 2 0; -fx-text-fill: " + JFXUtil.webRGB(AlarmUI.getColor(severityLevel)) + ";  -fx-background-color: " + JFXUtil.webRGB(AlarmUI.getBackgroundColor(severityLevel)));
+                }
             }
         }
     }
@@ -219,9 +247,12 @@ public class AlarmTableUI extends BorderPane
         }
     }
 
+    /** @param client Client */
     public AlarmTableUI(final AlarmClient client)
     {
         this.client = client;
+
+        toolbar = createToolbar();
 
         // When user resizes columns, update them in the 'other' table
         active.setColumnResizePolicy(new LinkedColumnResize(active, acknowledged));
@@ -258,8 +289,24 @@ public class AlarmTableUI extends BorderPane
         setMaintenanceMode(false);
         server_mode.setOnAction(event ->  client.setMode(! client.isMaintenanceMode()));
 
+        // Could 'bind',
+        //   server_mode.disableProperty().bind(new SimpleBooleanProperty(!AlarmUI.mayModifyMode(client)));
+        // but mayModifyModel is not observable, plus setting it only when _disabled_
+        // means no actual property is created for the default value, enabled.
+        if (!AlarmUI.mayModifyMode(client))
+            server_mode.setDisable(true);
+
+        setDisableNotify(false);
+        server_notify.setOnAction(event ->  client.setNotify(! client.isDisableNotify()));
+        if (!AlarmUI.mayDisableNotify(client))
+            server_notify.setDisable(true);
+
         final Button acknowledge = new Button("", ImageCache.getImageView(AlarmUI.class, "/icons/acknowledge.png"));
-        acknowledge.disableProperty().bind(Bindings.isEmpty(active.getSelectionModel().getSelectedItems()));
+	if (AlarmUI.mayAcknowledge(client))
+	    acknowledge.disableProperty().bind(Bindings.isEmpty(active.getSelectionModel().getSelectedItems()));
+	else
+	    acknowledge.setDisable(true);
+
         acknowledge.setOnAction(event ->
         {
             for (AlarmInfoRow row : active.getSelectionModel().getSelectedItems())
@@ -267,7 +314,11 @@ public class AlarmTableUI extends BorderPane
         });
 
         final Button unacknowledge = new Button("", ImageCache.getImageView(AlarmUI.class, "/icons/unacknowledge.png"));
-        unacknowledge.disableProperty().bind(Bindings.isEmpty(acknowledged.getSelectionModel().getSelectedItems()));
+	if (AlarmUI.mayAcknowledge(client))
+	    unacknowledge.disableProperty().bind(Bindings.isEmpty(acknowledged.getSelectionModel().getSelectedItems()));
+	else
+	    unacknowledge.setDisable(true);
+
         unacknowledge.setOnAction(event ->
         {
             for (AlarmInfoRow row : acknowledged.getSelectionModel().getSelectedItems())
@@ -277,7 +328,10 @@ public class AlarmTableUI extends BorderPane
         search.setTooltip(new Tooltip("Enter pattern ('vac', 'amp*trip')\nfor PV Name or Description,\npress RETURN to select"));
         search.textProperty().addListener(prop -> selectRows());
 
-        return new ToolBar(active_count,ToolbarHelper.createStrut(), ToolbarHelper.createSpring(), server_mode, acknowledge, unacknowledge, search);
+    	if (AlarmSystem.disable_notify_visible)
+    	    return new ToolBar(active_count,ToolbarHelper.createStrut(), ToolbarHelper.createSpring(), server_mode, server_notify, acknowledge, unacknowledge, search);
+
+    	return new ToolBar(active_count,ToolbarHelper.createStrut(), ToolbarHelper.createSpring(), server_mode, acknowledge, unacknowledge, search);
     }
 
     /** Show if connected to server or not
@@ -308,6 +362,21 @@ public class AlarmTableUI extends BorderPane
         }
     }
 
+    void setDisableNotify(final boolean disable_notify)
+    {
+        if (disable_notify)
+        {
+            server_notify.setGraphic(ImageCache.getImageView(AlarmUI.class, "/icons/disable_notify.png"));
+            server_notify.setTooltip(new Tooltip("Enable email notifications for alarms?\n\nEmail notifications are currently disabled for alarms.\n\nPress to re-enable the email notifications."));
+        }
+        else
+        {
+            server_notify.setGraphic(ImageCache.getImageView(AlarmUI.class, "/icons/enable_notify.png"));
+            server_notify.setTooltip(new Tooltip("Disable Email notifications for alarms?\n\nEmail notifications for alarms will be disabled."));
+
+        }
+    }
+
     private TableView<AlarmInfoRow> createTable(final ObservableList<AlarmInfoRow> rows,
                                                 final boolean active)
     {
@@ -318,13 +387,14 @@ public class AlarmTableUI extends BorderPane
         // of the TableView is changed by the user clicking on table headers.
         sorted.comparatorProperty().bind(table.comparatorProperty());
 
+        // Prepare columns.
+        final List<TableColumn<AlarmInfoRow, ?>> cols = new ArrayList<>();
         TableColumn<AlarmInfoRow, SeverityLevel> sevcol = new TableColumn<>(/* Icon */);
         sevcol.setPrefWidth(25);
         sevcol.setReorderable(false);
-        sevcol.setResizable(false);
         sevcol.setCellValueFactory(cell -> cell.getValue().severity);
         sevcol.setCellFactory(c -> new SeverityIconCell());
-        table.getColumns().add(sevcol);
+        cols.add(sevcol);
 
         final TableColumn<AlarmInfoRow, String> pv_col = new TableColumn<>("PV");
         pv_col.setPrefWidth(240);
@@ -332,7 +402,7 @@ public class AlarmTableUI extends BorderPane
         pv_col.setCellValueFactory(cell -> cell.getValue().pv);
         pv_col.setCellFactory(c -> new DragPVCell());
         pv_col.setComparator(CompareNatural.INSTANCE);
-        table.getColumns().add(pv_col);
+        cols.add(pv_col);
 
         TableColumn<AlarmInfoRow, String> col = new TableColumn<>("Description");
         col.setPrefWidth(400);
@@ -340,49 +410,68 @@ public class AlarmTableUI extends BorderPane
         col.setCellValueFactory(cell -> cell.getValue().description);
         col.setCellFactory(c -> new DragPVCell());
         col.setComparator(CompareNatural.INSTANCE);
-        table.getColumns().add(col);
+        cols.add(col);
 
         sevcol = new TableColumn<>("Alarm Severity");
         sevcol.setPrefWidth(130);
         sevcol.setReorderable(false);
         sevcol.setCellValueFactory(cell -> cell.getValue().severity);
         sevcol.setCellFactory(c -> new SeverityLevelCell());
-        table.getColumns().add(sevcol);
+        cols.add(sevcol);
 
         col = new TableColumn<>("Alarm Status");
         col.setPrefWidth(130);
         col.setReorderable(false);
         col.setCellValueFactory(cell -> cell.getValue().status);
         col.setCellFactory(c -> new DragPVCell());
-        table.getColumns().add(col);
+        cols.add(col);
 
         TableColumn<AlarmInfoRow, Instant> timecol = new TableColumn<>("Alarm Time");
         timecol.setPrefWidth(200);
         timecol.setReorderable(false);
         timecol.setCellValueFactory(cell -> cell.getValue().time);
         timecol.setCellFactory(c -> new TimeCell());
-        table.getColumns().add(timecol);
+        cols.add(timecol);
 
         col = new TableColumn<>("Alarm Value");
         col.setPrefWidth(100);
         col.setReorderable(false);
         col.setCellValueFactory(cell -> cell.getValue().value);
         col.setCellFactory(c -> new DragPVCell());
-        table.getColumns().add(col);
+        cols.add(col);
 
         sevcol = new TableColumn<>("PV Severity");
         sevcol.setPrefWidth(130);
         sevcol.setReorderable(false);
         sevcol.setCellValueFactory(cell -> cell.getValue().pv_severity);
         sevcol.setCellFactory(c -> new SeverityLevelCell());
-        table.getColumns().add(sevcol);
+        cols.add(sevcol);
 
         col = new TableColumn<>("PV Status");
         col.setPrefWidth(130);
         col.setReorderable(false);
         col.setCellValueFactory(cell -> cell.getValue().pv_status);
         col.setCellFactory(c -> new DragPVCell());
-        table.getColumns().add(col);
+        cols.add(col);
+
+        // Each column is non-reorderable at runtime to avoid operator surprises.
+        // Sites can customize the order via preferences
+        for (String header : AlarmSystem.alarm_table_columns)
+        {
+            // "Icon" is used for the nameless icon column.
+            // Other column names used in pref must match header.
+            final String actual_header = header.equals("Icon")
+                                       ? ""
+                                       : header;
+            final Optional<TableColumn<AlarmInfoRow, ?>> to_add =
+                cols.stream()
+                    .filter(c -> actual_header.equals(c.getText()))
+                    .findFirst();
+            if (to_add.isPresent())
+                table.getColumns().add(to_add.get());
+            else
+                logger.log(Level.WARNING, "Unknown Alarm Table column '" + header + "'");
+        }
 
         // Initially, sort on PV name
         // - restore(Memento) might change that
@@ -400,7 +489,7 @@ public class AlarmTableUI extends BorderPane
             final TableRow<AlarmInfoRow> row = new TableRow<>();
             row.setOnMouseClicked(event ->
             {
-                if (event.getClickCount() == 2  &&  !row.isEmpty())
+                if (event.getClickCount() == 2  &&  !row.isEmpty() && AlarmUI.mayAcknowledge(client))
                     JobManager.schedule("ack", monitor ->  client.acknowledge(row.getItem().item, active));
             });
             return row;
@@ -426,15 +515,34 @@ public class AlarmTableUI extends BorderPane
             if (menu_items.size() > 0)
                 menu_items.add(new SeparatorMenuItem());
 
-            if (AlarmUI.mayConfigure()  &&   selection.size() == 1)
+            if (AlarmUI.mayConfigure(client)  &&   selection.size() == 1)
             {
                 menu_items.add(new ConfigureComponentAction(table, client, selection.get(0)));
                 menu_items.add(new SeparatorMenuItem());
             }
             menu_items.add(new PrintAction(this));
             menu_items.add(new SaveSnapshotAction(table));
-            menu_items.add(new SendEmailAction(table, "Alarm Snapshot", this::list_alarms, () -> Screenshot.imageFromNode(this)));
-            menu_items.add(new SendLogbookAction(table, "Alarm Snapshot", this::list_alarms, () -> Screenshot.imageFromNode(this)));
+
+            // Add context menu actions based on the selection (i.e. email, logbook, etc...)
+            final Selection originalSelection = SelectionService.getInstance().getSelection();
+            final List<AppSelection> newSelection = Arrays.asList(AppSelection.of(table, "Alarm Snapshot", list_alarms(), () -> Screenshot.imageFromNode(this)));
+            SelectionService.getInstance().setSelection("AlarmUI", newSelection);
+            List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
+            supported.stream().forEach(action -> {
+                MenuItem menuItem = new MenuItem(action.getName(), new ImageView(action.getIcon()));
+                menuItem.setOnAction((e) -> {
+                    try
+                    {
+                        SelectionService.getInstance().setSelection("AlarmUI", newSelection);
+                        action.call(table, SelectionService.getInstance().getSelection());
+                    } catch (Exception ex)
+                    {
+                        logger.log(Level.WARNING, "Failed to execute " + action.getName() + " from AlarmUI.", ex);
+                    }
+                });
+                menu_items.add(menuItem);
+            });
+            SelectionService.getInstance().setSelection("AlarmUI", originalSelection);
 
             menu.show(table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });

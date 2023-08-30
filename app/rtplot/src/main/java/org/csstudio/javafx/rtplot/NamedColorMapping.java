@@ -10,6 +10,7 @@ package org.csstudio.javafx.rtplot;
 /** Predefined, named color mapping
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class NamedColorMapping implements ColorMappingFunction
 {
     private final String name;

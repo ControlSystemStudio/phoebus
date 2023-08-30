@@ -21,6 +21,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+import javafx.event.Event;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
 import org.csstudio.display.builder.model.properties.NamedWidgetFont;
@@ -88,15 +89,18 @@ public class WidgetFontPopOverController implements Initializable {
     @FXML private Button okButton;
 
     private WidgetFont                            defaultFont            = null;
+    private boolean                               okOnChange             = false;
+    private boolean                               changed                = false;
     private final ObservableList<String>          familiesList         = FXCollections.observableArrayList();
     private Consumer<WidgetFont>                  fontChangeConsumer;
     private final ObservableList<NamedWidgetFont> namedFontsList         = FXCollections.observableArrayList();
     private final CountDownLatch                  namesLoaded            = new CountDownLatch(2);
     private WidgetFont                            originalFont           = null;
     private PopOver                               popOver;
+    private AtomicBoolean                         settingFont            = new AtomicBoolean(false);
 
     private final Updater<String> familiesUpdater = new Updater<>(newValue -> {
-        if ( newValue != null ) {
+        if ( newValue != null && !settingFont.get() ) {
             setFont(new WidgetFont(
                 newValue,
                 defaultIfNull(styles.getSelectionModel().getSelectedItem(), WidgetFontStyle.REGULAR),
@@ -113,12 +117,12 @@ public class WidgetFontPopOverController implements Initializable {
         (nc1, nc2) -> String.CASE_INSENSITIVE_ORDER.compare(nc1.getName(), nc2.getName())
     ));
     private final Updater<WidgetFont> fontNamesUpdater = new Updater<>(newValue -> {
-        if ( newValue != null ) {
+        if ( newValue != null && !settingFont.get() ) {
             setFont(newValue);
         }
     });
     private final Updater<Double> sizesUpdater = new Updater<>(newValue -> {
-        if ( newValue != null ) {
+        if ( newValue != null && !settingFont.get() ) {
             setFont(new WidgetFont(
                 defaultIfNull(families.getSelectionModel().getSelectedItem(), Font.font(10.0).getFamily()),
                 defaultIfNull(styles.getSelectionModel().getSelectedItem(), WidgetFontStyle.REGULAR),
@@ -127,7 +131,7 @@ public class WidgetFontPopOverController implements Initializable {
         }
     });
     private final Updater<WidgetFontStyle> stylesUpdater = new Updater<>(newValue -> {
-        if ( newValue != null ) {
+        if ( newValue != null && !settingFont.get() ) {
             setFont(new WidgetFont(
                 defaultIfNull(families.getSelectionModel().getSelectedItem(), Font.font(10.0).getFamily()),
                 newValue,
@@ -160,8 +164,19 @@ public class WidgetFontPopOverController implements Initializable {
         return font.get();
     }
 
+    private void setFont(WidgetFont font, boolean initial)
+    {
+        try {
+            changed = ! initial;
+            settingFont.set(true);
+            this.font.set(font);
+        } finally {
+            settingFont.set(false);
+        }
+    }
+
     void setFont( WidgetFont font ) {
-        this.font.set(font);
+        setFont(font, false);
     }
 
     /*
@@ -173,9 +188,26 @@ public class WidgetFontPopOverController implements Initializable {
         //  Listeners to font change.
         fontProperty().addListener(( observable, oldValue, newValue ) -> {
 
-            if ( newValue instanceof NamedWidgetFont && !fontNamesUpdater.isUpdating() ) {
-                fontNames.getSelectionModel().select((NamedWidgetFont) newValue);
-                fontNames.scrollTo(fontNames.getSelectionModel().getSelectedItem());
+            if ( !fontNamesUpdater.isUpdating() ) {
+                NamedWidgetFont namedFont = null;
+                if ( newValue instanceof NamedWidgetFont)
+                    namedFont = (NamedWidgetFont) newValue;
+                else {
+                    // Try to find a named font for the currently selected family,style,size combination
+                    for (NamedWidgetFont font: namedFontsList) {
+                        if ( newValue.equals(font) ) {
+                            namedFont = font;
+                            break;
+                        }
+                    }
+                }
+
+                if ( namedFont != null ) {
+                    fontNames.getSelectionModel().select(namedFont);
+                    fontNames.scrollTo(fontNames.getSelectionModel().getSelectedItem());
+                } else
+                    // This font has no name, clear the name selection
+                    fontNames.getSelectionModel().clearSelection();
             }
 
             if ( !familiesUpdater.isUpdating() ) {
@@ -187,7 +219,9 @@ public class WidgetFontPopOverController implements Initializable {
                 styles.getSelectionModel().select(newValue.getStyle());
             }
 
-            sizes.getSelectionModel().select(newValue.getSize());
+            if ( !sizesUpdater.isUpdating()) {
+                sizes.getSelectionModel().select(newValue.getSize());
+            }
 
             preview.setFont(JFXUtil.convert(newValue));
 
@@ -207,8 +241,13 @@ public class WidgetFontPopOverController implements Initializable {
             }
         });
 
-        defaultButton.disableProperty().bind(Bindings.createBooleanBinding(() -> getFont().equals(defaultFont), fontProperty()));
-        okButton.disableProperty().bind(Bindings.createBooleanBinding(() -> getFont().equals(originalFont), fontProperty()));
+        okButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
+            {
+                // In 'ok on change' mode, enable 'OK' on any change.
+                // Otherwise check if there's a difference.
+                return okOnChange ? changed==false
+                                  : getFont().equals(originalFont);
+            }, fontProperty()));
 
         //  Lists and combo boxes
         fontNames.setPlaceholder(new Label(Messages.WidgetFontPopOver_PredefinedFonts));
@@ -242,6 +281,22 @@ public class WidgetFontPopOverController implements Initializable {
             }
         });
         sizes.valueProperty().addListener(( observable, oldValue, newValue ) -> sizesUpdater.accept(newValue));
+
+        sizes.setOnKeyPressed(Event::consume);
+
+        sizes.addEventHandler(KeyEvent.KEY_RELEASED, releasedKey -> {
+            releasedKey.consume();
+            if (releasedKey.getCode() == KeyCode.ENTER) {
+                if (!okButton.isDefaultButton()) {
+                    fontNames.refresh();
+                    families.refresh();
+                    okButton.setDefaultButton(true);
+                }
+            }
+            else {
+                okButton.setDefaultButton(false);
+            }
+        });
 
         // Get fonts on background thread
         ModelThreadPool.getExecutor().execute( ( ) -> {
@@ -322,18 +377,28 @@ public class WidgetFontPopOverController implements Initializable {
 
     }
 
+    /**
+     * @param popOver
+     * @param originalWidgetFont
+     * @param defaultWidgetFont
+     * @param propertyName
+     * @param fontChangeConsumer
+     * @param okOnChange Enable 'OK' whenever anything was changed, even if then changed back to originalWidgetFont?
+     */
     void setInitialConditions (
         WidgetFontPopOver popOver,
         WidgetFont originalWidgetFont,
         WidgetFont defaultWidgetFont,
         String propertyName,
-        Consumer<WidgetFont> fontChangeConsumer
+        Consumer<WidgetFont> fontChangeConsumer,
+        boolean okOnChange
     ) {
 
         this.fontChangeConsumer = fontChangeConsumer;
         this.popOver = popOver;
         this.originalFont = originalWidgetFont;
         this.defaultFont = defaultWidgetFont;
+        this.okOnChange = okOnChange;
 
         infoLabel.setText(MessageFormat.format(Messages.WidgetFontPopOver_Info, propertyName));
 
@@ -345,10 +410,9 @@ public class WidgetFontPopOverController implements Initializable {
                 logger.throwing(WidgetFontPopOverController.class.getName(), "setInitialConditions[executor]", iex);
             }
 
-            Platform.runLater(() -> setFont(originalWidgetFont));
+            Platform.runLater(() -> setFont(originalWidgetFont, true));
 
         });
-
     }
 
     private void updateButton ( final Button button, final ButtonType buttonType ) {

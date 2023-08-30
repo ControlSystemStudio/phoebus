@@ -1,0 +1,87 @@
+/**
+ * Copyright (C) 2020 European Spallation Source ERIC.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
+/**
+ * Styles for the log entry WebView.
+ */
+
+body{
+    font-family: sans-serif;
+    font-size: 16px;
+    margin: 0px;
+}
+
+blockquote{
+    padding: 10px 20px;
+    margin: 0 0 20px;
+    border-left: 5px solid #eee;
+}
+
+.olog{
+    padding: 5px 8px 10px 8px;
+}
+
+.olog-merged{
+    padding: 0px 8px 13px 8px;
+}
+
+p{
+    margin-top: 5px;
+}
+
+.olog-table {
+  font-family: Arial, Helvetica, sans-serif;
+  border-collapse: collapse;
+}
+
+.olog-table  td, .olog-table  th {
+  border: 1px solid #ddd;
+}
+
+.olog-table  tr:nth-child(even){background-color: #f2f2f2;}
+
+.olog-table  tr:hover {background-color: #ddd;}
+
+.olog-table  th {
+  text-align: left;
+  background-color: #0095CA;
+  color: white;
+}
+
+.separator{
+    padding: 8px 8px 8px 8px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 18px;
+    background-color: #f7f7f7;
+}
+
+.attachment-icon{
+background:
+    url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAaRJREFUeNpi/P//PwMMMDIywtmbdx2azsjIlAESAomzMDOvdXOwCEFWD9aDzYDNuw4f/P/vn92te48Yvv/8zcAAVMPExMTw6cvXmo7q7FZkA5gYsABmJiag5scMly9fmlRbmGTy9dObSZzsbAxM/38boqvFbgAzE8OPXz8ZFk7vbgdyz545uqdPXlaSgY2dIxhdLQsy58jJ8/93HzwB8gvDP4jPXoAIQQGBJywsLNjsQnXBxy9foaz/DP/+/YGLr169+i8jVreiuQAGQAH7589fFFexsjATdgGqIRD6/afPEIVMRBkA0fXj5y+gBjSVjP+Jd8G9h08YbC2MGLbvO/L/+/cfqE7CZwAsIRWlx5gcPXGe4cSZywxXb9xlaCzLNPnPQEQg/v39F8Y8C9KEJHUW5j28Lvj0+csdEL1kzbb/EE0QvHXPkf+PHr9g+Pj50x0GjKBBzQta9V3Tr8pJizPIyUgB08I/sNcfPX3O8PT5K5BXtIHqrxHKTMb5tR0rBHj5VWDi7z+8Oz2prToT5BqiciMQaAExJ5I6UGK4BUtkyAAgwADpI74wMt7OZAAAAABJRU5ErkJggg==')
+    no-repeat
+    left center;
+    height: 20px;
+    width: 20px;
+    float: right;
+    position: relative;
+}
+
+.entry-id{
+    float: right;
+    padding-right: 10px
+}

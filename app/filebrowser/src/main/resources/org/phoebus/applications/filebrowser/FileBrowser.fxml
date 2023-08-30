@@ -9,6 +9,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TreeView?>
+<?import javafx.scene.control.TreeTableView?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -54,7 +55,7 @@
         <Insets bottom="5.0" />
       </VBox.margin>
     </HBox>
-    <TreeView fx:id="treeView" onContextMenuRequested="#createContextMenu" onMouseClicked="#handleMouseClickEvents" prefHeight="280.0" prefWidth="350.0" VBox.vgrow="ALWAYS" />
+    <TreeTableView fx:id="treeView" onContextMenuRequested="#createContextMenu" onMouseClicked="#handleMouseClickEvents" prefHeight="280.0" prefWidth="350.0" VBox.vgrow="ALWAYS" />
   </children>
   <padding>
     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,23 +7,23 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.csstudio.display.builder.model.ArrayWidgetProperty.Descriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.widgets.plots.XYPlotWidget;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /** JUnit test of array widget property
  *  @author Kay Kasemir
@@ -77,7 +77,7 @@ public class ArrayWidgetPropertyUnitTest
     };
 
     @Test
-    public void testArrayWidgetProperty() throws Exception
+    public void testArrayWidgetProperty()
     {
         final DemoWidget widget = new DemoWidget();
 
@@ -148,7 +148,7 @@ public class ArrayWidgetPropertyUnitTest
         // Set value to non-default
         widget.propItems().getValue().get(1).setValue("Another (2)");
         // Persist to XML
-        final String xml = ModelWriter.getXML(Arrays.asList(widget));
+        final String xml = removeSavedOn(ModelWriter.getXML(List.of(widget)));
         System.out.println(xml);
         assertThat(xml, containsString("<items>"));
         assertThat(xml, containsString("<item>Another"));
@@ -156,13 +156,18 @@ public class ArrayWidgetPropertyUnitTest
         // Read from XML
         WidgetFactory.getInstance().addWidgetType(DemoWidget.WIDGET_DESCRIPTOR);
         final List<Widget> read_back = ModelReader.parseXML(xml).getChildren();
-        final String xml2 = ModelWriter.getXML(read_back);
+        final String xml2 = removeSavedOn(ModelWriter.getXML(read_back));
         System.out.println(xml2);
         assertThat(xml2, equalTo(xml));
     }
 
+    private String removeSavedOn(final String xml)
+    {
+        return xml.replaceFirst("<!--Saved on.*-->", "<!--Saved on ____ -->");
+    }
+
     @Test
-    public void testArrayAccess() throws Exception
+    public void testArrayAccess()
     {
         final DemoWidget widget = new DemoWidget();
         final WidgetProperty<?> item = widget.getProperty("items[1]");
@@ -172,7 +177,7 @@ public class ArrayWidgetPropertyUnitTest
     }
 
     @Test
-    public void testPathAccess() throws Exception
+    public void testPathAccess()
     {
         final XYPlotWidget widget = new XYPlotWidget();
 

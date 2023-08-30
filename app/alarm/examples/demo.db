@@ -1,0 +1,50 @@
+record(ai, "OK")
+{
+    field(PINI, "YES")
+    field(INP,  "5")
+    field(HIGH, "9")
+    field(HIHI, "10")
+    field(HSV,  "MINOR")
+    field(HHSV, "MAJOR")
+}
+
+record(ai, "MINOR")
+{
+    field(PINI, "YES")
+    field(INP,  "9")
+    field(HIGH, "9")
+    field(HIHI, "10")
+    field(HSV,  "MINOR")
+    field(HHSV, "MAJOR")
+}
+
+record(ai, "MAJOR")
+{
+    field(PINI, "YES")
+    field(INP,  "10")
+    field(HIGH, "9")
+    field(HIHI, "10")
+    field(HSV,  "MINOR")
+    field(HHSV, "MAJOR")
+}
+
+record(ai, "INVALID")
+{
+}
+
+record(ai, "test_alarm")
+{
+    field(PINI, "YES")
+    field(HIGH, "9")
+    field(HIHI, "10")
+    field(HSV,  "MINOR")
+    field(HHSV, "MAJOR")
+}
+
+record(bo, "test_enable")
+{
+    field(PINI, "YES")
+    field(DOL,  "1")
+    field(ZNAM, "Disabled")
+    field(ONAM, "Enabled")
+}

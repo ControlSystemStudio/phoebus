@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -43,6 +43,7 @@ public class CommonWidgetProperties
      *  @param category Widget property category
      *  @param name Internal name of the property
      *  @param description Human-readable description
+     *  @return Widget property descriptor
      */
     public static final WidgetPropertyDescriptor<String> newStringPropertyDescriptor(final WidgetPropertyCategory category,
                                                                                      final String name, final String description)
@@ -61,6 +62,7 @@ public class CommonWidgetProperties
      *  @param category Widget property category
      *  @param name Internal name of the property
      *  @param description Human-readable description
+     *  @return Widget property descriptor
      */
     public static final WidgetPropertyDescriptor<String> newFilenamePropertyDescriptor(final WidgetPropertyCategory category,
                                                                                        final String name, final String description)
@@ -79,6 +81,7 @@ public class CommonWidgetProperties
      *  @param category Widget property category
      *  @param name Internal name of the property
      *  @param description Human-readable description
+     *  @return Widget property descriptor
      */
     public static final WidgetPropertyDescriptor<String> newPVNamePropertyDescriptor(final WidgetPropertyCategory category,
                                                                                      final String name, final String description)
@@ -97,6 +100,7 @@ public class CommonWidgetProperties
      *  @param category Widget property category
      *  @param name Internal name of the property
      *  @param description Human-readable description
+     *  @return Widget property descriptor
      */
     public static final WidgetPropertyDescriptor<Integer> newIntegerPropertyDescriptor(final WidgetPropertyCategory category,
                                                                                        final String name, final String description)
@@ -110,6 +114,7 @@ public class CommonWidgetProperties
      *  @param description Human-readable description
      *  @param min Minimum value
      *  @param max Maximum value
+     *  @return Widget property descriptor
      */
     public static final WidgetPropertyDescriptor<Integer> newIntegerPropertyDescriptor(final WidgetPropertyCategory category,
                                                                                        final String name, final String description,
@@ -130,6 +135,7 @@ public class CommonWidgetProperties
      *  @param category Widget property category
      *  @param name Internal name of the property
      *  @param description Human-readable description
+     *  @return Widget property descriptor
      */
     public static final WidgetPropertyDescriptor<Long> newLongPropertyDescriptor(final WidgetPropertyCategory category,
                                                                                  final String name, final String description)
@@ -144,6 +150,7 @@ public class CommonWidgetProperties
      *  @param description Human-readable description
      *  @param min Minimum value
      *  @param max Maximum value
+     *  @return Widget property descriptor
      */
     public static final WidgetPropertyDescriptor<Long> newLongPropertyDescriptor(final WidgetPropertyCategory category,
                                                                                  final String name, final String description,
@@ -163,6 +170,7 @@ public class CommonWidgetProperties
      *  @param category Widget property category
      *  @param name Internal name of the property
      *  @param description Human-readable description
+     *  @return Widget property descriptor
      */
     public static final WidgetPropertyDescriptor<Double> newDoublePropertyDescriptor(final WidgetPropertyCategory category,
                                                                                      final String name, final String description)
@@ -181,6 +189,7 @@ public class CommonWidgetProperties
      *  @param category Widget property category
      *  @param name Internal name of the property
      *  @param description Human-readable description
+     *  @return Widget property descriptor
      */
     public static final WidgetPropertyDescriptor<Boolean> newBooleanPropertyDescriptor(final WidgetPropertyCategory category,
                                                                                        final String name, final String description)
@@ -199,6 +208,7 @@ public class CommonWidgetProperties
      *  @param category Widget property category
      *  @param name Internal name of the property
      *  @param description Human-readable description
+     *  @return Widget property descriptor
      */
     public static final WidgetPropertyDescriptor<WidgetColor> newColorPropertyDescriptor(final WidgetPropertyCategory category,
                                                                                          final String name, final String description)
@@ -216,6 +226,7 @@ public class CommonWidgetProperties
     /** Constructor for value property
      *  @param name Internal name of the property
      *  @param description Human-readable description
+     *  @return Widget property descriptor
      */
     public static final WidgetPropertyDescriptor<VType> newRuntimeValue(final String name, final String description)
     {
@@ -249,6 +260,7 @@ public class CommonWidgetProperties
      *
      *  @param name Internal name of the property
      *  @param description Human-readable description
+     *  @return Widget property descriptor
      */
     public static final WidgetPropertyDescriptor<Instant> newRuntimeEvent(final String name, final String description)
     {
@@ -262,6 +274,7 @@ public class CommonWidgetProperties
         };
     }
 
+    /** 'configure' */
     public static final WidgetPropertyDescriptor<Instant> runtimePropConfigure =
         CommonWidgetProperties.newRuntimeEvent("configure", "Configure");
 
@@ -378,6 +391,10 @@ public class CommonWidgetProperties
     /** 'line_color' property */
     public static final WidgetPropertyDescriptor<WidgetColor> propLineColor =
             newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "line_color", Messages.WidgetProperties_LineColor);
+
+    /** 'selected_color' property */
+    public static final WidgetPropertyDescriptor<WidgetColor> propSelectedColor =
+            CommonWidgetProperties.newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "selected_color", "Selected Color");
 
     /** 'color' property */
     public static final WidgetPropertyDescriptor<WidgetColor> propColor =
@@ -657,6 +674,7 @@ public class CommonWidgetProperties
     public static final WidgetPropertyDescriptor<Boolean> propEnabled =
             newBooleanPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "enabled", Messages.WidgetProperties_Enabled);
 
+    /** 'interactive' property: Does widget react to mouse etc. at runtime? */
     public static final WidgetPropertyDescriptor<Boolean> propInteractive =
             newBooleanPropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "interactive", Messages.WidgetProperties_Interactive);
 

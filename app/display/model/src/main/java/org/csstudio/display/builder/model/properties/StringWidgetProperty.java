@@ -28,7 +28,6 @@ public class StringWidgetProperty extends MacroizedWidgetProperty<String>
      *  @param descriptor Property descriptor
      *  @param widget Widget that holds the property and handles listeners
      *  @param default_value Default and initial value
-     *  @param use_class Follow value suggested by class?
      */
     public StringWidgetProperty(
             final WidgetPropertyDescriptor<String> descriptor,
@@ -41,7 +40,7 @@ public class StringWidgetProperty extends MacroizedWidgetProperty<String>
     @Override
     protected String parseExpandedSpecification(final String text) throws Exception
     {
-        return text;
+        return text.replaceAll("\\\\n", "\n").replaceAll("\\\\t", "\t");
     }
 
     @Override

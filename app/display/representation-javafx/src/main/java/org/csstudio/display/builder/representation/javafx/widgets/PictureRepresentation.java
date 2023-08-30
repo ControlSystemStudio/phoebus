@@ -11,6 +11,8 @@ import static org.csstudio.display.builder.representation.ToolkitRepresentation.
 
 import java.util.logging.Level;
 
+import javafx.scene.CacheHint;
+import javafx.scene.Node;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
@@ -20,16 +22,20 @@ import org.csstudio.display.builder.model.macros.MacroHandler;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.model.widgets.PictureWidget;
+import org.csstudio.display.builder.representation.javafx.SVGHelper;
+import org.phoebus.ui.Preferences;
 import org.phoebus.ui.javafx.ImageCache;
 
-import javafx.geometry.Dimension2D;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 
-/** Creates JavaFX item for model widget
- *  @author Megan Grodowitz
+/**
+ * Creates JavaFX item for model widget.
+ *
+ * SVG resources are supported, but in contrast to formats like png, jpg and gif, SVGs are
+ * @author Megan Grodowitz
  */
 @SuppressWarnings("nls")
 public class PictureRepresentation extends JFXBaseRepresentation<ImageView, PictureWidget>
@@ -48,20 +54,25 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
     private volatile Rotate rotation = new Rotate(0);
     private volatile Translate translate = new Translate(0,0);
 
-    public static Dimension2D computeSize(final PictureWidget widget)
-    {
-        final String imageFile = widget.propFile().getValue();
-
-        try
-        {
-            final String filename = ModelResourceUtil.resolveResource(widget.getTopDisplayModel(), imageFile);
-            final Image image = new Image(ModelResourceUtil.openResourceStream(filename));
-            return new Dimension2D(image.getWidth(), image.getHeight());
-
+    protected static void setCacheHintAccordingToPreferences(Node node) {
+        if (Preferences.cache_hint_for_picture_and_symbol_widgets.equals("") || Preferences.cache_hint_for_picture_and_symbol_widgets.equals("NONE")) {
+            // Use the default caching behavior.
         }
-        catch (Exception ex)
-        {
-            return new Dimension2D(0.0, 0.0);
+        else {
+            CacheHint cacheHint = null;
+            try
+            {
+                cacheHint = CacheHint.valueOf(Preferences.cache_hint_for_picture_and_symbol_widgets);
+            }
+            catch (IllegalArgumentException ex)
+            {
+                logger.log(Level.WARNING, "The setting '" + Preferences.cache_hint_for_picture_and_symbol_widgets + "' is invalid for the setting 'caching_hint_for_picture_and_symbol_widgets' in the Phoebus initialization file! The default caching behavior will be used. Valid options are: 'NONE', 'DEFAULT', 'SPEED', 'QUALITY', 'SCALE', 'ROTATE', and 'SCALE_AND_ROTATE'.");
+            }
+
+            if (cacheHint != null) {
+                node.setCache(true);
+                node.setCacheHint(cacheHint);
+            }
         }
     }
 
@@ -70,6 +81,7 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
     {
         final ImageView iv = new ImageView();
         iv.setSmooth(true);
+        setCacheHintAccordingToPreferences(iv);
         iv.getTransforms().addAll(translate, rotation);
         return iv;
     }
@@ -83,13 +95,17 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
 
         model_widget.propStretch().addUntypedPropertyListener(styleChangedListener);
         model_widget.propRotation().addUntypedPropertyListener(styleChangedListener);
-        styleChanged(null, null, null);
+        model_widget.propOpacity().addUntypedPropertyListener(styleChangedListener);
+//      styleChanged() will be called by contentChanged()
 
-        // This is one of those weird cases where getValue calls setValue and fires the listener.
-        // So register listener after getValue called
-        final String img_name = model_widget.propFile().getValue();
         model_widget.propFile().addPropertyListener(contentChangedListener);
-        ModelThreadPool.getExecutor().execute(() -> contentChanged(null, null, img_name));
+        /*
+         * Must clear the flags, JFXBaseRepresentation will call updateChanges() but we are not initialized yet
+         * (contentChanged() will set the flags after it initializes img_path and img_loaded)
+         */
+        dirty_style.checkAndClear();
+        dirty_content.checkAndClear();
+        ModelThreadPool.getExecutor().execute(() -> contentChanged(null, null, null));
     }
 
     @Override
@@ -99,6 +115,7 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
         model_widget.propHeight().removePropertyListener(styleChangedListener);
         model_widget.propStretch().removePropertyListener(styleChangedListener);
         model_widget.propRotation().removePropertyListener(styleChangedListener);
+        model_widget.propOpacity().removePropertyListener(styleChangedListener);
         model_widget.propFile().removePropertyListener(contentChangedListener);
         super.unregisterListeners();
     }
@@ -114,63 +131,46 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
         // Imagine if updateChanges executes here. Mark is cleared and image updated before new image loaded.
         // Subsequent Scheduled image update would not happen.
 
-        String base_path = new_value;
-        //String base_path = model_widget.displayFile().getValue();
-        //System.out.println("Picture Representation content changes to " + base_path + " on " + Thread.currentThread().getName());
         boolean load_failed = false;
+        final String img_name = model_widget.propFile().getValue();
 
         try
         {
-            // Expand macros in the file name
-            final String expanded_path = MacroHandler.replace(model_widget.getMacrosOrProperties(), base_path);
-
-            // Resolve new image file relative to the source widget model (not 'top'!)
-            // Get the display model from the widget tied to this representation
-            final DisplayModel widget_model = model_widget.getDisplayModel();
-            // Resolve the image path using the parent model file path
-            img_path = ModelResourceUtil.resolveResource(widget_model, expanded_path);
+            img_path = resolveImageFile(img_name);
         }
         catch (Exception e)
         {
-            System.out.println("Failure resolving image path from base path: " + base_path);
-            e.printStackTrace();
+            logger.log(Level.WARNING, "Failure resolving image path from base path: " + img_name, e);
             load_failed = true;
         }
 
         if (!load_failed)
         {
-            if (toolkit.isEditMode())
+            if (toolkit.isEditMode()){
                 ImageCache.remove(img_path);
-            img_loaded = ImageCache.cache(img_path, () ->
-            {
-                try
-                {
-                    // Open the image from the stream created from the resource file
-                    return new Image(ModelResourceUtil.openResourceStream(img_path));
-                }
-                catch (Exception ex)
-                {
-                    logger.log(Level.WARNING, "Failure loading image file:" + img_path, ex);
-                }
-                return null;
-            });
-
-            if (img_loaded == null)
-                load_failed = true;
-        }
-
-        if (load_failed)
-        {
-            final String dflt_img = PictureWidget.default_pic;
-            try
-            {
-                // Open the image from the stream created from the resource file
-                img_loaded = new Image(ModelResourceUtil.openResourceStream(dflt_img));
-                load_failed = false;
             }
-            catch (Exception ex)
+
+            // Load the SVG without specifying a size so that img_loaded will have the original aspect ratio that we need
+            if (img_path.toLowerCase().endsWith("svg"))
+                img_loaded = SVGHelper.loadSVG(img_path, 0.0, 0.0);
+            else
             {
-                logger.log(Level.WARNING, "Failure loading default image file:" + img_path, ex);
+                img_loaded = ImageCache.cache(img_path, () ->
+                {
+                    try
+                    {
+                        // Open the image from the stream created from the resource file
+                        return new Image(ModelResourceUtil.openResourceStream(img_path));
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.log(Level.WARNING, "Failure loading image file:" + img_path, ex);
+                    }
+                    return null;
+                });
+            }
+            if (img_loaded == null) {
+                load_failed = !loadDefaultImage();
             }
         }
 
@@ -230,6 +230,12 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
                 final_pic_h = (int) Math.floor(scale_fac * pic_h);
             }
 
+            // This actually loads SVG images.
+            if(img_path != null && img_path.toLowerCase().endsWith("svg")) {
+                loadSVG(img_path, final_pic_w, final_pic_h);
+                jfx_node.setImage(img_loaded);
+            }
+
             jfx_node.setFitHeight(final_pic_h);
             jfx_node.setFitWidth(final_pic_w);
 
@@ -241,6 +247,73 @@ public class PictureRepresentation extends JFXBaseRepresentation<ImageView, Pict
             // translate to the center of the widget
             translate.setX((widg_w - final_pic_w) / 2.0);
             translate.setY((widg_h - final_pic_h) / 2.0);
+
+            // Apply opacity
+            jfx_node.opacityProperty().setValue(model_widget.propOpacity().getValue());
         }
+    }
+
+    /**
+     * Loads a SVG resource. The image cache is used, but the key to the SVG resource depends
+     * on the width and height of the image. Reason is that when resizing a image the underlying
+     * SVG must be transcoded again with the new size.
+     * If the wanted SVG image is not found, the default (PNG) image is loaded instead.
+     * @param width
+     * @param height
+     * @return An {@link Image} or <code>null</code>.
+     */
+    private void loadSVG(String fileName, double width, double height){
+
+        String imageFileName = resolveImageFile(fileName);
+        img_loaded = SVGHelper.loadSVG(imageFileName, width, height);
+        if(img_loaded == null){
+            loadDefaultImage();
+        }
+    }
+
+    private String resolveImageFile (String imageFileName ) {
+
+        try {
+
+            String expandedFileName = MacroHandler.replace(model_widget.getMacrosOrProperties(), imageFileName);
+
+            // Resolve new image file relative to the source widget model (not 'top'!).
+            // Get the display model from the widget tied to this representation.
+            final DisplayModel widgetModel = model_widget.getDisplayModel();
+
+            // Resolve the image path using the parent model file path.
+            return ModelResourceUtil.resolveResource(widgetModel, expandedFileName);
+
+        } catch ( Exception ex ) {
+
+            logger.log(Level.WARNING, String.format("Failure resolving image path: %s", imageFileName), ex);
+
+            return null;
+        }
+    }
+
+    /**
+     * Convenience method to load default image if the wanted image resource cannot be found.
+     * Note that this method sets the instance variable <code>img_loaded</code>.
+     * @return <code>true</code> if default image loaded successfully, otherwise <code>false</code>
+     */
+    private boolean loadDefaultImage()
+    {
+        final String dflt_img = PictureWidget.default_pic;
+        img_loaded = ImageCache.cache(dflt_img, () ->
+        {
+            try
+            {
+                // Open the image from the stream created from the resource file
+                return new Image(ModelResourceUtil.openResourceStream(dflt_img));
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Failure loading default image file:" + dflt_img, ex);
+            }
+            return null;
+            });
+
+        return img_loaded != null;
     }
 }

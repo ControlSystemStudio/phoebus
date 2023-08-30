@@ -11,6 +11,7 @@ import java.io.File;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.phoebus.ui.Preferences;
 import javafx.application.Platform;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -58,18 +59,41 @@ public class SaveAsDialog
 
     private File doPromptForFile(final Window window, final String title, File file, final ExtensionFilter[] filters)
     {
+        File initial_directory;
         final FileChooser dialog = new FileChooser();
         dialog.setTitle(title);
+
+        if (!Preferences.default_save_path.isEmpty()){
+            initial_directory = new File(Preferences.default_save_path);
+            dialog.setInitialDirectory(initial_directory);
+        }
 
         if (file != null)
         {
             // Dialog will fail if the directory does not exist
-            if (null != file.getParentFile() && file.getParentFile().exists())
+            if (file.exists())
+            {
+                if (file.isDirectory())
+                {
+                    dialog.setInitialDirectory(file);
+                }
+                else if (null != file.getParentFile() && file.getParentFile().exists())
+                {
+                    dialog.setInitialDirectory(file.getParentFile());
+                    dialog.setInitialFileName(file.getName());
+                }
+            }
+            // Even if the file does not exist, you could still use the existing parent folder
+            else if (null != file.getParentFile() && file.getParentFile().exists())
+            {
                 dialog.setInitialDirectory(file.getParentFile());
-            dialog.setInitialFileName(file.getName());
+            }
+
         }
+
         if (filters != null)
             dialog.getExtensionFilters().addAll(filters);
+
         return doExecuteDialog(window, dialog);
     }
 

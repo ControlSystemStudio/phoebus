@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -27,12 +28,26 @@ import javafx.application.Application;
 @SuppressWarnings("nls")
 public class Launcher
 {
-    public static final Logger logger = Logger.getLogger(Launcher.class.getName());
-
     public static void main(final String[] original_args) throws Exception
     {
         LogManager.getLogManager().readConfiguration(Launcher.class.getResourceAsStream("/logging.properties"));
+        final Logger logger = Logger.getLogger(Launcher.class.getName());
 
+        // Can't change default charset, but warn if it's not UTF-8.
+        // Config files for displays, data browser etc. explicitly use XMLUtil.ENCODING = "UTF-8".
+        // EPICS database files, strings in Channel Access or PVAccess are expected to use UTF-8.
+        // New Java API like java.nio.file.Files defaults to UTF-8,
+        // but library code including JCA simply calls new String(byte[]).
+        // The underlying Charset.defaultCharset() checks "file.encoding",
+        // but this happens at an early stage of VM startup.
+        // Calling System.setPropertu("file.encoding", "UTF-8") in main() is already too late,
+        // must add -D"file.encoding=UTF-8" to java start up or JAVA_TOOL_OPTIONS.
+        final Charset cs = Charset.defaultCharset();
+        if (! "UTF-8".equalsIgnoreCase(cs.displayName()))
+        {
+            logger.severe("Default charset is " + cs.displayName() + " instead of UTF-8.");
+            logger.severe("Add    -D\"file.encoding=UTF-8\"    to java command line or JAVA_TOOL_OPTIONS");
+        }
         Locations.initialize();
         // Check for site-specific settings.ini bundled into distribution
         // before potentially adding command-line settings.
@@ -84,14 +99,15 @@ public class Launcher
                     if (! iter.hasNext())
                         throw new Exception("Missing -settings file name");
                     iter.remove();
-                    final String filename = iter.next();
+                    final String location = iter.next();
                     iter.remove();
 
-                    logger.info("Loading settings from " + filename);
-                    if (filename.endsWith(".xml"))
-                        Preferences.importPreferences(new FileInputStream(filename));
+                    logger.info("Loading settings from " + location);
+                    if (location.endsWith(".xml"))
+                        Preferences.importPreferences(new FileInputStream(location));
                     else
-                        PropertyPreferenceLoader.load(new FileInputStream(filename));
+                        PropertyPreferenceLoader.load(location);
+                  
                 }
                 else if (cmd.equals("-export_settings"))
                 {
@@ -139,7 +155,7 @@ public class Launcher
                         throw new Exception("Missing -main name");
                     final String main = iter.next();
                     iter.remove();
-                    
+
                     // Locate Main class and its main()
                     final Class<?> main_class = Class.forName(main);
                     final Method main_method = main_class.getDeclaredMethod("main", String[].class);
@@ -201,6 +217,8 @@ public class Launcher
         System.out.println("-server port                            -  Create instance server on given TCP port");
         System.out.println("-app probe                              -  Launch an application with input arguments");
         System.out.println("-resource  /tmp/example.plt             -  Open an application configuration file with the default application");
+        System.out.println("-layout /path/to/Example.memento        -  Start with the specified saved layout instead of the default 'memento'");
+        System.out.println("-clean                                  -  Start with a blank workspace. Overrides -app, -resource and -layout.");
         System.out.println("-main org.package.Main                  -  Run alternate application Main");
         System.out.println();
         System.out.println("In 'server' mode, first instance opens UI.");
@@ -211,11 +229,14 @@ public class Launcher
         System.out.println("and the 'app=..' query parameter picks a specific app for opening the resource.");
         System.out.println();
         System.out.println("Examples:");
-        System.out.println("-resource /path/to/file                                                    - Opens that file with the default application.");
-        System.out.println("-resource file:/path/to/file                                               - Same, but makes the 'file' schema specific.");
-        System.out.println("-resource http://my.site/path/to/file                                      - Reads web link, opens with default application.");
-        System.out.println("-resource file:/path/to/file?app=display_runtime&MACRO1=value+1&MACRO2=abc - Opens file with 'display_runtime' app, passing macros.");
-        System.out.println("-resource pv://?sim://sine&app=probe                                       - Opens the 'sim://sine' PV with 'probe'.");
-        System.out.println("-resource pv://?Fred&sim://sine&app=pv_table                               - Opens two PVs PV with 'pv_table'.");
+        System.out.println("-resource '/path/to/file'                                                    - Opens that file with the default application.");
+        System.out.println("-resource 'file:/absolute/path/to/file'                                      - Same, but makes the 'file' schema specific.");
+        System.out.println("-resource 'http://my.site/path/to/file'                                      - Reads web link, opens with default application.");
+        System.out.println("-resource 'file:/abs/path/file?app=display_runtime&MACRO1=value+1&MACRO2=xy' - Opens file with 'display_runtime' app, passing macros.");
+        System.out.println("-resource 'pv://?sim://sine&app=probe'                                       - Opens the 'sim://sine' PV with 'probe'.");
+        System.out.println("-resource 'pv://?Fred&sim://sine&app=pv_table'                               - Opens two PVs PV with 'pv_table'.");
+        System.out.println("-resource '...&target=window'                                                - Opens resource in separate window.");
+        System.out.println("-resource '...&target=window@800x600+200+150'                                - Opens resource in separate window sized 800 by 600 at x=200, y=150.");
+        System.out.println("-resource '...&target=name_of_pane'                                          - Opens resource in named pane.");
     }
 }

@@ -7,10 +7,10 @@
  *******************************************************************************/
 package org.csstudio.display.converter.edm;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.jupiter.api.Test;
 
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** Font mapping test
  *  @author Kay Kasemir
@@ -19,7 +19,7 @@ import org.junit.Test;
 public class FontMappingTest extends TestHelper
 {
     @Test
-    public void testParser() throws Exception
+    public void testParser()
     {
         assertThat(ConverterPreferences.mapFont("helvetica"), equalTo("Liberation Sans"));
         assertThat(ConverterPreferences.mapFont("courier"), equalTo("Liberation Mono"));

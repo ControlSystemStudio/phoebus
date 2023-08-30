@@ -40,11 +40,16 @@ public class FileSelectorWidget extends PVWidget
         }
     };
 
+    /** Show complete path, base name etc? */
     public enum FileComponent
     {
+        /** Full path */
         FULL("Full Path"),
+        /** Directory only */
         DIRECTORY("Directory"),
+        /** File name and extension */
         FULLNAME("Name & Extension"),
+        /** Base name of file sans extension */
         BASENAME("Base Name");
 
         private final String name;
@@ -67,6 +72,7 @@ public class FileSelectorWidget extends PVWidget
     private volatile WidgetProperty<FileComponent> component;
     private volatile WidgetProperty<Boolean> enabled;
 
+    /** Constructor */
     public FileSelectorWidget()
     {
         // Set initial size close to the minimum required

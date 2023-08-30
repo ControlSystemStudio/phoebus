@@ -20,16 +20,27 @@ import javafx.scene.control.Tooltip;
 @SuppressWarnings("nls")
 public class FilesTab extends Tab
 {
-    private FilesList files = new FilesList();
+    private FilesList files;
 
-    /** @param root_node Node that will be used to obtain a screenshot */
     public FilesTab()
     {
+        this(true);
+    }
+
+    /**
+     * Create a file viewer
+     * If editable set to true, additional buttons to add and remove files are also added to the viewer
+     * @param editable
+     */
+    public FilesTab(boolean editable)
+    {
+        files = new FilesList(editable);
         setText(Messages.Files);
         setClosable(false);
         setTooltip(new Tooltip(Messages.AddFileAttachments));
 
         setContent(files);
+
     }
 
     /** @return Files listed in tab */

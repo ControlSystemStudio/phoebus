@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -122,6 +122,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     // XXX Would be good to understand this value instead of 2-by-trial-and-error
     private static final int SCROLLBAR_ADJUST = 2;
 
+    /** Property for the DisplayModel that's represented */
     public static final String ACTIVE_MODEL = "_active_model";
 
     /** Zoom to fit display */
@@ -299,6 +300,8 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
     private void doWheelZoom(final double delta, final double x, final double y)
     {
         final double zoom = getZoom();
+	if (delta == 0)
+	    return;
         if (zoom >= ZOOM_MAX && delta > 0)
             return;
         if (zoom <= ZOOM_MIN && delta < 0)
@@ -685,6 +688,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
             // "header text" allows for larger content than the "content text"
             alert.setContentText(null);
             alert.setHeaderText(message);
+            alert.initOwner(node.getScene().getWindow());
             alert.showAndWait();
             done.countDown();
         });
@@ -710,6 +714,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
             alert.setResizable(true);
             alert.setTitle(Messages.ShowErrorDialogTitle);
             alert.setHeaderText(error);
+            alert.initOwner(node.getScene().getWindow());
             alert.showAndWait();
             done.countDown();
         });
@@ -739,6 +744,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
             alert.getButtonTypes().clear();
             alert.getButtonTypes().add(ButtonType.YES);
             alert.getButtonTypes().add(ButtonType.NO);
+            alert.initOwner(node.getScene().getWindow());
             final Optional<ButtonType> result = alert.showAndWait();
             // NOTE that button type OK/YES/APPLY checked in here must match!
             done.complete(result.isPresent()  &&  result.get() == ButtonType.YES);
@@ -765,6 +771,10 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
             DialogHelper.positionDialog(dialog, node, -100, -50);
 
             dialog.setHeaderText(title);
+            final int lines = title.split("\n").length;
+            dialog.setResizable(true);
+            dialog.getDialogPane().setPrefHeight(50+25*lines);
+            dialog.initOwner(node.getScene().getWindow());
             final Optional<String> result = dialog.showAndWait();
             done.complete(result.orElse(null));
         });
@@ -788,6 +798,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
         {
             final PasswordDialog dialog = new PasswordDialog(title, correct_password);
             DialogHelper.positionDialog(dialog, node, -100, -50);
+            dialog.initOwner(node.getScene().getWindow());
             final Optional<String> result = dialog.showAndWait();
             done.complete(result.orElse(null));
         });
@@ -1036,7 +1047,7 @@ public class JFXRepresentation extends ToolkitRepresentation<Parent, Node>
 
             // AWT API has  Desktop.getDesktop().open(File),
             // but that results in hangup
-            // https://github.com/shroffk/phoebus/issues/433
+            // https://github.com/ControlSystemStudio/phoebus/issues/433
         });
     }
 

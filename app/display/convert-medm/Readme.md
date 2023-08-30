@@ -3,7 +3,7 @@ MEDM File Converter
 
 Converts MEDM `*.adl` files into Display Builder `*.bob` files.
 
-For usage information, see `doc/index.rst` which is also included in the Phoebus online help.
+For usage information, see `Display Builder Converters` section in the Phoebus online help.
 
 This code is based on the CS-Studio ADL file parser by H. Rickens (DESY)
 and the BOY file converter by J. Hammonds (ANL).

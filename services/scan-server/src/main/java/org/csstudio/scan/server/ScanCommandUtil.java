@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2012-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -64,7 +64,7 @@ public class ScanCommandUtil
             final boolean wait,
             final String readback_name, final double tolerance, final Duration timeout) throws Exception
     {
-        final WriteHelper write = new WriteHelper(context, device_name, value, completion, wait, readback_name, tolerance, timeout);
+        final WriteHelper write = new WriteHelper(context, device_name, value, completion, wait, readback_name, value, tolerance, timeout);
         write.perform();
     }
 }

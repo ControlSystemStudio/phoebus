@@ -27,7 +27,6 @@ import org.csstudio.display.builder.model.properties.ScriptsWidgetProperty;
 @SuppressWarnings("nls")
 public class RuleInfo
 {
-
     /**
      * An object describing an expression associated with a widget property.
      * The expressions can be of 2 types.
@@ -56,10 +55,12 @@ public class RuleInfo
         }
 
         public String getExp()
+
         {
             return exp;
         }
 
+        /** @return Value to use when expression is met */
         public T getPropVal()
         {
             return prop_val;
@@ -82,11 +83,15 @@ public class RuleInfo
         }
     };
 
+    /** Information about a property */
     public static class PropInfo
     {
         private final WidgetProperty<?> prop;
         private final String prop_id;
 
+        /** @param attached_widget Widget
+         *  @param prop_id_str Property ID
+         */
         public PropInfo(final Widget attached_widget, final String prop_id_str)
         {
             prop_id = prop_id_str;
@@ -102,10 +107,12 @@ public class RuleInfo
             prop = check;
         }
 
+        /** @return WidgetProperty */
         public WidgetProperty<?> getProp() {
             return prop;
         }
 
+        /** @return ID of widget property */
         public String getPropID() {
             return prop_id;
         }
@@ -145,7 +152,7 @@ public class RuleInfo
     /** Some properties cannot be the target of rules.
      *  This function takes a widget and returns a list of
      *  valid targets for expressions
-     *  @param attached_widget
+     *  @param attached_widget Widget
      *  @return List of all properties of a widget that a rule can target
      */
     static public List<PropInfo> getTargettableProperties (final Widget attached_widget)
@@ -183,19 +190,31 @@ public class RuleInfo
         return expressions;
     }
 
+    /** @return Name of rule */
+
     public String getName()
     {
         return name;
     }
 
+    /** @return Property that is updated by this rule */
     public String getPropID()
     {
         return prop_id;
     }
 
+    /** @return Get value or expression? */
     public boolean getPropAsExprFlag()
     {
         return prop_as_expr_flag;
+    }
+
+    /** @param attached_widget Widget
+     *  @return Script text (python)
+     */
+    public String getTextPy(final Widget attached_widget)
+    {
+        return RuleToScript.generatePy(attached_widget, this);
     }
 
     @Override

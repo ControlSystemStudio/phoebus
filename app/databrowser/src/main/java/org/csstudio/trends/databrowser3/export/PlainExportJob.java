@@ -17,7 +17,7 @@ import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.epics.vtype.VType;
 import org.phoebus.archive.reader.ValueIterator;
-import org.phoebus.archive.vtype.VTypeHelper;
+import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -29,13 +29,24 @@ public class PlainExportJob extends ExportJob
 {
     final protected ValueFormatter formatter;
 
+    /** @param model Model
+     *  @param start Start time
+     *  @param end End time
+     *  @param source Data source
+     *  @param optimize_parameter Bin count
+     *  @param formatter  Value formatter
+     *  @param filename Export file name
+     *  @param error_handler Error handler
+     *  @param unixTimeStamp Use UNIX time stamp epoch?
+     */
     public PlainExportJob(final Model model,
             final Instant start, final Instant end, final Source source,
             final double optimize_parameter, final ValueFormatter formatter,
             final String filename,
-            final Consumer<Exception> error_handler)
+            final Consumer<Exception> error_handler,
+            final boolean unixTimeStamp)
     {
-        super("# ", model, start, end, source, optimize_parameter, filename, error_handler);
+        super("# ", model, start, end, source, optimize_parameter, filename, error_handler, unixTimeStamp);
         this.formatter = formatter;
     }
 
@@ -64,7 +75,7 @@ public class PlainExportJob extends ExportJob
                 out.println();
             printItemInfo(out, item);
             // Get data
-            monitor.beginTask(MessageFormat.format("Fetching data for {0}", item.getName()));
+            monitor.beginTask(MessageFormat.format("Fetching data for {0}", item.getResolvedName()));
             final ValueIterator values = createValueIterator(item);
             // Dump all values
             out.println(comment + Messages.TimeColumn + Messages.Export_Delimiter + formatter.getHeader());
@@ -73,11 +84,12 @@ public class PlainExportJob extends ExportJob
             {
                 final VType value = values.next();
 
-                final String time = TimestampFormats.MILLI_FORMAT.format(VTypeHelper.getTimestamp(value));
+                final String time = unixTimeStamp ? Long.toString(VTypeHelper.getTimestamp(value).toEpochMilli()) :
+                        TimestampFormats.MILLI_FORMAT.format(VTypeHelper.getTimestamp(value));
                 out.println(time + Messages.Export_Delimiter + formatter.format(value));
                 ++line_count;
                 if (++line_count % PROGRESS_UPDATE_LINES == 0)
-                    monitor.beginTask(MessageFormat.format("{0}: Wrote {1} samples", item.getName(), line_count));
+                    monitor.beginTask(MessageFormat.format("{0}: Wrote {1} samples", item.getResolvedName(), line_count));
             }
             ++count;
         }

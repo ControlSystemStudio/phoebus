@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 Oak Ridge National Laboratory.
+ * Copyright (c) 2012-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,11 +11,15 @@ package org.csstudio.scan.info;
 /** Result of a scan simulation
  *  @author Kay Kasemir
  */
+@SuppressWarnings("nls")
 public class SimulationResult
 {
-    final private double simulation_seconds;
+    /** Prefix used for error lines in the log */
+    public static String ERROR = "ERROR: ";
 
-    final private String simulation_log;
+    private final double simulation_seconds;
+
+    private final String simulation_log;
 
     /** Initialize
      *

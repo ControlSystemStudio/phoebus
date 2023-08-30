@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -43,6 +43,8 @@ public class UpdateApplication implements AppDescriptor
     private static final String NAME = "Update";
     private Button start_update = null;
 
+    private UpdateProvider updater;
+
     @Override
     public String getName()
     {
@@ -58,7 +60,8 @@ public class UpdateApplication implements AppDescriptor
             TimeUnit.SECONDS.sleep(Update.delay);
             if (monitor.isCanceled())
                 return;
-            final Instant new_version = Update.checkForUpdate(monitor);
+            updater = Update.updaterFactory();
+            final Instant new_version = updater.checkForUpdate(monitor);
             if (new_version != null)
                 installUpdateButton(new_version);
         });
@@ -89,9 +92,7 @@ public class UpdateApplication implements AppDescriptor
            .append("\n\n")
            .append("The update will replace the installation in\n")
            .append(install_location)
-           .append("\n(").append(stage_area).append(")")
-           .append("\nwith the content of ")
-           .append(Update.update_url)
+           .append("\n(").append(stage_area).append(").")
            .append("\n\n")
            .append("Do you want to update?\n");
 
@@ -103,24 +104,27 @@ public class UpdateApplication implements AppDescriptor
         prompt.setResizable(true);
         DialogHelper.positionDialog(prompt, node, -600, -350);
         prompt.getDialogPane().setPrefSize(600, 300);
-        if (prompt.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK)
+
+        final boolean do_update = prompt.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK;
+        // Remove the update button (after it was used to position dialog)
+        // to prevent starting another update.
+        // When declined, don't bother until restart of phoebus.
+        // In any case, button can only be removed after dialog ran because of DialogHelper.positionDialog
+        final Node parent = node.getParent();
+        StatusBar.getInstance().removeItem(start_update);
+        start_update = null;
+
+        if (do_update)
         {
             // Show job manager to display progress
             ApplicationService.findApplication(JobViewerApplication.NAME).create();
             // Perform update
             JobManager.schedule(NAME, monitor ->
             {
-                Update.downloadAndUpdate(monitor, stage_area);
-                Update.adjustCurrentVersion();
+                updater.downloadAndUpdate(monitor, stage_area);
                 if (! monitor.isCanceled())
-                    Platform.runLater(() -> restart(node));
+                    Platform.runLater(() -> restart(parent));
             });
-        }
-        else
-        {
-            // Remove the update button
-            StatusBar.getInstance().removeItem(start_update);
-            start_update = null;
         }
     }
 

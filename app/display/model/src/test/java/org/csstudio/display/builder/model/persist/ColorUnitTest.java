@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,15 +7,16 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.persist;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import org.csstudio.display.builder.model.properties.NamedWidgetColor;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import java.util.concurrent.TimeUnit;
 
-import org.csstudio.display.builder.model.properties.NamedWidgetColor;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /** JUnit test of color handling
  *
@@ -90,7 +91,8 @@ public class ColorUnitTest
      *
      *  @throws Exception on error
      */
-    @Test(timeout=30000)
+    @Test
+    @Timeout(30)
     public void testColorService() throws Exception
     {
         System.out.println("On " + Thread.currentThread().getName());

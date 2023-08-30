@@ -1,10 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>services</artifactId>
-    <version>4.6.0-SNAPSHOT</version>
+    <version>4.7.3-SNAPSHOT</version>
   </parent>
   <artifactId>service-archive-engine</artifactId>
 
@@ -30,9 +29,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.12</version>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -45,55 +44,55 @@
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
-      <version>9.4.9.v20180320</version>
+      <version>${jetty.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-servlet</artifactId>
-      <version>9.4.9.v20180320</version>
+      <version>${jetty.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-security</artifactId>
-      <version>9.4.9.v20180320</version>
+      <version>${jetty.version}</version>
     </dependency>
 
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
-      <version>2.9.4</version>
+      <version>${jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.9.4</version>
+      <version>${jackson.version}</version>
     </dependency>
 
     <dependency>
       <groupId>mysql</groupId>
       <artifactId>mysql-connector-java</artifactId>
-      <version>5.1.45</version>
+      <version>${mysql.version}</version>
     </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>42.1.4</version>
+      <version>${postgresql.driver.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-framework</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.7.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-util</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.7.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-pv</artifactId>
-      <version>4.6.0-SNAPSHOT</version>
+      <version>4.7.3-SNAPSHOT</version>
     </dependency>
   </dependencies>
 
@@ -121,7 +120,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-		<version>3.1.0</version>
+        <version>3.3.0</version>
         <configuration>
           <archive>
             <manifest>
@@ -132,46 +131,14 @@
           </archive>
         </configuration>
       </plugin>
-
-      <!-- Update jar, list all lib/* jars in the manifest classpath
-        -->
       <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>verify</phase>
-            <configuration>
-              <failOnError>true</failOnError>
-              <tasks>
-                <echo message="Adding dependencies to product"/>
-                <manifestclasspath property="manifest-classpath"
-                                   jarfile="${project.build.directory}/service-archive-engine-${project.version}.jar">
-                  <classpath>
-                    <path>
-                      <fileset dir="${project.build.directory}/lib">
-                        <include name="*.jar"/>
-                      </fileset>
-                    </path>
-                  </classpath>
-                </manifestclasspath>
-
-                <!-- <echo message="Manifest classpath: ${manifest-classpath}"/> -->
-                <jar update="true" destfile="${project.build.directory}/service-archive-engine-${project.version}.jar">
-                  <manifest>
-                    <attribute name="Class-Path" value="${manifest-classpath}" />
-                  </manifest>
-                </jar>
-
-              </tasks>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-        </executions>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <version>1.6.8</version>
+        <configuration>
+          <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
+        </configuration>
       </plugin>
-
     </plugins>
   </build>
-
 </project>

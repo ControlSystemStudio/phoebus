@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -54,6 +54,9 @@ public class Tracker extends Group
     /** Show the location and size? */
     private boolean showLocationAndSize = true;
 
+    /** Enable changes? */
+    protected boolean enable_changes = true;
+
     /** Create tracker */
     public Tracker()
     {
@@ -86,6 +89,12 @@ public class Tracker extends Group
                 handle_bottom, handle_bottom_left, handle_left, locationLabel, sizeLabel);
 
         hookEvents();
+    }
+
+    /** @param enable_changes Allow resizes and moves? Otherwise just show selection */
+    public void enableChanges(final boolean enable_changes)
+    {
+        this.enable_changes = enable_changes;
     }
 
     /** @param listener Listener to notify of tracker changes */
@@ -146,7 +155,8 @@ public class Tracker extends Group
         {
             // When Control (Mac: Alt) is pressed, this might be start of copy-D&D,
             // so abort moving tracker
-            if (start_x < 0 ||
+            if (!enable_changes ||
+                start_x < 0 ||
                 (PlatformInfo.is_mac_os_x
                  ? event.isAltDown()
                  : event.isControlDown()))
@@ -169,7 +179,7 @@ public class Tracker extends Group
         // Keep the keyboard focus to actually get key events.
         // The RTImagePlot will also listen to mouse moves and try to keep the focus,
         // so the active tracker uses an event filter to have higher priority
-        tracker.addEventFilter(MouseEvent.MOUSE_MOVED, event ->
+        tracker.addEventFilter(MouseEvent.MOUSE_CLICKED, event ->
         {
             event.consume();
             tracker.requestFocus();
@@ -324,39 +334,46 @@ public class Tracker extends Group
      */
     protected void handleKeyEvent(final KeyEvent event)
     {
+        if (!enable_changes)
+            return;
+
         // Consume handled event to keep the key focus,
         // which is otherwise lost to the 'tab-order' traversal
         final KeyCode code = event.getCode();
         boolean notify = false;
 
+        int delta = 1;
+        if (event.isShortcutDown())
+            delta = 10;
+
         switch (code)
         {
         case UP:
             if (event.isShiftDown())
-                setPosition(tracker.getX(), tracker.getY(), tracker.getWidth(), tracker.getHeight() - 1);
+                setPosition(tracker.getX(), tracker.getY(), tracker.getWidth(), tracker.getHeight() - delta);
             else
-                setPosition(tracker.getX(), tracker.getY() - 1, tracker.getWidth(), tracker.getHeight());
+                setPosition(tracker.getX(), tracker.getY() - delta, tracker.getWidth(), tracker.getHeight());
             notify = true;
             break;
         case DOWN:
             if (event.isShiftDown())
-                setPosition(tracker.getX(), tracker.getY(), tracker.getWidth(), tracker.getHeight() + 1);
+                setPosition(tracker.getX(), tracker.getY(), tracker.getWidth(), tracker.getHeight() + delta);
             else
-                setPosition(tracker.getX(), tracker.getY() + 1, tracker.getWidth(), tracker.getHeight());
+                setPosition(tracker.getX(), tracker.getY() + delta, tracker.getWidth(), tracker.getHeight());
             notify = true;
             break;
         case LEFT:
             if (event.isShiftDown())
-                setPosition(tracker.getX(), tracker.getY(), tracker.getWidth() - 1, tracker.getHeight());
+                setPosition(tracker.getX(), tracker.getY(), tracker.getWidth() - delta, tracker.getHeight());
             else
-                setPosition(tracker.getX() - 1, tracker.getY(), tracker.getWidth(), tracker.getHeight());
+                setPosition(tracker.getX() - delta, tracker.getY(), tracker.getWidth(), tracker.getHeight());
             notify = true;
             break;
         case RIGHT:
             if (event.isShiftDown())
-                setPosition(tracker.getX(), tracker.getY(), tracker.getWidth() + 1, tracker.getHeight());
+                setPosition(tracker.getX(), tracker.getY(), tracker.getWidth() + delta, tracker.getHeight());
             else
-                setPosition(tracker.getX() + 1, tracker.getY(), tracker.getWidth(), tracker.getHeight());
+                setPosition(tracker.getX() + delta, tracker.getY(), tracker.getWidth(), tracker.getHeight());
             notify = true;
             break;
         case ESCAPE:
@@ -428,40 +445,44 @@ public class Tracker extends Group
         tracker.setWidth(width);
         tracker.setHeight(height);
 
+        handle_top_left.setVisible(enable_changes);
         handle_top_left.setX(x - HANDLE_SIZE);
         handle_top_left.setY(y - HANDLE_SIZE);
 
-        handle_top.setVisible(width > HANDLE_SIZE);
+        handle_top.setVisible(enable_changes  &&  width > HANDLE_SIZE);
         handle_top.setX(x + (width - HANDLE_SIZE) / 2);
         handle_top.setY(y - HANDLE_SIZE);
 
+        handle_top_right.setVisible(enable_changes);
         handle_top_right.setX(x + width);
         handle_top_right.setY(y - HANDLE_SIZE);
 
-        handle_right.setVisible(height > HANDLE_SIZE);
+        handle_right.setVisible(enable_changes  &&  height > HANDLE_SIZE);
         handle_right.setX(x + width);
         handle_right.setY(y + (height - HANDLE_SIZE)/2);
 
+        handle_bottom_right.setVisible(enable_changes);
         handle_bottom_right.setX(x + width);
         handle_bottom_right.setY(y + height);
 
-        handle_bottom.setVisible(width > HANDLE_SIZE);
+        handle_bottom.setVisible(enable_changes  &&  width > HANDLE_SIZE);
         handle_bottom.setX(x + (width - HANDLE_SIZE)/2);
         handle_bottom.setY(y + height);
 
+        handle_bottom_left.setVisible(enable_changes);
         handle_bottom_left.setX(x - HANDLE_SIZE);
         handle_bottom_left.setY(y + height);
 
-        handle_left.setVisible(height > HANDLE_SIZE);
+        handle_left.setVisible(enable_changes  &&  height > HANDLE_SIZE);
         handle_left.setX(x - HANDLE_SIZE);
         handle_left.setY(y + (height - HANDLE_SIZE)/2);
 
         locationLabel.setText(MessageFormat.format("\u00A0\u00A0{0,number,###0}, {1,number,###0}\u00A0\u00A0", x, y));
-        locationLabel.setVisible(showLocationAndSize && ( width > 50 && height > 20 ));
+        locationLabel.setVisible(showLocationAndSize && ( ((width >= 80) || (height >= 30)) && ( width >= 40 && height >= 20 )));
         locationLabel.relocate(x + 3, y + 3);
 
         sizeLabel.setText(MessageFormat.format("\u00A0\u00A0{0,number,###0}, {1,number,###0}\u00A0\u00A0", width, height));
-        sizeLabel.setVisible(showLocationAndSize && ( width > 25 && height > 10 ));
+        sizeLabel.setVisible(showLocationAndSize && ( width >= 40 && height >= 20 ));
         // Slight issue:
         // The text was just set, layout may not have happened, so getWidth() is wrong until the next update
         sizeLabel.relocate(x + width - sizeLabel.getWidth() - 3, y + height - sizeLabel.getHeight() - 3);

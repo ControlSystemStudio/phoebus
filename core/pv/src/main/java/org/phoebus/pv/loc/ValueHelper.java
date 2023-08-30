@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2016-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.epics.util.array.ArrayDouble;
 import org.epics.vtype.Alarm;
@@ -20,6 +23,7 @@ import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Display;
 import org.epics.vtype.EnumDisplay;
 import org.epics.vtype.Time;
+import org.epics.vtype.VBoolean;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VDoubleArray;
 import org.epics.vtype.VEnum;
@@ -38,6 +42,9 @@ public class ValueHelper
 {
     static final Alarm UDF = Alarm.of(AlarmSeverity.UNDEFINED, AlarmStatus.UNDEFINED, "UDF");
 
+    /** loc:// PV name: Starts with alpha, then alphanumeric or ':_-.' */
+    private static final Pattern PV_NAME_PATTERN = Pattern.compile("([A-Za-z][-A-Za-z0-9:_.]*)(.*)", Pattern.DOTALL);
+
     /** Parse local PV name
      *  @param base_name "name", "name(value)" or "name&lt;type>(value)"
      *  @return Name, type-or-null, value-or-null
@@ -45,34 +52,34 @@ public class ValueHelper
      */
     public static String[] parseName(final String base_name) throws Exception
     {
-        // Could use regular expression, but this allows more specific error messages
-        String name=null, type=null, value=null;
+        final Matcher matcher = PV_NAME_PATTERN.matcher(base_name);
+        if (! matcher.matches())
+            throw new Exception("Missing PV name in " + base_name);
+
+        final String name = matcher.group(1);
+        String rest = matcher.group(2);
+
+        // Could use regular expression for all, but this allows more specific error messages
+        String type=null, value=null;
 
         // Locate type
-        int sep = base_name.indexOf('<');
-        if (sep >= 0)
+        if (rest.startsWith("<"))
         {
-            final int end = base_name.indexOf('>', sep+1);
-            if (end <= sep)
+            final int end = rest.indexOf('>', 1);
+            if (end <= 0)
                 throw new Exception("Missing '>' to define type in " + base_name);
-            name = base_name.substring(0, sep);
-            type = base_name.substring(sep+1, end);
+            type = rest.substring(1, end);
+            rest = rest.substring(end + 1);
         }
 
         // Locate value
-        sep = base_name.indexOf('(');
-        if (sep > 0)
+        if (rest.startsWith("("))
         {
-            final int end = base_name.lastIndexOf(')');
-            if (end <= sep)
+            final int end = rest.lastIndexOf(')');
+            if (end <= 0)
                 throw new Exception("Missing ')' of initial value in " + base_name);
-            value = base_name.substring(sep+1, end);
-            if (name == null)
-                name = base_name.substring(0, sep);
+            value = rest.substring(1, end);
         }
-
-        if (name == null)
-            name = base_name.trim();
 
         return new String[] { name, type, value };
     }
@@ -115,8 +122,19 @@ public class ValueHelper
                 items.add(text.substring(pos, end+1));
                 pos = end + 1;
                 // Advance to comma at end of string
-                while (pos < text.length() && text.charAt(pos) != ',')
-                    ++pos;
+                while (pos < text.length()) {
+                    char currentChar = text.charAt(pos);
+                    
+                    if (currentChar == ',') {
+                        break;
+                    }
+                    else if (currentChar != ' ' && currentChar != '\t') {
+                        throw new Exception("A character that is not a space or a tab appeared after a closing quote");
+                    }
+                    else {
+                        pos++;
+                    }
+                }
                 ++pos;
             }
 
@@ -188,6 +206,19 @@ public class ValueHelper
         return values;
     }
 
+    /**
+     *
+     * @param items Items from <code>splitInitialItems</code>
+     * @return Boolean list of all items
+     */
+    private static List<Boolean> getInitialBooleans(List<String> items) {
+        if (items == null)
+            return Arrays.asList(Boolean.FALSE);
+        return items.stream().map(item -> {
+            return Boolean.parseBoolean(item);
+        }).collect(Collectors.toList());
+    }
+
     /** @param items Items from <code>splitInitialItems</code>, i.e. strings are quoted
      *  @param type Desired VType
      *  @return VType for initial value
@@ -221,6 +252,13 @@ public class ValueHelper
                 throw new Exception("Expected one number, got " + items);
         }
 
+        if (type == VBoolean.class)
+        {
+            if (items == null  ||  items.size() == 1)
+                return VBoolean.of(getInitialBooleans(items).get(0), Alarm.none(), Time.now());
+            else
+                throw new Exception("Expected one boolean, got " + items);
+        }
 
         if (type == VString.class)
         {
@@ -233,8 +271,12 @@ public class ValueHelper
         if (type == VDoubleArray.class)
             return VDoubleArray.of(ArrayDouble.of(getInitialDoubles(items)), Alarm.none(), Time.now(), Display.none());
 
+//        if (type == VBooleanArray.class)
+//            return VBooleanArray.of(ArrayBoolean.of(getInitialBooleans(items)), Alarm.none(), Time.now());
+
         if (type == VStringArray.class)
             return VStringArray.of(getInitialStrings(items), Alarm.none(), Time.now());
+
 
         if (type == VEnum.class)
         {
@@ -272,6 +314,7 @@ public class ValueHelper
         throw new Exception("Cannot obtain type " + type.getSimpleName() + " from " + items);
     }
 
+
     /** Adapt new value to desired type
      *
      *  <p>For a {@link VEnum}, this allows writing either another enum,
@@ -284,7 +327,7 @@ public class ValueHelper
      * @param old_value Old value of PV, will be used to inspect e.g. enum labels
      * @param change_from_double Adapt to a new 'type' if 'new_value' doesn't match?
      * @return Adapted value
-     * @throws Exception
+     * @throws Exception on error
      */
     public static VType adapt(final Object new_value, Class<? extends VType> type, final VType old_value,
                               final boolean change_from_double) throws Exception
@@ -367,6 +410,36 @@ public class ValueHelper
             catch (NumberFormatException ex)
             {
                 throw new Exception("Cannot parse number from '" + new_value + "'");
+            }
+        }
+
+        if (type == VBoolean.class) {
+            if (new_value instanceof Boolean)
+                return VBoolean.of((Boolean) new_value, Alarm.none(), Time.now());
+
+            try {
+                // Parse String values "true"/"false" and "0"/"1" to boolean true/false
+                if (new_value instanceof String) {
+                    if ("true".equalsIgnoreCase((String) new_value))
+                        return VBoolean.of(Boolean.TRUE, Alarm.none(), Time.now());
+                    else if ("false".equalsIgnoreCase((String) new_value))
+                        return VBoolean.of(Boolean.FALSE, Alarm.none(), Time.now());
+                    else if (Integer.parseInt(String.valueOf(new_value)) != 0)
+                        return VBoolean.of(Boolean.TRUE, Alarm.none(), Time.now());
+                    else
+                        return VBoolean.of(Boolean.FALSE, Alarm.none(), Time.now());
+                }
+                // Parse Numerical values 0 to true and all other values to false
+                else if (new_value instanceof Number) {
+                    int value = Integer.parseInt(Objects.toString(new_value));
+                    if (value == 0) {
+                        return VBoolean.of(Boolean.FALSE, Alarm.none(), Time.now());
+                    } else {
+                        return VBoolean.of(Boolean.TRUE, Alarm.none(), Time.now());
+                    }
+                }
+            } catch (NumberFormatException ex) {
+                throw new Exception("Cannot parse boolean from '" + new_value + "'");
             }
         }
 

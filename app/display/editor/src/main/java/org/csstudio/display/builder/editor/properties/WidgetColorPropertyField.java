@@ -33,6 +33,7 @@ public class WidgetColorPropertyField extends HBox
     private final Canvas blob = new Canvas(16, 16);
     private final Button button = new Button();
 
+    /** Constructor */
     public WidgetColorPropertyField()
     {
         // Button with label "Button_Background" for color name
@@ -57,7 +58,10 @@ public class WidgetColorPropertyField extends HBox
     public void setColor(final WidgetColor color)
     {
         final GraphicsContext gc = blob.getGraphicsContext2D();
-
+        // If user selects transparent color, clearing the rectangle
+        // is required. Without previous color will be visible through
+        // the transparent rectangle.
+        gc.clearRect(0, 0, 16, 16);
         gc.setFill(JFXUtil.convert(color));
         gc.fillRect(0, 0, 16, 16);
 

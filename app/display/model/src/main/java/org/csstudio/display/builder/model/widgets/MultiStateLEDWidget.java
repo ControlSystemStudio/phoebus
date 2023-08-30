@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.widgets;
 
+import static org.csstudio.display.builder.model.ModelPlugin.logger;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineColor;
@@ -14,6 +15,10 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.csstudio.display.builder.model.ArrayWidgetProperty;
 import org.csstudio.display.builder.model.StructuredWidgetProperty;
@@ -42,6 +47,9 @@ import org.w3c.dom.Element;
 @SuppressWarnings("nls")
 public class MultiStateLEDWidget extends BaseLEDWidget
 {
+    /** Matcher for detecting legacy property names */
+    private static final Pattern LEGACY_STATE_PATTERN = Pattern.compile("state_([a-z_]+)_([0-9]+)");
+
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
         new WidgetDescriptor("multi_state_led", WidgetCategory.MONITOR,
@@ -56,6 +64,9 @@ public class MultiStateLEDWidget extends BaseLEDWidget
             return new MultiStateLEDWidget();
         }
     };
+
+    /** Legacy properties that have already triggered a warning */
+    private final CopyOnWriteArraySet<String> warnings_once = new CopyOnWriteArraySet<>();
 
     /** Custom configurator to read legacy *.opi files */
     private static class LEDConfigurator extends WidgetConfigurator
@@ -146,6 +157,9 @@ public class MultiStateLEDWidget extends BaseLEDWidget
     /** Property that describes one state of the LED */
     public static class StateWidgetProperty extends StructuredWidgetProperty
     {
+        /** @param widget Widget
+         *  @param state State index 0, 1, ...
+         */
         public StateWidgetProperty(final Widget widget, final int state)
         {
             super(behaviorState, widget,
@@ -153,8 +167,11 @@ public class MultiStateLEDWidget extends BaseLEDWidget
                                 propStateLabel.createProperty(widget, "State " + (state + 1)),
                                 propStateColor.createProperty(widget, getDefaultColor(state))));
         }
+        /** @return State index 0, 1, ... */
         public WidgetProperty<Integer> state()      { return getElement(0); }
+        /** @return State label  */
         public WidgetProperty<String> label()       { return getElement(1); }
+        /** @return State color */
         public WidgetProperty<WidgetColor> color()  { return getElement(2); }
     };
 
@@ -178,6 +195,7 @@ public class MultiStateLEDWidget extends BaseLEDWidget
     private volatile WidgetProperty<WidgetColor> fallback_color;
     private volatile WidgetProperty<String> fallback_label;
 
+    /** Constructor */
     public MultiStateLEDWidget()
     {
         super(WIDGET_DESCRIPTOR.getType());
@@ -195,6 +213,25 @@ public class MultiStateLEDWidget extends BaseLEDWidget
         properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
         properties.add(line_color = propLineColor.createProperty(this, new WidgetColor(50, 50, 50, 178)));
         properties.add(square = propSquare.createProperty(this, false));
+    }
+
+    @Override
+    public WidgetProperty<?> getProperty(final String name)
+    {
+        // Translate legacy property names
+        Matcher matcher = LEGACY_STATE_PATTERN.matcher(name);
+        // state_value_0, state_color_0, state_label_0
+        if (matcher.matches())
+        {
+            final int index = Integer.parseInt(matcher.group(2));
+            final String states = "states[" + index + "].";
+            final String new_name = states + matcher.group(1);
+            if (warnings_once.add(name))
+                logger.log(Level.WARNING, "Deprecated access to " + this + " property '" + name + "'. Use '" + new_name + "'");
+            return getProperty(new_name);
+        }
+
+        return super.getProperty(name);
     }
 
     /** @return 'states' property */

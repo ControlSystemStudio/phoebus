@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import org.csstudio.archive.Preferences;
 import org.csstudio.archive.writer.ArchiveWriter;
@@ -35,9 +36,11 @@ import org.epics.vtype.Time;
 import org.epics.vtype.VByteArray;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VEnum;
+import org.epics.vtype.VFloat;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VString;
+import org.epics.vtype.VStringArray;
 import org.epics.vtype.VType;
 import org.phoebus.framework.rdb.RDBInfo;
 import org.phoebus.framework.rdb.RDBInfo.Dialect;
@@ -264,10 +267,14 @@ public class RDBArchiveWriter implements ArchiveWriter
         // Then going down in precision to integers, finally strings...
         if (sample instanceof VDouble)
             batchDoubleSamples(channel, stamp, severity, status, ((VDouble)sample).getValue(), null);
+        else if (sample instanceof VFloat)
+            batchDoubleSamples(channel, stamp, severity, status, ((VFloat)sample).getValue(), null);
         else if (sample instanceof VNumber)
-        {    // Write as double or integer?
+        {   // Write as double or integer?
+            // VDouble & VFloat are already handled, but check once more
+            // in case a custom VNumber returns a floating point type
             final Number number = ((VNumber)sample).getValue();
-            if (number instanceof Double)
+            if (number instanceof Double  ||  number instanceof Float)
                 batchDoubleSamples(channel, stamp, severity, status, number.doubleValue(), null);
             else
                 batchLongSample(channel, stamp, severity, status, number.longValue());
@@ -290,6 +297,16 @@ public class RDBArchiveWriter implements ArchiveWriter
             batchLongSample(channel, stamp, severity, status, ((VEnum)sample).getIndex());
         else if (sample instanceof VString)
             batchTextSamples(channel, stamp, severity, status, ((VString)sample).getValue());
+        else if (sample instanceof VStringArray)
+        {
+            // Store as comma-separated elements, omitting blank elements
+            final VStringArray strings = (VStringArray) sample;
+            final String text = strings.getData()
+                                       .stream()
+                                       .filter(element -> ! element.isBlank())
+                                       .collect(Collectors.joining(", "));
+            batchTextSamples(channel, stamp, severity, status, text);
+        }
         else // Handle possible other types as strings
             batchTextSamples(channel, stamp, severity, status, sample.toString());
     }
@@ -397,8 +414,19 @@ public class RDBArchiveWriter implements ArchiveWriter
             final int N = additional.size();
             for (int i = 1; i < N; i++)
             {
+                if (dialect == Dialect.Oracle){
+                    insert_array_sample.setTimestamp(2, stamp);
+                }
+                else
+                {
+                    // Truncate the time stamp
+                    Timestamp truncated = Timestamp.from(stamp.toInstant());
+                    truncated.setNanos(0);
+                    insert_array_sample.setTimestamp(2, truncated);
+                    // Set the nanos in a separate column
+                    insert_array_sample.setInt(6, stamp.getNanos());
+                }
                 insert_array_sample.setInt(1, channel.getId());
-                insert_array_sample.setTimestamp(2, stamp);
                 insert_array_sample.setInt(3, i);
                 // Patch NaN.
                 // Conundrum: Should we set the status/severity to indicate NaN?
@@ -410,10 +438,7 @@ public class RDBArchiveWriter implements ArchiveWriter
                 if (Double.isNaN(additional.getDouble(i)))
                     insert_array_sample.setDouble(4, 0.0);
                 else
-                    insert_array_sample.setDouble(4, additional.getDouble(i));
-                // MySQL nanosecs
-                if (dialect == Dialect.MySQL  ||  dialect == Dialect.PostgreSQL)
-                    insert_array_sample.setInt(5, stamp.getNanos());
+                    insert_array_sample.setDouble(4, additional.getDouble(i));             
                 // Batch
                 insert_array_sample.addBatch();
                 ++batched_double_array_inserts;
@@ -457,14 +482,23 @@ public class RDBArchiveWriter implements ArchiveWriter
             final Timestamp stamp, final int severity,
             final Status status) throws Exception
     {
+        if (dialect == Dialect.Oracle){
+            insert_xx.setTimestamp(2, stamp);
+        }
+        else
+        {
+            // Truncate the time stamp
+            Timestamp truncated = Timestamp.from(stamp.toInstant());
+            truncated.setNanos(0);
+            insert_xx.setTimestamp(2, truncated);
+            // Set the nanos in a separate column
+            insert_xx.setInt(6, stamp.getNanos());
+        }
+
         // Set the stuff that's common to each type
         insert_xx.setInt(1, channel.getId());
-        insert_xx.setTimestamp(2, stamp);
         insert_xx.setInt(3, severity);
         insert_xx.setInt(4, status.getId());
-        // MySQL nanosecs
-        if (dialect == Dialect.MySQL  ||  dialect == Dialect.PostgreSQL)
-            insert_xx.setInt(6, stamp.getNanos());
         // Batch
         insert_xx.addBatch();
     }

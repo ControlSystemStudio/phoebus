@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,6 +23,7 @@ import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
 import org.csstudio.display.builder.model.properties.RotationStep;
 import org.csstudio.display.builder.model.properties.StringWidgetProperty;
+import org.csstudio.display.builder.model.properties.WritePVActionInfo;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.builder.representation.javafx.Cursors;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
@@ -31,9 +32,12 @@ import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.MacroValueProvider;
 import org.phoebus.ui.javafx.Styles;
 import org.phoebus.ui.javafx.TextUtils;
+import org.phoebus.ui.vtype.FormatOption;
+import org.phoebus.ui.vtype.FormatOptionHandler;
 
 import javafx.application.Platform;
 import javafx.geometry.Dimension2D;
+import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
@@ -47,6 +51,7 @@ import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 
@@ -77,6 +82,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     private volatile Color foreground;
     private volatile String button_text;
     private volatile boolean enabled = true;
+    private volatile boolean writable = true;
 
     /** Was there ever any transformation applied to the jfx_node?
      *
@@ -86,6 +92,13 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
      */
     private boolean was_ever_transformed = false;
 
+    /**
+     * Is it a 'Write PV' action?
+     *
+     * <p>If not, we don't have to disable the button if the PV is readonly and/or disconnected
+     */
+    private volatile boolean is_writePV = false;
+
     /** Optional modifier of the open display 'target */
     private Optional<OpenDisplayActionInfo.Target> target_modifier = Optional.empty();
 
@@ -94,6 +107,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     private final UntypedWidgetPropertyListener buttonChangedListener = this::buttonChanged;
     private final UntypedWidgetPropertyListener representationChangedListener = this::representationChanged;
     private final WidgetPropertyListener<Boolean> enablementChangedListener = this::enablementChanged;
+    private volatile Pos pos;
 
     @Override
     protected boolean isFilteringEditModeClicks()
@@ -116,6 +130,14 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     /** @param event Mouse event to check for target modifier keys */
     private void checkModifiers(final MouseEvent event)
     {
+        if (! enabled)
+        {
+            // Do not let the user click a disabled button
+            event.consume();
+            base.disarm();
+            return;
+        }
+
         // 'control' ('command' on Mac OS X)
         if (event.isShortcutDown())
             target_modifier = Optional.of(OpenDisplayActionInfo.Target.TAB);
@@ -135,8 +157,6 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         }
     }
 
-//    private int calls = 0;
-
     /** Create <code>base</code>, either single-action button
      *  or menu for selecting one out of N actions
      */
@@ -144,6 +164,16 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     {
         final ActionInfos actions = model_widget.propActions().getValue();
         final ButtonBase result;
+        boolean has_non_writePVAction = false;
+
+        for (final ActionInfo action: actions.getActions())
+        {
+            if (action instanceof WritePVActionInfo)
+                is_writePV = true;
+            else
+                has_non_writePVAction = true;
+        }
+
         if (actions.isExecutedAsOne()  ||  actions.getActions().size() < 2)
         {
             final Button button = new Button();
@@ -152,25 +182,11 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         }
         else
         {
+            // If there is at least one non-WritePVActionInfo then is_writePV should be false
+            is_writePV = ! has_non_writePVAction;
+
             final MenuButton button = new MenuButton();
-            // Experimenting with ways to force update of popup location,
-            // #226
-            button.showingProperty().addListener((prop, old, showing) ->
-            {
-                if (showing)
-                {
-                    // System.out.println("Showing " + model_widget + " menu: " + showing);
-//                    if (++calls > 2)
-//                    {
-//                        System.out.println("Hack!");
-//                        if (button.getPopupSide() == Side.BOTTOM)
-//                            button.setPopupSide(Side.LEFT);
-//                        else
-//                            button.setPopupSide(Side.BOTTOM);
-//                        // button.layout();
-//                    }
-                }
-            });
+
             for (final ActionInfo action : actions.getActions())
             {
                 final MenuItem item = new MenuItem(makeActionText(action),
@@ -182,6 +198,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
             }
             result = button;
         }
+
         result.setStyle(background);
 
         // In edit mode, show dashed border for transparent/invisible widget
@@ -196,14 +213,30 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
 
         // Monitor keys that modify the OpenDisplayActionInfo.Target.
         // Use filter to capture event that's otherwise already handled.
-        result.addEventFilter(MouseEvent.MOUSE_PRESSED, this::checkModifiers);
+        if (! toolkit.isEditMode())
+            result.addEventFilter(MouseEvent.MOUSE_PRESSED, this::checkModifiers);
 
         // Need to attach TT to the specific button, not the common jfx_node Pane
         TooltipSupport.attach(result, model_widget.propTooltip());
 
-        result.setCursor(Cursor.HAND);
+        // Apply enabled/disabled style
+        Styles.update(result, Styles.NOT_ENABLED, !enabled);
 
         return result;
+    }
+
+    /** Called by ContextMenuSupport when an action menu is selected
+     *  @param action Action to perform
+     */
+    public void handleContextMenuAction(ActionInfo action)
+    {
+        if (action instanceof WritePVActionInfo && ! writable)
+        {
+            logger.log(Level.FINE, "{0} ignoring WritePVActionInfo because of readonly PV", model_widget);
+            return;
+        }
+
+        confirm(() -> toolkit.fireAction(model_widget, action));
     }
 
     private void confirm(final Runnable action)
@@ -230,6 +263,13 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         });
     }
 
+    /** @return Should 'label' show the PV's current value? */
+    private boolean isLabelValue()
+    {
+        final StringWidgetProperty text_prop = (StringWidgetProperty)model_widget.propText();
+        return ActionButtonWidget.VALUE_LABEL.equals(text_prop.getSpecification());
+    }
+
     private String makeButtonText()
     {
         // If text is "$(actions)", evaluate the actions ourself because
@@ -237,13 +277,20 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         // b) Macro won't be re-evaluated as actions change,
         //    while this code will always use current actions
         final StringWidgetProperty text_prop = (StringWidgetProperty)model_widget.propText();
-        if ("$(actions)".equals(text_prop.getSpecification()))
+        if (isLabelValue())
+            return FormatOptionHandler.format(model_widget.runtimePropValue().getValue(), FormatOption.DEFAULT, -1, true);
+        else if ("$(actions)".equals(text_prop.getSpecification()))
         {
             final List<ActionInfo> actions = model_widget.propActions().getValue().getActions();
             if (actions.size() < 1)
                 return Messages.ActionButton_NoActions;
             if (actions.size() > 1)
+            {
+                if (model_widget.propActions().getValue().isExecutedAsOne())
+                    return MessageFormat.format(Messages.ActionButton_N_ActionsAsOneFmt, actions.size());
+
                 return MessageFormat.format(Messages.ActionButton_N_ActionsFmt, actions.size());
+            }
             return makeActionText(actions.get(0));
         }
         else
@@ -279,9 +326,18 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     /** @param action Action that the user invoked */
     private void handleAction(ActionInfo action)
     {
+        // Keyboard presses are not suppressed so check if the widget is enabled
         if (! enabled)
             return;
+
         logger.log(Level.FINE, "{0} pressed", model_widget);
+
+        if (action instanceof WritePVActionInfo && ! writable)
+        {
+            logger.log(Level.FINE, "{0} ignoring WritePVActionInfo because of readonly PV", model_widget);
+            return;
+        }
+
         if (action instanceof OpenDisplayActionInfo  &&  target_modifier.isPresent())
         {
             final OpenDisplayActionInfo orig = (OpenDisplayActionInfo) action;
@@ -295,7 +351,8 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     {
         updateColors();
         super.registerListeners();
-
+        pos = JFXUtil.computePos(model_widget.propHorizontalAlignment().getValue(),
+                model_widget.propVerticalAlignment().getValue());
         model_widget.propWidth().addUntypedPropertyListener(representationChangedListener);
         model_widget.propHeight().addUntypedPropertyListener(representationChangedListener);
         model_widget.propText().addUntypedPropertyListener(representationChangedListener);
@@ -308,7 +365,12 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         model_widget.propBackgroundColor().addUntypedPropertyListener(buttonChangedListener);
         model_widget.propForegroundColor().addUntypedPropertyListener(buttonChangedListener);
         model_widget.propTransparent().addUntypedPropertyListener(buttonChangedListener);
+        model_widget.propHorizontalAlignment().addUntypedPropertyListener(buttonChangedListener);
+        model_widget.propVerticalAlignment().addUntypedPropertyListener(buttonChangedListener);
         model_widget.propActions().addUntypedPropertyListener(buttonChangedListener);
+
+        if (! toolkit.isEditMode()  &&  isLabelValue())
+            model_widget.runtimePropValue().addUntypedPropertyListener(representationChangedListener);
 
         enablementChanged(null, null, null);
     }
@@ -316,6 +378,8 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     @Override
     protected void unregisterListeners()
     {
+        if (! toolkit.isEditMode()  &&  isLabelValue())
+            model_widget.runtimePropValue().removePropertyListener(representationChangedListener);
         model_widget.propWidth().removePropertyListener(representationChangedListener);
         model_widget.propHeight().removePropertyListener(representationChangedListener);
         model_widget.propText().removePropertyListener(representationChangedListener);
@@ -326,6 +390,8 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         model_widget.propBackgroundColor().removePropertyListener(buttonChangedListener);
         model_widget.propForegroundColor().removePropertyListener(buttonChangedListener);
         model_widget.propTransparent().removePropertyListener(buttonChangedListener);
+        model_widget.propHorizontalAlignment().removePropertyListener(buttonChangedListener);
+        model_widget.propVerticalAlignment().removePropertyListener(buttonChangedListener);
         model_widget.propActions().removePropertyListener(buttonChangedListener);
         super.unregisterListeners();
     }
@@ -341,6 +407,8 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     /** Complete button needs to be updated */
     private void buttonChanged(final WidgetProperty<?> property, final Object old_value, final Object new_value)
     {
+    	pos = JFXUtil.computePos(model_widget.propHorizontalAlignment().getValue(),
+                model_widget.propVerticalAlignment().getValue());
         dirty_actionls.mark();
         representationChanged(property, old_value, new_value);
     }
@@ -356,8 +424,11 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
     /** enabled or pv_writable changed */
     private void enablementChanged(final WidgetProperty<Boolean> property, final Boolean old_value, final Boolean new_value)
     {
-        enabled  = model_widget.propEnabled().getValue()  &&
-                  model_widget.runtimePropPVWritable().getValue();
+        enabled  = model_widget.propEnabled().getValue();
+        writable = model_widget.runtimePropPVWritable().getValue();
+        // If clicking on the button would result in a PV write then enabled has to be false if PV is not writable
+        if (is_writePV)
+            enabled &= writable;
         dirty_enablement.mark();
         toolkit.scheduleUpdate(this);
     }
@@ -435,12 +506,19 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
                 was_ever_transformed = true;
                 break;
             }
+            base.setAlignment(pos);
+            base.setTextAlignment(TextAlignment.values()[model_widget.propHorizontalAlignment().getValue().ordinal()]);
         }
         if (dirty_enablement.checkAndClear())
         {
-            base.setDisable(! enabled);
+            // Don't disable the widget, because that would also remove the
+            // tooltip
+            // Just apply a style that matches the disabled look.
             Styles.update(base, Styles.NOT_ENABLED, !enabled);
-            jfx_node.setCursor(enabled ? Cursor.DEFAULT : Cursors.NO_WRITE);
+            // Apply the cursor to the pane and not to the button
+            if(!toolkit.isEditMode()){
+                jfx_node.setCursor(enabled ? Cursor.HAND : Cursors.NO_WRITE);
+            }
         }
     }
 }

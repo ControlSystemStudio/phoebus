@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,10 +15,15 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import javafx.scene.layout.Region;
+import javafx.stage.Window;
+import org.apache.commons.io.FilenameUtils;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.JobRunnable;
@@ -30,7 +35,6 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.dialog.SaveAsDialog;
 
 import javafx.application.Platform;
-import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -98,8 +102,6 @@ public class DockItemWithInput extends DockItem
         this.file_extensions =  file_extensions;
         this.save_handler = save_handler;
         setInput(input);
-
-        addCloseCheck(this::okToClose);
     }
 
     // Override to include 'dirty' tab
@@ -202,38 +204,49 @@ public class DockItemWithInput extends DockItem
     }
 
     /** Called when user tries to close the tab
-     *
-     *  <p>Derived class may override.
-     *
      *  @return Should the tab close? Otherwise it stays open.
      */
-    protected boolean okToClose()
+    public Future<Boolean> okToClose()
     {
         if (! isDirty())
-            return true;
+            return CompletableFuture.completedFuture(true);
 
-        final String text = MessageFormat.format(Messages.DockAlertMsg, getLabel());
-        final Alert prompt = new Alert(AlertType.NONE,
-                                       text,
-                                       ButtonType.NO, ButtonType.CANCEL, ButtonType.YES);
-        prompt.setTitle(Messages.DockAlertTitle);
-        prompt.getDialogPane().setMinSize(300, 100);
-        prompt.setResizable(true);
-        DialogHelper.positionDialog(prompt, getTabPane(), -200, -100);
-        final ButtonType result = prompt.showAndWait().orElse(ButtonType.CANCEL);
+        final FutureTask promptToSave = new FutureTask(() -> {
+            final String text = MessageFormat.format(Messages.DockAlertMsg, getApplication().getAppDescriptor().getDisplayName(), getLabel());
+            final Alert prompt = new Alert(AlertType.NONE,
+                    text,
+                    ButtonType.NO, ButtonType.CANCEL, ButtonType.YES);
+            prompt.setTitle(Messages.DockAlertTitle);
+            prompt.getDialogPane().setMinSize(300, 100);
+            prompt.setResizable(true);
+            DialogHelper.positionDialog(prompt, getTabPane(), -200, -100);
+            return prompt.showAndWait().orElse(ButtonType.CANCEL);
+        });
 
-        // Cancel the close request
-        if (result == ButtonType.CANCEL)
-            return false;
+        Platform.runLater(promptToSave);
 
-        // Close without saving?
-        if (result == ButtonType.NO)
-            return true;
+        try {
+            ButtonType result = (ButtonType)promptToSave.get();
+            // Cancel the close request
+            if (result == ButtonType.CANCEL)
+                return CompletableFuture.completedFuture(false);
+            // Close without saving?
+            if (result == ButtonType.NO)
+                return CompletableFuture.completedFuture(true);
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Unable to get result from save resource prompt", e);
+            return CompletableFuture.completedFuture(false);
+        }
 
         // Save in background job ...
-        JobManager.schedule(Messages.Save, monitor -> save(monitor));
-        // .. and leave the tab open, so user can then try to close again
-        return false;
+        final CompletableFuture<Boolean> done = new CompletableFuture<>();
+        JobManager.schedule(Messages.Save, monitor ->
+        {
+            save(monitor, getTabPane().getScene().getWindow());
+            // Indicate if we may close, or need to stay open because of error
+            done.complete(!isDirty());
+        });
+        return done;
     }
 
     /** Save the content of the item to its current 'input'
@@ -242,12 +255,12 @@ public class DockItemWithInput extends DockItem
      *  menu items or when a 'dirty' tab is closed.
      *
      *  <p>Will never be called when the item remains clean,
-     *  i.e. never called {@link #setDirty(true)}.
+     *  i.e. never called {@link DockItemWithInput#setDirty(boolean)}.
      *
      *  @param monitor {@link JobMonitor} for reporting progress
      *  @return <code>true</code> on success
      */
-    public final boolean save(final JobMonitor monitor)
+    public final boolean save(final JobMonitor monitor, Window parentWindow)
     {
         // 'final' because any save customization should be possible
         // inside the save_handler
@@ -258,7 +271,7 @@ public class DockItemWithInput extends DockItem
             // call save_as to prompt for file
             File file = ResourceParser.getFile(getInput());
             if (file == null)
-                return save_as(monitor);
+                return save_as(monitor, parentWindow);
 
 
             if (file.exists()  &&  !file.canWrite())
@@ -277,7 +290,7 @@ public class DockItemWithInput extends DockItem
 
                 // If user doesn't want to overwrite, abort the save
                 if (response.get() == ButtonType.OK)
-                    return save_as(monitor);
+                    return save_as(monitor, getTabPane().getScene().getWindow());
                 return false;
             }
 
@@ -330,6 +343,23 @@ public class DockItemWithInput extends DockItem
         return valid.contains(ext);
     }
 
+    /** @param file File
+     *  @param valid List of valid file extensions
+     *  @return File updated to the first valid file extension
+     */
+    private static File setFileExtension(final File file, final List<String> valid)
+    {
+        String path = file.getPath();
+        // Remove existing extension
+        final int sep = path.lastIndexOf('.');
+        if (sep >= 0)
+            path = path.substring(0, sep);
+        // Add first valid extension
+        if (valid.size() > 0)
+            path += "." + valid.get(0);
+        return new File(path);
+    }
+
     /** Prompt for new file, then save the content of the item that file.
      *
      *  <p>Called by the framework when user invokes the 'Save As'
@@ -341,7 +371,7 @@ public class DockItemWithInput extends DockItem
      *  @param monitor {@link JobMonitor} for reporting progress
      *  @return <code>true</code> on success
      */
-    public final boolean save_as(final JobMonitor monitor)
+    public final boolean save_as(final JobMonitor monitor, Window parentWindow)
     {
         // 'final' because any save customization should be possible
         // inside the save_handler
@@ -349,38 +379,90 @@ public class DockItemWithInput extends DockItem
         {
             // Prompt for file
             final File initial = ResourceParser.getFile(getInput());
-            final File file = new SaveAsDialog().promptForFile(getTabPane().getScene().getWindow(),
-                                                    Messages.SaveAs, initial, file_extensions);
+            final File file = new SaveAsDialog().promptForFile(parentWindow,
+                                                               Messages.SaveAs, initial, file_extensions);
             if (file == null)
                 return false;
 
             // Enforce one of the file extensions
             final List<String> valid = getValidExtensions(file_extensions);
-            if (! checkFileExtension(file, valid))
+            final CompletableFuture<File> actual_file = new CompletableFuture<>();
+            if (checkFileExtension(file, valid))
+                actual_file.complete(file);
+            else
             {
-                // Prompt on UI thread
-                final String prompt = MessageFormat.format(Messages.SaveAsPrompt, file, valid.stream().collect(Collectors.joining(", ")));
+                // Suggest name with valid extension
+                final File suggestion = setFileExtension(file, valid);
 
-                final CompletableFuture<Boolean> go_on = new CompletableFuture<>();
-                Platform.runLater(() ->
+                // Prompt on UI thread
+                final String prompt = MessageFormat.format(Messages.SaveAsPrompt,
+                                                           file,
+                                                           valid.stream().collect(Collectors.joining(", ")),
+                                                           suggestion);
+
+                Runnable confirmFileExtension = () ->
                 {
-                    final Alert dialog = new Alert(AlertType.CONFIRMATION);
+                    final Alert dialog = new Alert(AlertType.CONFIRMATION, prompt, ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
                     dialog.setTitle(Messages.SaveAs);
                     dialog.setHeaderText(Messages.SaveAsHdr);
                     dialog.setContentText(prompt);
+                    dialog.getDialogPane().setPrefSize(500, 300);
                     dialog.setResizable(true);
+
                     DialogHelper.positionDialog(dialog, getTabPane(), -100, -200);
-                    go_on.complete(dialog.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK);
-                });
+                    final ButtonType response = dialog.showAndWait().orElse(ButtonType.CANCEL);
+                    if (response == ButtonType.YES)
+                        actual_file.complete(suggestion);
+                    else if (response == ButtonType.NO)
+                        actual_file.complete(file);
+                    else
+                        actual_file.complete(null);
+                };
+
+                if (Platform.isFxApplicationThread()) {
+                    confirmFileExtension.run();
+                }
+                else {
+                    Platform.runLater(confirmFileExtension);
+                }
+
                 // In background thread, wait for the result
-                if (! go_on.get())
+                if (actual_file.get() == null)
                     return false;
             }
 
-            // Update input
-            setInput(ResourceParser.getURI(file));
-            // Save in that file
-            return save(monitor);
+            URI newInput = ResourceParser.getURI(actual_file.get());
+            DockItemWithInput existingInstanceWithInput = DockStage.getDockItemWithInput(newInput);
+            if (existingInstanceWithInput == null || (input != null && newInput.getPath().equals(input.getPath()))) {
+                // Update input
+                setInput(ResourceParser.getURI(actual_file.get()));
+                // Save in that file
+                return save(monitor, getTabPane().getScene().getWindow());
+            }
+            else {
+                CompletableFuture<Boolean> waitForDialogToClose = new CompletableFuture<>();
+                Platform.runLater(() -> {
+                    String filename = FilenameUtils.getName(newInput.getPath());
+
+                    final Alert dialog = new Alert(AlertType.INFORMATION);
+                    dialog.setTitle(Messages.SaveAsFileAlreadyOpen_title);
+                    String headerText = MessageFormat.format(Messages.SaveAsFileAlreadyOpen_header, filename);
+                    dialog.setHeaderText(headerText);
+                    String contentText = MessageFormat.format(Messages.SaveAsFileAlreadyOpen_content, existingInstanceWithInput.getApplication().getAppDescriptor().getDisplayName(), filename);
+                    dialog.setContentText(contentText);
+                    int width = 550;
+                    int height = 200;
+                    dialog.getDialogPane().setPrefSize(width, height);
+                    dialog.getDialogPane().setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+                    dialog.setResizable(false);
+                    DialogHelper.positionDialog(dialog, getTabPane(), -width/2, -height/2);
+                    dialog.showAndWait();
+                    waitForDialogToClose.complete(true);
+                });
+
+                waitForDialogToClose.get();
+                save_as(monitor, getTabPane().getScene().getWindow());
+            }
         }
         catch (Exception ex)
         {
@@ -396,11 +478,13 @@ public class DockItemWithInput extends DockItem
      * {@inheritDoc}
      * */
     @Override
-    protected void handleClosed(final Event event)
+    final protected void handleClosed()
     {
-        // Do the same as in the parent class, DockItem.handleClosed, but clean up save_handler.
-        super.handleClosed(event);
+        // Do the same as in the parent class, DockItem.handleClosed...
+        super.handleClosed();
 
+        // Remove save_handler to avoid memory leaks.
+        // Side benefit is detecting erroneous 'save' after item has been closed.
         save_handler = null;
     }
 

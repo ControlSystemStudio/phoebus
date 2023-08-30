@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -39,8 +39,12 @@ public class PVAHeader
     public static final byte FLAG_CONTROL    = 1;
 
     /** Segmented message? Else: Single */
+    public static final byte FLAG_SEGMENT_MASK  = 3 << 4;
+    /** Segment hint */
     public static final byte FLAG_FIRST      = 1 << 4;
+    /** Segment hint */
     public static final byte FLAG_LAST       = 2 << 4;
+    /** Segment hint */
     public static final byte FLAG_MIDDLE     = 3 << 4;
 
     /** Server message? Else: Client */
@@ -53,7 +57,7 @@ public class PVAHeader
     public static final byte CMD_BEACON = 0x00;
 
     /** Application command: Connection validation */
-    public static final byte CMD_VALIDATION = 0x01;
+    public static final byte CMD_CONNECTION_VALIDATION = 0x01;
 
     /** Application command: Echo */
     public static final byte CMD_ECHO = 0x02;
@@ -62,7 +66,7 @@ public class PVAHeader
     public static final byte CMD_SEARCH = 0x03;
 
     /** Application command: Reply to search */
-    public static final byte CMD_SEARCH_REPLY = 0x04;
+    public static final byte CMD_SEARCH_RESPONSE = 0x04;
 
     /** Application command: Create Channel */
     public static final byte CMD_CREATE_CHANNEL = 0x07;
@@ -71,7 +75,7 @@ public class PVAHeader
     public static final byte CMD_DESTROY_CHANNEL = 0x08;
 
     /** Application command: Connection was validated */
-    public static final byte CMD_VALIDATED = 0x09;
+    public static final byte CMD_CONNECTION_VALIDATED = 0x09;
 
     /** Application command: Get data */
     public static final byte CMD_GET = 0x0A;
@@ -85,7 +89,7 @@ public class PVAHeader
     /** Application command: Destroy Request */
     public static final byte CMD_DESTROY_REQUEST = 0x0F;
 
-    /** Application command: Get type info */
+    /** Application command: Get type info (aka "FIELD" request) */
     public static final byte CMD_GET_TYPE = 0x11;
 
     /** Application command: Message */
@@ -95,7 +99,7 @@ public class PVAHeader
     public static final byte CMD_RPC = 0x14;
 
     /** Application command: Cancel request */
-    public static final byte CMD_CANCEL = 0x15;
+    public static final byte CMD_CANCEL_REQUEST = 0x15;
 
     /** Application command: Origin tag */
     public static final byte CMD_ORIGIN_TAG = 0x16;
@@ -120,11 +124,14 @@ public class PVAHeader
     public static final byte CMD_SUB_GET = 0x40;
 
 
-    /** Control message command to set byte order */
+    /** Control message command to set byte order, aka 'SetEndian' */
     public static final byte CTRL_SET_BYTE_ORDER = 2;
 
     /** Size of common PVA message header */
     public static final int HEADER_SIZE = 8;
+
+    /** Offset from start of common PVA message header to byte version */
+    public static final int HEADER_OFFSET_VERSION = 1;
 
     /** Offset from start of common PVA message header to int payload_size */
     public static final int HEADER_OFFSET_PAYLOAD_SIZE = 4;
@@ -138,6 +145,7 @@ public class PVAHeader
      */
     public static void encodeMessageHeader(final ByteBuffer buffer, byte flags, final byte command, final int payload_size)
     {
+        // Indicate byte order within message header
         if (buffer.order() == ByteOrder.BIG_ENDIAN)
             flags |= FLAG_BIG_ENDIAN;
         else
@@ -161,9 +169,11 @@ public class PVAHeader
         if (buffer.position() < PVAHeader.HEADER_SIZE)
             return PVAHeader.HEADER_SIZE;
 
+        // Byte order of message is irrelevant for
+        // parsing the initial set of bytes
         final byte magic = buffer.get(0);
         if (magic != PVAHeader.PVA_MAGIC)
-            throw new Exception("Message lacks magic");
+            throw new Exception(String.format("Message lacks magic 0x%02X, got 0x%02X", PVAHeader.PVA_MAGIC, magic));
 
         final byte version = buffer.get(1);
         if (version < PVAHeader.REQUIRED_PVA_PROTOCOL_REVISION)
@@ -177,6 +187,9 @@ public class PVAHeader
         if (is_server != expect_server)
                 throw new Exception(expect_server ? "Expected server message" : "Expected client message");
 
+        // With each received message, check the byte order
+        // and adjust buffer to read further content which usually
+        // contains data larger than byte-sized, so the order matters
         if ((flags & PVAHeader.FLAG_BIG_ENDIAN) == 0)
             buffer.order(ByteOrder.LITTLE_ENDIAN);
         else

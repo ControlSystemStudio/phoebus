@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,13 +7,15 @@
  ******************************************************************************/
 package org.csstudio.apputil.formula.demo;
 
-import org.csstudio.apputil.formula.VTypeHelper;
+import java.util.List;
+
 import org.csstudio.apputil.formula.spi.FormulaFunction;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VInt;
 import org.epics.vtype.VType;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 /** Example for SPI-provided function
  *  @author Kay Kasemir
@@ -21,6 +23,12 @@ import org.epics.vtype.VType;
 @SuppressWarnings("nls")
 public class Factorial implements FormulaFunction
 {
+
+    @Override
+    public String getCategory() {
+        return "math";
+    }
+
     @Override
     public String getName()
     {
@@ -34,15 +42,15 @@ public class Factorial implements FormulaFunction
     }
 
     @Override
-    public int getArgumentCount()
+    public List<String> getArguments()
     {
-        return 1;
+        return List.of("n");
     }
 
     @Override
-    public VType compute(VType... args) throws Exception
+    public VType compute(final VType... args) throws Exception
     {
-        final int n = (int) VTypeHelper.getDouble(args[0]);
+        final int n = (int) VTypeHelper.toDouble(args[0]);
         return VInt.of(fac(n), Alarm.none(), Time.now(), Display.displayOf(args[0]));
     }
 

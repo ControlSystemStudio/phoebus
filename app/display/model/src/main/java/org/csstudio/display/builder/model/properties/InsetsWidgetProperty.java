@@ -27,6 +27,7 @@ import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 @SuppressWarnings("nls")
 public class InsetsWidgetProperty extends RuntimeWidgetProperty<int[]>
 {
+    /** 'insets' with two offsets */
     public static final WidgetPropertyDescriptor<int[]> runtimePropInsets =
         new WidgetPropertyDescriptor<int[]>(
             WidgetPropertyCategory.RUNTIME, "insets", Messages.WidgetProperties_Insets)
@@ -40,6 +41,7 @@ public class InsetsWidgetProperty extends RuntimeWidgetProperty<int[]>
     };
 
 
+    /** 'insets' with four offsets */
     public static final WidgetPropertyDescriptor<int[]> runtimePropExtendedInsets =
         new WidgetPropertyDescriptor<int[]>(
             WidgetPropertyCategory.RUNTIME, "insets", Messages.WidgetProperties_Insets)
@@ -70,12 +72,12 @@ public class InsetsWidgetProperty extends RuntimeWidgetProperty<int[]>
 
     private final int validSize;
 
-    public InsetsWidgetProperty(final Widget widget, final int[] default_value)
+    private InsetsWidgetProperty(final Widget widget, final int[] default_value)
     {
         this(widget, default_value, 2);
     }
 
-    public InsetsWidgetProperty(final Widget widget, final int[] default_value, final int validSize)
+    private InsetsWidgetProperty(final Widget widget, final int[] default_value, final int validSize)
     {
         super(runtimePropInsets, widget, default_value);
         this.validSize = validSize;

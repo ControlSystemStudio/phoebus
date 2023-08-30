@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>parent</artifactId>
-    <version>4.6.0-SNAPSHOT</version>
+    <version>4.7.3-SNAPSHOT</version>
   </parent>
   <modules>
     <module>diag</module>
@@ -15,18 +15,25 @@
     <module>pvtree</module>
     <module>update</module>
     <module>email</module>
+    <module>errlog</module>
     <module>filebrowser</module>
     <module>logbook</module>
     <module>rtplot</module>
     <module>databrowser</module>
+    <module>databrowser-timescale</module>
     <module>display</module>
     <module>alarm</module>
     <module>scan</module>
     <module>channel</module>
-    <module>3dViewer</module>
+    <module>3d-viewer</module>
     <module>perfmon</module>
     <module>pace</module>
     <module>save-and-restore</module>
     <module>console</module>
+    <module>trends</module>
+    <module>utility</module>
+    <module>imageviewer</module>
+    <module>credentials-management</module>
+    <module>eslog</module>
   </modules>
 </project>

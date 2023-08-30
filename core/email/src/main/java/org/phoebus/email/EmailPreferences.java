@@ -7,7 +7,8 @@
  ******************************************************************************/
 package org.phoebus.email;
 
-import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.framework.preferences.AnnotatedPreferences;
+import org.phoebus.framework.preferences.Preference;
 
 /** Preference settings for email
  *  @author Kunal Shroff
@@ -16,10 +17,11 @@ import org.phoebus.framework.preferences.PreferencesReader;
 @SuppressWarnings("nls")
 public class EmailPreferences
 {
-    public static final String mailhost;
-    public static final int mailport;
-    public static final String username;
-    public static final String password;
+    @Preference public static String mailhost;
+    @Preference public static int mailport;
+    @Preference public static String username;
+    @Preference public static String password;
+    @Preference public static String from;
 
     /** @return Is email supported? */
     public static final boolean isEmailSupported()
@@ -30,10 +32,6 @@ public class EmailPreferences
 
     static
     {
-        final PreferencesReader prefs = new PreferencesReader(EmailPreferences.class, "/email_preferences.properties");
-        mailhost = prefs.get("mailhost");
-        mailport = prefs.getInt("mailport");
-        username = prefs.get("username");
-        password = prefs.get("password");
+    	AnnotatedPreferences.initialize(EmailPreferences.class, "/email_preferences.properties");
     }
 }

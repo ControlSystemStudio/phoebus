@@ -74,7 +74,7 @@ class RPCRequest extends CompletableFuture<PVAStructure> implements RequestEncod
             final int size_offset = buffer.position() + PVAHeader.HEADER_OFFSET_PAYLOAD_SIZE;
             PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_RPC, 4+4+1+2);
             final int payload_start = buffer.position();
-            buffer.putInt(channel.sid);
+            buffer.putInt(channel.getSID());
             buffer.putInt(request_id);
             buffer.put(PVAHeader.CMD_SUB_INIT);
 
@@ -99,7 +99,7 @@ class RPCRequest extends CompletableFuture<PVAStructure> implements RequestEncod
             final int size_offset = buffer.position() + PVAHeader.HEADER_OFFSET_PAYLOAD_SIZE;
             PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_RPC, 4+4+1);
             final int payload_start = buffer.position();
-            buffer.putInt(channel.sid);
+            buffer.putInt(channel.getSID());
             buffer.putInt(request_id);
             buffer.put(PVAHeader.CMD_SUB_DESTROY);
 

@@ -38,13 +38,13 @@ import org.epics.util.array.ListNumber;
 @SuppressWarnings("nls")
 public class XYVTypeDataProvider implements PlotDataProvider<Double>
 {
+    /** Empty array */
     public static final ListNumber EMPTY = ArrayDouble.of(new double[0]);
 
     /** Sharing the _read_ half of just one lock.
      *  Never using the _write_ half, since this class is immutable
      */
     private static final ReadWriteLock lock = new InstrumentedReadWriteLock();
-
 
     private final PlotDataItem<Double>[] items;
 
@@ -90,6 +90,7 @@ public class XYVTypeDataProvider implements PlotDataProvider<Double>
         }
     }
 
+    /** Empty data provider */
     public XYVTypeDataProvider()
     {
         this(EMPTY, EMPTY, EMPTY);

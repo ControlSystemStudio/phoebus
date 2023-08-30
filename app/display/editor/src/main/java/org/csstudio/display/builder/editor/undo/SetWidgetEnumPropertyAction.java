@@ -16,7 +16,6 @@ import org.phoebus.ui.undo.UndoableAction;
 
 /** Action to update widget property
  *  @author Kay Kasemir
- *  @param <T> Type of the property's value
  */
 @SuppressWarnings("nls")
 public class SetWidgetEnumPropertyAction extends UndoableAction

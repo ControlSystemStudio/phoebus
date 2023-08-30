@@ -17,8 +17,8 @@ import org.epics.vtype.Time;
 public class TimeHelper
 {
     /** Convert Instant into Time, considering 0 seconds as invalid
-     *  @param instant
-     *  @return Time
+     *  @param instant Time to represent
+     *  @return {@link Time}
      */
     public static Time fromInstant(final Instant instant)
     {

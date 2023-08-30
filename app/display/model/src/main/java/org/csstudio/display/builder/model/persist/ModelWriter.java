@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.time.Instant;
 import java.util.List;
 
 import javax.xml.stream.XMLOutputFactory;
@@ -21,10 +22,15 @@ import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Preferences;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.WidgetDescriptor;
+import org.csstudio.display.builder.model.WidgetFactory;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
+import org.csstudio.display.builder.model.properties.EnumWidgetProperty;
+import org.csstudio.display.builder.model.widgets.PlaceholderWidget;
 import org.phoebus.framework.persistence.IndentingXMLStreamWriter;
 import org.phoebus.framework.persistence.XMLUtil;
+import org.phoebus.util.time.TimestampFormats;
 
 /** Write model as XML.
  *
@@ -35,11 +41,12 @@ import org.phoebus.framework.persistence.XMLUtil;
 @SuppressWarnings("nls")
 public class ModelWriter implements Closeable
 {
-    /** Internal flag for unit tests.
-     *  Default values are usually not written,
+    /** Add comments to the XML output? */
+    public static boolean with_comments = Preferences.with_comments;
+    public static boolean enable_saved_on_comment = Preferences.enable_saved_on_comments;
+
+    /** Default values are usually not written,
      *  but for tests they can be included in the XML output.
-     *
-     *  <b>Not API.</b>
      */
     public static boolean skip_defaults = Preferences.skip_defaults;
 
@@ -60,7 +67,7 @@ public class ModelWriter implements Closeable
         {
             writer.writeWidgets(widgets);
         }
-        return xml.toString();
+        return xml.toString(XMLUtil.ENCODING);
     }
 
     /** Create writer.
@@ -77,6 +84,9 @@ public class ModelWriter implements Closeable
         writer = new IndentingXMLStreamWriter(base);
 
         writer.writeStartDocument(XMLUtil.ENCODING, "1.0");
+        if (enable_saved_on_comment) {
+            writer.writeComment("Saved on " + TimestampFormats.SECONDS_FORMAT.format(Instant.now()) + " by " + System.getProperty("user.name"));
+        }
         writer.writeStartElement(XMLTags.DISPLAY);
         writer.writeAttribute(XMLTags.VERSION, DisplayModel.VERSION.toString());
     }
@@ -118,17 +128,27 @@ public class ModelWriter implements Closeable
      */
     protected void writeWidget(final Widget widget) throws Exception
     {   // 'protected' to allow unit test calls
-        writer.writeStartElement(XMLTags.WIDGET);
-        writer.writeAttribute(XMLTags.TYPE, widget.getType());
-        writer.writeAttribute(XMLTags.VERSION, widget.getVersion().toString());
+        if (widget instanceof PlaceholderWidget)
+            ((PlaceholderWidget)widget).writeToXML(this, writer);
+        else
+        {
+            if (with_comments)
+            {
+                final WidgetDescriptor desc = WidgetFactory.getInstance().getWidgetDescriptor(widget.getType());
+                writer.writeComment(desc.getCategory().name() + " '" + desc.getName() + "'");
+            }
+            writer.writeStartElement(XMLTags.WIDGET);
+            writer.writeAttribute(XMLTags.TYPE, widget.getType());
+            writer.writeAttribute(XMLTags.VERSION, widget.getVersion().toString());
 
-        writeWidgetProperties(widget);
+            writeWidgetProperties(widget);
 
-        ChildrenProperty children = ChildrenProperty.getChildren(widget);
-        if (children != null)
-            children.writeToXML(this, writer);
+            ChildrenProperty children = ChildrenProperty.getChildren(widget);
+            if (children != null)
+                children.writeToXML(this, writer);
 
-        writer.writeEndElement();
+            writer.writeEndElement();
+        }
     }
 
     /** @param widget All properties of this widget, except for runtime and default props, are written
@@ -159,8 +179,30 @@ public class ModelWriter implements Closeable
         if (property instanceof ArrayWidgetProperty<?>)
         {   // Skip empty arrays, which would just be a start/end tag
             final ArrayWidgetProperty<?> array = (ArrayWidgetProperty<?>) property;
-            if (array.getValue().isEmpty())
+            if (skip_defaults  &&   array.getValue().isEmpty())
                 return;
+        }
+        if (with_comments)
+        {
+            // Extract type from property class
+            String type = property.getClass().getCanonicalName();
+            if (type == null)
+                type = property.getClass().getSuperclass().getCanonicalName();
+            // Fetch "XXX" from "org.a.b.c.XXXWidgetProperty"
+            int sep = type.lastIndexOf('.');
+            if (sep >= 0)
+                type = type.substring(sep+1);
+            type = type.replace("Widget", "").replace("Property", "");
+
+            String comment = type + " '" +  property.getDescription() + "'";
+            if (property instanceof EnumWidgetProperty<?>)
+            {   // List enum options
+                int i = 0;
+                final Enum<?> value = (Enum<?>)property.getDefaultValue();
+                for (Enum<?> option : value.getDeclaringClass().getEnumConstants())
+                    comment += ", " + (i++) + "=" + option.name();
+            }
+            writer.writeComment(comment);
         }
         writer.writeStartElement(property.getName());
         if (property.isUsingWidgetClass())

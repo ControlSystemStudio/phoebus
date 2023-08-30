@@ -1,6 +1,13 @@
 package org.csstudio.display.converter.medm;
 
-import static org.junit.Assert.assertEquals;
+import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.persist.ModelReader;
+import org.csstudio.display.builder.model.properties.ScriptPV;
+import org.csstudio.display.builder.model.rules.RuleInfo;
+import org.csstudio.display.builder.model.rules.RuleInfo.ExpressionInfo;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,19 +19,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import org.csstudio.display.builder.model.DisplayModel;
-import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.persist.ModelReader;
-import org.csstudio.display.builder.model.rules.RuleInfo;
-import org.csstudio.display.builder.model.rules.RuleInfo.ExpressionInfo;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 @SuppressWarnings("nls")
 public class ConverterTest
 {
-    @Before
-    public void init()
+    @BeforeAll
+    public static void init()
     {
         final Logger root = Logger.getLogger("");
         root.setLevel(Level.ALL);
@@ -69,14 +71,6 @@ public class ConverterTest
             assertEquals(rules.size(), 1);
 
             assertEquals("visible", rules.get(0).getPropID());
-
-//            final List<String> pvs = rules.get(0)
-//                                          .getPVs()
-//                                          .stream()
-//                                          .map(pv -> pv.getName())
-//                                          .collect(Collectors.toList());
-//            assertEquals(List.of("$(xx):A_SHUTTER_CLOSEDBI", "$(xx):A_BEAM_PRESENTBI", "$(xx):B_SHUTTER_CLOSEDBI", "$(xx):B_BEAM_PRESENTBI"),
-//                         pvs);
 
             // Bug used to turn "A&&B&&C&&D" into "pv0&&pv1&&pv2&&", dropping "...pv3"
             final List<ExpressionInfo<?>> expressions = rules.get(0).getExpressions();

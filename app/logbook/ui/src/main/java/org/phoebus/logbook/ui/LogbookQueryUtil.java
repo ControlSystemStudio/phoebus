@@ -17,7 +17,14 @@ public class LogbookQueryUtil {
 
     // Ordered search keys
     public static enum Keys {
-        SEARCH("search"), LOGBOOKS("logbook"), TAGS("tag"), STARTTIME("start"), ENDTIME("end");
+        SEARCH("search"),
+        LOGBOOKS("logbook"),
+        TAGS("tag"),
+        STARTTIME("start"),
+        ENDTIME("end"),
+        AUTHOR("owner"),
+        TITLE("title"),
+        LEVEL("level");
         private final String name;
 
         private Keys(String name) {

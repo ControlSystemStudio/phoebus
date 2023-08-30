@@ -17,8 +17,7 @@ public class ExecuteScriptActionInfo extends ActionInfo
     private final ScriptInfo info;
 
     /** @param description Action description
-     *  @param pv PV name
-     *  @param value Value to write
+     *  @param info {@link ScriptInfo}
      */
     public ExecuteScriptActionInfo(final String description, final ScriptInfo info)
     {

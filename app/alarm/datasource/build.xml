@@ -1,0 +1,20 @@
+<project default="app-alarm-datasource">
+  <import file="../../../dependencies/ant_settings.xml"/>
+
+  <target name="app-alarm-datasource">
+    <mkdir dir="${classes}"/>
+    <javac destdir="${classes}" debug="${debug}">
+      <src path="${src}"/>
+      <classpath>
+        <path refid="app-classpath"/>
+        <pathelement path="../model/${build}/app-alarm-model-${version}.jar"/>
+      </classpath>
+    </javac>
+  	
+    <jar destfile="${build}/app-alarm-datasource-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+	
+</project>

@@ -14,6 +14,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.concurrent.TimeUnit;
 
+/** Time stamp helper */
 public class TimestampHelper
 {
     /** Round time to next multiple of given duration
@@ -26,8 +27,11 @@ public class TimestampHelper
         return roundUp(time, duration.getSeconds());
     }
 
+    /** Seconds per hour */
     final public static long SECS_PER_HOUR = TimeUnit.HOURS.toSeconds(1);
+    /** Seconds per minute */
     final public static long SECS_PER_MINUTE = TimeUnit.MINUTES.toSeconds(1);
+    /** Seconds per day */
     final public static long SECS_PER_DAY = TimeUnit.DAYS.toSeconds(1);
 
     /** Round time to next multiple of given seconds
@@ -78,11 +82,19 @@ public class TimestampHelper
         return midnight.toInstant().plus(Duration.ofSeconds(secs));
     }
 
-    public static Timestamp toSQLTimestamp(Instant start) {
-        return java.sql.Timestamp.from(start);
+    /** @param time Instant
+     *  @return SQL time stamp
+     */
+    public static Timestamp toSQLTimestamp(final Instant time)
+    {
+        return java.sql.Timestamp.from(time);
     }
 
-    public static Instant fromSQLTimestamp(Timestamp timestamp) {
-        return timestamp.toInstant();
+    /** @param time SQL time stamp
+     *  @return Instant
+     */
+    public static Instant fromSQLTimestamp(final Timestamp time)
+    {
+        return time.toInstant();
     }
 }

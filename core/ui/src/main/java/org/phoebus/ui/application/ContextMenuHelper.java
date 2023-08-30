@@ -9,9 +9,15 @@ package org.phoebus.ui.application;
 
 import static org.phoebus.ui.application.PhoebusApplication.logger;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 
+import org.phoebus.framework.adapter.AdapterService;
+import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.framework.selection.SelectionUtil;
 import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
@@ -53,10 +59,11 @@ public class ContextMenuHelper
         //  always activate the stage)
         DockStage.setActiveDockStage(stage);
 
-        if (ContextMenuService.getInstance().listSupportedContextMenuEntries().isEmpty())
+        final List<ContextMenuEntry> entries = ContextMenuService.getInstance().listSupportedContextMenuEntries();
+        if (entries.isEmpty())
             return false;
-        
-        for (ContextMenuEntry<?> entry : ContextMenuService.getInstance().listSupportedContextMenuEntries())
+
+        for (ContextMenuEntry entry : entries)
         {
             final MenuItem item = new MenuItem(entry.getName());
 
@@ -67,7 +74,13 @@ public class ContextMenuHelper
             {
                 try
                 {
-                    entry.callWithSelection(SelectionService.getInstance().getSelection());
+                    List<Object> selection = new ArrayList<>();
+                    SelectionService.getInstance().getSelection()
+                            .getSelections().stream().forEach(s -> {
+                                AdapterService.adapt(s, entry.getSupportedType())
+                                        .ifPresent(found -> selection.add(found));
+                    });
+                    entry.call(SelectionUtil.createSelection(selection));
                 }
                 catch (Exception ex)
                 {
@@ -76,7 +89,7 @@ public class ContextMenuHelper
             });
             menu.getItems().add(item);
         }
-        
+
         return true;
     }
 }

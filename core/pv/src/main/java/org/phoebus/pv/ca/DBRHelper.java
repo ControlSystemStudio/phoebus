@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -69,7 +69,13 @@ import gov.aps.jca.dbr.TimeStamp;
 @SuppressWarnings("nls")
 public class DBRHelper
 {
-    /** @return CTRL_... type for this channel. */
+    /** 1990/01/01 00:00:00 epoch used by Channel Access and records on IOC */
+    public static final long EPICS_EPOCH = 631152000L;
+
+    /** @param plain Get plain type of CTRL_... type?
+     *  @param type Example data
+     *  @return CTRL_... type for this channel.
+     */
     public static DBRType getCtrlType(final boolean plain, final DBRType type)
     {
         if (type.isDOUBLE())
@@ -88,7 +94,10 @@ public class DBRHelper
         return plain ? DBRType.STRING : DBRType.CTRL_STRING;
     }
 
-    /** @return TIME_... type for this channel. */
+    /** @param plain Get plain type of TIME_... type?
+     *  @param type Example data
+     *  @return TIME_... type for this channel.
+     */
     public static DBRType getTimeType(final boolean plain, final DBRType type)
     {
         if (type.isDOUBLE())
@@ -109,8 +118,18 @@ public class DBRHelper
 
     private static Alarm convertAlarm(final DBR dbr)
     {
-        if (! (dbr instanceof STS))
+        if (dbr == null)
+        {
+            // Not expected, but null indicates
+            // that there is no value, i.e. disconnected.
             return Alarm.disconnected();
+        }
+        else if (! (dbr instanceof STS))
+        {
+            // Called with a valid DBR that carries no alarm information: OK.
+            // Example scenario is reading record.RTYP, which sends plain DBR_STRING.
+            return Alarm.none();
+        }
 
         final STS sts = (STS) dbr;
 
@@ -139,7 +158,7 @@ public class DBRHelper
         if (epics_time == null)
             return Time.nowInvalid();
 
-        final Instant instant = Instant.ofEpochSecond(epics_time.secPastEpoch() + 631152000L,  (int) epics_time.nsec());
+        final Instant instant = Instant.ofEpochSecond(epics_time.secPastEpoch() + EPICS_EPOCH,  (int) epics_time.nsec());
         if (epics_time.secPastEpoch() <= 0)
             return Time.of(instant, 0, false);
 
@@ -182,6 +201,14 @@ public class DBRHelper
                 format);
     }
 
+    /** Decode DBR into VType
+     *
+     *  @param is_array Do we assume data is an array?
+     *  @param metadata Last known metadata
+     *  @param dbr Received DBR_...
+     *  @return {@link VType}
+     *  @throws Exception on error
+     */
     public static VType decodeValue(final boolean is_array, final Object metadata, final DBR dbr) throws Exception
     {
         // Rough guess, but somewhat in order of most frequently used type

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,8 +10,8 @@ package org.epics.pva.client;
 import static org.epics.pva.PVASettings.logger;
 
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -20,13 +20,15 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
+
+import javax.net.ssl.SSLSocket;
 
 import org.epics.pva.PVASettings;
 import org.epics.pva.common.CommandHandlers;
 import org.epics.pva.common.PVAHeader;
 import org.epics.pva.common.RequestEncoder;
+import org.epics.pva.common.SecureSockets;
 import org.epics.pva.common.TCPHandler;
 import org.epics.pva.data.PVATypeRegistry;
 import org.epics.pva.server.Guid;
@@ -42,7 +44,8 @@ import org.epics.pva.server.Guid;
 class ClientTCPHandler extends TCPHandler
 {
     private static final CommandHandlers<ClientTCPHandler> handlers =
-        new CommandHandlers<>(new ValidationHandler(),
+        new CommandHandlers<>(new SearchResponseHandler(),
+                              new ValidationHandler(),
                               new ValidatedHandler(),
                               new EchoHandler(),
                               new CreateChannelHandler(),
@@ -56,13 +59,18 @@ class ClientTCPHandler extends TCPHandler
     /** Client context */
     private final PVAClient client;
 
+    /** When using TLS, the socket may come with a local certificate
+     *  that TLS uses to authenticate to the server,
+     *  and this is the name from that certificate.
+     *  Otherwise <code>null</code>
+     */
+    private String x509_name;
+
     /** Channels that use this connection */
     private final CopyOnWriteArrayList<PVAChannel> channels = new CopyOnWriteArrayList<>();
 
     /** Server's GUID */
-    private final Guid guid;
-
-    private final AtomicInteger server_changes = new AtomicInteger(-1);
+    private volatile Guid guid;
 
     /** Description of data types used with this PVA server */
     private final PVATypeRegistry types = new PVATypeRegistry();
@@ -99,39 +107,46 @@ class ClientTCPHandler extends TCPHandler
      *  Client must not send get/put/.. messages until
      *  this flag is set.
      */
-    private final AtomicBoolean connection_validated = new AtomicBoolean();
+    private final AtomicBoolean connection_validated = new AtomicBoolean(false);
 
-    public ClientTCPHandler(final PVAClient client, final InetSocketAddress address, final Guid guid) throws Exception
+    public ClientTCPHandler(final PVAClient client, final InetSocketAddress address, final Guid guid, final boolean tls) throws Exception
     {
-        super(createSocket(address), true);
+        super(createSocket(address, tls), true);
         logger.log(Level.FINE, () -> "TCPHandler " + guid + " for " + address + " created ============================");
         this.client = client;
         this.guid = guid;
 
+        // For TLS, check if the socket has a name that's used to authenticate
+        x509_name = tls ? SecureSockets.getLocalPrincipalName((SSLSocket) socket) : null;
+
         // For default EPICS_CA_CONN_TMO: 30 sec, send echo at ~15 sec:
         // Check every ~3 seconds
         last_life_sign = last_message_sent = System.currentTimeMillis();
-        final long period = Math.max(1, PVASettings.EPICS_CA_CONN_TMO * 1000L / 30 * 3);
+        final long period = Math.max(1, PVASettings.EPICS_PVA_CONN_TMO * 1000L / 30 * 3);
         alive_check = timer.scheduleWithFixedDelay(this::checkResponsiveness, period, period, TimeUnit.MILLISECONDS);
         // Don't start the send thread, yet.
         // To prevent sending messages before the server is ready,
         // it's started when server confirms the connection.
     }
 
-    private static SocketChannel createSocket(InetSocketAddress address) throws Exception
+    private static Socket createSocket(final InetSocketAddress address, final boolean tls) throws Exception
     {
-        final SocketChannel socket = SocketChannel.open(address);
-        socket.configureBlocking(true);
-        socket.socket().setTcpNoDelay(true);
-        socket.socket().setKeepAlive(true);
+        final Socket socket = SecureSockets.createClientSocket(address, tls);
+        socket.setTcpNoDelay(true);
+        socket.setKeepAlive(true);
         return socket;
     }
-
 
     /** @return Client context */
     PVAClient getClient()
     {
         return client;
+    }
+
+    /** @return Name used by TLS socket's certificate, or <code>null</code> */
+    String getX509Name()
+    {
+        return x509_name;
     }
 
     /** @param channel Channel that uses this TCP connection */
@@ -158,15 +173,28 @@ class ClientTCPHandler extends TCPHandler
         return guid;
     }
 
-    /** Check if the server's beacon indicates changes
-     *  @param changes Change counter from beacon
-     *  @return <code>true</code> if this suggests new channels on the server
+    /** Update the Guid
+     *
+     *  <p>The Guid of a server is fixed,
+     *  but this TCP handler may start out with Guid.EMPTY
+     *  to issue searches to an IP address.
+     *  Upon the first successful search reply,
+     *  we set the Guid based on the search reply.
+     *
+     *  @param search_reply_guid Guid from search reply
+     *  @return <code>true</code> if this updated the Guid from EMPTY
      */
-    public boolean checkBeaconChanges(final int changes)
+    public boolean updateGuid(final Guid search_reply_guid)
     {
-        return server_changes.getAndSet(changes) != changes;
+        if (guid.equals(Guid.EMPTY))
+        {
+            guid = search_reply_guid;
+            return true;
+        }
+        return false;
     }
 
+    /** @return {@link PVATypeRegistry} for this TCP connection */
     public PVATypeRegistry getTypeRegistry()
     {
         return types;
@@ -215,7 +243,7 @@ class ClientTCPHandler extends TCPHandler
         final long now = System.currentTimeMillis();
         // How long has server been idle, not sending anything?
         final long idle = now - last_life_sign;
-        if (idle > PVASettings.EPICS_CA_CONN_TMO * 1000)
+        if (idle > PVASettings.EPICS_PVA_CONN_TMO * 1000)
         {
             // If silent for full EPICS_CA_CONN_TMO, disconnect and start over
             logger.log(Level.FINE, () -> this + " silent for " + idle + "ms, closing");
@@ -224,7 +252,7 @@ class ClientTCPHandler extends TCPHandler
         }
 
         boolean request_echo = false;
-        if (idle >= PVASettings.EPICS_CA_CONN_TMO * 1000 / 2)
+        if (idle >= PVASettings.EPICS_PVA_CONN_TMO * 1000 / 2)
         {
             if (channels.isEmpty())
             {   // Connection is idle because no channel uses it. Close!
@@ -240,7 +268,7 @@ class ClientTCPHandler extends TCPHandler
 
         // How long have we been silent, which could case the server to close connection?
         final long silent = now - last_message_sent;
-        if (! request_echo  &&  silent >= PVASettings.EPICS_CA_CONN_TMO * 1000 / 2)
+        if (! request_echo  &&  silent >= PVASettings.EPICS_PVA_CONN_TMO * 1000 / 2)
         {
             // With default EPICS_CA_CONN_TMO of 30 seconds,
             // Echo requested every 15 seconds.
@@ -275,6 +303,12 @@ class ClientTCPHandler extends TCPHandler
     @Override
     protected void handleControlMessage(final byte command, final ByteBuffer buffer) throws Exception
     {
+        // 0 byte magic
+        // 1 byte version
+        // 2 byte flags
+        // 3 byte command
+        // 4 int32 payload size
+        // 8 .. payload
         if (command == PVAHeader.CTRL_SET_BYTE_ORDER)
         {
             // First message received from server, remember its version
@@ -287,12 +321,23 @@ class ClientTCPHandler extends TCPHandler
             // configure it
             send_buffer.order(buffer.order());
 
-            logger.log(Level.FINE, () -> "Server Version " + server_version + " sent set-byte-order to " + send_buffer.order());
-            // Payload indicates if the server will send messages in that same order,
+            if (connection_validated.get())
+                logger.log(Level.WARNING, () -> "Server Version " + server_version + " sets byte order to " + send_buffer.order() +
+                           " after connection has already been validated");
+            else
+                logger.log(Level.FINE, () -> "Server Version " + server_version + " sets byte order to " + send_buffer.order());
+            // Payload 'size' indicates if the server will send messages in that same order,
             // or might change order for each message.
             // We always adapt based on the flags of each received message,
             // so ignore.
             // send_buffer byte order is locked at this time, though.
+            final int hint = buffer.getInt(4);
+            if (hint == 0x00000000)
+                logger.log(Level.FINE, () -> "Server hints that it will send all messages in byte order " + send_buffer.order());
+            else if (hint == 0xFFFFFFFF)
+                logger.log(Level.FINE, () -> "Server hints that client needs to check each received messages for changing byte order");
+            else
+                logger.log(Level.WARNING, () -> String.format("Server sent SET_BYTE_ORDER hint 0x%08X, expecting 0x00000000 or 0xFFFFFFFF", hint));
         }
         else
             super.handleControlMessage(command, buffer);
@@ -320,7 +365,7 @@ class ClientTCPHandler extends TCPHandler
         // Reply to Connection Validation request.
         logger.log(Level.FINE, () -> "Sending connection validation response, auth = " + auth);
         // Since send thread is not running, yet, send directly
-        PVAHeader.encodeMessageHeader(send_buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_VALIDATION, 4+2+2+1);
+        PVAHeader.encodeMessageHeader(send_buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_CONNECTION_VALIDATION, 4+2+2+1);
         final int start = send_buffer.position();
 
         // Inform server about our receive buffer size

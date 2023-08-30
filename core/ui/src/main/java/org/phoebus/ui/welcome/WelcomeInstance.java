@@ -12,7 +12,6 @@ import static org.phoebus.ui.application.PhoebusApplication.logger;
 import java.net.URL;
 import java.util.logging.Level;
 
-import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.Preferences;
@@ -61,7 +60,7 @@ public class WelcomeInstance implements AppInstance
         browser = new WebView();
         final WebEngine engine = browser.getEngine();
 
-        String url = PreferencesReader.replaceProperties(Preferences.welcome);
+        String url = Preferences.welcome;
         if (url.isEmpty())
         {
             final URL resource = getClass().getResource("welcome.html");

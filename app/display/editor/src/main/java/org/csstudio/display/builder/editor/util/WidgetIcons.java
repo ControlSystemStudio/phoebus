@@ -15,6 +15,8 @@ import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetFactory;
+import org.csstudio.display.builder.model.widgets.PlaceholderWidget;
+import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.image.Image;
 
@@ -38,15 +40,25 @@ public class WidgetIcons
 
     private static Image loadIcon(final String type)
     {
-        final WidgetDescriptor descriptor = WidgetFactory.getInstance().getWidgetDescriptor(type);
         try
         {
+            final WidgetDescriptor descriptor = WidgetFactory.getInstance().getWidgetDescriptor(type);
             logger.log(Level.FINE, "Obtaining icon for widget type " + type);
-            return new Image(descriptor.getIconURL().toExternalForm());
+            return ImageCache.getImage(descriptor.getIconURL());
         }
         catch (Throwable ex)
         {
-            logger.log(Level.WARNING, "Cannot obtain widget for " + type, ex);
+            // The placeholder widget does not have an icon, we know it
+            if (! type.endsWith(PlaceholderWidget.suffix))
+                logger.log(Level.WARNING, "Cannot obtain widget for " + type, ex);
+            try
+            {
+                return ImageCache.getImage(WidgetIcons.class, "/icons/question_mark.png");
+            }
+            catch (Throwable ex2)
+            {
+                logger.log(Level.SEVERE, "Cannot obtain default icon", ex2);
+            }
         }
         return null;
     }

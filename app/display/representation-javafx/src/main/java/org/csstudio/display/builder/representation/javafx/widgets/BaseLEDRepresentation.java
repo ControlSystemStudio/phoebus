@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,6 +18,7 @@ import org.csstudio.display.builder.model.widgets.BaseLEDWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.VType;
+import org.phoebus.ui.javafx.Brightness;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -30,6 +31,7 @@ import javafx.scene.paint.Stop;
 import javafx.scene.shape.Ellipse;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
+import javafx.scene.text.TextAlignment;
 
 /** Base for LED type widgets
  *  @author Kay Kasemir
@@ -82,6 +84,8 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
         label = new Label();
         label.getStyleClass().add("led_label");
         label.setAlignment(Pos.CENTER);
+        label.setTextAlignment(TextAlignment.CENTER);
+        label.setWrapText(true);
         label.setManaged(false);
 
         jfx_node.getChildren().addAll(led, label);
@@ -116,6 +120,11 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
      */
     abstract protected String computeLabel(final int color_index);
 
+    /** Compute the label when PV is disconnected
+     *  @return String to show in label
+     */
+    abstract protected String computeLabel();
+
     @Override
     protected void registerListeners()
     {
@@ -127,7 +136,7 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
         model_widget.propForegroundColor().addUntypedPropertyListener(styleChangedListener);
         model_widget.propLineColor().addUntypedPropertyListener(styleChangedListener);
         model_widget.runtimePropValue().addPropertyListener(contentChangedListener);
-        contentChanged(null, null, null);
+        contentChanged(null, null, model_widget.runtimePropValue().getValue());
     }
 
     @Override
@@ -170,11 +179,10 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
     private void contentChanged(final WidgetProperty<VType> property, final VType old_value, final VType new_value)
     {
         final boolean runtime_mode = ! toolkit.isEditMode();
-        final VType value = model_widget.runtimePropValue().getValue();
-        if (value == null && runtime_mode)
+        if (new_value == null && runtime_mode)
         {
             value_color = alarm_colors[AlarmSeverity.UNDEFINED.ordinal()];
-            value_label = "";
+            value_label = computeLabel();
         }
         else
         {
@@ -223,7 +231,7 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
             label.setTextFill(color);
             label.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
 
-            led.setStyle("-fx-stroke: " + JFXUtil.webRGB(model_widget.propLineColor().getValue()));
+            led.setStyle("-fx-stroke: " + JFXUtil.webRgbOrHex(model_widget.propLineColor().getValue()));
 
             final int w = model_widget.propWidth().getValue();
             final int h = model_widget.propHeight().getValue();
@@ -247,12 +255,38 @@ abstract class BaseLEDRepresentation<LED extends BaseLEDWidget> extends RegionBa
         }
         if (dirty_content.checkAndClear())
         {
-            led.setFill(value_color);
+            // Only change text when it's actually different
             if (! value_label.equals(label.getText()))
             {
                 label.setText(value_label);
                 label.layout();
             }
+
+            // Change colors: Background.
+            led.setFill(value_color);
+
+            // In edit mode, background is gradient of all options,
+            // and foreground stays constant.
+            if (! toolkit.isEditMode())
+            {
+                // In runtime mode, background is a specific color.
+                // Compare brightness of LED with text.
+                final Color color = (Color) value_color;
+                Color text_color = JFXUtil.convert(model_widget.propForegroundColor().getValue());
+                final double text_brightness = Brightness.of(text_color),
+                             brightness      = Brightness.of(color);
+                if (Math.abs(text_brightness - brightness) < Brightness.SIMILARITY_THRESHOLD)
+                {   // Colors of text and LED are very close in brightness.
+                    // Make text visible by forcing black resp. white
+                    if (brightness > Brightness.BRIGHT_THRESHOLD)
+                        label.setTextFill(Color.BLACK);
+                    else
+                        label.setTextFill(Color.WHITE);
+                }
+                else
+                    label.setTextFill(text_color);
+            }
         }
+        jfx_node.layout();
     }
 }

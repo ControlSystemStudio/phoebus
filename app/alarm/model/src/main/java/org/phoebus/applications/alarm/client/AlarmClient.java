@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -46,21 +48,55 @@ import org.phoebus.util.time.TimestampFormats;
 @SuppressWarnings("nls")
 public class AlarmClient
 {
+    /** Kafka topics for config/status and commands */
     private final String config_topic, command_topic;
+
+    /** Listeners to this client */
     private final CopyOnWriteArrayList<AlarmClientListener> listeners = new CopyOnWriteArrayList<>();
+
+    /** Alarm tree root */
     private final AlarmClientNode root;
+
+    /** Alarm tree Paths that have been deleted.
+     *
+     *  <p>Used to distinguish between paths that are not in the alarm tree
+     *  because we have never seen a config or status update for them,
+     *  and entries that have been deleted, so further state updates
+     *  should be ignored until the item is again added (config message).
+     */
+    private final Set<String> deleted_paths = ConcurrentHashMap.newKeySet();
+
+    /** Flag for message handling thread to run or exit */
     private final AtomicBoolean running = new AtomicBoolean(true);
+
+    /** Currently in maintenance mode? */
     private final AtomicBoolean maintenance_mode = new AtomicBoolean(false);
+
+    /** Currently in silent mode? */
+    private final AtomicBoolean disable_notify = new AtomicBoolean(false);
+
+    /** Kafka consumer */
     private final Consumer<String, String> consumer;
+
+    /** Kafka producer */
     private final Producer<String, String> producer;
+
+    /** Message handling thread */
     private final Thread thread;
+
+    /** Time of last state update (ms),
+     *  used to determine timeout
+     */
     private long last_state_update = 0;
-    private boolean has_timed_out = false;
+
+    /** Timeout, not seen any messages from server? */
+    private volatile boolean has_timed_out = false;
 
     /** @param server Kafka Server host:port
      *  @param config_name Name of alarm tree root
+     *  @param kafka_properties_file File to load additional kafka properties from
      */
-    public AlarmClient(final String server, final String config_name)
+    public AlarmClient(final String server, final String config_name, final String kafka_properties_file)
     {
         Objects.requireNonNull(server);
         Objects.requireNonNull(config_name);
@@ -70,10 +106,10 @@ public class AlarmClient
 
         root = new AlarmClientNode(null, config_name);
         final List<String> topics = List.of(config_topic);
-        consumer = KafkaHelper.connectConsumer(server, topics, topics);
-        producer = KafkaHelper.connectProducer(server);
+        consumer = KafkaHelper.connectConsumer(server, topics, topics, kafka_properties_file);
+        producer = KafkaHelper.connectProducer(server, kafka_properties_file);
 
-        thread = new Thread(this::run, "AlarmClientModel");
+        thread = new Thread(this::run, "AlarmClientModel " + config_name);
         thread.setDaemon(true);
     }
 
@@ -116,10 +152,32 @@ public class AlarmClient
         return maintenance_mode.get();
     }
 
+    /** @return Is alarm server in disable notify mode? */
+    public boolean isDisableNotify()
+    {
+        return disable_notify.get();
+    }
+
     /** @param maintenance Select maintenance mode? */
     public void setMode(final boolean maintenance)
     {
         final String cmd = maintenance ? JsonTags.MAINTENANCE : JsonTags.NORMAL;
+        try
+        {
+            final String json = new String (JsonModelWriter.commandToBytes(cmd));
+            final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, AlarmSystem.COMMAND_PREFIX + root.getPathName(), json);
+            producer.send(record);
+        }
+        catch (final Exception ex)
+        {
+            logger.log(Level.WARNING, "Cannot set mode for " + root + " to " + cmd, ex);
+        }
+    }
+
+    /** @param disable_notify Select notify disable  ? */
+    public void setNotify(final boolean disable_notify)
+    {
+        final String cmd = disable_notify ? JsonTags.DISABLE_NOTIFY : JsonTags.ENABLE_NOTIFY;
         try
         {
             final String json = new String (JsonModelWriter.commandToBytes(cmd));
@@ -171,99 +229,123 @@ public class AlarmClient
         // but update to kafka-client 1.1.1 (latest in July 2018) makes no difference.
         final ConsumerRecords<String, String> records = consumer.poll(POLL_PERIOD);
         for (final ConsumerRecord<String, String> record : records)
+            handleUpdate(record);
+    }
+
+    /** Handle one received update
+     *  @param record Kafka record
+     */
+    private void handleUpdate(final ConsumerRecord<String, String> record)
+    {
+        final int sep = record.key().indexOf(':');
+        if (sep < 0)
         {
-            final int sep = record.key().indexOf(':');
-            if (sep < 0)
+            logger.log(Level.WARNING, "Invalid key, expecting type:path, got " + record.key());
+            return;
+        }
+
+        final String type = record.key().substring(0, sep+1);
+        final String path = record.key().substring(sep+1);
+        final long timestamp = record.timestamp();
+        final String node_config = record.value();
+
+        if (record.timestampType() != TimestampType.CREATE_TIME)
+            logger.log(Level.WARNING, "Expect updates with CreateTime, got " + record.timestampType() + ": " + record.timestamp() + " " + path + " = " + node_config);
+
+        logger.log(Level.FINE, () ->
+            record.topic() + " @ " +
+            TimestampFormats.MILLI_FORMAT.format(Instant.ofEpochMilli(timestamp)) + " " +
+            type + path + " = " + node_config);
+
+        try
+        {
+            // Only update listeners if the node changed
+            AlarmTreeItem<?> changed_node = null;
+            final Object json = node_config == null ? null : JsonModelReader.parseJsonText(node_config);
+            if (type.equals(AlarmSystem.CONFIG_PREFIX))
             {
-                logger.log(Level.WARNING, "Invalid key, expecting type:path, got " + record.key());
-                continue;
-            }
-
-            final String type = record.key().substring(0, sep+1);
-            final String path = record.key().substring(sep+1);
-            final long timestamp = record.timestamp();
-            final String node_config = record.value();
-
-            if (record.timestampType() != TimestampType.CREATE_TIME)
-                logger.log(Level.WARNING, "Expect updates with CreateTime, got " + record.timestampType() + ": " + record.timestamp() + " " + path + " = " + node_config);
-
-            logger.log(Level.FINE, () ->
-                record.topic() + " @ " +
-                TimestampFormats.MILLI_FORMAT.format(Instant.ofEpochMilli(timestamp)) + " " +
-                type + path + " = " + node_config);
-
-            try
-            {
-                // Only update listeners if the node changed
-                AlarmTreeItem<?> changed_node = null;
-                final Object json = node_config == null ? null : JsonModelReader.parseJsonText(node_config);
-                if (type.equals(AlarmSystem.CONFIG_PREFIX))
-                {
-                    if (json == null)
-                    {   // No config -> Delete node
-                        final AlarmTreeItem<?> node = deleteNode(path);
-                        // If this was a known node, notify listeners
-                        if (node != null)
-                        {
-                            logger.log(Level.FINE, () -> "Delete " + path);
-                            for (final AlarmClientListener listener : listeners)
-                                listener.itemRemoved(node);
-                        }
-                    }
-                    else
-                    {   // Configuration update
-                        if (JsonModelReader.isStateUpdate(json))
-                            logger.log(Level.WARNING, "Got config update with state content: " + record.key() + " " + node_config);
-                        else
-                        {
-                            AlarmTreeItem<?> node = findNode(path);
-                            // New node? Will need to send update. Otherwise update when there's a change
-                            if (node == null)
-                                changed_node = node = findOrCreateNode(path, JsonModelReader.isLeafConfigOrState(json));
-                            if (JsonModelReader.updateAlarmItemConfig(node, json))
-                                changed_node = node;
-                        }
+                if (json == null)
+                {   // No config -> Delete node
+                    final AlarmTreeItem<?> node = deleteNode(path);
+                    // If this was a known node, notify listeners
+                    if (node != null)
+                    {
+                        logger.log(Level.FINE, () -> "Delete " + path);
+                        for (final AlarmClientListener listener : listeners)
+                            listener.itemRemoved(node);
                     }
                 }
-                else if (type.equals(AlarmSystem.STATE_PREFIX))
-                {   // State update
-                    if (json == null)
-                        logger.log(Level.WARNING, "Got state update with null content: " + record.key() + " " + node_config);
-                    else if (! JsonModelReader.isStateUpdate(json))
-                        logger.log(Level.WARNING, "Got state update with config content: " + record.key() + " " + node_config);
+                else
+                {   // Configuration update
+                    if (JsonModelReader.isStateUpdate(json))
+                        logger.log(Level.WARNING, "Got config update with state content: " + record.key() + " " + node_config);
                     else
                     {
-                        final AlarmTreeItem<?> node = findNode(path);
+                        AlarmTreeItem<?> node = findNode(path);
+                        // New node? Will need to send update. Otherwise update when there's a change
                         if (node == null)
-                            logger.log(Level.FINE, "Ignoring state for unknown item: " + record.key() + " " + node_config);
-                        else
-                        {
-                            final boolean maint = JsonModelReader.isMaintenanceMode(json);
-                            if (maintenance_mode.getAndSet(maint) != maint)
-                                for (final AlarmClientListener listener : listeners)
-                                    listener.serverModeChanged(maint);
-                            if (JsonModelReader.updateAlarmState(node, json))
-                                changed_node = node;
-                            last_state_update = System.currentTimeMillis();
-                        }
+                            changed_node = node = findOrCreateNode(path, JsonModelReader.isLeafConfigOrState(json));
+                        if (JsonModelReader.updateAlarmItemConfig(node, json))
+                            changed_node = node;
                     }
                 }
-                // else: Neither config nor state update; ignore.
-
-                // If there were changes, notify listeners
-                if (changed_node != null)
+            }
+            else if (type.equals(AlarmSystem.STATE_PREFIX))
+            {   // State update
+                if (json == null)
+                {   // State update for deleted node, ignore
+                    logger.log(Level.FINE, () -> "Got state update for deleted node: " + record.key() + " " + node_config);
+                    return;
+                }
+                else if (! JsonModelReader.isStateUpdate(json))
                 {
-                    logger.log(Level.FINE, "Update " + path + " to " + changed_node.getState());
-                    for (final AlarmClientListener listener : listeners)
-                        listener.itemUpdated(changed_node);
+                    logger.log(Level.WARNING, "Got state update with config content: " + record.key() + " " + node_config);
+                    return;
+                }
+                else if (deleted_paths.contains(path))
+                {
+                    // It it _deleted_??
+                    logger.log(Level.FINE, () -> "Ignoring state for deleted item: " + record.key() + " " + node_config);
+                    return;
+                }
+                else
+                {
+                    AlarmTreeItem<?> node = findNode(path);
+                    // New node? Create, and remember to notify
+                    if (node == null)
+                        changed_node = node = findOrCreateNode(path, JsonModelReader.isLeafConfigOrState(json));
+
+                    final boolean maint = JsonModelReader.isMaintenanceMode(json);
+                    if (maintenance_mode.getAndSet(maint) != maint)
+                        for (final AlarmClientListener listener : listeners)
+                            listener.serverModeChanged(maint);
+
+                    final boolean disnot = JsonModelReader.isDisableNotify(json);
+                    if (disable_notify.getAndSet(disnot) != disnot)
+                        for (final AlarmClientListener listener : listeners)
+                            listener.serverDisableNotifyChanged(disnot);
+
+                    if (JsonModelReader.updateAlarmState(node, json))
+                        changed_node = node;
+
+                    last_state_update = System.currentTimeMillis();
                 }
             }
-            catch (final Exception ex)
+            // else: Neither config nor state update; ignore.
+
+            // If there were changes, notify listeners
+            if (changed_node != null)
             {
-                logger.log(Level.WARNING,
-                           "Alarm config update error for path " + path +
-                           ", config " + node_config, ex);
+                logger.log(Level.FINE, "Update " + path + " to " + changed_node.getState());
+                for (final AlarmClientListener listener : listeners)
+                    listener.itemUpdated(changed_node);
             }
+        }
+        catch (final Exception ex)
+        {
+            logger.log(Level.WARNING,
+                       "Alarm config update error for path " + path +
+                       ", config " + node_config, ex);
         }
     }
 
@@ -308,6 +390,9 @@ public class AlarmClient
      */
     private AlarmTreeItem<?> deleteNode(final String path) throws Exception
     {
+        // Mark path as deleted so we ignore state updates
+        deleted_paths.add(path);
+
         final AlarmTreeItem<?> node = findNode(path);
         if (node == null)
             return null;
@@ -329,6 +414,9 @@ public class AlarmClient
      */
     private AlarmTreeItem<?> findOrCreateNode(final String path, final boolean is_leaf) throws Exception
     {
+        // In case it was previously deleted:
+        deleted_paths.remove(path);
+
         final String[] path_elements = AlarmTreePath.splitPath(path);
 
         // Start of path must match the alarm tree root
@@ -348,7 +436,8 @@ public class AlarmClient
             {   // Done when creating leaf
                 if (last &&  is_leaf)
                 {
-                    node = new AlarmClientLeaf(parent, name);
+                    node = new AlarmClientLeaf(parent.getPathName(), name);
+                    node.addToParent(parent);
                     logger.log(Level.FINE, "Create " + path);
                     for (final AlarmClientListener listener : listeners)
                         listener.itemAdded(node);
@@ -356,7 +445,8 @@ public class AlarmClient
                 }
                 else
                 {
-                    node = new AlarmClientNode(parent, name);
+                    node = new AlarmClientNode(parent.getPathName(), name);
+                    node.addToParent(parent);
                     for (final AlarmClientListener listener : listeners)
                         listener.itemAdded(node);
                 }
@@ -365,6 +455,10 @@ public class AlarmClient
             if (last)
                 return node;
             // Found or created intermediate node; continue walking down the path
+            if (! (node instanceof AlarmClientNode))
+                throw new Exception("Expected intermediate node, found " +
+                                    node.getClass().getSimpleName() + " " + node.getName() +
+                                    " while traversing " + path);
             parent = (AlarmClientNode) node;
         }
 
@@ -373,10 +467,10 @@ public class AlarmClient
     }
 
     /** Add a component to the alarm tree
-     *  @param path to parent Root or parent component under which to add the component
-     *  @param name Name of the new component
+     *  @param path_name to parent Root or parent component under which to add the component
+     *  @param new_name Name of the new component
      */
-    public void addComponent(final String path_name, final String new_name)
+    public void addComponent(final String path_name, final String new_name) throws Exception
     {
         try
         {
@@ -389,8 +483,8 @@ public class AlarmClient
     }
 
     /** Add a component to the alarm tree
-     *  @param path to parent Root or parent component under which to add the component
-     *  @param name Name of the new component
+     *  @param path_name to parent Root or parent component under which to add the component
+     *  @param new_name Name of the new component
      */
     public void addPV(final String path_name, final String new_name)
     {
@@ -416,7 +510,7 @@ public class AlarmClient
      *
      *  <p>All clients, including this one, will update when they receive the message
      *
-     *  @aram path Path to the item
+     *  @param path Path to the item
      *  @param config A prototype item (path is ignored) that holds the new configuration
      *  @throws Exception on error
      */
@@ -462,7 +556,7 @@ public class AlarmClient
     /** @param item Item for which to acknowledge alarm
      *  @param acknowledge <code>true</code> to acknowledge, else un-acknowledge
      */
-    public void acknowledge(final AlarmTreeItem<?> item, final boolean acknowledge)
+    public void acknowledge(final AlarmTreeItem<?> item, final boolean acknowledge) throws Exception
     {
         try
         {
@@ -474,7 +568,14 @@ public class AlarmClient
         catch (final Exception ex)
         {
             logger.log(Level.WARNING, "Cannot acknowledge component " + item, ex);
+            throw ex;
         }
+    }
+
+    /** @return <code>true</code> if connected to server, else updates have timed out */
+    public boolean isServerAlive()
+    {
+        return !has_timed_out;
     }
 
     /** Check if there have been any messages from server */
@@ -510,9 +611,9 @@ public class AlarmClient
         }
         catch (final InterruptedException ex)
         {
-            logger.log(Level.WARNING, "Alarm client thread doesn't shut down", ex);
+            logger.log(Level.WARNING, thread.getName() + " thread doesn't shut down", ex);
         }
-        logger.info(thread.getName() + " shut down");
+        logger.log(Level.INFO, () -> thread.getName() + " shut down");
 
     }
 }

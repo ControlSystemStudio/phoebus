@@ -171,10 +171,19 @@ $(function()
                     item = "-";
                 row.append( $('<td/>').append(item));
 
-                item = scan.find('runtime').text() / 1000;
-                row.append( $('<td/>').append(item.toFixed(1) + " seconds"));
+				// Suppress runtime and finish time when they're undefined
+                let text = scan.find('runtime').text();
+                if (text == undefined  ||  text <= 0)
+                    item = "";
+                else
+                    item = (text / 1000).toFixed(1) + " seconds";
+                row.append( $('<td/>').append(item));
 
-                item = formatDate(new Date(+scan.find('finish').text()))
+                text = scan.find('finish').text();
+                if (text == undefined  ||  text <= 0)
+                    item = "";
+                else
+                    item = formatDate(new Date(+text));
                 row.append( $('<td/>').append(item));
 
                 item = scan.find('command').text();

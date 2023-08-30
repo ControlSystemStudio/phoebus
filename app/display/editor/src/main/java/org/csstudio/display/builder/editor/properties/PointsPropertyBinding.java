@@ -55,6 +55,11 @@ public class PointsPropertyBinding
         }
     };
 
+    /** @param undo Undo manager
+     *  @param field Gui element in editor
+     *  @param widget_property Points property
+     *  @param other Other selected widgets
+     */
     public PointsPropertyBinding(final UndoableActionManager undo,
                                  final Button field,
                                  final PointsWidgetProperty widget_property,

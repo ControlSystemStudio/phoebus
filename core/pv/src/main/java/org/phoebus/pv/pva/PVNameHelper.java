@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -32,8 +32,8 @@ public class PVNameHelper
     // Regular expression for parsing out the array index value if present
     final private static Pattern ARRAY_PATTERN = Pattern.compile(".*(\\[\\S*\\])$");
     final private static Pattern ARRAY_INDEX_PATTERN = Pattern.compile("\\[(\\d*)\\]$");
-    
-    final private String channel, field, read, write;
+
+    final private String channel, field, request;
     final private Optional<Integer> elementIndex;
 
     /** Create parser
@@ -71,41 +71,28 @@ public class PVNameHelper
         if (! matcher.matches())
             throw new Exception("Expect ?request=field(...) but got \"" + request + "\"");
         String field = matcher.group(1);
-        final Optional<Integer> elementIndex;
-        final String write;
         if (field.isEmpty())
+            return new PVNameHelper(channel, "value", Optional.empty(), "field()");
+
+        // Check if the channel name ends with "[index]", if present extract the array
+        // index part from the channel name and use it to populate the elementIndex optional
+        final Matcher arraySyntax = ARRAY_PATTERN.matcher(field);
+        final Optional<Integer> elementIndex;
+        if (arraySyntax.matches())
         {
-            field = "value";
-            write = "field(value)";
-            elementIndex = Optional.empty();
+            String arraySyntaxString = arraySyntax.group(1);
+            field = field.substring(0, arraySyntax.start(1));
+            final Matcher arrayIndex = ARRAY_INDEX_PATTERN.matcher(arraySyntaxString);
+            if (arrayIndex.matches())
+                elementIndex = Optional.of(Integer.valueOf(arrayIndex.group(1)));
+            else
+                // Error, the array index has not be correct defined, the index consist of non digit chars
+                throw new Exception("Expect [index], where the index is a valid int but got \"" + field + "\"");
         }
         else
-        {
-            // Check if the channel name ends with "[index]", if present extract the array
-            // index part from the channel name and use it to populate the elementIndex optional
-            final Matcher arraySyntax = ARRAY_PATTERN.matcher(field);
-            if(arraySyntax.matches())
-            {
-                String arraySyntaxString = arraySyntax.group(1);
-                field = field.substring(0, arraySyntax.start(1));
-                final Matcher arrayIndex = ARRAY_INDEX_PATTERN.matcher(arraySyntaxString);
-                if(arrayIndex.matches())
-                {
-                    elementIndex = Optional.of(Integer.valueOf(arrayIndex.group(1)));
-                }
-                else
-                {
-                    // Error, the array index has not be correct defined, the index consist of non digit chars
-                    throw new Exception("Expect [index], where the index is a valid int but got \"" + field + "\"");
-                }
-            }
-            else
-            {
-                elementIndex = Optional.empty();
-            }
-            write = "field(" + field + ".value)";
-        }
-        return new PVNameHelper(channel, field, elementIndex, request.substring(REQUEST_FIELD_START), write);
+            elementIndex = Optional.empty();
+
+        return new PVNameHelper(channel, field, elementIndex, request.substring(REQUEST_FIELD_START));
     }
 
     /** @param channel Channel name
@@ -116,13 +103,9 @@ public class PVNameHelper
     private static PVNameHelper forNameWithPath(final String channel, final String path) throws Exception
     {
         String field = path.replace('/', '.');
-        final String write;
         final Optional<Integer> elementIndex;
         if(field.isEmpty())
-        {
-            write = "field(value)";
             elementIndex = Optional.empty();
-        }
         else
         {
             final Matcher arraySyntax = ARRAY_PATTERN.matcher(field);
@@ -145,9 +128,8 @@ public class PVNameHelper
             {
                 elementIndex = Optional.empty();
             }
-            write = "field(" + field + ".value)";
         }
-        return new PVNameHelper(channel, field, elementIndex,"field(" + field + ")",  write);
+        return new PVNameHelper(channel, field, elementIndex, "field(" + field + ")");
     }
 
     /**
@@ -178,19 +160,18 @@ public class PVNameHelper
         {
             elementIndex = Optional.empty();
         }
-        return new PVNameHelper(channel, "value", elementIndex, "field()", "field(value)");
+        return new PVNameHelper(channel, "value", elementIndex, "field()");
     }
 
     /** Private to enforce use of <code>forName</code> */
-    private PVNameHelper(final String channel, final String field, final Optional<Integer> elementIndex, final String read, final String write) throws Exception
+    private PVNameHelper(final String channel, final String field, final Optional<Integer> elementIndex, final String request) throws Exception
     {
         if (channel.isEmpty())
             throw new Exception("Empty channel name");
         this.channel = channel;
         this.field = field;
         this.elementIndex = elementIndex;
-        this.read = read;
-        this.write = write;
+        this.request = request;
     }
 
     /** @return Channel name */
@@ -205,16 +186,10 @@ public class PVNameHelper
         return field;
     }
 
-    /** @return Request "field(..)" for reading */
-    public String getReadRequest()
+    /** @return Request "field(value)" or "field(struct.sub.value)" */
+    public String getRequest()
     {
-        return read;
-    }
-
-    /** @return Request "field(..)" for writing */
-    public String getWriteRequest()
-    {
-        return write;
+        return request;
     }
 
     /** @return The element index in the subscribed array*/
@@ -232,8 +207,7 @@ public class PVNameHelper
         sb.append(", field '").append(field).append("'");
         if(elementIndex.isPresent())
             sb.append(", element index '").append(String.valueOf(elementIndex.get())).append("'");
-        sb.append(", read request '").append(read).append("'");
-        sb.append(", write request '").append(write).append("'");
+        sb.append(", request '").append(request).append("'");
         return sb.toString();
     }
 }

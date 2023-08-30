@@ -7,17 +7,17 @@
  *******************************************************************************/
 package org.phoebus.framework.persistence;
 
+import org.junit.jupiter.api.Test;
+import org.w3c.dom.Element;
+
+import java.util.Optional;
+
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-
-import java.util.Optional;
-
-import org.junit.Test;
-import org.w3c.dom.Element;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /** JUnit test of the {@link XMLUtil}
  *  @author Kay Kasemir

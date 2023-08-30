@@ -31,7 +31,7 @@ public class PasteFiles extends MenuItem
     /** @param Node Node for error dialog
      *  @param target_item Item (directory) into which files from clipboard should be copied
      */
-    public PasteFiles(final Node node, final TreeItem<File> target_item)
+    public PasteFiles(final Node node, final TreeItem<FileInfo> target_item)
     {
         super(Messages.Paste, ImageCache.getImageView(ImageCache.class, "/icons/paste.png"));
 
@@ -39,7 +39,7 @@ public class PasteFiles extends MenuItem
         {
             final Clipboard clipboard = Clipboard.getSystemClipboard();
             final List<File> files = clipboard.getFiles();
-            final File directory = target_item.getValue();
+            final File directory = target_item.getValue().file;
 
             JobManager.schedule(getText(), monitor ->
             {
@@ -51,7 +51,7 @@ public class PasteFiles extends MenuItem
                         final File new_file = new File(directory, original.getName());
                         Platform.runLater(() ->
                         {
-                            final ObservableList<TreeItem<File>> siblings = target_item.getChildren();
+                            final ObservableList<TreeItem<FileInfo>> siblings = target_item.getChildren();
                             siblings.add(new FileTreeItem(((FileTreeItem)target_item).getMonitor(), new_file));
                             FileTreeItem.sortSiblings(siblings);
                         });

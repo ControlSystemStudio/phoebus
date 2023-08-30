@@ -29,13 +29,24 @@ import org.phoebus.util.time.TimestampFormats;
 @SuppressWarnings("nls")
 public class SpreadsheetExportJob extends PlainExportJob
 {
+    /** @param model Model
+     *  @param start Start time
+     *  @param end End time
+     *  @param source Data source
+     *  @param optimize_parameter Bin count
+     *  @param formatter  Value formatter
+     *  @param filename Export file name
+     *  @param error_handler Error handler
+     *  @param unixTimeStamp Use UNIX time stamp epoch?
+     */
     public SpreadsheetExportJob(final  Model model,
             final Instant start, final Instant end, final Source source,
             final int optimize_parameter, final ValueFormatter formatter,
             final String filename,
-            final Consumer<Exception> error_handler)
+            final Consumer<Exception> error_handler,
+            final boolean unixTimeStamp)
     {
-        super(model, start, end, source, optimize_parameter, formatter, filename, error_handler);
+        super(model, start, end, source, optimize_parameter, formatter, filename, error_handler, unixTimeStamp);
     }
 
     /** {@inheritDoc} */
@@ -44,13 +55,15 @@ public class SpreadsheetExportJob extends PlainExportJob
                                  final PrintStream out) throws Exception
     {
         // Item header
-        for (ModelItem item : model.getItems())
+        for (ModelItem item : model.getItems()){
             printItemInfo(out, item);
+        }
+
         out.println();
         // Spreadsheet Header
         out.print("# " + Messages.TimeColumn);
         for (ModelItem item : model.getItems())
-            out.print(Messages.Export_Delimiter + item.getName() + " " + formatter.getHeader());
+            out.print(Messages.Export_Delimiter + item.getResolvedName() + " " + formatter.getHeader());
         out.println();
 
         // Create speadsheet interpolation
@@ -68,7 +81,7 @@ public class SpreadsheetExportJob extends PlainExportJob
         {
             final Instant time = sheet.getTime();
             final VType line[] = sheet.next();
-            out.print(TimestampFormats.MILLI_FORMAT.format(time));
+            out.print(unixTimeStamp ? time.toEpochMilli() : TimestampFormats.MILLI_FORMAT.format(time));
 
             for (int i=0; i<line.length; ++i)
                 out.print(Messages.Export_Delimiter + formatter.format(line[i]));

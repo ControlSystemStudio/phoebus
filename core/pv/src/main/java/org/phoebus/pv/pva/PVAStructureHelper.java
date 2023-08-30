@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,8 @@
  ******************************************************************************/
 package org.phoebus.pv.pva;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.IntStream.range;
 import static org.phoebus.pv.pva.Decoders.decodeAlarm;
 import static org.phoebus.pv.pva.Decoders.decodeTime;
 
@@ -16,6 +18,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.epics.pva.data.PVAArray;
+import org.epics.pva.data.PVABool;
+import org.epics.pva.data.PVABoolArray;
 import org.epics.pva.data.PVAByteArray;
 import org.epics.pva.data.PVAData;
 import org.epics.pva.data.PVADoubleArray;
@@ -28,15 +32,23 @@ import org.epics.pva.data.PVAString;
 import org.epics.pva.data.PVAStringArray;
 import org.epics.pva.data.PVAStructure;
 import org.epics.pva.data.PVAStructureArray;
+import org.epics.pva.data.PVAUnion;
+import org.epics.util.array.ArrayByte;
 import org.epics.util.array.ArrayDouble;
 import org.epics.util.array.ArrayFloat;
 import org.epics.util.array.ArrayInteger;
+import org.epics.util.array.ArrayLong;
+import org.epics.util.array.ArrayShort;
+import org.epics.util.array.ArrayUByte;
 import org.epics.util.array.ArrayUInteger;
+import org.epics.util.array.ArrayULong;
+import org.epics.util.array.ArrayUShort;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
+import org.epics.vtype.VBoolean;
 import org.epics.vtype.VNumber;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VString;
@@ -44,9 +56,15 @@ import org.epics.vtype.VStringArray;
 import org.epics.vtype.VTable;
 import org.epics.vtype.VType;
 
+/** Helper for handling 'structure' type PVA data */
 @SuppressWarnings("nls")
 public class PVAStructureHelper
 {
+    /** @param struct Structure
+     *  @param name_helper {@link PVNameHelper}
+     *  @return Decoded VType
+     *  @throws Exception on error
+     */
     public static VType getVType(final PVAStructure struct, final PVNameHelper name_helper) throws Exception
     {
         PVAStructure actual = struct;
@@ -54,33 +72,36 @@ public class PVAStructureHelper
         final Optional<Integer> elementIndex = name_helper.getElementIndex();
 
         if (! name_helper.getField().equals("value"))
-        {   // Fetch data from a sub-field
-            final PVAData field = struct.get(name_helper.getField());
+        {   // Fetch data from a sub-(sub-sub-)field
+            final PVAData field = struct.locate(name_helper.getField());
             if (field instanceof PVAStructure)
                 actual = (PVAStructure) field;
             else if (field instanceof PVANumber)
                 return Decoders.decodeNumber(struct, (PVANumber) field);
-            if (field instanceof PVAString)
+            else if (field instanceof PVABool)
+                return Decoders.decodeBool(struct, (PVABool) field);
+            else if (field instanceof PVAStructureArray)
+            {
+                if (elementIndex.isPresent())
+                {
+                    actual = ((PVAStructureArray) field).get()[elementIndex.get()];
+                }
+            }
+            else if (field instanceof PVAArray)
+            {
+                if (elementIndex.isPresent())
+                {
+                    return decodeNTArray(struct, elementIndex.get());
+                }
+                else
+                {
+                    return Decoders.decodeArray(struct, (PVAArray) field);
+                }
+            }
+            else if (field instanceof PVAString)
                 return Decoders.decodeString(struct, (PVAString) field);
         }
 
-        // Handle element references in arrays
-        if(elementIndex.isPresent())
-        {
-            final PVAData field = struct.get(name_helper.getField());
-            if (field instanceof PVAStructureArray)
-            {
-                actual = ((PVAStructureArray) field).get()[elementIndex.get()];
-            }
-            else if(field instanceof PVAArray)
-            {
-                return decodeNTArray(actual, elementIndex.get());
-            }
-            else
-            {
-                throw new Exception("Expected struct array for field " + name_helper.getField() + ", got " + struct);
-            }
-        }
         // Handle normative types
         String type = actual.getStructureName();
         if (type.startsWith("epics:nt/"))
@@ -103,6 +124,20 @@ public class PVAStructureHelper
             return decodeScalar(actual);
         else if (field instanceof PVAArray)
             return decodeNTArray(actual);
+        else if (field instanceof PVAUnion)
+        {   // Decode the currently selected variant of the union
+            final PVAData union_field = ((PVAUnion) field).get();
+            if (union_field instanceof PVANumber  ||
+                union_field instanceof PVAString)
+                return decodeScalarField(struct, union_field);
+            else if (union_field instanceof PVAArray)
+                return decodeNTArrayField(struct, union_field);
+        }
+        else if (field instanceof PVABool)
+        {
+            final PVABool bool = (PVABool) field;
+            return VBoolean.of(bool.get(), Alarm.none(), Time.now());
+        }
         // TODO: not really sure how to handle arbitrary structures -- no solid use cases yet...
 
         // Create string that indicates name of unknown type
@@ -118,12 +153,21 @@ public class PVAStructureHelper
      */
     private static VType decodeScalar(final PVAStructure struct) throws Exception
     {
-        final PVAData field = struct.get("value");
+        final VType result = decodeScalarField(struct, struct.get("value"));
+        if (result != null)
+            return result;
+        throw new Exception("Expected struct with scalar 'value', got " + struct);
+    }
+
+    private static VType decodeScalarField(final PVAStructure struct, final PVAData field) throws Exception
+    {
         if (field instanceof PVANumber)
             return Decoders.decodeNumber(struct, (PVANumber) field);
+        if (field instanceof PVABool)
+            return Decoders.decodeBool(struct, (PVABool) field);
         if (field instanceof PVAString)
             return Decoders.decodeString(struct, (PVAString) field);
-        throw new Exception("Expected struct with scalar 'value', got " + struct);
+        return null;
     }
 
     /** Decode table from NTTable
@@ -168,6 +212,45 @@ public class PVAStructureHelper
                 types.add(String.class);
                 values.add(Arrays.asList(typed.get()));
             }
+            else if (column instanceof PVAShortArray)
+            {
+                final PVAShortArray typed = (PVAShortArray)column;
+                types.add(Short.TYPE);
+                if (typed.isUnsigned())
+                    values.add(ArrayUShort.of(typed.get()));
+                else
+                    values.add(ArrayShort.of(typed.get()));
+            }
+            else if (column instanceof PVALongArray)
+            {
+                final PVALongArray typed = (PVALongArray)column;
+                types.add(Long.TYPE);
+                if (typed.isUnsigned())
+                    values.add(ArrayULong.of(typed.get()));
+                else
+                    values.add(ArrayLong.of(typed.get()));
+            }
+            else if (column instanceof PVAByteArray)
+            {
+                final PVAByteArray typed = (PVAByteArray)column;
+                types.add(Byte.TYPE);
+                if (typed.isUnsigned())
+                    values.add(ArrayUByte.of(typed.get()));
+                else
+                    values.add(ArrayByte.of(typed.get()));
+            }
+            else if (column instanceof PVABoolArray)
+            {
+                final PVABoolArray typed = (PVABoolArray)column;
+                types.add(Boolean.TYPE);
+                boolean[] data = typed.get();
+                // Convert to boxed Integer to add to List
+                values.add(range(0, data.length).mapToObj(i -> data[i]).collect(toList()));
+            }
+            else 
+            {
+            	throw new IllegalArgumentException("Could not decode table column of type: " + column.getClass());
+            }
         }
 
         return VTable.of(types, names, values);
@@ -180,7 +263,11 @@ public class PVAStructureHelper
      */
     private static VType decodeNTArray(final PVAStructure struct) throws Exception
     {
-        final PVAData field = struct.get("value");
+        return decodeNTArrayField(struct, struct.get("value"));
+    }
+
+    private static VType decodeNTArrayField(final PVAStructure struct, final PVAData field) throws Exception
+    {
         if (field instanceof PVADoubleArray)
             return Decoders.decodeDoubleArray(struct, (PVADoubleArray) field);
         if (field instanceof PVAFloatArray)
@@ -207,7 +294,8 @@ public class PVAStructureHelper
      * @return {@link VType}
      * @throws Exception
      */
-    private static VType decodeNTArray(PVAStructure struct, Integer index) throws Exception {
+    private static VType decodeNTArray(PVAStructure struct, Integer index) throws Exception
+    {
         final PVAData field = struct.get("value");
         if (field instanceof PVADoubleArray)
         {

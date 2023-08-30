@@ -7,11 +7,8 @@
  *******************************************************************************/
 package org.phoebus.framework.jobs;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.phoebus.framework.jobs.JobManager.logger;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -22,8 +19,13 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.SimpleFormatter;
 import java.util.logging.StreamHandler;
 
-import org.junit.Before;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.phoebus.framework.jobs.JobManager.logger;
+
+
 
 /** JUnit test of the CommandExecutor
  *  @author Kay Kasemir
@@ -37,14 +39,14 @@ public class CommandExecutorTest
     private static final boolean is_windows = System.getProperty("os.name").startsWith("Windows");
 
     // Capture log messages
-    private ByteArrayOutputStream log_buf;
-    private StreamHandler handler;
+    private static ByteArrayOutputStream log_buf;
+    private static StreamHandler handler;
 
     // Examples directory
-    private File examples_dir;
+    private static File examples_dir;
 
-    @Before
-    public void setup()
+    @BeforeAll
+    public static void setup()
     {
         // Setup Logger
         // 1-date, 2-source, 3-logger, 4-level, 5-message, 6-thrown
@@ -71,11 +73,11 @@ public class CommandExecutorTest
     }
 
     @Test
-    public void testCommandSplit() throws Exception
+    public void testCommandSplit()
     {
         List<String> cmd = CommandExecutor.splitCmd("path/cmd");
         System.out.println(cmd);
-        assertThat(cmd, equalTo(Arrays.asList("path/cmd")));
+        assertThat(cmd, equalTo(List.of("path/cmd")));
 
         cmd = CommandExecutor.splitCmd("path/cmd arg1");
         System.out.println(cmd);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2013-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -43,6 +43,7 @@ public class SimulateServlet extends HttpServlet
     {
         // Require XML: "text/xml", "text/xml; charset=UTF-8", ...
         final String format = request.getContentType();
+        logger.log(Level.FINE, () -> "POST simulate " + format);
         if (! format.contains("/xml"))
         {
             logger.log(Level.WARNING, "POST /simulate got format '" + format + "'");
@@ -59,6 +60,9 @@ public class SimulateServlet extends HttpServlet
         // Simulate scan
         try
         {
+            if (logger.isLoggable(Level.FINE))
+                logger.log(Level.FINE, "Commands for simulation:\n" + scan_commands);
+
             final SimulationResult simulation = scan_server.simulateScan(scan_commands);
             // Return scan ID
             out.println("<simulation>");

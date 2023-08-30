@@ -5,6 +5,32 @@
  */
 package org.phoebus.channelfinder;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Joiner;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientHandlerException;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.UniformInterfaceException;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.config.ClientConfig;
+import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
+import com.sun.jersey.client.urlconnection.HTTPSProperties;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
+import org.phoebus.channelfinder.Channel.Builder;
+import org.phoebus.security.managers.DummyX509TrustManager;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -31,33 +57,6 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-
-import org.phoebus.channelfinder.Channel.Builder;
-
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Joiner;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
-import com.sun.jersey.client.urlconnection.HTTPSProperties;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
-
 /**
  * A Client object to query the channelfinder service for channels based on
  * channel names and/or properties and tags associated with channels.
@@ -66,13 +65,17 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
  * 
  */
 public class ChannelFinderClientImpl implements ChannelFinderClient {
-    private final WebResource service;
+    private final WebResource cfAuthenticatedResource;
+    private final WebResource cfResource;
+
     private final ExecutorService executor;
 
     private static final String resourceChannels = "resources/channels";
     private static final String resourceProperties = "resources/properties";
     private static final String resourceTags = "resources/tags";
 
+
+    private static CFProperties properties = new CFProperties();
     private static final Logger log = Logger.getLogger(ChannelFinderClient.class.getName());
     /**
      * A Builder class to help create the client to the Channelfinder Service
@@ -100,45 +103,46 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
 
         private ExecutorService executor = Executors.newSingleThreadExecutor();
 
-        private CFProperties properties = new CFProperties();
 
-        private CFCBuilder() {
-            this.uri = URI.create(this.properties.getPreferenceValue("serviceURL"));
+        private CFCBuilder()
+        {
+            this.uri = URI.create(properties.getPreferenceValue("serviceURL"));
             this.protocol = this.uri.getScheme();
         }
 
-        private CFCBuilder(URI uri) {
+        private CFCBuilder(URI uri)
+        {
             this.uri = uri;
             this.protocol = this.uri.getScheme();
         }
 
         /**
          * Creates a {@link CFCBuilder} for a CF client to Default URL in the
-         * channelfinder.properties.
+         * channelfinder_preferences.properties.
          * 
          * @return {@link CFCBuilder}
          */
-        public static CFCBuilder serviceURL() {
+        public static CFCBuilder serviceURL()
+        {
             return new CFCBuilder();
         }
 
         /**
          * Creates a {@link CFCBuilder} for a CF client to URI <tt>uri</tt>.
-         * 
-         * @param uri
-         *            - service uri
+         *
+         * @param uri - service uri
          * @return {@link CFCBuilder}
          */
-        public static CFCBuilder serviceURL(String uri) {
+        public static CFCBuilder serviceURL(String uri)
+        {
             return new CFCBuilder(URI.create(uri));
         }
 
         /**
          * Creates a {@link CFCBuilder} for a CF client to {@link URI}
          * <tt>uri</tt>.
-         * 
-         * @param uri
-         *            - service uri
+         *
+         * @param uri - service uri
          * @return {@link CFCBuilder}
          */
         public static CFCBuilder serviceURL(URI uri) {
@@ -147,9 +151,8 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
 
         /**
          * Enable of Disable the HTTP authentication on the client connection.
-         * 
-         * @param withHTTPAuthentication
-         *            -
+         *
+         * @param withHTTPAuthentication -
          * @return {@link CFCBuilder}
          */
         public CFCBuilder withHTTPAuthentication(boolean withHTTPAuthentication) {
@@ -159,9 +162,8 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
 
         /**
          * Set the username to be used for HTTP Authentication.
-         * 
-         * @param username
-         *            - username
+         *
+         * @param username - username
          * @return {@link CFCBuilder}
          */
         public CFCBuilder username(String username) {
@@ -171,9 +173,8 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
 
         /**
          * Set the password to be used for the HTTP Authentication.
-         * 
-         * @param password
-         *            - password
+         *
+         * @param password - password
          * @return {@link CFCBuilder}
          */
         public CFCBuilder password(String password) {
@@ -184,9 +185,8 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         /**
          * set the {@link ClientConfig} to be used while creating the
          * channelfinder client connection.
-         * 
-         * @param clientConfig
-         *            - client config
+         *
+         * @param clientConfig - client config
          * @return {@link CFCBuilder}
          */
         public CFCBuilder withClientConfig(ClientConfig clientConfig) {
@@ -203,8 +203,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         /**
          * Set the trustManager that should be used for authentication.
          * 
-         * @param trustManager
-         *            - trust manager
+         * @param trustManager - trust manager
          * @return {@link CFCBuilder}
          */
         public CFCBuilder withTrustManager(TrustManager[] trustManager) {
@@ -215,9 +214,8 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         /**
          * Provide your own executor on which the queries are to be made. <br>
          * By default a single threaded executor is used.
-         * 
-         * @param executor
-         *            - executor
+         *
+         * @param executor - executor
          * @return {@link CFCBuilder}
          */
         public CFCBuilder withExecutor(ExecutorService executor) {
@@ -232,6 +230,10 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
          * @return {@link ChannelFinderClientImpl}
          */
         public ChannelFinderClient create() throws ChannelFinderException {
+            if(this.uri == null || this.uri.toString().isEmpty()){
+                log.warning("Cannot create a channel finder client as URL is null or empty");
+                return null;
+            }
             log.info("Creating a channelfinder client to : " + this.uri);
             if (this.protocol.equalsIgnoreCase("http")) { //$NON-NLS-1$
                 this.clientConfig = new DefaultClientConfig();
@@ -262,6 +264,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
                         properties.getPreferenceValue("username"),
                         properties.getPreferenceValue("password"));
             }
+
             return new ChannelFinderClientImpl(this.uri, this.clientConfig, this.httpBasicAuthFilter, this.executor);
         }
     }
@@ -269,12 +272,16 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     ChannelFinderClientImpl(URI uri, ClientConfig config, HTTPBasicAuthFilter httpBasicAuthFilter,
             ExecutorService executor) {
         Client client = Client.create(config);
-        if (httpBasicAuthFilter != null) {
-            client.addFilter(httpBasicAuthFilter);
-        }
-//        client.addFilter(new RawLoggingFilter(Logger.getLogger(RawLoggingFilter.class.getName())));
         client.setFollowRedirects(true);
-        service = client.resource(uri.toString());
+        cfResource = client.resource(uri.toString());
+        cfAuthenticatedResource = client.resource(uri.toString());
+        if (httpBasicAuthFilter != null) {
+            cfAuthenticatedResource.addFilter(httpBasicAuthFilter);
+        }
+        // TODO add a preference to add logging
+        if(Boolean.parseBoolean(properties.getPreferenceValue("rawFiltering"))) {
+            client.addFilter(new RawLoggingFilter(Logger.getLogger(RawLoggingFilter.class.getName())));
+        }
         this.executor = executor;
     }
 
@@ -284,20 +291,20 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
      * 
      * @return list of names of all existing {@link Property}s.
      */
-    public Collection<String> getAllProperties() {
+    public Collection<String> getAllPropertyNames() {
         return wrappedSubmit(new Callable<Collection<String>>() {
+            private final ObjectMapper mapper = new ObjectMapper();
             @Override
             public Collection<String> call() throws Exception {
                 Collection<String> allProperties = new HashSet<String>();
-                ObjectMapper mapper = new ObjectMapper();
                 List<XmlProperty> xmlproperties = new ArrayList<XmlProperty>();
                 try {
                     xmlproperties = mapper.readValue(
-                            service.path(resourceProperties).accept(MediaType.APPLICATION_JSON).get(String.class),
+                            cfResource.path(resourceProperties).accept(MediaType.APPLICATION_JSON).get(String.class),
                             new TypeReference<List<XmlProperty>>() {
                             });
                 } catch (JsonParseException e) {
-                    e.printStackTrace();
+                    log.log(Level.WARNING, "Failed to retrieve channelfinder properties", e);
                 }
                 for (XmlProperty xmlproperty : xmlproperties) {
                     allProperties.add(xmlproperty.getName());
@@ -308,22 +315,47 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     }
 
     /**
+     * Get a list of all the properties currently present on the
+     * channelfinder service.
+     *
+     * @return list of all existing {@link Property}s.
+     */
+    public Collection<Property> getAllProperties() {
+        return wrappedSubmit(new Callable<List<Property>>() {
+            private final ObjectMapper mapper = new ObjectMapper();
+            @Override
+            public List<Property> call() throws Exception {
+                List<XmlProperty> xmlproperties = new ArrayList<>();
+                try {
+                    xmlproperties = mapper.readValue(
+                            cfResource.path(resourceProperties).accept(MediaType.APPLICATION_JSON).get(String.class),
+                            new TypeReference<List<XmlProperty>>() {
+                            });
+                } catch (Exception e) {
+                    log.log(Level.WARNING, "Failed to retrieve channelfinder properties", e);
+                }
+                return xmlproperties.stream().map(xmlProperty -> {return new Property(xmlProperty);}).collect(Collectors.toList());
+            }
+        });
+    }
+
+    /**
      * Get a list of names of all the tags currently present on the
      * channelfinder service.
-     * 
+     *
      * @return a list of names of all the existing {@link Tag}s.
      */
-    public Collection<String> getAllTags() {
+    public Collection<String> getAllTagNames() {
         return wrappedSubmit(new Callable<Collection<String>>() {
+            private final ObjectMapper mapper = new ObjectMapper();
 
             @Override
             public Collection<String> call() {
                 Collection<String> allTags = new HashSet<String>();
-                ObjectMapper mapper = new ObjectMapper();
                 List<XmlTag> xmltags = new ArrayList<XmlTag>();
                 try {
                     xmltags = mapper.readValue(
-                            service.path(resourceTags)
+                            cfResource.path(resourceTags)
                             .accept(MediaType.APPLICATION_JSON)
                             .get(String.class), new TypeReference<List<XmlTag>>() { });
                 } catch ( JsonParseException | JsonMappingException e) {
@@ -343,24 +375,59 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         });
     }
 
+    private final ObjectMapper mapper = new ObjectMapper();
+    /**
+     * Get a list of names of all the tags currently present on the
+     * channelfinder service.
+     *
+     * @return a list of names of all the existing {@link Tag}s.
+     */
+    public Collection<Tag> getAllTags() {
+        return wrappedSubmit(new Callable<List<Tag>>() {
+
+            @Override
+            public List<Tag> call() {
+                Collection<String> allTags = new HashSet<String>();
+                List<XmlTag> xmltags = new ArrayList<XmlTag>();
+                try {
+                    xmltags = mapper.readValue(
+                            cfResource.path(resourceTags)
+                                    .accept(MediaType.APPLICATION_JSON)
+                                    .get(String.class), new TypeReference<List<XmlTag>>() { });
+                } catch ( JsonParseException | JsonMappingException e) {
+                    log.log(Level.WARNING, "Failed to parse the list of tags", e);
+                } catch ( IOException e) {
+                    log.log(Level.WARNING, "Failed to parse the list of tags", e);
+                } catch (UniformInterfaceException e) {
+                    throw new ChannelFinderException(e);
+                } catch (ClientHandlerException e) {
+                    throw new ChannelFinderException(e);
+                }
+                for (XmlTag xmltag : xmltags) {
+                    allTags.add(xmltag.getName());
+                }
+                return xmltags.stream().map(xmlTag -> new Tag(xmlTag)).collect(Collectors.toList());
+
+            }
+        });
+    }
+
     @Deprecated
     public static void resetPreferences() {
         try {
             Preferences.userNodeForPackage(ChannelFinderClientImpl.class).clear();
         } catch (BackingStoreException e) {
-            e.printStackTrace();
+            log.log(Level.WARNING, "Failed to retrieve channelfinder preferences", e);
         }
     }
 
     /**
      * Returns a channel that exactly matches the channelName
      * <tt>channelName</tt>.
-     * 
-     * @param channelName
-     *            - name of the required channel.
+     *
+     * @param channelName - name of the required channel.
      * @return {@link Channel} with name <tt>channelName</tt> or null
-     * @throws ChannelFinderException
-     *             - channelfinder exception
+     * @throws ChannelFinderException - channelfinder exception
      */
     public Channel getChannel(String channelName) throws ChannelFinderException {
         try {
@@ -375,21 +442,24 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
 
     }
 
-    private class FindByChannelName implements Callable<Channel> {
+    private class FindByChannelName implements Callable<Channel>
+    {
 
         private final String channelName;
+        private final ObjectMapper mapper = new ObjectMapper();
 
-        FindByChannelName(String channelName) {
+        FindByChannelName(String channelName)
+        {
             super();
             this.channelName = channelName;
         }
 
         @Override
-        public Channel call() throws UniformInterfaceException {
-            ObjectMapper mapper = new ObjectMapper();
+        public Channel call() throws UniformInterfaceException
+        {
             mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
             try {
-                return new Channel(mapper.readValue(service.path(resourceChannels).path(channelName)
+                return new Channel(mapper.readValue(cfResource.path(resourceChannels).path(channelName)
                         .get(ClientResponse.class).getEntityInputStream(), XmlChannel.class));
             } catch (JsonParseException | JsonMappingException e) {
                 log.log(Level.WARNING, "Failed to process the list of channels", e);
@@ -406,11 +476,9 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     /**
      * Destructively set a single channel <tt>channel</tt>, if the channel
      * already exists it will be replaced with the given channel.
-     * 
-     * @param channel
-     *            the channel to be added
-     * @throws ChannelFinderException
-     *             - channelfinder exception
+     *
+     * @param channel the channel to be added
+     * @throws ChannelFinderException - channelfinder exception
      */
     public void set(Channel.Builder channel) throws ChannelFinderException {
         wrappedSubmit(new SetChannel(channel.toXml()));
@@ -428,7 +496,9 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         public void run() {
             ObjectMapper mapper = new ObjectMapper();
             try {
-                service.path(resourceChannels).path(this.pxmlChannel.getName()).type(MediaType.APPLICATION_JSON)
+                cfAuthenticatedResource
+                        .path(resourceChannels).path(this.pxmlChannel.getName())
+                        .type(MediaType.APPLICATION_JSON)
                         .put(mapper.writeValueAsString(this.pxmlChannel));
             } catch (JsonProcessingException e) {
                 log.log(Level.WARNING, "Failed to process the list of channel ", e);
@@ -439,11 +509,9 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     /**
      * Destructively set a set of channels, if any channels already exists it is
      * replaced.
-     * 
-     * @param channels
-     *            set of channels to be added
-     * @throws ChannelFinderException
-     *             - channelfinder exception
+     *
+     * @param channels set of channels to be added
+     * @throws ChannelFinderException - channelfinder exception
      */
     public void set(Collection<Builder> channels) throws ChannelFinderException {
         wrappedSubmit(new SetChannels(ChannelUtil.toCollectionXmlChannels(channels)));
@@ -465,7 +533,10 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
                 mapper.writeValue(out, this.pxmlchannels);
                 final byte[] data = ((ByteArrayOutputStream) out).toByteArray();
                 String test = new String(data);
-                service.path(resourceChannels).type(MediaType.APPLICATION_JSON).put(test);
+                cfAuthenticatedResource
+                        .path(resourceChannels)
+                        .type(MediaType.APPLICATION_JSON)
+                        .put(test);
             } catch (JsonParseException | JsonMappingException e) {
                 log.log(Level.WARNING, "Failed to process the list of channels ", e);
             } catch ( IOException e) {
@@ -477,9 +548,8 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     /**
      * Destructively set a Tag <tt>tag</tt> with no associated channels to the
      * database.
-     * 
-     * @param tag
-     *            - the tag to be set.
+     *
+     * @param tag - the tag to be set.
      */
     public void set(Tag.Builder tag) {
         wrappedSubmit(new SetTag(tag.toXml()));
@@ -488,13 +558,10 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     /**
      * Destructively set tag <tt>tag</tt> to channel <tt>channelName</tt> and
      * remove the tag from all other channels.
-     * 
-     * @param tag
-     *            - the tag to be set.
-     * @param channelName
-     *            - the channel to which the tag should be set on.
-     * @throws ChannelFinderException
-     *             - channelfinder exception
+     *
+     * @param tag         - the tag to be set.
+     * @param channelName - the channel to which the tag should be set on.
+     * @throws ChannelFinderException - channelfinder exception
      */
     public void set(Tag.Builder tag, String channelName) throws ChannelFinderException {
         Collection<String> channelNames = new ArrayList<String>();
@@ -505,14 +572,11 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     /**
      * Set tag <tt>tag</tt> on the set of channels {channels} and remove it from
      * all others.
-     * 
-     * @param tag
-     *            - the tag to be set.
-     * @param channelNames
-     *            - the list of channels to which this tag will be added and
-     *            removed from all others.
-     * @throws ChannelFinderException
-     *             - channelfinder exception
+     *
+     * @param tag          - the tag to be set.
+     * @param channelNames - the list of channels to which this tag will be added and
+     *                     removed from all others.
+     * @throws ChannelFinderException - channelfinder exception
      */
     public void set(Tag.Builder tag, Collection<String> channelNames) throws ChannelFinderException {
         wrappedSubmit(new SetTag(tag.toXml(), channelNames));
@@ -560,8 +624,11 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         public void run() {
             ObjectMapper mapper = new ObjectMapper();
             try {
-                service.path(resourceTags).path(this.pxmlTag.getName()).type(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON).put(mapper.writeValueAsString(this.pxmlTag));
+                cfAuthenticatedResource
+                        .path(resourceTags).path(this.pxmlTag.getName())
+                        .type(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .put(mapper.writeValueAsString(this.pxmlTag));
             } catch (JsonProcessingException e) {
                 log.log(Level.WARNING, "Failed to process the list of tags ", e);
             }
@@ -570,9 +637,8 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
 
     /**
      * Destructively set a new property <tt>property</tt>.
-     * 
-     * @param prop
-     *            - the property to be set.
+     *
+     * @param prop - the property to be set.
      */
     public void set(Property.Builder prop) throws ChannelFinderException {
         wrappedSubmit(new SetProperty(prop.toXml()));
@@ -581,11 +647,9 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     /**
      * Destructively set property <tt>prop</tt> and add it to the channel
      * <tt>channelName</tt> and remove it from all others.
-     * 
-     * @param prop
-     *            - property to be set.
-     * @param channelName
-     *            - the channel to which this property must be added.
+     *
+     * @param prop        - property to be set.
+     * @param channelName - the channel to which this property must be added.
      */
     public void set(Property.Builder prop, String channelName) {
         Collection<String> ch = new ArrayList<String>();
@@ -599,12 +663,10 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
      * channels will contain the property with the same value specified in the
      * <tt>prop</tt>.<br>
      * to individually set the value for each channel use channelPropertyMap.
-     * 
-     * @param prop
-     *            - the property to be set.
-     * @param channelNames
-     *            - the channels to which this property should be added and
-     *            removed from all others.
+     *
+     * @param prop         - the property to be set.
+     * @param channelNames - the channels to which this property should be added and
+     *                     removed from all others.
      */
     public void set(Property.Builder prop, Collection<String> channelNames) {
         wrappedSubmit(new SetProperty(prop.toXml(), channelNames));
@@ -615,11 +677,9 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
      * specified in the <tt>channelPropertyMap</tt>, where the map key is the
      * channel name and the associated value is the property value to be used
      * for that channel.
-     * 
-     * @param prop
-     *            - the property to be set.
-     * @param channelPropertyMap
-     *            - map with channel names and property values
+     *
+     * @param prop               - the property to be set.
+     * @param channelPropertyMap - map with channel names and property values
      */
     public void set(Property.Builder prop, Map<String, String> channelPropertyMap) {
         wrappedSubmit(new SetProperty(prop.toXml(), channelPropertyMap));
@@ -627,6 +687,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
 
     private class SetProperty implements Runnable {
         private XmlProperty pxmlProperty;
+        private final ObjectMapper mapper = new ObjectMapper();
 
         SetProperty(XmlProperty prop) {
             this.pxmlProperty = prop;
@@ -662,9 +723,8 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
 
         @Override
         public void run() {
-            ObjectMapper mapper = new ObjectMapper();
             try {
-                service.path(resourceProperties).path(this.pxmlProperty.getName()).type(MediaType.APPLICATION_JSON)
+                cfAuthenticatedResource.path(resourceProperties).path(this.pxmlProperty.getName()).type(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON).put(mapper.writeValueAsString(this.pxmlProperty));
             } catch (JsonProcessingException e) {
                 log.log(Level.WARNING, "Failed to process the list of properties ", e);
@@ -674,11 +734,9 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
 
     /**
      * Update existing channel with <tt>channel</tt>.
-     * 
-     * @param channel
-     *            - channel builder
-     * @throws ChannelFinderException
-     *             - channelfinder exception
+     *
+     * @param channel - channel builder
+     * @throws ChannelFinderException - channelfinder exception
      */
     public void update(Channel.Builder channel) throws ChannelFinderException {
         wrappedSubmit(new UpdateChannel(channel.toXml()));
@@ -686,6 +744,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
 
     private class UpdateChannel implements Runnable {
         private XmlChannel channel;
+        private final ObjectMapper mapper = new ObjectMapper();
 
         UpdateChannel(XmlChannel channel) {
             super();
@@ -694,9 +753,8 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
 
         @Override
         public void run() {
-            ObjectMapper mapper = new ObjectMapper();
             try {
-                service.path(resourceChannels)
+                cfAuthenticatedResource.path(resourceChannels)
                        .path(this.channel.getName())
                        .type(MediaType.APPLICATION_JSON)
                        .post(mapper.writeValueAsString(this.channel));
@@ -712,30 +770,23 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     /**
      * Update Tag <tt>tag </tt> by adding it to Channel with name
      * <tt>channelName</tt>, without affecting the other instances of this tag.
-     * 
-     * @param tag
-     *            the tag to be added
-     * @param channelName
-     *            Name of the channel to which the tag is to be added
-     * @throws ChannelFinderException
-     *             - channelfinder exception
+     *
+     * @param tag         the tag to be added
+     * @param channelName Name of the channel to which the tag is to be added
+     * @throws ChannelFinderException - channelfinder exception
      */
     public void update(Tag.Builder tag, String channelName) throws ChannelFinderException {
         wrappedSubmit(new UpdateTag(tag.toXml(), channelName));
     }
 
     /**
-     * 
      * Update the Tag <tt>tag</tt> by adding it to the set of the channels with
      * names <tt>channelNames</tt>, without affecting the other instances of
      * this tag.
-     * 
-     * @param tag
-     *            - the tag that needs to be updated.
-     * @param channelNames
-     *            - list of channels to which this tag should be added.
-     * @throws ChannelFinderException
-     *             - channelfinder exception
+     *
+     * @param tag          - the tag that needs to be updated.
+     * @param channelNames - list of channels to which this tag should be added.
+     * @throws ChannelFinderException - channelfinder exception
      */
     public void update(Tag.Builder tag, Collection<String> channelNames) throws ChannelFinderException {
         wrappedSubmit(new UpdateTag(tag.toXml(), channelNames));
@@ -743,6 +794,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
 
     private class UpdateTag implements Runnable {
         private XmlTag pxmlTag;
+        private final ObjectMapper mapper = new ObjectMapper();
 
         @SuppressWarnings("unused")
         UpdateTag(XmlTag xmlTag) {
@@ -770,9 +822,10 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
 
         @Override
         public void run() {
-            ObjectMapper mapper = new ObjectMapper();
             try {
-                service.path(resourceTags).path(this.pxmlTag.getName()).type(MediaType.APPLICATION_JSON)
+                cfAuthenticatedResource
+                        .path(resourceTags).path(this.pxmlTag.getName())
+                        .type(MediaType.APPLICATION_JSON)
                         .post(mapper.writeValueAsString(this.pxmlTag));
             } catch (UniformInterfaceException e) {
                 throw new ChannelFinderException(e);
@@ -785,14 +838,11 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     /**
      * Update Property <tt>property</tt> by adding it to the channel
      * <tt>channelName</tt>, without affecting the other channels.
-     * 
-     * @param property
-     *            - the property to be updated
-     * @param channelName
-     *            - the channel to which this property should be added or
-     *            updated.
-     * @throws ChannelFinderException
-     *             - channelfinder exception
+     *
+     * @param property    - the property to be updated
+     * @param channelName - the channel to which this property should be added or
+     *                    updated.
+     * @throws ChannelFinderException - channelfinder exception
      */
     public void update(Property.Builder property, String channelName) throws ChannelFinderException {
         wrappedSubmit(new UpdateChannelProperty(property.toXml(), channelName));
@@ -801,6 +851,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     private class UpdateChannelProperty implements Runnable {
         private final String channelName;
         private XmlProperty pxmlProperty;
+        private final ObjectMapper mapper = new ObjectMapper();
 
         UpdateChannelProperty(XmlProperty xmlProperty, String channelName) {
             super();
@@ -817,9 +868,8 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
 
         @Override
         public void run() {
-            ObjectMapper mapper = new ObjectMapper();
             try {
-                service.path(resourceProperties)
+                cfAuthenticatedResource.path(resourceProperties)
                        .path(this.pxmlProperty.getName())
                        .type(MediaType.APPLICATION_JSON)
                        .put(mapper.writeValueAsString(this.pxmlProperty));
@@ -832,28 +882,18 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     }
 
     /**
-     * 
-     * 
-     * @param property
-     *            - property builder
-     * @param channelNames
-     *            - list of channel names
-     * @throws ChannelFinderException
-     *             - channelfinder exception
+     * @param property     - property builder
+     * @param channelNames - list of channel names
+     * @throws ChannelFinderException - channelfinder exception
      */
     public void update(Property.Builder property, Collection<String> channelNames) throws ChannelFinderException {
         wrappedSubmit(new UpdateProperty(property.toXml(), channelNames));
     }
 
     /**
-     * 
-     * 
-     * @param property
-     *            - property builder
-     * @param channelPropValueMap
-     *            - channel property value map
-     * @throws ChannelFinderException
-     *             - channelfinder exception
+     * @param property            - property builder
+     * @param channelPropValueMap - channel property value map
+     * @throws ChannelFinderException - channelfinder exception
      */
     public void update(Property.Builder property, Map<String, String> channelPropValueMap)
             throws ChannelFinderException {
@@ -862,6 +902,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
 
     private class UpdateProperty implements Runnable {
         private XmlProperty pxmlProperty;
+        private final ObjectMapper mapper = new ObjectMapper();
 
         @SuppressWarnings("unused")
         UpdateProperty(XmlProperty xmlProperty) {
@@ -898,9 +939,8 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
 
         @Override
         public void run() {
-            ObjectMapper mapper = new ObjectMapper();
             try {
-                service.path(resourceProperties).path(this.pxmlProperty.getName()).type(MediaType.APPLICATION_JSON)
+                cfAuthenticatedResource.path(resourceProperties).path(this.pxmlProperty.getName()).type(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON).post(mapper.writeValueAsString(this.pxmlProperty));
             } catch (UniformInterfaceException e) {
                 throw new ChannelFinderException(e);
@@ -914,13 +954,11 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     /**
      * Search for channels who's name match the pattern <tt>pattern</tt>.<br>
      * The pattern can contain wildcard char * or ?.<br>
-     * 
-     * @param pattern
-     *            - the search pattern for the channel names
+     *
+     * @param pattern - the search pattern for the channel names
      * @return A Collection of channels who's name match the pattern
-     *         <tt>pattern</tt>
-     * @throws ChannelFinderException
-     *             - channelfinder exception
+     * <tt>pattern</tt>
+     * @throws ChannelFinderException - channelfinder exception
      */
     public Collection<Channel> findByName(String pattern) throws ChannelFinderException {
         // return wrappedSubmit(new FindByParam("~name", pattern));
@@ -933,13 +971,11 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
      * Search for channels with tags who's name match the pattern
      * <tt>pattern</tt>.<br>
      * The pattern can contain wildcard char * or ?.<br>
-     * 
-     * @param pattern
-     *            - the search pattern for the tag names
+     *
+     * @param pattern - the search pattern for the tag names
      * @return A Collection of channels which contain tags who's name match the
-     *         pattern <tt>pattern</tt>
-     * @throws ChannelFinderException
-     *             - channelfinder exception
+     * pattern <tt>pattern</tt>
+     * @throws ChannelFinderException - channelfinder exception
      */
     public Collection<Channel> findByTag(String pattern) throws ChannelFinderException {
         // return wrappedSubmit(new FindByParam("~tag", pattern));
@@ -955,16 +991,13 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
      * Search for channels with properties who's Value match the pattern
      * <tt>pattern</tt>.<br>
      * The pattern can contain wildcard char * or ?.<br>
-     * 
-     * @param property
-     *            - the name of the property.
-     * @param pattern
-     *            - the seatch pattern for the property value.
+     *
+     * @param property - the name of the property.
+     * @param pattern  - the seatch pattern for the property value.
      * @return A collection of channels containing the property with name
-     *         <tt>propertyName</tt> who's value matches the pattern
-     *         <tt> pattern</tt>.
-     * @throws ChannelFinderException
-     *             - channelfinder exception
+     * <tt>propertyName</tt> who's value matches the pattern
+     * <tt> pattern</tt>.
+     * @throws ChannelFinderException - channelfinder exception
      */
     public Collection<Channel> findByProperty(String property, String... pattern) throws ChannelFinderException {
         Map<String, String> propertyPatterns = new HashMap<String, String>();
@@ -979,18 +1012,16 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     /**
      * Query for channels based on the Query string <tt>query</tt> example:
      * find("SR* Cell=1,2 Tags=GolderOrbit,myTag)<br>
-     * 
+     * <p>
      * this will return all channels with names starting with SR AND have
      * property Cell=1 OR 2 AND have tags goldenOrbit AND myTag.<br>
-     * 
+     * <p>
      * IMP: each criteria is logically AND'ed while multiple values for
      * Properties are OR'ed.<br>
-     * 
-     * @param query
-     *            - channel finder query
+     *
+     * @param query - channel finder query
      * @return Collection of channels which satisfy the search criteria.
-     * @throws ChannelFinderException
-     *             - channelfinder exception
+     * @throws ChannelFinderException - channelfinder exception
      */
     public Collection<Channel> find(String query) throws ChannelFinderException {
         return wrappedSubmit(new FindByMap(buildSearchMap(query)));
@@ -1001,15 +1032,13 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
      * Map.put("~name", "*")<br>
      * Map.put("~tag", "tag1")<br>
      * Map.put("Cell", "1,2,3")
-     * 
+     * <p>
      * this will return all channels with name=any name AND tag=tag1 AND
      * property Cell = 1 OR 2 OR 3.
-     * 
-     * @param map
-     *            - search map
+     *
+     * @param map - search map
      * @return Collection of channels which satisfy the search map.
-     * @throws ChannelFinderException
-     *             - channelfinder exception
+     * @throws ChannelFinderException - channelfinder exception
      */
     public Collection<Channel> find(Map<String, String> map) throws ChannelFinderException {
         return wrappedSubmit(new FindByMap(map));
@@ -1022,15 +1051,13 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
      * Map.put("Cell", "1")<br>
      * Map.put("Cell", "2")<br>
      * Map.put("Cell", "3")<br>
-     * 
+     * <p>
      * this will return all channels with name=any name AND tag=tag1 AND
      * property Cell = 1 OR 2 OR 3.
-     * 
-     * @param map
-     *            - multivalued map of all search criteria
+     *
+     * @param map - multivalued map of all search criteria
      * @return Collection of channels which satisfy the search map.
-     * @throws ChannelFinderException
-     *             - channelfinder exception
+     * @throws ChannelFinderException - channelfinder exception
      */
     public Collection<Channel> find(MultivaluedMap<String, String> map) throws ChannelFinderException {
         return wrappedSubmit(new FindByMap(map));
@@ -1039,6 +1066,7 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     private class FindByMap implements Callable<Collection<Channel>> {
 
         private MultivaluedMapImpl map;
+        private final ObjectMapper mapper = new ObjectMapper();
 
         FindByMap(Map<String, String> map) {
             MultivaluedMapImpl mMap = new MultivaluedMapImpl();
@@ -1060,21 +1088,21 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         public Collection<Channel> call() throws Exception {
             Collection<Channel> channels = new HashSet<Channel>();
             List<XmlChannel> xmlchannels = new ArrayList<XmlChannel>();
-            ObjectMapper mapper = new ObjectMapper();
             long start = System.currentTimeMillis();
             try {
-                xmlchannels = mapper.readValue(service.path(resourceChannels).queryParams(this.map)
+                xmlchannels = mapper.readValue(cfResource.path(resourceChannels)
+                        .queryParams(this.map)
                         .accept(MediaType.APPLICATION_JSON).get(String.class), new TypeReference<List<XmlChannel>>() {
                         });
             } catch (Exception e) {
             	log.log(Level.WARNING, "Error creating channels:", e);
             }
-            log.log(Level.INFO, "Finished mapping to xml : " + String.valueOf(System.currentTimeMillis()-start));
+            log.log(Level.FINE, "Finished mapping to xml. (Time: " + String.valueOf(System.currentTimeMillis()-start) + " ms)");
             start = System.currentTimeMillis();
             for (XmlChannel xmlchannel : xmlchannels) {
                 channels.add(new Channel(xmlchannel));
             }
-            log.log(Level.INFO, "Finished creating new channels : " + String.valueOf(System.currentTimeMillis()-start));
+            log.log(Level.FINE, "Finished creating new channels. (Time: " + String.valueOf(System.currentTimeMillis()-start) + " ms)");
             return Collections.unmodifiableCollection(channels);
         }
     }
@@ -1097,11 +1125,17 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
                 try {
                     key = keyValue[0];
                     valuePattern = keyValue[1];
+
+                    boolean isNot = key.endsWith("!");
+                    if (isNot) {
+                        key = key.substring(0, key.length() - 1);
+                    }
+
                     if (key.equalsIgnoreCase("Tags") || key.equalsIgnoreCase("Tag")) {
                         key = "~tag";
                     }
                     for (String value : valuePattern.split("&")) {
-                        map.add(key, value.trim());
+                        map.add(key + (isNot ? "!" : ""), value.trim());
                     }
                 } catch (ArrayIndexOutOfBoundsException e) {
                     if (e.getMessage().equals(String.valueOf(0))) {
@@ -1119,42 +1153,40 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     /**
      * Completely Delete {tag} with name = tagName from all channels and the
      * channelfinder service.
-     * 
-     * @param tagName
-     *            - name of tag to be deleted.
-     * @throws ChannelFinderException
-     *             - throws exception
+     *
+     * @param tagName - name of tag to be deleted.
+     * @throws ChannelFinderException - throws exception
      */
-    public void deleteTag(String tagName) throws ChannelFinderException {
+    public void deleteTag(String tagName) throws ChannelFinderException
+    {
         wrappedSubmit(new DeleteElement(resourceTags, tagName));
     }
 
     /**
      * Completely Delete property with name = propertyName from all channels and
      * the channelfinder service.
-     * 
-     * @param propertyName
-     *            - name of property to be deleted.
-     * @throws ChannelFinderException
-     *             - throws exception
+     *
+     * @param propertyName - name of property to be deleted.
+     * @throws ChannelFinderException - throws exception
      */
-    public void deleteProperty(String propertyName) throws ChannelFinderException {
+    public void deleteProperty(String propertyName) throws ChannelFinderException
+    {
         wrappedSubmit(new DeleteElement(resourceProperties, propertyName));
     }
 
     /**
      * Delete the channel identified by <tt>channel</tt>
-     * 
-     * @param channelName
-     *            - channel to be removed
-     * @throws ChannelFinderException
-     *             - channelfinder exception
+     *
+     * @param channelName - channel to be removed
+     * @throws ChannelFinderException - channelfinder exception
      */
-    public void deleteChannel(String channelName) throws ChannelFinderException {
+    public void deleteChannel(String channelName) throws ChannelFinderException
+    {
         wrappedSubmit(new DeleteElement(resourceChannels, channelName)); // $NON-NLS-1$
     }
 
-    private class DeleteElement implements Runnable {
+    private class DeleteElement implements Runnable
+    {
         private final String elementType;
         private final String elementName;
 
@@ -1166,21 +1198,20 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
 
         @Override
         public void run() {
-            service.path(elementType).path(elementName).delete();
+            cfAuthenticatedResource.path(elementType).path(elementName).delete();
         }
 
     }
 
     /**
      * Delete the set of channels identified by <tt>channels</tt>
-     * 
-     * @param channels
-     *            - channels to be deleted
-     * @throws ChannelFinderException
-     *             - throws exception
+     *
+     * @param channels - channels to be deleted
+     * @throws ChannelFinderException - throws exception
      */
     @Deprecated
-    public void delete(Collection<Channel.Builder> channels) throws ChannelFinderException {
+    public void delete(Collection<Channel.Builder> channels) throws ChannelFinderException
+    {
         for (Channel.Builder channel : channels) {
             deleteChannel(channel.build().getName());
         }
@@ -1189,30 +1220,26 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     /**
      * Delete tag <tt>tag</tt> from the channel with the name
      * <tt>channelName</tt>
-     * 
-     * @param tag
-     *            - the tag to be deleted.
-     * @param channelName
-     *            - the channel from which to delete the tag <tt>tag</tt>
-     * @throws ChannelFinderException
-     *             - throws exception
+     *
+     * @param tag         - the tag to be deleted.
+     * @param channelName - the channel from which to delete the tag <tt>tag</tt>
+     * @throws ChannelFinderException - throws exception
      */
-    public void delete(Tag.Builder tag, String channelName) throws ChannelFinderException {
+    public void delete(Tag.Builder tag, String channelName) throws ChannelFinderException
+    {
         wrappedSubmit(new DeleteElementfromChannel(resourceTags, tag // $NON-NLS-1$
                 .toXml().getName(), channelName));
     }
 
     /**
      * Remove the tag <tt>tag </tt> from all the channels <tt>channelNames</tt>
-     * 
-     * @param tag
-     *            - the tag to be deleted.
-     * @param channelNames
-     *            - the channels from which to delete the tag <tt>tag</tt>
-     * @throws ChannelFinderException
-     *             - throws exception
+     *
+     * @param tag          - the tag to be deleted.
+     * @param channelNames - the channels from which to delete the tag <tt>tag</tt>
+     * @throws ChannelFinderException - throws exception
      */
-    public void delete(Tag.Builder tag, Collection<String> channelNames) throws ChannelFinderException {
+    public void delete(Tag.Builder tag, Collection<String> channelNames) throws ChannelFinderException
+    {
         // TODO optimize using the /tags/<name> payload with list of channels
         for (String channelName : channelNames) {
             delete(tag, channelName);
@@ -1222,43 +1249,41 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     /**
      * Remove property <tt>property</tt> from the channel with name
      * <tt>channelName</tt>
-     * 
-     * @param property
-     *            - the property to be deleted.
-     * @param channelName
-     *            - the channel from which to delete the property
-     *            <tt>property</tt>
-     * @throws ChannelFinderException
-     *             - throws exception
+     *
+     * @param property    - the property to be deleted.
+     * @param channelName - the channel from which to delete the property
+     *                    <tt>property</tt>
+     * @throws ChannelFinderException - throws exception
      */
-    public void delete(Property.Builder property, String channelName) throws ChannelFinderException {
+    public void delete(Property.Builder property, String channelName) throws ChannelFinderException
+    {
         wrappedSubmit(new DeleteElementfromChannel(resourceProperties, property.build().getName(), channelName));
     }
 
     /**
      * Remove the property <tt>property</tt> from the set of channels
      * <tt>channelNames</tt>
-     * 
-     * @param property
-     *            - the property to be deleted.
-     * @param channelNames
-     *            - the channels from which to delete the property
-     *            <tt>property</tt>
-     * @throws ChannelFinderException
-     *             - throws exception
+     *
+     * @param property     - the property to be deleted.
+     * @param channelNames - the channels from which to delete the property
+     *                     <tt>property</tt>
+     * @throws ChannelFinderException - throws exception
      */
-    public void delete(Property.Builder property, Collection<String> channelNames) throws ChannelFinderException {
+    public void delete(Property.Builder property, Collection<String> channelNames) throws ChannelFinderException
+    {
         for (String channel : channelNames) {
             delete(property, channel);
         }
     }
 
-    private class DeleteElementfromChannel implements Runnable {
+    private class DeleteElementfromChannel implements Runnable
+    {
         private final String elementType;
         private final String elementName;
         private final String channelName;
 
-        DeleteElementfromChannel(String elementType, String elementName, String channelName) {
+        DeleteElementfromChannel(String elementType, String elementName, String channelName)
+        {
             super();
             this.elementType = elementType;
             this.elementName = elementName;
@@ -1266,8 +1291,12 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         }
 
         @Override
-        public void run() {
-            service.path(this.elementType).path(this.elementName).path(this.channelName)
+        public void run()
+        {
+            cfAuthenticatedResource
+                    .path(this.elementType)
+                    .path(this.elementName)
+                    .path(this.channelName)
                     .accept(MediaType.APPLICATION_JSON).delete();
         }
 
@@ -1276,17 +1305,20 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
     /**
      * close
      */
-    public void close() {
+    public void close()
+    {
         this.executor.shutdown(); // Disable new tasks from being submitted
         try {
             // Wait a while for existing tasks to terminate
-            if (!this.executor.awaitTermination(60, TimeUnit.SECONDS)) {
+            if (!this.executor.awaitTermination(60, TimeUnit.SECONDS))
+            {
                 this.executor.shutdownNow(); // Cancel currently executing tasks
                 // Wait a while for tasks to respond to being cancelled
                 if (!this.executor.awaitTermination(60, TimeUnit.SECONDS))
                     System.err.println("Pool did not terminate"); //$NON-NLS-1$
             }
-        } catch (InterruptedException ie) {
+        } catch (InterruptedException ie)
+        {
             // (Re-)Cancel if current thread also interrupted
             this.executor.shutdownNow();
             // Preserve interrupt status
@@ -1294,7 +1326,8 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         }
     }
 
-    private <T> T wrappedSubmit(Callable<T> callable) {
+    private <T> T wrappedSubmit(Callable<T> callable)
+    {
         try {
             return this.executor.submit(callable).get();
         } catch (InterruptedException e) {
@@ -1320,13 +1353,16 @@ public class ChannelFinderClientImpl implements ChannelFinderClient {
         }
     }
 
-    public Collection<Channel> getAllChannels() {
+    public Collection<Channel> getAllChannels()
+    {
         ObjectMapper mapper = new ObjectMapper();
         List<XmlChannel> xmlchannels = new ArrayList<XmlChannel>();
         try {
             xmlchannels = mapper.readValue(
-                    service.path(resourceChannels).accept(MediaType.APPLICATION_JSON).get(String.class),
-                    new TypeReference<List<XmlChannel>>() {
+                    cfAuthenticatedResource
+                            .path(resourceChannels)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .get(String.class), new TypeReference<List<XmlChannel>>() {
                     });
         } catch (JsonParseException | JsonMappingException e) {
             log.log(Level.WARNING, "Failed to parse the list of channels ", e);

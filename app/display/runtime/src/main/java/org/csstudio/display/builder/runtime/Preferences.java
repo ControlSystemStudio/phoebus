@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.regex.PatternSyntaxException;
 
+import org.phoebus.framework.preferences.AnnotatedPreferences;
+import org.phoebus.framework.preferences.Preference;
 import org.phoebus.framework.preferences.PreferencesReader;
 
 /** Preference settings
@@ -23,22 +25,21 @@ import org.phoebus.framework.preferences.PreferencesReader;
 @SuppressWarnings("nls")
 public class Preferences
 {
-    public static final String PYTHON_PATH = "python_path";
-    public static final String PV_NAME_PATCHES = "pv_name_patches";
-    public static final String UPDATE_THROTTLE = "update_throttle";
-
-    public static String python_path;
-    public static List<TextPatch> pv_name_patches;
-    public static int update_throttle_ms;
+    /** Preference setting */
+    @Preference public static String python_path;
+    /** Preference setting */
+    @Preference(name="update_throttle") public static int update_throttle_ms;
+    /** Preference setting */
+    @Preference public static String probe_display;
+    /** Preference setting */
+    public static final List<TextPatch> pv_name_patches = new ArrayList<>();
 
     static
     {
-        final PreferencesReader prefs = new PreferencesReader(Preferences.class, "/display_runtime_preferences.properties");
-        python_path = prefs.get(PYTHON_PATH);
+    	final PreferencesReader prefs = AnnotatedPreferences.initialize(Preferences.class, "/display_runtime_preferences.properties");
 
-        pv_name_patches = new ArrayList<>();
-        final String setting = prefs.get(PV_NAME_PATCHES);
-        if (! setting.isEmpty())
+    	final String setting = prefs.get("pv_name_patches");
+    	if (! setting.isEmpty())
         {
             // Split on '@', except if preceded by '[' to skip '[@]'
             final String[] config = setting.split("(?<!\\[)@");
@@ -61,10 +62,8 @@ public class Preferences
                 }
             }
             else
-                logger.log(Level.SEVERE, "Invalid setting for " + PV_NAME_PATCHES +
-                                         ", need even number of items (pairs of pattern@replacement)");
+                logger.log(Level.SEVERE, "Invalid setting for pv_name_patches," +
+                                         "need even number of items (pairs of pattern@replacement)");
         }
-
-        update_throttle_ms = prefs.getInt(UPDATE_THROTTLE);
     }
 }

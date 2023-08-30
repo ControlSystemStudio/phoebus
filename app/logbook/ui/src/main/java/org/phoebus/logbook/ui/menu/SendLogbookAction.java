@@ -18,11 +18,12 @@ import java.util.logging.Level;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.AttachmentImpl;
-import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.LogEntryImpl.LogEntryBuilder;
+import org.phoebus.logbook.LogbookPreferences;
+import org.phoebus.logbook.ui.LogbookAvailabilityChecker;
 import org.phoebus.logbook.ui.LogbookUiPreferences;
-import org.phoebus.logbook.ui.write.LogEntryDialog;
-import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.logbook.ui.write.LogEntryEditorStage;
+import org.phoebus.logbook.ui.write.LogEntryModel;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Screenshot;
 
@@ -61,7 +62,7 @@ public class SendLogbookAction extends MenuItem
     {
         super(MESSAGE, ImageCache.getImageView(SendLogbookAction.class, "/icons/logentry-add-16.png"));
 
-        if (LogbookUiPreferences.is_supported)
+        if (LogbookPreferences.is_supported)
             setOnAction(event ->
             {
                 // On UI thread, create screenshot etc.
@@ -71,6 +72,9 @@ public class SendLogbookAction extends MenuItem
                 // Save to file in background thread
                 JobManager.schedule(MESSAGE, monitor ->
                 {
+                    if(!LogbookAvailabilityChecker.isLogbookAvailable()){
+                        return;
+                    }
                     final File image_file = image == null ? null : new Screenshot(image).writeToTempfile("image");
 
                     // Create log entry via dialog on UI thread
@@ -102,13 +106,9 @@ public class SendLogbookAction extends MenuItem
             }
         }
 
-        final LogEntry template = logEntryBuilder.createdDate(Instant.now()).build();
+        final LogEntryModel model = new LogEntryModel(logEntryBuilder.createdDate(Instant.now()).build());
 
-        final LogEntryDialog logEntryDialog = new LogEntryDialog(parent, template);
-        DialogHelper.positionDialog(logEntryDialog, parent, -200, -400);
-        // Set the on submit action to clean up the temporary file after log entry submission.
-        if (image_file != null)
-            logEntryDialog.setOnSubmitAction(() -> image_file.delete());
-        logEntryDialog.showAndWait();
+        new LogEntryEditorStage(parent, model, null).show();
+
     }
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,6 +10,7 @@ package org.phoebus.applications.alarm.ui.tree;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.net.URI;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.AlarmSystem;
@@ -37,6 +38,10 @@ class AlarmTreeInstance implements AppInstance
     private AlarmClient client = null;
     private final DockItemWithInput tab;
 
+    /** @param app Application info
+     *  @param input Input to instance
+     *  @throws Exception on error
+     */
     public AlarmTreeInstance(final AlarmTreeApplication app, final URI input) throws Exception
     {
         this.app = app;
@@ -46,7 +51,7 @@ class AlarmTreeInstance implements AppInstance
         tab.addCloseCheck(() ->
         {
             dispose();
-            return true;
+            return CompletableFuture.completedFuture(true);
         });
         DockPane.getActiveDockPane().addTab(tab);
     }
@@ -71,11 +76,11 @@ class AlarmTreeInstance implements AppInstance
 
         try
         {
-            client = new AlarmClient(server, config_name);
+            client = new AlarmClient(server, config_name, AlarmSystem.kafka_properties);
             final AlarmTreeView tree_view = new AlarmTreeView(client);
             client.start();
 
-            if (AlarmSystem.config_names.size() > 0)
+            if (AlarmSystem.config_names.length > 0)
             {
                 final AlarmConfigSelector configs = new AlarmConfigSelector(config_name, this::changeConfig);
                 tree_view.getToolbar().getItems().add(0, configs);

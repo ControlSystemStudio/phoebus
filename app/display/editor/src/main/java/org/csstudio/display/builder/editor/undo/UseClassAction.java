@@ -19,6 +19,9 @@ public class UseClassAction extends UndoableAction
     private final WidgetProperty<?> property;
     private final boolean use_class;
 
+    /** @param widget_property WidgetProperty
+     *  @param use_class Use class?
+     */
     public UseClassAction(final WidgetProperty<?> widget_property, final boolean use_class)
     {
         super(widget_property.getName() + (use_class ? " - use widget class" : " - ignore widget class"));

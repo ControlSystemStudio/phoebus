@@ -29,6 +29,9 @@ public class SetWidgetPointsAction extends UndoableAction
     private final int orig_x, orig_y, orig_width, orig_height,
                       x, y, width, height;
 
+    /** @param property Property
+     *  @param points Points
+     */
     public SetWidgetPointsAction(final WidgetProperty<Points> property,
                                  final Points points)
     {
@@ -39,6 +42,13 @@ public class SetWidgetPointsAction extends UndoableAction
              property.getWidget().getPropertyValue(propHeight));
     }
 
+    /** @param property Property
+     *  @param points Points
+     *  @param x X
+     *  @param y Y
+     *  @param width Width
+     *  @param height Height
+     */
     public SetWidgetPointsAction(final WidgetProperty<Points> property,
                                  final Points points,
                                  final int x, final int y,

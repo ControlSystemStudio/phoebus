@@ -19,16 +19,21 @@ import org.csstudio.display.builder.model.Messages;
  */
 public class ActionInfos
 {
+    /** Empty widget actions */
     public static final ActionInfos EMPTY = new ActionInfos(Collections.emptyList());
 
     final private List<ActionInfo> actions;
     final private boolean execute_as_one;
 
+    /** @param actions List of action infos */
     public ActionInfos(final List<ActionInfo> actions)
     {
         this(actions, false);
     }
 
+    /** @param actions List of action infos
+     *  @param execute_as_one Execute all in order?
+     */
     public ActionInfos(final List<ActionInfo> actions, final boolean execute_as_one)
     {
         this.actions = Collections.unmodifiableList(actions);
@@ -47,12 +52,17 @@ public class ActionInfos
         return execute_as_one;
     }
 
+    /** @param actions Actions to represent
+     *  @return String representation
+     */
     public static String toString(final List<ActionInfo> actions)
     {
         if (actions.isEmpty())
-            return Messages.Actions_Zero;
+            return  MessageFormat.format(Messages.Actions_N_Fmt, 0);
         if (actions.size() == 1)
-            return actions.get(0).getDescription();
+            return actions.get(0).getDescription().isEmpty() ?
+                    MessageFormat.format(Messages.Actions_N_Fmt, 1) :
+                    actions.get(0).getDescription();
         return MessageFormat.format(Messages.Actions_N_Fmt, actions.size());
     }
 

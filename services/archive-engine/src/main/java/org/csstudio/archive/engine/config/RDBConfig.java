@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,6 +17,7 @@ import java.sql.Statement;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 
 import org.csstudio.archive.Preferences;
@@ -26,10 +27,22 @@ import org.csstudio.archive.engine.model.EngineModel;
 import org.csstudio.archive.engine.model.SampleMode;
 import org.csstudio.archive.writer.rdb.TimestampHelper;
 import org.phoebus.framework.rdb.RDBInfo;
+import org.phoebus.pv.PVPool;
 
 @SuppressWarnings("nls")
 public class RDBConfig implements AutoCloseable
 {
+    /** How to handle a channel that's already under another engine's configuration */
+    public static enum DuplicateMode
+    {
+        /** Abort import */
+        ABORT,
+        /** Log warning and skip the channel */
+        SKIP,
+        /** Remove channel from original engine and move into this engine */
+        STEAL
+    }
+
     private final RDBInfo rdb;
     private final SQL sql;
     private final Connection connection;
@@ -97,12 +110,13 @@ public class RDBConfig implements AutoCloseable
         )
         {
             statement.setString(1, config_name);
-            ResultSet result = statement.executeQuery();
-            if (result.next())
-                engine_id = result.getInt(1);
-            else
-                engine_id = -1;
-            result.close();
+            try (ResultSet result = statement.executeQuery())
+            {
+                if (result.next())
+                    engine_id = result.getInt(1);
+                else
+                    engine_id = -1;
+            }
         }
 
         if (engine_id >= 0)
@@ -120,14 +134,13 @@ public class RDBConfig implements AutoCloseable
             try
             (
                 PreparedStatement statement = connection.prepareStatement(sql.smpl_eng_next_id);
+                ResultSet result = statement.executeQuery();
             )
             {
-                ResultSet result = statement.executeQuery();
                 if (result.next())
                     engine_id = result.getInt(1) + 1;
                 else
                     engine_id = 1;
-                result.close();
             }
 
             logger.log(Level.INFO, "Creating new engine '" + config_name + "' (" + engine_id + ")");
@@ -158,14 +171,13 @@ public class RDBConfig implements AutoCloseable
         try
         (
             PreparedStatement statement = connection.prepareStatement(sql.chan_grp_next_id);
+            ResultSet result = statement.executeQuery();
         )
         {
-            ResultSet result = statement.executeQuery();
             if (result.next())
                 group_id = result.getInt(1) + 1;
             else
                 group_id = 1;
-            result.close();
         }
 
         logger.log(Level.INFO, "Creating new group '" + group_name + "' (" + group_id + ")");
@@ -184,59 +196,85 @@ public class RDBConfig implements AutoCloseable
     }
 
     /** @param group_id Group where to add channel
-     *  @param steal_channels Steal from other group, if channel already attached?
-     *  @param name Name of channel
-     *  @param monitor
-     *  @param period
-     *  @param delta
-     *  @param enable
+     *  @param duplicates How to handle duplicate channels
+     *  @param original_name Name of channel
+     *  @param monitor Monitor?
+     *  @param period Scan or estimated monitor period in seconds
+     *  @param delta Delta for engine-side deadband check
+     *  @param enable Does channel enable its group?
      *  @throws Exception on error, including existing channel
      */
-    public void addChannel(final int group_id, final boolean steal_channels, final String name,
+    public void addChannel(final int group_id, final DuplicateMode duplicate_mode, final String original_name,
                            final boolean monitor, final double period, final double delta,
                            final boolean enable) throws Exception
-    {
+    {   // Does the channel already exist?
         int channel_id = -1;
+        String name = original_name;
         try
-        (
-            PreparedStatement statement = connection.prepareStatement(sql.channel_sel_by_name);
-        )
+        (   PreparedStatement statement = connection.prepareStatement(sql.channel_sel_by_name)  )
         {
-            statement.setString(1, name);
-            ResultSet result = statement.executeQuery();
-            if (result.next())
-                channel_id = result.getInt(1);
-            result.close();
+            final Set<String> variants = PVPool.getNameVariants(name, Preferences.equivalent_pv_prefixes);
+            for (String variant : variants)
+            {
+                statement.setString(1, variant);
+                try (ResultSet result = statement.executeQuery())
+                {
+                    if (result.next())
+                    {
+                        channel_id = result.getInt(1);
+                        name = variant;
+                        break;
+                    }
+                }
+            }
         }
 
         if (channel_id >= 0)
         {
             // Check if existing channel is simply an old one with data,
             // or currently listed in another engine's group
-            Exception existing = null;
             try
-            (
-                PreparedStatement statement = connection.prepareStatement(sql.chan_grp_sel_by_channel);
-            )
+            (   PreparedStatement statement = connection.prepareStatement(sql.chan_grp_sel_by_channel)    )
             {
                 statement.setString(1, name);
-                ResultSet result = statement.executeQuery();
-                if (result.next())
-                    existing = new Exception("Channel '" + name + "' is already in group '" + result.getString(2) + "' (" + result.getInt(1) + "). Use option -steal_channels to move to this engine.");
-                result.close();
+                try (ResultSet result = statement.executeQuery())
+                {
+                    if (result.next())
+                    {
+                        // Channel is already used by another archive engine
+                        final int gid = result.getInt(1);
+                        final String gn = result.getString(2);
+                        final String engine = result.getString(3);
+                        final String info = "Channel '" + original_name + "' is already in engine '" + engine + "' group '" + gn + "' (" + gid + ") as '" + name + "'";
+                        switch (duplicate_mode)
+                        {
+                        case ABORT:
+                            throw new Exception(info);
+                        case SKIP:
+                            logger.log(Level.WARNING, info + " and will remain there.");
+                            // Leave channel "as is" with other engine
+                            return;
+                        case STEAL:
+                        default:
+                            logger.log(Level.WARNING, info + " and will be moved to this engine.");
+                            // Continue with moving channel to this engine's group
+                        }
+                    }
+                }
             }
-            if (existing != null  &&  !steal_channels)
-                throw existing;
 
             // Update channel to be in new group
-            logger.log(Level.INFO, "Updating channel '" + name + "' (" + channel_id + ")");
+            if (name.equals(original_name))
+                logger.log(Level.INFO, "Updating channel '" + name + "' (" + channel_id + ")");
+            else
+                logger.log(Level.INFO, "Updating channel '" + name + "' (" + channel_id + ") to '" + original_name + "'");
             try
             (
                 PreparedStatement statement = connection.prepareStatement(sql.channel_update);
             )
             {
                 statement.setInt(1, group_id);
-                statement.setString(2, name);
+                statement.setString(2, original_name);
                 statement.setInt(3, monitor ? monitor_mode_id : scan_mode_id);
                 statement.setDouble(4, delta);
                 statement.setDouble(5, period);
@@ -249,14 +287,13 @@ public class RDBConfig implements AutoCloseable
             try
             (
                 PreparedStatement statement = connection.prepareStatement(sql.channel_next_id);
+                ResultSet result = statement.executeQuery();
             )
             {
-                ResultSet result = statement.executeQuery();
                 if (result.next())
                     channel_id = result.getInt(1) + 1;
                 else
                     channel_id = 1;
-                result.close();
             }
 
             logger.log(Level.INFO, "Adding new channel '" + name + "' (" + channel_id + ")");
@@ -271,6 +308,20 @@ public class RDBConfig implements AutoCloseable
                 statement.setDouble(4, delta);
                 statement.setDouble(5, period);
                 statement.setInt(6, channel_id);
+                statement.executeUpdate();
+            }
+        }
+
+        if (enable)
+        {
+            // Register this channel as an 'enabling' channel for the group
+            try
+            (
+                PreparedStatement statement = connection.prepareStatement(sql.chan_grp_set_enable_channel);
+            )
+            {
+                statement.setInt(1, channel_id);
+                statement.setInt(2, group_id);
                 statement.executeUpdate();
             }
         }
@@ -290,12 +341,13 @@ public class RDBConfig implements AutoCloseable
         )
         {
             statement.setString(1, config_name);
-            ResultSet result = statement.executeQuery();
-            if (result.next())
-                engine_id = result.getInt(1);
-            else
-                engine_id = -1;
-            result.close();
+            try (ResultSet result = statement.executeQuery())
+            {
+                if (result.next())
+                    engine_id = result.getInt(1);
+                else
+                    engine_id = -1;
+            }
         }
 
         if (engine_id < 0)
@@ -371,20 +423,20 @@ public class RDBConfig implements AutoCloseable
         )
         {
             stmt.setString(1, config_name);
-            final ResultSet result = stmt.executeQuery();
-            if (! result.next())
-                throw new Exception("Unknown archive engine '" + config_name + "'");
+            try (final ResultSet result = stmt.executeQuery())
+            {
+                if (! result.next())
+                    throw new Exception("Unknown archive engine '" + config_name + "'");
 
-            id = result.getInt(1);
-            final URI url = new URI(result.getString(3));
-            logger.info("ID: " + id);
-            logger.info("Description: " + result.getString(2));
-            logger.info("Web Server : " + url);
-            result.close();
-
-            if (url.getPort() != port)
-                throw new Exception("Engine running on port " + port +
-                        " while configuration requires " + url);
+                id = result.getInt(1);
+                final URI url = new URI(result.getString(3));
+                logger.info("ID: " + id);
+                logger.info("Description: " + result.getString(2));
+                logger.info("Web Server : " + url);
+                if (url.getPort() != port)
+                    throw new Exception("Engine running on port " + port +
+                                        " while configuration requires " + url);
+            }
         }
 
         readGroups(model, id, skip_last);
@@ -405,50 +457,53 @@ public class RDBConfig implements AutoCloseable
         )
         {
             sel_groups.setInt(1, engine_id);
-            final ResultSet grp_result = sel_groups.executeQuery();
-            while (grp_result.next())
+
+            try (ResultSet grp_result = sel_groups.executeQuery())
             {
-                final int grp_id = grp_result.getInt(1);
-                final String grp_name = grp_result.getString(2);
-                final int enabling_chan_id = grp_result.getInt(3);
-                logger.log(Level.INFO, "Group '" + grp_name + "' (" + grp_id + ")");
-
-                // Add channels to group
-                final ArchiveGroup group = model.addGroup(grp_name);
-
-                sel_chann.setInt(1, grp_id);
-                final ResultSet chann_result = sel_chann.executeQuery();
-                while (chann_result.next())
+                while (grp_result.next())
                 {
-                    final int channel_id = chann_result.getInt(1);
-                    final String name = chann_result.getString(2);
-                    final int smpl_mode_id = Math.max(1, chann_result.getInt(3));
-                    final double smpl_val = chann_result.getDouble(4);
-                    final double smpl_per = chann_result.getDouble(5);
+                    final int grp_id = grp_result.getInt(1);
+                    final String grp_name = grp_result.getString(2);
+                    final int enabling_chan_id = grp_result.getInt(3);
+                    logger.log(Level.INFO, "Group '" + grp_name + "' (" + grp_id + ")");
 
-                    Instant last_sample_time = null;
-                    if (! skip_last)
+                    // Add channels to group
+                    final ArchiveGroup group = model.addGroup(grp_name);
+
+                    sel_chann.setInt(1, grp_id);
+                    try (ResultSet chann_result = sel_chann.executeQuery())
                     {
-                        sel_last_sample_time.setInt(1, channel_id);
-                        final ResultSet result = sel_last_sample_time.executeQuery();
-                        if (result.next())
-                            last_sample_time = TimestampHelper.fromSQLTimestamp(result.getTimestamp(1));
-                        result.close();
+                        while (chann_result.next())
+                        {
+                            final int channel_id = chann_result.getInt(1);
+                            final String name = chann_result.getString(2);
+                            final int smpl_mode_id = Math.max(1, chann_result.getInt(3));
+                            final double smpl_val = chann_result.getDouble(4);
+                            final double smpl_per = chann_result.getDouble(5);
+
+                            Instant last_sample_time = null;
+                            if (! skip_last)
+                            {
+                                sel_last_sample_time.setInt(1, channel_id);
+                                try (ResultSet result = sel_last_sample_time.executeQuery())
+                                {
+                                    if (result.next())
+                                        last_sample_time = TimestampHelper.fromSQLTimestamp(result.getTimestamp(1));
+                                }
+                            }
+
+                            Enablement enablement = Enablement.Passive;
+                            if (channel_id == enabling_chan_id)
+                                enablement = Enablement.Enabling;
+                            final SampleMode sample_mode = new SampleMode(smpl_mode_id == monitor_mode_id, smpl_val,  smpl_per);
+
+                            logger.log(Level.INFO, "Channel '" + name + "' (" + channel_id + "), " + sample_mode +
+                                                   (last_sample_time != null ? ", last written " + last_sample_time : ""));
+                            model.addChannel(name, group, enablement, sample_mode, last_sample_time);
+                        }
                     }
-
-                    Enablement enablement = Enablement.Passive;
-                    if (channel_id == enabling_chan_id)
-                        enablement = Enablement.Enabling;
-                    final SampleMode sample_mode = new SampleMode(smpl_mode_id == monitor_mode_id, smpl_val,  smpl_per);
-
-                    logger.log(Level.INFO, "Channel '" + name + "' (" + channel_id + "), " + sample_mode +
-                                           (last_sample_time != null ? ", last written " + last_sample_time : ""));
-                    model.addChannel(name, group, enablement, sample_mode, last_sample_time);
                 }
-                chann_result.close();
-
             }
-            grp_result.close();
         }
     }
 

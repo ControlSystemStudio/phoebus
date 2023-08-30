@@ -32,13 +32,13 @@ public class DuplicateAction extends MenuItem
     /** @param node Node used to position confirmation dialog
      *  @param item Item to duplicate
      */
-    public DuplicateAction(final Node node, final TreeItem<File> item)
+    public DuplicateAction(final Node node, final TreeItem<FileInfo> item)
     {
         super(Messages.Duplicate, ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));
 
         setOnAction(event ->
         {
-            final File file = item.getValue();
+            final File file = item.getValue().file;
             final TextInputDialog prompt = new TextInputDialog(Messages.DuplicatePrefix + file.getName());
             prompt.setTitle(getText());
             prompt.setHeaderText(Messages.DuplicatePromptHeader);

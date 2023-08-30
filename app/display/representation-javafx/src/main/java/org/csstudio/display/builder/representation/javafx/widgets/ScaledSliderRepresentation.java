@@ -1,27 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx.widgets;
-
-import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
-
-import java.text.DecimalFormat;
-import java.time.Instant;
-import java.util.logging.Level;
-
-import org.csstudio.display.builder.model.DirtyFlag;
-import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
-import org.csstudio.display.builder.model.WidgetProperty;
-import org.csstudio.display.builder.model.WidgetPropertyListener;
-import org.csstudio.display.builder.model.util.VTypeUtil;
-import org.csstudio.display.builder.model.widgets.ScaledSliderWidget;
-import org.csstudio.display.builder.representation.javafx.JFXUtil;
-import org.epics.vtype.Display;
-import org.epics.vtype.VType;
 
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
@@ -38,6 +22,22 @@ import javafx.scene.layout.Priority;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.util.converter.FormatStringConverter;
+import org.csstudio.display.builder.model.DirtyFlag;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
+import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.util.VTypeUtil;
+import org.csstudio.display.builder.model.widgets.ScaledSliderWidget;
+import org.csstudio.display.builder.representation.javafx.JFXPreferences;
+import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.epics.vtype.Display;
+import org.epics.vtype.VType;
+
+import java.text.DecimalFormat;
+import java.time.Instant;
+import java.util.logging.Level;
+
+import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
 /** Creates JavaFX item for model widget
  *  @author Amanda Carpenter
@@ -69,8 +69,17 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
     private volatile boolean active = false;
     private volatile boolean enabled = false;
 
-    private final Slider slider = new Slider();
-    private final SliderMarkers markers = new SliderMarkers(slider);
+    private final Slider slider;
+    private final SliderMarkers markers;
+
+    /** Constructor */
+    public ScaledSliderRepresentation()
+    {
+        slider = JFXPreferences.inc_dec_slider
+               ? new IncDecSlider()
+               : new Slider();
+       markers = new SliderMarkers(slider);
+    }
 
     @Override
     protected GridPane createJFXNode() throws Exception
@@ -81,11 +90,11 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
             switch (event.getCode())
             {
             case PAGE_UP:
-                slider.adjustValue(value+slider.getBlockIncrement());
+                slider.increment();
                 event.consume();
                 break;
             case PAGE_DOWN:
-                slider.adjustValue(value-slider.getBlockIncrement());
+                slider.decrement();
                 event.consume();
                 break;
             default: break;
@@ -158,8 +167,11 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
         // Since both the widget's PV value and the JFX node's value property might be
         // written to independently during runtime, both must have listeners.
         slider.valueProperty().addListener(this::handleSliderMove);
-        if (toolkit.isEditMode())
+        slider.setOnMouseReleased(this::handleSliderMouseRelease);
+
+        if (toolkit.isEditMode()) {
             dirty_value.checkAndClear();
+        }
         else
         {
             model_widget.runtimePropValue().addPropertyListener(valueChangedListener);
@@ -256,8 +268,18 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
             final Display display_info = Display.displayOf(model_widget.runtimePropValue().getValue());
             if (display_info != null)
             {
-                new_min = display_info.getControlRange().getMinimum();
-                new_max = display_info.getControlRange().getMaximum();
+                // Should use the 'control' range but fall back to 'display' range
+                if (display_info.getControlRange().isFinite())
+                {
+                    new_min = display_info.getControlRange().getMinimum();
+                    new_max = display_info.getControlRange().getMaximum();
+                }
+                else
+                {
+                    new_min = display_info.getDisplayRange().getMinimum();
+                    new_max = display_info.getDisplayRange().getMaximum();
+                    // May also be empty, will fall back to 0..100
+                }
 
                 new_lolo = display_info.getAlarmRange().getMinimum();
 
@@ -349,7 +371,7 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
      *  to one that is hopefully 'nicer'
      *
      *  @param distance Original step distance
-     *  @return
+     *  @return Optimal step size
      */
     public static double selectNiceStep(final double distance)
     {
@@ -366,6 +388,11 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
     {
         if (!active)
             toolkit.fireWrite(model_widget, new_value);
+    }
+
+    private void handleSliderMouseRelease(MouseEvent event) {
+        dirty_value.mark();
+        toolkit.scheduleUpdate(this);
     }
 
     private void valueChanged(final WidgetProperty<? extends VType> property, final VType old_value, final VType new_value)
@@ -446,13 +473,14 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
             markers.setFont(font);
 
             final String style = // Text color (and border around the 'track')
-                                 "-fx-text-background-color: " + JFXUtil.webRGB(model_widget.propForegroundColor().getValue()) +
+                                 "-fx-text-background-color: " + JFXUtil.webRgbOrHex(model_widget.propForegroundColor().getValue()) +
                                  // Axis tick marks
-                                 "; -fx-background: " + JFXUtil.webRGB(model_widget.propForegroundColor().getValue()) +
-                                 // Font (XXX: size isn't used, would have to set it on the SliderSkin's axis?)
-                                 "; " + JFXUtil.cssFont("-fx-tick-label-font", font);
-            jfx_node.setStyle(style);
+                                 "; -fx-background: " + JFXUtil.webRgbOrHex(model_widget.propForegroundColor().getValue()) +
+                                 // Font; NOTE only the shorthand font style is supported for fx-tick-label-font;
+                                 // e.g. fx-tick-label-font-size etc are not supported!
+                                 "; " + JFXUtil.cssFontShorthand("-fx-tick-label-font", font);
 
+            jfx_node.setStyle(style);
             if (model_widget.propShowScale().getValue())
             {
                 String format = model_widget.propScaleFormat().getValue();
@@ -510,8 +538,9 @@ public class ScaledSliderRepresentation extends RegionBaseRepresentation<GridPan
                         // --> Set to min
                         slider.setValue(min);
                     }
-                    else
+                    else {
                         slider.setValue(newval);
+                    }
                 }
                 value = newval;
             }

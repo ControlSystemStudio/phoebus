@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,6 +19,8 @@ import java.util.prefs.Preferences;
 import java.util.regex.Pattern;
 
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
+import org.phoebus.framework.preferences.AnnotatedPreferences;
+import org.phoebus.framework.preferences.Preference;
 import org.phoebus.framework.preferences.PreferencesReader;
 
 /** Phoebus application for EDM converter
@@ -27,11 +29,15 @@ import org.phoebus.framework.preferences.PreferencesReader;
 @SuppressWarnings("nls")
 public class ConverterPreferences
 {
-    public static String colors_list;
+    @Preference public static String colors_list;
+    @Preference private static String edm_paths_config;
+    @Preference public static String stp_path_patch_pattern;
+    @Preference public static String stp_path_patch_replacement;
 
     public static final List<String> paths = new ArrayList<>();
 
     public static volatile File auto_converter_dir;
+    @Preference public static String auto_converter_strip;
 
     private static class FontMapping
     {
@@ -48,8 +54,7 @@ public class ConverterPreferences
 
     static
     {
-        final PreferencesReader prefs = new PreferencesReader(ConverterPreferences.class, "/edm_converter_preferences.properties");
-        colors_list = prefs.get("colors_list");
+        final PreferencesReader prefs = AnnotatedPreferences.initialize(ConverterPreferences.class, "/edm_converter_preferences.properties");
 
         try
         {
@@ -60,7 +65,6 @@ public class ConverterPreferences
             logger.log(Level.WARNING, "Cannot parse font_mappings", ex);
         }
 
-        final String edm_paths_config = prefs.get("edm_paths_config").trim();
         if (! edm_paths_config.isEmpty())
             try
             {
@@ -71,7 +75,7 @@ public class ConverterPreferences
                 logger.log(Level.WARNING, "Cannot parse paths from " + edm_paths_config, ex);
             }
 
-        final String dir = PreferencesReader.replaceProperties(prefs.get("auto_converter_dir"));
+        final String dir = prefs.get("auto_converter_dir");
         if (dir.isBlank())
             auto_converter_dir = null;
         else
@@ -82,7 +86,7 @@ public class ConverterPreferences
             else
             {
                 auto_converter_dir = null;
-                logger.log(Level.WARNING, "EDM auto_converter_dir " + dir + " does not exist");
+                logger.log(Level.WARNING, "EDM auto_converter_dir " + dir + " does not exist and is thus ignored");
             }
         }
     }
@@ -97,8 +101,13 @@ public class ConverterPreferences
         {
             String line;
             while ((line = reader.readLine()) != null)
-                if (! line.startsWith("#"))
-                    paths.add(line);
+            {   // Skip empty lines and comments
+                line = line.strip();
+                if (line.isEmpty() ||
+                    line.startsWith("#"))
+                    continue;
+                paths.add(line);
+            }
         }
     }
 

@@ -1,24 +1,91 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.phoebus</groupId>
   <artifactId>parent</artifactId>
-  <version>4.6.0-SNAPSHOT</version>
+  <version>4.7.3-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>phoebus (parent)</name>
-  
+  <description>A framework and set of tools to monitor and operate large scale control systems, such as the ones in the accelerator community.</description>
+  <url>http://www.phoebus.org/</url>
+
+  <licenses>
+    <license>
+      <name>Eclipse Public License 1.0</name>
+      <url>https://www.eclipse.org/legal/epl-v10.html</url>
+    </license>
+  </licenses>
+
   <scm>
-    <developerConnection>scm:git:https://github.com/kshroff/phoebus</developerConnection>
+    <connection>scm:git:git://github.com/ControlSystemStudio/phoebus.git</connection>
+    <developerConnection>scm:git:https://github.com/ControlSystemStudio/phoebus</developerConnection>
+    <url>https://github.com/ControlSystemStudio/phoebus/tree/master</url>
+    <tag>HEAD</tag>
   </scm>
 
+  <developers>
+    <developer>
+      <name>Kay Kasemir</name>
+      <email>kasemirk@ornl.gov</email>
+      <organization>Oak Ridge National Lab</organization>
+      <organizationUrl>https://github.com/ornl-epics</organizationUrl>
+    </developer>
+    <developer>
+      <name>Kunal Shroff</name>
+      <email>kunalshroff9@gmail.com</email>
+      <organization>Brookhaven National Lab</organization>
+      <organizationUrl>https://github.com/shroffk</organizationUrl>
+    </developer>
+    <developer>
+      <name>Georg Weiss</name>
+      <email>georg.weiss@ess.eu</email>
+      <organization>European Spallation Source</organization>
+      <organizationUrl>https://github.com/georgweiss</organizationUrl>
+    </developer>
+    <developer>
+      <name>Katy Saintin</name>
+      <email>katy.saintin@cea.fr</email>
+      <organization>CEA Paris-Saclay</organization>
+      <organizationUrl>https://github.com/katysaintin</organizationUrl>
+    </developer>
+  </developers>
+
+  <distributionManagement>
+    <!-- To be able to deploy, set login/passwd in your m2 settings.xml, <servers> section
+(id values there should match ids below) -->
+    <snapshotRepository>
+      <id>phoebus-sonatype-nexus-snapshots</id>
+      <name>phoebus-sonatype-nexus-snapshots</name>
+      <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>phoebus-releases</id>
+      <url>https://s01.oss.sonatype.org/content/repositories/releases</url>
+    </repository>
+  </distributionManagement>
+
   <properties>
-    <epics.version>7.0.4</epics.version>
-    <vtype.version>1.0.1</vtype.version>
-    <openjfx.version>12.0.2</openjfx.version>
-    <!--<maven.repo.local>${project.build.directory}/.m2</maven.repo.local>-->
+    <project.build.outputTimestamp>2023-05-24T19:31:02Z</project.build.outputTimestamp>
+    <epics.version>7.0.9</epics.version>
+    <vtype.version>1.0.6</vtype.version>
+    <openjfx.version>19</openjfx.version>
+    <jackson.version>2.12.3</jackson.version>
+    <batik.version>1.14</batik.version>
+    <mockito.version>2.23.4</mockito.version>
+    <postgresql.driver.version>42.6.0</postgresql.driver.version>
+    <!-- When connections to older MySQL server fail because of CLIENT_PLUGIN_AUTH, downgrade to 5.1.45 -->
+    <mysql.version>8.0.30</mysql.version>
+    <jetty.version>9.4.30.v20200611</jetty.version>
+    <apache.commons.math.version>3.6.1</apache.commons.math.version>
+    <junit.version>5.8.2</junit.version>
+    <elasticsearch.version>8.2.0</elasticsearch.version>
+    <!--<maven.repo.local>${project.build.directory}/.m2</maven.repo.local> -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <skipITTests>true</skipITTests>
+    <guava.version>32.1.1-jre</guava.version>
+    <log4j-to-slf4j.version>2.17.1</log4j-to-slf4j.version>
+    <derby.version>10.16.1.1</derby.version>
+    <jython.version>2.7.3</jython.version>
   </properties>
   <build>
     <plugins>
@@ -28,12 +95,25 @@
         <configuration>
           <source>11</source>
           <target>11</target>
+          <fork>true</fork>
+          <compilerArgs>
+            <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
+            <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
+            <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
+            <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED</arg>
+            <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED</arg>
+            <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED</arg>
+            <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED</arg>
+            <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</arg>
+            <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</arg>
+            <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.jvm=ALL-UNNAMED</arg>
+          </compilerArgs>
         </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.20</version>
+        <version>3.0.0-M7</version>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -50,51 +130,48 @@
             </goals>
           </execution>
         </executions>
+      </plugin>  
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.1.1</version>
+        <configuration>
+          <!-- Only document 'public' code -->
+          <show>public</show>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
-        <version>2.5.3</version>
+        <version>3.0.0-M5</version>
+        <configuration>
+          <tagNameFormat>v@{project.version}</tagNameFormat>
+          <autoVersionSubmodules>true</autoVersionSubmodules>
+          <releaseProfiles>releases</releaseProfiles>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <!-- Use a version > 3.2.0 by default for reproducible builds.
+          See: https://maven.apache.org/guides/mini/guide-reproducible-builds.html -->
+        <version>3.3.0</version>
       </plugin>
     </plugins>
-    <!-- Scene Builder is limited to searching for Controllers only within the same folder, thus forcing us to use src/main/java for fxml files instead
-      of /src/main/resources -->
-    <resources>
-      <resource>
-        <directory>src/main/resources</directory>
-      </resource>
-      <resource>
-        <directory>src/main/java</directory>
-        <includes>
-          <include>**/*.fxml</include>
-        </includes>
-      </resource>
-    </resources>
-    <testResources>
-      <testResource>
-        <directory>src/test/resources</directory>
-      </testResource>
-      <testResource>
-        <directory>src/test/java</directory>
-        <includes>
-          <include>**/*.fxml</include>
-        </includes>
-      </testResource>
-    </testResources>
   </build>
 
 
   <profiles>
-    <!-- The it-tests profile when used will run all integration tests, these are junit test classes
-    with names ending in "IT" -->
+    <!-- The it-tests profile when used will run all integration tests, these
+      are junit test classes with names ending in "IT" -->
     <profile>
       <id>it-tests</id>
       <properties>
         <skipITTests>false</skipITTests>
       </properties>
     </profile>
-    <!-- The ui-tests profile when used will run all user interface tests, these are testfx test
-    where the java file names ending in "UI" -->
+    <!-- The ui-tests profile when used will run all user interface tests,
+      these are testfx test where the java file names ending in "UI" -->
     <profile>
       <id>ui-tests</id>
       <properties>
@@ -113,7 +190,8 @@
         </plugins>
       </build>
     </profile>
-    <!-- The all-tests profile when used will run all integration and user interface tests -->
+    <!-- The all-tests profile when used will run all integration and user
+      interface tests -->
     <profile>
       <id>all-tests</id>
       <properties>
@@ -133,29 +211,69 @@
         </plugins>
       </build>
     </profile>
-    <!-- a profile for generating javadocs and the website from the .rst files -->
+        <!-- The docker-tests profile sets the ignore_local_ipv6
+        environment variable to true since IPV6 is not supported in Github Actions at the moment. See ticket #2161 -->
     <profile>
-      <id>docs</id>
+      <id>docker-tests</id>
       <build>
         <plugins>
           <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <version>3.1.1</version>
-            <executions>
-             <execution>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.0.0-M7</version>
+            <configuration>
+              <systemPropertyVariables>
+                <ignore_local_ipv6>true</ignore_local_ipv6>
+               </systemPropertyVariables>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  <!-- a profile for generating javadocs and sources -->
+  <profile>
+    <id>docs</id>
+    <build>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>3.1.1</version>
+          <executions>
+            <execution>
               <id>attach-javadocs</id>
               <goals>
-               <goal>jar</goal>
+                <goal>jar</goal>
               </goals>
               <configuration>
-                  <!-- add this to disable checking -->
-                  <doclint>none</doclint>
-                  <source>11</source>
+                <!-- add this to disable checking -->
+                <doclint>none</doclint>
+                <source>11</source>
               </configuration>
-             </execution>
-            </executions>
-          </plugin>
+            </execution>
+          </executions>
+        </plugin>
+        <!-- Attach sources -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>attach-sources</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </build>
+  </profile>
+  <!-- profile for and the website from the .rst files -->
+  <profile>
+    <id>sphinx</id>
+    <build>
+      <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-site-plugin</artifactId>
@@ -165,11 +283,92 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-project-info-reports-plugin</artifactId>
             <version>3.0.0</version>
+          </plugin>          
+          <!-- Generate the documentation for the Phoebus -->
+          <plugin>
+            <groupId>kr.motd.maven</groupId>
+            <artifactId>sphinx-maven-plugin</artifactId>
+            <version>2.10.0</version>
+            <configuration>
+              <sourceDirectory>${basedir}/docs/source</sourceDirectory>
+              <outputDirectory>${basedir}/docs/build/html</outputDirectory>
+            </configuration>
+            <executions>
+              <execution>
+                <phase>package</phase>
+                <goals>
+                  <goal>generate</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- Profile for generating L10n status report. Execute mvn site -P l10n-status.
+         The report will be located at target/site/l10n-status.html -->
+    <profile>
+      <id>l10n-status</id>
+      <reporting>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>l10n-maven-plugin</artifactId>
+            <version>1.0-alpha-2</version>
+            <configuration>
+              <aggregate>true</aggregate>
+              <includes>**/messages*.properties</includes>
+              <locales>
+                <locale>de</locale>
+                <locale>es</locale>
+                <locale>fr</locale>
+              </locales>
+            </configuration>
+          </plugin>
+          <!-- Disable all other reports for performance -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-project-info-reports-plugin</artifactId>
+            <version>3.0.0</version>
+            <reportSets>
+              <reportSet>
+                <reports>
+                </reports>
+              </reportSet>
+            </reportSets>
+          </plugin>
+        </plugins>
+      </reporting>
+    </profile>
+    <!-- Release profile -->
+    <profile>
+      <id>releases</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>1.6.8</version>
+            <extensions>true</extensions>
+            <configuration>
+              <serverId>phoebus-releases</serverId>
+              <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+              <autoReleaseAfterClose>false</autoReleaseAfterClose>
+            </configuration>
           </plugin>
           <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-project-info-reports-plugin</artifactId>
-              <version>3.0.0</version>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>3.0.1</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
           </plugin>
         </plugins>
       </build>
@@ -177,11 +376,16 @@
   </profiles>
 
   <repositories>
-    <!-- The Nexus snapshot repository hosting the latest diirt modules -->
+    <!-- The Nexus snapshotData repository hosting the latest diirt modules -->
     <repository>
       <id>sonatype-nexus-snapshots</id>
       <name>sonatype-nexus-snapshots</name>
       <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </repository>
+    <repository>
+      <id>es-snapshots</id>
+      <name>elasticsearch snapshotData repo</name>
+      <url>https://snapshots.elastic.co/maven/</url>
     </repository>
   </repositories>
 

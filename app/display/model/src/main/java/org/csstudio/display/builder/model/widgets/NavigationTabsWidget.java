@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,7 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMacros;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propName;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propSelectedColor;
 import static org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget.propGroupName;
 import static org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget.runtimeModel;
 import static org.csstudio.display.builder.model.widgets.TabsWidget.propActiveTab;
@@ -24,6 +25,7 @@ import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.ArrayWidgetProperty;
 import org.csstudio.display.builder.model.DisplayModel;
+import org.csstudio.display.builder.model.MacroizedWidgetProperty;
 import org.csstudio.display.builder.model.StructuredWidgetProperty;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetCategory;
@@ -37,6 +39,7 @@ import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.Direction;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
+import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.Macros;
 
 /** Widget with tabs to select amongst several embedded displays
@@ -66,6 +69,9 @@ public class NavigationTabsWidget extends VisibleWidget
     /** Structure for one tab item and its embedded display */
     public static class TabProperty extends StructuredWidgetProperty
     {
+        /** @param widget Widget
+         *  @param index Tab index 0, 1, ...
+         */
         public TabProperty(final Widget widget, final int index)
         {
             super(propTab, widget,
@@ -75,9 +81,13 @@ public class NavigationTabsWidget extends VisibleWidget
                                 propGroupName.createProperty(widget, "")
                                ));
         }
+        /** @return Tab name */
         public WidgetProperty<String>       name()    { return getElement(0); }
+        /** @return File to embed in tab */
         public WidgetProperty<String>       file()    { return getElement(1); }
+        /** @return Macros for file */
         public WidgetProperty<Macros>       macros()  { return getElement(2); }
+        /** @return Optional sub-group of file */
         public WidgetProperty<String>       group()   { return getElement(3); }
     }
 
@@ -91,9 +101,6 @@ public class NavigationTabsWidget extends VisibleWidget
 
     private static final WidgetPropertyDescriptor<Integer> propTabSpacing =
         CommonWidgetProperties.newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "tab_spacing", "Tab Spacing");
-
-    private static final WidgetPropertyDescriptor<WidgetColor> propSelectedColor =
-            CommonWidgetProperties.newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "selected_color", "Selected Color");
 
     private static final WidgetPropertyDescriptor<WidgetColor> propDeselectedColor =
             CommonWidgetProperties.newColorPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "deselected_color", "Deselected Color");
@@ -110,6 +117,7 @@ public class NavigationTabsWidget extends VisibleWidget
     private volatile WidgetProperty<Integer> active;
     private volatile WidgetProperty<DisplayModel> embedded_model;
 
+    /** Constructor */
     public NavigationTabsWidget()
     {
         // Default size similar to embedded display, plus space for tabs
@@ -132,10 +140,6 @@ public class NavigationTabsWidget extends VisibleWidget
         properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(active = propActiveTab.createProperty(this, 0));
         properties.add(embedded_model = runtimeModel.createProperty(this, null));
-
-        // Initial size
-        propWidth().setValue(300);
-        propHeight().setValue(200);
     }
 
     /** @return 'tabs' property */
@@ -205,20 +209,36 @@ public class NavigationTabsWidget extends VisibleWidget
     public Macros getEffectiveMacros()
     {
         final Macros base = super.getEffectiveMacros();
+        // Join macros of active tab
+        final int index;
+
+        // To fetch the effective macros, we want to add those of the selected tab.
+        // But if we get the tab index via active.getValue(), AND 'active' itself contains macros,
+        // those would be expanded via a call to getEffectiveMacros() -> recursion!
+        // So expand 'active' ourselves using the base macros
+        final String spec = ((MacroizedWidgetProperty<Integer>)active).getSpecification();
         try
         {
-            // Join macros of active tab
-            int index = active.getValue();
-            if (index >= 0  &&  index < tabs.size())
-            {
-                final TabProperty tab = tabs.getElement(index);
-                return Macros.merge(base, tab.macros().getValue());
-            }
+            final String expanded = MacroHandler.replace(base, spec);
+            index = Integer.parseInt(expanded);
         }
         catch (Throwable ex)
-        {   // IndexOutOfBoundsException while tabs change size?
-            logger.log(Level.WARNING, "Cannot access active tab macros", ex);
+        {
+            logger.log(Level.WARNING, this + " cannot determing active tab from '" + spec + "'", ex);
+            return base;
         }
+
+        if (index >= 0  &&  index < tabs.size())
+            try
+            {
+                final Macros selected = tabs.getElement(index).macros().getValue();
+                selected.expandValues(base);
+                return selected;
+            }
+            catch (Throwable ex)
+            {   // IndexOutOfBoundsException while tabs change size?
+                logger.log(Level.WARNING, this + " cannot access macros of active tab " + index, ex);
+            }
         return base;
     }
 }

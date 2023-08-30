@@ -31,7 +31,8 @@ public class GraphicsUtils
     {
         return new java.awt.Color((int) (color.getRed()*255),
                                   (int) (color.getGreen()*255),
-                                  (int) (color.getBlue()*255));
+                                  (int) (color.getBlue()*255),
+                                  (int) (color.getOpacity()*255));
     }
 
     /** Convert color

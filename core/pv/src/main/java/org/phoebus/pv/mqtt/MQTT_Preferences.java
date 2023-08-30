@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,7 +7,8 @@
  *******************************************************************************/
 package org.phoebus.pv.mqtt;
 
-import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.framework.preferences.AnnotatedPreferences;
+import org.phoebus.framework.preferences.Preference;
 
 /**
  * Singleton preferences class for MQTT PVs
@@ -16,11 +17,11 @@ import org.phoebus.framework.preferences.PreferencesReader;
 @SuppressWarnings("nls")
 public class MQTT_Preferences
 {
-    public static final String brokerURL;
+    /** Broker URL */
+    @Preference public static String mqtt_broker;
 
     static
     {
-        final PreferencesReader prefs = new PreferencesReader(MQTT_PVConn.class, "/pv_mqtt_preferences.properties");
-        brokerURL = prefs.get("mqtt_broker");
+    	AnnotatedPreferences.initialize(MQTT_Preferences.class, "/pv_mqtt_preferences.properties");
     }
 }

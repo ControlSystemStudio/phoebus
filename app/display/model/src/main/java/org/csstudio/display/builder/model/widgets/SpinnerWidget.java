@@ -7,17 +7,6 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.widgets;
 
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propEnabled;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propForegroundColor;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFormat;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propIncrement;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLimitsFromPV;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMaximum;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMinimum;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPrecision;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propShowUnits;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -31,16 +20,19 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
+import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
-import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
-import org.csstudio.display.builder.model.properties.WidgetColor;
+import org.csstudio.display.builder.model.persist.WidgetFontService;
+import org.csstudio.display.builder.model.properties.*;
 import org.phoebus.ui.vtype.FormatOption;
+
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.*;
 
 /** Widget that represents a spinner
  *  @author Amanda Carpenter
  */
 @SuppressWarnings("nls")
-public class SpinnerWidget extends PVWidget
+public class SpinnerWidget extends WritablePVWidget
 {
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
@@ -57,6 +49,7 @@ public class SpinnerWidget extends PVWidget
             }
         };
 
+    /** 'buttons_on_left' */
     public static final WidgetPropertyDescriptor<Boolean> propButtonsOnLeft =
             CommonWidgetProperties.newBooleanPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "buttons_on_left", Messages.Spinner_ButtonsOnLeft);
 
@@ -73,7 +66,11 @@ public class SpinnerWidget extends PVWidget
     private volatile WidgetProperty<Double> increment;
     private volatile WidgetProperty<Boolean> buttons_on_left;
     private volatile WidgetProperty<Boolean> enabled;
+    private volatile WidgetProperty<WidgetFont> font;
+    private volatile WidgetProperty<HorizontalAlignment> horizontal_alignment;
+    private volatile WidgetProperty<VerticalAlignment> vertical_alignment;
 
+    /** Constructor */
     public SpinnerWidget()
     {
         super(WIDGET_DESCRIPTOR.getType());
@@ -83,6 +80,7 @@ public class SpinnerWidget extends PVWidget
     protected void defineProperties(final List<WidgetProperty<?>> properties)
     {
         super.defineProperties(properties);
+        properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(format = propFormat.createProperty(this, FormatOption.DECIMAL));
         properties.add(precision = propPrecision.createProperty(this, -1));
         properties.add(show_units = propShowUnits.createProperty(this, false));
@@ -94,6 +92,8 @@ public class SpinnerWidget extends PVWidget
         properties.add(increment = propIncrement.createProperty(this, 1.0));
         properties.add(buttons_on_left = propButtonsOnLeft.createProperty(this, false));
         properties.add(enabled = propEnabled.createProperty(this, true));
+        properties.add(horizontal_alignment = propHorizontalAlignment.createProperty(this, HorizontalAlignment.LEFT));
+        properties.add(vertical_alignment = propVerticalAlignment.createProperty(this, VerticalAlignment.TOP));
     }
 
     @Override
@@ -167,4 +167,23 @@ public class SpinnerWidget extends PVWidget
     {
         return enabled;
     }
+
+    /** @return 'font' property */
+    public WidgetProperty<WidgetFont> propFont()
+    {
+        return font;
+    }
+
+    /** @return 'horizontal_alignment' property */
+    public WidgetProperty<HorizontalAlignment> propHorizontalAlignment()
+    {
+        return horizontal_alignment;
+    }
+
+    /** @return 'vertical_alignment' property */
+    public WidgetProperty<VerticalAlignment> propVerticalAlignment()
+    {
+        return vertical_alignment;
+    }
+
 }

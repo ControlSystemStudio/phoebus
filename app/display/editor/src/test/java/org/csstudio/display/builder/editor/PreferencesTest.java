@@ -7,7 +7,9 @@
  *******************************************************************************/
 package org.csstudio.display.builder.editor;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /** JUnit test of editor preferences
  *  @author Kay Kasemir
@@ -19,5 +21,11 @@ public class PreferencesTest
     public void testPrefs()
     {
         System.out.println("Hidden widget types: " + Preferences.hidden_widget_types);
+    }
+
+    @Test
+    public void testUndoStackSize()
+    {
+        assertEquals(50, Preferences.undo_stack_size);
     }
 }

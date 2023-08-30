@@ -1,15 +1,46 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>dependencies</artifactId>
   <packaging>pom</packaging>
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>parent</artifactId>
-    <version>4.6.0-SNAPSHOT</version>
+    <version>4.7.3-SNAPSHOT</version>
   </parent>
   <modules>
     <module>install-jars</module>
     <module>phoebus-target</module>
   </modules>
+  <profiles>
+    <profile>
+      <id>packageTarget</id>
+      <!-- Package the phoebus product with dependencies, run scripts, and 
+        sources -->
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <version>2.10</version>
+            <executions>
+              <execution>
+                <id>download-sources</id>
+                <goals>
+                  <goal>sources</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>download-javadoc</id>
+                <configuration>
+                  <classifier>javadoc</classifier>
+                </configuration>
+                <goals>
+                  <goal>resolve</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

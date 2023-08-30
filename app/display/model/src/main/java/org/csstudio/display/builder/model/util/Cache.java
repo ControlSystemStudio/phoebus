@@ -39,9 +39,18 @@ public class Cache<T>
 {
     private final Duration timeout;
 
+    /** Callback interface for creating an entry
+     *  @param <K> Key type
+     *  @param <V> Value type
+     */
     @FunctionalInterface
     public interface CreateEntry<K, V>
     {
+        /** Called to create item that's not in cache
+         *  @param key Key
+         *  @return Value
+         *  @throws Exception on error
+         */
         public V create(K key) throws Exception;
     };
 

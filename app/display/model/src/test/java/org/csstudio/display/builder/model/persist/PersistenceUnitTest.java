@@ -1,27 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 package org.csstudio.display.builder.model.persist;
-
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propName;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertThat;
-
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import org.csstudio.display.builder.model.CustomWidget;
 import org.csstudio.display.builder.model.DisplayModel;
@@ -34,8 +18,25 @@ import org.csstudio.display.builder.model.properties.StringWidgetProperty;
 import org.csstudio.display.builder.model.properties.WidgetFontStyle;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.LabelWidget;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propName;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.MatcherAssert.assertThat;
+
 
 /** JUnit test of widget persistence
  *
@@ -58,7 +59,7 @@ public class PersistenceUnitTest
     }
 
     /** Initialize factory for tests */
-    @BeforeClass
+    @BeforeAll
     public static void setup()
     {
         WidgetFactoryUnitTest.initializeFactory();
@@ -75,8 +76,7 @@ public class PersistenceUnitTest
         {
             writer.writeModel(model);
         }
-        String xml = out.toString();
-        return xml;
+        return out.toString();
     }
 
     /** Writing widgets as XML
@@ -110,7 +110,7 @@ public class PersistenceUnitTest
         System.out.println(xml);
 
         final String desired = getExampleFile();
-        assertThat(xml.replace("\r", ""), equalTo(desired));
+        assertThat(xml.replace("\r", "").replaceAll("<!--[\\s\\S]*?-->\n", ""), equalTo(desired));
     }
 
     /** Read widgets from XML

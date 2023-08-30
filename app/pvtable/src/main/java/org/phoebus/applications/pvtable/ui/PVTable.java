@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,26 +8,28 @@
 package org.phoebus.applications.pvtable.ui;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VType;
-import org.phoebus.applications.email.actions.SendEmailAction;
 import org.phoebus.applications.pvtable.PVTableApplication;
 import org.phoebus.applications.pvtable.Settings;
 import org.phoebus.applications.pvtable.model.PVTableItem;
 import org.phoebus.applications.pvtable.model.PVTableModel;
 import org.phoebus.applications.pvtable.model.PVTableModelListener;
-import org.phoebus.applications.pvtable.model.VTypeHelper;
 import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.core.vtypes.VTypeHelper;
+import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
-import org.phoebus.logbook.ui.menu.SendLogbookAction;
 import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -37,6 +39,8 @@ import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.pv.SeverityColors;
+import org.phoebus.ui.selection.AppSelection;
+import org.phoebus.ui.spi.ContextMenuEntry;
 import org.phoebus.util.text.CompareNatural;
 
 import javafx.application.Platform;
@@ -77,6 +81,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.converter.DefaultStringConverter;
+
 
 /** PV Table and its toolbar
  *  @author Kay Kasemir
@@ -418,6 +423,7 @@ public class PVTable extends VBox
         }
     };
 
+    /** @param model Data model */
     public PVTable(final PVTableModel model)
     {
         this.model = model;
@@ -630,6 +636,8 @@ public class PVTable extends VBox
                     "Enter tolerance for " + proxy.getItem().getName(),
                     proxy.getItem().getTolerance(),
                     number -> number >= 0 ? null : "Enter a positive tolerance value");
+            // Would be nice to position on selected row, but hard to get location of selected cell??
+            DialogHelper.positionDialog(dlg, table, -100, -100);
             dlg.promptAndHandle(number -> proxy.getItem().setTolerance(number));
         });
 
@@ -648,6 +656,7 @@ public class PVTable extends VBox
 
         table.setOnContextMenuRequested(event ->
         {
+
             // Start with fixed entries
             menu.getItems().clear();
             menu.getItems().addAll(info, new SeparatorMenuItem());
@@ -668,6 +677,7 @@ public class PVTable extends VBox
                 {
                     Alert alert = new Alert(AlertType.CONFIRMATION, "", ButtonType.NO, ButtonType.YES);
                     alert.setHeaderText("Are you sure you want to disable save/restore functionality for this table?");
+                    DialogHelper.positionDialog(alert, this, -100, -100);
                     Optional<ButtonType> result = alert.showAndWait();
                     if (result.isPresent() && result.get() == ButtonType.YES)
                     {
@@ -684,8 +694,30 @@ public class PVTable extends VBox
 
             menu.getItems().add(new PrintAction(this));
             menu.getItems().add(new SaveSnapshotAction(table));
-            menu.getItems().add(new SendEmailAction(table, "PV Snapshot", () -> "See attached screenshot.", () -> Screenshot.imageFromNode(this)));
-            menu.getItems().add(new SendLogbookAction(table, "PV Snapshot", () -> "See attached screenshot.", () -> Screenshot.imageFromNode(this)));
+
+            // Add context menu actions based on the selection (i.e. email, logbook, etc...)
+            final Selection originalSelection = SelectionService.getInstance().getSelection();
+            final List<AppSelection> newSelection = Arrays.asList(AppSelection.of(table, "PV Snapshot", "See attached screenshot.", () -> Screenshot.imageFromNode(this)));
+            SelectionService.getInstance().setSelection("PV Table", newSelection);
+            List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
+            supported.stream().forEach(action -> {
+                MenuItem menuItem = new MenuItem(action.getName(), new ImageView(action.getIcon()));
+                menuItem.setOnAction((e) -> {
+                    try
+                    {
+                        SelectionService.getInstance().setSelection("PV Table", newSelection);
+                        action.call(table, SelectionService.getInstance().getSelection());
+                    } catch (Exception ex)
+                    {
+                        PVTableApplication.logger.log(Level.WARNING, "Failed to execute " + action.getName() + " from PV Table.", ex);
+                    }
+                });
+                menu.getItems().add(menuItem);
+            });
+            SelectionService.getInstance().setSelection("AlarmUI", originalSelection);
+
+            menu.show(table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+
         });
 
         table.setContextMenu(menu);

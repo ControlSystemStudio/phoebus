@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -32,7 +32,9 @@ import org.phoebus.ui.docking.SplitDock;
 import org.phoebus.ui.javafx.UpdateThrottle;
 
 import javafx.application.Platform;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 /** Helper for persisting UI to/from memento
@@ -77,14 +79,6 @@ public class MementoHelper
 
         final Node node = DockStage.getPaneOrSplit(stage);
         savePaneOrSplit(stage_memento, node);
-    }
-
-    /** Persist each stage (window) and its tabs
-     * @param memento The memento tree to which each stage will be saved.*/
-    public static void saveStages(final MementoTree memento)
-    {
-        for (final Stage stage : DockStage.getDockStages())
-           saveStage(memento, stage);
     }
 
     /** @param memento
@@ -165,6 +159,24 @@ public class MementoHelper
         stage_memento.getNumber(Y).ifPresent(num -> stage.setY(num.doubleValue()));
         stage_memento.getNumber(WIDTH).ifPresent(num -> stage.setWidth(num.doubleValue()));
         stage_memento.getNumber(HEIGHT).ifPresent(num -> stage.setHeight(num.doubleValue()));
+
+        // Check if stage is visible.
+        // Memento might have been stored when a secondary monitor was connected
+        // or on a different host with larger display, but saved location is outside
+        // of currently connected displays.
+        // Mac OS might relocate them on its own,
+        // but at least in Windows 10 such stages are then off-screen and hard to get.
+        final List<Screen> match = Screen.getScreensForRectangle(stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
+        if (match.isEmpty())
+        {
+            logger.log(Level.WARNING, "Relocating restored stage from X=" + stage.getX() + " Y=" + stage.getY() + " to primary screen");
+            final Rectangle2D relocate = Screen.getPrimary().getVisualBounds();
+            // Move to top-left corner of primary screen so it's visible.
+            // Keep size to minimize impact on saved layout.
+            stage.setX(relocate.getMinX());
+            stage.setY(relocate.getMinY());
+        }
+
         stage.show();
         stage_memento.getBoolean(FULLSCREEN).ifPresent(flag -> stage.setFullScreen(flag));
         stage_memento.getBoolean(MAXIMIZED).ifPresent(flag -> stage.setMaximized(flag));
@@ -305,12 +317,17 @@ public class MementoHelper
      *  @param memento_file The file the memento xml is stored in.
      *  @param last_opened_file The last opened file.
      *  @param default_application The default application name.
+     *  @param show_menu Show menu?
      *  @param show_toolbar Show toolbar?
+     *  @param show_statusbar Show status bar?
      */
-    public static void saveState(final File memento_file,
+    public static void saveState(List<Stage> stagesToSave,
+                                 final File memento_file,
                                  final File last_opened_file,
                                  final String default_application,
-                                 final boolean show_toolbar)
+                                 final boolean show_menu,
+                                 final boolean show_toolbar,
+                                 final boolean show_statusbar)
     {
         logger.log(Level.INFO, "Persisting state to " + memento_file);
         try
@@ -323,10 +340,13 @@ public class MementoHelper
             if (default_application != null)
                 memento.setString(PhoebusApplication.DEFAULT_APPLICATION, default_application);
             memento.setBoolean(PhoebusApplication.SHOW_TABS, DockPane.isAlwaysShowingTabs());
+            memento.setBoolean(PhoebusApplication.SHOW_MENU, show_menu);
             memento.setBoolean(PhoebusApplication.SHOW_TOOLBAR, show_toolbar);
+            memento.setBoolean(PhoebusApplication.SHOW_STATUSBAR, show_statusbar);
 
             // Persist each stage (window) and its tabs
-            saveStages(memento);
+            for (final Stage stage : stagesToSave)
+                saveStage(memento, stage);
 
             // Write the memento file
             if (!memento_file.getParentFile().exists())
@@ -340,6 +360,9 @@ public class MementoHelper
     }
 
     /** Close a DockPane or SplitDock and all tabs held within.
+     *
+     *  <p>Dock items must have been prepared to close.
+     *
      *  @param node Node, either a dock item or split pane, that will be closed.
      *  @return boolean <code>true</code> if all the tabs close successfully.
      */
@@ -351,11 +374,7 @@ public class MementoHelper
             final DockPane pane = (DockPane) node;
             final List<DockItem> items = pane.getDockItems();
             for (final DockItem item : items)
-            {
-                // If it refuses to close, return false.
-                if (! item.close())
-                    return false;
-            }
+                item.close();
         }
         else if (node instanceof SplitDock)
         {

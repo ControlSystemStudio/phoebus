@@ -16,14 +16,14 @@ import org.csstudio.utility.adlparser.internationalization.Messages;
  *
  */
 public class MessageButton extends ADLAbstractWidget {
-    private String label = new String();;
-    private String press_msg = new String();
-    private String release_msg = new String();
-    private String color_mode = new String("static");
+    private String label = "";
+    private String press_msg = "";
+    private String release_msg = "";
+    private String color_mode = "static";
 
     public MessageButton(ADLWidget adlWidget) {
         super(adlWidget);
-        name = new String("message button");
+        name = "message button";
         try {
             for (ADLWidget childWidget : adlWidget.getObjects()) {
 

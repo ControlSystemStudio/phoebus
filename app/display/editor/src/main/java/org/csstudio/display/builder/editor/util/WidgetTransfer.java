@@ -64,14 +64,14 @@ import javafx.scene.input.TransferMode;
 
 /** Helper for widget drag/drop
  *
- *  <h3>Handling New File/URL Extensions</h3>
+ *  <p>Handling New File/URL Extensions:
  *  To add the support for a new set of file/URL extensions do the following:
  *  <ul>
  *   <li>Create a new static list of extensions (see {@link #IMAGE_FILE_EXTENSIONS});</li>
  *   <li>Update {@link #SUPPORTED_EXTENSIONS} to include the new list;</li>
- *   <li>Update {@link #installWidgetsFromFiles(List,SelectedWidgetUITracker,List)
+ *   <li>Update {@link #installWidgetsFromFiles(Dragboard, SelectedWidgetUITracker, List, List)}
  *       to handle files having the new extensions;</li>
- *   <li>Update {@link #installWidgetsFromURL(DragEvent,List)
+ *   <li>Update {@link #installWidgetsFromURL(DragEvent, List, List)}
  *       to handle URLs having the new extensions.</li>
  *  </ul>
  *
@@ -97,8 +97,9 @@ public class WidgetTransfer {
      * Add support for 'dragging' a widget out of a node
      *
      * @param source Source {@link Node}
-     * @param selection
-     * @param desc Description of widget type to drag
+     * @param editor Editor
+     * @param palette Description of widget type to drag
+     * @param descriptor Widget descriptor
      * @param image Image to represent the widget, or <code>null</code>
      */
     public static void addDragSupport (
@@ -462,7 +463,7 @@ public class WidgetTransfer {
     }
 
     /**
-     * @param files The pathnames of the image files used by the symbol widget.
+     * @param fileNames The pathnames of the image files used by the symbol widget.
      * @param selection_tracker Used to get the grid steps from its model to be
      *            used in offsetting multiple widgets.
      * @param widgets The container of the created widgets.
@@ -865,7 +866,12 @@ public class WidgetTransfer {
         try {
 
             final String filename = ModelResourceUtil.resolveResource(widget.getTopDisplayModel(), imageFile);
-            final Image image = new Image(ModelResourceUtil.openResourceStream(filename));
+            if(filename.toLowerCase().endsWith("svg")) {
+                // When loaded SVG resource is set to the size of containing widget
+                return;
+            }
+
+            final Image image  = new Image(ModelResourceUtil.openResourceStream(filename));
 
             widget.propWidth().setValue((int) Math.round(image.getWidth()));
             widget.propHeight().setValue((int) Math.round(image.getHeight()));

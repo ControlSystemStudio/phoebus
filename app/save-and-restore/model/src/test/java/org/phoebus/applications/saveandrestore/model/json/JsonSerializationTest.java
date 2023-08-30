@@ -18,43 +18,43 @@
 
 package org.phoebus.applications.saveandrestore.model.json;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.time.Instant;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.epics.util.array.CollectionNumbers;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.AlarmStatus;
 import org.epics.vtype.Display;
+import org.epics.vtype.EnumDisplay;
 import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VDoubleArray;
+import org.epics.vtype.VEnum;
 import org.epics.vtype.VType;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+
+import java.time.Instant;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author georgweiss Created 30 Nov 2018
  */
 public class JsonSerializationTest {
 
-	private VDouble vDouble;
-	private VDoubleArray vDoubleArray;
-	private ObjectMapper objectMapper;
+	private static VDouble vDouble;
+	private static VDoubleArray vDoubleArray;
+	private static ObjectMapper objectMapper;
 
-	@Before
-	public void init() {
+	@BeforeAll
+	public static void init() {
 
 		Alarm alarm = Alarm.of(AlarmSeverity.NONE, AlarmStatus.NONE, "name");
 		Time time = Time.of(Instant.ofEpochSecond(1000L, 7000L));
-		vDouble = VDouble.of(new Double(7.7), alarm, time, Display.none());
+		vDouble = VDouble.of(7.7, alarm, time, Display.none());
 
 		vDoubleArray = VDoubleArray.of(CollectionNumbers.toListDouble(1.1, 7.7), alarm, time, Display.none());
 
@@ -64,8 +64,6 @@ public class JsonSerializationTest {
 	@Test
 	public void testSerializationAndDeserialzation() throws Exception {
 		SnapshotItem snapshotItem = SnapshotItem.builder().configPv(ConfigPv.builder().pvName("a").build())
-				//.fetchStatus(true)
-				.snapshotId(2)
 				.value(vDouble)
 				.readbackValue(vDouble)
 				.build();
@@ -82,7 +80,6 @@ public class JsonSerializationTest {
 
 		snapshotItem = SnapshotItem.builder().configPv(ConfigPv.builder().pvName("a")
 				.build())
-				.snapshotId(2)
 				.value(vDoubleArray)
 				.readbackValue(vDoubleArray)
 				.build();
@@ -92,13 +89,57 @@ public class JsonSerializationTest {
 		assertTrue(vType instanceof VDoubleArray);
 		VDoubleArray vDoubleArray = (VDoubleArray)vType;
 		assertEquals(1.1, vDoubleArray.getData().getDouble(0), 0.01);
-		assertTrue(item.getConfigPv().getPvName().equals("a"));
+		assertEquals("a", item.getConfigPv().getPvName());
 		
 		item.getReadbackValue();
 		assertTrue(vType instanceof VDoubleArray);
 		vDoubleArray = (VDoubleArray)vType;
 		assertEquals(1.1, vDoubleArray.getData().getDouble(0), 0.01);
-		assertTrue(item.getConfigPv().getPvName().equals("a"));
+		assertEquals("a", item.getConfigPv().getPvName());
 		
+	}
+
+	@Test
+	public void testNaN() throws Exception{
+		SnapshotItem snapshotItem = SnapshotItem.builder().configPv(ConfigPv.builder().pvName("a").build())
+				.value(VDouble.of(Double.NaN, Alarm.none(), Time.now(), Display.none()))
+				.build();
+		String json = objectMapper.writeValueAsString(snapshotItem);
+		SnapshotItem item = objectMapper.readValue(json, SnapshotItem.class);
+		VDouble vType = (VDouble)item.getValue();
+		assertEquals(vType.getValue(), Double.NaN, 0);
+	}
+
+	@Test
+	public void testPositiveInfinity() throws Exception{
+		SnapshotItem snapshotItem = SnapshotItem.builder().configPv(ConfigPv.builder().pvName("a").build())
+				.value(VDouble.of(Double.POSITIVE_INFINITY, Alarm.none(), Time.now(), Display.none()))
+				.build();
+		String json = objectMapper.writeValueAsString(snapshotItem);
+		SnapshotItem item = objectMapper.readValue(json, SnapshotItem.class);
+		VDouble vType = (VDouble)item.getValue();
+		assertEquals(vType.getValue(), Double.POSITIVE_INFINITY, 0);
+	}
+
+	@Test
+	public void testNegativeInfinity() throws Exception{
+		SnapshotItem snapshotItem = SnapshotItem.builder().configPv(ConfigPv.builder().pvName("a").build())
+				.value(VDouble.of(Double.NEGATIVE_INFINITY, Alarm.none(), Time.now(), Display.none()))
+				.build();
+		String json = objectMapper.writeValueAsString(snapshotItem);
+		SnapshotItem item = objectMapper.readValue(json, SnapshotItem.class);
+		VDouble vType = (VDouble)item.getValue();
+		assertEquals(vType.getValue(), Double.NEGATIVE_INFINITY, 0);
+	}
+
+	@Test
+	public void testEnum() throws Exception{
+		SnapshotItem snapshotItem = SnapshotItem.builder().configPv(ConfigPv.builder().pvName("a").build())
+				.value(VEnum.of(0, EnumDisplay.of("a", "b"), Alarm.none(), Time.now()))
+				.build();
+		String json = objectMapper.writeValueAsString(snapshotItem);
+		SnapshotItem item = objectMapper.readValue(json, SnapshotItem.class);
+		VEnum vType = (VEnum) item.getValue();
+		assertEquals("a", vType.getValue());
 	}
 }

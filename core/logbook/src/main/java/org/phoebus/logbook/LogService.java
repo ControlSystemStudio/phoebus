@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -25,6 +26,8 @@ public class LogService {
     public static final Logger logger = Logger.getLogger(LogService.class.getPackageName());
 
     static final java.lang.String SERVICE_NAME = "LoggingService";
+
+    public static final String AUTHENTICATION_SCOPE = "Logbook";
 
     private static LogService logService;
     private ServiceLoader<LogFactory> loader;
@@ -56,7 +59,7 @@ public class LogService {
 
     /**
      * Get a registered log factory for creating logbook clients to the specified type of logbook service
-     * @param logbook_factory A string identifying the logbook service type
+     * @param logbookServiceId A string identifying the logbook service type
      * @return logbookFactory for creating clients to logbookServiceId
      */
     public LogFactory getLogFactories(String logbookServiceId) {
@@ -72,44 +75,22 @@ public class LogService {
     }
 
     /**
-     * Create a log entry in all registered LogFactory
-     * 
-     * @param adaptedSelections
-     * @param authToken
-     *            - Authentication Token
-     */
-    public void createLogEntry(LogEntry logEntry, Object authToken) {
-        executor.submit(() -> {
-            logFactories.values().stream().forEach(logFactory -> {
-                logFactory.getLogClient(authToken).set(logEntry);
-            });
-        });
-    }
-
-    /**
      * Create a log entry in all registered LogFactory TODO change to Log type
      * 
-     * @param adaptedSelections
+     * @param logEntries
+     * @param authToken
      */
     public void createLogEntry(List<LogEntry> logEntries, Object authToken) {
         executor.submit(() -> {
             logFactories.values().stream().forEach(logFactory -> {
                 logEntries.forEach(logEntry -> {
-                    logFactory.getLogClient(authToken).set(logEntry);
+                    try {
+                        logFactory.getLogClient(authToken).set(logEntry);
+                    } catch (Exception e) {
+                        logger.log(Level.WARNING, "failed to create log entry ", e);
+                    }
                 });
             });
-        });
-    }
-
-    /**
-     * Create a log entry in the specified LogFactory TODO change to Log type
-     * 
-     * @param id
-     * @param log
-     */
-    public void createLogEntry(String id, LogEntry logEntry, Object authToken) {
-        executor.submit(() -> {
-            logFactories.get(id).getLogClient(authToken).set(logEntry);
         });
     }
 }

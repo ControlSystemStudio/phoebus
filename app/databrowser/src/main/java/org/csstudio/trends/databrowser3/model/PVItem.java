@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -34,8 +34,8 @@ import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.w3c.dom.Element;
 
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.core.BackpressureStrategy;
+import io.reactivex.rxjava3.disposables.Disposable;
 
 /** Data Browser Model Item for 'live' PV.
  *  <p>
@@ -88,7 +88,6 @@ public class PVItem extends ModelItem
     /** Initialize
      *  @param name PV name
      *  @param period Scan period in seconds, &le;0 to 'monitor'
-     *  @throws Exception on error
      */
     public PVItem(final String name, final double period)
     {
@@ -110,7 +109,7 @@ public class PVItem extends ModelItem
         if (index < 0)
             index = 0;
         if (waveform_index.getAndSet(index) != index)
-            fireItemDataConfigChanged();
+            fireItemDataConfigChanged(false);
     }
 
     /** Set new item name, which changes the underlying PV name
@@ -155,7 +154,7 @@ public class PVItem extends ModelItem
         this.period = period;
         if (running)
             start();
-        fireItemDataConfigChanged();
+        fireItemDataConfigChanged(false);
     }
 
     /** {@inheritDoc} */
@@ -184,7 +183,7 @@ public class PVItem extends ModelItem
     public void setLiveCapacity(final int new_capacity) throws Exception
     {
         samples.setLiveCapacity(new_capacity);
-        fireItemDataConfigChanged();
+        fireItemDataConfigChanged(false);
     }
 
     /** @return Archive data sources for this item */
@@ -199,7 +198,7 @@ public class PVItem extends ModelItem
         archives.clear();
         for (ArchiveDataSource arch : Preferences.archives)
             archives.add(arch);
-        fireItemDataConfigChanged();
+        fireItemDataConfigChanged(true);
     }
 
     /** @param archive Archive data source
@@ -221,10 +220,12 @@ public class PVItem extends ModelItem
         if (hasArchiveDataSource(archive))
             throw new Error("Duplicate archive " + archive);
         archives.add(archive);
-        fireItemDataConfigChanged();
+        fireItemDataConfigChanged(true);
     }
 
-    /** @param archive Archives to add as a source to this item. Duplicates are ignored */
+    /**
+     * @param archs Archives to add as a source to this item. Duplicates are ignored
+     */
     public void addArchiveDataSource(final ArchiveDataSource archs[])
     {
         boolean change = false;
@@ -235,25 +236,28 @@ public class PVItem extends ModelItem
                 archives.add(archive);
             }
         if (change)
-            fireItemDataConfigChanged();
+            fireItemDataConfigChanged(true);
     }
 
     /** @param archive Archive to remove as a source from this item. */
     public void removeArchiveDataSource(final ArchiveDataSource archive)
     {
-        if (archives.remove(archive))
-            fireItemDataConfigChanged();
+        boolean change = archives.remove(archive);
+        if (!Preferences.use_default_archives && change) {
+            // Archive removed -> (Probably) no need to get new data
+            fireItemDataConfigChanged(false);
+        }
     }
 
-    /** @param archive Archives to remove as a source from this item. Ignored when not used. */
+    /** @param archs Archives to remove as a source from this item. Ignored when not used. */
     public void removeArchiveDataSource(final List<ArchiveDataSource> archs)
     {
         boolean change = false;
         for (ArchiveDataSource archive : archs)
             if (archives.remove(archive))
                 change = true;
-        if (change)
-            fireItemDataConfigChanged();
+        if (!Preferences.use_default_archives && change)
+            fireItemDataConfigChanged(false);
     }
 
     /** Replace existing archive data sources with given archives
@@ -278,7 +282,7 @@ public class PVItem extends ModelItem
         archives.clear();
         for (ArchiveDataSource arch : archs)
             archives.add(arch);
-        fireItemDataConfigChanged();
+        fireItemDataConfigChanged(true);
     }
 
     /** @return Archive data request type */
@@ -293,14 +297,17 @@ public class PVItem extends ModelItem
         if (this.request_type == request_type)
             return;
         this.request_type = request_type;
-        fireItemDataConfigChanged();
+        fireItemDataConfigChanged(true);
     }
 
-    /** Notify listeners */
-    private void fireItemDataConfigChanged()
+    /** Notify listeners
+     *  @param archive_invalid Was a data source added, do we need to get new archived data?
+     *                         Or does the change not affect archived data?
+     */
+    private void fireItemDataConfigChanged(final boolean archive_invalid)
     {
         if (model.isPresent())
-            model.get().fireItemDataConfigChanged(this);
+            model.get().fireItemDataConfigChanged(this, archive_invalid);
     }
 
     /** Connect control system PV, start scanning, ...
@@ -460,6 +467,7 @@ public class PVItem extends ModelItem
             writer.writeStartElement(XMLPersistence.TAG_REQUEST);
             writer.writeCharacters(getRequestType().name());
             writer.writeEndElement();
+            int key = 1;
             for (ArchiveDataSource archive : archives)
             {
                 writer.writeStartElement(XMLPersistence.TAG_ARCHIVE);
@@ -469,6 +477,9 @@ public class PVItem extends ModelItem
                     writer.writeEndElement();
                     writer.writeStartElement(XMLPersistence.TAG_URL);
                     writer.writeCharacters(archive.getUrl());
+                    writer.writeEndElement();
+                    writer.writeStartElement(XMLPersistence.TAG_KEY);
+                    writer.writeCharacters(Integer.toString(key++));
                     writer.writeEndElement();
                 }
                 writer.writeEndElement();
@@ -489,7 +500,7 @@ public class PVItem extends ModelItem
         final double period = XMLUtil.getChildDouble(node, XMLPersistence.TAG_SCAN_PERIOD).orElse(0.0);
 
         final PVItem item = new PVItem(name, period);
-        final int buffer_size = XMLUtil.getChildInteger(node, XMLPersistence.TAG_LIVE_SAMPLE_BUFFER_SIZE).orElse(Preferences.buffer_size);
+        final int buffer_size = XMLUtil.getChildInteger(node, XMLPersistence.TAG_LIVE_SAMPLE_BUFFER_SIZE).orElse(Preferences.live_buffer_size);
         item.setLiveCapacity(buffer_size);
 
         final String req_txt = XMLUtil.getChildString(node, XMLPersistence.TAG_REQUEST).orElse(RequestType.OPTIMIZED.name());

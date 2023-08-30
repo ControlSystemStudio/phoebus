@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -41,6 +41,7 @@ public class JCA_Preferences
     private static final String LARGE_ARRAY_THRESHOLD = "large_array_threshold";
     private static final String DBE_PROPERTY_SUPPORTED = "dbe_property_supported";
     private static final String MONITOR_MASK = "monitor_mask";
+    private static final String NAME_SERVERS = "name_servers";
 
     private static final JCA_Preferences instance = new JCA_Preferences();
 
@@ -48,7 +49,7 @@ public class JCA_Preferences
 
     private boolean dbe_property_supported = false;
 
-    private Boolean var_array_supported = Boolean.FALSE;
+    private Boolean var_array_supported = null;
 
     private int large_array_threshold = 100000;
 
@@ -66,10 +67,19 @@ public class JCA_Preferences
     }
 
     /** Update the JCA/CAJ related properties from preferences
+     *
+     *  <p>... unless jca.use_env is set to use EPICS_CA_ADDR_LIST etc.
+     *
      *  @throws Exception on error
      */
     public void installPreferences() throws Exception
     {
+        if (Boolean.getBoolean("jca.use_env"))
+        {
+            logger.log(Level.INFO, "Found `jca.use_env=true`, ignoring preferences");
+            logger.log(Level.INFO, "EPICS_CA_ADDR_LIST=" + System.getenv("EPICS_CA_ADDR_LIST"));
+            return;
+        }
         final PreferencesReader prefs = new PreferencesReader(JCA_PVFactory.class, "/pv_ca_preferences.properties");
 
         String code = prefs.get(MONITOR_MASK);
@@ -137,6 +147,9 @@ public class JCA_Preferences
         setSystemProperty("com.cosylab.epics.caj.CAJContext.max_array_bytes", max_array_bytes);
         setSystemProperty("gov.aps.jca.jni.JNIContext.max_array_bytes", max_array_bytes);
 
+        final String name_servers = prefs.get(NAME_SERVERS);
+        setSystemProperty("com.cosylab.epics.caj.CAJContext.name_servers", name_servers);
+
         // gov.aps.jca.event.QueuedEventDispatcher avoids
         // deadlocks when calling JCA while receiving JCA callbacks.
         // But JCA_PV avoids deadlocks, and QueuedEventDispatcher is faster
@@ -183,6 +196,7 @@ public class JCA_Preferences
         return var_array_supported;
     }
 
+    /** @return Array size that's considered "large" to subscribe at lower priority */
     public int largeArrayThreshold()
     {
         return large_array_threshold;

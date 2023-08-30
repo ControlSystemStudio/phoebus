@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,8 +7,12 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui;
 
+import java.util.Arrays;
+
+import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.security.authorization.AuthorizationService;
+import org.phoebus.ui.Preferences;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.geometry.Insets;
@@ -23,24 +27,50 @@ import javafx.scene.paint.Color;
  *
  *  <p>Icons for {@link SeverityLevel}.
  *
+ *  @author Tanvi Ashwarya
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class AlarmUI
 {
+    /** Factor used to adjust color brightness or saturation */
+    private static final double ADJUST = 0.5;
+
     // Next arrays follow the ordinal of SeverityLevel
     private static final Color[] severity_colors = new Color[]
     {
-        Color.rgb(  0, 100,   0), // OK
-        Color.rgb(120,  90,  10), // MINOR_ACK
-        Color.rgb(100,   0,   0), // MAJOR_ACK
-        Color.rgb(100,  50, 100), // INVALID_ACK
-        Color.rgb(100,  50, 100), // UNDEFINED_ACK
-        Color.rgb(207, 192,   0), // MINOR
-        Color.rgb(255,   0,   0), // MAJOR
-        Color.rgb(255,   0, 255), // INVALID
-        Color.rgb(255,   0, 255), // UNDEFINED
+        createColor(Preferences.ok_severity_text_color),                                         // OK
+        createColor(Preferences.minor_severity_text_color)    .deriveColor(0, 1.0, ADJUST, 1.0), // MINOR_ACK
+        createColor(Preferences.major_severity_text_color)    .deriveColor(0, 1.0, ADJUST, 1.0), // MAJOR_ACK
+        createColor(Preferences.invalid_severity_text_color)  .deriveColor(0, 1.0, ADJUST, 1.0), // INVALID_ACK
+        createColor(Preferences.undefined_severity_text_color).deriveColor(0, 1.0, ADJUST, 1.0), // UNDEFINED_ACK
+        createColor(Preferences.minor_severity_text_color),                                      // MINOR
+        createColor(Preferences.major_severity_text_color),                                      // MAJOR
+        createColor(Preferences.invalid_severity_text_color),                                    // INVALID
+        createColor(Preferences.undefined_severity_text_color)                                   // UNDEFINED
     };
+
+    private static final Color[] alarm_area_panel_severity_colors = new Color[]
+            {
+                    createColor(Preferences.alarm_area_panel_ok_severity_text_color),                                         // OK
+                    createColor(Preferences.alarm_area_panel_minor_severity_text_color)    .deriveColor(0, 1.0, ADJUST, 1.0), // MINOR_ACK
+                    createColor(Preferences.alarm_area_panel_major_severity_text_color)    .deriveColor(0, 1.0, ADJUST, 1.0), // MAJOR_ACK
+                    createColor(Preferences.alarm_area_panel_invalid_severity_text_color)  .deriveColor(0, 1.0, ADJUST, 1.0), // INVALID_ACK
+                    createColor(Preferences.alarm_area_panel_undefined_severity_text_color).deriveColor(0, 1.0, ADJUST, 1.0), // UNDEFINED_ACK
+                    createColor(Preferences.alarm_area_panel_minor_severity_text_color),                                      // MINOR
+                    createColor(Preferences.alarm_area_panel_major_severity_text_color),                                      // MAJOR
+                    createColor(Preferences.alarm_area_panel_invalid_severity_text_color),                                    // INVALID
+                    createColor(Preferences.alarm_area_panel_undefined_severity_text_color)                                   // UNDEFINED
+            };
+
+    private static Color createColor(int[] rgb)
+    {
+        if (rgb.length == 3)
+            return Color.rgb(rgb[0], rgb[1], rgb[2]);
+        else if (rgb.length == 4)
+            return Color.rgb(rgb[0], rgb[1], rgb[2], rgb[3]/255.0);
+        throw new IllegalStateException("Expecting R,G,B or R,G,B,A, got " + Arrays.toString(rgb));
+    }
 
     private static final Image[] severity_icons = new Image[]
     {
@@ -55,6 +85,60 @@ public class AlarmUI
         ImageCache.getImage(AlarmUI.class, "/icons/undefined.png")
     };
 
+    private static final Background[] severity_backgrounds = new Background[]
+    {
+        new Background(new BackgroundFill(createColor(Preferences.ok_severity_background_color), CornerRadii.EMPTY, Insets.EMPTY)), // OK
+        new Background(new BackgroundFill(createColor(Preferences.minor_severity_background_color).deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // MINOR_ACK
+        new Background(new BackgroundFill(createColor(Preferences.major_severity_background_color).deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // MAJOR_ACK
+        new Background(new BackgroundFill(createColor(Preferences.invalid_severity_background_color).deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // INVALID_ACK
+        new Background(new BackgroundFill(createColor(Preferences.undefined_severity_background_color).deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // UNDEFINED_ACK
+        new Background(new BackgroundFill(createColor(Preferences.minor_severity_background_color), CornerRadii.EMPTY, Insets.EMPTY)), // MINOR
+        new Background(new BackgroundFill(createColor(Preferences.major_severity_background_color), CornerRadii.EMPTY, Insets.EMPTY)), // MAJOR
+        new Background(new BackgroundFill(createColor(Preferences.invalid_severity_background_color), CornerRadii.EMPTY, Insets.EMPTY)), // INVALID
+        new Background(new BackgroundFill(createColor(Preferences.undefined_severity_background_color), CornerRadii.EMPTY, Insets.EMPTY)), // UNDEFINED
+    };
+
+    private static final Color[] severity_background_colors = new Color[]
+    {
+        createColor(Preferences.ok_severity_background_color),                                                                            // OK
+        createColor(Preferences.minor_severity_background_color)    .deriveColor(0, ADJUST, 1.0, 1.0), // MINOR_ACK
+        createColor(Preferences.major_severity_background_color)    .deriveColor(0, ADJUST, 1.0, 1.0), // MAJOR_ACK
+        createColor(Preferences.invalid_severity_background_color)  .deriveColor(0, ADJUST, 1.0, 1.0), // INVALID_ACK
+        createColor(Preferences.undefined_severity_background_color).deriveColor(0, ADJUST, 1.0, 1.0), // UNDEFINED_ACK
+        createColor(Preferences.minor_severity_background_color)                                                                        , // MINOR
+        createColor(Preferences.major_severity_background_color)                                                                        , // MAJOR
+        createColor(Preferences.invalid_severity_background_color)                                                                      , // INVALID
+        createColor(Preferences.undefined_severity_background_color)                                                                    , // UNDEFINED
+    };
+
+    private static final Color[] alarm_area_panel_severity_backgrounds = new Color[]
+    {
+        createColor(Preferences.alarm_area_panel_ok_severity_background_color),                                                                            // OK
+        createColor(Preferences.alarm_area_panel_minor_severity_background_color)    .deriveColor(0, ADJUST, 1.0, 1.0), // MINOR_ACK
+        createColor(Preferences.alarm_area_panel_major_severity_background_color)    .deriveColor(0, ADJUST, 1.0, 1.0), // MAJOR_ACK
+        createColor(Preferences.alarm_area_panel_invalid_severity_background_color)  .deriveColor(0, ADJUST, 1.0, 1.0), // INVALID_ACK
+        createColor(Preferences.alarm_area_panel_undefined_severity_background_color).deriveColor(0, ADJUST, 1.0, 1.0), // UNDEFINED_ACK
+        createColor(Preferences.alarm_area_panel_minor_severity_background_color),                                                                         // MINOR
+        createColor(Preferences.alarm_area_panel_major_severity_background_color),                                                                         // MAJOR
+        createColor(Preferences.alarm_area_panel_invalid_severity_background_color),                                                                       // INVALID
+        createColor(Preferences.alarm_area_panel_undefined_severity_background_color),                                                                     // UNDEFINED
+    };
+
+    private static final Background[] legacy_table_severity_backgrounds = new Background[]
+    {
+        new Background(new BackgroundFill(createColor(Preferences.ok_severity_text_color), CornerRadii.EMPTY, Insets.EMPTY)), // OK
+        new Background(new BackgroundFill(createColor(Preferences.minor_severity_text_color)    .deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // MINOR_ACK
+        new Background(new BackgroundFill(createColor(Preferences.major_severity_text_color)    .deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // MAJOR_ACK
+        new Background(new BackgroundFill(createColor(Preferences.invalid_severity_text_color)  .deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // INVALID_ACK
+        new Background(new BackgroundFill(createColor(Preferences.undefined_severity_text_color).deriveColor(0, ADJUST, 1.0, 1.0), CornerRadii.EMPTY, Insets.EMPTY)), // UNDEFINED_ACK
+        new Background(new BackgroundFill(createColor(Preferences.minor_severity_text_color),                                      CornerRadii.EMPTY, Insets.EMPTY)), // MINOR
+        new Background(new BackgroundFill(createColor(Preferences.major_severity_text_color),                                      CornerRadii.EMPTY, Insets.EMPTY)), // MAJOR
+        new Background(new BackgroundFill(createColor(Preferences.invalid_severity_text_color),                                    CornerRadii.EMPTY, Insets.EMPTY)), // INVALID
+        new Background(new BackgroundFill(createColor(Preferences.undefined_severity_text_color),                                  CornerRadii.EMPTY, Insets.EMPTY)), // UNDEFINED
+    };
+
+
+    /** Icon for disabled alarms */
     public static final Image disabled_icon = ImageCache.getImage(AlarmUI.class, "/icons/disabled.png");
 
     /** @param severity {@link SeverityLevel}
@@ -63,7 +147,14 @@ public class AlarmUI
     public static Color getColor(final SeverityLevel severity)
     {
         return severity_colors[severity.ordinal()];
+    }
 
+    /** @param severity {@link SeverityLevel}
+     *  @return Color
+     */
+    public static Color getAlarmAreaPanelColor(final SeverityLevel severity)
+    {
+        return alarm_area_panel_severity_colors[severity.ordinal()];
     }
 
     /** @param severity {@link SeverityLevel}
@@ -74,20 +165,89 @@ public class AlarmUI
         return severity_icons[severity.ordinal()];
     }
 
+    /** @param severity {@link SeverityLevel}
+     *  @return Color, may be <code>null</code>
+     */
+    public static Color getBackgroundColor(final SeverityLevel severity)
+    {
+        return severity_background_colors[severity.ordinal()];
+    }
+
+    /** @param severity {@link SeverityLevel}
+     *  @return Background, may be <code>null</code>
+     */
+    public static Background getBackground(final SeverityLevel severity)
+    {
+        return severity_backgrounds[severity.ordinal()];
+    }
+
+
+    /** @param severity {@link SeverityLevel}
+     *  @return Background, may be <code>null</code>
+     */
+    public static Background getLegacyTableBackground(final SeverityLevel severity)
+    {
+        return legacy_table_severity_backgrounds[severity.ordinal()];
+    }
+
+    /** @param severity {@link SeverityLevel}
+     *  @return Background, may be <code>null</code>
+     */
+    public static Color getAlarmAreaPanelBackgroundColor(final SeverityLevel severity)
+    {
+        return alarm_area_panel_severity_backgrounds[severity.ordinal()];
+    }
+
+    /** Verify authorization, qualified by model's current config
+     *  @param model Alarm client model
+     *  @param auto Authorization name
+     *  @return <code>true</code> if the user has authorization
+     */
+    private static boolean haveQualifiedAuthorization(final AlarmClient model, final String authorization)
+    {
+        if (model != null)
+        {   // Check for authorization specific to this alarm model
+            final String qualified = authorization + "." + model.getRoot().getName();
+            if (AuthorizationService.isAuthorizationDefined(qualified))
+                return AuthorizationService.hasAuthorization(qualified);
+        }
+        return AuthorizationService.hasAuthorization(authorization);
+    }
+
     /** Verify acknowledge action through authorization service.
+     *  @param model Alarm client model
      *  @return <code>true</code> if the user has authorization to acknowledge.
      */
-    public static boolean mayAcknowledge()
+    public static boolean mayAcknowledge(final AlarmClient model)
     {
-        return AuthorizationService.hasAuthorization("alarm_ack");
+        return haveQualifiedAuthorization(model, "alarm_ack");
     }
 
     /** Verify configure action through authorization service.
+     *  @param model Alarm client model
      *  @return <code>true</code> if the user has authorization to configure.
      */
-    public static boolean mayConfigure()
+    public static boolean mayConfigure(final AlarmClient model)
     {
-        return AuthorizationService.hasAuthorization("alarm_config");
+        return haveQualifiedAuthorization(model, "alarm_config");
+    }
+
+    /** Verify modify mode action through authorization service.
+     *  @param model Alarm client model
+     *  @return <code>true</code> if the user has authorization to modify maintenance/normal mode.
+     */
+    public static boolean mayModifyMode(final AlarmClient model)
+    {
+        return haveQualifiedAuthorization(model, "alarm_mode");
+    }
+
+    /** Verify disable_notify action through authorization service.
+     *  @param model Alarm client model
+     *  @return <code>true</code> if the user has authorization to disable notifications.
+     */
+    public static boolean mayDisableNotify(final AlarmClient model)
+    {
+        return haveQualifiedAuthorization(model, "alarm_notify");
     }
 
     /** @return Label that indicates missing server connection */

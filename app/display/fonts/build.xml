@@ -1,0 +1,10 @@
+<project default="app-display-fonts">
+  <import file="../../../dependencies/ant_settings.xml"/>
+
+  <target name="app-display-fonts" depends="compile-app">
+    <jar destfile="${build}/app-display-fonts-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+</project>

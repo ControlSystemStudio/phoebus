@@ -33,6 +33,7 @@ import javafx.scene.control.MenuItem;
 @SuppressWarnings("nls")
 public class SetDisplaySize extends MenuItem
 {
+    /** @param editor Editor where to set size */
     public SetDisplaySize(final DisplayEditor editor)
     {
         super(Messages.SetDisplaySize,

@@ -20,8 +20,13 @@ public class TitleDetailDelay extends TitleDetail
     /** Automated action detail prefix for severity PV */
     public static final String SEVRPV = "sevrpv:";
 
+    /** Alarm delay */
     public final int delay;
 
+    /** @param title Title
+     *  @param detail Detail
+     *  @param delay Delay
+     */
     public TitleDetailDelay(final String title, final String detail, int delay)
     {
         super(title, detail);

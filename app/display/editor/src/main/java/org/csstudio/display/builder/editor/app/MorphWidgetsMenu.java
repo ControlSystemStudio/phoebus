@@ -22,6 +22,7 @@ import org.csstudio.display.builder.editor.WidgetSelectionHandler;
 import org.csstudio.display.builder.editor.undo.AddWidgetAction;
 import org.csstudio.display.builder.editor.undo.RemoveWidgetsAction;
 import org.csstudio.display.builder.editor.util.WidgetIcons;
+import org.csstudio.display.builder.model.ArrayWidgetProperty;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.MacroizedWidgetProperty;
 import org.csstudio.display.builder.model.RuntimeWidgetProperty;
@@ -31,6 +32,7 @@ import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetFactory;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.widgets.ArrayWidget;
+import org.csstudio.display.builder.model.widgets.MorphWidgetSupport;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.undo.CompoundUndoableAction;
 
@@ -62,6 +64,7 @@ public class MorphWidgetsMenu extends Menu
         }
     };
 
+    /** @param editor Editor */
     public MorphWidgetsMenu(final DisplayEditor editor)
     {
         super(Messages.ReplaceWith,
@@ -90,6 +93,7 @@ public class MorphWidgetsMenu extends Menu
         }
     }
 
+    /** @param descriptor Widget descriptor */
     public void morph(final WidgetDescriptor descriptor)
     {
         final WidgetSelectionHandler selection = editor.getWidgetSelectionHandler();
@@ -149,25 +153,40 @@ public class MorphWidgetsMenu extends Menu
         selection.setSelection(replacements);
     }
 
+    /** @param <W> Widget class
+     *  @param descriptor Widget type descriptor
+     *  @param widget Original widget
+     *  @return Morphed widget
+     */
     @SuppressWarnings("unchecked")
     public static <W extends Widget> W createNewWidget(final WidgetDescriptor descriptor, final Widget widget)
     {
         final Widget new_widget = descriptor.createWidget();
         final Set<WidgetProperty<?>> props = widget.getProperties();
+        final MorphWidgetSupport mws = new MorphWidgetSupport(widget, new_widget);
         for (WidgetProperty<?> prop : props)
         {
-            final Optional<WidgetProperty<Object>> check = new_widget.checkProperty(prop.getName());
+            final Optional<WidgetProperty<Object>> check = mws.morphProperty(prop);
             if (! check.isPresent())
                 continue;
-            final WidgetProperty<Object> new_prop = check.get();
+            final WidgetProperty<?> new_prop = check.get();
             if (new_prop.isReadonly())
                 continue;
             if (new_prop instanceof RuntimeWidgetProperty)
                 continue;
             try
             {
+                // Get the first element of an ArrayWidgetProperty if the new widget's property is not an array
+                if (prop instanceof ArrayWidgetProperty<?> && ! (new_prop instanceof ArrayWidgetProperty<?>))
+                    prop = ((ArrayWidgetProperty<?>)prop).getElement(0);
+
                 if (new_prop instanceof MacroizedWidgetProperty<?>)
-                    ((MacroizedWidgetProperty<?>)new_prop).setSpecification(((MacroizedWidgetProperty<?>) prop).getSpecification());
+                {
+                    if (prop instanceof MacroizedWidgetProperty<?>)
+                        ((MacroizedWidgetProperty<?>)new_prop).setSpecification(((MacroizedWidgetProperty<?>) prop).getSpecification());
+                    else
+                        ((MacroizedWidgetProperty<?>)new_prop).setSpecification((String)prop.getValue());
+                }
                 else
                     new_prop.setValueFromObject(prop.getValue());
             }

@@ -3,7 +3,9 @@
 Logging alarm state and other messages to an elastic back end.
 
 ## Dependencies ##
-1. elastic version 6+ ([to install elastic](https://www.elastic.co/products)).
+1. Elasticsearch version 8.x OS specific release can be found here:  
+https://www.elastic.co/downloads/past-releases#elasticsearch  
+The CI/CD pipeline is setup to test with elastic release 8.2.3
 
 ### Start elasticsearch
 
@@ -12,22 +14,6 @@ Logging alarm state and other messages to an elastic back end.
 elasticsearch defaults to port 9200, however if elasticsearch is configured to use another port this can be set in
 
     /src/main/resources/alarm_logging_preferences.properties
-
-
-### Create an elasticsearch index
-
-Once, elasticsearch is set up, run the `create_alarm_index.sh` script if you intend to create just one large index,
-or use `create_alarm_template.sh` if you indent to create a new index each day, week or month.
-
-When using one index, the argument to the start up script should be the root of the alarm tree where all letters are lower case.
-
-For example, with the alarm tree titled 'Accelerator', the script would be run like
-
-    sh create_alarm_index.sh accelerator
-    
-this would result in an elasticsearch index titled 'accelerator_alarms' to be created.
-
-When using the template, no argument is necessary.
 
 ### Run the alarm logging service
 
@@ -47,8 +33,11 @@ ant clean dist
 1. Run the jar
 
 ```
-java -jar target/alarm-logger-<version>.jar
+java -jar target/alarm-logger-<version>.jar -topics MY,ALARM,CONFIGS
 ```
+The argument for the ```-topics``` switch is the comma separated list of alarm configurations you wish to be 
+logged. An alarm configuration is the value specified 
+for the ```-config``` switch when starting an alarm server instance. See the README.md file in the alarm-server module.
 
 2. Using spring boot  
 
@@ -58,6 +47,14 @@ mvn spring-boot:run
 
 Run with `-help` to see command line options,
 including those used to create daily, weekly or monthly indices.
+
+#### Configuration
+
+The alarm logger can be configured via command line switches when running the jar, see option `-help` for details, 
+or via properties documented in [here](https://github.com/ControlSystemStudio/phoebus/blob/master/services/alarm-logger/src/main/resources/alarm_logger.properties)
+
+
+
 
 ### Query the Data
 
@@ -73,3 +70,48 @@ This dumps records from one specific index:
 ```
 curl -X GET 'http://localhost:9200/accelerator_alarms_state_2019-02-01/_search?format=json&pretty'
 ```
+
+## Data Management
+
+The  most common aspects for effectively configuring the alarm logger are: 
+
+### Creating an elasticsearch index
+
+The new elastic indices are created based on the templates which are automatically created
+when the service is first launched.
+
+### Index period
+
+By default, the alarm logger will create a new index for each month, named
+`{Alarm topic}_state_yyyy_mm_dd` and `..._cmd_...`.
+This supports the removal of older data by simply and efficiently deleting older indices.
+
+Queries can read from all these indices by using a pattern like `{Alarm topic}_state_*`,
+so they are abstracted from the periodically structured indices.
+
+In practice, monthly indexing, which is also the default, has been proven most useful,
+keeping the indices for roughly one year.
+While finer grained (weekly or even daily) indexing is possible, it will likely require more frequent index cleanup.
+
+### Cleanup
+
+Obsolete data should be periodically removed, this can be achieved by deleting the indices from elastic which contain
+stale data. 
+
+One or more indices can be deleted with the following command:
+
+```
+curl -X DELETE 'localhost:9200/accelerator_alarms_state_2019-02-*'
+```
+
+## Release
+
+**Prepare the release**  
+`mvn release:prepare`  
+In this step will ensure there are no uncommitted changes, ensure the versions number are correct, tag the scm, etc.
+A full list of checks is documented [here](https://maven.apache.org/maven-release/maven-release-plugin/examples/prepare-release.html).
+
+**Perform the release**  
+`mvn -Darguments="-Dskip-executable-jar" -Pdocs,releases release:perform`  
+Checkout the release tag, build, sign and push the build binaries to sonatype. The `docs` profile is needed in order
+to create required javadocs jars.

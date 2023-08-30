@@ -10,7 +10,9 @@ package org.csstudio.javafx.rtplot.internal;
 import java.awt.Graphics2D;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
+import javafx.util.Pair;
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
 
 /** Tick marks of an X or Y Axis.
@@ -23,16 +25,14 @@ public abstract class Ticks<XTYPE>
     protected volatile List<MinorTick<XTYPE>> minor_ticks = Collections.emptyList();
 
     /** How many percent of the available space should be used for labels? */
-    final public static int FILL_PERCENTAGE = 60;
+    final public static int FILL_PERCENTAGE = 70;
 
-    /** Used to check if a requested new range
-     *  can be handled
+    /** Used to adjust a range to a meaningful range for the chosen scale.
      *  @param low Desired low limit of the axis range.
      *  @param high Desired high limit of the axis range.
-     *  @return <code>true</code> if that range can be handled,
-     *          <code>false</code> if that range should be avoided.
+     *  @return Possibly adjusted range (low, high) in the form of a <code>javafx.util.Pair</code>.
      */
-    public abstract boolean isSupportedRange(XTYPE low, XTYPE high);
+    public abstract Pair<XTYPE, XTYPE> adjustRange(XTYPE low, XTYPE high);
 
     /** Compute tick information.
      *

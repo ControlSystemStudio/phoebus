@@ -31,6 +31,11 @@ import javafx.scene.control.MenuItem;
 @SuppressWarnings("nls")
 public class DeleteAxes extends MenuItem
 {
+    /** @param node GUI node
+     *  @param model Model
+     *  @param undo Undo manager
+     *  @param selection Axes to delete
+     */
     public DeleteAxes(final Node node, final Model model, final UndoableActionManager undo,
                       final List<AxisConfig> selection)
     {
@@ -48,6 +53,7 @@ public class DeleteAxes extends MenuItem
                     final Alert dialog = new Alert(AlertType.WARNING);
                     dialog.setTitle(Messages.DeleteAxis);
                     dialog.setHeaderText(MessageFormat.format(Messages.DeleteAxisWarningFmt, axis.getName(), item.getName()));
+                    dialog.setResizable(true);
                     DialogHelper.positionDialog(dialog, node, -200, -200);
                     dialog.showAndWait();
                     return;

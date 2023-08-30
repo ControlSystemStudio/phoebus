@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -66,6 +66,11 @@ public class ArrayWidgetProperty<WPE extends WidgetProperty<?>> extends WidgetPr
         final private ElementFactory<WPE> factory;
         final private int minimum_size;
 
+        /** @param category Property category
+         *  @param name Name of property
+         *  @param description Description
+         *  @param factory Factory for creating array elements
+         */
         public Descriptor(final WidgetPropertyCategory category,
                           final String name, final String description,
                           final ElementFactory<WPE> factory)
@@ -73,6 +78,12 @@ public class ArrayWidgetProperty<WPE extends WidgetProperty<?>> extends WidgetPr
             this(category, name, description, factory, 1);
         }
 
+        /** @param category Property category
+         *  @param name Name of property
+         *  @param description Description
+         *  @param factory Factory for creating array elements
+         *  @param minimum_size Minumum array size
+         */
         public Descriptor(final WidgetPropertyCategory category,
                 final String name, final String description,
                 final ElementFactory<WPE> factory,
@@ -101,15 +112,6 @@ public class ArrayWidgetProperty<WPE extends WidgetProperty<?>> extends WidgetPr
     }
 
     @Override
-    public boolean isUsingWidgetClass()
-    {   // Array uses class if any elements use it
-        for (WidgetProperty<?> element : value)
-            if (element.isUsingWidgetClass())
-                return true;
-        return false;
-    }
-
-    @Override
     public boolean isDefaultValue()
     {
         // Array has 'default' value if it contains
@@ -120,6 +122,15 @@ public class ArrayWidgetProperty<WPE extends WidgetProperty<?>> extends WidgetPr
     }
 
     @Override
+    public void useWidgetClass(boolean use_class)
+    {
+        // Update overall array as well as each element
+        super.useWidgetClass(use_class);
+        for (WPE element : value)
+            element.useWidgetClass(use_class);
+    }
+
+    @Override
     protected List<WPE> restrictValue(final List<WPE> requested_value)
     {
         if (requested_value instanceof CopyOnWriteArrayList)
@@ -127,7 +138,7 @@ public class ArrayWidgetProperty<WPE extends WidgetProperty<?>> extends WidgetPr
         return new CopyOnWriteArrayList<>(requested_value);
     }
 
-    /** @return List<> of current array elements. List is not modifiable (elements, however, are).
+    /** @return List of current array elements. List is not modifiable (elements, however, are).
      *  @see #addElement(WidgetProperty)
      *  @see #removeElement()
      */
@@ -152,7 +163,7 @@ public class ArrayWidgetProperty<WPE extends WidgetProperty<?>> extends WidgetPr
     /** Access element
      *  @param index Element index, 0 .. (<code>getValue().size()</code>-1)
      *  @return Element of array
-     *  @throws IndexOutOfBoundsException
+     *  @throws IndexOutOfBoundsException on invalid index
      */
     public WPE getElement(final int index)
     {
@@ -184,6 +195,8 @@ public class ArrayWidgetProperty<WPE extends WidgetProperty<?>> extends WidgetPr
     /** @param element Element to add to end of list */
     public void addElement(final WPE element)
     {
+        // New elements get same class behavior as the array
+        element.useWidgetClass(use_class);
         value.add(element);
         firePropertyChange(null, Arrays.asList(element));
     }
@@ -218,14 +231,17 @@ public class ArrayWidgetProperty<WPE extends WidgetProperty<?>> extends WidgetPr
             for (int i=0; i<N; ++i)
             {
                 final WPE element = getElement(i);
-                if (element instanceof MacroizedWidgetProperty<?>)
-                    ((MacroizedWidgetProperty<?>)element).setSpecification(((MacroizedWidgetProperty<?>) iter.next()).getSpecification());
+                final Object el_value = iter.next();
+                if (element  instanceof MacroizedWidgetProperty<?>  &&
+                    el_value instanceof MacroizedWidgetProperty<?>)
+                {
+                    ((MacroizedWidgetProperty<?>)element).setSpecification(((MacroizedWidgetProperty<?>) el_value).getSpecification());
+                }
                 else
-                    element.setValueFromObject(iter.next());
+                    element.setValueFromObject(el_value);
             }
 
-            // Notify listeners of the whole array
-            firePropertyChange(this, null, this.value);
+            // Listeners already received remove/add/set events
         }
         catch (Throwable ex)
         {
@@ -269,7 +285,7 @@ public class ArrayWidgetProperty<WPE extends WidgetProperty<?>> extends WidgetPr
             }
             child = child.getNextSibling();
         }
-        value = elements;
+        setValue(elements);
     }
 
     @Override

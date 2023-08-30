@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,17 +18,22 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import org.csstudio.display.builder.editor.util.GeometryTools;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.persist.ModelWriter;
+import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.model.properties.ActionInfos;
+import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.converter.edm.widgets.ConverterBase;
 import org.csstudio.opibuilder.converter.model.EdmDisplay;
@@ -241,6 +246,7 @@ public class EdmConverter
     {
         final ChildrenProperty children = ChildrenProperty.getChildren(parent);
         mergeButtons(children);
+        fixCoveredButtons(children);
         raiseTransparentButtons(children);
     }
 
@@ -299,7 +305,8 @@ public class EdmConverter
         }
     }
 
-    /** @param widget
+    /** Do two widgets overlap, no matter which one covers the other?
+     *  @param widget
      *  @param other
      *  @return Do the widgets overlap by a considerable amount?
      */
@@ -324,6 +331,79 @@ public class EdmConverter
         return overlap > avg_area / 5;
     }
 
+    /** Make covered buttons 'transparent'.
+     *  EDM supports buttons in the back of rectangles etc.
+     *  They're not visible, but they react to mouse clicks.
+     *  In display builder, covered buttons are, well, covered.
+     *  Make them 'transparent', and a follow-up operation then raises
+     *  all transparent buttons to the top so they get mouse clicks.
+     *
+     *  @param children Child widgets to correct
+     */
+    private void fixCoveredButtons(final ChildrenProperty children)
+    {
+        final List<Widget> list = children.getValue();
+        // Start of list = lowest widget
+        for (int i=0;  i<list.size();  ++i)
+        {
+            final Widget widget = list.get(i);
+            if (! (widget instanceof ActionButtonWidget))
+                continue;
+            final ActionButtonWidget bottom = (ActionButtonWidget) widget;
+
+            // Look for widgets on top that cover it
+            for (int o=i+1;  o<list.size();  ++o)
+            {
+                final Widget other = list.get(o);
+
+                // Ignore transparent...
+                Optional<WidgetProperty<Boolean>> check = other.checkProperty(CommonWidgetProperties.propTransparent);
+                if (check.isPresent()  && check.get().getValue())
+                    continue;
+
+                // .. or invisible widgets
+                check = other.checkProperty(CommonWidgetProperties.propVisible);
+                if (check.isPresent()  && !check.get().getValue())
+                    continue;
+
+                // Does other widget cover this one?
+                if (! isWidgetCovered(bottom, other))
+                    continue;
+
+                logger.log(Level.INFO, bottom + " is covered by " + other + ". Making it 'transparent' so it'll be raised.");
+                bottom.propBackgroundColor().setValue(NamedWidgetColors.TRANSPARENT);
+                bottom.propText().setValue("");
+                bottom.propTransparent().setValue(true);
+                break;
+            }
+        }
+    }
+
+    /** Does one widget cover the other?
+     *  @param bottom
+     *  @param top
+     *  @return Does top widget cover the one at the bottom by a considerable amount?
+     */
+    private boolean isWidgetCovered(final Widget bottom, final Widget top)
+    {
+        final Rectangle2D w = new Rectangle2D.Double(bottom.propX().getValue(),
+                                                     bottom.propY().getValue(),
+                                                     bottom.propWidth().getValue(),
+                                                     bottom.propHeight().getValue());
+        final Rectangle2D o = new Rectangle2D.Double(top.propX().getValue(),
+                                                     top.propY().getValue(),
+                                                     top.propWidth().getValue(),
+                                                     top.propHeight().getValue());
+        final Rectangle2D common = w.createIntersection(o);
+        if (common.getWidth() <= 0  ||  common.getHeight() <= 0)
+            return false;
+
+        final int overlap = (int) (common.getWidth() * common.getHeight());
+        final int bottom_area = (int) (w.getWidth() * w.getHeight());
+        // Overlap at least half of the bottom?
+        return overlap > bottom_area / 2;
+    }
+
     /** Move transparent buttons to front.
      *  In EDM, transparent buttons may be placed behind text etc.
      *  In display builder, normal widget order would
@@ -340,8 +420,31 @@ public class EdmConverter
                 final ActionButtonWidget b = (ActionButtonWidget) widget;
                 if (b.propTransparent().getValue())
                 {
-                    children.removeChild(widget);
-                    children.addChild(widget);
+                    try
+                    {
+                        // Get absolute widget coords and check if widget is inside a group
+                        final DisplayModel display = widget.getDisplayModel();
+                        final javafx.geometry.Rectangle2D bounds = GeometryTools.getDisplayBounds(widget);
+                        final boolean top_level = widget.getParent().get() == display;
+                        // Remove from its parent
+                        children.removeChild(widget);
+                        // If it was a top-level widget, just add back to display
+                        if (top_level)
+                            logger.log(Level.INFO, "Raising transparent " + b);
+                        else
+                        {   // If widget was in group, raising it within the group could still mean
+                            // that group is covered by something else.
+                            // So place at absolute coords and then place in display, not original group
+                            logger.log(Level.INFO, "Raising transparent " + b + " and moving from group to top");
+                            widget.propX().setValue((int)bounds.getMinX());
+                            widget.propY().setValue((int)bounds.getMinY());
+                        }
+                        display.runtimeChildren().addChild(widget);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.log(Level.WARNING, "Failed to raise transparent " + b, ex);
+                    }
                 }
             }
         }

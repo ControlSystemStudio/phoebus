@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2021 Oak Ridge National Laboratory.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -7,9 +7,13 @@
  ******************************************************************************/
 package org.phoebus.applications.alarm.server;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.phoebus.applications.alarm.Messages;
+import org.phoebus.applications.alarm.model.AlarmState;
+import org.phoebus.applications.alarm.model.SeverityLevel;
+import org.phoebus.util.time.TimeDuration;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -17,12 +21,9 @@ import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.Ignore;
-import org.junit.Test;
-import org.phoebus.applications.alarm.Messages;
-import org.phoebus.applications.alarm.model.AlarmState;
-import org.phoebus.applications.alarm.model.SeverityLevel;
-import org.phoebus.util.time.TimeDuration;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** JUnit test of AlarmLogic
  *  @author Kay Kasemir
@@ -40,7 +41,7 @@ public class AlarmLogicUnitTest
         private boolean fired_update = false;
         private boolean annunciated = false;
         final private AtomicInteger global_updates = new AtomicInteger();
-        private AtomicReference<AlarmState> global_alarm = new AtomicReference<>();
+        private final AtomicReference<AlarmState> global_alarm = new AtomicReference<>();
 
         AlarmLogicDemo(final boolean latching, final boolean annunciating)
         {
@@ -115,12 +116,12 @@ public class AlarmLogicUnitTest
                 (fired_update ? "new, " : "old, ") +
                 (annunciated ? "annunciate : " : "silent     : ") +
                 logic.toString());
-            assertEquals("Update", update, fired_update);
-            assertEquals("Annunciation", annunciate, annunciated);
-            assertEquals("Current severity", current_sevr, logic.getCurrentState().getSeverity());
-            assertEquals("Current message", current_msg, logic.getCurrentState().getMessage());
-            assertEquals("Alarm severity", sevr, logic.getAlarmState().getSeverity());
-            assertEquals("Alarm message", msg, logic.getAlarmState().getMessage());
+            assertEquals(update, fired_update, "Update");
+            assertEquals(annunciate, annunciated, "Annunciation");
+            assertEquals(current_sevr, logic.getCurrentState().getSeverity(), "Current severity");
+            assertEquals(current_msg, logic.getCurrentState().getMessage(), "Current message");
+            assertEquals(sevr, logic.getAlarmState().getSeverity(), "Alarm severity");
+            assertEquals(msg, logic.getAlarmState().getMessage(), "Alarm message");
             // Reset
             fired_update = false;
             annunciated = false;
@@ -128,7 +129,7 @@ public class AlarmLogicUnitTest
 
         void checkEnablementChange()
         {
-            assertTrue("Enablement changed", fired_enablement);
+            assertTrue(fired_enablement, "Enablement changed");
             System.out.println("Logic is " + (logic.isEnabled() ? "enabled" : "disabled"));
             fired_enablement = false;
         }
@@ -528,6 +529,45 @@ public class AlarmLogicUnitTest
     }
 
     @Test
+    public void testUnlatchedDelayedButShortThenAnother() throws Exception
+    {
+        System.out.println("* Unlatched, annunciated, delayed: Major, clear, no alarm, then alarm which persists, clear");
+        final int delay = 2;
+        final AlarmLogicDemo logic = new AlarmLogicDemo(false, true, delay);
+        logic.check(false, false, SeverityLevel.OK, OK, SeverityLevel.OK, OK);
+        assertEquals("", logic.getAlarmState().getValue());
+
+        // MAJOR alarm has no immediate effect
+        logic.computeNewState("a", SeverityLevel.MAJOR, "very high");
+        logic.check(true, false, SeverityLevel.MAJOR, "very high", SeverityLevel.OK, OK);
+        assertEquals("", logic.getAlarmState().getValue());
+
+        // .. if it clears in time (1/2 the delay time)
+        Thread.sleep(delay * 500);
+        logic.computeNewState("b", SeverityLevel.OK, OK);
+        logic.check(true, false, SeverityLevel.OK, OK, SeverityLevel.OK, OK);
+        assertEquals("b", logic.getAlarmState().getValue());
+
+        // Assert that it stays that way
+        System.out.println("wait...");
+        Thread.sleep(delay * 1500);
+        logic.check(false, false, SeverityLevel.OK, OK, SeverityLevel.OK, OK);
+        assertEquals("b", logic.getAlarmState().getValue());
+
+        // Enter alarm
+        logic.computeNewState("c", SeverityLevel.MAJOR, "VERY high");
+        logic.check(true, false, SeverityLevel.MAJOR, "VERY high", SeverityLevel.OK, OK);
+        System.out.println("wait...");
+        Thread.sleep(delay * 1500);
+        logic.check(true, true, SeverityLevel.MAJOR, "VERY high", SeverityLevel.MAJOR, "VERY high");
+        assertEquals("c", logic.getAlarmState().getValue());
+
+        // Clear
+        logic.computeNewState("d", SeverityLevel.OK, OK);
+        logic.check(true, false, SeverityLevel.OK, OK, SeverityLevel.OK, OK);
+    }
+
+    @Test
     public void testLatchedAnnunciatedDelayed() throws Exception
     {
         System.out.println("* Latched, annunciated, delayed: Major, persists, clear, ack; MINOR, MAJOR, MINOR, persist");
@@ -620,10 +660,44 @@ public class AlarmLogicUnitTest
         System.out.println("wait...");
         Thread.sleep(delay * 1500);
         logic.check(true, true, SeverityLevel.MINOR, "high", SeverityLevel.MINOR, "high");
-     }
+    }
 
     @Test
-    public void testLatchedAnnunciatedCount() throws Exception
+    public void testDelayedButShortBurst() throws Exception
+    {
+        System.out.println("* Latched, annunciated, delayed: { Major, clear} several times within delay, no alarm");
+        final int delay = 2;
+        final AlarmLogicDemo logic = new AlarmLogicDemo(true, true, delay);
+        logic.check(false, false, SeverityLevel.OK, OK, SeverityLevel.OK, OK);
+        assertEquals("", logic.getAlarmState().getValue());
+
+        String last_value = "";
+        for (int i=0; i<10; ++i)
+        {
+            // MAJOR alarm has no immediate effect
+            logic.computeNewState("a"+i, SeverityLevel.MAJOR, "very high");
+            logic.check(true, false, SeverityLevel.MAJOR, "very high", SeverityLevel.OK, OK);
+            assertEquals(last_value, logic.getAlarmState().getValue());
+
+            // .. if it clears in time (1/2 the delay time)
+            Thread.sleep(delay * 500);
+            last_value = "b" + i;
+            logic.computeNewState(last_value, SeverityLevel.OK, OK);
+            logic.check(true, false, SeverityLevel.OK, OK, SeverityLevel.OK, OK);
+            assertEquals(last_value, logic.getAlarmState().getValue());
+
+            // The 'delay' timer resets when the PV returns to OK
+        }
+
+        // Assert that it stays that way
+        System.out.println("wait...");
+        Thread.sleep(delay * 1500);
+        logic.check(false, false, SeverityLevel.OK, OK, SeverityLevel.OK, OK);
+        assertEquals(last_value, logic.getAlarmState().getValue());
+    }
+
+    @Test
+    public void testLatchedAnnunciatedCount()
     {
         System.out.println("* Latched, annunciated, count: minor, ok, minor, ok");
         final int delay = 200;
@@ -674,7 +748,7 @@ public class AlarmLogicUnitTest
     }
 
     @Test
-    public void testShadesOfInvalid() throws Exception
+    public void testShadesOfInvalid()
     {
         System.out.println("* Invalid/disconnected, Invalid/Timeout");
         final AlarmLogicDemo logic = new AlarmLogicDemo(true, true);
@@ -750,7 +824,7 @@ public class AlarmLogicUnitTest
      *  This checks for that problem
      */
     @Test
-    public void testUnlatchedAnnunciatedCount() throws Exception
+    public void testUnlatchedAnnunciatedCount()
     {
         System.out.println("* NonLatched, annunciated, count: minor, ok, minor, ok");
         final int delay = 10;
@@ -795,7 +869,7 @@ public class AlarmLogicUnitTest
     }
 
     @Test
-    public void testMaintenanceMode() throws Exception
+    public void testMaintenanceMode()
     {
         System.out.println("* testMaintenanceMode");
         AlarmLogicDemo logic = new AlarmLogicDemo(false, true);
@@ -834,8 +908,9 @@ public class AlarmLogicUnitTest
         logic.check(true, true, SeverityLevel.MINOR, "high", SeverityLevel.MINOR, "high");
     }
 
-    @Ignore
-    @Test(timeout=60000)
+    @Disabled
+    @Test
+    @Timeout(6)
     public void testGlobalNotifications() throws Exception
     {
         System.out.println("* testGlobalNotifications");
@@ -963,7 +1038,7 @@ public class AlarmLogicUnitTest
         assertEquals(SeverityLevel.OK, logic.getGlobalAlarm().getSeverity());
     }
 
-    @Ignore
+    @Disabled
     @Test
     public void testGlobalEscalation() throws Exception
     {
@@ -1005,5 +1080,62 @@ public class AlarmLogicUnitTest
         // Not really checking what was in the notification,
         // assuming that it matches the current alarm state:
         assertEquals(SeverityLevel.MAJOR, logic.getAlarmState().getSeverity());
+    }
+
+    /** Basic delayed alarm */
+    @Test
+    public void testDelayed() throws Exception
+    {
+        System.out.println("* Delayed");
+        final int delay = 2;
+        final AlarmLogicDemo logic = new AlarmLogicDemo(true, true, delay);
+        logic.check(false, false, SeverityLevel.OK, OK, SeverityLevel.OK, OK);
+        assertEquals("", logic.getAlarmState().getValue());
+
+        // MAJOR alarm has no immediate effect
+        logic.computeNewState("a", SeverityLevel.MAJOR, "very high");
+        logic.check(true, false, SeverityLevel.MAJOR, "very high", SeverityLevel.OK, OK);
+        assertEquals("", logic.getAlarmState().getValue());
+
+        // .. until the delay expires
+        System.out.println("Waiting for delayed alarm...");
+        Thread.sleep(delay * 2 * 1000);
+        logic.check(true, true, SeverityLevel.MAJOR, "very high", SeverityLevel.MAJOR, "very high");
+        assertEquals("a", logic.getAlarmState().getValue());
+    }
+
+    /** Test for https://github.com/ControlSystemStudio/phoebus/issues/1966 */
+    @Test
+    public void testDelayedThenDisabled() throws Exception
+    {
+        System.out.println("* Delayed, then disabled");
+        final int delay = 2;
+        final AlarmLogicDemo logic = new AlarmLogicDemo(true, true, delay);
+        logic.check(false, false, SeverityLevel.OK, OK, SeverityLevel.OK, OK);
+        assertEquals("", logic.getAlarmState().getValue());
+
+        // MAJOR alarm has no immediate effect
+        logic.computeNewState("a", SeverityLevel.MAJOR, "very high");
+        logic.check(true, false, SeverityLevel.MAJOR, "very high", SeverityLevel.OK, OK);
+        assertEquals("", logic.getAlarmState().getValue());
+
+        logic.setEnabled(false);
+
+        // .. and should still be ignored after delay expires because of disablement
+        System.out.println("Waiting for delayed alarm, but we're disabled");
+        Thread.sleep(delay * 2 * 1000);
+        logic.check(true, false, SeverityLevel.OK, OK, SeverityLevel.OK, Messages.Disabled);
+        assertEquals("", logic.getAlarmState().getValue());
+
+        // When re-enabled, the timer needs to re-start
+        System.out.println("Re-enabling, awaiting delayed alarm");
+        // So there's no immediate alarm...
+        logic.setEnabled(true);
+        logic.check(true, false, SeverityLevel.MAJOR, "very high", SeverityLevel.OK, OK);
+        assertEquals("", logic.getAlarmState().getValue());
+
+        Thread.sleep(delay * 2 * 1000);
+        logic.check(true, true, SeverityLevel.MAJOR, "very high", SeverityLevel.MAJOR, "very high");
+        assertEquals("a", logic.getAlarmState().getValue());
     }
 }

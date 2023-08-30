@@ -33,7 +33,7 @@ class DestroyChannelRequest implements RequestEncoder
         PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_DESTROY_CHANNEL, 4+4);
         // Protocol description claims CID followed by SID,
         // but as of May 2019 both the C++ and Java server expect SID, CID
-        buffer.putInt(channel.sid);
-        buffer.putInt(channel.getId());
+        buffer.putInt(channel.getSID());
+        buffer.putInt(channel.getCID());
     }
 }

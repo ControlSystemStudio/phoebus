@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,6 +17,8 @@ import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.csstudio.apputil.formula.Formula;
+import org.csstudio.apputil.formula.VariableNode;
 import org.csstudio.display.builder.model.ChildrenProperty;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -37,6 +39,7 @@ import org.csstudio.opibuilder.converter.model.EdmColor;
 import org.csstudio.opibuilder.converter.model.EdmFont;
 import org.csstudio.opibuilder.converter.model.EdmModel;
 import org.csstudio.opibuilder.converter.model.EdmWidget;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 /** Base for each converter
  *
@@ -53,7 +56,7 @@ import org.csstudio.opibuilder.converter.model.EdmWidget;
 @SuppressWarnings("nls")
 public abstract class ConverterBase<W extends Widget>
 {
-    protected final W widget;
+    protected W widget;
 
     public ConverterBase(final EdmConverter converter, final Widget parent, final EdmWidget t)
     {
@@ -163,8 +166,45 @@ public abstract class ConverterBase<W extends Widget>
         prop.setValue(convertStaticColor(edm));
     }
 
-    /** Find a '=' that is neither preceded by '<', '>', '=' nor followed by '=' */
-    private static final Pattern expand_equal = Pattern.compile("(?<![<>=])=(?!=)");
+    /** Evaluate 'dynamic' color rule
+     *  @param edm {@link EdmColor}, must be dynamic
+     *  @param value Numeric value for which to fetch color
+     *  @return Color
+     */
+    public static WidgetColor evaluateDynamicColor(final EdmColor edm, final double value)
+    {
+        if (! edm.isDynamic())
+            throw new IllegalStateException("Color is not dynamic: " + edm);
+
+        final VariableNode[] variables = { new VariableNode("pv0", value) };
+        for (Entry<String, String> entry : edm.getRuleMap().entrySet())
+        {
+            final String expression = convertColorRuleExpression(entry.getKey());
+            try
+            {
+                final Formula formula = new Formula(expression, variables);
+                if (VTypeHelper.toDouble(formula.eval()) != 0.0)
+                {
+                    final EdmColor color = EdmModel.getColorsList().getColor(entry.getValue());
+                    return convertStaticColor(color);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.log(Level.WARNING, "Cannot parse expression in dynamic color '" + edm + "': " + expression);
+                break;
+            }
+        }
+        logger.log(Level.WARNING, "Dynamic color '" + edm + "' has no match for " + value);
+        return convertStaticColor(edm);
+    }
+
+
+    /** Find a single '=' that is neither preceded by '!', '<', '>', '=' nor followed by '='
+     *
+     *  Used to turn '=' into '==' but keep '!=', '<=', '>=', '==' unchanged
+     */
+    private static final Pattern expand_equal = Pattern.compile("(?<![<>=!])=(?!=)");
 
     /** @param expression EDM color rule expression like ">=5 && <10"
      *  @return Display Builder rule expression like "pv0>=5 && pv0<10"
@@ -208,7 +248,7 @@ public abstract class ConverterBase<W extends Widget>
     /** @param edm Static EDM color
      *  @return {@link WidgetColor}
      */
-    private static WidgetColor convertStaticColor(final EdmColor edm)
+    protected static WidgetColor convertStaticColor(final EdmColor edm)
     {
         // EDM uses 16 bit color values
         final int red   = edm.getRed()   >> 8,
@@ -354,18 +394,22 @@ public abstract class ConverterBase<W extends Widget>
         {
             try
             {
+                // Handle 'local' scope by using display ID
                 String newName = pvName.replace("$(!W)", "$(DID)");
+                newName = pvName.replace("$(!A)", "$(DID)");
+                newName = pvName.replace("$(!WZ)", "$(DID)");
+                newName = pvName.replace("$(!AZ)", "$(DID)");
                 newName = newName.replaceAll("\\x24\\x28\\x21[A-Z]{1}\\x29", "\\$(DID)");
                 String[] parts = StringSplitter.splitIgnoreInQuotes(newName, '=', true);
                 StringBuilder sb = new StringBuilder("loc://");
                 sb.append(parts[0].substring(5));
                 if (parts.length > 1)
                 {
-                    String type = "";
+//                    String type = "";
                     String initValue = parts[1];
                     if (parts[1].startsWith("d:"))
                     {
-                        type = "<VDouble>";
+//                        type = "<VDouble>";
                         initValue = parts[1].substring(2);
                     }
                     else if (parts[1].startsWith("i:"))

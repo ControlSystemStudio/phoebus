@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,33 +10,34 @@ package org.phoebus.applications.alarm.server;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import org.epics.vtype.VType;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.Messages;
-import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.client.ClientState;
 import org.phoebus.applications.alarm.model.AlarmState;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
+import org.phoebus.applications.alarm.model.EnabledState;
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.applications.alarm.server.actions.AutomatedActions;
 import org.phoebus.applications.alarm.server.actions.AutomatedActionsHelper;
+import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.core.BackpressureStrategy;
+import io.reactivex.rxjava3.disposables.Disposable;
 
 /** Alarm tree leaf
  *
@@ -58,9 +59,9 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         return thread;
     });
 
-    private volatile String description = "";
+    private final ServerModel model;
 
-    private final AtomicBoolean enabled = new AtomicBoolean(true);
+    private volatile String description = "";
 
     private final AlarmLogic logic;
 
@@ -79,10 +80,13 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
      *  can be <code>null</code>
      */
     private volatile Filter filter = null;
+    private volatile EnabledState enabled = new EnabledState(true);
+    private volatile EnabledDateTimeFilter enabled_datetime_filter = null;
 
-    public AlarmServerPV(final ServerModel model, final AlarmClientNode parent, final String name, final ClientState initial)
+    public AlarmServerPV(final ServerModel model, final String parent_path, final String name, final ClientState initial)
     {
-        super(parent, name, Collections.emptyList());
+        super(parent_path, name, Collections.emptyList());
+        this.model = model;
         description = name;
 
         final AlarmState current_state;
@@ -129,6 +133,8 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     @Override
     public AlarmState getState()
     {
+        if (logic == null)
+            throw new NullPointerException(getPathName() + " logic == null");
         return logic.getAlarmState();
     }
 
@@ -169,23 +175,88 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     @Override
     public boolean isEnabled()
     {
-        return enabled.get();
+        return enabled.enabled;
     }
 
+
+    /** @param enable Enable the PV?
+     *  @return <code>true</code> if this is a change
+     */
     @Override
     public boolean setEnabled(final boolean enable)
     {
-        if (enabled.compareAndSet(! enable, enable))
-        {
-            AutomatedActionsHelper.configure(automated_actions,
-                                             this,
-                                             logic.getAlarmState().severity,
-                                             enable,
-                                             getActions());
-            return true;
+        final EnabledState new_enabled_state = new EnabledState(enable);
+        if (enabled.equals(new_enabled_state)) {
+            return false;
         }
-        return false;
+        enabled = new_enabled_state;
+        if (enabled_datetime_filter != null) {
+            enabled_datetime_filter.cancel();
+            enabled_datetime_filter = null;
+        }
+        logic.setEnabled(enable);
+        return true;
     }
+
+    /** @param enable Enable the PV?
+     *  @return <code>true</code> if this is a change
+     * Set as listener to enable
+     */
+    @Override
+    public boolean setEnabled(final EnabledState enabled_state)
+    {
+        if (enabled.equals(enabled_state)) {
+            return false;
+        }
+
+        enabled = enabled_state;
+        logic.setEnabled(enabled.enabled);
+        return true;
+    }
+
+    /** @param enable Enable the PV?
+     *  @return <code>true</code> if this is a change
+     */
+    @Override
+    public boolean setEnabledDate(final LocalDateTime enabled_date)
+    {
+        final EnabledState new_enabled_state = new EnabledState(enabled_date);
+        if (enabled.equals(new_enabled_state)) {
+            return false;
+        }
+        // if before current time, do not accept.
+        if (enabled_date.isBefore(LocalDateTime.now())) {
+            logger.log(Level.WARNING, "Enabled date is before current time.");
+            return false;
+        }
+
+        enabled = new_enabled_state;
+        logic.setEnabled(false);
+
+        // cancel existing datetime filter and add new
+        if (enabled_datetime_filter != null) {
+            enabled_datetime_filter.cancel();
+        }
+
+        enabled_datetime_filter = new EnabledDateTimeFilter(enabled_date, this::enabledDateTimeFilterChanged);
+        return true;
+    }
+
+
+    /** @return object representing enabled state */
+    @Override
+    public LocalDateTime getEnabledDate()
+    {
+        final LocalDateTime safe_copy = enabled.enabled_date;
+        return safe_copy;
+    }
+
+    /** @return object representing enabled state */
+    @Override
+    public EnabledState getEnabled() {
+        return enabled;
+    }
+
 
     @Override
     public boolean isLatching()
@@ -270,6 +341,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         return true;
     }
 
+
     @Override
     public boolean setActions(final List<TitleDetailDelay> actions)
     {
@@ -337,6 +409,17 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         logic.setEnabled(new_enable_state);
     }
 
+    /** Listener to filter */
+    private void enabledDateTimeFilterChanged(final boolean enabled)
+    {
+        setEnabled(enabled);
+
+        // Alarm server should _listen_ to config changes, not send them, with one exception:
+        // If a 'shelved' alarm gets re-enabled by the alarm server, it sends that out
+        if (enabled)
+            model.sendConfigUpdate(getPathName(), this);
+    }
+
     public void stop()
     {
         try
@@ -361,6 +444,10 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
             {
                 conn_to.cancel(false);
                 connection_timeout_task = null;
+            }
+
+            if (enabled_datetime_filter != null) {
+                enabled_datetime_filter.cancel();
             }
 
             // Stop filter
@@ -389,21 +476,28 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
     /** @param value Value received from PV */
     private void handleValueUpdate(final VType value)
     {
-        if (PV.isDisconnected(value))
+        try
         {
-            disconnected();
-            return;
+            if (PV.isDisconnected(value))
+            {
+                disconnected();
+                return;
+            }
+            // Inspect alarm state of received value
+            is_connected = true;
+            final SeverityLevel new_severity = SeverityLevelHelper.decodeSeverity(value);
+            final String new_message = SeverityLevelHelper.getStatusMessage(value);
+            final AlarmState received = new AlarmState(new_severity, new_message,
+                                                       VTypeHelper.toString(value),
+                                                       VTypeHelper.getTimestamp(value));
+            // Update alarm logic
+            logic.computeNewState(received);
+            logger.log(Level.FINER, () -> getPathName() + " received " + value + " -> " + logic);
         }
-        // Inspect alarm state of received value
-        is_connected = true;
-        final SeverityLevel new_severity = VTypeHelper.decodeSeverity(value);
-        final String new_message = VTypeHelper.getStatusMessage(value);
-        final AlarmState received = new AlarmState(new_severity, new_message,
-                                                   VTypeHelper.toString(value),
-                                                   VTypeHelper.getTimestamp(value));
-        // Update alarm logic
-        logic.computeNewState(received);
-        logger.log(Level.FINER, () -> getPathName() + " received " + value + " -> " + logic);
+        catch (Throwable ex)
+        {
+            throw new RuntimeException(getPathName() + " failed to handle update " + value, ex);
+        }
     }
 
     /** Handle fact that PV disconnected */
@@ -438,7 +532,13 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         if  (isLatching())
             buf.append(" - latching");
         if (getDelay() > 0)
-            buf.append(" - ").append(getDelay()).append(" sec delay");
+        {
+            buf.append(" - ");
+            if (getCount() > 0)
+                buf.append(getCount()).append(" counts within ").append(getDelay()).append(" sec");
+            else
+                buf.append(getDelay()).append(" sec delay");
+        }
 
         buf.append(" - ").append(logic.toString());
 

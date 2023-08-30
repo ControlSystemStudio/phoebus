@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,10 +9,14 @@ package org.csstudio.display.builder.editor;
 
 import static org.csstudio.display.builder.editor.Plugin.logger;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.prefs.BackingStoreException;
@@ -24,6 +28,8 @@ import org.csstudio.display.builder.editor.app.DisplayEditorInstance;
 import org.csstudio.display.builder.editor.app.PasteWidgets;
 import org.csstudio.display.builder.editor.app.RemoveGroupAction;
 import org.csstudio.display.builder.editor.properties.PropertyPanel;
+import org.csstudio.display.builder.editor.tree.CollapseTreeAction;
+import org.csstudio.display.builder.editor.tree.ExpandTreeAction;
 import org.csstudio.display.builder.editor.tree.FindWidgetAction;
 import org.csstudio.display.builder.editor.tree.WidgetTree;
 import org.csstudio.display.builder.model.DisplayModel;
@@ -71,6 +77,7 @@ import javafx.scene.layout.VBox;
 @SuppressWarnings("nls")
 public class EditorGUI
 {
+    /** Side panel IDs */
     public static final String SHOW_TREE = "tree",
                                SHOW_PROPS = "props";
     private static final Preferences prefs = PhoebusPreferenceService.userNodeForClass(DisplayEditorInstance.class);
@@ -122,27 +129,36 @@ public class EditorGUI
         final KeyCode code = event.getCode();
         // System.out.println("Editor Key: " + code);
 
-        // Only handle delete, copy, paste when mouse inside editor
-        final boolean in_editor = editor.getContextMenuNode()
-                                        .getLayoutBounds()
-                                        .contains(mouse_x, mouse_y);
-
-        // Use Ctrl-C .. except on Mac, where it's Command-C ..
-        // Do NOT delete for DELETE and/or BACKSPACE.
+        // Only handle delete, copy, paste when mouse inside editor.
         // Those keys are often used when editing text,
         // and it's easy to accidentally loose input focus
         // and then delete a widget instead of a character.
+        // Also check if property panel has focus; don't want to delete
+        // widget when its name is edited and the mouse happens to be
+        // inside the editor
+        final boolean in_editor = editor.getContextMenuNode()
+                                        .getLayoutBounds()
+                                        .contains(mouse_x, mouse_y) &&
+                                  ! property_panel.hasFocus();
+
+        // Use Ctrl-C .. except on Mac, where it's Command-C ..
         final boolean meta = event.isShortcutDown();
         if (meta  &&  code == KeyCode.Z)
             editor.getUndoableActionManager().undoLast();
         else if (meta  &&  code == KeyCode.Y)
             editor.getUndoableActionManager().redoLast();
-        else if (in_editor  &&  meta  &&  code == KeyCode.X)
-            editor.cutToClipboard();
         else if (in_editor  &&  meta  &&  code == KeyCode.C)
             editor.copyToClipboard();
-        else if (in_editor  &&  meta  &&  code == KeyCode.V)
+        else if (in_editor  &&  !meta  &&  code == KeyCode.C)
+            editor.toggleCrosshair();
+        else if (in_editor  &&  code == KeyCode.DELETE       &&  !editor.isReadonly())
+            editor.removeWidgets();
+        else if (in_editor  &&  meta  &&  code == KeyCode.X  &&  !editor.isReadonly())
+            editor.cutToClipboard();
+        else if (in_editor  &&  meta  &&  code == KeyCode.V  &&  !editor.isReadonly())
             pasteFromClipboard();
+        else if (in_editor  &&  meta  &&  code == KeyCode.D  &&  !editor.isReadonly())
+        	editor.duplicateWidgets();
         else // Pass on, don't consume
             return;
         event.consume();
@@ -154,16 +170,15 @@ public class EditorGUI
     private VBox properties_box;
 
     private SplitPane center_split;
-    
-    private final ChangeListener<Number> divider_listener = (ObservableValue<? extends Number> observableValue, Number oldDividerPosition, Number newDividerPosition) -> 
+
+    private final ChangeListener<Number> divider_listener = (ObservableValue<? extends Number> observableValue, Number oldDividerPosition, Number newDividerPosition) ->
     {
         saveDividerPreferences();
     };
 
     private volatile Consumer<DisplayModel> model_listener = null;
 
-
-
+    /** Constructor */
     public EditorGUI()
     {
         toolkit = new JFXRepresentation(true);
@@ -205,10 +220,10 @@ public class EditorGUI
     {
         if (show == isWidgetTreeShown())
             return;
-        
+
         double tdiv = prefs.getDouble(DisplayEditorInstance.TREE_DIVIDER, 0.2);
         double pdiv = prefs.getDouble(DisplayEditorInstance.PROP_DIVIDER, 0.8);
-        
+
         if (show)
         {
             center_split.getItems().add(0,  tree_box);
@@ -223,13 +238,13 @@ public class EditorGUI
             if (arePropertiesShown())
                 Platform.runLater(() -> setDividerPositions(pdiv));
         }
-        
+
         for (Divider div : center_split.getDividers())
         {
             div.positionProperty().removeListener(divider_listener);
             div.positionProperty().addListener(divider_listener);
         }
-        
+
         // Update pref about last tree state
         prefs.putBoolean(SHOW_TREE, show);
     }
@@ -265,7 +280,7 @@ public class EditorGUI
             div.positionProperty().removeListener(divider_listener);
             div.positionProperty().addListener(divider_listener);
         }
-        
+
         // Update pref about last prop state
         prefs.putBoolean(SHOW_PROPS, show);
     }
@@ -299,28 +314,28 @@ public class EditorGUI
     {
         editor.setCoords(show);
     }
-    
+
     /** @return Snap Grid on/off */
     public boolean getSnapGrid()
     {
         return editor.getSelectedWidgetUITracker().getEnableGrid();
     }
-    
+
     /** @return Snap Widgets on/off */
     public boolean getSnapWidgets()
     {
         return editor.getSelectedWidgetUITracker().getEnableSnap();
     }
-    
+
     /** @return Show Coordinates on/off */
     public boolean getShowCoords()
     {
         return editor.getSelectedWidgetUITracker().getShowLocationAndSize();
     }
-    
+
     private Parent createElements()
     {
-        editor = new DisplayEditor(toolkit, 50);
+        editor = new DisplayEditor(toolkit, org.csstudio.display.builder.editor.Preferences.undo_stack_size);
 
         tree = new WidgetTree(editor);
 
@@ -330,6 +345,7 @@ public class EditorGUI
         Label header = new Label("Widgets");
         header.setMaxWidth(Double.MAX_VALUE);
         header.getStyleClass().add("header");
+        tree.configureHeaderDnD(header);
 
         final Control tree_control = tree.create();
         VBox.setVgrow(tree_control, Priority.ALWAYS);
@@ -346,10 +362,10 @@ public class EditorGUI
         properties_box = new VBox(header, property_panel);
 
         center_split = new SplitPane(tree_box, editor_scene, properties_box);
-        
+
         double ldiv = prefs.getDouble(DisplayEditorInstance.TREE_DIVIDER, 0.2);
         double rdiv = prefs.getDouble(DisplayEditorInstance.PROP_DIVIDER, 0.8);
-        
+
         center_split.setDividerPositions(ldiv, rdiv);
 
         for (Divider div : center_split.getDividers())
@@ -372,18 +388,6 @@ public class EditorGUI
         // Handle copy/paste/...
         layout.addEventFilter(KeyEvent.KEY_PRESSED, key_handler);
 
-        // We used to request keyboard focus when mouse enters,
-        // to allow copy/paste between two windows.
-        // Without this filter, user first needs to select some widget in the 'other'
-        // before 'paste' is possible in the 'other' window.
-        //   layout.addEventFilter(MouseEvent.MOUSE_ENTERED, event -> layout.requestFocus());
-        // The side effect, however, is that this breaks the natural focus handling:
-        // Use edits some property, for example a Label's text.
-        // Mouse moves by accident out and back into the window
-        // -> Focus now on 'layout', and that means the next Delete or Backspace
-        // meant to edit the text will instead delete the widget.
-        // https://github.com/kasemir/org.csstudio.display.builder/issues/486
-
         return layout;
     }
 
@@ -395,11 +399,13 @@ public class EditorGUI
         {
             // Enable/disable menu entries based on selection
             final List<Widget> widgets = editor.getWidgetSelectionHandler().getSelection();
+            final MenuItem delete = new ActionWapper(ActionDescription.DELETE);
             final MenuItem cut = new ActionWapper(ActionDescription.CUT);
             final MenuItem copy = new ActionWapper(ActionDescription.COPY);
             final MenuItem group = new CreateGroupAction(editor, widgets);
             if (widgets.size() < 0)
             {
+                delete.setDisable(true);
                 cut.setDisable(true);
                 copy.setDisable(true);
             }
@@ -411,18 +417,28 @@ public class EditorGUI
                 ungroup = new RemoveGroupAction(editor, null);
                 ungroup.setDisable(true);
             }
-            menu.getItems().setAll(cut,
-                                   copy,
-                                   new PasteWidgets(this),
-                                   new FindWidgetAction(node, editor),
-                                   new SeparatorMenuItem(),
-                                   group,
-                                   ungroup,
-                                   new SeparatorMenuItem(),
-                                   new ActionWapper(ActionDescription.TO_BACK),
-                                   new ActionWapper(ActionDescription.MOVE_UP),
-                                   new ActionWapper(ActionDescription.MOVE_DOWN),
-                                   new ActionWapper(ActionDescription.TO_FRONT));
+            if (editor.isReadonly())
+                menu.getItems().setAll(copy,
+                                       new FindWidgetAction(node, editor),
+                                       new ExpandTreeAction(tree),
+                                       new CollapseTreeAction(tree),
+                                       new SeparatorMenuItem());
+            else
+                menu.getItems().setAll(delete,
+                                       cut,
+                                       copy,
+                                       new PasteWidgets(this),
+                                       new FindWidgetAction(node, editor),
+                                       new ExpandTreeAction(tree),
+                                       new CollapseTreeAction(tree),
+                                       new SeparatorMenuItem(),
+                                       group,
+                                       ungroup,
+                                       new SeparatorMenuItem(),
+                                       new ActionWapper(ActionDescription.TO_BACK),
+                                       new ActionWapper(ActionDescription.MOVE_UP),
+                                       new ActionWapper(ActionDescription.MOVE_DOWN),
+                                       new ActionWapper(ActionDescription.TO_FRONT));
         });
     }
 
@@ -440,33 +456,68 @@ public class EditorGUI
         EditorUtil.getExecutor().execute(() ->
         {
             DisplayModel model;
+            String canon_path = null;
             try
             {
-                model = ModelLoader.loadModel(new FileInputStream(file), file.getCanonicalPath());
+                canon_path = file.getCanonicalPath();
+                model = ModelLoader.loadModel(new FileInputStream(file), canon_path);
+                model.expandMacros(org.csstudio.display.builder.model.Preferences.getMacros());
+                this.file = file;
             }
             catch (final Exception ex)
             {
+                canon_path = null;
                 logger.log(Level.SEVERE, "Cannot load model from " + file, ex);
                 ExceptionDetailsErrorDialog.openError("Creating empty file",
-                        "Cannot load model from\n" + file + "\n\nCreating new, empty file", ex);
+                        "Cannot load model from\n" + file + "\n\nCreating new, empty model", ex);
                 model = new DisplayModel();
                 model.propName().setValue("Empty");
+                // Don't associate this editor with the file we've failed to load
+                this.file = null;
             }
+
+            if (! file.canWrite())
+                model.setUserData(DisplayModel.USER_DATA_READONLY, Boolean.TRUE.toString());
             setModel(model);
-            this.file = file;
+
+            try
+            {
+                logger.log(Level.FINE, "Waiting for representation of model " + canon_path);
+
+                toolkit.awaitRepresentation(30, TimeUnit.SECONDS);
+                logger.log(Level.FINE, "Done with representing model of " + canon_path);
+            }
+            catch (TimeoutException | InterruptedException ex)
+            {
+                logger.log(Level.SEVERE, "Cannot wait for representation of " + canon_path, ex);
+            }
+            catch (NullPointerException ex)
+            {
+                // Worst case scenario; the CountDownLatch in setModel() timed out and there is no Phaser in toolkit yet
+            }
+
+            if (canon_path != null && model.isClean() == false)
+            {
+                ExceptionDetailsErrorDialog.openError("Errors while loading model",
+                        "There were some errors while loading model from " + file + "\nNot all widgets are displayed correctly; " +
+                        "saving the display in this state might lead to losing those widgets or some of their properties." +
+                        "\nPlease check the log for details.", null);
+            }
+
         });
     }
 
     /** Save model to file
      *  @param file File into which to save the model
+     *  @throws Exception on error
      */
-    public void saveModelAs(final File file)
+    public void saveModelAs(final File file) throws Exception
     {
         logger.log(Level.FINE, "Save as {0}", file);
         try
         (
-            final FileOutputStream fwriter = new FileOutputStream(file);
-            final ModelWriter writer = new ModelWriter(fwriter);
+                final BufferedOutputStream fwriter = new BufferedOutputStream(new FileOutputStream(file));
+                final ModelWriter writer = new ModelWriter(fwriter);
         )
         {
             writer.writeModel(editor.getModel());
@@ -476,22 +527,49 @@ public class EditorGUI
         }
         catch (Exception ex)
         {
-            logger.log(Level.SEVERE, "Cannot save as " + file, ex);
+            throw new Exception("Cannot save as " + file, ex);
         }
     }
 
+    /** @param model Display Model */
     private void setModel(final DisplayModel model)
     {
+        final CountDownLatch ui_started = new CountDownLatch(1);
+
         // Representation needs to be created in UI thread
         toolkit.execute(() ->
         {
-            editor.setModel(model);
-            tree.setModel(model);
+            try
+            {
+                if (EditorUtil.isDisplayReadOnly(model))
+                {
+                    // Show only the main section.
+                    // User may open widget tree via context menu,
+                    // but property panel should remain hidden
+                    // unless it supports a read-only mode.
+                    showProperties(false);
+                    showWidgetTree(false);
+                }
+                editor.setModel(model);
+                tree.setModel(model);
 
-            final Consumer<DisplayModel> listener = model_listener;
-            if (listener != null)
-                listener.accept(model);
+                final Consumer<DisplayModel> listener = model_listener;
+                if (listener != null)
+                    listener.accept(model);
+            }
+            finally
+            {
+                ui_started.countDown();
+            }
         });
+
+        try
+        {
+            ui_started.await(30, TimeUnit.SECONDS);
+        }
+        catch (InterruptedException ex)
+        {
+        }
     }
 
     private void saveDividerPreferences()
@@ -509,6 +587,7 @@ public class EditorGUI
         }
     }
 
+    /** Dispose resources */
     public void dispose()
     {
         editor.dispose();

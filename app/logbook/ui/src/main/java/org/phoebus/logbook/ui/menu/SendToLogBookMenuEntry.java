@@ -8,9 +8,9 @@
 package org.phoebus.logbook.ui.menu;
 
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.logbook.LogbookPreferences;
 import org.phoebus.logbook.ui.LogbookUiPreferences;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
-import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.MenuEntry;
 
 import javafx.scene.image.Image;
@@ -25,7 +25,7 @@ public class SendToLogBookMenuEntry implements MenuEntry
     @Override
     public Void call() throws Exception
     {
-        if (LogbookUiPreferences.is_supported)
+        if (LogbookPreferences.is_supported)
             ApplicationService.createInstance(SendToLogBookApp.NAME);
         else
             ExceptionDetailsErrorDialog.openError("No Logbook Support", "Logbook submissions are not enabled", new Exception("No logbook factory found"));
@@ -48,6 +48,6 @@ public class SendToLogBookMenuEntry implements MenuEntry
     @Override
     public Image getIcon()
     {
-        return ImageCache.getImage(SendToLogBookMenuEntry.class, "/icons/logentry-add-16.png");
+        return SendToLogBookApp.icon;
     }
 }

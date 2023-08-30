@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<GridPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.app.diag.ui.FormulaTreeController">
+  <columnConstraints>
+    <ColumnConstraints minWidth="10.0" prefWidth="60.0" />
+    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+    <ColumnConstraints minWidth="50.0" />
+      <ColumnConstraints minWidth="50.0" />
+      <ColumnConstraints minWidth="50.0" />
+  </columnConstraints>
+  <rowConstraints>
+    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
+  </rowConstraints>
+  <children>
+      <TreeTableView fx:id="treeTableView" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="5">
+        <columns>
+            <TreeTableColumn fx:id="signature" minWidth="100.0" prefWidth="100.0" />
+            <TreeTableColumn fx:id="description" minWidth="100.0" prefWidth="100.0" />
+        </columns>
+         <columnResizePolicy>
+            <TreeTableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+         </columnResizePolicy>
+      </TreeTableView>
+  </children>
+</GridPane>

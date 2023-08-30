@@ -19,6 +19,10 @@ public class PVAShort extends PVANumber
     private final boolean unsigned;
     private volatile short value;
 
+    /** @param name Name
+     *  @param unsigned Unsigned?
+     *  @param value Initial value
+     */
     public PVAShort(final String name, final boolean unsigned, final short value)
     {
         super(name);
@@ -26,6 +30,9 @@ public class PVAShort extends PVANumber
         this.value = value;
     }
 
+    /** @param name Name
+     *  @param unsigned Unsigned?
+     */
     public PVAShort(final String name, final boolean unsigned)
     {
         this(name, unsigned, (short)0);
@@ -117,12 +124,11 @@ public class PVAShort extends PVANumber
     }
 
     @Override
-    protected void formatType(final int level, final StringBuilder buffer)
+    public String getType()
     {
-        indent(level, buffer);
         if (unsigned)
-            buffer.append('u');
-        buffer.append("short ").append(name);
+            return "ushort";
+        return "short";
     }
 
     @Override

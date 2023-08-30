@@ -9,7 +9,7 @@ import java.util.Map;
 
 /**
  * An interface representing a property associated with a {@link LogEntry}
- * @author berryman
+ * @author Kunal Shroff
  */
 public interface Property {
 

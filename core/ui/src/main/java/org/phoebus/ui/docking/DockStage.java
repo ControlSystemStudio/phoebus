@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,19 +9,31 @@ package org.phoebus.ui.docking;
 
 import static org.phoebus.ui.docking.DockPane.logger;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.UUID;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
+import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.workbench.Locations;
 import org.phoebus.ui.application.Messages;
+import org.phoebus.ui.application.PhoebusApplication;
+import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Styles;
 
+import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.SplitPane;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
@@ -60,6 +72,34 @@ public class DockStage
      */
     public static final String ID_MAIN = "DockStage_MAIN";
 
+    /** Singleton logo */
+    private static Image logo = null;
+
+    /** @return Logo, initialized on first call */
+    private static Image getLogo()
+    {
+        if (logo == null)
+        {
+            final File custom_logo = new File(Locations.install(), "site_logo.png");
+            if (custom_logo.exists())
+                try
+                {
+                    logo = new Image(new FileInputStream(custom_logo));
+                }
+                catch (FileNotFoundException ex)
+                {
+                    logger.log(Level.WARNING, "Cannot open " + custom_logo, ex);
+                }
+
+            if (logo == null)
+                logo = ImageCache.getImage(DockStage.class, "/icons/logo.png");
+        }
+        return logo;
+    }
+
+    /** @param what Purpose of the ID, used as prefix
+     *  @return Unique ID
+     */
     static String createID(final String what)
     {
         return what + "_" + UUID.randomUUID().toString().replace('-', '_');
@@ -77,6 +117,22 @@ public class DockStage
      */
     public static DockPane configureStage(final Stage stage, final DockItem... tabs)
     {
+        return configureStage(stage, new Geometry(null), tabs);
+    }
+
+    /** Helper to configure a Stage for docking
+     *
+     *  <p>Adds a Scene with a BorderPane layout and a DockPane in the center
+     *
+     *  @param stage Stage, should be empty
+     *  @param geometry_spec A geometry specification "{width}x{height}+{x}+{y}", see {@link Geometry}
+     *  @param tabs Zero or more initial {@link DockItem}s
+     *  @throws Exception on error
+     *
+     *  @return {@link DockPane} that was added to the {@link Stage}
+     */
+    public static DockPane configureStage(final Stage stage, final Geometry geometry, final DockItem... tabs)
+    {
         stage.getProperties().put(KEY_ID, createID("DockStage"));
 
         final DockPane pane = new DockPane(tabs);
@@ -84,13 +140,37 @@ public class DockStage
         final BorderPane layout = new BorderPane(pane);
         pane.setDockParent(layout);
 
-        final Scene scene = new Scene(layout, 800, 600);
+        pane.addDockPaneEmptyListener(() -> {
+            if(!stage.getProperties().get(KEY_ID).equals(DockStage.ID_MAIN)){
+                if(layout.getChildren().get(0) instanceof DockPane){
+                    DockPane dockPane = (DockPane)layout.getChildren().get(0);
+                    if(dockPane.getDockItems().size() == 0){
+                        stage.getScene().getWindow().hide();
+                    }
+                }
+                else if(layout.getChildren().get(0) instanceof SplitPane){
+                    SplitPane splitPane = (SplitPane)layout.getChildren().get(0);
+                    if(splitPane.getItems().size() == 0){
+                        stage.getScene().getWindow().hide();
+                    }
+                }
+            }
+        });
+
+        final Scene scene = new Scene(layout, geometry.width, geometry.height);
         stage.setScene(scene);
         stage.setTitle(Messages.FixedTitle);
+        // Set position
+        stage.setX(geometry.x);
+        stage.setY(geometry.y);
+
+        // Force window to be visible
+        stage.show();
+
         Styles.setSceneStyle(scene);
         try
         {
-            stage.getIcons().add(new Image(DockStage.class.getResourceAsStream("/icons/logo.png")));
+            stage.getIcons().add(getLogo());
         }
         catch (Exception ex)
         {
@@ -108,11 +188,35 @@ public class DockStage
 
         stage.setOnCloseRequest(event ->
         {
-            if (! isStageOkToClose(stage))
-                event.consume();
+            // Prevent closing of the stage right now
+            event.consume();
+            // In background, prepare to close items,
+            // and on success close them
+            JobManager.schedule("Close " + stage.getTitle(), monitor ->
+            {
+                boolean shouldCloseStage = PhoebusApplication.confirmationDialogWhenUnsavedChangesExist(stage,
+                                                                                                        Messages.UnsavedChanges_wouldYouLikeToSaveAnyChangesBeforeClosingTheWindow,
+                                                                                                        Messages.UnsavedChanges_close,
+                                                                                                        monitor);
+
+                if (shouldCloseStage) {
+                    if (!DockStage.prepareToCloseItems(stage)) {
+                        return;
+                    }
+
+                    Platform.runLater(() -> closeItems(stage));
+                }
+            });
         });
 
         DockPane.setActiveDockPane(pane);
+
+        // This is to handle a keyboard shortcut that closes all tabs in all windows.
+        stage.getScene().setOnKeyReleased(ke -> {
+            if(PhoebusApplication.closeAllTabsKeyCombination.match(ke)){
+                PhoebusApplication.closeAllTabs();
+            }
+        });
 
         return pane;
     }
@@ -167,20 +271,20 @@ public class DockStage
         return null;
     }
 
-    /** Gracefully close all DockItems when stage closes
+    /** Prepare all DockItems to be closed
      *
-     *  <p>When user closes the stage,
-     *  offer dock items a chance to save changes,
-     *  or abort the close request.
+     *  <p>Must be called off the UI thread.
+     *  Might take time if dock items need to "save" their content
      *
      *  @param stage {@link Stage} with {@link DockPane}
+     *  @throws Exception on error
      */
-    public static boolean isStageOkToClose(final Stage stage)
+    public static boolean prepareToCloseItems(final Stage stage) throws Exception
     {
         for (DockPane pane : getDockPanes(stage))
         {
             for (DockItem item : pane.getDockItems())
-                if (! item.close())
+                if (! item.prepareToClose())
                     // Abort the close request
                     return false;
         }
@@ -188,6 +292,19 @@ public class DockStage
         // All tabs either saved or don't care to save,
         // so this stage will be closed
         return true;
+    }
+
+    /** Close all DockItems of this stage
+     *
+     *  <p>Should be called after {@link DockStage#prepareToCloseItems}
+     *
+     *  @param stage {@link Stage} with {@link DockPane}
+     */
+    public static void closeItems(final Stage stage)
+    {
+        for (DockPane pane : getDockPanes(stage))
+            for (DockItem item : pane.getDockItems())
+                item.close();
     }
 
     /** @param stage Stage that supports docking
@@ -262,6 +379,25 @@ public class DockStage
         return null;
     }
 
+    /** Locate DockItemWithInput with input
+     *  @param input Input, must not be <code>null</code>
+     *  @return {@link DockItemWithInput} or <code>null</code> if not found
+     */
+    public static DockItemWithInput getDockItemWithInput(URI input)
+    {
+        Objects.requireNonNull(input);
+        for (Stage stage : getDockStages())
+            for (DockPane pane : getDockPanes(stage))
+                for (DockItem tab : pane.getDockItems())
+                    if (tab instanceof DockItemWithInput)
+                    {
+                        DockItemWithInput item = (DockItemWithInput) tab;
+                        if (input.equals(item.getInput()))
+                            return item;
+                    }
+        return null;
+    }
+
     /** Locate any 'fixed' {@link DockPane}s and un-fix them
      *  @param stage Stage where to clear 'fixed' panes
      */
@@ -312,5 +448,19 @@ public class DockStage
         }
         else
             buf.append(node).append("\n");
+    }
+
+    private static void deferUntilAllPanesOfStageHaveScenes(Runnable runnable, List<DockPane> remainingPanes) {
+        // This is a helper function for implementing deferUntilAllPanesOfStageHaveScenes(Stage stage, Runnable runnable).
+        if (remainingPanes.size() == 0) {
+            runnable.run();
+        } else {
+            var pane = remainingPanes.get(0);
+            pane.deferUntilInScene(scene -> deferUntilAllPanesOfStageHaveScenes(runnable, remainingPanes.subList(1, remainingPanes.size())));
+        }
+    }
+
+    public static void deferUntilAllPanesOfStageHaveScenes(Stage stage, Runnable runnable) {
+        deferUntilAllPanesOfStageHaveScenes(runnable, getDockPanes(stage));
     }
 }

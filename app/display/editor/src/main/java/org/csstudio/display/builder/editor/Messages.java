@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,77 +15,100 @@ import org.phoebus.framework.nls.NLS;
 public class Messages
 {
     // Keep in alphabetical order, synchronized with messages.properties
-    public static String AddElement;
-    public static String AddWidget;
-    public static String Align;
-    public static String AlignBottom;
-    public static String AlignCenter;
-    public static String AlignLeft;
-    public static String AlignMiddle;
-    public static String AlignRight;
-    public static String AlignTop;
-    public static String Copy;
-    public static String CreateGroup;
-    public static String Cut;
-    public static String Distribute;
-    public static String DistributeHorizontally;
-    public static String DistributeVertically;
-    public static String DownloadPromptFMT;
-    public static String DownloadTitle;
-    public static String EditEmbededDisplay;
-    public static String FileChangedHdr;
-    public static String FileChangedDlg;
-    public static String FindWidget;
-    public static String Grid;
-    public static String LoadDisplay;
-    public static String LoadDisplay_TT;
-    public static String MacroEditButton;
-    public static String MatchHeight;
-    public static String MatchWidth;
-    public static String MoveDown;
-    public static String MoveToBack;
-    public static String MoveToFront;
-    public static String MoveUp;
-    public static String NewDisplay;
-    public static String Order;
-    public static String Paste;
-    public static String PointCount_Fmt;
-    public static String PropertyFilterTT;
-    public static String ReloadClasses;
-    public static String ReloadDisplay;
-    public static String ReloadWarning;
-    public static String RemoveElement;
-    public static String RemoveGroup;
-    public static String RemoveWidgets;
-    public static String ReplaceWith;
-    public static String RuleCountFMT;
-    public static String Run;
-    public static String SaveDisplay;
-    public static String SaveDisplay_TT;
-    public static String ScriptCountFMT;
-    public static String SearchTextField;
-    public static String SelectZoomLevel;
-    public static String SetDisplaySize;
-    public static String SetPropertyFmt;
-    public static String SetWidgetPoints;
-    public static String ShowCoordinates;
-    public static String ShowProperties;
-    public static String ShowWidgetTree;
-    public static String Size;
-    public static String Snap;
-    public static String UpdateWidgetLocation;
-    public static String UpdateWidgetOrder;
-    public static String UseWidgetClass_TT;
-    public static String UsingWidgetClass_TT;
-    public static String WidgetFilterTT;
-    public static String WT_FromString_dialog_content;
-    public static String WT_FromString_dialog_headerFMT;
-    public static String WT_FromString_dialog_title;
-    public static String WT_FromString_multipleFMT;
-    public static String WT_FromString_singleFMT;
-    public static String WT_FromURL_dialog_content;
-    public static String WT_FromURL_dialog_headerFMT;
-    public static String WT_FromURL_dialog_title;
+    /** Externalized Strings */
+    public static String AbortSave,
+                         AddElement,
+                         AddWidget,
+                         Align,
+                         AlignBottom,
+                         AlignCenter,
+                         AlignGrid,
+                         AlignLeft,
+                         AlignMiddle,
+                         AlignRight,
+                         AlignTop,
+                         CollapseTree,
+                         Copy,
+                         CreateGroup,
+                         Cut,
+                         Delete,
+                         Display,
+                         DisplayApplicationMissingRight,
+                         DisplayApplicationName,
+                         Distribute,
+                         DistributeGapTitle,
+                         DistributeGapMessage,
+                         DistributeHorizontally,
+                         DistributeVertically,
+                         DistributeHorizontallyGap,
+                         DistributeVerticallyGap,
+                         Duplicate,
+                         DownloadPromptFMT,
+                         DownloadTitle,
+                         EditEmbededDisplay,
+                         ExpandTree,
+                         FileChangedHdr,
+                         FileChangedDlg,
+                         FindWidget,
+                         Grid,
+                         LoadDisplay,
+                         LoadDisplay_TT,
+                         MacroEditButton,
+                         MatchHeight,
+                         MatchWidth,
+                         MoveDown,
+                         MoveToBack,
+                         MoveToFront,
+                         MoveUp,
+                         NewDisplay,
+                         NewDisplayFailed,
+                         NewDisplayTargetFolderWriteProtected,
+                         NewDisplaySelectionEmpty,
+                         NewDisplayOverwriteExisting,
+                         NewDisplayOverwriteExistingTitle,
+                         OpenInExternalEditor,
+                         Order,
+                         Paste,
+                         PointCount_Fmt,
+                         PropertyFilterTT,
+                         ReloadClasses,
+                         ReloadDisplay,
+                         ReloadWarning,
+                         RemoveElement,
+                         RemoveGroup,
+                         RemoveWidgets,
+                         ReplaceWith,
+                         RuleCountFMT,
+                         Run,
+                         SaveDisplay,
+                         SaveDisplayErrorFMT,
+                         SaveDisplay_TT,
+                         ScriptCountFMT,
+                         SearchTextField,
+                         SelectZoomLevel,
+                         SetDisplaySize,
+                         SetPropertyFmt,
+                         SetWidgetPoints,
+                         ShowCoordinates,
+                         ShowCrosshair,
+                         ShowProperties,
+                         ShowWidgetTree,
+                         Size,
+                         Snap,
+                         SortWidgets,
+                         UpdateWidgetLocation,
+                         UpdateWidgetOrder,
+                         UseWidgetClass_TT,
+                         UsingWidgetClass_TT,
+                         WidgetFilterTT,
+                         WT_FromString_dialog_content,
+                         WT_FromString_dialog_headerFMT,
+                         WT_FromString_dialog_title,
+                         WT_FromString_multipleFMT,
+                         WT_FromString_singleFMT,
+                         WT_FromURL_dialog_content,
+                         WT_FromURL_dialog_headerFMT,
+                         WT_FromURL_dialog_title;
 
     static
     {

@@ -7,10 +7,14 @@
  *******************************************************************************/
 package org.phoebus.logbook.ui.menu;
 
+import javafx.scene.image.Image;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
-import org.phoebus.logbook.ui.write.LogEntryDialog;
+import org.phoebus.logbook.ui.LogbookAvailabilityChecker;
+import org.phoebus.logbook.ui.write.LogEntryEditorStage;
+import org.phoebus.logbook.ui.write.LogEntryModel;
 import org.phoebus.ui.docking.DockPane;
+import org.phoebus.ui.javafx.ImageCache;
 
 /**
  * AppDescriptor for sending a log book entry outside of a context menu.
@@ -21,6 +25,7 @@ public class SendToLogBookApp implements AppDescriptor
 
     public static final String DISPLAY_NAME = "Send To Log Book";
     public static final String NAME = "logbook";
+    public static final Image icon = ImageCache.getImage(ImageCache.class, "/icons/logentry-add-16.png");
 
     public String getDisplayName()
     {
@@ -36,8 +41,10 @@ public class SendToLogBookApp implements AppDescriptor
     @Override
     public AppInstance create()
     {
-        LogEntryDialog logEntryDialog = new LogEntryDialog(DockPane.getActiveDockPane(), null);
-        logEntryDialog.show();
+        if(!LogbookAvailabilityChecker.isLogbookAvailable()){
+            return null;
+        }
+        new LogEntryEditorStage(DockPane.getActiveDockPane(), new LogEntryModel(), null).show();
         return null;
     }
 

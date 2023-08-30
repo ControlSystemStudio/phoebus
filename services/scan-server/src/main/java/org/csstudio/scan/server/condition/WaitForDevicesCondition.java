@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2011-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,6 +15,8 @@
  ******************************************************************************/
 package org.csstudio.scan.server.condition;
 
+import java.util.concurrent.TimeUnit;
+
 import org.csstudio.scan.server.device.Device;
 import org.csstudio.scan.server.device.DeviceListener;
 
@@ -24,8 +26,8 @@ import org.csstudio.scan.server.device.DeviceListener;
 @SuppressWarnings("nls")
 public class WaitForDevicesCondition implements DeviceCondition, DeviceListener
 {
-    final private Device[] devices;
-    private boolean all_ready;
+    private final Device[] devices;
+    private volatile boolean all_ready;
 
     /** Initialize
      *  @param devices Devices that all need to be 'ready'
@@ -35,24 +37,47 @@ public class WaitForDevicesCondition implements DeviceCondition, DeviceListener
         this.devices = devices;
     }
 
-    /** {@inheritDoc} */
-    @Override
-    public void await() throws Exception
+    /** Wait for devices to connect with timeout
+     *  @param timeout Timeout value..
+     *  @param unit    .. and units
+     *  @return <code>true</code> if all devices connected within timeout
+     *  @throws Exception on error
+     */
+    public boolean await(final long timeout, final TimeUnit unit) throws Exception
     {
         for (Device device : devices)
             device.addListener(this);
 
-        synchronized (this)
+        try
         {
-            all_ready = allReady(devices);
-            while (! all_ready)
-            {   // Wait for update from device or early completion
-                wait();
+            final long end = System.currentTimeMillis() + unit.toMillis(timeout);
+            synchronized (this)
+            {
+                all_ready = allReady(devices);
+                while (! all_ready)
+                {   // Wait for update from device or early completion
+                    long delay = end - System.currentTimeMillis();
+                    // Timed out?
+                    if (delay <= 0)
+                        return false;
+                    wait(delay);
+                }
             }
         }
+        finally
+        {
+            for (Device device : devices)
+                device.removeListener(this);
+        }
+        return true;
+    }
 
-        for (Device device : devices)
-            device.removeListener(this);
+
+    /** {@inheritDoc} */
+    @Override
+    public void await() throws Exception
+    {
+        await(365, TimeUnit.DAYS);
     }
 
     @Override

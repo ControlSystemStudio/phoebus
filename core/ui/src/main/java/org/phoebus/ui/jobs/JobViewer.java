@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,6 +8,7 @@
 package org.phoebus.ui.jobs;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -65,7 +66,7 @@ class JobViewer implements AppInstance
         tab.addCloseCheck(() ->
         {
             stopUpdates();
-            return true;
+            return CompletableFuture.completedFuture(true);
         });
         tab.addClosedNotification(() -> INSTANCE = null);
         DockPane.getActiveDockPane().addTab(tab);

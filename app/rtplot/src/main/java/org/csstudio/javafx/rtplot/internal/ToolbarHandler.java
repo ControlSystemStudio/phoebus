@@ -83,7 +83,7 @@ public class ToolbarHandler<XTYPE extends Comparable<XTYPE>>
     /** Add a custom tool bar item
      *  @param icon Icon {@link Image}
      *  @param tool_tip Tool tip text
-     *  @return {@link ToolItem}
+     *  @return {@link Button}
      */
     public Button addItem(final ImageView icon, final String tool_tip)
     {
@@ -185,6 +185,7 @@ public class ToolbarHandler<XTYPE extends Comparable<XTYPE>>
 
         if (active)
         {
+
             zoom_in.setOnAction(event ->
             {
                 selectMouseMode(zoom_in);
@@ -195,6 +196,7 @@ public class ToolbarHandler<XTYPE extends Comparable<XTYPE>>
                 selectMouseMode(zoom_out);
                 plot.setMouseMode(MouseMode.ZOOM_OUT);
             });
+
             pan.setOnAction(event ->
             {
                 selectMouseMode(pan);

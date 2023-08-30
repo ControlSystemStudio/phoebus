@@ -29,7 +29,7 @@ public class ADLPlotTrace extends WidgetPart {
         ArrayList<Object> ret = new ArrayList<>();
         if (!xData.equals(""))ret.add(new ADLResource(ADLResource.PLOT_XDATA, xData));
         if (!yData.equals(""))ret.add(new ADLResource(ADLResource.PLOT_YDATA, yData));
-        ret.add(new ADLResource(ADLResource.PLOT_DATA_COLOR, new Integer(dataColor)));
+        ret.add(new ADLResource(ADLResource.PLOT_DATA_COLOR, Integer.valueOf(dataColor)));
         return ret.toArray();
     }
 

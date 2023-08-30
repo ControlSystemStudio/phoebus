@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -179,6 +179,9 @@ abstract public class RegionBaseRepresentation<JFX extends Region, MW extends Vi
             // but some widgets may allow other data types (Table),
             // so use Object and then check for VType
             value_prop.addUntypedPropertyListener(connectionOrValueChangedListener);
+
+            // Initial update in case we have already received a value
+            connectionOrValueChangedListener.propertyChanged(value_prop, null, value_prop.getValue());
         }
 
         // Indicate 'disconnected' state
@@ -227,7 +230,8 @@ abstract public class RegionBaseRepresentation<JFX extends Region, MW extends Vi
         // for middle-button copy/paste
         // Note: This is AWT API!
         // JavaFX has no API, https://bugs.openjdk.java.net/browse/JDK-8088117
-        Toolkit.getDefaultToolkit().getSystemSelection().setContents(new StringSelection(pv_name), null);
+        if (Toolkit.getDefaultToolkit().getSystemSelection() != null)
+            Toolkit.getDefaultToolkit().getSystemSelection().setContents(new StringSelection(pv_name), null);
     }
 
     private void custom_border_changed(final WidgetProperty<?> property, final Object old_value, final Object new_value)

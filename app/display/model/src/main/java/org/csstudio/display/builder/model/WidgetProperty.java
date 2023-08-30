@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -227,15 +227,7 @@ public abstract class WidgetProperty<T extends Object> extends PropertyChangeHan
      */
     public void useWidgetClass(final boolean use_class)
     {
-        if (this.use_class == use_class)
-            return;
-
         this.use_class = use_class;
-
-        // Editor for class model needs update, runtime doesn't
-        final DisplayModel model = getWidget().checkDisplayModel();
-        if (model != null  &&  model.isClassModel())
-            firePropertyChange(null, null);
     }
 
     /** @return Is value of this property following
@@ -331,7 +323,25 @@ public abstract class WidgetProperty<T extends Object> extends PropertyChangeHan
      */
     protected void firePropertyChange(final T old_value, final T new_value)
     {
-        firePropertyChange(this, old_value, new_value);
+        firePropertyChange(this, old_value, new_value, false);
+    }
+
+    /** Notify listeners of property change.
+     *
+     *  <p>New value usually matches <code>property.getValue()</code>,
+     *  but in multi-threaded context value might already have changed
+     *  _again_ by the time this executes.
+     *
+     *  <p>Suppresses notifications where old_value equals new_value,
+     *  unless the values are null or forceNotify is true.
+     *
+     *  @param old_value Original value
+     *  @param new_value New value
+     *  @param forceNotify Force notification
+     */
+    protected void firePropertyChange(final T old_value, final T new_value, final boolean forceNotify)
+    {
+        firePropertyChange(this, old_value, new_value, forceNotify);
     }
 
     /** @return Debug representation */

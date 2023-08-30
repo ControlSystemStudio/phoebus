@@ -39,7 +39,7 @@ public class EnumWidgetPropertyBinding
     {
         // Ignore model updates while we are updating the model,
         // or while user focused on combo box to use it
-        if (updating  ||  jfx_node.isFocused())
+        if (updating)
             return;
         updating = true;
         restore();
@@ -70,6 +70,11 @@ public class EnumWidgetPropertyBinding
             updating = true;
     };
 
+    /** @param undo Undo manager
+     *  @param field Combo box
+     *  @param widget_property Enum property
+     *  @param other Other selected widgets
+     */
     public EnumWidgetPropertyBinding(final UndoableActionManager undo,
                                      final ComboBox<String> field,
                                      final EnumWidgetProperty<?> widget_property,

@@ -8,13 +8,8 @@
 package org.csstudio.display.converter.edm.widgets;
 
 import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.properties.HorizontalAlignment;
-import org.csstudio.display.builder.model.properties.VerticalAlignment;
-import org.csstudio.display.builder.model.widgets.TextUpdateWidget;
 import org.csstudio.display.converter.edm.EdmConverter;
-import org.csstudio.opibuilder.converter.model.EdmWidget;
 import org.csstudio.opibuilder.converter.model.Edm_TextupdateClass;
-import org.phoebus.ui.vtype.FormatOption;
 
 /** Convert an EDM widget into Display Builder counterpart
  *  @author Kay Kasemir

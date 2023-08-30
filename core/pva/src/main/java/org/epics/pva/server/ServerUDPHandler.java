@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,21 +9,26 @@ package org.epics.pva.server;
 
 import static org.epics.pva.PVASettings.logger;
 
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.StandardProtocolFamily;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.logging.Level;
 
 import org.epics.pva.PVASettings;
+import org.epics.pva.common.AddressInfo;
 import org.epics.pva.common.Network;
 import org.epics.pva.common.PVAHeader;
 import org.epics.pva.common.SearchRequest;
+import org.epics.pva.common.SearchResponse;
 import org.epics.pva.common.UDPHandler;
 import org.epics.pva.data.Hexdump;
 import org.epics.pva.data.PVAAddress;
-import org.epics.pva.data.PVABool;
-import org.epics.pva.data.PVAString;
 
 /** Listen to search requests, send beacons
  *  @author Kay Kasemir
@@ -31,51 +36,97 @@ import org.epics.pva.data.PVAString;
 @SuppressWarnings("nls")
 class ServerUDPHandler extends UDPHandler
 {
-    /** Invoked when client sends a generic 'list servers'
-     *  as well as a specific PV name search
+    private final PVAServer server;
+
+    /** UDP channels on which we listen to name searches,
+     *  reply to them,
+     *  and on which we send beacons.
+     *
+     *  To reply/send to both IPv4 and IPv6, we need one
+     *  channel per protocol family.
      */
-    @FunctionalInterface
-    public interface SearchHandler
-    {
-        /** @param seq Client's search sequence
-         *  @param cid Client channel ID or -1
-         *  @param name Channel name or <code>null</code>
-         *  @param addr Client's address and TCP port
-         */
-        public void handleSearchRequest(int seq, int cid, String name, InetSocketAddress addr);
-    }
+    private volatile DatagramChannel udp4, udp6;
 
-    private final SearchHandler search_handler;
+    /** Local multicast used to re-send IPv4 unicasts */
+    private volatile AddressInfo local_multicast = null;
 
-    /** UDP channel on which we listen to name search
-     *  and on which we send beacons
-     */
-    private final DatagramChannel udp;
-
-    private final InetSocketAddress local_address;
-    private final InetSocketAddress local_multicast;
-
-    private final ByteBuffer receive_buffer = ByteBuffer.allocate(PVASettings.MAX_UDP_PACKET);
     private final ByteBuffer send_buffer = ByteBuffer.allocate(PVASettings.MAX_UDP_PACKET);
 
-    private volatile Thread listen_thread = null;
+    private volatile Thread listen_thread4 = null;
+    private volatile Thread listen_thread6 = null;
 
 
     /** Start handling UDP search requests
-     *  @param search_handler Callback for received name searches
+     *  @param server PVA Server
      *  @throws Exception on error
      */
-    public ServerUDPHandler(final SearchHandler search_handler) throws Exception
+    public ServerUDPHandler(final PVAServer server) throws Exception
     {
-        this.search_handler = search_handler;
-        udp = Network.createUDP(false, PVASettings.EPICS_PVA_BROADCAST_PORT);
-        local_multicast = Network.configureMulticast(udp);
-        local_address = (InetSocketAddress) udp.getLocalAddress();
-        logger.log(Level.FINE, "Awaiting searches and sending beacons on UDP " + local_address);
+        this.server = server;
 
-        listen_thread = new Thread(() -> listen(udp, receive_buffer), "UDP-receiver " + local_address);
-        listen_thread.setDaemon(true);
-        listen_thread.start();
+        for (AddressInfo info : Network.parseAddresses(PVASettings.EPICS_PVAS_INTF_ADDR_LIST, PVASettings.EPICS_PVAS_BROADCAST_PORT))
+        {
+            // First should be non-multicast addresses that create the IPv4 and/or IPv6 channel
+            if (! info.getAddress().getAddress().isMulticastAddress())
+            {
+                if (info.isIPv4())
+                {
+                    if (udp4 != null)
+                        throw new Exception("EPICS_PVAS_INTF_ADDR_LIST has more than one IPv4 address");
+                    udp4 = Network.createUDP(StandardProtocolFamily.INET, info.getAddress().getAddress(), PVASettings.EPICS_PVAS_BROADCAST_PORT);
+                    logger.log(Level.FINE, "Awaiting searches and sending beacons on UDP " + info);
+                }
+
+                if (info.isIPv6())
+                {
+                    if (udp6 != null)
+                        throw new Exception("EPICS_PVAS_INTF_ADDR_LIST has more than one IPv4 address");
+                    udp6 = Network.createUDP(StandardProtocolFamily.INET6, info.getAddress().getAddress(), PVASettings.EPICS_PVAS_BROADCAST_PORT);
+                    logger.log(Level.FINE, "Awaiting searches and sending beacons on UDP " + info);
+                }
+            }
+            else
+            {
+                // Have channel (which must already exist) join multicast group
+                if (info.getInterface() == null)
+                    throw new Exception("EPICS_PVAS_INTF_ADDR_LIST contains multicast group without interface");
+                if (info.isIPv4())
+                {
+                    if (udp4 == null)
+                        throw new Exception("EPICS_PVAS_INTF_ADDR_LIST lacks IPv4 address, cannot add multicast");
+                    udp4.join(info.getAddress().getAddress(), info.getInterface());
+                    logger.log(Level.FINE, "Listening to UDP multicast " + info);
+                    local_multicast = info;
+                }
+                if (info.isIPv6())
+                {
+                    if (udp6 == null)
+                        throw new Exception("EPICS_PVAS_INTF_ADDR_LIST lacks IPv6 address, cannot add multicast");
+                    udp6.join(info.getAddress().getAddress(), info.getInterface());
+                    logger.log(Level.FINE, "Listening to UDP multicast " + info);
+                }
+            }
+        }
+
+        if (local_multicast != null)
+            logger.log(Level.FINE, "IPv4 unicasts are re-transmitted via local multicast " + local_multicast);
+
+        if (udp4 != null)
+        {
+            final ByteBuffer receive_buffer = ByteBuffer.allocate(PVASettings.MAX_UDP_PACKET);
+            listen_thread4 = new Thread(() -> listen(udp4, receive_buffer),
+                                        "UDP4-receiver " + Network.getLocalAddress(udp4));
+            listen_thread4.setDaemon(true);
+            listen_thread4.start();
+        }
+        if (udp6 != null)
+        {
+            final ByteBuffer receive_buffer = ByteBuffer.allocate(PVASettings.MAX_UDP_PACKET);
+            listen_thread6 = new Thread(() -> listen(udp6, receive_buffer),
+                                        "UDP6-receiver " + Network.getLocalAddress(udp6));
+            listen_thread6.setDaemon(true);
+            listen_thread6.start();
+        }
     }
 
     @Override
@@ -88,6 +139,9 @@ class ServerUDPHandler extends UDPHandler
             return handleOriginTag(from, version, payload, buffer);
         case PVAHeader.CMD_SEARCH:
             return handleSearch(from, version, payload, buffer);
+        case PVAHeader.CMD_BEACON:
+            // Clients may send or forward beacons, server ignores them
+            break;
         default:
             logger.log(Level.WARNING, "PVA Client " + from + " sent UDP packet with unknown command 0x" + Integer.toHexString(command));
         }
@@ -125,24 +179,33 @@ class ServerUDPHandler extends UDPHandler
         if (search == null)
             return false;
 
-        if (search.name == null)
+        if (search.channels == null)
         {
             if (search.reply_required)
             {   // pvlist request
-                search_handler.handleSearchRequest(0, -1, null, search.client);
-                if (search.unicast)
-                    PVAServer.POOL.submit(() -> forwardSearchRequest(0, -1, null, search.client));
+                final boolean handled = server.handleSearchRequest(0, -1, null, search.client, search.tls, null);
+                if (! handled  &&  search.unicast)
+                    PVAServer.POOL.submit(() -> forwardSearchRequest(0, null, search.client, search.tls));
             }
         }
         else
         {   // Channel search request
-            for (int i=0; i<search.name.length; ++i)
+            List<SearchRequest.Channel> forward = null;
+            for (SearchRequest.Channel channel : search.channels)
             {
-                final int cid = search.cid[i];
-                final String name = search.name[i];
-                search_handler.handleSearchRequest(search.seq, cid, name, search.client);
-                if (search.unicast)
-                    PVAServer.POOL.submit(() -> forwardSearchRequest(search.seq, cid, name, search.client));
+                final boolean handled = server.handleSearchRequest(search.seq, channel.getCID(), channel.getName(), search.client, search.tls, null);
+                if (! handled && search.unicast)
+                {
+                    if (forward == null)
+                        forward = new ArrayList<>();
+                    forward.add(channel);
+                }
+            }
+
+            if (forward != null)
+            {
+                final List<SearchRequest.Channel> to_forward = forward;
+                PVAServer.POOL.submit(() -> forwardSearchRequest(search.seq, to_forward, search.client, search.tls));
             }
         }
 
@@ -158,24 +221,24 @@ class ServerUDPHandler extends UDPHandler
      *  allowing all servers on this host to reply.
      *
      *  @param seq Search sequence or 0
-     *  @param cid Channel ID or -1
-     *  @param name Name or <code>null</code>
-     *  @param address Client's address ..
-     *  @param port    .. and port
+     *  @param channels Channel CIDs and names or <code>null</code> for 'list'
+     *  @param address Client's address and port
+     *  @param tls Use TLS or plain TCP?
      */
-    private void forwardSearchRequest(final int seq, final int cid, final String name, final InetSocketAddress address)
+    private void forwardSearchRequest(final int seq, final Collection<SearchRequest.Channel> channels, final InetSocketAddress address, final boolean tls)
     {
+        // TODO Remove the local IPv4 multicast re-send from the protocol, just use multicast from the start as with IPv6
         if (local_multicast == null)
             return;
         synchronized (send_buffer)
         {
             send_buffer.clear();
-            SearchRequest.encode(false, seq, cid, name, address, send_buffer);
+            SearchRequest.encode(false, seq, channels, address, tls, send_buffer);
             send_buffer.flip();
             logger.log(Level.FINER, () -> "Forward search to " + local_multicast + "\n" + Hexdump.toHexdump(send_buffer));
             try
             {
-                udp.send(send_buffer, local_multicast);
+                udp4.send(send_buffer, local_multicast.getAddress());
             }
             catch (Exception ex)
             {
@@ -188,46 +251,25 @@ class ServerUDPHandler extends UDPHandler
      *  @param guid This server's GUID
      *  @param seq Client search request sequence number
      *  @param cid Client's channel ID or -1
-     *  @param tcp TCP connection where client can connect to this server
+     *  @param server_address TCP address where client can connect to server
+     *  @param tls Should client use tls?
      *  @param client Address of client's UDP port
      */
-    public void sendSearchReply(final Guid guid, final int seq, final int cid, final ServerTCPListener tcp, final InetSocketAddress client)
+    public void sendSearchReply(final Guid guid, final int seq, final int cid, final InetSocketAddress server_address, final boolean tls, final InetSocketAddress client)
     {
         synchronized (send_buffer)
         {
             send_buffer.clear();
-            PVAHeader.encodeMessageHeader(send_buffer, PVAHeader.FLAG_SERVER, PVAHeader.CMD_SEARCH_REPLY, 12+4+16+2+4+1+2+ (cid < 0 ? 0 : 4));
-
-            // Server GUID
-            guid.encode(send_buffer);
-
-            // Search Sequence ID
-            send_buffer.putInt(seq);
-
-            // Server's address and port
-            PVAAddress.encode(tcp.response_address, send_buffer);
-            send_buffer.putShort((short)tcp.response_port);
-
-            // Protocol
-            PVAString.encodeString("tcp", send_buffer);
-
-            // Found
-            PVABool.encodeBoolean(cid >= 0, send_buffer);
-
-            // int[] cid;
-            if (cid < 0)
-                send_buffer.putShort((short)0);
-            else
-            {
-                send_buffer.putShort((short)1);
-                send_buffer.putInt(cid);
-            }
-
+            SearchResponse.encode(guid, seq, cid, server_address.getAddress(), server_address.getPort(), tls, send_buffer);
             send_buffer.flip();
-            logger.log(Level.FINER, () -> "Sending search reply to " + client + "\n" + Hexdump.toHexdump(send_buffer));
+            logger.log(Level.FINER, () -> "Sending UDP search reply to " + client + "\n" + Hexdump.toHexdump(send_buffer));
+
             try
             {
-                udp.send(send_buffer, client);
+                if (client.getAddress() instanceof Inet4Address)
+                    udp4.send(send_buffer, client);
+                else
+                    udp6.send(send_buffer, client);
             }
             catch (Exception ex)
             {
@@ -243,10 +285,15 @@ class ServerUDPHandler extends UDPHandler
         // Close sockets, wait a little for threads to exit
         try
         {
-            udp.close();
+            if (udp4 != null)
+                udp4.close();
+            if (udp6 != null)
+                udp6.close();
 
-            if (listen_thread != null)
-                listen_thread.join(5000);
+            if (listen_thread4 != null)
+                listen_thread4.join(5000);
+            if (listen_thread6 != null)
+                listen_thread6.join(5000);
         }
         catch (Exception ex)
         {

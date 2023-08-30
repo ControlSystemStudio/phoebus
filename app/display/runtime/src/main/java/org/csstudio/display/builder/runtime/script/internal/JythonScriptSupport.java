@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,13 +18,16 @@ import java.util.logging.Level;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.ModelPlugin;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.runtime.Preferences;
 import org.csstudio.display.builder.runtime.pv.RuntimePV;
+import org.python.core.Options;
 import org.python.core.Py;
 import org.python.core.PyCode;
 import org.python.core.PyList;
 import org.python.core.PySystemState;
 import org.python.core.PyVersionInfo;
+import org.python.core.RegistryKey;
 import org.python.util.PythonInterpreter;
 
 /** Jython script support
@@ -64,7 +67,22 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
             // Disable cachedir to avoid creation of cachedir folder.
             // See http://www.jython.org/jythonbook/en/1.0/ModulesPackages.html#java-package-scanning
             // and http://wiki.python.org/jython/PackageScanning
-            props.setProperty(PySystemState.PYTHON_CACHEDIR_SKIP, "true");
+            props.setProperty(RegistryKey.PYTHON_CACHEDIR_SKIP, "true");
+
+            // By default, Jython compiler creates bytecode files xxx$py.class
+            // adjacent to the *.py source file.
+            // They are owned by the current user, which typically results in
+            // problems for other users, who can either not read them, or not
+            // write updates after *.py changes.
+            // There is no way to have them be created in a different, per-user directory.
+            // C Python honors an environment variable PYTHONDONTWRITEBYTECODE=true to
+            // disable its bytecode files, but Jython only checks that in its command line launcher.
+            // Use the same environment variable in case it's defined,
+            // and default to disabled bytecode, i.e. the safe alternative.
+            if (System.getenv("PYTHONDONTWRITEBYTECODE") == null)
+                Options.dont_write_bytecode = true;
+            else
+                Options.dont_write_bytecode = Boolean.parseBoolean(System.getenv("PYTHONDONTWRITEBYTECODE"));
 
             // With python.home defined, there is no more
             // "ImportError: Cannot import site module and its dependencies: No module named site"
@@ -151,6 +169,16 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
             // ==> Not using state = new PySystemState();
             final PySystemState state = null;
             python = new PythonInterpreter(null, state);
+
+            // Initialize variables that will be set when running script
+            python.set("widget", null);
+            python.set("pvs", null);
+
+            // This triggers 'imp.load("encodings")',
+            // which takes the import lock, traverses the path,
+            // so forcing it now avoids it being called later
+            // and potentially deadlocking
+            python.getSystemState().getCodecState();
         }
         final long end = System.currentTimeMillis();
         logger.log(Level.FINE, "Time to create jython: {0} ms", (end - start));
@@ -159,13 +187,21 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
     /** @param path Path to add to head of python search path */
     private void addToPythonPath(final String path)
     {
-        // Since using default PySystemState (see above), check if already in paths
-        final PyList paths = python.getSystemState().path;
-
         // Prevent concurrent modification
-        synchronized (JythonScriptSupport.class)
+        // 'paths' is actually shared across all jython interpreters
+        final PyList paths = python.getSystemState().path;
+        synchronized (paths)
         {
+            // Since using default PySystemState (see above), check if already in paths
             final int index = paths.indexOf(path);
+
+            // Warn about "examples:/... path that won't really work.
+            // Still add to the list so we only get the warning once,
+            // plus maybe some day we'll be able to use it...
+            if (index < 0  &&
+                path.startsWith(ModelResourceUtil.EXAMPLES_SCHEMA + ":"))
+                logger.log(Level.WARNING, "Jython will be unable to access scripts in " + path + ". Install examples in file system.");
+
             // Already top entry?
             if (index == 0)
                 return;
@@ -218,19 +254,16 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
             try
             {
                 // Executor is single-threaded.
-                // Should be OK to set 'widget' etc.
-                // of the shared python interpreter
+                // Should be OK to update 'widget' & 'pvs', which already exist
+                // in the python interpreter shared by all scripts of this display,
                 // because only one script will execute at a time.
-                // Still, occasionally saw NullPointerException at
+                // Occasionally saw NullPointerException at
                 // org.python.core.PyType$MROMergeState.isMerged(PyType.java:2094)
-                // from the set("widget"..) call.
-                // Moving those into sync. section to see if that makes a difference
-                synchronized (JythonScriptSupport.class)
-                {
-                    python.set("widget", widget);
-                    python.set("pvs", pvs);
-                }
-                // .. but don't want to block for the duration of the script
+                // from the set("widget"..) call, but that was before jython 2.7.2.
+                python.set("widget", widget);
+                python.set("pvs", pvs);
+                logger.log(Level.INFO, () -> "Exec " + script + " for " + widget + " in " + python + ", locals (" + System.identityHashCode(python.getLocals())  + "): " + python.getLocals());
+
                 python.exec(script.getCode());
             }
             catch (final Throwable ex)

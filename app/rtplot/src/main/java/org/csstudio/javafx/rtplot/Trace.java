@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -36,8 +36,10 @@ public interface Trace<XTYPE extends Comparable<XTYPE>>
     /** @return Name, i.e. label of this trace */
     public String getName();
 
-    /** @param name Name, i.e. label of this trace */
-    public void setName(final String name);
+    /** @param name Name, i.e. label of this trace
+     *  @return Did the name change?
+     */
+    public boolean setName(final String name);
 
     /** @return Units, may be "" */
     public String getUnits();

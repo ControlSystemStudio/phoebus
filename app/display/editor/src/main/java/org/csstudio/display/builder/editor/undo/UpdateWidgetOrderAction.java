@@ -21,7 +21,7 @@ public class UpdateWidgetOrderAction extends UndoableAction
     private final int orig_index, desired_index;
 
     /** @param widget Widget
-     *  @param index Desired index, -1 for "end of list"
+     *  @param desired_index Desired index, -1 for "end of list"
      */
     public UpdateWidgetOrderAction(final Widget widget,
                                    final int desired_index)
@@ -30,7 +30,8 @@ public class UpdateWidgetOrderAction extends UndoableAction
     }
 
     /** @param widget Widget
-     *  @param index Desired index, -1 for "end of list"
+     *  @param original_index Orig index to preserve for 'undo'
+     *  @param desired_index Desired index, -1 for "end of list"
      */
     public UpdateWidgetOrderAction(final Widget widget,
                                    final int original_index,
@@ -67,10 +68,6 @@ public class UpdateWidgetOrderAction extends UndoableAction
     {
         final ChildrenProperty children = ChildrenProperty.getParentsChildren(widget);
 
-        children.removeChild(widget);
-        if (index < 0)
-            children.addChild(widget);
-        else
-            children.addChild(index, widget);
+        children.moveChildTo(index, widget);
     }
 }

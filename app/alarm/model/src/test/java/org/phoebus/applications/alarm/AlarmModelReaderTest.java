@@ -7,20 +7,22 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.List;
-
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.model.TitleDetail;
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.applications.alarm.model.xml.XmlModelReader;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** JUnit test of {@link XmlModelReader}
  *  @author Evan Smith
@@ -62,6 +64,14 @@ public class AlarmModelReaderTest
 	+ "         <title>a1pv1 Command Title 1</title>\n"
 	+ "         <details>a1pv1 Command Detail 1</details>\n"
 	+ "       </command>\n"
+	+ "       <guidance>\n"
+	+ "         <title>a1pv1 Guidance Title 1</title>\n"
+	+ "         <details>a1pv1 Guidance Detail 1</details>\n"
+	+ "       </guidance>\n"
+	+ "       <display>\n"
+	+ "         <title>a1pv1 Display Title 1</title>\n"
+	+ "         <details>a1pv1 Display Detail 1</details>\n"
+	+ "       </display>\n"
 	+ "    </pv>"
 	+ "    <pv name=\"a1pv2\">\n"
 	+ "      <description>a1pv2 description</description>\n"
@@ -81,7 +91,7 @@ public class AlarmModelReaderTest
 	+ "    </component>\n"
 	+ "    <pv name=\"a2pv1\">\n"
 	+ "      <description>a2pv1 description</description>\n"
-	+ "      <enabled>true</enabled>\n"
+	+ "      <enabled>2031-12-03T10:15:30</enabled>\n"
 	+ "      <latching>true</latching>\n"
 	+ "      <annunciating>true</annunciating>\n"
 	+ "    </pv>\n"
@@ -152,6 +162,20 @@ public class AlarmModelReaderTest
 		assertEquals("a1pv1 Command Title 1", a1pv1_commands.get(0).title);
 		assertEquals("a1pv1 Command Detail 1", a1pv1_commands.get(0).detail);
 
+		final List<TitleDetail> a1pv1_guidance = ((AlarmTreeItem<?>)a1pv1).getGuidance();
+
+		assertEquals(1, a1pv1_guidance.size());
+
+		assertEquals("a1pv1 Guidance Title 1", a1pv1_guidance.get(0).title);
+		assertEquals("a1pv1 Guidance Detail 1", a1pv1_guidance.get(0).detail);
+
+		final List<TitleDetail> a1pv1_displays = ((AlarmTreeItem<?>)a1pv1).getDisplays();
+
+		assertEquals(1, a1pv1_displays.size());
+
+		assertEquals("a1pv1 Display Title 1", a1pv1_displays.get(0).title);
+		assertEquals("a1pv1 Display Detail 1", a1pv1_displays.get(0).detail);
+
 		final AlarmTreeLeaf a1pv2 = (AlarmTreeLeaf) area1.getChild("a1pv2");
 
 		assertEquals("a1pv2", area1.getChild("a1pv2").getName());
@@ -178,8 +202,13 @@ public class AlarmModelReaderTest
 
 		assertEquals("a2pv1", ((AlarmTreeItem<?>) a2pv1).getName());
 		assertEquals("a2pv1 description", a2pv1.getDescription());
-		assertTrue(a2pv1.isEnabled());
+		assertFalse(a2pv1.isEnabled());
 		assertTrue(a2pv1.isLatching());
 		assertTrue(a2pv1.isAnnunciating());
+
+		/* try setting new date */
+		final LocalDateTime new_expiration_date = LocalDateTime.parse("2021-12-10T10:15:30");
+		a2pv1.setEnabledDate(new_expiration_date);
+
 	}
 }

@@ -24,4 +24,4 @@ a `Group` that contains them.
 A pair of `oval` widgets which are (almost) on top of each other with conditional visibility,
 graphically representing an LED, will not be replaced with an `LED` widget.
 
-For usage see online help (../convert-medm/doc).
+For usage information, see `Display Builder Converters` section in the Phoebus online help.

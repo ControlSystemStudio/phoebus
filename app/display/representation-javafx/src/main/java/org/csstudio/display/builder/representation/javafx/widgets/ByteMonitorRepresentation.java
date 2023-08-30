@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -18,6 +18,7 @@ import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.ByteMonitorWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 import org.epics.vtype.VType;
+import org.phoebus.ui.javafx.Brightness;
 
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -33,6 +34,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.scene.text.Font;
 import javafx.scene.transform.Rotate;
+import javafx.scene.transform.Translate;
 
 /** Creates JavaFX item for model widget
  *  @author Amanda Carpenter
@@ -60,6 +62,15 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
     private volatile boolean square_led = false;
 
     private volatile Shape[] leds = null;
+    private volatile Label[] labels = null;
+
+    /** Was there ever any transformation applied to the jfx_node?
+    *
+    *  <p>Used to optimize:
+    *  If there never was a rotation, don't even _clear()_ it
+    *  to keep the Node's nodeTransformation == null
+    */
+    private boolean was_ever_transformed = false;
 
 
     @Override
@@ -149,10 +160,21 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
                 if (label != null)
                 {
                     label.relocate(x, y);
-                    label.resize(led_w, led_h);
                     label.setAlignment(Pos.CENTER);
                     if (horizontal)
-                        label.setRotate(-90);
+                    {
+                        label.resize(led_h, led_w);
+                        label.getTransforms().setAll(new Rotate(-90),
+                                                     new Translate(-led_h, 0));
+                        was_ever_transformed = true;
+                        // label.setBackground(new Background(new BackgroundFill(Color.BISQUE, CornerRadii.EMPTY, Insets.EMPTY)));
+                    }
+                    else
+                    {
+                        label.resize(led_w, led_h);
+                        if (was_ever_transformed)
+                            label.getTransforms().clear();
+                    }
                 }
             }
             else
@@ -168,6 +190,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
                     if (horizontal)
                     {
                         label.getTransforms().setAll(new Rotate(-90.0));
+                        was_ever_transformed = true;
                         // label.setBackground(new Background(new BackgroundFill(Color.BISQUE, CornerRadii.EMPTY, Insets.EMPTY)));
                         label.relocate(x, y+led_h);
                         label.resize(led_h - 2*rad - gap, led_w);
@@ -175,6 +198,8 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
                     }
                     else
                     {
+                        if (was_ever_transformed)
+                            label.getTransforms().clear();
                         label.relocate(x+2*rad+gap, y);
                         label.resize(led_w-2*rad-gap, led_h);
                     }
@@ -193,6 +218,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
             y += dy;
         }
         this.leds = leds;
+        this.labels = labels;
         pane.getChildren().setAll(leds);
         for (Label label : labels)
             if (label != null)
@@ -217,9 +243,9 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
         final boolean save_bitRev = bitReverse;
 
         final int [] colorIndices = new int [nBits];
-        final int number = VTypeUtil.getValueNumber(value).intValue();
+        final long number = Integer.toUnsignedLong(VTypeUtil.getValueNumber(value).intValue());
         for (int i = 0; i < nBits; i++)
-            colorIndices[ save_bitRev ? i : nBits-1-i] = number & (1 << (sBit+i));
+            colorIndices[ save_bitRev ? i : nBits-1-i] = (number & (1L << (sBit+i))) == 0 ? 0 : 1;
         return colorIndices;
     }
 
@@ -352,10 +378,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
         final Color[] new_colorVals = new Color[value_indices.length];
         final Color[] save_colors = colors;
         for (int i = 0; i < value_indices.length; i++)
-        {
-            value_indices[i] = value_indices[i] <= 0 ? 0 : 1;
             new_colorVals[i] = save_colors[value_indices[i]];
-        }
         value_colors = new_colorVals;
 
         dirty_content.mark();
@@ -386,6 +409,7 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
         if (dirty_content.checkAndClear())
         {
             final Shape[] save_leds = leds;
+            final Label[] save_labels = labels;
             final Color[] save_values = value_colors;
             if (save_leds == null  ||  save_values == null)
                 return;
@@ -398,8 +422,30 @@ public class ByteMonitorRepresentation extends RegionBaseRepresentation<Pane, By
                     leds[i].setFill(edit_colors);
             }
             else
+            {
+                final Color text_color = JFXUtil.convert(model_widget.propForegroundColor().getValue());
+                final double text_brightness = Brightness.of(text_color);
                 for (int i = 0; i < N; i++)
+                {
                     leds[i].setFill(save_values[i]);
+                    if (save_labels[i] != null)
+                    {
+                        // Compare brightness of LED with text.
+                        final double brightness = Brightness.of(save_values[i]);
+                        if (Math.abs(text_brightness - brightness) < Brightness.SIMILARITY_THRESHOLD)
+                        {   // Colors of text and LED are very close in brightness.
+                            // Make text visible by forcing black resp. white
+                            if (brightness > Brightness.BRIGHT_THRESHOLD)
+                                save_labels[i].setTextFill(Color.BLACK);
+                            else
+                                save_labels[i].setTextFill(Color.WHITE);
+                        }
+                        else
+                            save_labels[i].setTextFill(text_color);
+                        save_labels[i].layout();
+                    }
+                }
+            }
         }
     }
 }

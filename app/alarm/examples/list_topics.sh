@@ -1,1 +1,1 @@
-kafka/bin/kafka-topics.sh --zookeeper localhost:2181 --describe
+kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --describe

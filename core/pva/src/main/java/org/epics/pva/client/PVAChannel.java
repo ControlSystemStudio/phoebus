@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,12 +10,14 @@ package org.epics.pva.client;
 import static org.epics.pva.PVASettings.logger;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
+import org.epics.pva.common.SearchRequest;
 import org.epics.pva.data.PVADouble;
 import org.epics.pva.data.PVAString;
 import org.epics.pva.data.PVAStructure;
@@ -40,15 +42,22 @@ import org.epics.pva.data.PVAStructure;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVAChannel
+public class PVAChannel extends SearchRequest.Channel implements AutoCloseable
 {
-    private static final AtomicInteger IDs = new AtomicInteger();
+    /** Provider for the 'next' client channel ID
+     *
+     *  <p>Starts at 1, i.e. the first channel will use CID 2.
+     *  Since the server tends to start at 1, this makes it
+     *  more obvious in tests which ID is the SID
+     *  and which is the CID.
+     *
+     *  PVXS starts first channel with ID 0x12345678
+     */
+    private static final AtomicInteger CID_Provider = new AtomicInteger(1);
 
     private final PVAClient client;
-    private final String name;
     private final ClientChannelListener listener;
-    private final int id = IDs.incrementAndGet();
-    int sid = -1;
+    private volatile int sid = -1;
 
     /** State
      *
@@ -62,10 +71,12 @@ public class PVAChannel
     /** TCP Handler, set by PVAClient */
     final AtomicReference<ClientTCPHandler> tcp = new AtomicReference<>();
 
+    private final CopyOnWriteArrayList<MonitorRequest> subscriptions = new CopyOnWriteArrayList<>();
+
     PVAChannel(final PVAClient client, final String name, final ClientChannelListener listener)
     {
+        super(CID_Provider.incrementAndGet(), name);
         this.client = client;
-        this.name = name;
         this.listener = listener;
     }
 
@@ -77,21 +88,19 @@ public class PVAChannel
     ClientTCPHandler getTCP() throws Exception
     {
         final ClientTCPHandler copy = tcp.get();
+
+        // Channel Access reacts to read/write access while disconnected
+        // via IllegalStateException("Channel not connected.")
+        // Use the same exception, but add channel name
         if (copy == null)
-            throw new Exception("Channel '" + name + "' is not connected");
+            throw new IllegalStateException("Channel '" + name + "' is not connected");
         return copy;
     }
 
-    /** @return Client channel ID */
-    int getId()
+    /** @return Server channel ID */
+    int getSID()
     {
-        return id;
-    }
-
-    /** @return Channel name */
-    public String getName()
-    {
-        return name;
+        return sid;
     }
 
     /** @return {@link ClientChannelState} */
@@ -184,6 +193,7 @@ public class PVAChannel
      */
     boolean resetConnection()
     {
+        clearSubscriptions();
         final ClientTCPHandler old = tcp.getAndSet(null);
         if (old != null)
             old.removeChannel(this);
@@ -233,17 +243,47 @@ public class PVAChannel
      *  @param request Request for element to write, e.g. "field(value)"
      *  @param new_value New value: Number, String
      *  @throws Exception on error
-     *  @return {@link Future} for awaiting completion
+     *  @return {@link Future} for awaiting completion and getting Exception in case of error
+     *  @deprecated Use {@link #write(boolean, String, Object)}
      */
+    @Deprecated
     public Future<Void> write(final String request, final Object new_value) throws Exception
     {
-        return new PutRequest(this, request, new_value);
+        return write(false, request, new_value);
+    }
+
+    /** Write (put) an element of the channel's value on server
+    *
+    *  <p>The request needs to address one field of the channel,
+    *  and the value to write must be accepted by that field.
+    *
+    *  <p>For example, when "field(value)" addresses a double field,
+    *  {@link PVADouble#setValue(Object)} will be called, so <code>new_value</code>
+    *  may be a {@link Number}.
+    *
+    *  <p>When "field(value)" addresses a text field,
+    *  {@link PVAString#setValue(Object)} will be called,
+    *  which accepts any object by converting it to a string.
+    *
+    *  <p>When writing an enumerated field, its <code>int index</code>
+    *  will be written, requiring a {@link Number} that's then
+    *  used as an integer.
+    *
+    *  @param completion Perform a processing "put" that blocks until completion, or write-and-forget?
+    *  @param request Request for element to write, e.g. "field(value)"
+    *  @param new_value New value: Number, String
+    *  @throws Exception on error
+    *  @return {@link Future} for awaiting completion and getting Exception in case of error
+    */
+    public Future<Void> write(final boolean completion, final String request, final Object new_value) throws Exception
+    {
+        return new PutRequest(this, completion, request, new_value);
     }
 
     /** Start a subscription
      *
      *  @param request Request, "" for all fields, or "field_a, field_b.subfield"
-     *  @param listener Will be invoked with channel and latest value
+     *  @param listener {@link MonitorListener} that will be invoked with channel and latest value
      *  @return {@link AutoCloseable}, used to close the subscription
      *  @throws Exception on error
      */
@@ -270,10 +310,12 @@ public class PVAChannel
         // MonitorRequest submits itself to TCPHandler
         // and registers as response handler,
         // so we can later retrieve it via its requestID
-        return new MonitorRequest(this, request, pipeline, listener);
+        final MonitorRequest subscription = new MonitorRequest(this, request, pipeline, listener);
+        subscriptions.add(subscription);
+        return subscription;
     }
 
-    /** Invoke remote procecure call (RPC)
+    /** Invoke remote procedure call (RPC)
      *  @param request Request, i.e. parameters sent to the RPC call
      *  @return {@link Future} for fetching the result returned by the RPC call
      */
@@ -287,22 +329,52 @@ public class PVAChannel
      */
     void channelDestroyed(final int sid)
     {
-        // Channel closure confirmed by server
-        setState(ClientChannelState.CLOSED);
+        if (sid != this.sid)
+        {
+            logger.log(Level.WARNING, "Server destroyed " + this + " with unexpected SID " + sid);
+            return;
+        }
 
-        if (sid == this.sid)
-            logger.log(Level.FINE, () -> "Received destroy channel reply " + this);
+        // If client is CLOSING this channel, then move to CLOSED and be done.
+        if (state.compareAndSet(ClientChannelState.CLOSING, ClientChannelState.CLOSED))
+        {
+            synchronized (state)
+            {
+                state.notifyAll();
+            }
+            logger.log(Level.FINE, () -> "Server confirmed destroying channel " + this);
+            listener.channelStateChanged(this, ClientChannelState.CLOSED);
+            clearSubscriptions();
+            client.forgetChannel(this);
+        }
         else
-            logger.log(Level.WARNING, this + " destroyed with SID " + sid +" instead of expected " + this.sid);
+        {
+            // Server closed the channel.
+            logger.log(Level.FINE, () -> "Server destroyed channel " + this);
+            resetConnection();
+            // Keep in client, revert to SEARCHING soon
+            client.search.register(this, false);
+        }
+    }
 
-        client.forgetChannel(this);
+    /** Remove all MonitorRequests for this channel from TCP handler,
+     *  since we are not expecting any more updates.
+     */
+    private void clearSubscriptions()
+    {
+        final ClientTCPHandler copy = tcp.get();
+        if (copy != null)
+            for (MonitorRequest subscription : subscriptions)
+                copy.removeResponseHandler(subscription.getRequestID());
+        subscriptions.clear();
     }
 
     /** Close the channel */
+    @Override
     public void close()
     {
         // In case channel is still being searched, stop
-        client.search.unregister(getId());
+        client.search.unregister(getCID());
 
         // Indicate that channel is closing
         final ClientChannelState old_state = setState(ClientChannelState.CLOSING);
@@ -329,6 +401,6 @@ public class PVAChannel
     @Override
     public String toString()
     {
-        return "'" + name + "' [CID " + id + ", SID " + sid + " " + state.get() + "]";
+        return "'" + name + "' [CID " + cid + ", SID " + sid + " " + state.get() + "]";
     }
 }

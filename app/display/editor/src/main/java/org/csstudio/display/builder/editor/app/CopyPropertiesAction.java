@@ -106,11 +106,16 @@ public class CopyPropertiesAction extends MenuItem
         }
     }
 
+    /** @param editor Editor
+     *  @param selection Selected widgets
+     */
     public CopyPropertiesAction(final DisplayEditor editor, final List<Widget> selection)
     {
         super("Copy Properties", ImageCache.getImageView(ImageCache.class, "/icons/copy_edit.png"));
         if (selection.size() == 1)
             setOnAction(event -> selectPropertiesToCopy(editor.getContextMenuNode(), selection.get(0)));
+        else if (selection.size() == 0)
+            setOnAction(event -> selectPropertiesToCopy(editor.getContextMenuNode(), editor.getModel()));
         else
             setDisable(true);
     }

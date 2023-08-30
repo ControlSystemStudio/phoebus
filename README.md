@@ -1,16 +1,15 @@
-# phoebus 
-[![Travis Status](https://travis-ci.org/shroffk/phoebus.svg?branch=master)](https://travis-ci.org/shroffk/phoebus)
-[![Appveyor Status](https://ci.appveyor.com/api/projects/status/kwktt0vf955aged1/branch/master?svg=true)](https://ci.appveyor.com/project/mattclarke/phoebus-o58ne/branch/master)
+# phoebus
+![GitHub Actions Status](https://github.com/ControlSystemStudio/phoebus/actions/workflows/build.yml/badge.svg)
 
 Phoebus is a framework and a collections of tools to monitor and operate large scale control systems, such as the ones in the accelerator community. Phoebus is an update of the Control System Studio toolset that removes dependencies on Eclipse RCP and SWT.
 
 More information:
-http://phoebus-doc.readthedocs.io
+https://control-system-studio.readthedocs.io
 
 
 ## Requirements
  - [JDK11 or later, suggested is OpenJDK](http://jdk.java.net/12).
- - [maven 2.x](https://maven.apache.org/) or [ant](http://ant.apache.org/)
+ - [maven 3.x](https://maven.apache.org/) or [ant](http://ant.apache.org/)
 
 
 ## Target Platform
@@ -23,20 +22,21 @@ They could be obtained by expanding a zip-ed phoebus target from an existing bui
 mvn clean verify -f dependencies/pom.xml
 ```
 
-
 ## Building with maven
 
-### Quickstart (Build & run)  
-
-To build and run the phoebus product  
-
+Define the JAVA_HOME environment variable to point to your Java installation directory. 
+Mac OS users should use something like:
 ```
-mvn clean install
-cd phoebus-product
-mvn exec:java
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-11.0.5+10/Contents/Home
+```
+Verify through:
+```
+$JAVA_HOME/bin/java -version
 ```
 
-### Building  
+Make sure your PATH environment variable includes JAVA_HOME and the path to the Maven executable.
+
+### Build
 
 To build the entire phoebus stack
 
@@ -54,18 +54,11 @@ or build with `mvn -DskipTests ...` to skip tests.
 
 ### Running the phoebus application  
 
-To run with maven
-```
-cd phoebus-product
-mvn exec:java
-```
 To run the product jar
 ```
 cd phoebus-product/target
 java -jar product-*-SNAPSHOT.jar
 ```
-
-
 
 ## Building with ant
 
@@ -80,9 +73,9 @@ Download Eclipse Oxygen 4.7.1a or later from http://download.eclipse.org/eclipse
 
 Start Eclipse like this:
 
-	export JAVA_HOME=/path/to/your/jdk-9-or-later
-	export PATH="$JAVA_HOME/bin:$PATH"
-	eclipse/eclipse -consoleLog
+    export JAVA_HOME=/path/to/your/jdk-9-or-later
+    export PATH="$JAVA_HOME/bin:$PATH"
+    eclipse/eclipse -consoleLog
 
 Check Eclipse Preferences:
 
@@ -123,24 +116,22 @@ Can now start product/src/main/java/org.phoebus.product/Launcher.java.
 
 ## Developing with Intellij IDEA
 
-First, download the target platform as described above.
-
 To import the project:
 
-* Start Intellij
 * Import Project
 * Select the Phoebus directory
 * Import project from external model: Maven
 * Accept the default options and click Next twice
-* Ensure that the JDK is version 9 or above
+* Ensure that the JDK is version 11 or above
 * Change the project name to Phoebus and click finish
 
 To run the Phoebus application:
 
 * Run | Edit Configurations...
 * Select + | Application
-* Search for main class and type Launcher
-* Use classpath of module: select product
+* Module: Your JRE 11
+* Classpath `-cp`: select `product` from drop-down
+* Main class: `org.phoebus.product.Launcher`
 * Set the name to Phoebus
 * Click OK
 * In the top right of the IDE, click the green play button
@@ -178,22 +169,21 @@ To run the Phoebus application:
 
 ## Complete Distribution, including manual and self-update
 
-    # Obtain sources for Documentation and Product
-    git clone https://github.com/kasemir/phoebus-doc.git
-    git clone https://github.com/shroffk/phoebus.git
+    # Obtain sources
+    git clone https://github.com/ControlSystemStudio/phoebus.git
 
     # Build the Javadoc, i.e. html files to be included in the manual
     ( cd phoebus/app/display/editor; ant -f javadoc.xml clean all )
 
     # Building the manual will locate and include
     # all ../phoebus/**/doc/index.rst and ../phoebus/**/doc/html
-	( cd phoebus-doc; make clean html )
+    ( cd phoebus/docs; make clean html )
     # Windows: Use make.bat html
 
     # Build Product
 
     # Fetch dependencies
-	( cd phoebus; mvn clean verify -f dependencies/pom.xml )
+    ( cd phoebus; mvn clean verify -f dependencies/pom.xml )
 
     # Create settings.ini for the product with current date
     # and URL of your update site.
@@ -226,12 +216,50 @@ When building as described above, the result will be an executable for the build
 To build for a different platform, create the `dependencies` in one of these ways:
 
     # Either create the build platform for Linux..
-	( cd phoebus; mvn clean verify  -Djavafx.platform=linux  -f dependencies/pom.xml )
+    ( cd phoebus; mvn clean verify  -Djavafx.platform=linux  -f dependencies/pom.xml )
 
-	# or Mac OS X ..
-	( cd phoebus; mvn clean verify  -Djavafx.platform=mac    -f dependencies/pom.xml )
+    # or Mac OS X ..
+    ( cd phoebus; mvn clean verify  -Djavafx.platform=mac    -f dependencies/pom.xml )
 
-	# or Windows:
-	( cd phoebus; mvn clean verify  -Djavafx.platform=win    -f dependencies/pom.xml )
+    # or Windows:
+    ( cd phoebus; mvn clean verify  -Djavafx.platform=win    -f dependencies/pom.xml )
 
 The remaining build is the same, for example `ant clean dist` to build the distribution.
+
+
+## Release
+
+The Phoebus release process can be used to create tagged releases of Phoebus and publish the Pheobus jars to maven central
+using the sonatype repositories.
+
+**Setup**
+
+Create a sonatype account and update the maven settings.xml file with your sonatype credentials
+
+```
+  <servers>
+   <server>
+      <id>phoebus-releases</id>
+      <username>shroffk</username>
+      <password>*******</password>
+   </server>
+  </servers>
+```
+
+**Prepare the release**  
+`mvn release:prepare`  
+In this step will ensure there are no uncommitted changes, ensure the versions number are correct, tag the scm, etc.
+A full list of checks is documented [here](https://maven.apache.org/maven-release/maven-release-plugin/usage/prepare-release.html).
+
+**Perform the release**  
+`mvn -Darguments="-Dskip-executable-jar" -Pdocs,releases release:perform`  
+Checkout the release tag, build, sign and push the build binaries to sonatype. The `docs` profile is needed in order
+to create required javadocs jars.
+
+**Publish**  
+Open the staging repository in [sonatype](https://s01.oss.sonatype.org/#stagingRepositories) and hit the *publish* button
+
+**Note:**
+In order to keep the ant and maven builds in sync, before the prepare:release update the `version` in the 
+dependencies\ant_settings.xml to match the release version number. After the release is completed the `version` should 
+updated to match the next development snapshotData version.

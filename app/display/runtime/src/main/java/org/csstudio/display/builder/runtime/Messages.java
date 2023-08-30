@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,20 +9,27 @@ package org.csstudio.display.builder.runtime;
 
 import org.phoebus.framework.nls.NLS;
 
+/** Localized messages */
 public class Messages
 {
     // Keep in alphabetical order and aligned with messages.properties
-    public static String NavigateBack_TT;
-    public static String NavigateForward_TT;
-    public static String OpenDataBrowser;
-    public static String OpenInEditor;
-    public static String ReloadDisplay;
-    public static String SendToLogbook;
-    public static String Toolbar_Hide;
-    public static String Toolbar_Show;
-    public static String WidgetInformationHdr;
-    public static String WidgetInformationRo;
-    public static String WidgetInformationWr;
+    /** Localized message */
+    public static String NavigateBack_TT,
+                         NavigateForward_TT,
+                         OpenDataBrowser,
+                         OpenInEditor,
+                         PrintImage,
+                         PrintPlot,
+                         Refresh,
+                         ReloadDisplay,
+                         SaveImageSnapshot,
+                         SavePlotSnapshot,
+                         SendToLogbook,
+                         Toolbar_Hide,
+                         Toolbar_Show,
+                         WidgetInformationHdr,
+                         WidgetInformationRo,
+                         WidgetInformationWr;
 
     static
     {

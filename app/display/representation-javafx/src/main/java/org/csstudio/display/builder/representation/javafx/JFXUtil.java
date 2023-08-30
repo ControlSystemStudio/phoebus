@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,11 +7,13 @@
  *******************************************************************************/
 package org.csstudio.display.builder.representation.javafx;
 
+import java.text.DecimalFormat;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.properties.HorizontalAlignment;
+import org.csstudio.display.builder.model.properties.LineStyle;
 import org.csstudio.display.builder.model.properties.VerticalAlignment;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
@@ -31,12 +33,12 @@ import javafx.scene.text.FontWeight;
 public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
 {
     private static double font_calibration = 1.0;
+    private static final DecimalFormat RGBA_ALPHA_DECIMAL_FORMAT = new DecimalFormat("0.00");
 
     static
     {
         try
         {
-            CommonFonts.install();
             font_calibration = new JFXFontCalibration().getCalibrationFactor();
         }
         catch (Exception ex)
@@ -65,10 +67,22 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
     }
 
     /** Convert model color into web-type RGB text
+     *  @param col {@link WidgetColor}
+     *  @return RGB text of the form "#FF8080"
+     */
+    public static String webHex(final WidgetColor col) {
+        if(col != null) {
+            return String.format((Locale) null, "#%02X%02X%02X", col.getRed(), col.getGreen(), col.getBlue());
+        } else {
+            return "";
+        }
+    }
+
+    /** Convert model color into web-type RGB text if transparent; otherwise converts to hex.
      *  @param color {@link WidgetColor}
      *  @return RGB text of the form "#FF8080"
      */
-    public static String webRGB(final WidgetColor color)
+    public static String webRgbOrHex(final WidgetColor color)
     {
         return webRGBCache.computeIfAbsent(color, col ->
         {
@@ -76,10 +90,18 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
                 return "rgba(" + col.getRed() + ',' +
                                  col.getGreen() + ',' +
                                  col.getBlue() + ',' +
-                                 col.getAlpha()/255f + ')';
+                                 RGBA_ALPHA_DECIMAL_FORMAT.format(col.getAlpha()/255f) + ')';
             else
-                return String.format((Locale) null, "#%02X%02X%02X", col.getRed(), col.getGreen(), col.getBlue());
+                return webHex(col);
         });
+    }
+
+    /**
+     * Extract alpha value, formatted as expected for e.g. an RGBA function
+     * @return alpha value in decimal form, from 0.00 to 1.00
+     */
+    public static String webAlpha(final WidgetColor color) {
+        return RGBA_ALPHA_DECIMAL_FORMAT.format(color.getAlpha()/255f);
     }
 
     /** Convert model color into web-type RGB text
@@ -89,46 +111,37 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
      */
     public static StringBuilder appendWebRGB(final StringBuilder buf, final WidgetColor color)
     {
-        return buf.append(webRGB(color));
+        return buf.append(webRgbOrHex(color));
     }
 
     /** Convert model color into CSS style string for shading tabs, buttons, etc
      *  @param color {@link WidgetColor}
-     *  @return style string of the form "-fx-color: ... -fx-outer-border: ... -fx-inner-border: ... -fx-background: ..."
+     *  @return style string of the form "-fx-base: ..;"
      */
     public static String shadedStyle(final WidgetColor color)
     {
         return shadedStyleCache.computeIfAbsent(color, col ->
         {
             // How to best set colors?
-            // Content Pane can be set in API, but Tab has no usable 'set color' API.
+            // Content Pane can be set in API, but Button and Tab have no usable 'set color' API.
             // TabPane has setBackground(), but in "floating" style that would be
             // the background behind the tabs, which is usually transparent.
-            // modena.css of JDK8 reveals a structure of sub-items which are shaded with gradients based
-            // on  -fx-color for the inactive tabs,
-            //     -fx-outer-border and -fx-inner-border for the, well, border,
-            // and -fx-background for the selected tab,
-            // so re-define those.
-            final String bg = webRGB(col);
-            return "-fx-color: derive(" + bg + ", 50%);" +
-                   "-fx-outer-border: derive(" + bg + ", -23%);" +
-                   "-fx-inner-border: linear-gradient(to bottom," +
-                   "ladder(" + bg + "," +
-                   "       derive(" + bg + ",30%) 0%," +
-                   "       derive(" + bg + ",20%) 40%," +
-                   "       derive(" + bg + ",25%) 60%," +
-                   "       derive(" + bg + ",55%) 80%," +
-                   "       derive(" + bg + ",55%) 90%," +
-                   "       derive(" + bg + ",75%) 100%" +
-                   ")," +
-                   "ladder(" + bg + "," +
-                   "       derive(" + bg + ",20%) 0%," +
-                   "       derive(" + bg + ",10%) 20%," +
-                   "       derive(" + bg + ",5%) 40%," +
-                   "       derive(" + bg + ",-2%) 60%," +
-                   "       derive(" + bg + ",-5%) 100%" +
-                   "));" +
-                   "-fx-background: " + bg + ";";
+            //
+            // Adjusting the style can break when the underlying style sheet changes,
+            // but since at least JDK8 that has been modena.css with little changes until JFX 18,
+            // which can be found in javafx-controls-18-linux.jar as
+            // com/sun/javafx/scene/control/skin/modena/modena.css
+            //
+            // Buttons use nested -fx-background-color entries
+            // -fx-shadow-highlight-color, -fx-outer-border, -fx-inner-border, -fx-body-color
+            // with associated ..-insets and ..-radius which are all based on -fx-base,
+            // so redefine that to adjust the overall color.
+            // The .button.armed state uses
+            //   -fx-pressed-base: derive(-fx-base,-6%);
+            // which we change into a more obvious variant.
+            final String bg = webRgbOrHex(col);
+            return "-fx-base: " + bg + "; " +
+                   "-fx-pressed-base: derive(-fx-base,-25%);";
         });
     }
 
@@ -165,6 +178,35 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
                 return Font.font(f.getFamily(), FontWeight.NORMAL, FontPosture.REGULAR, calibrated);
             }
         });
+    }
+
+    /** Convert font to Java FX "-fx-font" shorthand form; e.g.
+     * [[ <font-style> || <font-weight> ]? <font-size> <font-family> ]
+     * per https://docs.oracle.com/javase/8/javafx/api/javafx/scene/doc-files/cssref.html#typefont
+     *  @param prefix Typically "-fx-font"
+     *  @param font {@link Font}
+     *  @return "-fx-font: italic 64px 'Source Sans Pro';" (recall many-word fonts must be surrounded by single quotes)
+     */
+    public static String cssFontShorthand(final String prefix, final Font font) {
+        final StringBuilder buf = new StringBuilder();
+        buf.append(prefix).append(": ");
+        switch (font.getStyle())
+        {
+            case "Bold":
+                buf.append("bold ");
+                break;
+            case "Italic":
+                buf.append("italic ");
+                break;
+            case "Bold Italic":
+                buf.append("bold italic ");
+                break;
+            default:
+                buf.append("normal ");
+        }
+        buf.append((int)font.getSize()).append("px ");
+        buf.append("'").append(font.getFamily()).append("';");
+        return buf.toString();
     }
 
     /** Convert font to Java FX "-fx-font-*"
@@ -214,5 +256,34 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
         // This depends on the order of 'Pos' and uses Pos.BOTTOM_*, not Pos.BASELINE_*.
         // Could use if/switch orgy to be independent from 'Pos' ordinals.
         return Pos.values()[vert.ordinal() * 3 + horiz.ordinal()];
+    }
+
+    /**returns double[] array for given line style scaled by line_width
+     *
+     * @param style - actual line style
+     * @param line_width - actual line width
+     * @return double[] with segment lengths
+     */
+    public static Double[] getDashArray(LineStyle style, double line_width)
+    {
+        final Double seg_short = line_width > 4. || style == LineStyle.DOT ? line_width : 4.;
+        final Double seg_long  = line_width > 4. ? 3. * line_width : 12.;
+        switch (style)
+        {
+        case DASH:
+            return new Double[] {seg_long, seg_short};
+        case DOT:
+            return new Double[] {seg_short, seg_short};
+        case DASHDOT:
+            return new Double[] {seg_long, seg_short,
+                                 seg_short, seg_short};
+        case DASHDOTDOT:
+            return new Double[] {seg_long, seg_short,
+                                 seg_short, seg_short,
+                                 seg_short, seg_short};
+        case SOLID:
+        default:
+            return new Double[] {/* Nothing for solid line */};
+        }
     }
 }

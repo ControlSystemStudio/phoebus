@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (C) 2019 European Spallation Source ERIC.
+  ~
+  ~  This program is free software; you can redistribute it and/or
+  ~  modify it under the terms of the GNU General Public License
+  ~  as published by the Free Software Foundation; either version 2
+  ~  of the License, or (at your option) any later version.
+  ~
+  ~  This program is distributed in the hope that it will be useful,
+  ~  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~  GNU General Public License for more details.
+  ~
+  ~  You should have received a copy of the GNU General Public License
+  ~  along with this program; if not, write to the Free Software
+  ~  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+  ~  
+  -->
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox fx:id="root" prefHeight="1000" prefWidth="800" HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.ui.write.LogEntryEditorController">
+    <padding>
+        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+    </padding>
+
+
+    <VBox fx:id="fields" alignment="CENTER" VBox.vgrow="ALWAYS">
+
+        <fx:include source="FieldsView.fxml" VBox.vgrow="ALWAYS" />
+
+        <VBox.margin>
+            <Insets bottom="10.0" />
+        </VBox.margin>
+    </VBox>
+
+    <VBox fx:id="attachments" alignment="CENTER" VBox.vgrow="NEVER">
+        <fx:include fx:id="attachmentsView" source="AttachmentsView.fxml" />
+    </VBox>
+
+    <HBox alignment="BOTTOM_CENTER" fillHeight="false">
+        <children>
+            <GridPane>
+                <!-- Progress indicator and completion message are not supposed to be visible simultaneously -->
+                <ProgressIndicator fx:id="progressIndicator" prefHeight="30" prefWidth="30" visible="false" />
+                <Label fx:id="completionMessageLabel" prefHeight="30" text="" textFill="red" visible="false" />
+            <columnConstraints>
+               <ColumnConstraints />
+            </columnConstraints>
+            <rowConstraints>
+               <RowConstraints />
+            </rowConstraints>
+            </GridPane>
+            <Pane HBox.hgrow="ALWAYS" />
+            <Button fx:id="cancel" alignment="CENTER_RIGHT" minWidth="57.0" mnemonicParsing="false" onAction="#cancel" text="Cancel">
+                <HBox.margin>
+                    <Insets left="5.0" right="5.0" />
+                </HBox.margin>
+            </Button>
+            <Button fx:id="submit" alignment="CENTER_RIGHT" minWidth="57.0" mnemonicParsing="false" onAction="#submit" text="Submit">
+                <HBox.margin>
+                    <Insets left="5.0" />
+                </HBox.margin>
+            </Button>
+        </children>
+        <VBox.margin>
+            <Insets />
+        </VBox.margin>
+        <padding>
+            <Insets top="10.0" />
+        </padding>
+    </HBox>
+
+</VBox>

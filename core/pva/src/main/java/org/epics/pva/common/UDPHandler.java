@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,6 +23,7 @@ import org.epics.pva.data.Hexdump;
 @SuppressWarnings("nls")
 abstract public class UDPHandler
 {
+    /** Keep running? */
     protected volatile boolean running = true;
 
     /** Read, decode, handle messages
@@ -32,6 +33,7 @@ abstract public class UDPHandler
     protected void listen(final DatagramChannel udp, final ByteBuffer buffer)
     {
         logger.log(Level.FINE, "Starting " + Thread.currentThread().getName());
+        final String local = Network.getLocalAddress(udp);
         while (running)
         {
             try
@@ -43,7 +45,7 @@ abstract public class UDPHandler
 
                 // XXX Check against list of ignored addresses?
 
-                logger.log(Level.FINER, () -> "Received UDP from " + from + "\n" + Hexdump.toHexdump(buffer));
+                logger.log(Level.FINER, () -> "Received UDP from " + from + " on " + local + "\n" + Hexdump.toHexdump(buffer));
                 handleMessages(from, buffer);
             }
             catch (Exception ex)
@@ -73,6 +75,9 @@ abstract public class UDPHandler
 
             final byte version = buffer.get();
 
+            // After initial byte-sized header entries,
+            // adjust buffer byte order as indicated in message header
+            // to allow decoding of following data (size, payload)
             final byte flags = buffer.get();
             if ((flags & PVAHeader.FLAG_BIG_ENDIAN) != 0)
                 buffer.order(ByteOrder.BIG_ENDIAN);
@@ -103,9 +108,19 @@ abstract public class UDPHandler
         }
     }
 
+    /** Handle a message
+     *
+     *  @param from Source of message
+     *  @param version Version
+     *  @param command Command/request
+     *  @param payload Payload
+     *  @param buffer Byte buffer
+     *  @return Handled?
+     */
     abstract protected boolean handleMessage(final InetSocketAddress from, final byte version,
                                              final byte command, final int payload, final ByteBuffer buffer);
 
+    /** Close */
     public void close()
     {
         running = false;

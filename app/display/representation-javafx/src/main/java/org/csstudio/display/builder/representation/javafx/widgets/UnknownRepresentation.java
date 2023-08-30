@@ -11,6 +11,8 @@ import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.persist.WidgetColorService;
+import org.csstudio.display.builder.model.properties.NamedWidgetColor;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -28,7 +30,8 @@ import javafx.scene.paint.Color;
 @SuppressWarnings("nls")
 public class UnknownRepresentation extends JFXBaseRepresentation<Label, Widget>
 {
-    private static final Color COLOR = Color.DARKGRAY;
+    private static final NamedWidgetColor INVALID = WidgetColorService.getColor("INVALID");
+    private static final Color COLOR = Color.rgb(INVALID.getRed(), INVALID.getGreen(), INVALID.getBlue(), INVALID.getAlpha() / 255.0);
     private static final Border BORDER = new Border(new BorderStroke(COLOR, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT, Insets.EMPTY));
     private final DirtyFlag dirty_size = new DirtyFlag();
     private final UntypedWidgetPropertyListener sizeChangedListener = this::sizeChanged;

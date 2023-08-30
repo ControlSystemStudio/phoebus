@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,7 +16,8 @@ import javafx.scene.control.TextField;
  */
 public class ReadOnlyTextCell<T> extends TableCell<T, String>
 {
-    private final TextField text = new TextField();
+    /** Text field used instead of the default Label to allow selecting & copying the text */
+    protected final TextField text = new TextField();
 
     public ReadOnlyTextCell()
     {
@@ -24,7 +25,7 @@ public class ReadOnlyTextCell<T> extends TableCell<T, String>
     }
 
     @Override
-    protected void updateItem(String item, boolean empty)
+    protected void updateItem(final String item, final boolean empty)
     {
         super.updateItem(item, empty);
         if (empty)

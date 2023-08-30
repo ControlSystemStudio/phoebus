@@ -19,16 +19,24 @@ public class PVALong extends PVANumber
     private final boolean unsigned;
     private volatile long value;
 
+    /** @param name Name */
     public PVALong(final String name)
     {
         this(name, false);
     }
 
+    /** @param name Name
+     *  @param unsigned Unsigned?
+     */
     public PVALong(final String name, final boolean unsigned)
     {
         this(name, unsigned, 0);
     }
 
+    /** @param name Name
+     *  @param unsigned Unsigned?
+     *  @param value Initial value
+     */
     public PVALong(final String name, final boolean unsigned, final long value)
     {
         super(name);
@@ -122,12 +130,11 @@ public class PVALong extends PVANumber
     }
 
     @Override
-    protected void formatType(final int level, final StringBuilder buffer)
+    public String getType()
     {
-        indent(level, buffer);
         if (unsigned)
-            buffer.append('u');
-        buffer.append("long ").append(name);
+            return "ulong";
+        return "long";
     }
 
     @Override

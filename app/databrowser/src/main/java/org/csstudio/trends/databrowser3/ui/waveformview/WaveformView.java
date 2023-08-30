@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -133,7 +133,7 @@ public class WaveformView extends VBox
             if (pending_move != null)
                 pending_move.cancel(false);
 
-            pending_move = Activator.thread_pool.schedule(WaveformView.this::userMovedAnnotation, 500, TimeUnit.MILLISECONDS);
+            pending_move = Activator.timer.schedule(WaveformView.this::userMovedAnnotation, 500, TimeUnit.MILLISECONDS);
         }
 
         @Override
@@ -145,6 +145,7 @@ public class WaveformView extends VBox
         }
     };
 
+    /** @param model Model */
     public WaveformView(final Model model)
     {
         this.model = model;
@@ -346,13 +347,13 @@ public class WaveformView extends VBox
                     final int size = value instanceof VNumberArray ? ((VNumberArray)value).getData().size() : 1;
                     if (size > max_size)
                         max_size = size;
-                    timestampText = TimestampFormats.MILLI_FORMAT.format(VTypeHelper.getTimestamp(value));
-                    statusText = MessageFormat.format(Messages.SeverityStatusFmt, VTypeHelper.getSeverity(value).toString(), VTypeHelper.getMessage(value));
+                    timestampText = TimestampFormats.MILLI_FORMAT.format(org.phoebus.core.vtypes.VTypeHelper.getTimestamp(value));
+                    statusText = MessageFormat.format(Messages.SeverityStatusFmt, org.phoebus.core.vtypes.VTypeHelper.getSeverity(value).toString(), VTypeHelper.getMessage(value));
                 }
                 else
                 {
-                    timestampText += "; " + TimestampFormats.MILLI_FORMAT.format(VTypeHelper.getTimestamp(value));
-                    statusText += "; " + MessageFormat.format(Messages.SeverityStatusFmt, VTypeHelper.getSeverity(value).toString(), VTypeHelper.getMessage(value));
+                    timestampText += "; " + TimestampFormats.MILLI_FORMAT.format(org.phoebus.core.vtypes.VTypeHelper.getTimestamp(value));
+                    statusText += "; " + MessageFormat.format(Messages.SeverityStatusFmt, org.phoebus.core.vtypes.VTypeHelper.getSeverity(value).toString(), VTypeHelper.getMessage(value));
                 }
             }
 

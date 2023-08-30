@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,7 @@ package org.csstudio.display.builder.editor;
 
 import java.util.concurrent.ExecutorService;
 
+import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.util.NamedDaemonPool;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
 
@@ -28,9 +29,18 @@ public class EditorUtil
         return executor;
     }
 
+    /** @param scene Scene to configure for editor */
     public static void setSceneStyle(final Scene scene)
     {
         JFXRepresentation.setSceneStyle(scene);
         scene.getStylesheets().add(EditorUtil.class.getResource("opieditor.css").toExternalForm());
+    }
+
+    /** @param display Display
+     *  @return Is display read-only?
+     */
+    public static boolean isDisplayReadOnly(final DisplayModel display)
+    {
+        return Boolean.parseBoolean(display.getUserData(DisplayModel.USER_DATA_READONLY));
     }
 }

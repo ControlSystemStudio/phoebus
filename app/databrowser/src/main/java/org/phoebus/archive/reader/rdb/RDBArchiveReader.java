@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,6 +28,7 @@ import org.phoebus.archive.reader.AveragedValueIterator;
 import org.phoebus.archive.reader.UnknownChannelException;
 import org.phoebus.archive.reader.ValueIterator;
 import org.phoebus.framework.rdb.RDBConnectionPool;
+import org.phoebus.pv.PVPool;
 import org.phoebus.util.time.TimeDuration;
 
 /** {@link ArchiveReader} for RDB
@@ -59,6 +60,9 @@ public class RDBArchiveReader implements ArchiveReader
     /** Active statements to cancel in cancel() */
     private final List<Statement> cancellable_statements = new ArrayList<>();
 
+    /** @param url RDB URL
+     *  @throws Exception on error
+     */
     public RDBArchiveReader(final String url) throws Exception
     {
         pool = new RDBConnectionPool(url, RDBPreferences.user, RDBPreferences.password);
@@ -112,19 +116,23 @@ public class RDBArchiveReader implements ArchiveReader
         final Connection connection = pool.getConnection();
         try
         {
+            final Statement statement = connection.createStatement();
+            addForCancellation(statement);
             try
-            (
-                final Statement statement = connection.createStatement();
-            )
             {
-                if (RDBPreferences.timeout > 0)
-                    statement.setQueryTimeout(RDBPreferences.timeout);
+                if (RDBPreferences.timeout_secs > 0)
+                    statement.setQueryTimeout(RDBPreferences.timeout_secs);
                 statement.setFetchSize(100);
                 final ResultSet result = statement.executeQuery(sql.sel_stati);
                 while (result.next())
                     stati.put(result.getInt(1), result.getString(2));
                 result.close();
-        }
+            }
+            finally
+            {
+                removeFromCancellation(statement);
+                statement.close();
+            }
         }
         finally
         {
@@ -142,13 +150,12 @@ public class RDBArchiveReader implements ArchiveReader
         final Connection connection = pool.getConnection();
         try
         {
+            final Statement statement = connection.createStatement();
+            addForCancellation(statement);
             try
-            (
-                final Statement statement = connection.createStatement();
-            )
             {
-                if (RDBPreferences.timeout > 0)
-                    statement.setQueryTimeout(RDBPreferences.timeout);
+                if (RDBPreferences.timeout_secs > 0)
+                    statement.setQueryTimeout(RDBPreferences.timeout_secs);
                 statement.setFetchSize(100);
                 final ResultSet result = statement.executeQuery(sql.sel_severities);
                 while (result.next())
@@ -158,7 +165,12 @@ public class RDBArchiveReader implements ArchiveReader
                     severities.put(id, decodeAlarmSeverity(text));
                 }
                 result.close();
-        }
+            }
+            finally
+            {
+                removeFromCancellation(statement);
+                statement.close();
+            }
         }
         finally
         {
@@ -269,20 +281,27 @@ public class RDBArchiveReader implements ArchiveReader
 
         // Else: Determine how many samples there are
         final Connection connection = pool.getConnection();
-        final int counted;
+        int counted = 0;
         try
-        (
-            final PreparedStatement count_samples = connection.prepareStatement(sql.sample_count_by_id_start_end);
-        )
         {
-            count_samples.setInt(1, channel_id);
-            count_samples.setTimestamp(2, Timestamp.from(start));
-            count_samples.setTimestamp(3, Timestamp.from(end));
-            final ResultSet result = count_samples.executeQuery();
-            if (! result.next())
-                throw new Exception("Cannot count samples");
-            counted = result.getInt(1);
-            result.close();
+            final PreparedStatement count_samples = connection.prepareStatement(sql.sample_count_by_id_start_end);
+            addForCancellation(count_samples);
+            try
+            {
+                count_samples.setInt(1, channel_id);
+                count_samples.setTimestamp(2, Timestamp.from(start));
+                count_samples.setTimestamp(3, Timestamp.from(end));
+                final ResultSet result = count_samples.executeQuery();
+                if (! result.next())
+                    throw new Exception("Cannot count samples");
+                counted = result.getInt(1);
+                result.close();
+            }
+            finally
+            {
+                removeFromCancellation(count_samples);
+                count_samples.close();
+            }
         }
         finally
         {
@@ -292,11 +311,15 @@ public class RDBArchiveReader implements ArchiveReader
         final ValueIterator raw_data = getRawValues(channel_id, start, end);
 
         // If there weren't that many, that's it
+        final int actual = counted;
         if (counted < count)
+        {
+            logger.log(Level.FINER, () -> name + " has only " + actual + " samples, using raw data");
             return raw_data;
-
+        }
         // Else: Perform averaging to reduce sample count
         final double seconds = TimeDuration.toSecondsDouble(Duration.between(start, end)) / count;
+        logger.log(Level.FINER, () -> name + " has " + actual + " samples, averaging into " + count + " bins");
         return new AveragedValueIterator(raw_data, seconds);
     }
 
@@ -309,20 +332,34 @@ public class RDBArchiveReader implements ArchiveReader
     int getChannelID(final String name) throws UnknownChannelException, Exception
     {
         final Connection connection = pool.getConnection();
-        try
-        (
-            final PreparedStatement statement = connection.prepareStatement(sql.channel_sel_by_name);
-        )
+        try (final PreparedStatement statement = connection.prepareStatement(sql.channel_sel_by_name))
         {
-            if (RDBPreferences.timeout > 0)
-                statement.setQueryTimeout(RDBPreferences.timeout);
-            statement.setString(1, name);
-            final ResultSet result = statement.executeQuery();
-            if (!result.next())
+            addForCancellation(statement);
+            try
+            {
+                if (RDBPreferences.timeout_secs > 0)
+                    statement.setQueryTimeout(RDBPreferences.timeout_secs);
+                // Loop over variants
+                for (String variant : PVPool.getNameVariants(name, org.csstudio.trends.databrowser3.preferences.Preferences.equivalent_pv_prefixes))
+                {
+                    statement.setString(1, variant);
+                    try (final ResultSet result = statement.executeQuery())
+                    {
+                        if (result.next())
+                        {
+                            final int channel_id = result.getInt(1);
+                            logger.log(Level.FINE, () -> "Found '" + name + "' as '" + variant + "' (" + channel_id + ")");
+                            return channel_id;
+                        }
+                    }
+                }
+                // Nothing found
                 throw new UnknownChannelException(name);
-            final int channel_id = result.getInt(1);
-            result.close();
-            return channel_id;
+            }
+            finally
+            {
+                removeFromCancellation(statement);
+            }
         }
         finally
         {

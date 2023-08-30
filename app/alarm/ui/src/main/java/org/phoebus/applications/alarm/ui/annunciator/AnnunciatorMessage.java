@@ -15,23 +15,28 @@ import org.phoebus.util.time.TimestampFormats;
 /**
  * Annunciator Message class.
  * Serves as a container for all the values the annunciator needs to annunciate a message.
- * <p>
- * <b>Contains:</b>
- * <ol>
- * <li> standout - determines if the message should always be annunciated.
- * <li> severity - allows the messages to be easily sorted.
- * <li> message  - what the annunciator will say.
- * </ol>
  * @author Evan Smith
  */
 @SuppressWarnings("nls")
 public class AnnunciatorMessage implements Comparable<AnnunciatorMessage>
 {
+    /** Does the message always need to be annunciated? */
     public final boolean      standout;
+
+    /** Severity - allows the messages to be easily sorted */
     public final SeverityLevel severity;
+
+    /** Time when message was received */
     public final Instant       time;
+
+    /** message  - what the annunciator will say */
     public       String        message;
 
+    /** @param standout  Does the message always need to be annunciated?
+     *  @param severity Alarm severity
+     *  @param time Time when annunciation was received
+     *  @param message Annunciation text
+     */
     public AnnunciatorMessage(final boolean standout, final SeverityLevel severity, final Instant time, final String message)
     {
         this.standout = standout;

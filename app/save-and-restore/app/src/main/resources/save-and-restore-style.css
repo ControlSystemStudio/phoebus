@@ -1,0 +1,141 @@
+.diff-cell {
+    -fx-background-color: #FF000044;
+    -fx-text-fill: black;
+}
+
+.table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell:filled:selected > .diff-cell,
+.table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell:filled > .diff-cell:selected,
+.table-view:cell-selection > .virtual-flow > .clipped-container > .sheet > .table-row-cell:filled > .diff-cell:hover:selected,
+.table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell:filled > .diff-cell:focused:selected:hover {
+    -fx-background-color: -fx-selection-bar;
+    -fx-text-fill: -fx-selection-bar-text;
+}
+
+.table-view .column-header.toplevel > .label {
+     -fx-text-fill: #595959FF;
+     -fx-font-weight: 700;
+     -fx-font-family: 'Liberation Sans';
+     -fx-font-size: 18px;
+}
+
+.table-view .column-header.second-level > .label {
+  -fx-text-fill: #595959FF;
+  -fx-font-weight: 700;
+  -fx-font-family: 'Liberation Sans';
+}
+
+.snapshot-table-left-aligned.column-header > .label{
+  -fx-text-fill: #595959FF;
+  -fx-font-weight: 700;
+  -fx-font-family: 'Liberation Sans';
+  -fx-alignment: center-left;
+  -fx-padding: 0 0 0 2;
+}
+
+.snapshot-table-right-aligned.column-header > .label{
+  -fx-text-fill: #595959FF;
+  -fx-font-weight: 700;
+  -fx-font-family: 'Liberation Sans';
+  -fx-alignment: center-right;
+  -fx-padding: 0 2 0 0;
+}
+
+.snapshot-table-centered.column-header > .label{
+  -fx-text-fill: #595959FF;
+  -fx-font-weight: 700;
+  -fx-font-family: 'Liberation Sans';
+}
+
+.table-cell.divider{
+    -fx-background-color: #f2f2f2FF;
+}
+
+.tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell:filled:selected > .diff-cell,
+.tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell:filled > .diff-cell:selected,
+.tree-table-view:cell-selection > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell:filled > .diff-cell:hover:selected,
+.tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell:filled > .diff-cell:focused:selected:hover {
+    -fx-background-color: -fx-selection-bar;
+    -fx-text-fill: -fx-selection-bar-text;
+}
+
+.separator:vertical .line {
+    -fx-border-style: dashed;
+    -fx-padding: 0.0em 0.0em 0.0em 0.0em;
+}
+
+.text-area:alerted {
+    -fx-background-color: red, -fx-text-box-border, -fx-control-inner-background;
+    -fx-background-insets: -0.4, 1, 2;
+    -fx-background-radius: 3.4, 2, 2;
+    -fx-prompt-text-fill: transparent;
+}
+
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-opacity: 0;
+}
+
+.pv-name-check-box-disabled > .box {
+	-fx-background-color: #E0E0E0;
+}
+
+.golden{
+    -fx-background-color: #fff8d2;
+}
+
+.input-error {
+    -fx-control-inner-background: #ff6c65;
+}
+
+.custom-menu-item .label {
+    -fx-padding: 0em 0.5em 0em 0em;
+    -fx-text-fill: -fx-text-base-color;
+}
+
+.custom-menu-item:focused .label {
+    -fx-text-fill: white;
+}
+
+.custom-menu-item:disabled .label {
+    -fx-opacity: 0.4;
+}
+
+.custom-menu-item #trashcan {
+    visibility: hidden;
+}
+
+.custom-menu-item:focused #trashcan {
+    visibility: visible;
+}
+
+.timestamp-column.table-cell{
+    -fx-font-family: "Liberation Mono";
+}
+
+.timestamp-column.tree-table-cell{
+    -fx-font-family: "Liberation Mono";
+}
+
+.id-column.table-cell{
+    -fx-font-family: "Liberation Mono";
+    -fx-alignment: CENTER-RIGHT;
+    -fx-padding: 0 4 2 0;
+}
+
+.filter-match {
+  -fx-background-color: rgb(242, 242, 242);
+}
+
+
+.tree-cell:selected{
+    -fx-background-color: rgb(0, 150, 201);
+}
+
+.column-header.rightAlignedTableColumnHeader > .label {
+    -fx-alignment: center-right;
+    -fx-padding: 0 2 0 0;
+}
+
+.column-header.leftAlignedTableColumnHeader > .label {
+    -fx-alignment: center-left;
+    -fx-padding: 0 0 0 2;
+}

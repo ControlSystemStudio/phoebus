@@ -56,10 +56,10 @@ CREATE DATABASE archive;
 
 USE archive;
 
-# Switch from default MyISAM (no checks but faster)
-# to InnoDB ('real' database but slower)?
-SET storage_engine=INNODB;
-# SET storage_engine=MyISAM;
+# MySQL used to default to MyISAM (no checks but faster).
+# InnoDB ('real' database but slower) needed to be selected like this:
+# SET storage_engine=INNODB;
+# Newer variants may support different options.
 
 # ----------------------
 # Sample engine

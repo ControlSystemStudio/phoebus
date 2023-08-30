@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2021 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,10 +10,14 @@ package org.phoebus.applications.alarm.model.json;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
@@ -42,7 +46,7 @@ public class JsonModelReader
     /** Parse JSON text
      *  @param json_text JSON text
      *  @return JSON object
-     *  @throws Exception
+     *  @throws Exception on error
      */
     public static Object parseJsonText(final String json_text) throws Exception
     {
@@ -80,7 +84,7 @@ public class JsonModelReader
 
     /** Update configuration of alarm tree item
      *  @param node {@link AlarmTreeItem}
-     *  @param json JSON returned by {@link #parseAlarmItemConfig(String)}
+     *  @param json JSON with settings for the item
      *  @return <code>true</code> if configuration changed, <code>false</code> if there was nothing to update
      */
     public static boolean updateAlarmItemConfig(final AlarmTreeItem<?> node, final Object json)
@@ -191,6 +195,8 @@ public class JsonModelReader
     /** Update specifics of {@link AlarmTreeLeaf} */
     private static boolean updateAlarmLeafConfig(final AlarmTreeLeaf node, final JsonNode json)
     {
+
+        final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
         // Is this a leaf configuration message?
         JsonNode jn = json.get(JsonTags.DESCRIPTION);
         if (jn == null)
@@ -199,7 +205,34 @@ public class JsonModelReader
         boolean changed = node.setDescription(jn.asText());
 
         jn = json.get(JsonTags.ENABLED);
-        changed |= node.setEnabled(jn == null ? true : jn.asBoolean());
+
+        // use pattern matching to determine whether boolean or datetime string
+        if (jn != null) {
+            Pattern pattern = Pattern.compile("true|false", Pattern.CASE_INSENSITIVE);
+            Matcher matcher = pattern.matcher(jn.asText());
+
+            if(matcher.matches()) {
+                changed |= node.setEnabled(jn.asBoolean());
+
+             } else {
+                 try {
+                    LocalDateTime enabled_date = LocalDateTime.parse(jn.asText(), formatter);
+                    if (enabled_date.isAfter(LocalDateTime.now())) {
+                        changed |= node.setEnabledDate(enabled_date);
+                    } else {
+                        node.setEnabled(true);
+                    }
+                 }
+                 catch (Exception ex) {
+                    logger.log(Level.WARNING, "Bypass date incorrectly formatted." + jn.asText() + "'");
+
+                }
+            }
+        }
+        else {
+            node.setEnabled(true);
+        }
+
 
         jn = json.get(JsonTags.LATCHING);
         changed |= node.setLatching(jn == null ? true : jn.asBoolean());
@@ -221,7 +254,7 @@ public class JsonModelReader
 
     /** Check for 'maintenance' mode indicator,
      *  included in alarm state updates
-     *  @param json
+     *  @param json JSON
      *  @return <code>true</code> if in maintenance mode
      */
     public static boolean isMaintenanceMode(final Object json)
@@ -233,6 +266,35 @@ public class JsonModelReader
         return false;
     }
 
+    /** Check for 'notify' mode indicator,
+     *  included in alarm state updates
+     *  @param json JSON
+     *  @return <code>true</code> if in disable_notify mode
+     */
+    public static boolean isDisableNotify(final Object json)
+    {
+        final JsonNode actual = (JsonNode) json;
+        JsonNode jn = actual.get(JsonTags.NOTIFY);
+        return jn == null ? false : !jn.asBoolean();
+    }
+
+    /** Check for config 'delete' info message
+     *  @param json JSON
+     *  @return <code>true</code> if in disable_notify mode
+     */
+    public static boolean isConfigDeletion(final Object json)
+    {
+        final JsonNode actual = (JsonNode) json;
+        final JsonNode jn = actual.get(JsonTags.DELETE);
+        return jn != null;
+    }
+
+
+    /** Update alarm state from received JSON
+     *  @param node Node to update
+     *  @param json JSON with state information
+     *  @return Was that a change?
+     */
     public static boolean updateAlarmState(final AlarmTreeItem<?> node, final Object json)
     {
         final JsonNode actual = (JsonNode) json;

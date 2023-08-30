@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,6 +10,7 @@ package org.phoebus.applications.alarm.ui.area;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.net.URI;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.AlarmSystem;
@@ -38,6 +39,10 @@ public class AlarmAreaInstance implements AppInstance
     private AlarmClient client = null;
     private final DockItemWithInput tab;
 
+    /** @param app Application info
+     *  @param input Input to instance
+     *  @throws Exception on error
+     */
     public AlarmAreaInstance(final AlarmAreaApplication app, final URI input) throws Exception
     {
         this.app = app;
@@ -47,7 +52,7 @@ public class AlarmAreaInstance implements AppInstance
         tab.addCloseCheck(() ->
         {
             dispose();
-            return true;
+            return CompletableFuture.completedFuture(true);
         });
         DockPane.getActiveDockPane().addTab(tab);
     }
@@ -66,11 +71,11 @@ public class AlarmAreaInstance implements AppInstance
 
         try
         {
-            client = new AlarmClient(server, config_name);
+            client = new AlarmClient(server, config_name, AlarmSystem.kafka_properties);
             final AlarmAreaView area_view = new AlarmAreaView(client);
             client.start();
 
-            if (AlarmSystem.config_names.size() > 0)
+            if (AlarmSystem.config_names.length > 0)
             {
                 final AlarmConfigSelector select = new AlarmConfigSelector(config_name, new_config_name ->
                 {

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,12 +15,15 @@ import static org.csstudio.display.builder.model.properties.CommonWidgetProperti
 
 import java.util.List;
 
+import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.EmbeddedDisplayWidget;
 import org.csstudio.display.builder.model.widgets.NavigationTabsWidget;
 import org.phoebus.framework.macros.Macros;
+import org.phoebus.framework.persistence.XMLUtil;
+import org.w3c.dom.Element;
 
 /** Display Model.
  *
@@ -64,6 +67,9 @@ public class DisplayModel extends Widget
     /** Reserved DisplayModel user data key for name of input file */
     public static final String USER_DATA_INPUT_FILE = "_input_file";
 
+    /** Reserved DisplayModel user data key for 'read only' flag, "true" to set, anything else means false */
+    public static final String USER_DATA_READONLY = "_read_only";
+
     /** Reserved DisplayModel user data key for version of input file
      *
      *  <p>Holds Version.
@@ -83,14 +89,37 @@ public class DisplayModel extends Widget
      */
     public static final String USER_DATA_EMBEDDING_WIDGET = "_embedding_widget";
 
-    /** Macros set in preferences
-     *
-     *  <p>Fetched once on display creation to
-     *  use latest preference settings on newly opened display,
-     *  while not fetching preferences for each macro evaluation
-     *  within a running display to improve performance
-     */
-    private final Macros preference_macros = Preferences.getMacros();
+
+    /** Custom configurator to read legacy *.opi files */
+    private static class CustomConfigurator extends WidgetConfigurator
+    {
+        public CustomConfigurator(final Version xml_version)
+        {
+            super(xml_version);
+        }
+
+        @Override
+        public boolean configureFromXML(final ModelReader model_reader, final Widget widget, final Element widget_xml)
+                throws Exception
+        {
+            if (! super.configureFromXML(model_reader, widget, widget_xml))
+                return false;
+
+            if (xml_version.getMajor() < 2)
+            {
+                // Import legacy grid size
+                final DisplayModel model = (DisplayModel) widget;
+                XMLUtil.getChildInteger(widget_xml, "grid_space")
+                       .ifPresent(grid ->
+                {
+                    model.gridStepX.setValue(grid);
+                    model.gridStepY.setValue(grid);
+                });
+            }
+
+            return true;
+        }
+    }
 
     /** 'grid_visible' property */
     public static final WidgetPropertyDescriptor<Boolean> propGridVisible = newBooleanPropertyDescriptor(WidgetPropertyCategory.MISC, "grid_visible", Messages.WidgetProperties_GridVisible);
@@ -167,6 +196,58 @@ public class DisplayModel extends Widget
         return embedder == null;
     }
 
+    /** Set result of model reader based on number of errors
+     *  @param modelReader ModelReader
+     */
+    public final void setReaderResult(final ModelReader modelReader)
+    {
+        /*
+         * setConfiguratorResult() might have already set it to true
+         */
+        if (this.clean != null && this.clean.booleanValue() == false)
+            throw new RuntimeException("Cannot change cleanliness of DisplayModel");
+
+        this.clean = Boolean.valueOf(modelReader.getNumberOfWidgetErrors() == 0);
+    }
+
+    /** @return <code>true</code> if this display was loaded without errors,
+     *          <code>false</code> if there were widget errors
+     */
+    @Override
+    public final boolean isClean()
+    {
+        Boolean safe = clean;
+
+        if (safe == null)
+            return true;
+
+        if (safe.booleanValue() == false)
+            return false;
+
+        // Check embedded displays and navigation tabs too
+        for (Widget child: getChildren())
+        {
+            java.util.Optional<WidgetProperty<DisplayModel>> child_dm_prop = child.checkProperty(EmbeddedDisplayWidget.runtimeModel.getName());
+            if (child_dm_prop.isPresent())
+            {
+                final DisplayModel child_dm = child_dm_prop.get().getValue();
+                if (child_dm != null && child_dm.isClean() == false)
+                {
+                    clean = Boolean.valueOf(false);
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    @Override
+    public WidgetConfigurator getConfigurator(Version persisted_version) throws Exception
+    {
+        return new CustomConfigurator(persisted_version);
+    }
+
     @Override
     protected void defineProperties(final List<WidgetProperty<?>> properties)
     {
@@ -211,25 +292,27 @@ public class DisplayModel extends Widget
         throw new IllegalStateException("Display cannot have parent widget " + parent);
     }
 
+    /** Expand macros for this display's widget hierarchy
+     *  @param base Base macros from preferences, launcher, parent container
+     */
+    @Override
+    public void expandMacros(final Macros base)
+    {
+        // Expand the display macros
+        propMacros().getValue().expandValues(base);
+
+        // Recurse into child widgets
+        for (Widget child: getChildren())
+            child.expandMacros(propMacros().getValue());
+    }
+
     /** Display model provides macros for all its widgets.
      *  @return {@link Macros}
      */
     @Override
     public Macros getEffectiveMacros()
     {
-        // 1) Lowest priority are either
-        // 1.a) .. global macros from preferences
-        // 1.b) .. macros from embedding widget,
-        //      which may in turn be embedded elsewhere,
-        //      ultimately fetching the macros from preferences.
-        final Widget embedder = getUserData(DisplayModel.USER_DATA_EMBEDDING_WIDGET);
-        Macros result = (embedder == null)
-            ? preference_macros
-            : embedder.getEffectiveMacros();
-
-        // 2) This display may provide added macros or replacement values
-        result = Macros.merge(result, propMacros().getValue());
-        return result;
+        return propMacros().getValue();
     }
 
     /** @return 'background_color' property */

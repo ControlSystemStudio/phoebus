@@ -32,11 +32,14 @@ public class TextUtils
     {
         // com.sun.javafx.scene.control.skin.Utils contains related code,
         // but is private
+        
+        // Unclear if order of setting text, font, spacing matters;
+        // copied from skin.Utils
+        helper.setText(text);
         helper.setFont(font);
         // With default line spacing of 0.0,
         // height of multi-line text is too small...
-        helper.setLineSpacing(1.0);
-        helper.setText(text);
+        helper.setLineSpacing(3);
 
         final Bounds measure = helper.getLayoutBounds();
         return new Dimension2D(measure.getWidth(), measure.getHeight());

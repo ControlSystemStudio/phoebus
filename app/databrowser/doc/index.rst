@@ -18,7 +18,7 @@ Historic Data
     samples to obtain data for time ranges 'before' the live sample
     buffer. You can configure one or more archive data source for each PV.
 
-.. image:: databrowser.png
+.. image:: images/databrowser.png
    :width: 80%
    :align: center
 
@@ -32,10 +32,37 @@ To create a new plot:
     invoke |add| ``Add PV``.
  3. Enter the desired PV name, press "OK".
 
-.. |databrowser| image:: ../src/main/resources/icons/databrowser.png
-.. |add| image:: ../src/main/resources/icons/add.png
+.. |databrowser| image:: images/icon_databrowser.png
+.. |add| image:: images/icon_add.png
 
+Plot Configuration ``.plt`` Files
+---------------------------------
 
+Use the ``File``, ``Save`` menu entry or the keyboard shortcut
+CTRL + S (CMD + S on Mac OS) to save the plot settings, which include
+PV names, trace colors and axis arrangements.
+The default file extension for plot files is ``.plt``.
+You can later re-open the configuration by opening the ``.plt`` file,
+adjust settings, for example axis ranges, and save the updated configuration.
+
+The ``.plt`` files store the configuration of a plot, but no data.
+To save an image of the current plot, use ``Save Snapshot`` from the plot context menu item.
+To save the data shown in the plot, refer to the "Exporting Data" section below.
+
+Note that any zooming or panning of a plot changes the plot settings,
+so when then closing the plot, you will be prompted to save the updated settings.
+This may not be desirable in an operational setup. For example, assume a ``.plt`` file was
+created with a time axis range that displays the last 6 hours. When users
+open this configuration, they are free to zoom in or out, even add or remove traces,
+but when they close the plot, you may not want them to overwrite the original settings.
+
+There are two ways to accomplish this.
+One is the "Save Changes" option in the plot's "Properties Panel" described below.
+The other is making the ``.plt`` file read-only using operating system file tools
+or the CS-Studio File Browser. Configuration files can also be loaded via HTTP links,
+which are always read-only. When trying to close a plot with modified configuration,
+the Data Browser noticed if the original file cannot be written and will prompt
+with a "Save-As" dialog to offer saving to a new file.
 
 
 Toolbar
@@ -44,7 +71,7 @@ Toolbar
 Open the plot's tool bar by right-clicking into the plot,
 then invoke |toolbar| ``Show Toolbar``.
 
-.. |toolbar| image:: ../../rtplot/src/main/resources/icons/toolbar.png
+.. |toolbar| image:: images/icon_toolbar.png
 
 Stagger
 ^^^^^^^
@@ -55,7 +82,7 @@ In other words, all the traces of the first value axis will appear on top,
 followed by the traces on the second axis below,
 the traces on the third axis below the second axis and so on.
 
-.. |stagger| image:: ../../rtplot/src/main/resources/icons/stagger.png
+.. |stagger| image:: images/icon_stagger.png
 
 
 Zooming
@@ -94,21 +121,51 @@ Finally, while the mouse pointer is within an axis or the plot,
 you can hold the ``Control`` key and then use the scroll wheel
 to zoom in or out of an axis or the plot.
 
-.. |zoom_in| image:: ../../rtplot/src/main/resources/icons/zoom_in.png
-.. |zoom_out| image:: ../../rtplot/src/main/resources/icons/zoom_out.png
+.. |zoom_in| image:: images/icon_zoom_in.png
+.. |zoom_out| image:: images/icon_zoom_out.png
 
 
 
-Property Panel
---------------
+Properties Panel
+----------------
 
 Open the plot's property panel by right-clicking into the plot,
 then invoke |properties| ``Open Properties Panel``.
 
-.. |properties| image:: ../src/main/resources/icons/properties.png
+.. |properties| image:: images/icon_properties.png
 
 The panel allows you to configure each trace, the time axis, the value axes,
-and miscellaneous settings.
+and miscellaneous settings. Changes performed in this panel will be persisted when the plot (.plt) file is saved.
+
+The meaning of most options should become evident by simply using them, with a few exceptions.
+
+On the "Misc." tab, "Plot redraw period" and "Scroll Step" control how the plot updates and scrolls.
+For example, a redraw period of 1 and a scroll step of 10 refreshes the plot every second, while scrolling the
+time axis every 10 seconds. This makes for a plot that mostly stands still, only moving every 10 seconds.
+Larger redraw periods can be useful to reduce CPU usage.
+
+The "Save Changes" option on the "Misc." tab controls how the plot behaves when closed.
+By default, the option is checked, and trying to close a modified plot will open a "Save before closing?" prompt.
+In an operational scenario, certain plots may be provided with default settings that are not meant
+to be overwritten. For those, un-check the "Save Changes" option. Users can now open the plot,
+zoom, pan, even add or remove traces, and then simply close the plot without a prompt, preserving
+the desired default settings. Note that when you un-check the "Save Changes" option to get this
+behavior, you already activated it, so you need to use "Save As" from the File menu to save
+the ``*.plt`` file with the un-checked "Save Changes" option.
+
+
+Runtime Properties Dialog
+-------------------------
+
+If enabled through the preference setting ``org.csstudio.trends.databrowser3/config_dialog_supported``, plot settings may
+also be changed using the runtime properties dialog. To launch the dialog, click on the plot area and then press letter "o":
+
+.. image:: images/runtime_properties_dialog.png
+   :width: 400
+
+**NOTE**: changes to the plot performed from the runtime properties dialog will not update the data model constructed
+from the underlying plot file. Consequently such changes are **not** persisted when the plot file is saved. To make
+sure plot properties are saved one must perform the changes in the property panel.
 
 Live Data Sampling 
 ^^^^^^^^^^^^^^^^^^
@@ -144,7 +201,7 @@ Some archive data sources may also provide the standard deviation,
 which will be represented as a pair of thinner lines,
 one above and one below the thicker average line.
 
-.. image:: optimized.png
+.. image:: images/optimized.png
    :width: 80%
    :align: center
 
@@ -163,7 +220,7 @@ data for a long time range your computer will eventually ran out of
 memory. The 'Raw Data' requests should therefore only be used when
 necessary because of shortcomings in the 'Optimized' algorithm.
 
-.. image:: raw.png
+.. image:: images/raw.png
    :width: 80%
    :align: center
 
@@ -187,8 +244,8 @@ until a new sample arrives.
 This reflects our assumption that the signal has not significantly changed
 until we receive a new sample.
 
- .. image:: stair.png
- .. image:: direct.png 
+ .. image:: images/stair.png
+ .. image:: images/direct.png 
 
 The alternate "Area (direct)" and "Single Line (direct)" Trace Types,
 shown to the right,
@@ -204,7 +261,7 @@ for spreadsheet programs or Matlab.
 Open the export panel by right-clicking into the plot,
 then invoke |export| ``Open Data Export Panel``.
 
-.. |export| image:: ../src/main/resources/icons/export.png
+.. |export| image:: images/icon_export.png
 
 
 Time Range
@@ -349,7 +406,7 @@ the file. Each structure has the following elements:
 
 ``severity``: Severity
 
-The time stamps are saved as text. In reasonable modern versions
+The time stamps are saved as text by default. In reasonable modern versions
 of Matlab you best convert them to Matlab serial date numbers, which
 you can then for example plot over time like this::
 
@@ -358,6 +415,9 @@ you can then for example plot over time like this::
     datetick('x',0);
     title(channel0.name);
 
+
+If user ticks 'Use UNIX timestamp...' in the export tab, timestamps will be exported
+as UNIX timestamp in ms, i.e. as a 64 bit unsigned integer.
 
 The Matlab text files like "example.m" are suitable for loading (executing)
 in Matlab R2006b or newer, creating one 'timeseries'
@@ -393,7 +453,6 @@ To see available options, run phoebus like this::
 
     -help                                    -  This text
     -settings settings.xml                   -  Import settings from file, either exported XML or property file format
-    -archives                                -  Set archive URLs, separated by '*'
 
     Archive Information options:
     -list [pattern]                          -  List channel names, with optional pattern ('.', '*')
@@ -406,7 +465,23 @@ To see available options, run phoebus like this::
     -decimal precision                       -  Decimal format with given precision
     -exponential precision                   -  Exponential format with given precision
     -nostate                                 -  Do not include status/severity in tab-separated file
+    -unixTimeStamp                           -  Use UNIX timestamp (in ms) instead of formatted date/time string
     -export /path/to/file channel <channels> -  Export data for one or more channels into file
 
     File names ending in *.m or *.mat generate Matlab files.
     All other file name endings create tab-separated data files.
+
+
+
+The Statistics-tab
+------------------
+Under the Statistics-tab, some basic statistical measures of the plotted data-points can be viewed.
+
+It is important to note that the statistics are calculated only on the data values themselves *without taking into
+account the timestamps of data-points*: in the calculation of the statistical measures, only the value of data-points
+and the total number of data-points are taken into account, while neither the time interval under consideration (except
+indirectly for determining the subset of data-points to calculate the statistical measures for), nor the timestamps of
+individual data-points are part of the calculation.
+
+For instance, in a plot based on both archived and live samples, the mean value will be skewed towards the live data
+portion if live data is sampled at a higher frequency than archived data.

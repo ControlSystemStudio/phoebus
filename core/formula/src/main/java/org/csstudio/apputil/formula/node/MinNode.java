@@ -8,12 +8,12 @@
 package org.csstudio.apputil.formula.node;
 
 import org.csstudio.apputil.formula.Node;
-import org.csstudio.apputil.formula.VTypeHelper;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
 import org.epics.vtype.Time;
 import org.epics.vtype.VDouble;
 import org.epics.vtype.VType;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 /** One computational node.
  *  @author Kay Kasemir
@@ -35,7 +35,7 @@ public class MinNode implements Node
         /// Evaluate each argument
         for (int i = 0; i < args.length; i++)
         {
-            final double value = VTypeHelper.getDouble(args[i].eval());
+            final double value = VTypeHelper.toDouble(args[i].eval());
             if (i==0  ||  value < result)
                 result = value;
         }

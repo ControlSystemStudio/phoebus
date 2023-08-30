@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2010-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -44,7 +44,7 @@ import org.phoebus.util.time.TimeRelativeInterval;
 
 import javafx.application.Platform;
 
-/** Controller that interfaces the {@link Model} with the {@link ModelBasedPlotSWT}:
+/** Controller that interfaces the {@link Model} with the {@link ModelBasedPlot}:
  *  <ul>
  *  <li>For each item in the Model, create a trace in the plot.
  *  <li>Perform scrolling of the time axis.
@@ -122,13 +122,16 @@ public class Controller
         {
             logger.log(Level.WARNING, "No archived data for " + job.getPVItem().getDisplayName(), error);
             // Remove the problematic archive data source, but has to happen in UI thread
-            Platform.runLater(() ->  job.getPVItem().removeArchiveDataSource(archive));
+            if (Preferences.drop_failed_archives)
+                Platform.runLater(() ->  job.getPVItem().removeArchiveDataSource(archive));
         }
 
         @Override
         public void channelNotFound(final ArchiveFetchJob job, final boolean channelFoundAtLeastOnce,
                 final List<ArchiveDataSource> archivesThatFailed)
         {
+            logger.log(Level.INFO,
+                       () -> "Channel " + job.getPVItem().getResolvedDisplayName() + " not found in " + archivesThatFailed + ", removing data source.");
             // no need to reuse this source if the channel is not in it, but it has to happen in the UI thread, because
             // of the way the listeners of the pv item are implemented
             Platform.runLater(() ->  job.getPVItem().removeArchiveDataSource(archivesThatFailed));
@@ -137,7 +140,7 @@ public class Controller
             if (!channelFoundAtLeastOnce)
             {
                 logger.log(Level.INFO,
-                           "Channel " + job.getPVItem().getResolvedDisplayName() + " not found in any of the archived sources.");
+                           () -> "Channel " + job.getPVItem().getResolvedDisplayName() + " not found in any of the archived sources.");
             }
         }
     };
@@ -335,7 +338,6 @@ public class Controller
     };
 
     /** Initialize
-     *  @param shell Shell
      *  @param model Model that has the data
      *  @param plot Plot for displaying the Model
      *  @throws Error when called from non-UI thread
@@ -436,18 +438,21 @@ public class Controller
             @Override
             public void itemRemoved(final ModelItem item)
             {
-                plot.removeTrace(item);
+                plot.lockTracesForWriting();
+                try
+                {
+                    plot.removeTrace(item);
+                }
+                finally
+                {
+                    plot.unlockTracesForWriting();
+                }
             }
 
             @Override
             public void changedItemVisibility(final ModelItem item)
-            {   // Add/remove from plot, but don't need to get archived data
-                // When made visible, note that item could be in 'middle'
-                // of existing traces, so need to re-create all
-                if (item.isVisible())
-                    createPlotTraces();
-                else // To hide, simply remove
-                    plot.removeTrace(item);
+            {
+                plot.updateTrace(item);
             }
 
             @Override
@@ -463,9 +468,10 @@ public class Controller
             }
 
             @Override
-            public void changedItemDataConfig(final PVItem item)
+            public void changedItemDataConfig(final PVItem item, final boolean archive_invalid)
             {
-                getArchivedData(item);
+                if (archive_invalid)
+                    getArchivedData(item);
             }
 
             @Override
@@ -522,7 +528,7 @@ public class Controller
         // Compiler error "schedule(Runnable, long, TimeUnit) is ambiguous"
         // unless specifically casting getArchivedData to Runnable.
         final Runnable fetch = this::getArchivedData;
-        archive_fetch_delay_task = Activator.thread_pool.schedule(fetch, archive_fetch_delay, TimeUnit.MILLISECONDS);
+        archive_fetch_delay_task = Activator.timer.schedule(fetch, archive_fetch_delay, TimeUnit.MILLISECONDS);
     }
 
     /** Start model items and initiate scrolling/updates
@@ -593,6 +599,20 @@ public class Controller
         }
     }
 
+    /** Clear live samples, re-fetch archived data */
+    public void refresh()
+    {
+        // Clear live data buffer of PVs
+        for (ModelItem item : model.getItems())
+            if (item instanceof PVItem)
+            {
+                final PVItem pv = (PVItem) item;
+                pv.getSamples().clear();
+            }
+        // Re-fetch archived data
+        scheduleArchiveRetrieval();
+    }
+
     /** Stop scrolling and model items
      *  @throws IllegalStateException when not running
      */
@@ -609,8 +629,7 @@ public class Controller
         }
         // Stop update task
         model.stop();
-        model.removeListener(model_listener);
-        model.clear();
+        model.dispose();
         update_task.cancel(true);
         update_task = null;
     }
@@ -618,13 +637,21 @@ public class Controller
     /** (Re-) create traces in plot for each item in the model */
     public void createPlotTraces()
     {
-        plot.removeAll();
-        int i = 0;
-        for (AxisConfig axis : model.getAxes())
-            plot.updateAxis(i++, axis);
-        for (ModelItem item : model.getItems())
-            if (item.isVisible())
+        if (! plot.lockTracesForWriting())
+            return;
+        try
+        {
+            plot.removeAll();
+            int i = 0;
+            for (AxisConfig axis : model.getAxes())
+                plot.updateAxis(i++, axis);
+            for (ModelItem item : model.getItems())
                 plot.addTrace(item);
+        }
+        finally
+        {
+            plot.unlockTracesForWriting();
+        }
         setAxisFonts();
     }
 

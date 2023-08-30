@@ -14,7 +14,12 @@ import org.csstudio.display.builder.model.Messages;
  */
 public enum HorizontalAlignment
 {
-    LEFT(Messages.Left), CENTER(Messages.Center), RIGHT(Messages.Right);
+    /** Left align */
+    LEFT(Messages.Left),
+    /** Center align */
+    CENTER(Messages.Center),
+    /** Right align */
+    RIGHT(Messages.Right);
     private final String label;
 
     private HorizontalAlignment(final String label)

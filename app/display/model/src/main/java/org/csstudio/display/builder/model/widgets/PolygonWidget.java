@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,8 +9,9 @@ package org.csstudio.display.builder.model.widgets;
 
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineColor;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineStyle;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propLineWidth;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propPoints;
+import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propTransparent;
 
 import java.util.Arrays;
 import java.util.List;
@@ -23,7 +24,7 @@ import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.XMLTags;
-import org.csstudio.display.builder.model.properties.Points;
+import org.csstudio.display.builder.model.properties.LineStyle;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
@@ -32,7 +33,7 @@ import org.w3c.dom.Element;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PolygonWidget extends VisibleWidget
+public class PolygonWidget extends PolyBaseWidget
 {
     /** Legacy polygon used 1.0.0 */
     private static final Version version = new Version(2, 0, 0);
@@ -96,6 +97,8 @@ public class PolygonWidget extends VisibleWidget
                 // In case a re-parse is triggered, prevent another XMLPoints adjustment
                 // by marking as current version
                 widget_xml.setAttribute(XMLTags.VERSION, version.toString());
+
+                MacroWidget.importPVName(model_reader, widget, widget_xml);
             }
             // Parse updated XML
             return super.configureFromXML(model_reader, widget, widget_xml);
@@ -103,10 +106,12 @@ public class PolygonWidget extends VisibleWidget
     };
 
     private volatile WidgetProperty<WidgetColor> background_color;
+    private volatile WidgetProperty<Boolean> transparent;
     private volatile WidgetProperty<WidgetColor> line_color;
     private volatile WidgetProperty<Integer> line_width;
-    private volatile WidgetProperty<Points> points;
+    private volatile WidgetProperty<LineStyle> line_style;
 
+    /** Constructor */
     public PolygonWidget()
     {
         super(WIDGET_DESCRIPTOR.getType());
@@ -118,8 +123,9 @@ public class PolygonWidget extends VisibleWidget
         super.defineProperties(properties);
         properties.add(line_width = propLineWidth.createProperty(this, 3));
         properties.add(line_color = propLineColor.createProperty(this, new WidgetColor(0, 0, 255)));
+        properties.add(line_style = propLineStyle.createProperty(this, LineStyle.SOLID));
         properties.add(background_color = propBackgroundColor.createProperty(this, new WidgetColor(50, 50, 255)));
-        properties.add(points = propPoints.createProperty(this, new Points()));
+        properties.add(transparent = propTransparent.createProperty(this, false));
     }
 
     @Override
@@ -144,6 +150,12 @@ public class PolygonWidget extends VisibleWidget
         return background_color;
     }
 
+    /** @return 'transparent' property */
+    public WidgetProperty<Boolean> propTransparent()
+    {
+        return transparent;
+    }
+
     /** @return 'line_color' property */
     public WidgetProperty<WidgetColor> propLineColor()
     {
@@ -156,9 +168,9 @@ public class PolygonWidget extends VisibleWidget
         return line_width;
     }
 
-    /** @return 'points' property */
-    public WidgetProperty<Points> propPoints()
+    /** @return 'line_style' property */
+    public WidgetProperty<LineStyle> propLineStyle()
     {
-        return points;
+        return line_style;
     }
 }

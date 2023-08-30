@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,6 +19,8 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.widgets.ArrayWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget;
+import org.csstudio.display.builder.model.widgets.TabsWidget.TabItemProperty;
+import org.csstudio.display.builder.model.widgets.VisibleWidget;
 
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Group;
@@ -35,7 +37,7 @@ import javafx.scene.shape.Rectangle;
 @SuppressWarnings("nls")
 public class ParentHandler
 {
-    public static final int PARALLEL_THRESHOLD = 10;
+    private static final int PARALLEL_THRESHOLD = 10;
 
     private volatile DisplayModel model = null;
 
@@ -136,8 +138,9 @@ public class ParentHandler
                 else if (widget instanceof TabsWidget)
                 {   // Check children of _selected_ Tab
                     final TabsWidget tabwid = (TabsWidget) widget;
-                    final int selected = tabwid.propActiveTab().getValue();
-                    child_prop = tabwid.propTabs().getValue().get(selected).children();
+                    final List<TabItemProperty> tabs = tabwid.propTabs().getValue();
+                    int selected = Math.min(tabwid.propActiveTab().getValue(), tabs.size()-1);
+                    child_prop = tabs.get(selected).children();
                 }
                 else if (widget instanceof ArrayWidget)
                 {
@@ -155,7 +158,19 @@ public class ParentHandler
                     else
                         continue;
                 }
-                if (checkIfWidgetWithinBounds(widget))
+                // block accepting drop into parent if parent is not visible - skip invisible widgets
+                // widget in edit pane is always a VisibleWidget
+                boolean isVisible = true;
+                Widget w = widget;
+                while (w instanceof VisibleWidget)
+                    if (!((VisibleWidget)w).propVisible().getValue())
+                    {
+                        isVisible = false;
+                        break;
+                    }
+                    else
+                        w = w.getParent().get();
+                if (checkIfWidgetWithinBounds(widget) && isVisible)
                     result.update(child_prop, depth);
                 result.update(new ParentWidgetSearch(bounds, child_prop.getValue(), ignore, depth + 1).compute());
             }
@@ -196,10 +211,10 @@ public class ParentHandler
      *  <p>The widgets in the current selection themselves are ignored
      *  in the search to prevent having a group that's moved locate itself.
      *
-     *  @param x
-     *  @param y
-     *  @param width
-     *  @param height
+     *  @param x X
+     *  @param y Y
+     *  @param width Width
+     *  @param height Height
      *  @see #getActiveParentChildren()
      */
     public void locateParent(final double x, final double y, final double width, final double height)

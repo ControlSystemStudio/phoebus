@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.TankWidget;
 import org.csstudio.display.builder.representation.Preferences;
@@ -21,6 +22,8 @@ import org.epics.vtype.Display;
 import org.epics.vtype.VType;
 
 import javafx.scene.layout.Pane;
+import javafx.scene.transform.Rotate;
+import javafx.scene.transform.Translate;
 
 /** Creates JavaFX item for model widget
  *  @author Kay Kasemir
@@ -30,6 +33,7 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
     private final DirtyFlag dirty_look = new DirtyFlag();
     private final UntypedWidgetPropertyListener lookListener = this::lookChanged;
     private final UntypedWidgetPropertyListener valueListener = this::valueChanged;
+    private final WidgetPropertyListener<Boolean> orientationChangedListener = this::orientationChanged;
 
     private volatile RTTank tank;
 
@@ -57,7 +61,9 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         model_widget.propLimitsFromPV().addUntypedPropertyListener(valueListener);
         model_widget.propMinimum().addUntypedPropertyListener(valueListener);
         model_widget.propMaximum().addUntypedPropertyListener(valueListener);
+	model_widget.propLogScale().addUntypedPropertyListener(valueListener);
         model_widget.runtimePropValue().addUntypedPropertyListener(valueListener);
+        model_widget.propHorizontal().addPropertyListener(orientationChangedListener);
         valueChanged(null, null, null);
     }
 
@@ -76,7 +82,9 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         model_widget.propLimitsFromPV().removePropertyListener(valueListener);
         model_widget.propMinimum().removePropertyListener(valueListener);
         model_widget.propMaximum().removePropertyListener(valueListener);
+	model_widget.propLogScale().removePropertyListener(valueListener);
         model_widget.runtimePropValue().removePropertyListener(valueListener);
+        model_widget.propHorizontal().removePropertyListener(orientationChangedListener);
         super.unregisterListeners();
     }
 
@@ -97,7 +105,7 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         {
             // Try display range from PV
             final org.epics.vtype.Display display_info = Display.displayOf(vtype);
-            if (display_info != null)
+            if (display_info != null && display_info.getDisplayRange().isFinite())
             {
                 min_val = display_info.getDisplayRange().getMinimum();
                 max_val = display_info.getDisplayRange().getMaximum();
@@ -111,6 +119,19 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         else
             value = VTypeUtil.getValueNumber(vtype).doubleValue();
         tank.setValue(value);
+
+        tank.setLogScale(model_widget.propLogScale().getValue());
+    }
+
+    private void orientationChanged(final WidgetProperty<Boolean> prop, final Boolean old, final Boolean horizontal)
+    {
+        if (toolkit.isEditMode()) {
+            final int w = model_widget.propWidth().getValue();
+            final int h = model_widget.propHeight().getValue();
+            model_widget.propWidth().setValue(h);
+            model_widget.propHeight().setValue(w);
+        }
+        lookChanged(prop, old, horizontal);
     }
 
     @Override
@@ -121,9 +142,23 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         {
             double width = model_widget.propWidth().getValue();
             double height = model_widget.propHeight().getValue();
-            jfx_node.setPrefSize(width, height);
-            tank.setWidth(width);
-            tank.setHeight(height);
+            boolean horizontal = model_widget.propHorizontal().getValue();
+            if (horizontal)
+            {
+                jfx_node.getTransforms().setAll(
+                        new Translate(width, 0),
+                        new Rotate(90, 0, 0));
+                jfx_node.setPrefSize(height, width);
+                tank.setWidth(height);
+                tank.setHeight(width);
+            }
+            else
+            {
+                jfx_node.getTransforms().clear();
+                jfx_node.setPrefSize(width, height);
+                tank.setWidth(width);
+                tank.setHeight(height);
+            }
             tank.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
             tank.setBackground(JFXUtil.convert(model_widget.propBackground().getValue()));
             tank.setForeground(JFXUtil.convert(model_widget.propForeground().getValue()));

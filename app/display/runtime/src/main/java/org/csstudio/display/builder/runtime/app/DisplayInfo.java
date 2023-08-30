@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,7 +13,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
-import java.util.Objects;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
@@ -41,16 +40,16 @@ public class DisplayInfo
      *
      *  <p>Full example:
      *  <code>
-     *  file://path/to/file.bob?MACRO1=value1&MACRO2=another%20value
+     *  file://path/to/file.bob?MACRO1=value1&amp;MACRO2=another%20value
      *  </code>
 
      *  <p>Path of the URI is the file or http link to
      *  the display.
      *
      *  <p>Optional query parameters, added via '?' to the path,
-     *  and then separated by '&', provide macros.
+     *  and then separated by '&amp;', provide macros.
      *
-     *  @param uri
+     *  @param uri URI with display path and optional macros
      *  @return {@link DisplayInfo}
      */
     public static DisplayInfo forURI(final URI uri)
@@ -131,7 +130,11 @@ public class DisplayInfo
             this.name = basename(path);
         else
             this.name = name;
-        this.macros = Objects.requireNonNull(macros);
+        // 'Normalize' the macros, define specs based on the current values
+        // (which are sorted) to assert we identify a display with macros
+        // no matter in which order they were spec'ed
+        this.macros = new Macros();
+        macros.forEach(this.macros::add);
         this.resolve = resolve;
     }
 
@@ -195,13 +198,15 @@ public class DisplayInfo
         {
             buf.append("file:");
             // Windows platform tweak
-            if (path.contains(":"))
+            if (path.contains(":/"))
+                buf.append("//");
+            else if (path.contains(":"))
                 buf.append("///");
         }
 
         // In path, keep ':' and '/', but replace spaces
         // Windows platform tweak replace \ with /
-        buf.append(path.replace(' ', '+').replace('\\', '/'));
+        buf.append(path.replace(" ", "%20").replace('\\', '/'));
 
         // Add macros as path parameters
         boolean first = true;

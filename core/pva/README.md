@@ -3,21 +3,41 @@ PVA Client and Server
 
 PV Access client and server for Java, based on the 
 [PV Access Protocol Description](https://github.com/epics-base/pvAccessCPP/wiki/protocol),
-consulting the [Reference Implementation](https://github.com/epics-base/epicsCoreJava)
-to clarify details.
-Purpose is to better understand the protocol
-and to implement it in pure Java, using concurrent classes
-from the standard library and taking advantage of for example
-functional interfaces because compatibility to the C++ implementation
-is not required.
+consulting the
+[Reference Implementation](https://github.com/epics-base/epicsCoreJava)
+to clarify details,
+and tracking enhancements of the latest
+[C++ implementation](https://github.com/mdavidsaver/pvxs).
+
+Original motivation was understanding the protocol and implementing it based on the standard Java library,
+taking advantage of for example functional interfaces and concurrency classes,
+instead of requiring API compatibility to the C++ implementation.
+
+Network compatibility with all other PVA servers and clients is desired.
+
 Implementation is focused on the requirements of clients like CS-Studio,
 covering the majority of PV Access features but not all of them.
+Primary goal is support for the "normative types" as served by IOCs
+and images as served by the area detector.
+For these, client aims to reach or exceed the CPU and memory performance
+of the original Java client implementation.
+
 Also includes a PVA Server implementation, which was mostly created
 to again better understand the protocol and to allow closed-loop tests.
+A 'proxy' combines server and client into a 'gateway' type application,
+again mostly to test if the implementations can handle common data types.
+The suggested gateway for production setups is the
+[C++ gateway implementation](https://mdavidsaver.github.io/p4p/gw.html).
+
+
 
 Prerequisites
 -------------
-`JAVA_HOME` set to JDK 9 or higher
+`JAVA_HOME` set to JDK 8 or higher.
+
+While CS-Studio generally targets JDK 9 or higher, the core-pva library
+remains for the time being compatible with JDK 8 to allow using it
+with MATLAB.
 
 Build
 -----
@@ -25,12 +45,10 @@ Both Ant and Maven are supported:
 
     ant clean core-pva
     mvn clean install javadoc:javadoc
-    
 
-API Documentation
------------------
+To check JDK8 compatibility:
 
-Both Ant and Maven generate javadoc in target/site/apidocs/index.html
+    mvn clean install -P jdk8
 
 Configuration
 -------------
@@ -39,14 +57,33 @@ Similar to the C++ library, `EPICS_PVA_ADDR_LIST` can be set as an environment v
 In addition, the Java library reads a Java property of the same name.
 If both the environment variable and the Java property are defined,
 the latter is used.
-See `PVASettings` source code for additional settings.
+
+Key configuration parameters:
+
+`EPICS_PVA_ADDR_LIST`: Space-separated list of host names or IP addresses. Each may be followed by ":port", otherwise defaulting to `EPICS_PVA_BROADCAST_PORT`.  When empty, local subnet is used.
+
+`EPICS_PVA_AUTO_ADDR_LIST`: 'YES' (default) or 'NO'. 
+
+`EPICS_PVA_NAME_SERVERS`: Space-separated list of TCP name servers, provided as IP address followed by optional ":port". Client will connect to each address and send name searches before using the `EPICS_PVA_ADDR_LIST` for UDP searches.
+Set `EPICS_PVA_ADDR_LIST` to empty and `EPICS_PVA_AUTO_ADDR_LIST=NO` to use only the TCP name servers and avoid all UDP traffic. This is a client-side option. Server will always allow search messages via its TCP port.
+
+`EPICS_PVA_BROADCAST_PORT`: PVA client UDP port (default 5076) for sending name searches and receiving beacons.
+
+`EPICS_PVAS_BROADCAST_PORT`: PVA server UDP port (default 5076) for name searches and beacons.
+
+`EPICS_PVAS_INTF_ADDR_LIST`: Interface where server listens to name searches. When empty (default), a wildcard address is used, i.e., server listens on all local interfaces. Can be set to a specific IP address to restrict the server to one interface.
+
+`EPICS_PVA_SERVER_PORT`: First PVA TCP port used by server, defaults to 5075.
+
+See `PVASettings` source code for complete settings.
 
 Network Details
 ---------------
 
-The protocol uses UDP port 5076, then TCP port 5075 for first server,
+The protocol uses UDP port 5076, then TCP port 5075 for the first server,
 and randomly chosen TCP ports for additional servers on the same host.
-Local PV name resolution also uses the multicast group 224.0.0.128.
+
+By default, IPv4 is used, and local PV name resolution also joins the multicast group 224.0.0.128.
 (These defaults can be changed via configuration settings, see `PVASettings`.)
 
 To debug connection issues on Linux, it can be helpful to disable the firewall:
@@ -63,6 +100,16 @@ Use `--remove-rule` to revert, add `--permanent` to persist the setting over fir
 
 When running more than one PVA server on a host, these use an unpredictable TCP port,
 so firewall needs to allow all TCP access.
+
+IPv6 Support
+------------
+
+Both the server and client support IPv6, which at this time needs to be enabled
+by configuring the `EPICS_PVAS_INTF_ADDR_LIST` of the server respectively the
+`EPICS_PVA_ADDR_LIST` and/or `EPICS_PVA_NAME_SERVERS` of the client to provide the desired IPv6 addresses.
+
+See Javadoc of `EPICS_PVAS_INTF_ADDR_LIST`, `EPICS_PVA_ADDR_LIST` and `EPICS_PVA_NAME_SERVERS` in `PVASettings`
+for details.
 
 Command-line Example
 --------------------
@@ -86,11 +133,22 @@ the tools provided by EPICS base:
     pvget demo
     pvmonitor demo
 
+Protocol Test Tools
+-------------------
 
-API
----
+`pvasearchmonitor` or invoking the phoebus command line with `-main org.epics.pva.server.PVASearchMonitorMain`
+starts a tool that periodically lists received search requests.
 
-See `ClientDemo` for client, `ServerDemo` for server.
+`pvaclient beacons` or invoking the phoebus command line with `-main org.epics.pva.client.PVAClientMain beacons`
+starts a tool that lists received beacons.
+ 
+    
+API Documentation
+-----------------
+
+Both Ant and Maven generate javadoc in target/site/apidocs/index.html
+
+See `ClientDemo` for an example client, `ServerDemo` for an example server.
 
 Implementation Status
 ---------------------
@@ -99,10 +157,15 @@ PVA Client:
 
  * PVA Server list
  * Maintains pool of PVs
- * Registers new PVs with ChannelSearch
- * ChannelSearch: Exponential backup to ~30 seconds
+ * Registers new PVs with ChannelSearch, which supports UDP and TCP searches,
+   i.e. search via broadcast/multicast/unicase or via a name server
+ * ChannelSearch: Linear backup of 1, 2, 3, .. seconds between repeated 
+   searches, setting to searching once every 30 seconds after about 7 minutes
+ * Clients monitor beacons. If the search has settled to once every 30 seconds,
+   any new beacon restarts the linear backup to facilitate faster reconnect.
+   Beacons are not required for a reconnect, but they may accelerate it
  * Forward unicast searches to local multicast group
- * Creates TCPHandler when channel found.
+ * Creates TCPHandler when channel found
  * Support "anonymous" or "ca"
    (with user from "user.name" property and host from InetAddress.getLocalHost().getHostName())
  * Echo test when no new data for a while,
@@ -116,9 +179,11 @@ PVA Client:
  * Put: Init, get structure, update field, write, destroy
  * RPC: Send request structure, get response structure
  * Decode data sent by IOC and 'image' demo
+ * Handle 'segmented' messages
  * Close (destroy) channel
  * Close client
  * Info/get/monitor/put command line tool
+ * IPv6 support
  
 PVA Server:
 
@@ -130,8 +195,10 @@ PVA Server:
  * Reply to 'get'
  * Support 'monitor'
  * Support RPC
+ * IPv6 support
    
 TODO:
 
  * Testing
+ * Implement beacons in server
  * Handle fixed size or bounded arrays?

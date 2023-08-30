@@ -34,7 +34,7 @@ class CreateChannelRequest implements RequestEncoder
         PVAHeader.encodeMessageHeader(buffer, PVAHeader.FLAG_NONE, PVAHeader.CMD_CREATE_CHANNEL, 2+4+PVAString.getEncodedSize(channel.getName()));
         // Not using PVASize, and only '1' is supported
         buffer.putShort((short)1);
-        buffer.putInt(channel.getId());
+        buffer.putInt(channel.getCID());
         PVAString.encodeString(channel.getName(), buffer);
     }
 }

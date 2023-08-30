@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,12 +10,17 @@ package org.phoebus.pv.formula;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 import org.csstudio.apputil.formula.Formula;
 import org.csstudio.apputil.formula.VariableNode;
 import org.epics.vtype.Alarm;
+import org.epics.vtype.Display;
 import org.epics.vtype.Time;
+import org.epics.vtype.VDouble;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.pv.PV;
@@ -26,6 +31,19 @@ import org.phoebus.pv.PV;
 @SuppressWarnings("nls")
 public class FormulaPV extends PV
 {
+    /** Evaluate formulas on one thread
+     *  to decouple and throttle input updates
+     */
+    private static final ExecutorService update_thread = Executors.newSingleThreadExecutor(target ->
+    {
+        final Thread thread = new Thread(target, "FormulaPV");
+        thread.setDaemon(true);
+        return thread;
+    });
+
+    /** Is there already a pending update? */
+    private AtomicBoolean pending = new AtomicBoolean();
+
     private Formula formula;
     private volatile FormulaInput[] inputs;
 
@@ -44,10 +62,13 @@ public class FormulaPV extends PV
             final VariableNode vars[] = formula.getVariables();
             inputs = new FormulaInput[vars.length];
             for (int i=0; i<inputs.length; ++i)
+            {   // Initialize 'disconnected' until PV sends first value
+                vars[i].setValue(VDouble.of(Double.NaN, Alarm.disconnected(), Time.now(), Display.none()));
                 inputs[i] = new FormulaInput(this, vars[i]);
+            }
 
             // Set initial value
-            update();
+            doUpdate();
         }
         catch (Exception ex)
         {
@@ -72,9 +93,24 @@ public class FormulaPV extends PV
         return pvs;
     }
 
-    /** Compute updated value of formula and notify listeners */
+    /** Schedule evaluation of formula */
     void update()
     {
+        if (pending.getAndSet(true))
+            logger.log(Level.FINE, () -> getName() + " skips recalc on " + Thread.currentThread());
+        else
+            update_thread.submit(this::doUpdate);
+    }
+
+    /** Compute updated value of formula and notify listeners */
+    private void doUpdate()
+    {
+        pending.set(false);
+        logger.log(Level.FINE, () -> getName() + " recalc on " + Thread.currentThread());
+
+        // Simulate slow evaluation
+        // try { Thread.sleep(100); } catch (InterruptedException e) {}
+
         final VType value = formula.eval();
         notifyListenersOfValue(value);
     }
@@ -83,8 +119,11 @@ public class FormulaPV extends PV
     protected void close()
     {
         // Close variable PVs
-        for (FormulaInput input : inputs)
-            input.close();
+        // Inputs or individual input may be null for formulas that failed to initialize
+        if (inputs != null)
+            for (FormulaInput input : inputs)
+                if (input != null)
+                    input.close();
         inputs = null;
     }
 }

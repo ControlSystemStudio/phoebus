@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <display version="2.0.0">
   <name>Image Widget</name>
-  <width>1100</width>
-  <height>1200</height>
+  <width>1090</width>
+  <height>1430</height>
   <widget type="label" version="2.0.0">
     <name>Label</name>
     <class>TITLE</class>
@@ -72,8 +72,6 @@
     <interpolation>0</interpolation>
     <minimum>-1.0</minimum>
     <maximum>1.0</maximum>
-    <rois>
-    </rois>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_2</name>
@@ -168,8 +166,6 @@ impacts on overall perception. </text>
     <interpolation>1</interpolation>
     <minimum>-1.0</minimum>
     <maximum>1.0</maximum>
-    <rois>
-    </rois>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_4</name>
@@ -231,6 +227,14 @@ the value range.</text>
         </font>
       </scale_font>
     </y_axis>
+    <rules>
+      <rule name="interactive" prop_id="rois[0].interactive" out_exp="false">
+        <exp bool_exp="pv0&lt;1">
+          <value>false</value>
+        </exp>
+        <pv_name>loc://roi_interactive(1)</pv_name>
+      </rule>
+    </rules>
     <autoscale>false</autoscale>
     <minimum>-1.0</minimum>
     <maximum>1.0</maximum>
@@ -270,29 +274,6 @@ the value range.</text>
     </rois>
   </widget>
   <widget type="label" version="2.0.0">
-    <name>Label_8</name>
-    <text>For PVAccess, a PV that serves an NTNDArray will provide
-both the image data and the width &amp; height information.
-(This is currently limited to byte[] data.
- For NTNDArray with short, int, etc., you need to read
- pva://that_pv/value to get just the data array,
- and configure the data width and height).
-
-For PVAccess or Channel Access, the data can be a waveform
-that contains the pixels values starting with the top-left pixel,
-followed by the pixels of the top row, then the second row
-and so on.
-
-The image data width and height need to be configured for
-waveform PVs.
-For NTNDArray PVs, the image size is provided by the PV.</text>
-    <x>201</x>
-    <y>921</y>
-    <width>421</width>
-    <height>279</height>
-  </widget>
-  <widget type="label" version="2.0.0">
-    <name>Label_9</name>
     <class>SECTION</class>
     <text>PV, Data</text>
     <x>201</x>
@@ -307,6 +288,47 @@ For NTNDArray PVs, the image size is provided by the PV.</text>
       </color>
     </foreground_color>
     <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <text>The pixel data is an array that starts with the top-left pixel, followed by the pixels of the top row, then the second row and so on.
+    
+For PVAccess, a PV that serves an NTNDArray will provide not only the pixel data but also the width, height, signed/unsigned information and color mode.
+
+For Channel Access, the waveform PV only provides pixels. The data width, height, signedness and color mode need to be configured via properties of the image widget.
+</text>
+    <x>201</x>
+    <y>921</y>
+    <width>421</width>
+    <height>209</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <class>SECTION</class>
+    <text>Axes</text>
+    <x>201</x>
+    <y>1130</y>
+    <width>171</width>
+    <font use_class="true">
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <text>When the "Limits from PV" property of the widget is set, the X axis will range from 0 to the width of the image in pixels and the Y axis from 0 to the height. The origin will be placed in the top-left corner.
+
+When "Limits from PV" is not set, the range of the X and Y axes can be configured independently from the image size. This allows for example a calibration of pixel positions in millimeters.
+The axis direction can be inverted by swapping the axis minimum and maximum limit.
+
+To set an axis limit relative to the image pixel size, one can use rules or scripts that take inputs from formula PVs '=imageWidth(`pva://...Image`)' or '=imageHeight(`pva://...Image`)' and then write for example the 'x_axis.maximum' or 'y_axis.minimum' property of the widget.
+</text>
+    <x>200</x>
+    <y>1150</y>
+    <width>422</width>
+    <height>280</height>
   </widget>
   <widget type="label" version="2.0.0">
     <name>Label_10</name>
@@ -447,36 +469,26 @@ or used in a script for customized formatting.</text>
         <name>X</name>
         <width>80</width>
         <editable>true</editable>
-        <options>
-        </options>
       </column>
       <column>
         <name>Y</name>
         <width>80</width>
         <editable>true</editable>
-        <options>
-        </options>
       </column>
       <column>
         <name>Value</name>
         <width>100</width>
         <editable>true</editable>
-        <options>
-        </options>
       </column>
       <column>
         <name>Xi</name>
         <width>80</width>
         <editable>true</editable>
-        <options>
-        </options>
       </column>
       <column>
         <name>Yi</name>
         <width>80</width>
         <editable>true</editable>
-        <options>
-        </options>
       </column>
     </columns>
     <editable>false</editable>
@@ -649,5 +661,12 @@ via PVs.</text>
     <y>802</y>
     <format>1</format>
     <precision>2</precision>
+  </widget>
+  <widget type="checkbox" version="2.0.0">
+    <name>Check Box</name>
+    <pv_name>loc://roi_interactive(1)</pv_name>
+    <label>interactive</label>
+    <x>960</x>
+    <y>672</y>
   </widget>
 </display>

@@ -54,7 +54,7 @@ def updateValue(pv):
 
 # create PVs
 tableStructDict = {'labels' : [STRING],
-                    'value' : OrderedDict([('id', [UINT]), ('name', [STRING]), ('title', [STRING])])}
+                    'value' : dict(OrderedDict([('id', [UINT]), ('name', [STRING]), ('title', [STRING])]))}
 tablePV = PvObject(tableStructDict, "epics:nt/NTTable:1.0")
 tablePV['labels'] = ['ID', 'Name', 'Title']
 namePV = PvString('')
@@ -63,5 +63,7 @@ namePV = PvString('')
 server = PvaServer('table', tablePV)
 server.addRecord('name', namePV, updateValue)
 
-raw_input("\nEnter anything to quit\n")
-
+try:
+    raw_input("\nEnter anything to quit\n")
+except NameError as ex:
+    input("\nEnter anything to quit\n")

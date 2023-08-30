@@ -4,24 +4,25 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import org.phoebus.channel.views.ChannelTableApp;
+import org.phoebus.channel.views.Messages;
 import org.phoebus.channelfinder.Channel;
 import org.phoebus.channelfinder.ChannelUtil;
 import org.phoebus.channelfinder.Property;
 import org.phoebus.channelfinder.Tag;
 import org.phoebus.channelfinder.utility.AddProperty2ChannelsJob;
 import org.phoebus.channelfinder.utility.AddTag2ChannelsJob;
-import org.phoebus.channelfinder.utility.ChannelSearchJob;
 import org.phoebus.channelfinder.utility.RemovePropertyChannelsJob;
 import org.phoebus.channelfinder.utility.RemoveTagChannelsJob;
-import org.phoebus.framework.adapter.AdapterFactory;
 import org.phoebus.framework.adapter.AdapterService;
 import org.phoebus.framework.jobs.Job;
+import org.phoebus.framework.preferences.AnnotatedPreferences;
+import org.phoebus.framework.preferences.Preference;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuService;
-import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
@@ -32,7 +33,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
@@ -43,11 +46,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.GridPane;
 import javafx.util.Callback;
 
 /**
  * Controller for the file browser app
- * 
+ *
  * @author Kunal Shroff
  *
  */
@@ -58,10 +62,24 @@ public class ChannelTableController extends ChannelFinderController {
     @FXML
     Button search;
     @FXML
+    CheckBox showactive;
+    @FXML
     TableView<Channel> tableView;
-    
-    private Collection<String> properties;
-    private Collection<String> tags;
+    @FXML
+    GridPane gridp;
+
+    @FXML
+    Label count;
+
+    private Collection<Property> properties;
+    private Collection<Tag> tags;
+    private boolean isCBSelected = true;
+    @Preference(name="show_active_cb") public static boolean showActiveCb;
+
+    static
+    {
+    	AnnotatedPreferences.initialize(ChannelTableController.class, "/cv_preferences.properties");
+    }
 
     @SuppressWarnings("unchecked")
     @FXML
@@ -75,12 +93,18 @@ public class ChannelTableController extends ChannelFinderController {
         });
 
         tableView.getColumns().clear();
-        TableColumn<Channel, String> nameCol = new TableColumn<>("Name");
+        TableColumn<Channel, String> nameCol = new TableColumn<>(Messages.ChannelTableNameColumn);
         nameCol.setCellValueFactory(new PropertyValueFactory<Channel, String>("name"));
 
-        TableColumn<Channel, String> ownerCol = new TableColumn<>("Owner");
+        TableColumn<Channel, String> ownerCol = new TableColumn<>(Messages.ChannelTableOwnerColumn);
         ownerCol.setCellValueFactory(new PropertyValueFactory<Channel, String>("owner"));
         tableView.getColumns().addAll(nameCol, ownerCol);
+
+        if (showActiveCb) {
+            showactive.setSelected(isCBSelected);
+        } else {
+            gridp.getChildren().remove(showactive);
+        }
     }
 
     public void setQuery(String string) {
@@ -88,9 +112,40 @@ public class ChannelTableController extends ChannelFinderController {
         search();
     }
 
+    public String getQuery() {
+        return query.getText();
+    }
+
     @FXML
     public void search() {
-        super.search(query.getText());
+        if (showActiveCb) {
+            String currentQuery = query.getText();
+            String updatedQuery = currentQuery + " pvStatus=" + (showactive.isSelected() ? "Active" : "*");
+            isCBSelected = showactive.isSelected();
+            super.search(updatedQuery);
+        } else {
+            super.search(query.getText());
+        }
+    }
+
+    /** Row to select in the table after a 'refresh' completes fetching updated data */
+    private int selected_row_after_refresh = -1;
+
+    /** Refresh table after editing */
+    private void refresh() {
+        // Called at the end of a background job which added/removed tags or properties
+        Platform.runLater(() ->
+        {
+            // On UI thread, save the selected row index
+            selected_row_after_refresh = tableView.getSelectionModel().getSelectedIndex();
+            // There might be a more efficient way to search for just the selected channel,
+            // updating only the affected row.
+            // A complete re-search, however, tends to be quick and most important
+            // we do re-select the same row.
+            // Search will be performed on background thread ...
+            search();
+            // .. and on success invoke setChannels(), which then restores the selected row
+        });
     }
 
     private Job addPropertyJob;
@@ -125,7 +180,7 @@ public class ChannelTableController extends ChannelFinderController {
                 AddProperty2ChannelsJob.submit(getClient(),
                         channelNames,
                         property,
-                        (url, ex) -> ExceptionDetailsErrorDialog.openError("ChannelFinder Query Error", ex.getMessage(), ex));
+                        this::refresh);
 
             });
         });
@@ -142,13 +197,11 @@ public class ChannelTableController extends ChannelFinderController {
                 if (addTagJob != null) {
                     addTagJob.cancel();
                 }
-                List<String> channelNames = tableView.getSelectionModel().getSelectedItems().stream().map(ch -> {
-                    return ch.getName();
-                }).collect(Collectors.toList());
+                List<String> channelNames = tableView.getSelectionModel().getSelectedItems().stream().map(Channel::getName).collect(Collectors.toList());
                 AddTag2ChannelsJob.submit(getClient(),
                         channelNames,
                         tag,
-                        (url, ex) -> ExceptionDetailsErrorDialog.openError("ChannelFinder Query Error", ex.getMessage(), ex));
+                        this::refresh);
 
             });
         });
@@ -169,7 +222,7 @@ public class ChannelTableController extends ChannelFinderController {
                 RemovePropertyChannelsJob.submit(getClient(),
                         channelNames,
                         property,
-                        (url, ex) -> ExceptionDetailsErrorDialog.openError("ChannelFinder Query Error", ex.getMessage(), ex));
+                        this::refresh);
 
             });
         });
@@ -191,7 +244,7 @@ public class ChannelTableController extends ChannelFinderController {
                 RemoveTagChannelsJob.submit(getClient(),
                         channelNames,
                         tag,
-                        (url, ex) -> ExceptionDetailsErrorDialog.openError("ChannelFinder Query Error", ex.getMessage(), ex));
+                        this::refresh);
 
             });
         });
@@ -207,15 +260,15 @@ public class ChannelTableController extends ChannelFinderController {
                     ObservableList<Channel> old = tableView.getSelectionModel().getSelectedItems();
 
                     List<Object> pvs = SelectionService.getInstance().getSelection().getSelections().stream().map(s -> {
-                        return AdapterService.adapt(s, (Class)entry.getSupportedTypes().get(0)).get();
+                        return AdapterService.adapt(s, entry.getSupportedType()).get();
                     }).collect(Collectors.toList());
-                    // set the selection 
+                    // set the selection
                     SelectionService.getInstance().setSelection(tableView, pvs);
-                    entry.callWithSelection(SelectionService.getInstance().getSelection());
+                    entry.call(SelectionService.getInstance().getSelection());
                     // reset the selection
                     SelectionService.getInstance().setSelection(tableView, old);
-                } catch (Exception e1) {
-                    e1.printStackTrace();
+                } catch (Exception ex) {
+                    logger.log(Level.WARNING, "Failed to execute action " + entry.getName(), ex);
                 }
             });
             contextMenu.getItems().add(item);
@@ -264,6 +317,22 @@ public class ChannelTableController extends ChannelFinderController {
         tableView.getColumns().addAll(propColumns);
         tableView.getColumns().addAll(tagColumns);
         tableView.setItems(FXCollections.observableArrayList(channels));
+
+        // the channel finder queries are limited to 10k by default
+        // TODO update check for the situation where the max size is set up user
+        if(channels.size() >= 10000) {
+            count.setText(String.valueOf(channels.size() + "+"));
+        } else {
+            count.setText(String.valueOf(channels.size()));
+        }
+
+        // If this is the result of a 'refresh', restore row selection
+        if (selected_row_after_refresh >= 0)
+        {
+            tableView.getSelectionModel().clearAndSelect(selected_row_after_refresh);
+            tableView.scrollTo(selected_row_after_refresh);
+            selected_row_after_refresh = -1;
+        }
     }
 
 }

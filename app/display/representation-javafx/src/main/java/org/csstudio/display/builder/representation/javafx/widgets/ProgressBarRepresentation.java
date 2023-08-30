@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2022 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,8 +14,10 @@ import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.util.VTypeUtil;
 import org.csstudio.display.builder.model.widgets.ProgressBarWidget;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
+import org.csstudio.javafx.rtplot.internal.util.Log10;
 import org.epics.vtype.Display;
 import org.epics.vtype.VType;
+import org.phoebus.ui.javafx.Styles;
 
 import javafx.scene.control.ProgressBar;
 import javafx.scene.transform.Rotate;
@@ -39,10 +41,6 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
     public ProgressBar createJFXNode() throws Exception
     {
         final ProgressBar bar = new ProgressBar();
-        // This code manages layout,
-        // because otherwise for example border changes would trigger
-        // expensive Node.notifyParentOfBoundsChange() recursing up the scene graph
-        bar.setManaged(false);
         return bar;
     }
 
@@ -51,11 +49,13 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
     {
         super.registerListeners();
         model_widget.propFillColor().addUntypedPropertyListener(lookChangedListener);
+        model_widget.propBackgroundColor().addUntypedPropertyListener(lookChangedListener);
         model_widget.propWidth().addUntypedPropertyListener(lookChangedListener);
         model_widget.propHeight().addUntypedPropertyListener(lookChangedListener);
         model_widget.propLimitsFromPV().addUntypedPropertyListener(valueChangedListener);
         model_widget.propMinimum().addUntypedPropertyListener(valueChangedListener);
         model_widget.propMaximum().addUntypedPropertyListener(valueChangedListener);
+        model_widget.propLogScale().addUntypedPropertyListener(valueChangedListener);
         model_widget.runtimePropValue().addUntypedPropertyListener(valueChangedListener);
         model_widget.propHorizontal().addPropertyListener(orientationChangedListener);
         valueChanged(null, null, null);
@@ -65,11 +65,13 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
     protected void unregisterListeners()
     {
         model_widget.propFillColor().removePropertyListener(lookChangedListener);
+        model_widget.propBackgroundColor().removePropertyListener(lookChangedListener);
         model_widget.propWidth().removePropertyListener(lookChangedListener);
         model_widget.propHeight().removePropertyListener(lookChangedListener);
         model_widget.propLimitsFromPV().removePropertyListener(valueChangedListener);
         model_widget.propMinimum().removePropertyListener(valueChangedListener);
         model_widget.propMaximum().removePropertyListener(valueChangedListener);
+        model_widget.propLogScale().removePropertyListener(valueChangedListener);
         model_widget.runtimePropValue().removePropertyListener(valueChangedListener);
         model_widget.propHorizontal().removePropertyListener(orientationChangedListener);
         super.unregisterListeners();
@@ -124,9 +126,21 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
 
         // Determine percentage of value within the min..max range
         final double value = VTypeUtil.getValueNumber(vtype).doubleValue();
-        final double percentage = (value - min_val) / (max_val - min_val);
+        final double percentage;
+
+        if (model_widget.propLogScale().getValue())
+        {
+            final double d = Log10.log10(max_val) - Log10.log10(min_val);
+            if (d == 0)
+                percentage = Double.NaN;
+            else
+                percentage = (Log10.log10(value) - Log10.log10(min_val)) / d;
+        }
+        else
+            percentage = (value - min_val) / (max_val - min_val);
+
         // Limit to 0.0 .. 1.0
-        if (percentage < 0.0)
+        if (percentage < 0.0  ||  !Double.isFinite(percentage))
             this.percentage = 0.0;
         else if (percentage > 1.0)
             this.percentage = 1.0;
@@ -150,18 +164,56 @@ public class ProgressBarRepresentation extends RegionBaseRepresentation<Progress
                 jfx_node.getTransforms().setAll(
                         new Translate(0, height),
                         new Rotate(-90, 0, 0));
-                jfx_node.resize(height, width);
+                jfx_node.setPrefSize(height, width);
             }
             else
             {
                 jfx_node.getTransforms().clear();
-                jfx_node.resize(width, height);
+                jfx_node.setPrefSize(width, height);
             }
+
+            // Default 'inset' of .bar uses 7 pixels.
+            // A widget sized 15 has 8 pixels left for the bar.
+            // Select leaner style where .bar uses full size.
+            Styles.update(jfx_node, "SmallBar",
+                          Math.min(width, height) <= 15);
+
             // Could clear style and use setBackground(),
             // but result is very plain.
             // Tweaking the color used by CSS keeps overall style.
             // See also http://stackoverflow.com/questions/13467259/javafx-how-to-change-progressbar-color-dynamically
-            jfx_node.setStyle("-fx-accent: " + JFXUtil.webRGB(model_widget.propFillColor().getValue()));
+            final StringBuilder style = new StringBuilder();
+
+            // Color of the progress bar / foreground
+            style.append("-fx-accent: ").append(JFXUtil.webRGB(
+                    JFXUtil.convert(
+                            model_widget.propFillColor().getValue()
+                    )
+            )).append(" !important; ");
+
+            // Color of the background underneath the progress bar
+            // Note per moderna.css the background is actually three layers of color
+            // with fx-shadow-highlight-color on the bottom,
+            // then fx-text-box-border,
+            // and finally fx-control-inner-background on top, all stacked in place with offsets.
+            // This gives the illusion of having a bordered box with a shadow instead of actually being a
+            // bordered box with a shadow...
+            // Fortunately, the bottom-most color (the 'shadow') is already transparent so we can leave it alone
+            // Unfortunately, the middle color (the "border" color) is a solid gray color (#ececec), so we must
+            // override it with its rgba equivalent so that it has transparency matching the picked background color.
+            style.append("-fx-control-inner-background: ")
+                    .append(JFXUtil.webRGB(
+                            JFXUtil.convert(
+                                    model_widget.propBackgroundColor().getValue()))
+                            )
+                    .append(";");
+            style.append("-fx-text-box-border: rgba(236, 236, 236, ")
+                    .append(JFXUtil.webAlpha(model_widget.propBackgroundColor().getValue()))
+                    .append(");");
+            style.append("-fx-shadow-highlight-color: rgba(236, 236, 236, ")
+                    .append(JFXUtil.webAlpha(model_widget.propBackgroundColor().getValue()))
+                    .append(");");
+            jfx_node.setStyle(style.toString());
         }
         if (dirty_value.checkAndClear())
             jfx_node.setProgress(percentage);

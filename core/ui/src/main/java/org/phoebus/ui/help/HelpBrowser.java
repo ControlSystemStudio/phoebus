@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -81,8 +81,8 @@ public class HelpBrowser implements AppInstance
 
         // During development,
         // product is started from IDE as ....../git/phoebus/phoebus-product.
-        // Check for copy of docs in      ....../git/phoebus-doc/build/html
-        loc = new File(phoenix_install, "../../phoebus-doc");
+        // Check for copy of docs in      ....../git/phoebus/docs/build/html
+        loc = new File(phoenix_install, "docs");
         if (loc.exists())
         {
             loc = new File(loc, "build/html/index.html");
@@ -92,7 +92,7 @@ public class HelpBrowser implements AppInstance
         }
 
         // Fall back to online copy of the manual
-        return "http://phoebus-doc.readthedocs.io";
+        return "https://control-system-studio.readthedocs.io";
     }
 
     @Override

@@ -35,6 +35,9 @@ public class PVASize
             return 1 + 4;
     }
 
+    /** @param size Size to encode
+     *  @param buffer Target buffer
+     */
     public static final void encodeSize(final int size, final ByteBuffer buffer)
     {
         if (size == -1)
@@ -46,6 +49,9 @@ public class PVASize
             buffer.put((byte)-2).putInt(size);
     }
 
+    /** @param buffer Source buffer
+     *  @return Decoded size
+     */
     public static final int decodeSize(final ByteBuffer buffer)
     {
         byte b = buffer.get();

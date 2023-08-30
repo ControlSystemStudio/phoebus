@@ -65,6 +65,7 @@ The provided simulated process variables are:
     * sine(min, max, update_seconds)
     * sinewave(period_seconds, wavelength, size, update_seconds)
     * strings(update_seconds)
+    * const(value)
     
 Examples::
 
@@ -72,6 +73,8 @@ Examples::
     sim://ramp
     sim://ramp(1, 10, 0.2)
     sim://noise
+    sim://const(42)
+    sim://const("Fred")
 
 Local
 -----
@@ -79,8 +82,18 @@ Local process variables can be used within the application,
 for example to send a value from one display to another display within the same application.
 They do not communicate with the control system.
 
-Unless a type selector and initial value are provided, a local value will be of type 'double'
+Following the "loc://" prefix, the variable name must start with a character A-Z or a-z,
+potentially followed by more characters or numbers.
+Valid examples are "A", "b", "Example2", "MyVar42".
+Invalid examples are "42", "2ndExample".
+
+Next is an optional type selector like "<VLong>" and initial value like "42".
+Unless a type selector and initial value are provided, a local value will be of type 'VDouble'
 with initial value of 0.
+
+Local process variables only exist as long as they are referenced.
+When all references to a local process variable are released, the PV is
+deleted.
 
 Examples::
 
@@ -90,6 +103,20 @@ Examples::
     loc://a_text("Hello")
     loc://large<VLong>(42)
     loc://options<VEnum>(2, "A", "Initial", "B", "C")
+
+
+Formulas
+--------
+Formula-based PVs can perform simple computations on constants and other PVs.
+The equation can be created via the 'eq://' prefix or alternatively via '='.
+Other process variables are referenced via backquotes.
+
+Examples::
+
+    eq://3+4
+    =3+4
+    =10 + 5*`sim://sine`
+    =`sim://ramp`>1 ? 10 : -10
 
 
 MQTT
@@ -108,5 +135,32 @@ If the VType is omitted, 'double' is assumed. Examples::
     mqtt://some_topic<VString>
     mqtt://some/nested/topic
 
+System
+------
+System process variables are useful for representing some system attributes. They do not communicate with the control system.::
 
+    * sys://time
+    * sys://timeOffset(offset, format, update_seconds)
+
+The `timeOffset` pv allows you to represent a time instant offset from `now`. The optional parameters are:
+*offset* which is described as 1 min, 1 hour, 1 day prior to the current instant.
+*format* which describes how to represent the instance, the supported formats are full, milli, seconds, datetime, date, or time.
+*update_seconds* the update rate / period.
+
+Examples ::
+
+    sys://timeOffset(12 hours)
+    sys://timeOffset(1hour, time, 1)
+
+
+Tango
+------
+Tango is different from EPICS, the smallest unit is Device, which includes the commands, states, and attributes.
+The command and the attribute has been implemented, add prefix to PV Name in editing interface to distinguish, and the command usually has a return value, so need to use *Text Entry* or a combination of *Action button* and *Text Update* components to achieve it.
+Currently, all types of scalars are supported, but SPECTRUM and IMAGE are not yet supported.
+
+Examples ::
+
+    tga://device/attribute
+    tgc://device/command
 

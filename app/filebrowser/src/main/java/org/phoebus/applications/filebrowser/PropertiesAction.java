@@ -109,13 +109,13 @@ public class PropertiesAction extends MenuItem
     /** @param node Node used to position confirmation dialog
      *  @param item Item to duplicate
      */
-    public PropertiesAction(final Node node, final TreeItem<File> item)
+    public PropertiesAction(final Node node, final TreeItem<FileInfo> item)
     {
         super(Messages.Properties, ImageCache.getImageView(ImageCache.class, "/icons/info.png"));
 
         setOnAction(event ->
         {
-            final FilePropertiesDialog dialog = new FilePropertiesDialog(item.getValue());
+            final FilePropertiesDialog dialog = new FilePropertiesDialog(item.getValue().file);
             DialogHelper.positionDialog(dialog, node, 0, 0);
             dialog.showAndWait();
         });

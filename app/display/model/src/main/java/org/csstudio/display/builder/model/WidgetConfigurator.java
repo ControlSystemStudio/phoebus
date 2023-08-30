@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -55,7 +55,13 @@ public class WidgetConfigurator
     public static class ParseAgainException extends Exception
     {
         private static final long serialVersionUID = 1L;
-    };
+
+        /** @param reason Explanation for triggering a re-parse */
+        public ParseAgainException(final String reason)
+        {
+            super(reason);
+        }
+    }
 
     /** Version of the XML.
      *
@@ -63,10 +69,21 @@ public class WidgetConfigurator
      */
     protected final Version xml_version;
 
+    /** True if the widget was parsed without errors or warnings
+     */
+    protected boolean clean_parse;
+
     /**@param xml_version Version of the XML */
     public WidgetConfigurator(final Version xml_version)
     {
         this.xml_version = xml_version;
+        clean_parse = true;
+    }
+
+    /** @return Was widget parsed without errors? */
+    public boolean isClean()
+    {
+        return clean_parse;
     }
 
     /** Configure widget based on data persisted in XML.
@@ -85,6 +102,15 @@ public class WidgetConfigurator
     {
         // System.out.println("Reading " + widget + " from saved V" + xml_version);
         configureAllPropertiesFromMatchingXML(model_reader, widget, xml);
+
+        // Check this _after_ reading the properties so that when can log the widget's name
+        if (xml_version.getMajor() > widget.getVersion().getMajor())
+        {
+            clean_parse = false;
+            logger.log(Level.WARNING,
+                       "Widget " + widget + " has version " + xml_version.getMajor() + " expected " + widget.getVersion().getMajor());
+        }
+
         return true;
     }
 
@@ -112,6 +138,7 @@ public class WidgetConfigurator
             }
             catch (Exception ex)
             {
+                clean_parse = false;
                 logger.log(Level.SEVERE,
                            "Error reading widget " + widget + " property <" + property.getName() +
                            ">, line " + XMLUtil.getLineInfo(prop_xml), ex);

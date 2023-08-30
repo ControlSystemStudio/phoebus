@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,7 +11,6 @@ import static org.csstudio.display.builder.model.ModelPlugin.logger;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propBackgroundColor;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propDirection;
 import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propFont;
-import static org.csstudio.display.builder.model.properties.CommonWidgetProperties.propMacros;
 import static org.csstudio.display.builder.model.properties.InsetsWidgetProperty.runtimePropInsets;
 
 import java.text.MessageFormat;
@@ -56,7 +55,7 @@ import org.w3c.dom.Element;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class TabsWidget extends VisibleWidget
+public class TabsWidget extends MacroWidget
 {
     /** Widget descriptor */
     public static final WidgetDescriptor WIDGET_DESCRIPTOR =
@@ -80,6 +79,9 @@ public class TabsWidget extends VisibleWidget
     /** Name, children of one tab */
     public static class TabItemProperty extends StructuredWidgetProperty
     {
+        /** @param widget Widget
+         *  @param index Tab index 0, 1, ...
+         */
         protected TabItemProperty(final Widget widget, final int index)
         {
             super(propTabItem, widget,
@@ -87,17 +89,19 @@ public class TabsWidget extends VisibleWidget
                                 new ChildrenProperty(widget)));
         }
 
+        /** @return Tab name */
         public WidgetProperty<String> name()
         {
             return getElement(0);
         }
 
+        /** @return Tab content */
         public ChildrenProperty children()
         {
             final WidgetProperty<List<Widget>> c = getElement(1);
             return (ChildrenProperty)c;
         }
-    };
+    }
 
     private static final ArrayWidgetProperty.Descriptor<TabItemProperty> propTabs =
         new ArrayWidgetProperty.Descriptor<>(WidgetPropertyCategory.WIDGET, "tabs", Messages.TabsWidget_Name,
@@ -162,6 +166,7 @@ public class TabsWidget extends VisibleWidget
                 {
                     if (! content_xml.getAttribute("typeId").contains("group"))
                     {
+                        clean_parse = false;
                         logger.log(Level.WARNING, "Legacy 'tab' widget misses content of tab " + i);
                         break;
                     }
@@ -173,7 +178,6 @@ public class TabsWidget extends VisibleWidget
         }
     }
 
-    private volatile WidgetProperty<Macros> macros;
     private volatile WidgetProperty<WidgetColor> background;
     private volatile WidgetProperty<WidgetFont> font;
     private volatile WidgetProperty<Integer> active;
@@ -182,6 +186,7 @@ public class TabsWidget extends VisibleWidget
     private volatile WidgetProperty<Integer> tab_height;
     private volatile WidgetProperty<int[]> insets;
 
+    /** Constructor */
     public TabsWidget()
     {
         super(WIDGET_DESCRIPTOR.getType(), 400, 300);
@@ -191,7 +196,6 @@ public class TabsWidget extends VisibleWidget
     protected void defineProperties(final List<WidgetProperty<?>> properties)
     {
         super.defineProperties(properties);
-        properties.add(macros = propMacros.createProperty(this, new Macros()));
         properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BACKGROUND)));
         properties.add(active = propActiveTab.createProperty(this, 0));
@@ -200,10 +204,6 @@ public class TabsWidget extends VisibleWidget
         properties.add(direction = propDirection.createProperty(this, Direction.HORIZONTAL));
         properties.add(tab_height = propTabHeight.createProperty(this, 30));
         properties.add(insets = runtimePropInsets.createProperty(this, new int[] { 0, 0 }));
-
-        // Initial size
-        propWidth().setValue(300);
-        propHeight().setValue(200);
     }
 
     private static String createTabText(final int index)
@@ -218,21 +218,17 @@ public class TabsWidget extends VisibleWidget
         return new TabsWidgetConfigurator(persisted_version);
     }
 
-    /** @return Widget 'macros' */
-    public WidgetProperty<Macros> widgetMacros()
-    {
-        return macros;
-    }
-
-    /** Group widget extends parent macros
-     *  @return {@link Macros}
-     */
+    /** {@inheritDoc} */
     @Override
-    public Macros getEffectiveMacros()
+    public void expandMacros(final Macros input)
     {
-        final Macros base = super.getEffectiveMacros();
-        final Macros my_macros = widgetMacros().getValue();
-        return Macros.merge(base, my_macros);
+        // Expand macros of the "TabsWidget"
+        super.expandMacros(input);
+
+        // Expand macros into widgets within each tab
+        for (TabItemProperty tab : tabs.getValue())
+            for (Widget child : tab.children().getValue())
+                child.expandMacros(propMacros().getValue());
     }
 
     /** @return 'background_color' property */

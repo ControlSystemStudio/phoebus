@@ -118,6 +118,13 @@ public class BooleanWidgetPropertyBinding
             updating = true;
     };
 
+    /** @param undo Undo manager
+     *  @param check Checkbox
+     *  @param field Combo
+     *  @param macroButton Use macros?
+     *  @param widget_property Boolean property
+     *  @param other Other selected widgets
+     */
     public BooleanWidgetPropertyBinding(final UndoableActionManager undo,
                                         final CheckBox check, final ComboBox<String> field,
                                         final ToggleButton macroButton,

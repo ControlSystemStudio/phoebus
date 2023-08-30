@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2018-2019 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -46,10 +46,12 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.util.converter.DefaultStringConverter;
 
 /** Table for {@link ScanInfo}s
  *  @author Kay Kasemir
@@ -127,6 +129,24 @@ public class ScansTable extends VBox
         }
     }
 
+    /** Table cell for read-only text, allow copying it out */
+    private static class TextCopyCell extends TextFieldTableCell<ScanInfoProxy, String>
+    {
+        public TextCopyCell()
+        {
+            super(new DefaultStringConverter());
+        }
+
+        @Override
+        public void startEdit()
+        {
+            super.startEdit();
+            final TextField text = (TextField) getGraphic();
+            if (text != null)
+                text.setEditable(false);
+        }
+    }
+
     public ScansTable(final ScanClient scan_client)
     {
         this.scan_client = scan_client;
@@ -145,6 +165,9 @@ public class ScansTable extends VBox
 
     private void createTable()
     {
+        // Don't really allow editing, just copying from some of the text fields
+        scan_table.setEditable(true);
+
         final TableColumn<ScanInfoProxy, Number> id_col = new TableColumn<>("ID");
         id_col.setPrefWidth(40);
         id_col.setStyle("-fx-alignment: CENTER-RIGHT;");
@@ -158,6 +181,8 @@ public class ScansTable extends VBox
 
         final TableColumn<ScanInfoProxy, String> name_col = new TableColumn<>("Name");
         name_col.setCellValueFactory(cell -> cell.getValue().name);
+        name_col.setCellFactory(info -> new TextCopyCell());
+        name_col.setEditable(true);
         scan_table.getColumns().add(name_col);
 
         final TableColumn<ScanInfoProxy, ScanState> state_col = new TableColumn<>("State");
@@ -185,10 +210,14 @@ public class ScansTable extends VBox
         final TableColumn<ScanInfoProxy, String> cmd_col = new TableColumn<>("Command");
         cmd_col.setPrefWidth(200);
         cmd_col.setCellValueFactory(cell -> cell.getValue().command);
+        cmd_col.setCellFactory(info -> new TextCopyCell());
+        cmd_col.setEditable(true);
         scan_table.getColumns().add(cmd_col);
 
         TableColumn<ScanInfoProxy, String> err_col = new TableColumn<>("Error");
         err_col.setCellValueFactory(cell -> cell.getValue().error);
+        err_col.setCellFactory(info -> new TextCopyCell());
+        err_col.setEditable(true);
         scan_table.getColumns().add(err_col);
 
         // Last column fills remaining space

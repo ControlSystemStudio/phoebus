@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,8 +15,9 @@ import java.util.Objects;
  *   @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class PVAString extends PVAData
+public class PVAString extends PVAData implements PVAValue
 {
+    /** Type descriptor */
     public static final byte FIELD_DESC_TYPE = (byte)0b01100000;
 
     /** @param string Text
@@ -24,7 +25,10 @@ public class PVAString extends PVAData
      */
     public static int getEncodedSize(final String string)
     {
-        final int len = string.length();
+        if (string == null)
+            return PVASize.size(-1);
+
+        final int len = string.getBytes().length;
         return PVASize.size(len) + len;
     }
 
@@ -37,8 +41,9 @@ public class PVAString extends PVAData
             PVASize.encodeSize(-1, buffer);
         else
         {
-            PVASize.encodeSize(string.length(), buffer);
-            buffer.put(string.getBytes());
+            final byte[] bytes = string.getBytes();
+            PVASize.encodeSize(bytes.length, buffer);
+            buffer.put(bytes);
         }
     }
 
@@ -70,11 +75,15 @@ public class PVAString extends PVAData
 
     private volatile String value;
 
+    /** @param name Name for data item */
     public PVAString(final String name)
     {
         this(name, null);
     }
 
+    /** @param name Name for data item
+     *  @param value Initial value
+     */
     public PVAString(final String name, final String value)
     {
         super(name);
@@ -148,10 +157,9 @@ public class PVAString extends PVAData
     }
 
     @Override
-    protected void formatType(final int level, final StringBuilder buffer)
+    public String getType()
     {
-        indent(level, buffer);
-        buffer.append("string ").append(name);
+        return "string";
     }
 
     @Override
@@ -162,11 +170,16 @@ public class PVAString extends PVAData
     }
 
     @Override
+    public String formatValue() {
+        return get();
+    }
+
+    @Override
     public boolean equals(final Object obj)
     {
         if (! (obj instanceof PVAString))
             return false;
         final PVAString other = (PVAString) obj;
-        return other.value.equals(value);
+        return Objects.equals(other.value, value);
     }
 }

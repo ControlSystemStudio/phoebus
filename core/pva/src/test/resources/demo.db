@@ -11,6 +11,7 @@ record(calc, "ramp$(N)")
   field(LSV,  "MINOR")
   field(HSV,  "MINOR")
   field(FLNK, "waveform$(N)")
+  field(DESC, "ramp going up")
 }
 
 record(calc, "saw$(N)")
@@ -39,4 +40,17 @@ record(compress, "waveform$(N)")
   field(ALG, "Circular Buffer")
 }
 
+# "Boolean" i.e. binary records use NTEnum,
+# i.e. a structure with type name 'enum_t' and int index,
+# not a 'boolean' data type
+record(bi, "bool$(N)")
+{
+  field(ZNAM, "false")
+  field(ONAM, "true")
+  field(PINI, "YES")
+}
 
+record(ao, "ao$(N)")
+{
+  field(PINI, "YES")
+}
