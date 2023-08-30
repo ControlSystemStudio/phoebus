@@ -24,7 +24,7 @@ You can use the following operators :
 | " **|** " / "  **||**  " - OR.
 | " **!(...)** " - NOT.
 | " **==** " - Equals.
-| " **!==** " - Not equals.
+| " **!=** " - Not equals.
 | " **>=** " - Greater than or equal.
 | " **>** " - Greater than.
 | " **<=** " - Lesser than or equal.
