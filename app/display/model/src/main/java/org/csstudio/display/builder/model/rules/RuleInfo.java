@@ -209,14 +209,6 @@ public class RuleInfo
         return prop_as_expr_flag;
     }
 
-    /** @param attached_widget Widget
-     *  @return Script text (python)
-     */
-    public String getTextPy(final Widget attached_widget)
-    {
-        return RuleToScript.generatePy(attached_widget, this);
-    }
-
     @Override
     public String toString()
     {

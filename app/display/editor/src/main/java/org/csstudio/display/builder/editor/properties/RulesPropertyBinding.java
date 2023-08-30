@@ -58,23 +58,11 @@ extends WidgetPropertyBinding<Button, RulesWidgetProperty>
                     for (RuleInfo ruleInfo : result.get())
                     {
                         List<RuleInfo.ExpressionInfo<?>> newExprs = new ArrayList<>();
-                        for (RuleInfo.ExpressionInfo expr : ruleInfo.getExpressions())
-                        {
-                            if (expr instanceof RuleInfo.ExprInfoValue)
-                            {
-                                RuleInfo.ExprInfoValue newExpr = new RuleInfo.ExprInfoValue(expr.getBoolExp(), ((WidgetProperty<?>)expr.getPropVal()).clone());
-                                newExprs.add(newExpr);
-                            }
-                            else if (expr instanceof RuleInfo.ExprInfoString)
-                            {
-                                newExprs.add(expr);
-                            }
-                        }
+                        newExprs.addAll(ruleInfo.getExpressions());
                         RuleInfo newRuleInfo = new RuleInfo(ruleInfo.getName(),
                                                             ruleInfo.getPropID(),
                                                             ruleInfo.getPropAsExprFlag(),
-                                                            newExprs,
-                                                            ruleInfo.getPVs());
+                                                            newExprs);
                         newRuleInfos.add(newRuleInfo);
                     }
                     undo.execute(new SetWidgetPropertyAction<>(other_prop, newRuleInfos));
