@@ -14,7 +14,12 @@ import org.csstudio.apputil.formula.Node;
  */
 public class GreaterEqualNode extends AbstractBinaryNode
 {
-    public GreaterEqualNode(final Node left, final Node right)
+    /**
+     * Constructor
+     * @param left , left node
+     * @param right , right node
+     */
+	public GreaterEqualNode(final Node left, final Node right)
     {
         super(left, right);
     }

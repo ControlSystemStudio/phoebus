@@ -1,9 +1,14 @@
 package org.csstudio.apputil.formula.math;
 
-@SuppressWarnings("nls")
+/**
+ * Ceil class see @Math ceil function
+ */
 public class Ceil extends OneArgMathFunction
 {
-    public Ceil()
+	 /**
+     * Constructor
+     */
+	public Ceil()
     {
         super("ceil", "Ceiling", Math::ceil);
     }

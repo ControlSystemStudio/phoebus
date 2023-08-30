@@ -1,9 +1,14 @@
 package org.csstudio.apputil.formula.math;
 
-@SuppressWarnings("nls")
+/**
+ * Exp class see @Math exp function
+ */
 public class Exp extends OneArgMathFunction
 {
-    public Exp()
+	/**
+     * Constructor
+     */
+	public Exp()
     {
         super("exp", "Exponential", Math::exp);
     }

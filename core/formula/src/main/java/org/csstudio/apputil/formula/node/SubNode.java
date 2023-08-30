@@ -14,7 +14,12 @@ import org.csstudio.apputil.formula.Node;
  */
 public class SubNode extends AbstractBinaryNode
 {
-    public SubNode(Node left, Node right)
+	 /**
+     * Constructor
+     * @param left , left node
+     * @param right , right node
+     */
+	public SubNode(Node left, Node right)
     {
         super(left, right);
     }
@@ -25,7 +30,6 @@ public class SubNode extends AbstractBinaryNode
         return a-b;
     }
 
-    @SuppressWarnings("nls")
     @Override
     public String toString()
     {

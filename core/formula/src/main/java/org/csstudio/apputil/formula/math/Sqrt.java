@@ -1,9 +1,14 @@
 package org.csstudio.apputil.formula.math;
 
-@SuppressWarnings("nls")
+/**
+ * Sqrt class see @Math sqrt function
+ */
 public class Sqrt extends OneArgMathFunction
 {
-    public Sqrt()
+	/**
+     * Constructor
+     */
+	public Sqrt()
     {
         super("sqrt", "Square Root", Math::sqrt);
     }

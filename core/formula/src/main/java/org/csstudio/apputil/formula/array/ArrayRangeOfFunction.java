@@ -29,7 +29,9 @@ import org.epics.vtype.VType;
 
 import java.util.List;
 
-
+/**
+ * ArrayRangeOfFunction class
+ */
 public class ArrayRangeOfFunction extends BaseArrayFunction {
 
     @Override

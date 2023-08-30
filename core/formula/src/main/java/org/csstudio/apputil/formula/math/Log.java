@@ -1,9 +1,14 @@
 package org.csstudio.apputil.formula.math;
 
-@SuppressWarnings("nls")
+/**
+ * Log class see @Math log function
+ */
 public class Log extends OneArgMathFunction
 {
-    public Log()
+	/**
+     * Constructor
+     */
+	public Log()
     {
         super("log", "Natural logarithm", Math::log);
     }

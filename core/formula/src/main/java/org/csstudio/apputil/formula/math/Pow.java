@@ -2,10 +2,15 @@ package org.csstudio.apputil.formula.math;
 
 import java.util.List;
 
-@SuppressWarnings("nls")
+/**
+ * Pow class see @Math pow function
+ */
 public class Pow extends TwoArgMathFunction
 {
-    public Pow()
+	/**
+     * Constructor
+     */
+	public Pow()
     {
         super("pow", "Power (base, exponent)", Math::pow);
     }

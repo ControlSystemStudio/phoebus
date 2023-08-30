@@ -2,10 +2,15 @@ package org.csstudio.apputil.formula.math;
 
 import java.util.List;
 
-@SuppressWarnings("nls")
+/**
+ * Cos class see @Math cos function
+ */
 public class Cos extends OneArgMathFunction
 {
-    public Cos()
+	 /**
+     * Constructor
+     */
+	public Cos()
     {
         super("cos", "Cosine", Math::cos);
     }

@@ -14,7 +14,11 @@ import org.csstudio.apputil.formula.Node;
  */
 public class NotNode extends AbstractUnaryNode
 {
-    public NotNode(final Node n)
+    /**
+     * Constructor
+     * @param n , node to invert
+     */
+	public NotNode(final Node n)
     {
         super(n);
     }
@@ -25,7 +29,6 @@ public class NotNode extends AbstractUnaryNode
         return a != 0.0  ? 0.0 : 1.0;
     }
 
-    @SuppressWarnings("nls")
     @Override
     public String toString()
     {

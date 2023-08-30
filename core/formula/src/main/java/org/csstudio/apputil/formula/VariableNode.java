@@ -24,19 +24,31 @@ public class VariableNode implements Node
     /** Current value of the variable. */
     private volatile VType value;
 
-    /** Create Variable with given name. */
+    /**
+     * Create Variable with given name.
+     * @param name , the name of the variable 
+     */
     public VariableNode(final String name)
     {
         this(name, Double.NaN);
     }
 
-    /** Create Variable with given name and value. */
+    /**  */
+    /**
+     * Create Variable with given name and value.
+     * @param name , the name of the variable
+     * @param value, the value of the variable
+     */
     public VariableNode(final String name, final double value)
     {
         this(name, VDouble.of(value, Alarm.none(), Time.now(), Display.none()));
     }
 
-    /** Create Variable with given name and value. */
+    /**
+     *  Create Variable with given name and value.
+     * @param name , the name of the variable
+     * @param value, the value of the variable see @VType
+     */
     public VariableNode(final String name, final VType value)
     {
         this.name = name;
@@ -49,13 +61,17 @@ public class VariableNode implements Node
         return name;
     }
 
-    /** @param New value of variable. */
+    /**
+     * @param value, new value of variable
+     */
     public void setValue(final double value)
     {
         setValue(VDouble.of(value, Alarm.none(), Time.now(), Display.none()));
     }
 
-    /** @param New value of variable. */
+    /**  
+     * @param value , new value of variable see @VType
+     */
     public void setValue(final VType value)
     {
         this.value = value;

@@ -22,9 +22,13 @@ public class MinNode implements Node
 {
     private final Node args[];
 
-    public MinNode(final Node args[])
+    /**
+     * Constructor
+     * @param nodeArray , arrays of node
+     */
+    public MinNode(final Node nodeArray[])
     {
-        this.args = args;
+        this.args = nodeArray;
     }
 
     @Override

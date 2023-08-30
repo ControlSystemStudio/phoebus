@@ -14,7 +14,12 @@ import org.csstudio.apputil.formula.Node;
  */
 public class GreaterThanNode extends AbstractBinaryNode
 {
-    public GreaterThanNode(final Node left, final Node right)
+	 /**
+     * Constructor
+     * @param left , left node
+     * @param right , right node
+     */
+	public GreaterThanNode(final Node left, final Node right)
     {
         super(left, right);
     }
@@ -25,7 +30,6 @@ public class GreaterThanNode extends AbstractBinaryNode
         return a > b ? 1.0 : 0.0;
     }
 
-    @SuppressWarnings("nls")
     @Override
     public String toString()
     {

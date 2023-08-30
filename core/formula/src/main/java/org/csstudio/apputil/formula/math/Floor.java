@@ -1,9 +1,14 @@
 package org.csstudio.apputil.formula.math;
 
-@SuppressWarnings("nls")
+/**
+ * Floor class see @Math floor function
+ */
 public class Floor extends OneArgMathFunction
 {
-    public Floor()
+	/**
+     * Constructor
+     */
+	public Floor()
     {
         super("floor", "Floor", Math::floor);
     }

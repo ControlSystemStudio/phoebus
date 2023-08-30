@@ -19,7 +19,12 @@ import org.phoebus.core.vtypes.VTypeHelper;
  */
 public class AddNode extends AbstractBinaryNode
 {
-    public AddNode(final Node left, final Node right)
+    /**
+     * Constructor
+     * @param left , left node
+     * @param right, right node
+     */
+	public AddNode(final Node left, final Node right)
     {
         super(left, right);
     }
