@@ -30,6 +30,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
+
 @RestController
 @RequestMapping("/config")
 public class ConfigurationController extends BaseController {
@@ -41,7 +43,9 @@ public class ConfigurationController extends BaseController {
     @SuppressWarnings("unused")
     @PutMapping(produces = JSON)
     public Configuration createConfiguration(@RequestParam(value = "parentNodeId") String parentNodeId,
-                                             @RequestBody Configuration configuration) {
+                                             @RequestBody Configuration configuration,
+                                             Principal principal) {
+        configuration.getConfigurationNode().setUserName(principal.getName());
         return nodeDAO.createConfiguration(parentNodeId, configuration);
     }
 
@@ -53,7 +57,9 @@ public class ConfigurationController extends BaseController {
 
     @SuppressWarnings("unused")
     @PostMapping(produces = JSON)
-    public Configuration updateConfiguration(@RequestBody Configuration configuration) {
+    public Configuration updateConfiguration(@RequestBody Configuration configuration,
+                                             Principal principal) {
+        configuration.getConfigurationNode().setUserName(principal.getName());
         return nodeDAO.updateConfiguration(configuration);
     }
 }

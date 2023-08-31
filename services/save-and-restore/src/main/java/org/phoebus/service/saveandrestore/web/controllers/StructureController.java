@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.security.Principal;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
@@ -52,22 +53,21 @@ public class StructureController extends BaseController {
      *
      * @param to       The unique id of the new parent, which must be a folder. If empty or if
      *                 target node does not exist, {@link HttpStatus#BAD_REQUEST} is returned.
-     * @param userName Identity of the user performing the action on the client.
-     *                 If empty, {@link HttpStatus#BAD_REQUEST} is returned.
      * @param nodes    List of source nodes to move. If empty, or if any of the listed source nodes does not exist,
      *                 {@link HttpStatus#BAD_REQUEST} is returned.
+     * @param principal The {@link Principal} of the authenticated user.
      * @return The (updated) target node.
      */
     @SuppressWarnings("unused")
     @PostMapping(value = "/move", produces = JSON)
     public Node moveNodes(@RequestParam(value = "to") String to,
-                          @RequestParam(value = "username") String userName,
-                          @RequestBody List<String> nodes) {
-        if (to.isEmpty() || userName.isEmpty() || nodes.isEmpty()) {
+                          @RequestBody List<String> nodes,
+                          Principal principal) {
+        if (to.isEmpty() || nodes.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username, target node and list of source nodes must all be non-empty.");
         }
         Logger.getLogger(StructureController.class.getName()).info(Thread.currentThread().getName() + " " + (new Date()) + " move");
-        return nodeDAO.moveNodes(nodes, to, userName);
+        return nodeDAO.moveNodes(nodes, to, principal.getName());
     }
 
     /**
@@ -76,22 +76,22 @@ public class StructureController extends BaseController {
      *
      * @param to       The unique id of the target parent node, which must be a folder. If empty or if
      *                 target node does not exist, {@link HttpStatus#BAD_REQUEST} is returned.
-     * @param userName Identity of the user performing the action on the client.
-     *                 If empty, {@link HttpStatus#BAD_REQUEST} is returned.
      * @param nodes    List of source nodes to copy. If empty, or if any of the listed source nodes does not exist,
      *                 {@link HttpStatus#BAD_REQUEST} is returned.
+     * @param principal The {@link Principal} of the authenticated user.
      * @return The (updated) target node.
      */
     @SuppressWarnings("unused")
     @PostMapping(value = "/copy", produces = JSON)
     public Node copyNodes(@RequestParam(value = "to") String to,
                           @RequestParam(value = "username") String userName,
-                          @RequestBody List<String> nodes) {
-        if (to.isEmpty() || userName.isEmpty() || nodes.isEmpty()) {
+                          @RequestBody List<String> nodes,
+                          Principal principal) {
+        if (to.isEmpty() || nodes.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username, target node and list of source nodes must all be non-empty.");
         }
         Logger.getLogger(StructureController.class.getName()).info(Thread.currentThread().getName() + " " + (new Date()) + " move");
-        return nodeDAO.copyNodes(nodes, to, userName);
+        return nodeDAO.copyNodes(nodes, to, principal.getName());
     }
 
     /**

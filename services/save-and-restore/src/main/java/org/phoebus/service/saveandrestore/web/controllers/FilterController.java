@@ -22,15 +22,10 @@ package org.phoebus.service.saveandrestore.web.controllers;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
-import java.util.logging.Logger;
 
 @RestController
 public class FilterController extends BaseController {
@@ -39,25 +34,28 @@ public class FilterController extends BaseController {
     @Autowired
     private NodeDAO nodeDAO;
 
-    private Logger logger = Logger.getLogger(FilterController.class.getName());
-
     /**
      * Saves a new or updated {@link Filter}.
      *
-     * @param filter The {@link Filter} to save.
+     * @param filter    The {@link Filter} to save.
+     * @param principal The {@link java.security.Principal} of the authenticated user
      * @return The saved {@link Filter}.
      */
     @SuppressWarnings("unused")
     @PutMapping(value = "/filter", produces = JSON)
-    public Filter saveFilter(@RequestBody final Filter filter) {
+    public Filter saveFilter(@RequestBody final Filter filter,
+                             Principal principal) {
+        filter.setUser(principal.getName());
         return nodeDAO.saveFilter(filter);
     }
 
+    @SuppressWarnings("unused")
     @GetMapping(value = "/filters", produces = JSON)
     public List<Filter> getAllFilters() {
         return nodeDAO.getAllFilters();
     }
 
+    @SuppressWarnings("unused")
     @DeleteMapping(value = "/filter/{name}")
     public void deleteFilter(@PathVariable final String name) {
         nodeDAO.deleteFilter(name);

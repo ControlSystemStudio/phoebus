@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
 import java.util.List;
 
 @SuppressWarnings("unused")
@@ -44,12 +45,16 @@ public class CompositeSnapshotController extends BaseController {
 
     @PutMapping(value = "/composite-snapshot", produces = JSON)
     public CompositeSnapshot createCompositeSnapshot(@RequestParam(value = "parentNodeId") String parentNodeId,
-                                                     @RequestBody CompositeSnapshot compositeSnapshot) {
+                                                     @RequestBody CompositeSnapshot compositeSnapshot,
+                                                     Principal principal) {
+        compositeSnapshot.getCompositeSnapshotNode().setUserName(principal.getName());
         return nodeDAO.createCompositeSnapshot(parentNodeId, compositeSnapshot);
     }
 
     @PostMapping(value = "/composite-snapshot", produces = JSON)
-    public CompositeSnapshot updateCompositeSnapshot(@RequestBody CompositeSnapshot compositeSnapshot) {
+    public CompositeSnapshot updateCompositeSnapshot(@RequestBody CompositeSnapshot compositeSnapshot,
+                                                     Principal principal) {
+        compositeSnapshot.getCompositeSnapshotNode().setUserName(principal.getName());
         return nodeDAO.updateCompositeSnapshot(compositeSnapshot);
     }
 
@@ -80,6 +85,7 @@ public class CompositeSnapshotController extends BaseController {
      * @return A list of PV names that occur more than once across the list of {@link Node}s corresponding
      * to the input. Empty if no duplicates are found.
      */
+    // TODO: Should be GET, not POST
     @PostMapping(value = "/composite-snapshot-consistency-check", produces = JSON)
     public List<String> checkSnapshotsConsistency(@RequestBody List<String> snapshotNodeIds) {
         return nodeDAO.checkForPVNameDuplicates(snapshotNodeIds);
