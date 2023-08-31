@@ -20,10 +20,11 @@ import java.util.logging.Logger;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class CommandShell
 {
-    public interface CommandHandler
+    /**
+     * interface CommandHandler */
+	public interface CommandHandler
     {
         /** Invoked when user entered a command
          *  @param args Entered command, split at spaces, or <code>null</code> when user entered 'Ctrl-D' to close shell
@@ -64,13 +65,16 @@ public class CommandShell
         thread.interrupt();
     }
 
-    /** Get the prompt string. */
+    /** @return the prompt string. */
     public String getPrompt()
     {
         return prompt;
     }
 
-    /** Set the prompt string. */
+    /**
+     * Set the prompt string
+     * @param newPrompt the new prompt
+     */
     public void setPrompt(final String newPrompt)
     {
         this.prompt = newPrompt;

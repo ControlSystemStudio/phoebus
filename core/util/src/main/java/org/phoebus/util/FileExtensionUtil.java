@@ -20,6 +20,9 @@ package org.phoebus.util;
 
 import java.io.File;
 
+/**
+ * Class FileExtensionUtil
+ */
 public class FileExtensionUtil {
 
     /**
