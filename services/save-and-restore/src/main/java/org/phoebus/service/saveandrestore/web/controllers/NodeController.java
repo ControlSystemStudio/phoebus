@@ -62,7 +62,7 @@ public class NodeController extends BaseController {
     @PutMapping(value = "/node", produces = JSON)
     public Node createNode(@RequestParam(name = "parentNodeId") String parentsUniqueId,
                            @RequestBody final Node node,
-                           Principal principal) {cd
+                           Principal principal) {
         if (node.getUserName() == null || node.getUserName().isEmpty()) {
             throw new IllegalArgumentException("User name must be non-null and of non-zero length");
         }

@@ -85,7 +85,6 @@ public class CompositeSnapshotController extends BaseController {
      * @return A list of PV names that occur more than once across the list of {@link Node}s corresponding
      * to the input. Empty if no duplicates are found.
      */
-    // TODO: Should be GET, not POST
     @PostMapping(value = "/composite-snapshot-consistency-check", produces = JSON)
     public List<String> checkSnapshotsConsistency(@RequestBody List<String> snapshotNodeIds) {
         return nodeDAO.checkForPVNameDuplicates(snapshotNodeIds);

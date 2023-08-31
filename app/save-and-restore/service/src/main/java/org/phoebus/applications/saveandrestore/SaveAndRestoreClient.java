@@ -137,6 +137,14 @@ public interface SaveAndRestoreClient {
 
     ConfigurationData getConfigurationData(String nodeId);
 
+    /**
+     * Creates a new {@link Node} of type {@link NodeType#CONFIGURATION} in the remote
+     * service.
+     * @param parentNodeId Non-null and non-empty unique id of an existing parent {@link Node},
+     *                     which must be of type {@link NodeType#FOLDER}.
+     * @param configuration {@link ConfigurationData} object
+     * @return A representation of the persisted {@link Configuration}.
+     */
     Configuration createConfiguration(String parentNodeId, Configuration configuration);
 
     Configuration updateConfiguration(Configuration configuration);

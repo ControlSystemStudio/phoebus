@@ -22,12 +22,9 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.GenericType;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
+
+
+import com.sun.jersey.api.client.*;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
@@ -49,7 +46,6 @@ import java.util.logging.Logger;
 
 public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
-    private Client client;
     private static final String CONTENT_TYPE_JSON = "application/json; charset=UTF-8";
     private final Logger logger = Logger.getLogger(SaveAndRestoreJerseyClient.class.getName());
 
@@ -90,7 +86,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
         }
     }
 
-    private Client getClient(){
+    private Client getClient() {
         DefaultClientConfig defaultClientConfig = new DefaultClientConfig();
         defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_READ_TIMEOUT, httpClientReadTimeout);
         defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, httpClientConnectTimeout);
@@ -98,18 +94,17 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
         JacksonJsonProvider jacksonJsonProvider = new JacksonJsonProvider(mapper);
         defaultClientConfig.getSingletons().add(jacksonJsonProvider);
 
-        client = Client.create(defaultClientConfig);
+        Client client = Client.create(defaultClientConfig);
 
         try {
             SecureStore store = new SecureStore();
             ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken("save-and-restore");
-            if(scopedAuthenticationToken != null){
+            if (scopedAuthenticationToken != null) {
                 String username = scopedAuthenticationToken.getUsername();
                 String password = scopedAuthenticationToken.getPassword();
                 httpBasicAuthFilter = new HTTPBasicAuthFilter(username, password);
                 client.addFilter(httpBasicAuthFilter);
-            }
-            else if(httpBasicAuthFilter != null){
+            } else if (httpBasicAuthFilter != null) {
                 client.removeFilter(httpBasicAuthFilter);
             }
         } catch (Exception e) {
@@ -135,11 +130,11 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     @Override
-    public List<Node> getCompositeSnapshotReferencedNodes(String uniqueNodeId){
+    public List<Node> getCompositeSnapshotReferencedNodes(String uniqueNodeId) {
         WebResource webResource = getClient().resource(jmasarServiceUrl + "/composite-snapshot/" + uniqueNodeId + "/nodes");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).get(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
@@ -149,16 +144,16 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
             throw new SaveAndRestoreClientException("Failed : HTTP error code : " + response.getStatus() + ", error message: " + message);
         }
 
-        return response.getEntity(new GenericType<List<Node>>() {
+        return response.getEntity(new GenericType<>() {
         });
     }
 
     @Override
-    public List<SnapshotItem> getCompositeSnapshotItems(String uniqueNodeId){
+    public List<SnapshotItem> getCompositeSnapshotItems(String uniqueNodeId) {
         WebResource webResource = getClient().resource(jmasarServiceUrl + "/composite-snapshot/" + uniqueNodeId + "/items");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).get(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
@@ -168,7 +163,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
             throw new SaveAndRestoreClientException("Failed : HTTP error code : " + response.getStatus() + ", error message: " + message);
         }
 
-        return response.getEntity(new GenericType<List<SnapshotItem>>() {
+        return response.getEntity(new GenericType<>() {
         });
     }
 
@@ -180,29 +175,26 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     @Override
     public List<Node> getChildNodes(String uniqueNodeId) throws SaveAndRestoreClientException {
         ClientResponse response = getCall("/node/" + uniqueNodeId + "/children");
-        return response.getEntity(new GenericType<List<Node>>() {
+        return response.getEntity(new GenericType<>() {
         });
     }
 
     @Override
     public Node createNewNode(String parentNodeId, Node node) {
-        node.setUserName(getCurrentUsersName());
         WebResource webResource = getClient().resource(jmasarServiceUrl + "/node").queryParam("parentNodeId", parentNodeId);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(node, CONTENT_TYPE_JSON)
                 .put(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.createNodeFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new SaveAndRestoreClientException(message);
         }
-
         return response.getEntity(Node.class);
-
     }
 
     @Override
@@ -212,9 +204,6 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
     @Override
     public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration) {
-        if (nodeToUpdate.getUserName() == null || nodeToUpdate.getUserName().isEmpty()) {
-            nodeToUpdate.setUserName(getCurrentUsersName());
-        }
         WebResource webResource = getClient().resource(jmasarServiceUrl + "/node")
                 .queryParam("customTimeForMigration", customTimeForMigration ? "true" : "false");
 
@@ -222,12 +211,12 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
                 .entity(nodeToUpdate, CONTENT_TYPE_JSON)
                 .post(ClientResponse.class);
 
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.updateNodeFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new SaveAndRestoreClientException(message);
         }
@@ -236,7 +225,6 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     private <T> T getCall(String relativeUrl, Class<T> clazz) {
-
         ClientResponse response = getCall(relativeUrl);
         return response.getEntity(clazz);
     }
@@ -245,7 +233,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
         WebResource webResource = getClient().resource(jmasarServiceUrl + relativeUrl);
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).get(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
@@ -262,7 +250,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     public void deleteNode(String uniqueNodeId) {
         WebResource webResource = getClient().resource(jmasarServiceUrl + "/node/" + uniqueNodeId);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).delete(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = response.getEntity(String.class);
             throw new SaveAndRestoreClientException("Failed : HTTP error code : " + response.getStatus() + ", error message: " + message);
         }
@@ -273,21 +261,17 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
         nodeIds.forEach(this::deleteNode);
     }
 
-    private String getCurrentUsersName() {
-        return System.getProperty("user.name");
-    }
-
     @Override
     public List<Tag> getAllTags() {
         ClientResponse response = getCall("/tags");
-        return response.getEntity(new GenericType<List<Tag>>() {
+        return response.getEntity(new GenericType<>() {
         });
     }
 
     @Override
     public List<Node> getAllSnapshots() {
         ClientResponse response = getCall("/snapshots");
-        return response.getEntity(new GenericType<List<Node>>() {
+        return response.getEntity(new GenericType<>() {
         });
     }
 
@@ -295,19 +279,18 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     public Node moveNodes(List<String> sourceNodeIds, String targetNodeId) {
         WebResource webResource =
                 getClient().resource(jmasarServiceUrl + "/move")
-                        .queryParam("to", targetNodeId)
-                        .queryParam("username", getCurrentUsersName());
+                        .queryParam("to", targetNodeId);
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(sourceNodeIds, CONTENT_TYPE_JSON)
                 .post(ClientResponse.class);
 
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.copyOrMoveNotAllowedBody;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new SaveAndRestoreClientException(message);
         }
@@ -318,19 +301,18 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     public Node copyNodes(List<String> sourceNodeIds, String targetNodeId) {
         WebResource webResource =
                 getClient().resource(jmasarServiceUrl + "/copy")
-                        .queryParam("to", targetNodeId)
-                        .queryParam("username", getCurrentUsersName());
+                        .queryParam("to", targetNodeId);
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(sourceNodeIds, CONTENT_TYPE_JSON)
                 .post(ClientResponse.class);
 
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.copyOrMoveNotAllowedBody;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new SaveAndRestoreClientException(message);
         }
@@ -343,7 +325,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
                 getClient().resource(jmasarServiceUrl + "/path/" + uniqueNodeId);
         ClientResponse response = webResource.get(ClientResponse.class);
 
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             return null;
         }
         return response.getEntity(String.class);
@@ -362,19 +344,18 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
     @Override
     public Configuration createConfiguration(String parentNodeId, Configuration configuration) {
-        configuration.getConfigurationNode().setUserName(getCurrentUsersName());
         WebResource webResource =
                 getClient().resource(jmasarServiceUrl + "/config")
                         .queryParam("parentNodeId", parentNodeId);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(configuration, CONTENT_TYPE_JSON)
                 .put(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.createConfigurationFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new SaveAndRestoreClientException(message);
         }
@@ -388,12 +369,12 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(configuration, CONTENT_TYPE_JSON)
                 .post(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.updateConfigurationFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new RuntimeException(message);
         }
@@ -408,7 +389,6 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
     @Override
     public Snapshot saveSnapshot(String parentNodeId, Snapshot snapshot) {
-        snapshot.getSnapshotNode().setUserName(getCurrentUsersName());
         WebResource webResource =
                 getClient().resource(jmasarServiceUrl + "/snapshot")
                         .queryParam("parentNodeId", parentNodeId);
@@ -419,15 +399,13 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
                     .put(ClientResponse.class);
         } catch (UniformInterfaceException e) {
             throw new RuntimeException(e);
-        } catch (ClientHandlerException e) {
-            throw new RuntimeException(e);
         }
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.searchFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new SaveAndRestoreClientException(message);
         }
@@ -435,20 +413,19 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     @Override
-    public CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot){
-        compositeSnapshot.getCompositeSnapshotNode().setUserName(getCurrentUsersName());
+    public CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot) {
         WebResource webResource =
                 getClient().resource(jmasarServiceUrl + "/composite-snapshot")
                         .queryParam("parentNodeId", parentNodeId);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(compositeSnapshot, CONTENT_TYPE_JSON)
                 .put(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.createConfigurationFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new SaveAndRestoreClientException(message);
         }
@@ -456,38 +433,38 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     @Override
-    public List<String> checkCompositeSnapshotConsistency(List<String> snapshotNodeIds){
+    public List<String> checkCompositeSnapshotConsistency(List<String> snapshotNodeIds) {
         WebResource webResource =
                 getClient().resource(jmasarServiceUrl + "/composite-snapshot-consistency-check");
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(snapshotNodeIds, CONTENT_TYPE_JSON)
                 .post(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.compositeSnapshotConsistencyCheckFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new SaveAndRestoreClientException(message);
         }
-        return response.getEntity(new GenericType<List<String>>() {
+        return response.getEntity(new GenericType<>() {
         });
     }
 
     @Override
-    public CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot){
+    public CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot) {
         WebResource webResource = getClient().resource(jmasarServiceUrl + "/composite-snapshot");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(compositeSnapshot, CONTENT_TYPE_JSON)
                 .post(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.updateConfigurationFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new RuntimeException(message);
         }
@@ -495,17 +472,17 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     @Override
-    public SearchResult search(MultivaluedMap<String, String> searchParams){
+    public SearchResult search(MultivaluedMap<String, String> searchParams) {
         WebResource webResource = getClient().resource(jmasarServiceUrl + "/search")
                 .queryParams(searchParams);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .get(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.searchFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new RuntimeException(message);
         }
@@ -513,19 +490,18 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     @Override
-    public Filter saveFilter(Filter filter){
-        filter.setUser(getCurrentUsersName());
+    public Filter saveFilter(Filter filter) {
         WebResource webResource = getClient().resource(jmasarServiceUrl + "/filter");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(filter, CONTENT_TYPE_JSON)
                 .put(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.saveFilterFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new RuntimeException(message);
         }
@@ -533,35 +509,36 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
     }
 
     @Override
-    public List<Filter> getAllFilters(){
+    public List<Filter> getAllFilters() {
         WebResource webResource = getClient().resource(jmasarServiceUrl + "/filters");
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .get(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.searchFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new RuntimeException(message);
         }
-        return response.getEntity(new GenericType<List<Filter>>(){});
+        return response.getEntity(new GenericType<>() {
+        });
     }
 
     @Override
-    public void deleteFilter(String name){
+    public void deleteFilter(String name) {
         // Filter name may contain space chars, need to URL encode these.
         String filterName = name.replace(" ", "%20");
-        WebResource  webResource = getClient().resource(jmasarServiceUrl + "/filter/" + filterName);
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/filter/" + filterName);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .delete(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.deleteFilterFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new RuntimeException(message);
         }
@@ -569,11 +546,12 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
     /**
      * Adds a tag to a list of unique node ids, see {@link TagData}
+     *
      * @param tagData see {@link TagData}
      * @return A list of updated {@link Node}s. This may contain fewer elements than the list of unique node ids
      * passed in the <code>tagData</code> parameter.
      */
-    public List<Node> addTag(TagData tagData){
+    public List<Node> addTag(TagData tagData) {
         WebResource webResource =
                 getClient().resource(jmasarServiceUrl + "/tags");
         ClientResponse response;
@@ -583,29 +561,28 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
                     .post(ClientResponse.class);
         } catch (UniformInterfaceException e) {
             throw new RuntimeException(e);
-        } catch (ClientHandlerException e) {
-            throw new RuntimeException(e);
         }
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.tagAddFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new SaveAndRestoreClientException(message);
         }
-        return response.getEntity(new GenericType<List<Node>>() {
+        return response.getEntity(new GenericType<>() {
         });
     }
 
     /**
      * Deletes a tag from a list of unique node ids, see {@link TagData}
+     *
      * @param tagData see {@link TagData}
      * @return A list of updated {@link Node}s. This may contain fewer elements than the list of unique node ids
      * passed in the <code>tagData</code> parameter.
      */
-    public List<Node> deleteTag(TagData tagData){
+    public List<Node> deleteTag(TagData tagData) {
         WebResource webResource =
                 getClient().resource(jmasarServiceUrl + "/tags");
         ClientResponse response;
@@ -615,24 +592,22 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
                     .delete(ClientResponse.class);
         } catch (UniformInterfaceException e) {
             throw new RuntimeException(e);
-        } catch (ClientHandlerException e) {
-            throw new RuntimeException(e);
         }
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.tagAddFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new SaveAndRestoreClientException(message);
         }
-        return response.getEntity(new GenericType<List<Node>>() {
+        return response.getEntity(new GenericType<>() {
         });
     }
 
     @Override
-    public UserData authenticate(String userName, String password){
+    public UserData authenticate(String userName, String password) {
         WebResource webResource =
                 getClient().resource(jmasarServiceUrl + "/login")
                         .queryParam("username", userName)
@@ -643,19 +618,17 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
                     .post(ClientResponse.class);
         } catch (UniformInterfaceException e) {
             throw new RuntimeException(e);
-        } catch (ClientHandlerException e) {
-            throw new RuntimeException(e);
         }
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.authenticationFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new SaveAndRestoreClientException(message);
         }
-        return response.getEntity(new GenericType<UserData>() {
+        return response.getEntity(new GenericType<>() {
         });
     }
 }

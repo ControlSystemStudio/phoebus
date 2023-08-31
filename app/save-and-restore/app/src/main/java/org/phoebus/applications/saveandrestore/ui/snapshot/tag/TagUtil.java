@@ -96,7 +96,7 @@ public class TagUtil {
                                       Consumer<List<org.phoebus.applications.saveandrestore.model.Node>> callback) {
         AtomicInteger nonSnapshotCount = new AtomicInteger(0);
         selectedNodes.forEach(n -> {
-            if (!n.getNodeType().equals(NodeType.SNAPSHOT)) {
+            if (!n.getNodeType().equals(NodeType.SNAPSHOT) && !n.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)) {
                 nonSnapshotCount.incrementAndGet();
             }
         });
@@ -195,7 +195,7 @@ public class TagUtil {
         selectedNodes.forEach(node -> {
             if (node.hasTag(Tag.GOLDEN)) {
                 goldenTagCount.incrementAndGet();
-            } else if (!node.getNodeType().equals(NodeType.SNAPSHOT) && !node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)) {
+            } else if (!node.getNodeType().equals(NodeType.SNAPSHOT)) {
                 nonSnapshotCount.incrementAndGet();
             }
         });

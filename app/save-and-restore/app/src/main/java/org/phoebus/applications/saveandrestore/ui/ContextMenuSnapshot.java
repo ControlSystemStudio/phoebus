@@ -18,20 +18,13 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
-import javafx.application.Platform;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
-import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.stage.WindowEvent;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
@@ -43,9 +36,9 @@ public class ContextMenuSnapshot extends ContextMenuBase {
     protected Image compareSnapshotIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/compare.png");
     protected Image csvExportIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_export.png");
 
-    private MenuItem compareSnapshotsMenuItem;
+    private final MenuItem compareSnapshotsMenuItem;
 
-    private Menu tagWithComment;
+    private final Menu tagWithComment;
 
     public ContextMenuSnapshot(SaveAndRestoreController saveAndRestoreController,
                                TreeView<org.phoebus.applications.saveandrestore.model.Node> treeView) {
@@ -105,8 +98,7 @@ public class ContextMenuSnapshot extends ContextMenuBase {
                 treeView.getSelectionModel().getSelectedItems();
         if (multipleSelection.get() && checkNotTaggable(selected)) {
             tagWithComment.disableProperty().set(true);
-        }
-        else{
+        } else {
             tagWithComment.disableProperty().set(false);
         }
     }
@@ -119,11 +111,12 @@ public class ContextMenuSnapshot extends ContextMenuBase {
      *     <li>The snapshot selected from the tree view must have same parent as the one shown in the active {@link org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab}</li>
      *     <li>The snapshot selected from the tree view must not be the same as as the one shown in the active {@link org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab}</li>
      * </ul>
+     *
      * @return <code>true</code> if selection can be added to snapshot view for comparison.
      */
     private boolean compareSnapshotsPossible() {
         Node[] configAndSnapshotNode = saveAndRestoreController.getConfigAndSnapshotForActiveSnapshotTab();
-        if(configAndSnapshotNode == null){
+        if (configAndSnapshotNode == null) {
             return false;
         }
         TreeItem<Node> selectedItem = treeView.getSelectionModel().getSelectedItem();
@@ -135,11 +128,12 @@ public class ContextMenuSnapshot extends ContextMenuBase {
 
     /**
      * Checks if selection is not allowed, i.e. not all selected nodes are snapshot nodes.
+     *
      * @param selectedItems List of selected nodes
      * @return <code>true</code> if any of the selected nodes is of type {@link NodeType#FOLDER} or
      * {@link NodeType#CONFIGURATION}.
      */
-    private boolean checkNotTaggable(ObservableList<TreeItem<Node>> selectedItems){
+    private boolean checkNotTaggable(ObservableList<TreeItem<Node>> selectedItems) {
         return selectedItems.stream().filter(i -> i.getValue().getNodeType().equals(NodeType.FOLDER) ||
                 i.getValue().getNodeType().equals(NodeType.CONFIGURATION)).findFirst().isPresent();
     }

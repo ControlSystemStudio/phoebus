@@ -318,9 +318,8 @@ public class CompositeSnapshotController {
 
     @FXML
     public void save() {
-        doSave(compositeSnapshot -> {
-            loadCompositeSnapshot(compositeSnapshot.getCompositeSnapshotNode(), Collections.emptyList());
-        });
+        doSave(compositeSnapshot ->
+                loadCompositeSnapshot(compositeSnapshot.getCompositeSnapshotNode(), Collections.emptyList()));
     }
 
     private void doSave(Consumer<CompositeSnapshot> completion) {
@@ -466,15 +465,16 @@ public class CompositeSnapshotController {
                         e);
             }
             disabledUi.set(false);
-            if (duplicates.isEmpty()) {
+            if (duplicates != null && duplicates.isEmpty()) {
                 snapshotEntries.addAll(sourceNodes);
             } else {
                 int maxItems = 10;
                 StringBuilder stringBuilder = new StringBuilder();
-                for (int i = 0; i < Math.min(duplicates.size(), maxItems); i++) {
+                int duplicatesSize = duplicates != null ? duplicates.size() : 0;
+                for (int i = 0; i < Math.min(duplicatesSize, maxItems); i++) {
                     stringBuilder.append(duplicates.get(i)).append(System.lineSeparator());
                 }
-                if (duplicates.size() > maxItems) {
+                if (duplicatesSize > maxItems) {
                     stringBuilder.append(".").append(System.lineSeparator())
                             .append(".").append(System.lineSeparator())
                             .append(".").append(System.lineSeparator());

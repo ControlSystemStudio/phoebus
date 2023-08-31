@@ -571,9 +571,11 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
                 @Override
                 public void failed() {
-                    expandTreeNode(parentTreeItem.getParent());
+                    if(parentTreeItem.getParent() != null) { // Parent is null for root folder
+                        expandTreeNode(parentTreeItem.getParent());
+                    }
                     ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
-                            Messages.errorCreateFolderFailed, null);
+                            Messages.errorCreateFolderFailed, new Exception(getException()));
                 }
             };
 

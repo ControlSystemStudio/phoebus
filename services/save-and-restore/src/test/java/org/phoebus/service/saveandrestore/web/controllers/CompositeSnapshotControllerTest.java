@@ -178,7 +178,7 @@ public class CompositeSnapshotControllerTest {
 
         when(nodeDAO.checkForPVNameDuplicates(Mockito.any(List.class))).thenReturn(List.of("ref"));
 
-        MockHttpServletRequestBuilder request = post("/composite-snapshot-consistency-check").contentType(JSON)
+        MockHttpServletRequestBuilder request = get("/composite-snapshot-consistency-check").contentType(JSON)
                 .content(objectMapper.writeValueAsString(List.of("id")));
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
