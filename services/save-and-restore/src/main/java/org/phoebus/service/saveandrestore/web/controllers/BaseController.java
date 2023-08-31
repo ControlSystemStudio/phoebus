@@ -40,8 +40,6 @@ import java.util.logging.Logger;
  */
 @RestController
 @SuppressWarnings("unused")
-
-@RequestMapping("SaveRestore")
 public abstract class BaseController {
 	
 	public static final String JSON = "application/json";
