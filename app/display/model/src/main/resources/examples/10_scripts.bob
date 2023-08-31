@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <display version="2.0.0">
-  <name>Display</name>
+  <name>Scripts</name>
   <width>1150</width>
   <height>2000</height>
   <widget type="label" version="2.0.0">
