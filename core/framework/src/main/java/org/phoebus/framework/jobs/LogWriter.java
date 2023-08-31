@@ -17,13 +17,18 @@ import java.util.logging.Level;
 /** Thread that writes data from stream to log
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class LogWriter extends Thread
 {
     private final BufferedReader reader;
     private final String cmd;
     private Level level;
 
+    /**
+     * Constructor
+     * @param stream input
+     * @param cmd command
+     * @param level logging level see @Level
+     */
     public LogWriter(final InputStream stream, final String cmd, final Level level)
     {
         super("LogWriter " + level.getName() + " " + cmd);

@@ -18,10 +18,12 @@ import org.phoebus.framework.spi.PVProposalProvider;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class FormulaProposalProvider implements PVProposalProvider
 {
-    public static final FormulaProposalProvider INSTANCE = new FormulaProposalProvider();
+    /**
+     * Singleton pattern
+     */
+	public static final FormulaProposalProvider INSTANCE = new FormulaProposalProvider();
 
     private final List<Proposal> generic = List.of(new Proposal("=2*`pv_name`"));
 

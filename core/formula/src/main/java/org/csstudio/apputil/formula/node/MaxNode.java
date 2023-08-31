@@ -24,7 +24,7 @@ public class MaxNode implements Node
 
     /**
      * Constructor
-     * @param nodeArray , arrays of node
+     * @param nodeArray , arrays of nodes
      */
     public MaxNode(final Node nodeArray[])
     {

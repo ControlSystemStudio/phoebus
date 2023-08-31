@@ -24,7 +24,7 @@ public class MinNode implements Node
 
     /**
      * Constructor
-     * @param nodeArray , arrays of node
+     * @param nodeArray , arrays of nodes
      */
     public MinNode(final Node nodeArray[])
     {

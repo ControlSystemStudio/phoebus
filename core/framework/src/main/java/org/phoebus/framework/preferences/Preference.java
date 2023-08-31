@@ -42,5 +42,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface Preference
 {
-    String name() default "";
+    /**
+     * default name
+     * @return empty string
+     */
+	String name() default "";
 }

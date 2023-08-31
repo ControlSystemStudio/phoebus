@@ -27,10 +27,12 @@ import org.w3c.dom.NodeList;
 /** XML Helper
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class XMLUtil
 {
-    public static final String ENCODING = "UTF-8";
+    /**
+     * Encoding type constant
+     */
+	public static final String ENCODING = "UTF-8";
 
     /** Open XML document with line-number-aware reader and locate root element
      *  @param stream XML stream
@@ -163,6 +165,13 @@ public class XMLUtil
         transformer.transform(new DOMSource(node), new StreamResult(stream));
     }
 
+    /**
+     * Create a text Element
+     * @param doc xml document
+     * @param name of element
+     * @param value of element
+     * @return Element 
+     */
     public static Element createTextElement(final Document doc, final String name, final String value)
     {
         final Element el = doc.createElement(name);
@@ -358,9 +367,10 @@ public class XMLUtil
         return Boolean.parseBoolean(text);
     }
 
-    /** Transform xml element and children into a string
-    *
+   /**
+    * Transform xml element and children into a string
     * @param nd Node root of elements to transform
+    * @param add_newlines add new line if true
     * @return String representation of xml
     */
    public static String elementToString(Node nd, boolean add_newlines)
@@ -423,6 +433,12 @@ public class XMLUtil
        return ret;
    }
 
+   /**
+    * Transform xml element and children into a string
+    * @param nls  Node root of elements to transform
+    * @param add_newlines add new line if true
+    * @return String representation of xml
+    */
    public static String elementsToString(NodeList nls, boolean add_newlines)
    {
        String ret = "";

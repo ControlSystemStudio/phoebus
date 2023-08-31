@@ -48,7 +48,6 @@ import java.util.stream.Collectors;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class Macros implements MacroValueProvider
 {
     /** Logger for macro related messages */
@@ -118,7 +117,7 @@ public class Macros implements MacroValueProvider
      *  <pre> MSG = "This is a \"Message\""</pre>
      *
      *  @param names_and_values "M1=Value1, M2=Value2"
-     *  @return {@link Macros2}
+     *  @return {@link Macros}
      *  @throws Exception on error
      */
     public static Macros fromSimpleSpec(final String names_and_values) throws Exception

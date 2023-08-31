@@ -13,7 +13,7 @@ import java.util.List;
 /** Proposal for "loc://..." PVs
  *
  *  <p>Description includes the optional type and initial value,
- *  which are shown as {@link MatchSegment#COMMENT}
+ *  which are shown as {@link MatchSegment #COMMENT}
  *  until the user provides parameters for them.
  *
  *  <p>When applied to user text,
@@ -22,12 +22,17 @@ import java.util.List;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class LocProposal extends Proposal
 {
     private final String type;
     private final String[] initial_values;
 
+    /**
+     * Constructor 
+     * @param name , name 
+     * @param type , type
+     * @param initial_values , initial value
+     */
     public LocProposal(final String name, final String type, final String... initial_values)
     {
         super(name);

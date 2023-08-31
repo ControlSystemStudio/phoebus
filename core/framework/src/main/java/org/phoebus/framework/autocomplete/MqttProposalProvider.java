@@ -16,10 +16,12 @@ import org.phoebus.framework.spi.PVProposalProvider;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class MqttProposalProvider implements PVProposalProvider
 {
-    public static final MqttProposalProvider INSTANCE = new MqttProposalProvider();
+    /**
+     * Singleton
+     */
+	public static final MqttProposalProvider INSTANCE = new MqttProposalProvider();
 
     private static final List<Proposal> generic = List.of(new MqttProposal("mqtt://path", "VType"));
 

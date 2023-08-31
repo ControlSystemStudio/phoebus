@@ -33,7 +33,6 @@ import javax.net.ssl.X509TrustManager;
  * @author Kunal Shroff
  * @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class ResourceParser
 {
     private static final String UTF_8 = "UTF-8";
@@ -151,7 +150,7 @@ public class ResourceParser
     }
 
     /** Get file for URI
-     *  @return URI for the resource
+     *  @param resource URI for the resource
      *  @return {@link File} if URI represents a file, otherwise <code>null</code>
      */
     public static File getFile(final URI resource)
@@ -204,14 +203,14 @@ public class ResourceParser
         return connection.getInputStream();
     }
 
-    /** Get list of PVs from a "pv://?PV1&PV2" type URL
+    /** Get list of PVs from a {@literal "pv://?PV1&PV2"} type URL
      *
      *  <p>If the URI is simply no "pv:" URI, an empty list
      *  if returned.
      *  If it is a "pv:" URI, at least one PV is expected,
      *  otherwise an exception is thrown.
      *
-     *  @param resource "pv://?PV1&PV2" type URL
+     *  @param resource {@literal "pv://?PV1&PV2"} type URL
      *  @return List of PVs parsed from the resource
      *  @throws Exception on error, including no PVs
      */

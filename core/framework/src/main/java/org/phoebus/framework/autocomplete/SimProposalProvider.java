@@ -16,10 +16,12 @@ import org.phoebus.framework.spi.PVProposalProvider;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class SimProposalProvider implements PVProposalProvider
 {
-    public static final SimProposalProvider INSTANCE = new SimProposalProvider();
+    /**
+     * Singleton
+     */
+	public static final SimProposalProvider INSTANCE = new SimProposalProvider();
 
     private static final List<Proposal> generic = List.of(
         new SimProposal("sim://name", "parameters..."));

@@ -13,7 +13,7 @@ import java.util.List;
 /** Proposal for "sim://..." PVs
  *
  *  <p>Description includes the optional parameters,
- *  which are shown as {@link MatchSegment#COMMENT}
+ *  which are shown as {@link MatchSegment #COMMENT}
  *  until the user provides a value for a parameter.
  *
  *  <p>When applied to user text,
@@ -22,11 +22,15 @@ import java.util.List;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class SimProposal extends Proposal
 {
     private final String[] arguments;
 
+    /**
+     * Constructor
+     * @param name value of parameter
+     * @param arguments list of arguments
+     */
     public SimProposal(final String name, final String... arguments)
     {
         super(name);

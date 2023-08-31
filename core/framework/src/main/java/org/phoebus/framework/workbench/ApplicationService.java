@@ -27,10 +27,12 @@ import org.phoebus.framework.spi.AppResourceDescriptor;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class ApplicationService
 {
-    public static final ApplicationService INSTANCE = new ApplicationService();
+    /**
+     * Singleton
+     */
+	public static final ApplicationService INSTANCE = new ApplicationService();
 
     /** All applications by name */
     private final Map<String, AppDescriptor> apps = new HashMap<>();
@@ -120,10 +122,11 @@ public class ApplicationService
             return Collections.emptyList();
     }
 
-    /** Find application by name
-     *
-     *  @param name Application name
-     *  @return {@link AppDescriptor} or <code>null</code> if not found
+    /**
+     * Find application by name
+     * @param <AD> application descriptor Type
+     * @param name Application name
+     * @return {@link AppDescriptor} or <code>null</code> if not found
      */
     @SuppressWarnings("unchecked")
     public static <AD extends AppDescriptor> AD findApplication(final String name)
@@ -131,10 +134,11 @@ public class ApplicationService
         return (AD) INSTANCE.apps.get(name);
     }
 
-    /** Create instance of an application
-     *
-     *  @param name Application name
-     *  @return {@link AppInstance} or <code>null</code> if not found
+    /**
+     * Create instance of an application
+     * @param <AI> application instance Type
+     * @param name Application name
+     * @return {@link AppInstance} or <code>null</code> if not found
      */
     @SuppressWarnings("unchecked")
     public static <AI extends AppInstance> AI createInstance(final String name)
@@ -148,8 +152,9 @@ public class ApplicationService
         return (AI) app.create();
     }
 
-    /** Create instance of an application that handles a resource
-     *
+    /**
+     * Create instance of an application that handles a resource
+     * @param <AI> application instance Type
      *  @param name Application name
      *  @param resource Resource to open in the application
      *  @return {@link AppInstance} or <code>null</code> if not found

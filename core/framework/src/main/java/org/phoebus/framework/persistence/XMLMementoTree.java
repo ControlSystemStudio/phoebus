@@ -30,7 +30,6 @@ import org.w3c.dom.Node;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class XMLMementoTree implements MementoTree
 {
     // Basic implementation, using the attributes of elements for the data,
@@ -57,8 +56,11 @@ public class XMLMementoTree implements MementoTree
         return new XMLMementoTree(document, root);
     }
 
-    /** @param in Stream to which memento is written
-     *  @throws Exception on error
+    /**
+     * read InputStrem
+     * @param in Stream to which memento is written
+     * @return XMLMementoTree
+     * @throws Exception on error
      */
     public static XMLMementoTree read(final InputStream in) throws Exception
     {

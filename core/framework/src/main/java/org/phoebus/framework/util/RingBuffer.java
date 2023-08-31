@@ -159,7 +159,12 @@ public class RingBuffer<T>
         return result;
     }
 
-    /** @return Array with content of ring buffer */
+  
+    /**
+     * convert to array 
+     * @param array ring butter
+     * @return Array with content of ring buffer
+     */
     public T[] toArray(T[] array)
     {
         if (array.length != size)
