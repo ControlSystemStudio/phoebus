@@ -359,7 +359,7 @@ public interface LogClient {
 
 
     /**
-     * Delete the tag with name <code>tag</code
+     * Delete the tag with name <code>tag</code>
      *
      * @param tagName - the name of the tag to be deleted
      */
@@ -474,7 +474,7 @@ public interface LogClient {
     }
 
     /**
-     * Remove file attachment from LogEntry <code>logId<code>
+     * Remove file attachment from LogEntry <code>logId</code>
      *
      * @param fileName - the file name to be removed
      * @param logId    - the logid from which the attached file is to be removed
