@@ -63,29 +63,18 @@ Impossible to run Phoebus under linux
 **procedure**
 
 | Change the jdk and javafx folders rights :
-| chmod -R 755 Phoebus_install
+| *chmod -R 755 Phoebus_install*
 
 
-FileBrowser and Olog Calendar views do not open
------------------------------------------------
+Choose OS target when building Phoebus
+--------------------------------------
 **symptoms**
 
-FileBrowser and Olog Calendar views do not open and you get the following stacktrace :
-
-.. code-block:: java
-
-  Caused by: java.lang.NoClassDefFoundError: Could not initialize class org.phoebus.applications.alarm.logging.ui.actions.ContextMenuNodeAlarmHistory
-    at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
-    at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:78)
-    at java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
-    at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
-    at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:480)
-    at java.base/java.util.ServiceLoader$ProviderImpl.newInstance(ServiceLoader.java:780)
+| Phoebus is built on an OS (Linux for instance) but will run on another one (Windows for instance)
 
 **procedure**
 
-| A wrong version of Javafx libraries is used.
-| Download a correct version of `Javafx <https://gluonhq.com/products/javafx/>`_
+| It is possible to do a cross-build by specifying -Djavafx.platform=<os> on the Maven command line, where os is linux, win or mac.
 
 
 Cannot modify Phoebus layout anymore
