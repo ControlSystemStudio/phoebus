@@ -111,7 +111,6 @@ public class DockStage
      *
      *  @param stage Stage, should be empty
      *  @param tabs Zero or more initial {@link DockItem}s
-     *  @throws Exception on error
      *
      *  @return {@link DockPane} that was added to the {@link Stage}
      */
@@ -125,9 +124,8 @@ public class DockStage
      *  <p>Adds a Scene with a BorderPane layout and a DockPane in the center
      *
      *  @param stage Stage, should be empty
-     *  @param geometry_spec A geometry specification "{width}x{height}+{x}+{y}", see {@link Geometry}
+     *  @param geometry A geometry specification "{width}x{height}+{x}+{y}", see {@link Geometry}
      *  @param tabs Zero or more initial {@link DockItem}s
-     *  @throws Exception on error
      *
      *  @return {@link DockPane} that was added to the {@link Stage}
      */

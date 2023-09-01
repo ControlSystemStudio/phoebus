@@ -1006,10 +1006,9 @@ public class StringTable extends BorderPane
         }
     }
 
-    /** Get background color for a specific cell
+    /** set background color for a specific cell
      *  @param row Table row
      *  @param col Table column
-     *  @return Color of that cell, <code>null</code> for default
      */
     public void setCellColor(final int row, final int col, final Color color)
     {

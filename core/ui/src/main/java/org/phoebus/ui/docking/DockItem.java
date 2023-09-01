@@ -734,10 +734,8 @@ public class DockItem extends Tab
 
     /** Programmatically close this tab
      *
-     *  <p>Should be called after {@link #prepareToClose) has been used
-     *  to allow "save".
+     *  Should be called after @see prepareToClose has been used to allow save.
      *
-     *  @return <code>true</code> if tab closed, <code>false</code> if it remained open
      */
     public void close()
     {

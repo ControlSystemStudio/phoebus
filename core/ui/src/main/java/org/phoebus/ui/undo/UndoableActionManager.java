@@ -98,7 +98,7 @@ public class UndoableActionManager
     }
 
     /** Undo the last command
-     *  @returns Action that was un-done
+     *  @return Action that was un-done
      */
     public UndoableAction undoLast()
     {
@@ -122,7 +122,7 @@ public class UndoableActionManager
     }
 
     /** Re-do the last command
-     *  @returns Action that was re-done
+     *  @return Action that was re-done
      */
     public UndoableAction redoLast()
     {

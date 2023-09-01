@@ -62,6 +62,7 @@ public class MenuEntryService {
         }
     }
 
+    /** @return instance */
     public static synchronized MenuEntryService getInstance() {
         if (menuEntryService == null) {
             menuEntryService = new MenuEntryService();
@@ -87,17 +88,23 @@ public class MenuEntryService {
         return this.menuEntryTree;
     }
 
+    /** Class MenuTreeNode */
     public static class MenuTreeNode {
         private final String name;
         private List<MenuTreeNode> children;
         private List<MenuEntry> menuItems;
 
+        /**
+         * Constructor
+         * @param name of tree node
+         */
         public MenuTreeNode(String name) {
         	this.name = name;
             this.children = new ArrayList<>();
             this.menuItems = new ArrayList<>();
         }
 
+        /**add children @param children list of children nodes */
         public void addChildren(MenuTreeNode... children) {
             this.children.addAll(Arrays.asList(children));
         }
