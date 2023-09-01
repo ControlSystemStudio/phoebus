@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <display version="2.0.0">
-  <name>Data Browser Plot</name>
+  <name>Strip Chart Plot</name>
   <width>530</width>
   <height>609</height>
   <widget type="label" version="2.0.0">
