@@ -39,7 +39,7 @@ public class SeverityCache
     }
 
     /** Find or create a severity by name.
-     *  @param alarmSeverity Severity name
+     *  @param severity alarm Severity name
      *  @return Severity
      *  @throws Exception on error
      */

@@ -58,7 +58,7 @@ public class MetaDataHelper
     }
 
     /** @param labels {@link Enum} labels to compare
-     *  @param other {@link Enum} labels to compare
+     *  @param obj {@link Enum} labels to compare
      *  @return <code>true</code> if labels are equal
      */
     final public static boolean equals(final List<String> labels, final Object obj)
