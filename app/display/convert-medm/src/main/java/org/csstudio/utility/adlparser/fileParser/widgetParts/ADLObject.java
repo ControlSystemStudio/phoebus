@@ -56,7 +56,6 @@ public class ADLObject extends WidgetPart{
      * The default constructor.
      *
      * @param adlObject An ADLWidget that correspond a ADL Object.
-     * @param parentWidgetModel The Widget that set the parameter from ADLWidget.
      * @throws WrongADLFormatException Wrong ADL format or untreated parameter found.
      */
     public ADLObject(final ADLWidget adlObject) throws WrongADLFormatException {

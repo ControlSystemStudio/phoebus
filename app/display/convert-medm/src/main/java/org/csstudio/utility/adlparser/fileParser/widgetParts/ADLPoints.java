@@ -48,7 +48,6 @@ public class ADLPoints extends WidgetPart{
      * The default constructor.
      *
      * @param adlPoints An ADLWidget that correspond a ADL Points.
-     * @param parentWidgetModel The Widget that set the parameter from ADLWidget.
      * @throws WrongADLFormatException Wrong ADL format or untreated parameter found.
      */
     public ADLPoints (final ADLWidget adlPoints ) throws WrongADLFormatException {

@@ -84,10 +84,9 @@ public class RelatedDisplay2Model extends AbstractADL2Model<ActionButtonWidget> 
     }
 
     /**
+     * @param rdDisplay
      * @param target
-     * @param rdDisplays
-     * @param ii
-     * @return
+     * @return ActionInfo
      */
     public ActionInfo createOpenDisplayAction(final RelatedDisplayItem rdDisplay, Target target)
     {
