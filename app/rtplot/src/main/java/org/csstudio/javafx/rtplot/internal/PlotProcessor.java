@@ -237,7 +237,7 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
         });
     }
 
-    /** Round value range up/down to add a little room above & below the exact range.
+    /** Round value range {@literal up/down to add a little room above & below the exact range.}
      *  This results in "locking" to a nice looking range for a while
      *  until a new sample outside of the rounded range is added.
      *
@@ -386,7 +386,7 @@ public class PlotProcessor<XTYPE extends Comparable<XTYPE>>
         });
     }
 
-    /** @param plot Plot where annotation is added
+    /** 
      *  @param trace Trace to which a annotation should be added
      *  @param text Text for the annotation
      */

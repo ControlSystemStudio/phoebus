@@ -14,8 +14,8 @@ import java.time.Instant;
  *  @param <T> Data type, {@link Double} or {@link Instant}
  *
  *  @see LinearScreenTransform
- *  @see LogTransform
- *  @see TimeTransform
+ *  see LogTransform
+ *  see TimeTransform
  *
  *  @author Kay Kasemir
  */

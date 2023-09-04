@@ -22,7 +22,7 @@ public interface Axis<T extends Comparable<T>>
     /** @return Axis name */
     public String getName();
 
-    /** @return Axis name */
+    /** @param name of axis */
     public void setName(final String name);
 
     /** @return Color to use for this axis */
@@ -47,7 +47,7 @@ public interface Axis<T extends Comparable<T>>
     public boolean isGridVisible();
 
     /** @param visible Should grid be visible? */
-    public void setGridVisible(final boolean grid);
+    public void setGridVisible(final boolean visible);
 
     /** @return <code>true</code> if axis is visible */
     public boolean isVisible();

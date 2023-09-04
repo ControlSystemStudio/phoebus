@@ -15,10 +15,10 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 
 /** {@link PlotDataProvider} based on {@link List}
- *  @param <XTYPE> Data type used for the horizontal {@link Axis}
+ *  @param <XTYPE> Data type used for the horizontal @see Axis
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
+
 public class ArrayPlotDataProvider<XTYPE extends Comparable<XTYPE>> implements PlotDataProvider<XTYPE>
 {
     final private ReadWriteLock lock = new InstrumentedReadWriteLock();
