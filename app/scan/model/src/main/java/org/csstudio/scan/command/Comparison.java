@@ -33,10 +33,10 @@ public enum Comparison
     /** Value at or above desired value, '>=' */
     AT_LEAST(">="),
 
-    /** Value below desired value, '<' */
+    /** Value below desired value, {@literal '<'} */
     BELOW("<"),
 
-    /** Value at or below desired value, '<=' */
+    /** Value at or below desired value,  {@literal '<='} */
     AT_MOST("<="),
 
     /** Value has increased by some amount */

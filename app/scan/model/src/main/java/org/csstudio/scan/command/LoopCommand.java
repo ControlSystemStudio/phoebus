@@ -196,7 +196,7 @@ public class LoopCommand extends ScanCommandWithBody
         return completion;
     }
 
-    /** @param wait Wait for write completion? */
+    /** @param completion Wait for write completion ? */
     public void setCompletion(final Boolean completion)
     {
         this.completion = completion;
