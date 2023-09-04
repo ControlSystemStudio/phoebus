@@ -181,7 +181,7 @@ public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
     }
 
     /** Convert font to Java FX "-fx-font" shorthand form; e.g.
-     * [[ <font-style> || <font-weight> ]? <font-size> <font-family> ]
+     * {@literal [[ <font-style> || <font-weight> ]? <font-size> <font-family> ]}
      * per https://docs.oracle.com/javase/8/javafx/api/javafx/scene/doc-files/cssref.html#typefont
      *  @param prefix Typically "-fx-font"
      *  @param font {@link Font}
