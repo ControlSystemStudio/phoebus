@@ -13,8 +13,7 @@ import java.util.Map;
 /**
  * Property object that can be represented as XML/JSON in payload data.
  *
- * @author Kunal Shroff taken from Ralph Lange
- * <Ralph.Lange@helmholtz-berlin.de>
+ * @author Kunal Shroff taken from Ralph Lange  {@literal <Ralph.Lange@helmholtz-berlin.de>}
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OlogProperty implements Property {
