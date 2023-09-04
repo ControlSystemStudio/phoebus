@@ -33,7 +33,7 @@ import javafx.scene.control.TreeItem;
 public class DeleteAction extends MenuItem
 {
     /** @param node Node used to position confirmation dialog
-     *  @param item Item to delete
+     *  @param items Item to delete
      */
     public DeleteAction(final Node node, final List<TreeItem<FileInfo>> items)
     {
