@@ -59,7 +59,7 @@ public class SimulationContext
     /** Initialize
      *  @param jython {@link JythonSupport}
      *  @param log_stream Stream for simulation progress log
-     *  @throws Exception on error while initializing {@link SimulationInfo}
+     *  @throws Exception on error while initializing see SimulationInfo 
      */
     public SimulationContext(final JythonSupport jython, final PrintStream log_stream) throws Exception
     {

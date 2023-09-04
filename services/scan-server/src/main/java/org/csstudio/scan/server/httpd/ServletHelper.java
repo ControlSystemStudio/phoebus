@@ -76,7 +76,6 @@ public class ServletHelper
      *  @param writer {@link XMLStreamWriter}
      *  @param name Name of XML element
      *  @param number Number content
-     *  @return XML element
      */
     public static void write(final XMLStreamWriter writer, final String name, final long number) throws Exception
     {
@@ -84,10 +83,9 @@ public class ServletHelper
     }
 
     /** Create XML element for date, encoded as milliseconds since epoch
-     *  @param doc Parent document
+     *  @param writer Parent document
      *  @param name Name of XML element
      *  @param date Date content
-     *  @return XML element
      */
     public static void write(final XMLStreamWriter writer,final String name, final Instant date) throws Exception
     {
