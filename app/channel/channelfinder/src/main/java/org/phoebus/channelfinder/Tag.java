@@ -30,12 +30,12 @@ public class Tag {
 
 		/**
 		 * Returns a {@link Builder} to build a {@link Tag} which is a copy of
-		 * the given <tt>tag</tt>.
+		 * the given <code>tag</code>.
 		 * 
 		 * @param tag
 		 *            - the tag to be copied
 		 * @return tag {@link Builder} with attributes initialized to the same
-		 *         as <tt>tag</tt>
+		 *         as <code>tag</code>
 		 */
 		public static Builder tag(Tag tag) {
 			Builder builder = new Builder();
@@ -46,11 +46,11 @@ public class Tag {
 
 		/**
 		 * Returns a tag {@link Builder} to build a {@link Tag} with the name
-		 * <tt>name</tt>
+		 * <code>name</code>
 		 * 
 		 * @param name
 		 *            - tag name
-		 * @return tag {@link Builder} with name <tt>name</tt>
+		 * @return tag {@link Builder} with name <code>name</code>
 		 */
 		public static Builder tag(String name) {
 			Builder builder = new Builder();
@@ -60,14 +60,14 @@ public class Tag {
 
 		/**
 		 * Returns a tag {@link Builder} to build a {@link Tag} with the name
-		 * <tt>name</tt> and owner <tt>owner</tt>
+		 * <code>name</code> and owner <code>owner</code>
 		 * 
 		 * @param name
 		 *            - the tag name
 		 * @param owner
 		 *            - the tag owner id
-		 * @return A {@link Builder} with name set to <tt>name</tt> and owner id
-		 *         set to <tt>owner</tt>
+		 * @return A {@link Builder} with name set to <code>name</code> and owner id
+		 *         set to <code>owner</code>
 		 */
 		public static Builder tag(String name, String owner) {
 			Builder builder = new Builder();
@@ -80,7 +80,7 @@ public class Tag {
 		 * Set the owner for the tag to be built.
 		 * 
 		 * @param owner - owner id
-		 * @return tag {@link Builder} with owner set to <tt>owner</tt>
+		 * @return tag {@link Builder} with owner set to <code>owner</code>
 		 */
 		public Builder owner(String owner) {
 			this.owner = owner;

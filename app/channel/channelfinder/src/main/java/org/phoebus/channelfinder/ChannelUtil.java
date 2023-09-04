@@ -117,7 +117,7 @@ public class ChannelUtil {
     /**
      * Given a Collection of channels returns a new collection of channels
      * containing only those channels which have all the properties in the
-     * <tt>propNames</tt>
+     * <code>propNames</code>
      * 
      * @param channels
      *            - the input list of channels
@@ -139,7 +139,7 @@ public class ChannelUtil {
     /**
      * Given a Collection of channels returns a new collection of channels
      * containing only those channels which have all the tags in the
-     * <tt>tagNames</tt>
+     * <code>tagNames</code>
      * 
      * @param channels
      *            - the input list of channels
@@ -161,7 +161,7 @@ public class ChannelUtil {
     /**
      * Given a Collection of channels returns a new collection of channels
      * containing only those channels which have all the tags in the
-     * <tt>tagNames</tt>
+     * <code>tagNames</code>
      * 
      * @param channels
      *            - the input list of channels

@@ -52,7 +52,6 @@ public class ChannelTreeByPropertyNode {
      * @param model
      * @param parentNode
      * @param displayName
-     * @param connect
      */
     public ChannelTreeByPropertyNode(ChannelTreeByPropertyModel model, ChannelTreeByPropertyNode parentNode, String displayName) {
         this.model = model;
