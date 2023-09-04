@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
 /**
  * {@link TagUtil} class provides rich information header of {@link Tag} as {@link Node}
  *
- * @author Genie Jhang <changj@frib.msu.edu>
+ * @author Genie Jhang {@literal <changj@frib.msu.edu>}
  */
 
 public class TagUtil {
