@@ -29,7 +29,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * {@link ProposalProvider} offering proposals based on existing save & restore tag names.
+ * {@link ProposalProvider} offering proposals based on existing save and restore tag names.
  */
 public class TagProposalProvider implements ProposalProvider {
 
