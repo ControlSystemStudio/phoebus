@@ -50,8 +50,8 @@ public class LogEntryTableApp implements AppResourceDescriptor {
 
     /**
      * Support the launching of log entry table view using resource
-     * logbook://?<search_string> e.g. -resource
-     * logbook://?search=*Fault*Motor*&tag=operation
+     * {@literal logbook://?<search_string> e.g. -resource}
+     * {@literal logbook://?search=*Fault*Motor*&tag=operation}
      */
     @Override
     public AppInstance create(URI resource) {
