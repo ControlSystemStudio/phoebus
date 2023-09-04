@@ -14,7 +14,7 @@ import javax.xml.bind.annotation.XmlElement;
 /**
  * Properties (collection) object that can be represented as XML/JSON in payload data.
  *
- * @author Eric Beryman taken from Ralph Lange <Ralph.Lange@helmholtz-berlin.de>
+ * @author Eric Beryman taken from Ralph Lange {@literal <Ralph.Lange@helmholtz-berlin.de>}
  */
 
 @XmlRootElement(name = "properties")
@@ -26,7 +26,7 @@ public class XmlProperties {
     }
 
     /** Creates a new instance of XmlProperties with one initial property.
-     * @param c initial element
+     * @param p initial element
      */
     public XmlProperties(XmlProperty p) {
         properties.add(p);

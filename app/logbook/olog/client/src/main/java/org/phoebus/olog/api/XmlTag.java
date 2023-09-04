@@ -16,7 +16,7 @@ import org.phoebus.logbook.Tag;
 /**
  * Tag object that can be represented as XML/JSON in payload data.
  *
- * @author Eric Berryman taken from Ralph Lange <Ralph.Lange@bessy.de>
+ * @author Eric Berryman taken from {@literal <Ralph Lange <Ralph.Lange@bessy.de>}
  */
 @XmlType(propOrder = {"name","state","xmlLogs"})
 @XmlRootElement(name = "tag")
