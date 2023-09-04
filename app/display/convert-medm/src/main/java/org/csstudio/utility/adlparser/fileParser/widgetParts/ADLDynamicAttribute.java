@@ -36,7 +36,7 @@ import org.csstudio.utility.adlparser.internationalization.Messages;
  * @version $Revision$
  * @since 11.09.2007
  */
-@SuppressWarnings("nls")
+
 public class ADLDynamicAttribute extends WidgetPart{
     //TODO Strip out old code lines that refer to SDS implementations
 
@@ -74,7 +74,6 @@ public class ADLDynamicAttribute extends WidgetPart{
      * The default constructor.
      *
      * @param adlDynamicAttribute An ADLWidget that correspond a ADL Dynamic Attribute.
-     * @param parentWidgetModel The Widget that set the parameter from ADLWidget.
      * @throws WrongADLFormatException Wrong ADL format or untreated parameter found.
      */
     public ADLDynamicAttribute(final ADLWidget adlDynamicAttribute) throws WrongADLFormatException {
