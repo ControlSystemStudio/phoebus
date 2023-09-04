@@ -320,7 +320,7 @@ abstract public class Update
 
     /** Perform update
      *
-     *  <p>Get & unpack the update file into the current installation.
+     *  Get and unpack the update file into the current installation.
      *
      *  @param monitor {@link JobMonitor}
      *  @param install_location Existing {@link Locations#install()}
