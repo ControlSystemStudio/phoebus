@@ -131,7 +131,7 @@ public class KafkaHelper
      * @param kafka_servers - Sever to connect to.
      * @param topics List of topics to aggregate.
      * @param aggregate_topic - Name of topic to aggregate to.
-     * @param kafka_props File name to load additional settings for the kafka stream
+     * @param properties_file File name to load additional settings for the kafka stream
      * @return aggregate_stream - KafkaStreams
      * @author Evan Smith
      */
