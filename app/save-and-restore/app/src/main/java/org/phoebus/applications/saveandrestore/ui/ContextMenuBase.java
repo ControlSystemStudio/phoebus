@@ -18,18 +18,12 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
-import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.ContextMenuEvent;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.ui.javafx.ImageCache;
@@ -41,71 +35,72 @@ public abstract class ContextMenuBase extends ContextMenu {
     protected MenuItem deleteNodesMenuItem;
     protected MenuItem copyUniqueIdToClipboardMenuItem;
 
-    protected TreeView<Node> treeView;
-
-    protected SimpleBooleanProperty multipleSelection = new SimpleBooleanProperty();
+    protected SimpleBooleanProperty multipleNodesSelectedProperty = new SimpleBooleanProperty();
 
     protected SaveAndRestoreController saveAndRestoreController;
 
-    public ContextMenuBase(SaveAndRestoreController saveAndRestoreController, TreeView<Node> treeView) {
-        this.treeView = treeView;
+    /**
+     * Property showing if user has signed in or not. Context menus should in <code>onShowing</code>
+     * check the sign-in status and set the property accordingly to determine which
+     * menu items to disable (e.g. create or delete data).
+     */
+    protected SimpleBooleanProperty userIsAuthenticatedProperty =
+            new SimpleBooleanProperty();
+
+    /**
+     * Property showing if selected {@link Node}s have the same parent {@link Node}. Context menus should
+     * in <code>onShowing</code> check the selection and determine which menu items to disable.
+     */
+    protected SimpleBooleanProperty hasSameParentProperty =
+            new SimpleBooleanProperty();
+
+    /**
+     * Property updated based on check of multiple {@link Node} selection,
+     * e.g. selection of different type of {@link Node}s. Context menus should
+     * in <code>onShowing</code> check the selection and determine which menu items to disable.
+     */
+    protected SimpleBooleanProperty nodesOfSameTypeProperty =
+            new SimpleBooleanProperty();
+
+    protected SimpleBooleanProperty mayPasteProperty =
+            new SimpleBooleanProperty();
+
+    protected SimpleBooleanProperty mayCopyProperty =
+            new SimpleBooleanProperty();
+
+    public ContextMenuBase(SaveAndRestoreController saveAndRestoreController) {
         this.saveAndRestoreController = saveAndRestoreController;
         deleteNodesMenuItem = new MenuItem(Messages.contextMenuDelete, new ImageView(ImageRepository.DELETE));
         deleteNodesMenuItem.setOnAction(ae -> saveAndRestoreController.deleteNodes());
+        deleteNodesMenuItem.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                        userIsAuthenticatedProperty.not().get() ||
+                                hasSameParentProperty.not().get(),
+                userIsAuthenticatedProperty, hasSameParentProperty));
 
         copyUniqueIdToClipboardMenuItem = new MenuItem(Messages.copyUniqueIdToClipboard, ImageCache.getImageView(ImageCache.class, "/icons/copy.png"));
         copyUniqueIdToClipboardMenuItem.setOnAction(ae -> saveAndRestoreController.copyUniqueNodeIdToClipboard());
-        copyUniqueIdToClipboardMenuItem.disableProperty().bind(multipleSelection);
-
-        treeView.getSelectionModel().getSelectedItems()
-                .addListener((ListChangeListener<TreeItem<Node>>) c ->
-                        multipleSelection.set(treeView.getSelectionModel().getSelectedItems().size() > 1));
+        copyUniqueIdToClipboardMenuItem.disableProperty().bind(multipleNodesSelectedProperty);
 
         setOnShowing(event -> {
-            if(!saveAndRestoreController.checkMultipleSelection()){
-                Platform.runLater(() -> hide());
-            }
-            else{
-                runChecks();
-            }
+            runChecks();
         });
     }
 
 
     /**
-     * Applies logic to determine which context menu items to disable as some actions (e.g. rename) do not
-     * make sense if multiple items are selected. Special case is if nodes in different parent nodes
-     * are selected, in this case none of the menu items make sense, to the context menu is suppressed.
+     * Applies logic to determine if the user is authenticated and if multiple {@link Node}s have been selected.
+     * Subclasses use this to disable menu items if needed, e.g. disable delete if user has not signed in.
      */
     protected void runChecks() {
-        ObservableList<TreeItem<Node>> selected =
-                treeView.getSelectionModel().getSelectedItems();
-        if (multipleSelection.get() && !hasSameParent(selected)) {
-            deleteNodesMenuItem.disableProperty().set(true);
+        userIsAuthenticatedProperty.set(saveAndRestoreController.isUserAuthenticated());
+        boolean multipleNodesSelected = saveAndRestoreController.multipleNodesSelected();
+        multipleNodesSelectedProperty.set(multipleNodesSelected);
+        if (multipleNodesSelected) { // No need to check this if only one node was selected
+            hasSameParentProperty.set(saveAndRestoreController.hasSameParent());
+            nodesOfSameTypeProperty.set(saveAndRestoreController.selectedNodesOfSameType());
         } else {
-            deleteNodesMenuItem.disableProperty().set(false);
+            hasSameParentProperty.set(true);
+            nodesOfSameTypeProperty.set(true);
         }
-    }
-
-    /**
-     * Used to determine if nodes selected in the tree view have the same parent node. Most menu items
-     * do not make sense unless the selected nodes have same the parent node.
-     *
-     * @param selectedItems The selected tree nodes.
-     * @return <code>true</code> if all selected nodes have the same parent node, <code>false</code> otherwise.
-     */
-    protected boolean hasSameParent(ObservableList<TreeItem<Node>> selectedItems) {
-        if (selectedItems.size() == 1) {
-            return true;
-        }
-        Node parentNodeOfFirst = selectedItems.get(0).getParent().getValue();
-        for (int i = 1; i < selectedItems.size(); i++) {
-            TreeItem<Node> treeItem = selectedItems.get(i);
-            if (!treeItem.getParent().getValue().getUniqueId().equals(parentNodeOfFirst.getUniqueId())) {
-                System.out.println(parentNodeOfFirst.getUniqueId() + " " + treeItem.getParent().getValue().getUniqueId());
-                return false;
-            }
-        }
-        return true;
     }
 }

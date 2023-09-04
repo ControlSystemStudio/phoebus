@@ -86,7 +86,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
         });
 
         setOnDragDetected(event -> {
-            if (!saveAndRestoreController.checkMultipleSelection()) {
+            if (!saveAndRestoreController.selectedNodesOfSameType()) {
                 return;
             }
             final ClipboardContent content = new ClipboardContent();

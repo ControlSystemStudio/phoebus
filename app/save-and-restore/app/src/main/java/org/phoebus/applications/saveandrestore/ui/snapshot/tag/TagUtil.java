@@ -188,8 +188,9 @@ public class TagUtil {
      *
      * @param selectedNodes List of {@link org.phoebus.applications.saveandrestore.model.Node}s selected by user.
      * @param menuItem      The {@link javafx.scene.control.MenuItem} subject to configuration.
+     * @return <code>false</code> if the menu item should be disabled.
      */
-    public static void configureGoldenItem(List<org.phoebus.applications.saveandrestore.model.Node> selectedNodes, MenuItem menuItem) {
+    public static boolean configureGoldenItem(List<org.phoebus.applications.saveandrestore.model.Node> selectedNodes, MenuItem menuItem) {
         AtomicInteger goldenTagCount = new AtomicInteger(0);
         AtomicInteger nonSnapshotCount = new AtomicInteger(0);
         selectedNodes.forEach(node -> {
@@ -200,11 +201,9 @@ public class TagUtil {
             }
         });
         if (nonSnapshotCount.get() > 0) {
-            menuItem.disableProperty().set(true);
-            return;
+            return false;
         }
         if (goldenTagCount.get() == selectedNodes.size()) {
-            menuItem.disableProperty().set(false);
             menuItem.setText(Messages.contextMenuRemoveGoldenTag);
             menuItem.setGraphic(new ImageView(ImageRepository.SNAPSHOT));
             menuItem.setOnAction(event -> {
@@ -217,8 +216,8 @@ public class TagUtil {
                     Logger.getLogger(TagUtil.class.getName()).log(Level.SEVERE, "Failed to delete tag");
                 }
             });
+            return true;
         } else if (goldenTagCount.get() == 0) {
-            menuItem.disableProperty().set(false);
             menuItem.setText(Messages.contextMenuTagAsGolden);
             menuItem.setGraphic(new ImageView(ImageRepository.GOLDEN_SNAPSHOT));
             menuItem.setOnAction(event -> {
@@ -231,8 +230,9 @@ public class TagUtil {
                     Logger.getLogger(TagUtil.class.getName()).log(Level.SEVERE, "Failed to add tag");
                 }
             });
+            return true;
         } else {
-            menuItem.disableProperty().set(true);
+            return false;
         }
     }
 }

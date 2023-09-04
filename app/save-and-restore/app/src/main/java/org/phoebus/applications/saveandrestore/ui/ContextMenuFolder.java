@@ -18,35 +18,40 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
+import javafx.application.Platform;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.ui.javafx.ImageCache;
 
+/**
+ * Context menu for {@link Node}s of type {@link org.phoebus.applications.saveandrestore.model.NodeType#FOLDER}.
+ * All item actions require user to be authenticated, and if that is not the case,
+ * the context menu is hidden rather than showing a list of disabled context menu items.
+ */
 public class ContextMenuFolder extends ContextMenuBase {
 
-    public ContextMenuFolder(SaveAndRestoreController saveAndRestoreController, TreeView<Node> treeView) {
-        super(saveAndRestoreController, treeView);
+    public ContextMenuFolder(SaveAndRestoreController saveAndRestoreController) {
+        super(saveAndRestoreController);
 
         Image renameIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/rename_col.png");
 
         MenuItem renameNodeMenuItem = new MenuItem(Messages.contextMenuRename, new ImageView(renameIcon));
         renameNodeMenuItem.setOnAction(ae -> saveAndRestoreController.renameNode());
-        renameNodeMenuItem.disableProperty().bind(multipleSelection);
+        renameNodeMenuItem.disableProperty().bind(multipleNodesSelectedProperty);
 
         MenuItem newFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(ImageRepository.FOLDER));
-        newFolderMenuItem.disableProperty().bind(multipleSelection);
+        newFolderMenuItem.disableProperty().bind(multipleNodesSelectedProperty);
         newFolderMenuItem.setOnAction(ae -> saveAndRestoreController.createNewFolder());
 
         MenuItem newConfigurationMenuItem = new MenuItem(Messages.contextMenuNewConfiguration, new ImageView(ImageRepository.CONFIGURATION));
-        newConfigurationMenuItem.disableProperty().bind(multipleSelection);
+        newConfigurationMenuItem.disableProperty().bind(multipleNodesSelectedProperty);
         newConfigurationMenuItem.setOnAction(ae -> saveAndRestoreController.createNewConfiguration());
 
         MenuItem newCompositeSnapshotMenuItem = new MenuItem(Messages.contextMenuNewCompositeSnapshot, new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
-        newCompositeSnapshotMenuItem.disableProperty().bind(multipleSelection);
+        newCompositeSnapshotMenuItem.disableProperty().bind(multipleNodesSelectedProperty);
         newCompositeSnapshotMenuItem.setOnAction(ae -> saveAndRestoreController.createNewCompositeSnapshot());
 
         ImageView importConfigurationIconImageView = new ImageView(csvImportIcon);
@@ -54,16 +59,13 @@ public class ContextMenuFolder extends ContextMenuBase {
         importConfigurationIconImageView.setFitHeight(18);
 
         MenuItem importConfigurationMenuItem = new MenuItem(Messages.importConfigurationLabel, importConfigurationIconImageView);
-        importConfigurationMenuItem.disableProperty().bind(multipleSelection);
+        importConfigurationMenuItem.disableProperty().bind(multipleNodesSelectedProperty);
         importConfigurationMenuItem.setOnAction(ae -> saveAndRestoreController.importConfiguration());
 
         Image pasteIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/paste.png");
         MenuItem pasteMenuItem = new MenuItem(Messages.paste, new ImageView(pasteIcon));
         pasteMenuItem.setOnAction(ae -> saveAndRestoreController.pasteFromClipboard());
-
-        setOnShowing(event -> {
-            pasteMenuItem.setDisable(!saveAndRestoreController.mayPaste());
-        });
+        pasteMenuItem.disableProperty().bind(mayPasteProperty.not());
 
         getItems().addAll(newFolderMenuItem,
                 renameNodeMenuItem,
@@ -73,5 +75,18 @@ public class ContextMenuFolder extends ContextMenuBase {
                 newCompositeSnapshotMenuItem,
                 copyUniqueIdToClipboardMenuItem,
                 importConfigurationMenuItem);
+
+    }
+
+    @Override
+    protected void runChecks() {
+        super.runChecks();
+        // If user is not authenticated then all menu items are non-functional,
+        // disable menu completely instead of showing list of disabled menu items.
+        if (userIsAuthenticatedProperty.not().get()) {
+            Platform.runLater(this::hide);
+        } else {
+            mayPasteProperty.set(saveAndRestoreController.mayPaste());
+        }
     }
 }
