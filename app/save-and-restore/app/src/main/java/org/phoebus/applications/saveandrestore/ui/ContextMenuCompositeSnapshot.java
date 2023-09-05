@@ -29,6 +29,10 @@ import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
 import org.phoebus.ui.javafx.ImageCache;
 
+/**
+ * Context menu for {@link org.phoebus.applications.saveandrestore.model.Node}s of type
+ * {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}.
+ */
 public class ContextMenuCompositeSnapshot extends ContextMenuBase {
 
     public ContextMenuCompositeSnapshot(SaveAndRestoreController saveAndRestoreController) {
@@ -73,6 +77,12 @@ public class ContextMenuCompositeSnapshot extends ContextMenuBase {
                 tagWithComment);
     }
 
+    /**
+     * Execute common checks (see {@link ContextMenuBase#runChecks()}) and:
+     * <ul>
+     *     <li>If copy operation is possible on selected {@link org.phoebus.applications.saveandrestore.model.Node}s</li>
+     * </ul>
+     */
     @Override
     public void runChecks() {
         super.runChecks();

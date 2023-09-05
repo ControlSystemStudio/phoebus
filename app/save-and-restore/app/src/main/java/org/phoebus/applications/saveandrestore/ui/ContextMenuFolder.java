@@ -78,6 +78,10 @@ public class ContextMenuFolder extends ContextMenuBase {
 
     }
 
+    /**
+     * Execute common checks (see {@link ContextMenuBase#runChecks()}) and hides the menu
+     * if user is not authenticated.
+     */
     @Override
     protected void runChecks() {
         super.runChecks();

@@ -134,6 +134,7 @@ public class SnapshotController {
     @SuppressWarnings("unused")
     public void takeSnapshot() {
         disabledUi.set(true);
+        snapshotTab.setText(Messages.unnamedSnapshot);
         snapshotTableViewController.takeSnapshot(snapshot -> {
             disabledUi.set(false);
             snapshotProperty.set(snapshot);

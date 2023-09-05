@@ -20,14 +20,16 @@ package org.phoebus.applications.saveandrestore.ui;
 
 import javafx.beans.binding.Bindings;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
-import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.ui.javafx.ImageCache;
 
-public class ContextMenuConfiguration extends ContextMenuBase{
+/**
+ * Context menu for {@link org.phoebus.applications.saveandrestore.model.Node}s of type
+ * {@link org.phoebus.applications.saveandrestore.model.NodeType#CONFIGURATION}.
+ */
+public class ContextMenuConfiguration extends ContextMenuBase {
 
     public ContextMenuConfiguration(SaveAndRestoreController saveAndRestoreController) {
         super(saveAndRestoreController);
@@ -36,7 +38,7 @@ public class ContextMenuConfiguration extends ContextMenuBase{
 
         MenuItem openConfigurationMenuItem = new MenuItem(Messages.contextMenuCreateSnapshot, new ImageView(ImageRepository.CONFIGURATION));
         openConfigurationMenuItem.disableProperty().bind(Bindings.createBooleanBinding(() ->
-                multipleNodesSelectedProperty.get() || userIsAuthenticatedProperty.not().get(),
+                        multipleNodesSelectedProperty.get() || userIsAuthenticatedProperty.not().get(),
                 multipleNodesSelectedProperty, userIsAuthenticatedProperty));
         openConfigurationMenuItem.setOnAction(ae -> saveAndRestoreController.openConfigurationForSnapshot());
 
@@ -84,8 +86,15 @@ public class ContextMenuConfiguration extends ContextMenuBase{
                 importSnapshotMenuItem);
     }
 
+    /**
+     * Execute common checks (see {@link ContextMenuBase#runChecks()}) and:
+     * <ul>
+     *     <li>If copy operation is possible on selected {@link org.phoebus.applications.saveandrestore.model.Node}s</li>
+     *     <li>If paste operation is possible on selected {@link org.phoebus.applications.saveandrestore.model.Node}s</li>
+     * </ul>
+     */
     @Override
-    protected void runChecks(){
+    protected void runChecks() {
         super.runChecks();
         mayPasteProperty.set(saveAndRestoreController.mayPaste());
         mayCopyProperty.set(saveAndRestoreController.mayCopy());

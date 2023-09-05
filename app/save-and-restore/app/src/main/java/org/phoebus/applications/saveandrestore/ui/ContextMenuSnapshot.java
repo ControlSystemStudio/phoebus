@@ -28,27 +28,30 @@ import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
 import org.phoebus.ui.javafx.ImageCache;
 
+/**
+ * Context menu for {@link org.phoebus.applications.saveandrestore.model.Node}s of type
+ * {@link org.phoebus.applications.saveandrestore.model.NodeType#SNAPSHOT}.
+ */
 public class ContextMenuSnapshot extends ContextMenuBase {
 
     protected Image compareSnapshotIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/compare.png");
     protected Image csvExportIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_export.png");
 
-    private final MenuItem compareSnapshotsMenuItem;
 
-    private MenuItem tagGoldenMenuItem;
+    private final MenuItem tagGoldenMenuItem;
 
     private final Menu tagWithComment;
 
-    private SimpleBooleanProperty mayTagProperty = new SimpleBooleanProperty();
+    private final SimpleBooleanProperty mayTagProperty = new SimpleBooleanProperty();
 
-    private SimpleBooleanProperty mayCompareSnapshotsProperty = new SimpleBooleanProperty();
+    private final SimpleBooleanProperty mayCompareSnapshotsProperty = new SimpleBooleanProperty();
 
-    private SimpleBooleanProperty mayTagOrUntagGoldenProperty = new SimpleBooleanProperty();
+    private final SimpleBooleanProperty mayTagOrUntagGoldenProperty = new SimpleBooleanProperty();
 
     public ContextMenuSnapshot(SaveAndRestoreController saveAndRestoreController) {
         super(saveAndRestoreController);
 
-        compareSnapshotsMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, new ImageView(compareSnapshotIcon));
+        MenuItem compareSnapshotsMenuItem = new MenuItem(Messages.contextMenuCompareSnapshots, new ImageView(compareSnapshotIcon));
         compareSnapshotsMenuItem.setOnAction(ae -> saveAndRestoreController.compareSnapshot());
         compareSnapshotsMenuItem.disableProperty().bind(mayCompareSnapshotsProperty.not());
 
@@ -99,6 +102,14 @@ public class ContextMenuSnapshot extends ContextMenuBase {
     }
 
 
+    /**
+     * Execute common checks (see {@link ContextMenuBase#runChecks()}) and:
+     * <ul>
+     *     <li>If tagging is possible on selected {@link org.phoebus.applications.saveandrestore.model.Node}s</li>
+     *     <li>If comparing snapshots is possible</li>
+     *     <li>If setting/unsetting golden tag is possible</li>
+     * </ul>
+     */
     @Override
     protected void runChecks() {
         super.runChecks();

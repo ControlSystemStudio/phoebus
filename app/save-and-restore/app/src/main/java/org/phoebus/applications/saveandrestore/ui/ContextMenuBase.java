@@ -28,6 +28,9 @@ import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.ui.javafx.ImageCache;
 
+/**
+ * Abstract base class for context menus.
+ */
 public abstract class ContextMenuBase extends ContextMenu {
 
     protected Image csvImportIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_import.png");
@@ -81,9 +84,7 @@ public abstract class ContextMenuBase extends ContextMenu {
         copyUniqueIdToClipboardMenuItem.setOnAction(ae -> saveAndRestoreController.copyUniqueNodeIdToClipboard());
         copyUniqueIdToClipboardMenuItem.disableProperty().bind(multipleNodesSelectedProperty);
 
-        setOnShowing(event -> {
-            runChecks();
-        });
+        setOnShowing(event -> runChecks());
     }
 
 
