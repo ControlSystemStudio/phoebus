@@ -47,7 +47,6 @@ public class ADLBasicAttribute extends WidgetPart{
      * The default constructor.
      *
      * @param adlBasicAttribute An ADLWidget that correspond a ADL Basic Attribute.
-     * @param parentWidgetModel The Widget that set the parameter from ADLWidget.
      * @throws WrongADLFormatException Wrong ADL format or untreated parameter found.
      */
     public ADLBasicAttribute(final ADLWidget adlBasicAttribute) throws WrongADLFormatException {

@@ -21,7 +21,7 @@ import java.util.Arrays;
 /** Scan sample for numbers
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
+
 public class NumberScanSample extends ScanSample
 {
     final private Number[] values;
@@ -29,7 +29,7 @@ public class NumberScanSample extends ScanSample
     /** Initialize
      *  @param timestamp Time stamp
      *  @param serial Serial to identify when the sample was taken
-     *  @param number Number
+     *  @param values Number
      */
     public NumberScanSample(final Instant timestamp,
             final long serial, final Number... values)

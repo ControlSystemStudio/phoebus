@@ -16,16 +16,18 @@ public interface Node
 {
     /** Evaluate the node, i.e. compute its value.
      *  @return The value of the node.
-     *  @exception on error
+     *  Throws Exception on error
      */
     public VType eval();
 
     /** Check if this node has given node as a subnode
+     *  @param node , the test node
      *  @return <code>true</code> if given node was found under this one.
      */
     public boolean hasSubnode(Node node);
 
     /** Check if this node has a sub-node with the name
+     *  @param name, node name
      *  @return <code>true</code> if given node name was found under this one.
      */
     public boolean hasSubnode(String name);

@@ -27,7 +27,7 @@ public class PlotMarker<XTYPE extends Comparable<XTYPE>>
     private volatile XTYPE position;
 
     /** Not meant to be called by user,
-     *  call {@link RTPlot#addMarker()} to create a marker.
+     *  call {@link RTPlot #addMarker()} to create a marker.
      */
     public PlotMarker(final Color color,
                       final boolean interactive,

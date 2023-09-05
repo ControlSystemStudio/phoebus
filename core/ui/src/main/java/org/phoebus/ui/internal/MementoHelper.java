@@ -147,7 +147,7 @@ public class MementoHelper
     }
 
     /** Restore state of Stage from memento
-     *  @param memento
+     *  @param stage_memento
      *  @param stage
      *  @return <code>true</code> if any tab item was restored
      */

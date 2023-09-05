@@ -9,9 +9,10 @@ import java.util.List;
  */
 public interface Selection {
 
-    /**
-     * get the current list of selected objects
-     * @return
-     */
+	/**
+	 * get the current list of selected objects
+	 * @param <T> Object Type
+	 * @return selected objects
+	 */
     public <T> List<T> getSelections();
 }

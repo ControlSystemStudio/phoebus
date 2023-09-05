@@ -19,7 +19,7 @@ import org.phoebus.security.tokens.ScopedAuthenticationToken;
  * Handles reading/writing username, passsword, and token data. Internally delegates to
  * a Store implementation that handles storage of that data.
  */
-@SuppressWarnings("nls")
+
 public class SecureStore
 {
 
@@ -35,7 +35,7 @@ public class SecureStore
      * Default constructor, self-initializes underlying store based on
      * security preferences.
      *
-     * @see {@link org.phoebus.security.PhoebusSecurity}
+     * @see org.phoebus.security.PhoebusSecurity
      *
      * @throws Exception if underlying store isn't configured, configured incorrectly.
      * See javadocs for underlying implementations for details.

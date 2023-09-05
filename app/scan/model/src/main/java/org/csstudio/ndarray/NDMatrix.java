@@ -101,7 +101,7 @@ public class NDMatrix
      *  @param shape Desired shape
      *  @return Array view with new shape
      *  @throws IllegalArgumentException if new shape conflicts with existing size
-     *  @see #reshape(NDShape)
+     *  @see NDShape #reshape
      */
     public static NDArray reshape(final NDArray array, final int... shape)
     {
@@ -274,9 +274,6 @@ public class NDMatrix
     /** Perform matrix multiplication of arrays 1x1 arrays
      *  @param a 1-dim array
      *  @param b 1-dim array
-     *  @param len_a Length of a
-     *  @param len_b Length of b
-     *
      *  @return Result a * b in the matrix sense
      */
     public static NDArray inner(final NDArray a, final NDArray b)

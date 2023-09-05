@@ -16,10 +16,12 @@ import org.phoebus.framework.spi.PVProposalProvider;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class LocProposalProvider implements PVProposalProvider
 {
-    public static final LocProposalProvider INSTANCE = new LocProposalProvider();
+    /**
+     * Singleton
+     */
+	public static final LocProposalProvider INSTANCE = new LocProposalProvider();
 
     private static final List<Proposal> generic = List.of(new LocProposal("loc://name", "VType", "initial value..."));
 

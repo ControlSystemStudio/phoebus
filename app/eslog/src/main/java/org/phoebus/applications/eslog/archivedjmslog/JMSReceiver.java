@@ -66,10 +66,6 @@ public class JMSReceiver
      *            JMS user name or <code>null</code>
      * @param password
      *            JMS password or <code>null</code>
-     * @param topic_names
-     *            JMS topics, separated by comma
-     * @throws Exception
-     *             on error
      */
     public JMSReceiver(final String url, final String user,
             final String password)

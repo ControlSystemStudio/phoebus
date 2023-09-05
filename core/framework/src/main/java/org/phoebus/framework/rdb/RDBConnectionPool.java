@@ -33,7 +33,6 @@ import org.phoebus.framework.rdb.RDBInfo.Dialect;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class RDBConnectionPool
 {
     /** Logger for the package */
@@ -67,10 +66,10 @@ public class RDBConnectionPool
      *  <p>URL format depends on the database dialect.
      *
      *  <p>For MySQL resp. Oracle, the formats are:
-     *  <pre>
+     *  <pre>{@code 
      *     jdbc:mysql://[host]:[port]/[database]?user=[user]&password=[password]
      *     jdbc:oracle:thin:[user]/[password]@//[host]:[port]/[database]
-     *  </pre>
+     *  }</pre>
      *
      *  For Oracle, the port is usually 1521.
      *

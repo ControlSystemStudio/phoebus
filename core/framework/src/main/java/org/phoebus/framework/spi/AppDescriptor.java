@@ -51,6 +51,7 @@ public interface AppDescriptor {
 
     /**
      * Create an instance of the application without any specific resources
+     * @return created instance
      */
     public AppInstance create();
 

@@ -1,9 +1,14 @@
 package org.csstudio.apputil.formula.math;
 
-@SuppressWarnings("nls")
+/**
+ * Abs class see @Math abs function
+ */
 public class Abs extends OneArgMathFunction
 {
-    public Abs()
+    /**
+     * Constructor
+     */
+	public Abs()
     {
         super("abs", "Absolute value", Math::abs);
     }

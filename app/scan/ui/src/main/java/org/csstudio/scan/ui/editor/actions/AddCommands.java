@@ -36,7 +36,7 @@ public class AddCommands extends UndoableAction
 
 
     /** @param model Model
-     *  @param commands Commands at root of model, or within body of target
+     *  @param parent
      *  @param location Location where to insert
      *  @param new_commands New commands to insert
      *  @param after After the location, or before the location?

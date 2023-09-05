@@ -183,9 +183,9 @@ public class NDCompare
      *  @param other N-dim array
      *  @return Bool array
      */
-    public static NDArray equal_to(final NDArray a, final NDArray b)
+    public static NDArray equal_to(final NDArray array, final NDArray other)
     {
-        return binary_operation(a, b, op_eq);
+        return binary_operation(array, other, op_eq);
     }
 
 
@@ -194,9 +194,9 @@ public class NDCompare
      *  @param other N-dim array
      *  @return Bool array
      */
-    public static NDArray not_equal_to(final NDArray a, final NDArray b)
+    public static NDArray not_equal_to(final NDArray array, final NDArray other)
     {
-        return binary_operation(a, b, op_ne);
+        return binary_operation(array, other, op_ne);
     }
 
     /** Element-by-element comparison
@@ -204,9 +204,9 @@ public class NDCompare
      *  @param other N-dim array
      *  @return Bool array
      */
-    public static NDArray less_than(final NDArray a, final NDArray b)
+    public static NDArray less_than(final NDArray array, final NDArray other)
     {
-        return binary_operation(a, b, op_lt);
+        return binary_operation(array, other, op_lt);
     }
 
     /** Element-by-element comparison
@@ -214,9 +214,9 @@ public class NDCompare
      *  @param other N-dim array
      *  @return Bool array
      */
-    public static NDArray less_equal(final NDArray a, final NDArray b)
+    public static NDArray less_equal(final NDArray array, final NDArray other)
     {
-        return binary_operation(a, b, op_le);
+        return binary_operation(array,other, op_le);
     }
 
     /** Element-by-element comparison
@@ -224,9 +224,9 @@ public class NDCompare
      *  @param other N-dim array
      *  @return Bool array
      */
-    public static NDArray greater_than(final NDArray a, final NDArray b)
+    public static NDArray greater_than(final NDArray array, final NDArray other)
     {
-        return binary_operation(a, b, op_gt);
+        return binary_operation(array, other, op_gt);
     }
 
     /** Element-by-element comparison
@@ -234,8 +234,8 @@ public class NDCompare
      *  @param other N-dim array
      *  @return Bool array
      */
-    public static NDArray greater_equal(final NDArray a, final NDArray b)
+    public static NDArray greater_equal(final NDArray array, final NDArray other)
     {
-        return binary_operation(a, b, op_ge);
+        return binary_operation(array, other, op_ge);
     }
 }

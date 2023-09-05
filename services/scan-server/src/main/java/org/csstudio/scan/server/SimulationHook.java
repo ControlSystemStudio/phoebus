@@ -11,7 +11,7 @@ import org.csstudio.scan.command.ScanCommand;
 
 /** Hook for simulation customization
  *
- *  <p>The scan configuration file has a <code>&ltsimulation_hook></code>
+ *  <p>The scan configuration file has a <code>{@literal <simulation_hook>}</code>
  *  entry to provide the name of a Jython class that implements
  *  a custom simulation hook.
  *

@@ -14,7 +14,12 @@ import org.csstudio.apputil.formula.Node;
  */
 public class DivNode extends AbstractBinaryNode
 {
-    public DivNode(final Node left, final Node right)
+    /**
+     * Constructor
+     * @param left , left node
+     * @param right , right node
+     */
+	public DivNode(final Node left, final Node right)
     {
         super(left, right);
     }

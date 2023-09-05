@@ -16,10 +16,12 @@ import org.phoebus.framework.spi.PVProposalProvider;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class SysProposalProvider implements PVProposalProvider
 {
-    public static final SysProposalProvider INSTANCE = new SysProposalProvider();
+    /**
+     * Singleton
+     */
+	public static final SysProposalProvider INSTANCE = new SysProposalProvider();
 
     private static final List<Proposal> generic = List.of(
         new Proposal("sys://name"));

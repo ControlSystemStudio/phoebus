@@ -45,7 +45,6 @@ public class AlarmStateHistory
 
     /** Add alarm state to history
      *  @param state New state
-     *  @param timestamp Time stamp for that state
      */
     public void add(final AlarmState state)
     {

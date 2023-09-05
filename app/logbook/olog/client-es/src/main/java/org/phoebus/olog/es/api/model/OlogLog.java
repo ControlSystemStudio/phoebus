@@ -20,7 +20,7 @@ import java.util.Collection;
 /**
  * Log object that can be represented as XML/JSON in payload data.
  *
- * @author Kunal Shroff taken from Ralph Lange <Ralph.Lange@bessy.de>
+ * @author Kunal Shroff taken from Ralph Lange {@literal <Ralph.Lange@bessy.de>}
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OlogLog implements LogEntry {

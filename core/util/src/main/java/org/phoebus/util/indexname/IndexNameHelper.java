@@ -16,7 +16,6 @@ import java.util.List;
  * Helper class for calculating the index name for time based indices.
  * @author Evan Smith
  */
-@SuppressWarnings("nls")
 public class IndexNameHelper
 {
     private String baseIndexName;
@@ -66,9 +65,9 @@ public class IndexNameHelper
     }
 
     /**
-     * Return a time based index name for the given time. If the dateSpanValue is 0 then returns the base index name.
-     * @param time
-     * @return index_name
+     * Return a time based index name for the given time
+     * @param time given time
+     * @return index_name If the dateSpanValue is 0 then returns the base index name
      */
     public String getIndexName(Instant time)
     {
@@ -136,11 +135,13 @@ public class IndexNameHelper
         return fullDate.split(DELIMITER)[0];
     }
 
+    /** @return current date span start   */
     public Instant getCurrentDateSpanStart()
     {
         return spanStart;
     }
 
+    /** @return current date span end   */
     public Instant getCurrentDateSpanEnd()
     {
         return spanEnd;

@@ -10,10 +10,12 @@ package org.phoebus.framework.autocomplete;
 /** Description of a match between entered text and a {@link Proposal}
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class MatchSegment
 {
-    public static enum Type
+    /**
+     * Type enumeration
+     */
+	public static enum Type
     {
         /** Text from proposal which does not appear in entered text.
          *  If proposal is applied, this text will be used.

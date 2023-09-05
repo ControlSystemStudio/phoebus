@@ -14,7 +14,12 @@ import org.csstudio.apputil.formula.Node;
  */
 public class AndNode extends AbstractBinaryNode
 {
-    public AndNode(final Node left, final Node right)
+    /**
+     * Constructor
+     * @param left , left node
+     * @param right , right node
+     */
+	public AndNode(final Node left, final Node right)
     {
         super(left, right);
     }
@@ -25,7 +30,6 @@ public class AndNode extends AbstractBinaryNode
         return a != 0.0  &&  b != 0.0  ?  1.0 : 0.0;
     }
 
-    @SuppressWarnings("nls")
     @Override
     public String toString()
     {

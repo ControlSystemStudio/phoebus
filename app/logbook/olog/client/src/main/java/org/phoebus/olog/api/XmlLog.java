@@ -23,7 +23,7 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 /**
  * Log object that can be represented as XML/JSON in payload data.
  *
- * @author Eric Berryman taken from Ralph Lange <Ralph.Lange@bessy.de>
+ * @author Eric Berryman taken from Ralph Lange {@literal <Ralph.Lange@bessy.de>}
  */
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlRootElement(name = "log")
@@ -71,7 +71,6 @@ public class XmlLog {
     /**
      * Creates a new instance of XmlLog.
      *
-     * @param subject log subject
      * @param owner log owner
      */
     public XmlLog(/*String subject, */String owner) {

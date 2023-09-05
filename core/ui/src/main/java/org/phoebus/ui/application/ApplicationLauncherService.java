@@ -24,7 +24,7 @@ import javafx.stage.Stage;
  * The service allows you to directly launch an application if you have the
  * application name.
  *
- * It also queries the {@link ResourceHandlerService} and
+ * It also queries the @see ResourceHandlerService and
  * {@link ApplicationService} to provide the option to launch application from
  * their associated resources.
  *
@@ -73,12 +73,11 @@ public class ApplicationLauncherService {
     /**
      * Open file
      *
-     * @param stage
-     *            Parent stage
+     * @param file file
      * @param prompt
      *            Prompt for application (if there are multiple options), or use
      *            default app?
-     * @param stage
+     * @param stage Parent stage
      *            If prompt is enabled, a selection dialog will be launched
      *            positioned next to the provided stage. If null then the
      *            default or first application will be used

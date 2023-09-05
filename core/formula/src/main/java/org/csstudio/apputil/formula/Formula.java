@@ -48,8 +48,8 @@ import org.epics.vtype.VType;
  *       min(a, b, ...), max(a, b, ...).
  *  <li>*, /, ^
  *  <li>+, -
- *  <li>comparisons <, >, >=, <=, ==, !=
- *  <li>boolean logic !, &, |,  .. ? .. : ..
+ *  <li>comparisons {@literal <, >, >=, <=, ==, !=}
+ *  <li>boolean logic  {@literal !, &, |,  .. ? .. : ..}
  *  </ul>
  *
  *

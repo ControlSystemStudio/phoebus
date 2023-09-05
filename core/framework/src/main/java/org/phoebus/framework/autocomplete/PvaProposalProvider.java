@@ -16,10 +16,12 @@ import org.phoebus.framework.spi.PVProposalProvider;
 /** {@link ProposalProvider} for PVA
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class PvaProposalProvider implements PVProposalProvider
 {
-    public static final PvaProposalProvider INSTANCE = new PvaProposalProvider();
+    /**
+     * Singleton
+     */
+	public static final PvaProposalProvider INSTANCE = new PvaProposalProvider();
 
     private static final Pattern PLAIN_NAME = Pattern.compile("[a-zA-Z]\\w*");
 

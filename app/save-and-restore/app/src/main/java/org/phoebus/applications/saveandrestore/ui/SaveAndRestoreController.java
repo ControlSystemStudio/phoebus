@@ -105,7 +105,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
- * Main controller for the save & restore UI.
+ * Main controller for the save and restore UI.
  */
 public class SaveAndRestoreController implements Initializable, NodeChangedListener, NodeAddedListener, FilterChangeListener {
 
@@ -1166,7 +1166,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     /**
-     * Launches the save & restore app and highlights/loads the "resource" (configuration or snapshot) identified
+     * Launches the save and restore app and highlights/loads the "resource" (configuration or snapshot) identified
      * by the {@link URI}. If the configuration/snapshot in question cannot be found, an error dialog is shown.
      *
      * @param uri An {@link URI} on the form file:/unique-id?app=saveandrestore, where unique-id is the

@@ -423,7 +423,7 @@ public class ScanEditor extends SplitPane
 
     /** Change a command's property on the scan server, i.e. for a 'live' scan
      *  @param command Command to change
-     *  @param property_id Property to change
+     *  @param property Property to change
      *  @param value New value
      *  @throws Exception on error
      */

@@ -55,6 +55,8 @@ public interface AppResourceDescriptor extends AppDescriptor {
      * Create the application using the list of resources, the resource can be the
      * path or url to a configuration file like .bob or .plt or it can be a list of
      * pv names, or a channelfinder query
+     * @param resource uri of resource
+     * @return created instance
      */
     public AppInstance create(URI resource);
 

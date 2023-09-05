@@ -14,7 +14,7 @@ import javax.xml.bind.annotation.XmlElement;
 /**
  * Logbooks (collection) object that can be represented as XML/JSON in payload data.
  *
- * @author Eric Berryman taken from Ralph Lange <Ralph.Lange@bessy.de>
+ * @author Eric Berryman taken from Ralph Lange {@literal <Ralph.Lange@bessy.de>}
  */
 
 @XmlRootElement(name = "logbooks")

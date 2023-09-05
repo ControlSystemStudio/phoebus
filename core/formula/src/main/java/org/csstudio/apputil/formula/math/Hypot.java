@@ -1,9 +1,14 @@
 package org.csstudio.apputil.formula.math;
 
-@SuppressWarnings("nls")
+/**
+ * Hypot class see @Math hypot function
+ */
 public class Hypot extends TwoArgMathFunction
 {
-    public Hypot()
+	/**
+     * Constructor
+     */
+	public Hypot()
     {
         super("hypot", "Hypotenuse (x, y)", Math::hypot);
     }

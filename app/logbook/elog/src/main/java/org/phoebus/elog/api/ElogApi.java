@@ -233,7 +233,7 @@ public class ElogApi {
    * Searches the logbook and returns the message ids.
    *
    * @param search_term
-   * @param {@link ElogEntry}
+   * 
    */
   public List<ElogEntry> search( Map<String, String> search_term ) throws LogbookException {
 
@@ -332,7 +332,7 @@ public class ElogApi {
   /**
    * Get list of available types
    *
-   * @return Collection<String>
+   * @return {@literal Collection<String>}
    */
   public Collection<String> getTypes() throws LogbookException {
     Map<String, Object> cookies = new HashMap<>();
@@ -392,7 +392,7 @@ public class ElogApi {
   /**
    * Get list of available categories
    *
-   * @return Collection<String>
+   * @return {@literal Collection<String>}
    */
   public Collection<String> getCategories() throws LogbookException {
     Map<String, Object> cookies = new HashMap<>();

@@ -16,7 +16,6 @@ import org.phoebus.security.store.SecureStoreTarget;
 /** Phoebus security logger and Preference settings
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class PhoebusSecurity
 {
     /** Shared logger */
@@ -25,6 +24,7 @@ public class PhoebusSecurity
     /** Preference setting */
     @Preference public static String authorization_file;
 
+    /** Preference setting */
     @Preference public static SecureStoreTarget secure_store_target;
 
     static

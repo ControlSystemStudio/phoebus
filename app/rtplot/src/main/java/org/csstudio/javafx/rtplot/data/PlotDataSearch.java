@@ -64,7 +64,8 @@ public class PlotDataSearch<XTYPE extends Comparable<XTYPE>>
 
     /** Find the last sample that's smaller than the given value,
      *  i.e. the 'next' sample would be equal-or-greater than goal.
-     *  @param goal The time to look for.
+     *  @param data 
+     *  @param x
      *  @return Returns index of sample smaller than given goal, or -1.
      */
     public int findSampleLessThan(final PlotDataProvider<XTYPE> data, final XTYPE x)
@@ -105,7 +106,8 @@ public class PlotDataSearch<XTYPE extends Comparable<XTYPE>>
 
     /** Find the last sample that's greater than the given value,
      *  i.e. the 'previous' sample would be equal-or-less than goal.
-     *  @param goal The time to look for.
+     *  @param data 
+     *  @param x
      *  @return Returns index of sample greater than given goal, or -1.
      */
     final public int findSampleGreaterThan(final PlotDataProvider<XTYPE> data, final XTYPE x)

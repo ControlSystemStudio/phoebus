@@ -1,9 +1,14 @@
 package org.csstudio.apputil.formula.math;
 
-@SuppressWarnings("nls")
+/**
+ * SinH class see @Math sinh function
+ */
 public class SinH extends OneArgMathFunction
 {
-    public SinH()
+	/**
+     * Constructor
+     */
+	public SinH()
     {
         super("sinh", "Hyperbolic sine", Math::sinh);
     }
