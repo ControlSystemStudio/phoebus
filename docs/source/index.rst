@@ -38,6 +38,7 @@ Developer Documentation:
    preference_properties
    changelog
    docker
+   trouble_shooting
    eclipse_debugging
    gui_testing
 

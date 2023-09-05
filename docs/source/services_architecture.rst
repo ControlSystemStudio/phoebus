@@ -5,8 +5,8 @@ Architecture diagram
 --------------------
 .. figure:: services.png
 
-This architecture diagram shows the main services used by phoebus and their port.
-Port 808x means : 8080 is used by default. It must be changed if running on the same server as the other services.
+| This architecture diagram shows the main services used by phoebus and their port.
+| Port 808x means : 8080 is used by default. It must be changed if running on the same server as the other services.
 
 
 Settings configuration
