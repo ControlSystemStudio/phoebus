@@ -58,12 +58,12 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
     private final DirtyFlag dirty_tab_look = new DirtyFlag();
     private final DirtyFlag dirty_active_tab = new DirtyFlag();
     private class SelectedNavigationTabs extends MutablePair<Integer, HashMap<String, SelectedNavigationTabs>> {
-        public SelectedNavigationTabs() {
-            left = 0;
+        public SelectedNavigationTabs(int activeTab) {
+            left = activeTab;
             right = new HashMap<>();
         }
     };
-    protected SelectedNavigationTabs selectedNavigationTabs = new SelectedNavigationTabs();
+    protected SelectedNavigationTabs selectedNavigationTabs = new SelectedNavigationTabs(0);
     private final UntypedWidgetPropertyListener sizesChangedListener = this::sizesChanged;
     private final UntypedWidgetPropertyListener tabLookChangedListener = this::tabLookChanged;
     private final WidgetPropertyListener<Integer> activeTabChangedListener = this::activeTabChanged;
@@ -251,16 +251,17 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
                              NavigationTabsRepresentation nestedNavigationTabsRepresentation = (NavigationTabsRepresentation) nestedNavigationTabsWidget.getUserData(Widget.USER_DATA_REPRESENTATION);
                              SelectedNavigationTabs nestedNavigationTabsRepresentation_selectedNavigationTabs;
                              if (!selectedNavigationTabs.right.containsKey(nestedNavigationTabsWidget.getName())) {
-                                 nestedNavigationTabsRepresentation_selectedNavigationTabs = new SelectedNavigationTabs();
+                                 int activeTab = nestedNavigationTabsWidget.propTabs().size() > model_widget.propActiveTab().getValue() ? 0 : model_widget.propActiveTab().getValue();
+                                 nestedNavigationTabsRepresentation_selectedNavigationTabs = new SelectedNavigationTabs(activeTab);
                                  selectedNavigationTabs.right.put(nestedNavigationTabsWidget.getName(), nestedNavigationTabsRepresentation_selectedNavigationTabs);
                              }
                              else {
                                  nestedNavigationTabsRepresentation_selectedNavigationTabs = selectedNavigationTabs.right.get(nestedNavigationTabsWidget.getName());
+                                 if (nestedNavigationTabsWidget.propTabs().size() > nestedNavigationTabsRepresentation_selectedNavigationTabs.left) {
+                                     nestedNavigationTabsWidget.propActiveTab().setValue(nestedNavigationTabsRepresentation_selectedNavigationTabs.left);
+                                 }
                              }
                              nestedNavigationTabsRepresentation.selectedNavigationTabs = nestedNavigationTabsRepresentation_selectedNavigationTabs;
-                             if (nestedNavigationTabsWidget.propTabs().size() > nestedNavigationTabsRepresentation_selectedNavigationTabs.left) {
-                                 nestedNavigationTabsWidget.propActiveTab().setValue(nestedNavigationTabsRepresentation_selectedNavigationTabs.left);
-                             }
                         });
 
                 model_widget.runtimePropEmbeddedModel().setValue(new_model);
