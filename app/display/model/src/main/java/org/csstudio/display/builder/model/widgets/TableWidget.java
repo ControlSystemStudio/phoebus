@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -49,10 +49,9 @@ import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.epics.util.array.ListDouble;
 import org.epics.util.array.ListNumber;
-import org.epics.vtype.Array;
+import org.epics.vtype.VStringArray;
 import org.epics.vtype.VTable;
 import org.epics.vtype.VType;
-import org.epics.vtype.VStringArray;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 
@@ -508,6 +507,8 @@ public class TableWidget extends VisibleWidget
      */
     public void setValue(final Object data)
     {
+        // Changing the data invalidates cell colors
+        cell_colors.setValue(null);
         value.setValue(data);
     }
 
@@ -535,7 +536,7 @@ public class TableWidget extends VisibleWidget
             value.add(cells);
         }
         // Assert row with enough cells
-        List<String> cells = value.get(row);
+        final List<String> cells = value.get(row);
         while (column >= cells.size())
             cells.add("");
         cells.set(column, cell_text);
