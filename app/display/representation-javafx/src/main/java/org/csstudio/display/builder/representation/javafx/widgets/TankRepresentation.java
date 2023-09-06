@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -61,7 +61,7 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         model_widget.propLimitsFromPV().addUntypedPropertyListener(valueListener);
         model_widget.propMinimum().addUntypedPropertyListener(valueListener);
         model_widget.propMaximum().addUntypedPropertyListener(valueListener);
-	model_widget.propLogScale().addUntypedPropertyListener(valueListener);
+        model_widget.propLogScale().addUntypedPropertyListener(valueListener);
         model_widget.runtimePropValue().addUntypedPropertyListener(valueListener);
         model_widget.propHorizontal().addPropertyListener(orientationChangedListener);
         valueChanged(null, null, null);
@@ -82,7 +82,7 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         model_widget.propLimitsFromPV().removePropertyListener(valueListener);
         model_widget.propMinimum().removePropertyListener(valueListener);
         model_widget.propMaximum().removePropertyListener(valueListener);
-	model_widget.propLogScale().removePropertyListener(valueListener);
+        model_widget.propLogScale().removePropertyListener(valueListener);
         model_widget.runtimePropValue().removePropertyListener(valueListener);
         model_widget.propHorizontal().removePropertyListener(orientationChangedListener);
         super.unregisterListeners();
@@ -125,7 +125,8 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
 
     private void orientationChanged(final WidgetProperty<Boolean> prop, final Boolean old, final Boolean horizontal)
     {
-        if (toolkit.isEditMode()) {
+        if (toolkit.isEditMode())
+        {   // Swap width <-> height so widget basically rotates
             final int w = model_widget.propWidth().getValue();
             final int h = model_widget.propHeight().getValue();
             model_widget.propWidth().setValue(h);
@@ -133,6 +134,9 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         }
         lookChanged(prop, old, horizontal);
     }
+
+    /** Track if we ever set transformations because just 'clearing' would otherwise allocate them  */
+    private boolean was_transformed = false;
 
     @Override
     public void updateChanges()
@@ -142,23 +146,22 @@ public class TankRepresentation extends RegionBaseRepresentation<Pane, TankWidge
         {
             double width = model_widget.propWidth().getValue();
             double height = model_widget.propHeight().getValue();
-            boolean horizontal = model_widget.propHorizontal().getValue();
-            if (horizontal)
+            if (model_widget.propHorizontal().getValue())
             {
-                jfx_node.getTransforms().setAll(
-                        new Translate(width, 0),
-                        new Rotate(90, 0, 0));
-                jfx_node.setPrefSize(height, width);
+                tank.getTransforms().setAll(new Translate(width, 0),
+                                            new Rotate(90, 0, 0));
+                was_transformed = true;
                 tank.setWidth(height);
                 tank.setHeight(width);
             }
             else
             {
-                jfx_node.getTransforms().clear();
-                jfx_node.setPrefSize(width, height);
+                if (was_transformed)
+                    tank.getTransforms().clear();
                 tank.setWidth(width);
                 tank.setHeight(height);
             }
+            jfx_node.setPrefSize(width, height);
             tank.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
             tank.setBackground(JFXUtil.convert(model_widget.propBackground().getValue()));
             tank.setForeground(JFXUtil.convert(model_widget.propForeground().getValue()));
