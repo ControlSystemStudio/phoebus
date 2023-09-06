@@ -173,9 +173,11 @@ public class LogEntryTableViewController extends LogbookSearchController {
         menuItemUpdateLogEntry.visibleProperty().bind(Bindings.createBooleanBinding(()-> selectedLogEntries.size() == 1, selectedLogEntries));
         menuItemUpdateLogEntry.acceleratorProperty().setValue(new KeyCodeCombination(KeyCode.U, KeyCombination.CONTROL_DOWN));
         menuItemUpdateLogEntry.setOnAction(ae -> new LogEntryUpdateStage(selectedLogEntries.get(0), null).show());
-        menuItemUpdateLogEntry.setVisible(LogbookUIPreferences.log_entry_update_support);
 
-        contextMenu.getItems().addAll(groupSelectedEntries, menuItemShowHideAll, menuItemNewLogEntry, menuItemUpdateLogEntry);
+        contextMenu.getItems().addAll(groupSelectedEntries, menuItemShowHideAll, menuItemNewLogEntry);
+        if (LogbookUIPreferences.log_entry_update_support) {
+            contextMenu.getItems().add(menuItemUpdateLogEntry);
+        }
         contextMenu.setOnShowing(e -> {
             try {
                 SecureStore store = new SecureStore();
