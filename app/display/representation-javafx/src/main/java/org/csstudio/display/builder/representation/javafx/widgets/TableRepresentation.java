@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -361,9 +361,12 @@ public class TableRepresentation extends RegionBaseRepresentation<StringTable, T
                 }
             }
         }
-        if (dirty_data.checkAndClear())
+        if (dirty_data.checkAndClear())         // Show data with current coloring
+        { 
             jfx_node.setData(data);
-        if (dirty_cell_colors.checkAndClear())
+            jfx_node.setCellColors(cell_colors);
+        }
+        if (dirty_cell_colors.checkAndClear())  // Keep data, only update colors
             jfx_node.setCellColors(cell_colors);
         if (dirty_set_selection.checkAndClear())
             jfx_node.setSelection(model_widget.runtimePropSetSelection().getValue());
