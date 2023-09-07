@@ -30,6 +30,7 @@ public class LogbookUIPreferences
     @Preference public static String markup_help;
     @Preference public static String web_client_root_URL;
     @Preference public static boolean log_entry_groups_support;
+    @Preference public static boolean log_entry_update_support;
     @Preference public static String[] hidden_properties;
     @Preference public static String log_entry_table_display_name;
     @Preference public static String log_entry_calendar_display_name;
