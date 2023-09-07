@@ -66,7 +66,7 @@ The essential commands are also in `make_tls_simple.sh`
 Step 3: Configure and run the demo server
 -------
 
-Set environment variable `EPICS_PVAS_TLS_KEYCHAIN`` to inform the server about its keystore.
+Set environment variable `EPICS_PVAS_TLS_KEYCHAIN` to inform the server about its keystore.
 The format of this setting is `/path/to/file;password`.
 If you used `make_tls_simple.sh`, that would be `demo/KEYSTORE;changeit`.
 
