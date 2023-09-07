@@ -60,14 +60,17 @@ they are compatible with generic open SSL tools:
 openssl pkcs12 -info -in KEYSTORE -nodes
 ```
 
+The essential commands are also in `make_tls_simple.sh`
+
 
 Step 3: Configure and run the demo server
 -------
 
-Set environment variables to inform the server about its keystore.
+Set environment variable `EPICS_PVAS_TLS_KEYCHAIN`` to inform the server about its keystore.
 The format of this setting is `/path/to/file;password`.
-Then run a demo server:
+If you used `make_tls_simple.sh`, that would be `demo/KEYSTORE;changeit`.
 
+Then run a demo server:
 
 ```
 export EPICS_PVAS_TLS_KEYCHAIN="/path/to/KEYSTORE;changeit"
@@ -78,7 +81,8 @@ java -cp target/classes org.epics.pva.server.ServerDemo
 Step 4: Configure and run the demo client
 -------
 
-Set environment variables to inform the client about its truststore.
+Set environment variable `EPICS_PVA_TLS_KEYCHAIN` to inform the client about its truststore.
+If you used `make_tls_simple.sh`, that would be `demo/TRUSTSTORE;changeit`.
 Then run a demo client (`-v 5` to see protocol detail):
 
 ```
@@ -87,6 +91,7 @@ java -cp target/classes org.epics.pva.client.PVAClientMain get -v 5 demo
 # Or:  ./pvaclient get -v 5 demo
 ```
 
+On both the server and the client note how they mention "TLS" in their log messages.
 
 Logging
 -------
@@ -192,6 +197,7 @@ keytool -list -v                 -keystore ioc.p12 -storepass changeit
 We can now run the server with `EPICS_PVAS_TLS_KEYCHAIN=/path/to/ioc.p12;changeit` and clients with
 `EPICS_PVA_TLS_KEYCHAIN=/path/to/trust_ca.p12;changeit`.
 
+See `make_tls_ca.sh` for a copy of the essential commands.
 You can create additional server files `ioc1.p12`, `ioc2.p12` and have each IOC use its own key pair.
 Clients will trust them without any changes to the `trust_ca.p12`
 as long as the IOC certificates are signed by your CA.
@@ -237,6 +243,12 @@ We can now run the server with `EPICS_PVAS_TLS_KEYCHAIN=/path/to/ioc.p12;changei
 `EPICS_PVA_TLS_KEYCHAIN=/path/to/client.p12;changeit`.
 The server will identify the client as "Fred F.".
 
+By default, the server supports clients with certificate and x509 authentication,
+but client certificates are not required.
+By setting `EPICS_PVAS_TLS_OPTIONS="client_cert=require"`, the server will
+abort the initial TLS handshake for clients that do not have a certificate.
+
+
 In total, we now have the following:
 
  * `KEYSTORE`, `TRUSTSTORE`:
@@ -276,7 +288,10 @@ In total, we now have the following:
    providing a client name for x509 authentication.
    Clients can set their `EPICS_PVA_TLS_KEYCHAIN` to this file to
    communicate with IOCs using x509 authentication.
-     
+   If the server runs with `EPICS_PVAS_TLS_OPTIONS="client_cert=require"`,
+   the clients MUST use a client certificate like `client.p12`.
+   Clients with just `trust_ca.p12` will fail during the initial TLS handshake.
+
  * `myclient.cer`, `myclient.csr`:
    Intermediate files used to sign the client certificate.
    May be deleted.
