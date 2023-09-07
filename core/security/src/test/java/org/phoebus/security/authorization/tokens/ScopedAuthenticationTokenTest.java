@@ -19,6 +19,7 @@
 package org.phoebus.security.authorization.tokens;
 
 import org.junit.jupiter.api.Test;
+import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,27 +32,27 @@ public class ScopedAuthenticationTokenTest {
     public void testScopedAuthenticationToken() {
         ScopedAuthenticationToken scopedAuthenticationToken = new ScopedAuthenticationToken("username", "password");
         assertEquals("username", scopedAuthenticationToken.getUsername());
-        assertNull(scopedAuthenticationToken.getScope());
-
-        scopedAuthenticationToken = new ScopedAuthenticationToken("  ", "username", "password");
-        assertNull(scopedAuthenticationToken.getScope());
-
-        scopedAuthenticationToken = new ScopedAuthenticationToken("", "username", "password");
-        assertNull(scopedAuthenticationToken.getScope());
+        assertNull(scopedAuthenticationToken.getAuthenticationScope());
 
         scopedAuthenticationToken = new ScopedAuthenticationToken(null, "username", "password");
-        assertNull(scopedAuthenticationToken.getScope());
+        assertNull(scopedAuthenticationToken.getAuthenticationScope());
 
-        scopedAuthenticationToken = new ScopedAuthenticationToken("scope", "username", "password");
-        assertEquals("scope", scopedAuthenticationToken.getScope());
+        scopedAuthenticationToken = new ScopedAuthenticationToken(null, "username", "password");
+        assertNull(scopedAuthenticationToken.getAuthenticationScope());
+
+        scopedAuthenticationToken = new ScopedAuthenticationToken(null, "username", "password");
+        assertNull(scopedAuthenticationToken.getAuthenticationScope());
+
+        scopedAuthenticationToken = new ScopedAuthenticationToken(AuthenticationScope.LOGBOOK, "username", "password");
+        assertEquals(AuthenticationScope.LOGBOOK, scopedAuthenticationToken.getAuthenticationScope());
     }
 
     @Test
     public void testEqualsAndHashCode() {
         ScopedAuthenticationToken scopedAuthenticationToken1 = new ScopedAuthenticationToken("username", "password");
         ScopedAuthenticationToken scopedAuthenticationToken2 = new ScopedAuthenticationToken("username", "somethingelse");
-        ScopedAuthenticationToken scopedAuthenticationToken3 = new ScopedAuthenticationToken("scope", "username", "somethingelse");
-        ScopedAuthenticationToken scopedAuthenticationToken4 = new ScopedAuthenticationToken("scope", "username1", "somethingelse");
+        ScopedAuthenticationToken scopedAuthenticationToken3 = new ScopedAuthenticationToken(AuthenticationScope.LOGBOOK, "username", "somethingelse");
+        ScopedAuthenticationToken scopedAuthenticationToken4 = new ScopedAuthenticationToken(AuthenticationScope.LOGBOOK, "username1", "somethingelse");
 
         assertEquals(scopedAuthenticationToken1, scopedAuthenticationToken2);
         assertNotEquals(scopedAuthenticationToken1, scopedAuthenticationToken3);
@@ -63,6 +64,10 @@ public class ScopedAuthenticationTokenTest {
         scopedAuthenticationToken2 = new ScopedAuthenticationToken("username1", "somethingelse");
         assertNotEquals(scopedAuthenticationToken1, scopedAuthenticationToken2);
         assertNotEquals(scopedAuthenticationToken1.hashCode(), scopedAuthenticationToken2.hashCode());
+    }
 
+    @Test
+    public void testFromString(){
+        assertEquals(AuthenticationScope.SAVE_AND_RESTORE, AuthenticationScope.fromString(AuthenticationScope.SAVE_AND_RESTORE.getName()));
     }
 }

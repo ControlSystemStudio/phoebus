@@ -35,6 +35,7 @@ import javafx.util.Callback;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.security.authorization.ServiceAuthenticationProvider;
 import org.phoebus.security.store.SecureStore;
+import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
@@ -63,6 +64,9 @@ public class CredentialsManagementController {
     private TableColumn<ServiceItem, String> passwordColumn;
     @FXML
     private Button clearAllCredentialsButton;
+
+    @FXML
+    private TableColumn scopeColumn;
 
     private final SimpleBooleanProperty listEmpty = new SimpleBooleanProperty(true);
     private final ObservableList<ServiceItem> serviceItems =
@@ -95,7 +99,7 @@ public class CredentialsManagementController {
                                 login(serviceItem);
                             }
                             else{
-                                logOut(serviceItem.getScope());
+                                logOut(serviceItem.getAuthenticationScope());
                             }
                         });
                     }
@@ -139,20 +143,21 @@ public class CredentialsManagementController {
         try {
             serviceItem.getServiceAuthenticationProvider().authenticate(serviceItem.getUsername(), serviceItem.getPassword());
             try {
-                secureStore.setScopedAuthentication(new ScopedAuthenticationToken(serviceItem.getScope(),
+                secureStore.setScopedAuthentication(new ScopedAuthenticationToken(serviceItem.getAuthenticationScope(),
                         serviceItem.getUsername(),
                         serviceItem.getPassword()));
             } catch (Exception exception) {
                 LOGGER.log(Level.WARNING, "Failed to store credentials", exception);
             }
             updateTable();
+
         } catch (Exception exception) {
             LOGGER.log(Level.WARNING, "Failed to login to service", exception);
             ExceptionDetailsErrorDialog.openError(parent, "Login Failure", "Failed to login to service", exception);
         }
     }
 
-    private void logOut(String scope) {
+    private void logOut(AuthenticationScope scope) {
         try {
             secureStore.deleteScopedAuthenticationToken(scope);
             updateTable();
@@ -168,19 +173,19 @@ public class CredentialsManagementController {
             // Match saved tokens with an authentication provider, where applicable
             List<ServiceItem> serviceItems = savedTokens.stream().map(token -> {
                 ServiceAuthenticationProvider provider =
-                        authenticationProviders.stream().filter(p-> p.getServiceName().equals(token.getScope())).findFirst().orElse(null);
+                        authenticationProviders.stream().filter(p-> p.getAuthenticationScope().equals(token.getAuthenticationScope())).findFirst().orElse(null);
                 return new ServiceItem(provider, token.getUsername(), token.getPassword());
             }).collect(Collectors.toList());
             // Also need to add ServiceItems for providers not matched with a saved token, i.e. for logged-out services
-            authenticationProviders.stream().forEach(p -> {
+            authenticationProviders.forEach(p -> {
                 Optional<ServiceItem> serviceItem =
                         serviceItems.stream().filter(si ->
-                            p.getServiceName().equals(si.getScope())).findFirst();
+                                p.getAuthenticationScope().equals(si.getAuthenticationScope())).findFirst();
                 if(serviceItem.isEmpty()){
                     serviceItems.add(new ServiceItem(p));
                 }
             });
-            serviceItems.sort(Comparator.comparing(ServiceItem::getScope));
+            serviceItems.sort(Comparator.comparing(ServiceItem::getAuthenticationScope));
             Platform.runLater(() -> {
                 this.serviceItems.setAll(serviceItems);
                 listEmpty.set(savedTokens.isEmpty());
@@ -193,7 +198,7 @@ public class CredentialsManagementController {
      * Model class for the table view
      */
     public static class ServiceItem {
-        private ServiceAuthenticationProvider serviceAuthenticationProvider;
+        private final ServiceAuthenticationProvider serviceAuthenticationProvider;
         private String username;
         private String password;
         private boolean loginAction = false;
@@ -217,9 +222,18 @@ public class CredentialsManagementController {
             this.username = username;
         }
 
-        public String getScope() {
+        public AuthenticationScope getAuthenticationScope() {
             return serviceAuthenticationProvider != null ?
-                    serviceAuthenticationProvider.getServiceName() : "";
+                    serviceAuthenticationProvider.getAuthenticationScope() : null;
+        }
+
+        /**
+         * @return String representation of the authentication scope.
+         */
+        @SuppressWarnings("unused")
+        public String getScope(){
+            return serviceAuthenticationProvider != null ?
+                    serviceAuthenticationProvider.getAuthenticationScope().getName() : "";
         }
 
         public String getPassword(){
@@ -238,8 +252,8 @@ public class CredentialsManagementController {
             return loginAction;
         }
     }
-    private class UsernameTableCell extends TableCell<ServiceItem, String>{
-        private TextField textField = new TextField();
+    private static class UsernameTableCell extends TableCell<ServiceItem, String>{
+        private final TextField textField = new TextField();
 
         public UsernameTableCell(){
             textField.getStyleClass().add("text-field-styling");
@@ -265,8 +279,8 @@ public class CredentialsManagementController {
         }
     }
 
-    private class PasswordTableCell extends TableCell<ServiceItem, String>{
-        private PasswordField passwordField = new PasswordField();
+    private static class PasswordTableCell extends TableCell<ServiceItem, String>{
+        private final PasswordField passwordField = new PasswordField();
 
         public PasswordTableCell(){
             passwordField.getStyleClass().add("text-field-styling");
@@ -282,7 +296,7 @@ public class CredentialsManagementController {
                 setGraphic(null);
             }
             else{
-                passwordField.setText(item == null ? item : "dummypass"); // Hack to no reveal password length
+                passwordField.setText(item == null ? item : "dummypass"); // Hack to not reveal password length
                 if(getTableRow() != null && getTableRow().getItem() != null) {
                     // Disable field if user is logged in.
                     passwordField.disableProperty().set(!getTableRow().getItem().loginAction);

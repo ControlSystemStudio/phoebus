@@ -18,6 +18,8 @@
 
 package org.phoebus.security.authorization;
 
+import org.phoebus.security.tokens.AuthenticationScope;
+
 /**
  * Implementations of this interface are used to announce support for
  * a log in procedure to a service.
@@ -39,7 +41,6 @@ public interface ServiceAuthenticationProvider {
 
     /**
      * The identity of the announced service. This must be unique between all implementations.
-     *
      * <b>NOTE:</b> This identity is used to create keys (aka aliases)
      * under which credentials are persisted in the
      * {@link org.phoebus.security.store.SecureStore}. Such keys are stored in
@@ -49,5 +50,5 @@ public interface ServiceAuthenticationProvider {
      * must be considered when defining an identity.
      * @return Service name
      */
-    String getServiceName();
+    AuthenticationScope getAuthenticationScope();
 }

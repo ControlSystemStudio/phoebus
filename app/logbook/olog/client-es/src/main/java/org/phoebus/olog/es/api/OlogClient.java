@@ -17,6 +17,7 @@ import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.olog.es.api.model.OlogObjectMappers;
 import org.phoebus.olog.es.api.model.OlogSearchResult;
 import org.phoebus.security.store.SecureStore;
+import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
 import javax.net.ssl.SSLContext;
@@ -162,7 +163,7 @@ public class OlogClient implements LogClient {
         private ScopedAuthenticationToken getCredentialsFromSecureStore(){
             try {
                 SecureStore secureStore = new SecureStore();
-                return secureStore.getScopedAuthenticationToken("logbook");
+                return secureStore.getScopedAuthenticationToken(AuthenticationScope.LOGBOOK);
             } catch (Exception e) {
                 Logger.getLogger(OlogClientBuilder.class.getName()).log(Level.WARNING, "Unable to instantiate SecureStore", e);
                 return null;
