@@ -20,6 +20,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSocket;
 
 import org.epics.pva.PVASettings;
@@ -219,7 +220,15 @@ class ServerTCPListener
                         if (client instanceof SSLSocket)
                         {
                             logger.log(Level.FINE, () -> Thread.currentThread().getName() + " accepted TLS client " + client.getRemoteSocketAddress());
-                            tls_info = TLSHandshakeInfo.fromSocket((SSLSocket) client);
+                            try
+                            {
+                                tls_info = TLSHandshakeInfo.fromSocket((SSLSocket) client);
+                            }
+                            catch (SSLHandshakeException ssl)
+                            {
+                                logger.log(Level.FINE, "SSL Handshake error for " + client.getRemoteSocketAddress(), ssl);
+                                continue;
+                            }
                         }
                         else
                             logger.log(Level.WARNING, () -> Thread.currentThread().getName() + " expected TLS client " + client.getRemoteSocketAddress() + " but did not get SSLSocket");

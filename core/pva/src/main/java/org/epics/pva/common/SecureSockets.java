@@ -68,7 +68,7 @@ public class SecureSockets
             pass = "".toCharArray();
         }
 
-        logger.log(Level.INFO, () -> "Loading keychain '" + path + "'");
+        logger.log(Level.CONFIG, () -> "Loading keychain '" + path + "'");
 
         final KeyStore key_store = KeyStore.getInstance("PKCS12");
         key_store.load(new FileInputStream(path), pass);
@@ -119,10 +119,19 @@ public class SecureSockets
             if (tls_server_sockets == null)
                 throw new Exception("TLS is not supported. Configure EPICS_PVAS_TLS_KEYCHAIN");
             socket = tls_server_sockets.createServerSocket();
+            final SSLServerSocket ssl = (SSLServerSocket) socket;
 
-            // Request, but don't require, client's certificate with 'principal' name for x509 authentication
-            ((SSLServerSocket) socket).setWantClientAuth(true);
-            ((SSLServerSocket) socket).setEnabledProtocols(PROTOCOLS);
+            // Do we require client's certificate with 'principal' name for x509 authentication,
+            // and initial handshake will otherwise fail?
+            // Or do we support a client certificate, but it's not essential?
+            if (PVASettings.require_client_cert)
+            {
+                ssl.setNeedClientAuth(true);
+                logger.log(Level.FINE, "Server requires client certificate");
+            }
+            else
+                ssl.setWantClientAuth(true);
+            ssl.setEnabledProtocols(PROTOCOLS);
         }
         else
             socket = new ServerSocket();
@@ -204,6 +213,10 @@ public class SecureSockets
             // "This method is synchronous for the initial handshake on a connection
             // and returns when the negotiated handshake is complete",
             // so no need to addHandshakeCompletedListener()
+
+            // If server socket was configured to require client authentication,
+            // there will be an SSLHandshakeException with message "Empty client certificate chain",
+            // but no obvious way to catch that
             socket.startHandshake();
 
             try

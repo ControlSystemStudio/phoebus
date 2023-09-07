@@ -144,6 +144,24 @@ public class PVASettings
      */
     public static String EPICS_PVAS_TLS_KEYCHAIN = "";
 
+    /** Secure server options
+     *
+     *  <ul>
+     *  <li><code>client_cert=optional</code>:
+     *      Default; clients can provide certificate for "X509" authentication,
+     *      but may also use "ca" or "anonymous" authentication
+     *  <li><code>client_cert=require</code>:
+     *      Clients must provide certificate for "X509" authentication.
+     *      Socket with otherwise be closed during initial handshake.
+     *      Server will log "SSLHandshakeException: Empty client certificate chain",
+     *      client will log "SSLHandshakeException: Received fatal alert: bad_certificate"
+     *  </ul>
+     */
+    public static String EPICS_PVAS_TLS_OPTIONS = "";
+
+    /** Does EPICS_PVAS_TLS_OPTIONS contain "client_cert=require"? */
+    public static boolean require_client_cert;
+
     /** Path to PVA client keystore and truststore, a PKCS12 file that contains the certificates or root CA
      *  that the client will trust when verifying a server certificate,
      *  and optional client certificate used with x509 authentication to establish the client's name.
@@ -237,6 +255,8 @@ public class PVASettings
         EPICS_PVA_CONN_TMO = get("EPICS_PVA_CONN_TMO", EPICS_PVA_CONN_TMO);
         EPICS_PVA_MAX_ARRAY_FORMATTING = get("EPICS_PVA_MAX_ARRAY_FORMATTING", EPICS_PVA_MAX_ARRAY_FORMATTING);
         EPICS_PVAS_TLS_KEYCHAIN = get("EPICS_PVAS_TLS_KEYCHAIN", EPICS_PVAS_TLS_KEYCHAIN);
+        EPICS_PVAS_TLS_OPTIONS = get("EPICS_PVAS_TLS_OPTIONS", EPICS_PVAS_TLS_OPTIONS);
+        require_client_cert =  EPICS_PVAS_TLS_OPTIONS.contains("client_cert=require");
         EPICS_PVA_TLS_KEYCHAIN = get("EPICS_PVA_TLS_KEYCHAIN", EPICS_PVA_TLS_KEYCHAIN);
         EPICS_PVA_SEND_BUFFER_SIZE = get("EPICS_PVA_SEND_BUFFER_SIZE", EPICS_PVA_SEND_BUFFER_SIZE);
         EPICS_PVA_FAST_BEACON_MIN = get("EPICS_PVA_FAST_BEACON_MIN", EPICS_PVA_FAST_BEACON_MIN);
