@@ -262,7 +262,6 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
                              SelectedNavigationTabs nestedNavigationTabsRepresentation_selectedNavigationTabs;
 
                              if (!selectedNavigationTabsHashMapForCurrentTab.containsKey(nestedNavigationTabsWidget.getName())) {
-                                 //int activeTab = nestedNavigationTabsWidget.propTabs().size() > nestedNavigationTabsWidget.propActiveTab().getValue() ? 0 : nestedNavigationTabsWidget.propActiveTab().getValue();
                                  nestedNavigationTabsRepresentation_selectedNavigationTabs = new SelectedNavigationTabs(nestedNavigationTabsWidget.propActiveTab().getValue());
                                  selectedNavigationTabsHashMapForCurrentTab.put(nestedNavigationTabsWidget.getName(), nestedNavigationTabsRepresentation_selectedNavigationTabs);
                              }
