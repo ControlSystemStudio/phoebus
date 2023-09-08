@@ -210,14 +210,16 @@ public class AlarmTableUI extends BorderPane
                 setText(severityLevel.toString());
                 if (AlarmSystem.alarm_table_color_legacy_background)
                 {
-                    final Background bg = AlarmUI.getLegacyTableBackground(severityLevel);
-                    setBackground(bg);
-                    final Paint p = bg.getFills().get(0).getFill();
-                    if (p instanceof Color &&
-                        Brightness.of((Color) p) < Brightness.BRIGHT_THRESHOLD)
-                        setTextFill(Color.WHITE);
-                    else
-                        setTextFill(Color.BLACK);
+                    Color legacyBackgroundColor = AlarmUI.getLegacyTableBackground(severityLevel);
+                    Color legacyTextColor;
+                    if (Brightness.of(legacyBackgroundColor) < Brightness.BRIGHT_THRESHOLD) {
+                        legacyTextColor = Color.WHITE;
+                    }
+                    else {
+                        legacyTextColor = Color.BLACK;
+                    }
+                    setStyle("-fx-alignment: center; -fx-border-color: transparent; -fx-border-width: 2 0 2 0; -fx-background-insets: 0 0 0 0; -fx-text-fill: " + JFXUtil.webRGB(legacyTextColor) + ";  -fx-background-color: " + JFXUtil.webRGB(legacyBackgroundColor));
+
                 }
                 else
                 {
