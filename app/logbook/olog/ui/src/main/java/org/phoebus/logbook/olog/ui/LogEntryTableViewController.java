@@ -52,6 +52,7 @@ import org.phoebus.logbook.olog.ui.write.LogEntryUpdateStage;
 import org.phoebus.olog.es.api.model.LogGroupProperty;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.security.store.SecureStore;
+import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -181,7 +182,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         contextMenu.setOnShowing(e -> {
             try {
                 SecureStore store = new SecureStore();
-                ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken(LogService.AUTHENTICATION_SCOPE);
+                ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken(AuthenticationScope.LOGBOOK);
                 userHasSignedIn.set(scopedAuthenticationToken != null);
             } catch (Exception ex) {
                 logger.log(Level.WARNING, "Secure Store file not found.", ex);

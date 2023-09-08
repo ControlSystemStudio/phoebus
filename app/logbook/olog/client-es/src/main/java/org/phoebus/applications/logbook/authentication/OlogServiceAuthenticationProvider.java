@@ -21,6 +21,7 @@ package org.phoebus.applications.logbook.authentication;
 import org.phoebus.olog.es.api.OlogClient;
 import org.phoebus.olog.es.api.OlogClient.OlogClientBuilder;
 import org.phoebus.security.authorization.ServiceAuthenticationProvider;
+import org.phoebus.security.tokens.AuthenticationScope;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,7 +46,7 @@ public class OlogServiceAuthenticationProvider implements ServiceAuthenticationP
     }
 
     @Override
-    public String getServiceName() {
-        return "logbook";
+    public AuthenticationScope getAuthenticationScope() {
+        return AuthenticationScope.LOGBOOK;
     }
 }
