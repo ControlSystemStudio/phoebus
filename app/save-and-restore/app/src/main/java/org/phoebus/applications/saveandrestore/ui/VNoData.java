@@ -15,28 +15,29 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.phoebus.applications.saveandrestore.common;
+package org.phoebus.applications.saveandrestore.ui;
 
 import org.epics.vtype.VType;
 
+import java.io.Serializable;
+
 /**
  *
- * <code>VDisconnectedData</code> represents a {@link VType} for a disconnected PV, where the data type is not known.
+ * <code>VNoData</code> represents a {@link VType} without any known value, while not being disconnected.
  *
  * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
  *
  */
-public final class VDisconnectedData extends VType{
+public class VNoData extends VType implements Serializable {
 
     private static final long serialVersionUID = -2399970529728581034L;
 
     /** The singleton instance */
-    public static final VDisconnectedData INSTANCE = new VDisconnectedData();
+    public static final VNoData INSTANCE = new VNoData();
 
     private static final String TO_STRING = "---";
-    public static final String DISCONNECTED = "DISCONNECTED";
 
-    private VDisconnectedData() {
+    private VNoData() {
     }
 
     /*
@@ -48,8 +49,5 @@ public final class VDisconnectedData extends VType{
     public String toString() {
         return TO_STRING;
     }
-
-
-    public String getName(){ return "";}
 
 }

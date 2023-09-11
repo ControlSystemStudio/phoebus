@@ -16,35 +16,20 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.applications.saveandrestore.impl;
+package org.phoebus.applications.saveandrestore.service;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.GenericType;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.*;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
-import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
+import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
-import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
-import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
-import org.phoebus.applications.saveandrestore.model.Configuration;
-import org.phoebus.applications.saveandrestore.model.ConfigurationData;
-import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.Snapshot;
-import org.phoebus.applications.saveandrestore.model.SnapshotData;
-import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.applications.saveandrestore.model.TagData;
+import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
-import org.phoebus.applications.saveandrestore.service.Messages;
 import org.phoebus.framework.preferences.PreferencesReader;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -53,7 +38,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
+public class SaveAndRestoreJerseyClient implements org.phoebus.applications.saveandrestore.service.SaveAndRestoreClient {
 
     private final Client client;
     private static final String CONTENT_TYPE_JSON = "application/json; charset=UTF-8";

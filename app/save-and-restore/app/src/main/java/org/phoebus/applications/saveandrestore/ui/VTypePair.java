@@ -15,30 +15,38 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.phoebus.applications.saveandrestore.common;
-
-import java.io.Serializable;
-
+package org.phoebus.applications.saveandrestore.ui;
 
 import org.epics.vtype.VType;
 
+import java.util.Optional;
+
+
+
 /**
  *
- * <code>VNoData</code> represents a {@link org.epics.vtype.VType} without any known value, while not being disconnected.
+ * <code>VTypePair</code> is an object that combines two VType objects, which can later be compared one to another.
  *
  * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
  *
  */
-public class VNoData extends VType implements Serializable {
+public class VTypePair {
 
-    private static final long serialVersionUID = -2399970529728581034L;
+    public final VType base;
+    public final VType value;
+    public final Optional<Threshold<?>> threshold;
 
-    /** The singleton instance */
-    public static final VNoData INSTANCE = new VNoData();
-
-    private static final String TO_STRING = "---";
-
-    private VNoData() {
+    /**
+     * Constructs a new pair.
+     *
+     * @param base the base value
+     * @param value the value that can be compared to base
+     * @param threshold the threshold values used for comparison
+     */
+    public VTypePair(VType base, VType value, Optional<Threshold<?>> threshold) {
+        this.base = base;
+        this.value = value;
+        this.threshold = threshold;
     }
 
     /*
@@ -48,7 +56,6 @@ public class VNoData extends VType implements Serializable {
      */
     @Override
     public String toString() {
-        return TO_STRING;
+        return base + " " + value;
     }
-
 }

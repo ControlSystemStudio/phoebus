@@ -16,18 +16,10 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.applications.saveandrestore;
+package org.phoebus.applications.saveandrestore.service;
 
-import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
-import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
-import org.phoebus.applications.saveandrestore.model.Configuration;
-import org.phoebus.applications.saveandrestore.model.ConfigurationData;
-import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.Snapshot;
-import org.phoebus.applications.saveandrestore.model.SnapshotData;
-import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.applications.saveandrestore.model.TagData;
+import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
+import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 
