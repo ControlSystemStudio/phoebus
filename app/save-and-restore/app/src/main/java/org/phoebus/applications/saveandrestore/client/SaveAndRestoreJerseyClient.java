@@ -51,7 +51,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
 
     public SaveAndRestoreJerseyClient() {
 
-        PreferencesReader preferencesReader = new PreferencesReader(SaveAndRestoreClient.class, "/client_preferences.properties");
+        PreferencesReader preferencesReader = new PreferencesReader(SaveAndRestoreClient.class, "/save_and_restore_preferences.properties");
         this.jmasarServiceUrl = preferencesReader.get("jmasar.service.url");
 
         int httpClientReadTimeout = DEFAULT_READ_TIMEOUT;
