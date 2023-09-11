@@ -16,7 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.applications.saveandrestore.service;
+package org.phoebus.applications.saveandrestore.client;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SaveAndRestoreJerseyClient implements org.phoebus.applications.saveandrestore.service.SaveAndRestoreClient {
+public class SaveAndRestoreJerseyClient implements org.phoebus.applications.saveandrestore.client.SaveAndRestoreClient {
 
     private final Client client;
     private static final String CONTENT_TYPE_JSON = "application/json; charset=UTF-8";

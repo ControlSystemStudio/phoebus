@@ -31,8 +31,8 @@ import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.TagData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
-import org.phoebus.applications.saveandrestore.service.SaveAndRestoreClient;
-import org.phoebus.applications.saveandrestore.service.SaveAndRestoreJerseyClient;
+import org.phoebus.applications.saveandrestore.client.SaveAndRestoreClient;
+import org.phoebus.applications.saveandrestore.client.SaveAndRestoreJerseyClient;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
