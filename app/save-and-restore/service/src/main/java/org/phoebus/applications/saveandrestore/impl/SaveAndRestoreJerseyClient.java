@@ -36,6 +36,7 @@ import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.service.Messages;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.security.store.SecureStore;
+import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -98,7 +99,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
 
         try {
             SecureStore store = new SecureStore();
-            ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken("save-and-restore");
+            ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken(AuthenticationScope.SAVE_AND_RESTORE);
             if (scopedAuthenticationToken != null) {
                 String username = scopedAuthenticationToken.getUsername();
                 String password = scopedAuthenticationToken.getPassword();

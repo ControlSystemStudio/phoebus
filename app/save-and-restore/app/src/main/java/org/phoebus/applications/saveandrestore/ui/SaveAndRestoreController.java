@@ -81,6 +81,7 @@ import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.security.store.SecureStore;
+import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -1397,10 +1398,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         return true;
     }
 
-    public List<TreeItem<Node>> getSelectedItems(){
-        return treeView.getSelectionModel().getSelectedItems();
-    }
-
     public void pasteFromClipboard(){
         disabledUi.set(true);
         Object selectedNodes = Clipboard.getSystemClipboard().getContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT);
@@ -1432,7 +1429,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
         try {
             ScopedAuthenticationToken token =
-                    secureStore.getScopedAuthenticationToken("save-and-restore");
+                    secureStore.getScopedAuthenticationToken(AuthenticationScope.SAVE_AND_RESTORE);
             return token != null && token.getUsername() != null && token.getPassword() != null;
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Unable to retrieve authentication token for save-and-restore scope", e);
