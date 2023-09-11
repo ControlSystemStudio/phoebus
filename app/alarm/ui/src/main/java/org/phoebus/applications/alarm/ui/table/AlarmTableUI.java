@@ -218,7 +218,7 @@ public class AlarmTableUI extends BorderPane
                     else {
                         legacyTextColor = Color.BLACK;
                     }
-                    setStyle("-fx-alignment: center; -fx-border-color: transparent; -fx-border-width: 2 0 2 0; -fx-background-insets: 0 0 0 0; -fx-text-fill: " + JFXUtil.webRGB(legacyTextColor) + ";  -fx-background-color: " + JFXUtil.webRGB(legacyBackgroundColor));
+                    setStyle("-fx-alignment: center; -fx-border-color: transparent; -fx-border-width: 2 0 2 0; -fx-background-insets: 2 0 2 0; -fx-text-fill: " + JFXUtil.webRGB(legacyTextColor) + ";  -fx-background-color: " + JFXUtil.webRGB(legacyBackgroundColor));
 
                 }
                 else
