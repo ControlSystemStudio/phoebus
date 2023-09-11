@@ -96,7 +96,6 @@ public class WidgetColorPopOverController implements Initializable {
     @FXML private Circle defaultColorCircle;
     @FXML private Circle originalColorCircle;
 
-    @FXML private ButtonBar buttonBar;
     @FXML private Button defaultButton;
     @FXML private Button cancelButton;
     @FXML private Button okButton;
@@ -154,7 +153,7 @@ public class WidgetColorPopOverController implements Initializable {
      */
     private final PauseTransition debounce = new PauseTransition(Duration.millis(500));
     private final UnaryOperator<TextFormatter.Change> hexTextFilter = change -> change.getControlNewText().matches("[0-6]?\\p{XDigit}{0,6}") ? change : null;
-    private final StringConverter<Integer> hexTextIntegerConverter = new StringConverter<Integer>() {
+    private final StringConverter<Integer> hexTextIntegerConverter = new StringConverter<>() {
 
         @Override
         public String toString(Integer hexAsInt) {
@@ -177,7 +176,7 @@ public class WidgetColorPopOverController implements Initializable {
 
     };
 
-    private final StringConverter<WidgetColor> hexTextColorConverter = new StringConverter<WidgetColor>() {
+    private final StringConverter<WidgetColor> hexTextColorConverter = new StringConverter<>() {
 
         @Override
         public String toString(WidgetColor widgetColor) {
@@ -220,16 +219,13 @@ public class WidgetColorPopOverController implements Initializable {
             }
         });
 
-        hexField.setTextFormatter(new TextFormatter<Integer>(hexTextIntegerConverter, null, hexTextFilter));
+        hexField.setTextFormatter(new TextFormatter<>(hexTextIntegerConverter, null, hexTextFilter));
         hexField.textProperty().addListener(( observable, oldColor, newColor) -> {
             if(!updating) {
                 debounce.setOnFinished(evt -> setColor(hexTextColorConverter.fromString(newColor)));
                 debounce.playFromStart();
             }
         });
-
-        defaultButton.disableProperty().bind(Bindings.createBooleanBinding(() -> getColor().equals(defaultColor), colorProperty()));
-        okButton.disableProperty().bind(Bindings.createBooleanBinding(() -> getColor().equals(originalColor), colorProperty()));
 
         final SpinnerValueFactory<Integer> redSpinnerValueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 255);
         final TextFormatter<Integer> redSpinnerFormatter = new TextFormatter<>(redSpinnerValueFactory.getConverter(), redSpinnerValueFactory.getValue());
@@ -436,6 +432,9 @@ public class WidgetColorPopOverController implements Initializable {
         defaultColorCircle.setFill(JFXUtil.convert(defaultColor));
         setColor(originalColor);
 
+        defaultButton.disableProperty().bind(Bindings.createBooleanBinding(() -> getColor().equals(defaultColor), colorProperty()));
+        okButton.disableProperty().bind(Bindings.createBooleanBinding(() -> getColor().equals(originalColor), colorProperty()));
+
         ModelThreadPool.getExecutor().execute( ( ) -> {
 
             try
@@ -542,6 +541,6 @@ public class WidgetColorPopOverController implements Initializable {
                 gc.fillRect(0, 0, SIZE, SIZE);
             }
         }
-    };
+    }
 
 }
