@@ -64,7 +64,8 @@ import org.epics.vtype.VUShort;
 import org.epics.vtype.VUShortArray;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.phoebus.applications.saveandrestore.common.Utilities;
+import org.phoebus.applications.saveandrestore.ui.Utilities;
+
 
 import java.math.BigInteger;
 import java.time.Instant;

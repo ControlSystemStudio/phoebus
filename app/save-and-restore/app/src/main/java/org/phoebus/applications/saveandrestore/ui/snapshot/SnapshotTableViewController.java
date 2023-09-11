@@ -32,12 +32,11 @@ import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.SafeMultiply;
-import org.phoebus.applications.saveandrestore.common.*;
 import org.phoebus.applications.saveandrestore.model.*;
+import org.phoebus.applications.saveandrestore.ui.*;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.util.time.TimestampFormats;
 
-import java.security.AccessController;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.*;
@@ -120,7 +119,6 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
         }));
 
 
-
         hideEqualItems.addListener((ob, o, n) -> {
 
         });
@@ -187,7 +185,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
      * configured through a preference setting.
      *
      * @param completion Callback receiving a list of {@link SnapshotItem}s where values for PVs that could
-     *                   not be read are set to {@link VDisconnectedData#INSTANCE}.
+     *                   not be read are set to {@link org.phoebus.applications.saveandrestore.ui.VDisconnectedData#INSTANCE}.
      */
     private void readAll(Consumer<List<SnapshotItem>> completion) {
         ExecutorService executorService = Executors.newFixedThreadPool(10);
@@ -429,7 +427,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
                 VType updatedValue = e.getRowValue().readOnlyProperty().get() ? e.getOldValue() : e.getNewValue();
                 ObjectProperty<VTypePair> value = e.getRowValue().valueProperty();
                 value.setValue(new VTypePair(value.get().base, updatedValue, value.get().threshold));
-                snapshotController.updateLoadedSnapshot( e.getRowValue(), updatedValue);
+                snapshotController.updateLoadedSnapshot(e.getRowValue(), updatedValue);
                 for (int i = 1; i < snapshots.size(); i++) {
                     ObjectProperty<VTypePair> compareValue = e.getRowValue().compareValueProperty(i);
                     compareValue.setValue(new VTypePair(updatedValue, compareValue.get().value, compareValue.get().threshold));
@@ -442,14 +440,13 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
             baseSnapshotDeltaColumn.getStyleClass().add("snapshot-table-left-aligned");
 
             baseSnapshotColumn.getColumns().addAll(baseSnapshotValueColumn, baseSnapshotDeltaColumn, new DividerTableColumn());
-        }
-        else{
+        } else {
             compareColumn.getColumns().clear();
         }
 
         compareColumn.getColumns().add(0, baseSnapshotColumn);
 
-        for(int s = 1; s < snapshots.size(); s++) {
+        for (int s = 1; s < snapshots.size(); s++) {
             Node snapshotNode = snapshots.get(s).getSnapshotNode();
             String snapshotName = snapshotNode.getName();
 

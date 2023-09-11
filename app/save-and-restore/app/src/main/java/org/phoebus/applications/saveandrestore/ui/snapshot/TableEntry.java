@@ -10,11 +10,12 @@
  */
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
+
 import javafx.beans.property.*;
+import org.epics.pva.data.nt.PVAAlarm;
 import org.epics.vtype.*;
-import org.phoebus.applications.saveandrestore.common.*;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
-import org.phoebus.applications.saveandrestore.ui.SingleListenerBooleanProperty;
+import org.phoebus.applications.saveandrestore.ui.*;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -36,7 +37,7 @@ public class TableEntry {
     private final StringProperty pvName = new SimpleStringProperty(this, "pvName");
     private final ObjectProperty<Instant> timestamp = new SimpleObjectProperty<>(this, "timestamp");
     private final StringProperty liveStatus = new SimpleStringProperty(this, "liveStatus", "---");
-    private final StringProperty storedStatus = new SimpleStringProperty(this, "storedStatus", AlarmStatus.UNDEFINED.name());
+    private final StringProperty storedStatus = new SimpleStringProperty(this, "storedStatus", PVAAlarm.AlarmStatus.UNDEFINED.name());
     private final StringProperty liveSeverity = new SimpleStringProperty(this, "liveSeverity", "---");
     private final StringProperty storedSeverity = new SimpleStringProperty(this, "storedSeverity", AlarmSeverity.UNDEFINED.toString());
     /**
@@ -196,7 +197,7 @@ public class TableEntry {
     }
 
     @SuppressWarnings("unused")
-    public StringProperty storedStatusProperty(){
+    public StringProperty storedStatusProperty() {
         return storedStatus;
     }
 
@@ -219,7 +220,7 @@ public class TableEntry {
         this.timestamp.set(timestamp);
     }
 
-    public ObjectProperty<VType> storedSnapshotValue(){
+    public ObjectProperty<VType> storedSnapshotValue() {
         return storedSnapshotValue;
     }
 
@@ -309,7 +310,7 @@ public class TableEntry {
     /**
      * Set the stored readback value for the primary snapshot of for the snapshots compared to the primary one.
      *
-     * @param val   the value to set
+     * @param val the value to set
      */
     public void setStoredReadbackValue(VType val, int index) {
         if (val == null) {

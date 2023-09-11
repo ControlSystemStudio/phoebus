@@ -22,19 +22,33 @@
 		  <version>4.7.3-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>org.phoebus</groupId>
-			<artifactId>save-and-restore-common</artifactId>
-			<version>4.7.3-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>org.phoebus</groupId>
-			<artifactId>save-and-restore-service</artifactId>
-			<version>4.7.3-SNAPSHOT</version>
-		</dependency>
-		<dependency>
 			<groupId>org.eclipse.jgit</groupId>
 			<artifactId>org.eclipse.jgit</artifactId>
 			<version>5.0.3.201809091024-r</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-core</artifactId>
+			<version>1.19</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-client</artifactId>
+			<version>1.19</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.jaxrs</groupId>
+			<artifactId>jackson-jaxrs-json-provider</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+			<version>${jackson.version}</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/junit/junit -->

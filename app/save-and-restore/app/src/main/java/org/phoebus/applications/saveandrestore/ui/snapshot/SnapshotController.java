@@ -28,10 +28,10 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import org.epics.vtype.*;
 import org.phoebus.applications.saveandrestore.Messages;
-import org.phoebus.applications.saveandrestore.common.VNoData;
 import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.applications.saveandrestore.ui.VNoData;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -104,7 +104,7 @@ public class SnapshotController {
      * Loads data from a configuration {@link Node} in order to populate the
      * view with PV items and prepare it to take a snapshot.
      *
-     * @param configurationNode A {@link Node} of type {@link NodeType#CONFIGURATION}
+     * @param configurationNode A {@link Node} of type {@link org.phoebus.applications.saveandrestore.model.NodeType#CONFIGURATION}
      */
     public void newSnapshot(Node configurationNode) {
         this.configurationNode = configurationNode;
