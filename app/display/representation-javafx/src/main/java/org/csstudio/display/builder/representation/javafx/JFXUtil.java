@@ -8,6 +8,7 @@
 package org.csstudio.display.builder.representation.javafx;
 
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -33,7 +34,8 @@ import javafx.scene.text.FontWeight;
 public class JFXUtil extends org.phoebus.ui.javafx.JFXUtil
 {
     private static double font_calibration = 1.0;
-    private static final DecimalFormat RGBA_ALPHA_DECIMAL_FORMAT = new DecimalFormat("0.00");
+    private static final DecimalFormat RGBA_ALPHA_DECIMAL_FORMAT = new DecimalFormat("0.00",
+            DecimalFormatSymbols.getInstance(Locale.US));
 
     static
     {
