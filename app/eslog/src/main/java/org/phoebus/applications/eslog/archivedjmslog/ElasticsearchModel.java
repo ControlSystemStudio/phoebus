@@ -39,7 +39,7 @@ import co.elastic.clients.transport.rest_client.RestClientTransport;
  * Default filtering is by time stamp. It is assumed that the used index
  * includes a field of type date that represents this time stamp.
  *
- * @author Michael Ritzert <michael.ritzert@ziti.uni-heidelberg.de>
+ * @author Michael Ritzert {@literal <michael.ritzert@ziti.uni-heidelberg.de>}
  */
 public class ElasticsearchModel<T extends LogMessage> extends ArchiveModel<T>
 {

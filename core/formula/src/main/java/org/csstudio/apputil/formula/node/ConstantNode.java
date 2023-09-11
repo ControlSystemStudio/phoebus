@@ -19,16 +19,23 @@ import org.phoebus.core.vtypes.VTypeHelper;
 /** One computational node.
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class ConstantNode implements Node
 {
     final VType value;
 
+    /**
+     * Constructor
+     * @param value , value of constant in double
+     */
     public ConstantNode(final double value)
     {
         this.value = VDouble.of(value, Alarm.none(), Time.now(), Display.none());
     }
 
+    /**
+     * Constructor
+     * @param value , value of constant in String
+     */
     public ConstantNode(final String value)
     {
         this.value = VString.of(value, Alarm.none(), Time.now());

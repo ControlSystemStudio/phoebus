@@ -37,8 +37,8 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
  *  Abstract base of AlarmPV to allow tests independent from actual
  *  control system connection.
  *
- *  @see AlarmPV
- *  @see AlarmLogicUnitTest
+ *  @see AlarmServerPV
+ *  see AlarmLogicUnitTest
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
@@ -218,7 +218,7 @@ public class AlarmLogic // implements GlobalAlarmListener
         return enabled.get();
     }
 
-    /** @param latch Annunciate alarms from the PV?
+    /** @param annunciate Annunciate alarms from the PV?
      *  @return <code>true</code> if this is a change
      */
     public boolean setAnnunciating(final boolean annunciate)

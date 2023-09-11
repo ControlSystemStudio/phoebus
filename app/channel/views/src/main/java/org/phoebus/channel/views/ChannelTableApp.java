@@ -48,7 +48,7 @@ public class ChannelTableApp implements AppResourceDescriptor {
     }
 
     /**
-     * Support the launching of channeltable using resource cf://?<search_string>
+     * Support the launching of channeltable using resource {@literal cf://?<search_string>}
      * e.g.
      * -resource cf://?query=SR*
      */

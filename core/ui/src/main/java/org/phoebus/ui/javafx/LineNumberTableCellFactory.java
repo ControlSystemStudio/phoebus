@@ -19,8 +19,8 @@ import javafx.util.Callback;
  * A generic cell factory you can simply use to display the row number in a
  * table.
  *
- * @param T The type of the TableView generic type (i.e. T == TableView<T>)
- * @param E The type of the content in all cells in this TableColumn.
+ * @param <T> The type of the TableView generic type (i.e. {@literal  == TableView<T>})
+ * @param <E> The type of the content in all cells in this TableColumn.
  * @author claudiorosati, European Spallation Source ERIC
  * @version 1.0.0 24 Jan 2018
  */

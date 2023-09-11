@@ -68,7 +68,7 @@ public class ImageToolbarHandler
     /** Add a custom tool bar item
      *  @param icon Icon {@link Image}
      *  @param tool_tip Tool tip text
-     *  @return {@link ToolItem}
+     *  @return see ToolItem
      */
     public Button addItem(final Image icon, final String tool_tip)
     {

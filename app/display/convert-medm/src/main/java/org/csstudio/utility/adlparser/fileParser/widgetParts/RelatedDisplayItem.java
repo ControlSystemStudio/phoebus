@@ -60,12 +60,8 @@ public class RelatedDisplayItem extends WidgetPart {
     /**
      * The default constructor.
      *
-     * @param display
-     *            An ADLWidget that correspond a ADL Related Display Item.
-     * @param parentWidgetModel
-     *            The Widget that set the parameter from ADLWidget.
-     * @throws WrongADLFormatException
-     *             Wrong ADL format or untreated parameter found.
+     * @param display An ADLWidget that correspond a ADL Related Display Item.
+     * @throws WrongADLFormatException Wrong ADL format or untreated parameter found.
      */
     public RelatedDisplayItem(final ADLWidget display)
             throws WrongADLFormatException {

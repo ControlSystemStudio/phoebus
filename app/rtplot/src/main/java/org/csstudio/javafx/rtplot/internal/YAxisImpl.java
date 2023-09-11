@@ -179,7 +179,7 @@ public class YAxisImpl<XTYPE extends Comparable<XTYPE>> extends NumericAxis impl
         return traces;
     }
 
-    /** {@inheritDoc */
+    /** {@inheritDoc} */
     @Override
     public int getDesiredPixelSize(final Rectangle region, final Graphics2D gc)
     {

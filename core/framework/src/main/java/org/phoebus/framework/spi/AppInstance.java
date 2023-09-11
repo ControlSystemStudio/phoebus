@@ -4,8 +4,15 @@ import java.awt.geom.Rectangle2D;
 import java.util.Optional;
 import org.phoebus.framework.persistence.Memento;
 
+/**
+ * interface AppInstance
+ */
 public interface AppInstance {
 
+	/**
+	 * get descriptor
+	 * @return descriptor
+	 */
     public AppDescriptor getAppDescriptor();
 
     /** Is this application instance transient,

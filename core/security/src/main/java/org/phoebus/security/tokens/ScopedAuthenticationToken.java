@@ -18,6 +18,8 @@
 
 package org.phoebus.security.tokens;
 
+import java.util.Objects;
+
 /**
  * Extension of  {@link SimpleAuthenticationToken}.
  *
@@ -28,7 +30,7 @@ package org.phoebus.security.tokens;
  */
 public class ScopedAuthenticationToken extends SimpleAuthenticationToken{
 
-    private String scope;
+    private AuthenticationScope scope;
 
     /** @param username Username
      *  @param password Password
@@ -41,20 +43,20 @@ public class ScopedAuthenticationToken extends SimpleAuthenticationToken{
      *  @param username Username
      *  @param password Password
      */
-    public ScopedAuthenticationToken(String scope, String username, String password){
+    public ScopedAuthenticationToken(AuthenticationScope scope, String username, String password){
         this(username, password);
         if(scope != null){
-            if(scope.trim().isEmpty()){
+            if(scope.getName().trim().isEmpty()){
                 this.scope = null;
             }
             else{
-                this.scope = scope.toLowerCase();
+                this.scope = scope;
             }
         }
     }
 
     /** @return Scope */
-    public String getScope(){
+    public AuthenticationScope getAuthenticationScope(){
         return scope;
     }
 
@@ -64,16 +66,16 @@ public class ScopedAuthenticationToken extends SimpleAuthenticationToken{
             return false;
         }
         ScopedAuthenticationToken otherToken = (ScopedAuthenticationToken)other;
-        return (otherToken.getScope() + "." + otherToken.getUsername()).equals(getScope() + "." + getUsername());
+        return (otherToken.getAuthenticationScope() + "." + otherToken.getUsername()).equals(getAuthenticationScope() + "." + getUsername());
     }
 
     @Override
     public int hashCode(){
-        return (getScope() + "." + getUsername()).hashCode();
+        return Objects.hash(getAuthenticationScope(), getUsername());
     }
 
     @Override
     public String toString(){
-        return "Scope: " + scope + ", username: " + getUsername();
+        return "Scope: " + (scope != null ? scope.getName() : "") + ", username: " + getUsername();
     }
 }

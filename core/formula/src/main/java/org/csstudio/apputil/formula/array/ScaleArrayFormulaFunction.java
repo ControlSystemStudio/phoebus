@@ -62,7 +62,7 @@ public class ScaleArrayFormulaFunction extends BaseArrayFunction {
      * factor specified as the second argument. Optionally the result is offset by
      * the third argument, which may be positive or negative. If the input array is
      * not numerical, {@link BaseArrayFunction#DEFAULT_NAN_DOUBLE_ARRAY} is returned.
-     * @throws Exception
+     * @throws Exception on error
      */
     @Override
     public VType compute(VType... args) throws Exception{

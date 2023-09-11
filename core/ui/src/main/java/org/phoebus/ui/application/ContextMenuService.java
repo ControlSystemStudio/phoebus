@@ -12,6 +12,10 @@ import org.phoebus.framework.adapter.AdapterService;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
+
+/**
+ * Class ContextMenuService
+ */
 @SuppressWarnings("rawtypes")
 public class ContextMenuService {
 
@@ -25,6 +29,7 @@ public class ContextMenuService {
                 .unmodifiableList(loader.stream().map(Provider::get).collect(Collectors.toList()));
     }
 
+    /** @return instance */
     public static synchronized ContextMenuService getInstance() {
         if (contextMenuService == null) {
             contextMenuService = new ContextMenuService();
@@ -35,7 +40,7 @@ public class ContextMenuService {
     /**
      * Get the list of registered context menu providers
      *
-     * @return
+     * @return context menu entries
      */
     public List<ContextMenuEntry> listContextMenuEntries() {
         return contextMenuEntries;

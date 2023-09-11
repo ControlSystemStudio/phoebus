@@ -20,6 +20,12 @@ public class IfNode implements Node
     private final Node yes;
     private final Node no;
 
+    /**
+     * Constructor
+     * @param cond , condition Node
+     * @param yes , True Node
+     * @param no , False Node
+     */
     public IfNode(final Node cond, final Node yes, final Node no)
     {
         this.cond = cond;
@@ -65,7 +71,6 @@ public class IfNode implements Node
                no.hasSubnode(name);
     }
 
-    @SuppressWarnings("nls")
     @Override
     public String toString()
     {

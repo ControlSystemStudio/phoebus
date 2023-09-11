@@ -39,12 +39,8 @@ public class ADLControl extends ADLConnected {
     /**
      * The default constructor.
      *
-     * @param adlWidget
-     *            An ADLWidget that correspond a ADL Control.
-     * @param parentWidgetModel
-     *            The Widget that set the parameter from ADLWidget.
-     * @throws WrongADLFormatException
-     *             Wrong ADL format or untreated parameter found.
+     * @param adlWidget An ADLWidget that correspond a ADL Control.
+     * @throws WrongADLFormatException Wrong ADL format or untreated parameter found.
      */
     public ADLControl(final ADLWidget adlWidget) throws WrongADLFormatException {
         super(adlWidget);

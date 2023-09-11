@@ -1,0 +1,697 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Datasources</name>
+  <width>900</width>
+  <height>1200</height>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>Datasources and Process Variables</text>
+    <width>500</width>
+    <height>40</height>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <text>To select a datasource, you will typically use the form "xx://..".</text>
+    <y>40</y>
+    <width>410</width>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_8</name>
+    <class>SECTION</class>
+    <text>Channel Access :</text>
+    <y>80</y>
+    <width>160</width>
+    <height>30</height>
+    <font use_class="true">
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <pv_name>ca://SomePVName</pv_name>
+    <x>10</x>
+    <y>170</y>
+    <width>150</width>
+    <height>30</height>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_1</name>
+    <pv_name>SomePVName</pv_name>
+    <x>10</x>
+    <y>220</y>
+    <width>150</width>
+    <height>30</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>It is the default access protocol. Use for getting PV connected to Channel Access. You can optionnaly specify "ca://".</text>
+    <y>100</y>
+    <width>310</width>
+    <height>60</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <class>COMMENT</class>
+    <text>Text update widget will display the value of the PV, or the name with purple border if unreachable</text>
+    <x>170</x>
+    <y>170</y>
+    <width>190</width>
+    <height>80</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_9</name>
+    <class>SECTION</class>
+    <text>PV Access :</text>
+    <x>420</x>
+    <y>90</y>
+    <width>160</width>
+    <height>30</height>
+    <font use_class="true">
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_2</name>
+    <pv_name>pva://counter01</pv_name>
+    <x>430</x>
+    <y>160</y>
+    <width>290</width>
+    <height>30</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_10</name>
+    <text>PV accessed over Process Variables Access protocol. The format is "pva://".</text>
+    <x>420</x>
+    <y>110</y>
+    <width>310</width>
+    <height>50</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_12</name>
+    <class>SECTION</class>
+    <text>Simulated :</text>
+    <y>350</y>
+    <width>160</width>
+    <height>30</height>
+    <font use_class="true">
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_4</name>
+    <pv_name>sim://ramp</pv_name>
+    <x>10</x>
+    <y>450</y>
+    <width>90</width>
+    <height>30</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_13</name>
+    <text>Simulated process variables are useful for tests. They do not communicate with the control system. Sim PV have default values if arguments are not specify. Use format "sim://".</text>
+    <y>370</y>
+    <width>320</width>
+    <height>110</height>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>LED</name>
+    <pv_name>sim://flipflop(1.5)</pv_name>
+    <x>190</x>
+    <y>430</y>
+    <width>70</width>
+    <height>70</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_14</name>
+    <class>COMMENT</class>
+    <text>sim://flipflop(1.5)</text>
+    <x>170</x>
+    <y>500</y>
+    <width>120</width>
+    <height>30</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_16</name>
+    <class>SECTION</class>
+    <text>Local :</text>
+    <x>420</x>
+    <y>330</y>
+    <width>160</width>
+    <height>30</height>
+    <font use_class="true">
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_17</name>
+    <text>Local process variables can be used within the application, for example to send a value from one display to another display within the same application. They do not communicate with the control system. The format is "loc://".</text>
+    <x>420</x>
+    <y>350</y>
+    <width>320</width>
+    <height>110</height>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_5</name>
+    <pv_name>loc://large&lt;VLong&gt;(42)</pv_name>
+    <x>420</x>
+    <y>450</y>
+    <width>160</width>
+    <height>30</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_18</name>
+    <class>COMMENT</class>
+    <text>loc://large&lt;VLong&gt;(42)</text>
+    <x>420</x>
+    <y>490</y>
+    <width>180</width>
+    <height>30</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button</name>
+    <actions>
+      <action type="write_pv">
+        <pv_name>loc://large</pv_name>
+        <value>18</value>
+        <description>Set 18</description>
+      </action>
+    </actions>
+    <x>600</x>
+    <y>450</y>
+    <width>90</width>
+    <height>31</height>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_1</name>
+    <actions>
+      <action type="write_pv">
+        <pv_name>loc://large</pv_name>
+        <value>35</value>
+        <description>Set 35</description>
+      </action>
+    </actions>
+    <x>710</x>
+    <y>450</y>
+    <width>90</width>
+    <height>31</height>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_6</name>
+    <pv_name>loc://text&lt;VString&gt;("Hi")</pv_name>
+    <x>420</x>
+    <y>520</y>
+    <width>160</width>
+    <height>30</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_19</name>
+    <class>COMMENT</class>
+    <text>loc://text&lt;VString&gt;("Hi")</text>
+    <x>590</x>
+    <y>520</y>
+    <width>180</width>
+    <height>30</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_7</name>
+    <pv_name>loc://number</pv_name>
+    <x>420</x>
+    <y>560</y>
+    <width>130</width>
+    <height>30</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_20</name>
+    <class>COMMENT</class>
+    <text>loc://number</text>
+    <x>420</x>
+    <y>590</y>
+    <width>180</width>
+    <height>30</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_4</name>
+    <actions>
+      <action type="write_pv">
+        <pv_name>loc://number</pv_name>
+        <value>0.1</value>
+        <description>Set 0.1</description>
+      </action>
+    </actions>
+    <x>600</x>
+    <y>560</y>
+    <width>90</width>
+    <height>31</height>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_5</name>
+    <actions>
+      <action type="write_pv">
+        <pv_name>loc://number</pv_name>
+        <value>42.4242</value>
+        <description>Set 42.4242</description>
+      </action>
+    </actions>
+    <x>710</x>
+    <y>560</y>
+    <width>90</width>
+    <height>31</height>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_6</name>
+    <actions>
+      <action type="open_display">
+        <file>local_process_variable.bob</file>
+        <target>tab</target>
+        <description>Open Display</description>
+      </action>
+    </actions>
+    <text>Local PV display</text>
+    <x>420</x>
+    <y>620</y>
+    <width>120</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_21</name>
+    <class>COMMENT</class>
+    <text>Tried the local value through another display</text>
+    <x>580</x>
+    <y>620</y>
+    <width>180</width>
+    <height>40</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_8</name>
+    <actions>
+      <action type="open_display">
+        <file>pvaccess/pva_image.bob</file>
+        <target>replace</target>
+        <description>Open Display</description>
+      </action>
+    </actions>
+    <text>Pva Image</text>
+    <x>560</x>
+    <y>230</y>
+    <width>120</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_22</name>
+    <text>See more PVA &amp; CA here :</text>
+    <x>430</x>
+    <y>200</y>
+    <width>310</width>
+    <height>30</height>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_9</name>
+    <actions>
+      <action type="open_display">
+        <file>pvaccess/pvaSrvExample.bob</file>
+        <target>replace</target>
+        <description>Open Display</description>
+      </action>
+    </actions>
+    <text>CA vs PVA</text>
+    <x>430</x>
+    <y>230</y>
+    <width>120</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_10</name>
+    <actions>
+      <action type="open_display">
+        <file>pva_server_ramp/display.bob</file>
+        <target>replace</target>
+        <description>Open Display</description>
+      </action>
+    </actions>
+    <text>Pva Python</text>
+    <x>690</x>
+    <y>230</y>
+    <width>120</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_24</name>
+    <class>SECTION</class>
+    <text>In Formulas :</text>
+    <x>420</x>
+    <y>890</y>
+    <width>160</width>
+    <height>30</height>
+    <font use_class="true">
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_25</name>
+    <text>Formula-based PVs can perform simple computations on constants and other PVs. They are referenced via backquotes.</text>
+    <x>420</x>
+    <y>910</y>
+    <width>410</width>
+    <height>50</height>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_9</name>
+    <pv_name>='sim://sine'</pv_name>
+    <x>420</x>
+    <y>950</y>
+    <width>130</width>
+    <height>30</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_26</name>
+    <class>COMMENT</class>
+    <text>='sim://sine'</text>
+    <x>570</x>
+    <y>950</y>
+    <width>180</width>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_27</name>
+    <class>SECTION</class>
+    <text>MQTT :</text>
+    <y>591</y>
+    <width>160</width>
+    <height>30</height>
+    <font use_class="true">
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_28</name>
+    <text>Data that is to be read over the MQTT network protocol. All MQTT topics are obtained from the same MQTT broker URL. If the VType is omitted, ‘double’ is assumed. Use 'mqtt://' format Examples:</text>
+    <y>611</y>
+    <width>350</width>
+    <height>110</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_29</name>
+    <class>COMMENT</class>
+    <text>mqtt://some_topic mqtt://some_topic&lt;VDouble&gt; mqtt://some_topic&lt;VString&gt; mqtt://some/nested/topic</text>
+    <x>10</x>
+    <y>682</y>
+    <width>210</width>
+    <height>80</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_11</name>
+    <actions>
+      <action type="open_display">
+        <file>mqtt/mqtt_epics2016_demo.bob</file>
+        <target>replace</target>
+        <description>Open Display</description>
+      </action>
+    </actions>
+    <text>MQTT Example</text>
+    <x>220</x>
+    <y>711</y>
+    <width>120</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_30</name>
+    <class>SECTION</class>
+    <text>System :</text>
+    <y>840</y>
+    <width>160</width>
+    <height>30</height>
+    <font use_class="true">
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_31</name>
+    <text>System process variables are useful for representing some system attributes. They do not communicate with the control system. Use "sys://" format :</text>
+    <y>859</y>
+    <width>350</width>
+    <height>50</height>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_10</name>
+    <pv_name>sys://time</pv_name>
+    <y>919</y>
+    <width>130</width>
+    <height>30</height>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_11</name>
+    <pv_name>sys://timeOffset(12 hours)</pv_name>
+    <x>150</x>
+    <y>919</y>
+    <width>200</width>
+    <height>30</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_32</name>
+    <class>COMMENT</class>
+    <text>sys://time</text>
+    <y>959</y>
+    <width>130</width>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_33</name>
+    <class>COMMENT</class>
+    <text>sys://timeOffset(12 hours)</text>
+    <x>150</x>
+    <y>959</y>
+    <width>200</width>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_34</name>
+    <class>SECTION</class>
+    <text>Tango :</text>
+    <y>1040</y>
+    <width>160</width>
+    <height>30</height>
+    <font use_class="true">
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_35</name>
+    <text>Tango is different from EPICS, the smallest unit is Device, which includes the commands, states, and attributes. The command and the attribute has been implemented, add prefix to PV Name in editing interface to distinguish, and the command usually has a return value, so need to use Text Entry or a combination of Action button and Text Update components to achieve it. Currently, all types of scalars are supported, but SPECTRUM and IMAGE are not yet supported. Example :</text>
+    <y>1060</y>
+    <width>790</width>
+    <height>79</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_36</name>
+    <class>COMMENT</class>
+    <text>tga://device/attribute tgc://device/command</text>
+    <x>20</x>
+    <y>1139</y>
+    <width>170</width>
+    <height>40</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_38</name>
+    <class>SECTION</class>
+    <text>Alarm Datasources :</text>
+    <x>420</x>
+    <y>720</y>
+    <width>160</width>
+    <height>30</height>
+    <font use_class="true">
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_39</name>
+    <text>Empty for now :</text>
+    <x>420</x>
+    <y>740</y>
+    <width>180</width>
+    <height>31</height>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_12</name>
+    <actions>
+      <action type="open_display">
+        <file>datasources_alarm.bob</file>
+        <target>replace</target>
+        <description>Open Display</description>
+      </action>
+    </actions>
+    <text>Alarm Datasource display</text>
+    <x>420</x>
+    <y>771</y>
+    <width>210</width>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+</display>

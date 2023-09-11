@@ -13,16 +13,20 @@ import java.util.List;
 /** Proposal for "mqtt://..." PVs
  *
  *  <p>Description includes the optional type,
- *  which are shown as {@link MatchSegment#COMMENT}
+ *  which are shown as {@link MatchSegment #COMMENT}
  *  until the user provides parameters for them.
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class MqttProposal extends Proposal
 {
     private final String type;
 
+    /**
+     * Constructor
+     * @param path mqtt path
+     * @param type type 
+     */
     public MqttProposal(final String path, final String type)
     {
         super(path);

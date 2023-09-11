@@ -2,10 +2,15 @@ package org.csstudio.apputil.formula.math;
 
 import java.util.List;
 
-@SuppressWarnings("nls")
+/**
+ * ATan2 class see @Math atan2 function
+ */
 public class ATan2 extends TwoArgMathFunction
 {
-    public ATan2()
+    /**
+     * Constructor
+     */
+	public ATan2()
     {
         super("atan2", "Inverse tangent (y, x)", Math::atan2);
     }

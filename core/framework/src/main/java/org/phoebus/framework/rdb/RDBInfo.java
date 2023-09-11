@@ -21,7 +21,6 @@ import java.util.logging.Level;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class RDBInfo
 {
     /** Start of MySQL URL, including " jdbc:mysql:replication://.." */
@@ -51,6 +50,13 @@ public class RDBInfo
     private final String url, user, password;
     private final Dialect dialect;
 
+    /**
+     * Constructor
+     * @param url		url of Database
+     * @param user		user
+     * @param password 	password
+     * @throws Exception on error
+     */
     public RDBInfo(final String url, final String user, final String password) throws Exception
     {
         this.url = url;
@@ -79,7 +85,11 @@ public class RDBInfo
         return user;
     }
 
-    /** Create a new {@link Connection} */
+    /**
+     * Create a new {@link Connection}
+     * @return Connection object
+     * @throws Exception on error
+     */
     public Connection connect() throws Exception
     {
         Connection connection = null;

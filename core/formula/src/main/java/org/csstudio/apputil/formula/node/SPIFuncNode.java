@@ -22,7 +22,6 @@ import org.epics.vtype.VType;
 /** Node for evaluating an SPI-provided function
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class SPIFuncNode implements Node
 {
     final private FormulaFunction function;
@@ -31,12 +30,12 @@ public class SPIFuncNode implements Node
     /** Construct node for SPI function.
      *
      *  @param function {@link FormulaFunction}
-     *  @param n Argument node
+     *  @param nodeArray Argument node array
      */
-    public SPIFuncNode(final FormulaFunction function, final Node args[])
+    public SPIFuncNode(final FormulaFunction function, final Node nodeArray[])
     {
         this.function = function;
-        this.args = args;
+        this.args = nodeArray;
         // Should be called with the correct number of arguments
         if (!function.isVarArgs() && args.length != function.getArguments().size())
             throw new IllegalStateException("Wrong number of arguments for " + function.getSignature());

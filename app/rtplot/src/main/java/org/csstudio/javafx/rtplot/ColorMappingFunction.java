@@ -34,8 +34,6 @@ public interface ColorMappingFunction
 
     /** Helper for creating RGB integer from components
      *  @param rgb [ red, green, blue ]
-     *  @param green
-     *  @param blue
      *  @return RGB value (including alpha set to fully opaque)
      */
     public static int getRGB(int[] rgb)

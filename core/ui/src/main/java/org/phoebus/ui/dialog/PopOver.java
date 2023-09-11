@@ -173,7 +173,7 @@ public class PopOver extends PopupControl
     *  the popup will hide.
     *
     *  @param owner Owner node relative to which the PopOver will be located
-    *  @see {@link PopupControl#hide()}
+    *  @see PopupControl hide methode
     */
    public void show(final Region owner)
    {

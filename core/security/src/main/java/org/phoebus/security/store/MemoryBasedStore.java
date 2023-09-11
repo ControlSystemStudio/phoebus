@@ -1,6 +1,5 @@
 package org.phoebus.security.store;
 
-import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,10 +13,12 @@ public class MemoryBasedStore implements Store<String, String> {
 
     private final Map<String, String> store = new HashMap<>();
 
+    /** Singleton */
     private static MemoryBasedStore INSTANCE = new MemoryBasedStore();
 
     private MemoryBasedStore() {}
 
+    /** @return instance */
     public static MemoryBasedStore getInstance() {
         return INSTANCE;
     }

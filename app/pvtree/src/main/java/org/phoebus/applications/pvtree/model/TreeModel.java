@@ -52,8 +52,7 @@ public class TreeModel
      *  represent it, and start it.
      *
      *  @param pv_name
-     *  @throws Exception
-     *  @see {@link #getRoot()}
+     *  @see getRoot()
      *  @see TreeModelItem#start()
      */
     public void setRootPV(final String pv_name)

@@ -34,10 +34,10 @@ public class SecondsParser
      *  Special cases:
      *  One overall '-' is allowed to specify negative seconds.
      *
+     *  @param text time in string
      *  @return The seconds parsed from the string.
      *  @throws Exception on parse error.
      */
-    @SuppressWarnings("nls")
     public static double parseSeconds(String text) throws Exception
     {
         final char sep = ':';

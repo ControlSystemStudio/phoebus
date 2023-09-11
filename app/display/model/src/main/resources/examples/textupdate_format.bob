@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <display version="1.0.0">
-  <name>Display</name>
+  <name>Text Update Formatting</name>
   <macros>
     <PV>DTL_LLRF:IOC1:Load</PV>
   </macros>

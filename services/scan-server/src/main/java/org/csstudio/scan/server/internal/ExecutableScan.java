@@ -58,7 +58,7 @@ import org.phoebus.util.time.TimestampFormats;
 
 /** Scan that can be executed: Commands, device context, state
  *
- *  <p>Combines a {@link DeviceContext} with {@link ScanContextImpl}ementations
+ *  <p>Combines a {@link DeviceContext} with {@link ScanContext}ementations
  *  and can execute them.
  *  When a command is executed, it receives a {@link ScanContext} view
  *  of the scan for limited access to the devices, data logger etc.

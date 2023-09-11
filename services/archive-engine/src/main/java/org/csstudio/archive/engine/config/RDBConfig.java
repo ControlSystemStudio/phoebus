@@ -96,7 +96,7 @@ public class RDBConfig implements AutoCloseable
 
     /** @param config_name Name of engine to create (or use existing)
      *  @param description
-     *  @param replace_engine If exists, remove existing groups & channels?
+     *  @param replace_engine If exists, remove existing groups and channels ?
      *  @return ID of new or existing engine
      *  @throws Exception on error, which includes finding existing engine without 'replace' option
      */
@@ -196,7 +196,7 @@ public class RDBConfig implements AutoCloseable
     }
 
     /** @param group_id Group where to add channel
-     *  @param duplicates How to handle duplicate channels
+     *  @param duplicate_mode How to handle duplicate channels
      *  @param original_name Name of channel
      *  @param monitor Monitor?
      *  @param period Scan or estimated monitor period in seconds

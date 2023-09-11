@@ -16,8 +16,7 @@ import org.phoebus.logbook.Property;
 /**
  * Property object that can be represented as XML/JSON in payload data.
  * 
- * @author Eric Berryman taken from Ralph Lange
- *         <Ralph.Lange@helmholtz-berlin.de>
+ * @author Eric Berryman taken from Ralph Lange {@literal <Ralph.Lange@helmholtz-berlin.de>}
  */
 @XmlRootElement(name = "property")
 public class XmlProperty {
@@ -39,7 +38,6 @@ public class XmlProperty {
      * Creates a new instance of XmlProperty.
      * 
      * @param name
-     * @param value
      */
     public XmlProperty(String name) {
         this.name = name;
@@ -89,9 +87,9 @@ public class XmlProperty {
     }
 
     /**
-     * Setter for property id.
+     * Setter for grouping number
      * 
-     * @param id property id
+     * @param groupingNum 
      */
     public void setGroupingNum(int groupingNum) {
         this.groupingNum = groupingNum;

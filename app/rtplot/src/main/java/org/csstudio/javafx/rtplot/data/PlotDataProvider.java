@@ -38,7 +38,7 @@ import java.util.concurrent.locks.ReadWriteLock;
  *  and include its <code>toString()</code> info in the <code>PlotDataProvider#toString()</code>
  *  to show the owning thread etc. when debugging deadlocks.
  *
- *  @param <XTYPE> Data type used for the horizontal {@link Axis}
+ *  @param <XTYPE> Data type used for the horizontal @see Axis
  *
  *  @author Kay Kasemir
  */

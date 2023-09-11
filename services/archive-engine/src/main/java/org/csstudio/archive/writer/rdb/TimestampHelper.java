@@ -22,7 +22,7 @@ import org.phoebus.util.time.TimestampFormats;
 @SuppressWarnings("nls")
 public class TimestampHelper
 {
-    /** @param timestamp {@link Timestamp}, may be <code>null</code>
+    /** @param timestamp {@link Instant}, may be <code>null</code>
      *  @return Time stamp formatted as string
      */
     public static String format(final Instant timestamp)

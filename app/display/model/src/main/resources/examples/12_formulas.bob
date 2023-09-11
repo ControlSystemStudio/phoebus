@@ -1,0 +1,514 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<display version="2.0.0">
+  <name>Formulas</name>
+  <width>810</width>
+  <height>810</height>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>Formulas</text>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_4</name>
+    <text>Formulas are functions or operations that can sometimes be used instead of scripts or rules.</text>
+    <y>41</y>
+    <width>381</width>
+    <height>50</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_5</name>
+    <text>Typical usage : "=&lt;name&gt;(&lt;arguments&gt;)"</text>
+    <y>120</y>
+    <width>340</width>
+    <height>30</height>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_7</name>
+    <class>SECTION</class>
+    <text>Maths functions and operators :</text>
+    <y>170</y>
+    <width>340</width>
+    <height>40</height>
+    <font use_class="true">
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="tank" version="2.0.0">
+    <name>Tank</name>
+    <pv_name>=round(rnd(100)) + 'sim://flipflop' - 'sim://flipflop' </pv_name>
+    <x>20</x>
+    <y>220</y>
+    <width>50</width>
+    <height>271</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_9</name>
+    <class>COMMENT</class>
+    <text>Display a rounded random double value between 0 and 100</text>
+    <x>80</x>
+    <y>330</y>
+    <width>220</width>
+    <height>49</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <pv_name>=round(rnd(100)) + 'sim://flipflop' - 'sim://flipflop' </pv_name>
+    <x>90</x>
+    <y>270</y>
+    <width>110</width>
+    <height>40</height>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_1</name>
+    <pv_name>sim://ramp</pv_name>
+    <x>160</x>
+    <y>520</y>
+    <width>140</width>
+    <height>30</height>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="multi_state_led" version="2.0.0">
+    <name>LED (Multi State)</name>
+    <pv_name>=abs('sim://ramp')</pv_name>
+    <x>20</x>
+    <y>520</y>
+    <width>120</width>
+    <height>120</height>
+    <states>
+      <state>
+        <value>0</value>
+        <label>Abs value : 0</label>
+        <color>
+          <color red="255" green="0" blue="0">
+          </color>
+        </color>
+      </state>
+      <state>
+        <value>1</value>
+        <label>Abs value : 1</label>
+        <color>
+          <color red="255" green="133" blue="0">
+          </color>
+        </color>
+      </state>
+      <state>
+        <value>2</value>
+        <label>Abs value : 2</label>
+        <color>
+          <color red="255" green="255" blue="0">
+          </color>
+        </color>
+      </state>
+      <state>
+        <value>3</value>
+        <label>Abs value : 3</label>
+        <color>
+          <color red="0" green="255" blue="0">
+          </color>
+        </color>
+      </state>
+      <state>
+        <value>4</value>
+        <label>Abs value : 4</label>
+        <color>
+          <color red="0" green="0" blue="255">
+          </color>
+        </color>
+      </state>
+      <state>
+        <value>5</value>
+        <label>Abs value : 5</label>
+        <color>
+          <color red="163" green="0" blue="255">
+          </color>
+        </color>
+      </state>
+    </states>
+    <fallback_color>
+      <color red="0" green="0" blue="0">
+      </color>
+    </fallback_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_10</name>
+    <class>COMMENT</class>
+    <text>Return the absolute value of ramp sim PV</text>
+    <x>160</x>
+    <y>560</y>
+    <width>140</width>
+    <height>49</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_11</name>
+    <class>SECTION</class>
+    <text>Conditional and logical operators :</text>
+    <x>381</x>
+    <y>80</y>
+    <width>340</width>
+    <height>40</height>
+    <font use_class="true">
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_2</name>
+    <pv_name>='sim://flipflop' ? "True : 1" : "False : 0"</pv_name>
+    <x>410</x>
+    <y>110</y>
+    <width>70</width>
+    <height>40</height>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="picture" version="2.0.0">
+    <name>Picture</name>
+    <file>pic/and.png</file>
+    <x>400</x>
+    <y>150</y>
+    <width>180</width>
+    <height>170</height>
+    <rotation>90.0</rotation>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_3</name>
+    <pv_name>='sim://ramp' &lt;= 0 ? "True : 1" : "False : 0"</pv_name>
+    <x>500</x>
+    <y>110</y>
+    <width>80</width>
+    <height>40</height>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_4</name>
+    <pv_name>=('sim://ramp' &lt;= 0) &amp;&amp; 'sim://flipflop' ? "True : 1" : "False : 0"</pv_name>
+    <x>450</x>
+    <y>320</y>
+    <width>80</width>
+    <height>40</height>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_12</name>
+    <class>SECTION</class>
+    <text>Alarm functions :</text>
+    <x>400</x>
+    <y>390</y>
+    <width>340</width>
+    <height>40</height>
+    <font use_class="true">
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_13</name>
+    <class>COMMENT</class>
+    <text>Example of an AND gate</text>
+    <x>560</x>
+    <y>210</y>
+    <width>140</width>
+    <height>49</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>LED_1</name>
+    <pv_name>=('sim://ramp' &lt;= 0) &amp;&amp; 'sim://flipflop'</pv_name>
+    <x>460</x>
+    <y>200</y>
+    <width>60</width>
+    <height>50</height>
+    <square>true</square>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_5</name>
+    <pv_name>=majorAlarm((('sim://ramp' &lt;= 0) &amp;&amp; 'sim://flipflop'), "AND_alarm")</pv_name>
+    <x>410</x>
+    <y>430</y>
+    <width>120</width>
+    <height>30</height>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_14</name>
+    <class>COMMENT</class>
+    <text>With the same example as above, return major alarm when true</text>
+    <x>570</x>
+    <y>410</y>
+    <width>140</width>
+    <height>87</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_15</name>
+    <class>SECTION</class>
+    <text>Enums functions :</text>
+    <x>381</x>
+    <y>560</y>
+    <width>340</width>
+    <height>40</height>
+    <font use_class="true">
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_8</name>
+    <pv_name>=indexOf(highestSeverity('sim://ramp'))</pv_name>
+    <x>381</x>
+    <y>600</y>
+    <width>120</width>
+    <height>30</height>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_17</name>
+    <class>COMMENT</class>
+    <text>Get the enum state number of the highest severity alarm from sim://ramp</text>
+    <x>511</x>
+    <y>560</y>
+    <width>270</width>
+    <height>60</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_19</name>
+    <class>COMMENT</class>
+    <text>0 : No alarm</text>
+    <x>550</x>
+    <y>600</y>
+    <width>140</width>
+    <height>17</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_21</name>
+    <class>COMMENT</class>
+    <text>1 : Minor alarm</text>
+    <x>550</x>
+    <y>617</y>
+    <width>140</width>
+    <height>17</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_22</name>
+    <class>COMMENT</class>
+    <text>2 : Major alarm</text>
+    <x>550</x>
+    <y>634</y>
+    <width>140</width>
+    <height>17</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_16</name>
+    <class>COMMENT</class>
+    <text>Formulas : =round(rnd(100))</text>
+    <x>80</x>
+    <y>379</y>
+    <width>180</width>
+    <height>49</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_18</name>
+    <class>COMMENT</class>
+    <text>Formula : =abs(&lt;PV&gt;)</text>
+    <x>160</x>
+    <y>609</y>
+    <width>180</width>
+    <height>49</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_20</name>
+    <class>COMMENT</class>
+    <text>Formulas : =&lt;condition1&gt; &amp;&amp; &lt;condition2&gt; ? "True : 1" : "False : 0"</text>
+    <x>560</x>
+    <y>259</y>
+    <width>180</width>
+    <height>121</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_23</name>
+    <class>COMMENT</class>
+    <text>Formulas : =majorAlarm(&lt;condition&gt;, "AND_alarm")</text>
+    <x>400</x>
+    <y>490</y>
+    <width>370</width>
+    <height>40</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_24</name>
+    <class>COMMENT</class>
+    <text>Formulas : =indexOf(highestSeverity(&lt;PV&gt;))</text>
+    <x>370</x>
+    <y>670</y>
+    <width>409</width>
+    <height>29</height>
+    <font use_class="true">
+      <font name="Comment" family="Liberation Sans" style="ITALIC" size="14.0">
+      </font>
+    </font>
+    <foreground_color use_class="true">
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </foreground_color>
+    <transparent use_class="true">true</transparent>
+    <wrap_words use_class="true">true</wrap_words>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_25</name>
+    <text>Formulas can be entered where you can enter PVs.</text>
+    <y>80</y>
+    <width>381</width>
+    <height>50</height>
+  </widget>
+</display>

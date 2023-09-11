@@ -19,13 +19,15 @@ import org.phoebus.framework.preferences.PreferencesReader;
 /** Workbench Preferences
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class WorkbenchPreferences
 {
     /** Logger for the 'workbench' package */
     public static final Logger logger = Logger.getLogger(WorkbenchPreferences.class.getPackageName());
 
+    /** directory of external applications */
     @Preference public static File external_apps_directory;
+    
+    /** external applications */
     public static final Collection<String> external_apps;
 
     static

@@ -44,7 +44,7 @@ public class AlarmLogTableApp implements AppResourceDescriptor {
     }
 
     /**
-     * Support the launching of alarmLogtable using resource alarmLog://?<search_string>
+     * Support the launching of alarmLogtable using resource {@literal alarmLog://?<search_string>}
      * e.g.
      * -resource alarmLog://?pv=SR*
      */

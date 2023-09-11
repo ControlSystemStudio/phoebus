@@ -78,9 +78,9 @@ public class EdmPointsList extends EdmAttribute {
 
     /**
      * Add a point to the end of the points list.
-     * @param Point to be added.
+     * @param point to be added.
      */
-    public void addPoint(int e) {
-        val.add(e);
+    public void addPoint(int point) {
+        val.add(point);
     }
 }

@@ -14,7 +14,12 @@ import org.csstudio.apputil.formula.Node;
  */
 public class MulNode extends AbstractBinaryNode
 {
-    public MulNode(final Node left, final Node right)
+	 /**
+     * Constructor
+     * @param left , left node
+     * @param right , right node
+     */
+	public MulNode(final Node left, final Node right)
     {
         super(left, right);
     }
@@ -25,7 +30,6 @@ public class MulNode extends AbstractBinaryNode
         return a*b;
     }
 
-    @SuppressWarnings("nls")
     @Override
     public String toString()
     {

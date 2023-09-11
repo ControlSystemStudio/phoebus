@@ -278,7 +278,7 @@ abstract public class RDBDataLogger implements AutoCloseable
      *  @param scan_id ID of the scan
      *  @return Serial of last sample in scan data or -1 if nothing has been logged
      *  @throws Exception on error
-     *  @see #getScanData()
+     *  @see RDBDataLogger getScanData()
      */
     public long getLastScanDataSerial(final long scan_id) throws Exception
     {

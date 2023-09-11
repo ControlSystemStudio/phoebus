@@ -264,7 +264,7 @@ public class ImagePlot extends PlotCanvasBase
         y_axis.setValueRange(min_y, max_y);
     }
 
-    /** <b>Note: May offer too much access
+    /** <b>Note: May offer too much access</b>
      *  @return X Axis
      */
     public Axis<Double> getXAxis()
@@ -272,7 +272,7 @@ public class ImagePlot extends PlotCanvasBase
         return x_axis;
     }
 
-    /** <b>Note: May offer too much access
+    /** <b>Note: May offer too much access</b>
      *  @return Y Axis
      */
     public Axis<Double> getYAxis()
@@ -300,7 +300,7 @@ public class ImagePlot extends PlotCanvasBase
         requestLayout();
     }
 
-    /** @param size Color bar size in pixels */
+    /** @param font */
     public void setColorMapFont(final Font font)
     {
         colorbar_axis.setScaleFont(font);
@@ -1253,11 +1253,11 @@ public class ImagePlot extends PlotCanvasBase
      * @author Amanda Carpenter
      * @param event MouseEvent to get info for
      * @return An Object [3] containing:
-     * <ol>
-     * <li>{@link AxisPart}&lt;Double&gt; axis - clicked axis<\li>
-     * <li>boolean isHighEnd - true if click was on high-value end of axis; else, false<\li>
-     * <li>{@link Rectangle} area - dimensions and location of click region<\li>
-     * </ol>
+     * <ul>
+     * <li>AxisPart {@literal <Double>} axis - clicked axis
+     * <li>boolean isHighEnd - true if click was on high-value end of axis; else, false
+     * <li>Rectangle  area - dimensions and location of click region
+     * </ul>
      */
     public Object [] axisClickInfo(MouseEvent event)
     {

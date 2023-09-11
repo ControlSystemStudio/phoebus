@@ -1,9 +1,14 @@
 package org.csstudio.apputil.formula.math;
 
-@SuppressWarnings("nls")
+/**
+ * ToDegrees class see @Math toDegrees function
+ */
 public class ToDegrees extends OneArgMathFunction
 {
-    public ToDegrees()
+	/**
+     * Constructor
+     */
+	public ToDegrees()
     {
         super("toDegrees", "Radians to degrees", Math::toDegrees);
     }

@@ -55,7 +55,7 @@ public class StringSplitter
     /** Split source string into an array of elements separated by the splitting character,
      *  but ignoring split characters enclosed in quotes.
      *
-     *  @param trimmedSource String to be split
+     *  @param source String to be split
      *  @param splitChar Character used to split the source string, e.g. ',' or ' '
      *  @param deleteHeadTailQuotes Delete quotes in the head and tail of individual elements
      *                              if <code>true</code>

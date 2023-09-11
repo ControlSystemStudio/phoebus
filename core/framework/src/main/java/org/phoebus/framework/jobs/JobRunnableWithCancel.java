@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  * JobManager.schedule("Demo", monitor ->
  * {
  *     monitor.beginTask("What I do", 100);
- *     for (int step=0; step < 100; ++step)
+ *     {@literal for (int step=0; step < 100; ++step)}
  *     {
  *         // Allow cancellation
  *         if (monitor.isCanceled())

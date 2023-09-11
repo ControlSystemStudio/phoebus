@@ -1,9 +1,14 @@
 package org.csstudio.apputil.formula.math;
 
-@SuppressWarnings("nls")
+/**
+ * Acos class see @Math acos function
+ */
 public class ACos extends OneArgMathFunction
 {
-    public ACos()
+	 /**
+     * Constructor
+     */
+	public ACos()
     {
         super("acos", "Inverse cosine", Math::acos);
     }

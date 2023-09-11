@@ -22,14 +22,20 @@ public class TimeDuration {
     private TimeDuration() {
     }
 
+    /**
+     * Create a Duration
+     * @param sec seconds
+     * @param nanoSec nanoseconds
+     * @return duration 
+     */
     public static Duration createDuration(long sec, int nanoSec) {
         return Duration.ofSeconds(sec).plusNanos(nanoSec);
     }
 
     /**
-     * A new duration in hours.
+     * A new duration in days.
      *
-     * @param hour hours
+     * @param day day
      * @return a new duration
      */
     public static Duration ofDays(double day) {
@@ -109,7 +115,7 @@ public class TimeDuration {
     /**
      * The number of seconds concatenated with the number of nanoseconds (12.500000000
      * for 12.5 seconds).
-     *
+     * @param duration the duration
      * @return the string representation
      */
     public static String toSecondString(Duration duration){

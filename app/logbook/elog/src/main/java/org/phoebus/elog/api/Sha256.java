@@ -29,7 +29,7 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author Juan F. Esteban Müller <JuanF.EstebanMuller@ess.eu>
+ * @author Juan F. Esteban Müller {@literal <JuanF.EstebanMuller@ess.eu>}
  */
 public class Sha256 {
 

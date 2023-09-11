@@ -228,7 +228,7 @@ public class TraceImpl<XTYPE extends Comparable<XTYPE>> implements Trace<XTYPE>
     /** Set the Y Axis index.
      *
      *  @param y_axis Y axis index
-     *  @see RTPlot#moveTrace()
+     *  @see RTPlot #moveTrace()
      */
     public void setYAxis(final int y_axis)
     {

@@ -81,7 +81,7 @@ public class PlotPart
         return name;
     }
 
-    /** @return Part name */
+    /** @param name */
     public void setName(final String name)
     {
         Objects.requireNonNull(name);

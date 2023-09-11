@@ -198,7 +198,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         return true;
     }
 
-    /** @param enable Enable the PV?
+    /** @param enabled_state Enable the PV?
      *  @return <code>true</code> if this is a change
      * Set as listener to enable
      */
@@ -214,7 +214,7 @@ public class AlarmServerPV extends AlarmTreeItem<AlarmState> implements AlarmTre
         return true;
     }
 
-    /** @param enable Enable the PV?
+    /** @param enabled_date Enable the PV?
      *  @return <code>true</code> if this is a change
      */
     @Override

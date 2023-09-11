@@ -34,7 +34,6 @@ import static java.time.temporal.ChronoUnit.YEARS;
  *
  * @author shroffk
  */
-@SuppressWarnings("nls")
 public class TimeParser {
     /** Text for the relative {@link TemporalAmount} of size 0 */
     public static final String NOW = "now";
@@ -74,7 +73,7 @@ public class TimeParser {
 
     /**
      * Return a {@link TimeInterval} between this instant represented by the string and NOW
-     * @param time
+     * @param time in string
      * @return TimeInterval
      */
     @Deprecated
@@ -99,8 +98,8 @@ public class TimeParser {
      *
      * e.g. parseDuraiton("5h 3min 34s");
      *
-     * @param string
-     * @return
+     * @param string time in string
+     * @return duration
      * @deprecated use {@link #parseTemporalAmount(String)}
      */
     @Deprecated
@@ -368,7 +367,7 @@ public class TimeParser {
     }
 
     /** Try to parse text as absolute or relative time
-     *  @param text
+     *  @param text temporal amount
      *  @return {@link Instant}, {@link TemporalAmount} or <code>null</code>
      */
     public static Object parseInstantOrTemporalAmount(final String text)

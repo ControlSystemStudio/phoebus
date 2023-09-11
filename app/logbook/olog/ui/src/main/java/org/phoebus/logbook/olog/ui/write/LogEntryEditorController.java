@@ -46,6 +46,7 @@ import org.phoebus.logbook.olog.ui.menu.SendToLogBookApp;
 import org.phoebus.olog.es.api.OlogProperties;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.security.store.SecureStore;
+import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.security.tokens.SimpleAuthenticationToken;
 import org.phoebus.ui.dialog.ListSelectionPopOver;
@@ -172,7 +173,6 @@ public class LogEntryEditorController {
      * Version of remote service
      */
     private String serverVersion;
-
 
     public LogEntryEditorController(LogEntry logEntry, LogEntry inReplyTo, LogEntryCompletionHandler logEntryCompletionHandler) {
         this.replyTo = inReplyTo;
@@ -444,7 +444,7 @@ public class LogEntryEditorController {
                         try {
                             SecureStore store = new SecureStore();
                             ScopedAuthenticationToken scopedAuthenticationToken =
-                                    new ScopedAuthenticationToken(LogService.AUTHENTICATION_SCOPE, usernameProperty.get(), passwordProperty.get());
+                                    new ScopedAuthenticationToken(AuthenticationScope.LOGBOOK, usernameProperty.get(), passwordProperty.get());
                             store.setScopedAuthentication(scopedAuthenticationToken);
                         } catch (Exception ex) {
                             logger.log(Level.WARNING, "Secure Store file not found.", ex);
@@ -651,7 +651,7 @@ public class LogEntryEditorController {
             // Get the SecureStore. Retrieve username and password.
             try {
                 SecureStore store = new SecureStore();
-                ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken(LogService.AUTHENTICATION_SCOPE);
+                ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken(AuthenticationScope.LOGBOOK);
                 // Could be accessed from JavaFX Application Thread when updating, so synchronize.
                 synchronized (usernameProperty) {
                     usernameProperty.set(scopedAuthenticationToken == null ? "" : scopedAuthenticationToken.getUsername());

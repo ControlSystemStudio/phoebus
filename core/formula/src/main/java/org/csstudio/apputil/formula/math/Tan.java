@@ -1,9 +1,14 @@
 package org.csstudio.apputil.formula.math;
 
-@SuppressWarnings("nls")
+/**
+ * Tan class see @Math tan function
+ */
 public class Tan extends OneArgMathFunction
 {
-    public Tan()
+	/**
+     * Constructor
+     */
+	public Tan()
     {
         super("tan", "Tangent", Math::tan);
     }

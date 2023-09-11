@@ -89,9 +89,9 @@ public class AdapterService {
 
     /**
      * Adapts the adaptableObject to type adapterType using registered adaptor factories.
-     *
-     * @param adaptableObject
-     * @param adapterType
+     * @param <T> , the type to convert
+     * @param adaptableObject , the object to adapt
+     * @param adapterType , the target type 
      * @return an {@link Optional} with the the adapted object or empty
      */
     public static <T> Optional<T> adapt(Object adaptableObject, Class<T> adapterType)

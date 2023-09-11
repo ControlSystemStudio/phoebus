@@ -150,7 +150,7 @@ public class LogEntryImpl implements LogEntry {
     }
 
     /**
-     * return the {@link Property} with name <tt>propertyName</tt> if it exists
+     * return the {@link Property} with name propertyName if it exists
      * on this log else return null.
      * 
      * @param propertyName
