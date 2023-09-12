@@ -42,12 +42,6 @@ public class ContextMenuConfiguration extends ContextMenuBase {
                 multipleNodesSelectedProperty, userIsAuthenticatedProperty));
         openConfigurationMenuItem.setOnAction(ae -> saveAndRestoreController.openConfigurationForSnapshot());
 
-        MenuItem editConfigurationMenuItem = new MenuItem(Messages.Edit, new ImageView(ImageRepository.EDIT_CONFIGURATION));
-        editConfigurationMenuItem.disableProperty().bind(Bindings.createBooleanBinding(() ->
-                        multipleNodesSelectedProperty.get() || userIsAuthenticatedProperty.not().get(),
-                multipleNodesSelectedProperty, userIsAuthenticatedProperty));
-        editConfigurationMenuItem.setOnAction(ae -> saveAndRestoreController.nodeDoubleClicked());
-
         ImageView exportConfigurationIconImageView = new ImageView(csvExportIcon);
         exportConfigurationIconImageView.setFitWidth(18);
         exportConfigurationIconImageView.setFitHeight(18);
@@ -77,7 +71,6 @@ public class ContextMenuConfiguration extends ContextMenuBase {
         pasteMenuItem.disableProperty().bind(mayPasteProperty.not());
 
         getItems().addAll(openConfigurationMenuItem,
-                editConfigurationMenuItem,
                 copyMenuItem,
                 pasteMenuItem,
                 deleteNodesMenuItem,
