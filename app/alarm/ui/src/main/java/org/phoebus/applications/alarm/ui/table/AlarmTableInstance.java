@@ -10,6 +10,7 @@ package org.phoebus.applications.alarm.ui.table;
 import static org.phoebus.applications.alarm.AlarmSystem.logger;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
@@ -75,7 +76,7 @@ class AlarmTableInstance implements AppInstance
     {
         final String[] parsed = AlarmURI.parseAlarmURI(input);
         server = AlarmSystem.server;
-        config_name = parsed[1];
+        config_name = Arrays.stream(AlarmSystem.config_names).anyMatch(config_name -> config_name.equals(parsed[1])) ? parsed[1] : AlarmSystem.config_name;
 
         try
         {
