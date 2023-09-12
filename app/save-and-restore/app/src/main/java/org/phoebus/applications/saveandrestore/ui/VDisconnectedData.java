@@ -15,39 +15,28 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.phoebus.applications.saveandrestore.common;
+package org.phoebus.applications.saveandrestore.ui;
 
 import org.epics.vtype.VType;
-import org.phoebus.applications.saveandrestore.common.Threshold;
-
-import java.util.Optional;
-
-
 
 /**
  *
- * <code>VTypePair</code> is an object that combines two VType objects, which can later be compared one to another.
+ * <code>VDisconnectedData</code> represents a {@link VType} for a disconnected PV, where the data type is not known.
  *
  * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
  *
  */
-public class VTypePair {
+public final class VDisconnectedData extends VType{
 
-    public final VType base;
-    public final VType value;
-    public final Optional<Threshold<?>> threshold;
+    private static final long serialVersionUID = -2399970529728581034L;
 
-    /**
-     * Constructs a new pair.
-     *
-     * @param base the base value
-     * @param value the value that can be compared to base
-     * @param threshold the threshold values used for comparison
-     */
-    public VTypePair(VType base, VType value, Optional<Threshold<?>> threshold) {
-        this.base = base;
-        this.value = value;
-        this.threshold = threshold;
+    /** The singleton instance */
+    public static final VDisconnectedData INSTANCE = new VDisconnectedData();
+
+    private static final String TO_STRING = "---";
+    public static final String DISCONNECTED = "DISCONNECTED";
+
+    private VDisconnectedData() {
     }
 
     /*
@@ -57,6 +46,10 @@ public class VTypePair {
      */
     @Override
     public String toString() {
-        return base + " " + value;
+        return TO_STRING;
     }
+
+
+    public String getName(){ return "";}
+
 }

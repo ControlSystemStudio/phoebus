@@ -10,8 +10,6 @@
   <modules>
     <module>model</module>
     <module>app</module>
-    <module>service</module>
-    <module>common</module>
     <module>logging</module>
   </modules>
 </project>

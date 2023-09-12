@@ -32,8 +32,8 @@ import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.SafeMultiply;
-import org.phoebus.applications.saveandrestore.common.*;
 import org.phoebus.applications.saveandrestore.model.*;
+import org.phoebus.applications.saveandrestore.ui.*;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -187,7 +187,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
      * configured through a preference setting.
      *
      * @param completion Callback receiving a list of {@link SnapshotItem}s where values for PVs that could
-     *                   not be read are set to {@link VDisconnectedData#INSTANCE}.
+     *                   not be read are set to {@link org.phoebus.applications.saveandrestore.ui.VDisconnectedData#INSTANCE}.
      */
     private void readAll(Consumer<List<SnapshotItem>> completion) {
         ExecutorService executorService = Executors.newFixedThreadPool(10);

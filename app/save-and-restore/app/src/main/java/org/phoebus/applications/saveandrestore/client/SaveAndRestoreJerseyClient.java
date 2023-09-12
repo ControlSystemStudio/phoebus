@@ -16,24 +16,22 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.applications.saveandrestore.impl;
+package org.phoebus.applications.saveandrestore.client;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
-
 import com.sun.jersey.api.client.*;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
-import org.phoebus.applications.saveandrestore.SaveAndRestoreClient;
+import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
 import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
-import org.phoebus.applications.saveandrestore.service.Messages;
 import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.AuthenticationScope;
@@ -45,7 +43,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
+public class SaveAndRestoreJerseyClient implements org.phoebus.applications.saveandrestore.client.SaveAndRestoreClient {
 
     private static final String CONTENT_TYPE_JSON = "application/json; charset=UTF-8";
     private final Logger logger = Logger.getLogger(SaveAndRestoreJerseyClient.class.getName());
@@ -67,7 +65,7 @@ public class SaveAndRestoreJerseyClient implements SaveAndRestoreClient {
         mapper.registerModule(new JavaTimeModule());
         mapper.setSerializationInclusion(Include.NON_NULL);
 
-        PreferencesReader preferencesReader = new PreferencesReader(SaveAndRestoreClient.class, "/client_preferences.properties");
+        PreferencesReader preferencesReader = new PreferencesReader(SaveAndRestoreClient.class, "/save_and_restore_preferences.properties");
         this.jmasarServiceUrl = preferencesReader.get("jmasar.service.url");
 
         String readTimeoutString = preferencesReader.get("httpClient.readTimeout");

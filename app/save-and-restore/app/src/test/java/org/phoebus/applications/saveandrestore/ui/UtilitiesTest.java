@@ -16,71 +16,17 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.applications.saceandrestore.common;
+package org.phoebus.applications.saveandrestore.ui;
 
-import org.epics.util.array.ArrayBoolean;
-import org.epics.util.array.ArrayByte;
-import org.epics.util.array.ArrayDouble;
-import org.epics.util.array.ArrayFloat;
-import org.epics.util.array.ArrayInteger;
-import org.epics.util.array.ArrayLong;
-import org.epics.util.array.ArrayShort;
-import org.epics.util.array.ArrayUByte;
-import org.epics.util.array.ArrayUInteger;
-import org.epics.util.array.ArrayULong;
-import org.epics.util.array.ArrayUShort;
-import org.epics.util.array.ListBoolean;
-import org.epics.util.array.ListLong;
-import org.epics.vtype.Alarm;
-import org.epics.vtype.AlarmSeverity;
-import org.epics.vtype.AlarmStatus;
-import org.epics.vtype.Display;
-import org.epics.vtype.EnumDisplay;
-import org.epics.vtype.Time;
-import org.epics.vtype.VBoolean;
-import org.epics.vtype.VBooleanArray;
-import org.epics.vtype.VByte;
-import org.epics.vtype.VByteArray;
-import org.epics.vtype.VDouble;
-import org.epics.vtype.VDoubleArray;
-import org.epics.vtype.VEnum;
-import org.epics.vtype.VEnumArray;
-import org.epics.vtype.VFloat;
-import org.epics.vtype.VFloatArray;
-import org.epics.vtype.VInt;
-import org.epics.vtype.VIntArray;
-import org.epics.vtype.VLong;
-import org.epics.vtype.VLongArray;
-import org.epics.vtype.VShort;
-import org.epics.vtype.VShortArray;
-import org.epics.vtype.VString;
-import org.epics.vtype.VStringArray;
-import org.epics.vtype.VType;
-import org.epics.vtype.VUByte;
-import org.epics.vtype.VUByteArray;
-import org.epics.vtype.VUInt;
-import org.epics.vtype.VUIntArray;
-import org.epics.vtype.VULong;
-import org.epics.vtype.VULongArray;
-import org.epics.vtype.VUShort;
-import org.epics.vtype.VUShortArray;
+import org.epics.util.array.*;
+import org.epics.vtype.*;
 import org.junit.jupiter.api.Test;
-import org.phoebus.applications.saveandrestore.common.Threshold;
-import org.phoebus.applications.saveandrestore.common.Utilities;
-import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
 
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class UtilitiesTest {
 

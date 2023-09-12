@@ -24,27 +24,17 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.util.StringConverter;
-import org.epics.vtype.Alarm;
-import org.epics.vtype.EnumDisplay;
-import org.epics.vtype.Time;
-import org.epics.vtype.VEnum;
-import org.epics.vtype.VNumber;
-import org.epics.vtype.VNumberArray;
-import org.epics.vtype.VType;
-import org.phoebus.applications.saveandrestore.common.Utilities;
-import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
-import org.phoebus.applications.saveandrestore.common.VNoData;
-import org.phoebus.applications.saveandrestore.common.VTypePair;
-import org.phoebus.applications.saveandrestore.ui.MultitypeTableCell;
+import org.epics.vtype.*;
+import org.phoebus.applications.saveandrestore.ui.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * <code>VTypeCellEditor</code> is an editor type for {@link org.epics.vtype.VType} or {@link VTypePair}, which allows editing the
+ * <code>VTypeCellEditor</code> is an editor type for {@link org.epics.vtype.VType} or {@link org.phoebus.applications.saveandrestore.ui.VTypePair}, which allows editing the
  * value as a string.
  *
- * @param <T> {@link org.epics.vtype.VType} or {@link VTypePair}
+ * @param <T> {@link org.epics.vtype.VType} or {@link org.phoebus.applications.saveandrestore.ui.VTypePair}
  * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
  */
 public class VTypeCellEditor<T> extends MultitypeTableCell<TableEntry, T> {
@@ -196,9 +186,9 @@ public class VTypeCellEditor<T> extends MultitypeTableCell<TableEntry, T> {
         }
         TableRow tableRow = getTableRow();
         // If this is a TableEntry row and read-only it should not be editable.
-        if(tableRow != null){
-            if(tableRow.getItem() != null && tableRow.getItem() instanceof TableEntry){
-                TableEntry tableEntry = (TableEntry)tableRow.getItem();
+        if (tableRow != null) {
+            if (tableRow.getItem() != null && tableRow.getItem() instanceof TableEntry) {
+                TableEntry tableEntry = (TableEntry) tableRow.getItem();
                 setEditable(tableEntry.readOnlyProperty().not().get());
             }
         }

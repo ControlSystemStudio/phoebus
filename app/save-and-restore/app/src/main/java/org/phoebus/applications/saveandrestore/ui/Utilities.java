@@ -15,77 +15,17 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.phoebus.applications.saveandrestore.common;
+package org.phoebus.applications.saveandrestore.ui;
 
-import org.epics.util.array.ArrayBoolean;
-import org.epics.util.array.ArrayByte;
-import org.epics.util.array.ArrayDouble;
-import org.epics.util.array.ArrayFloat;
-import org.epics.util.array.ArrayInteger;
-import org.epics.util.array.ArrayLong;
-import org.epics.util.array.ArrayShort;
-import org.epics.util.array.ArrayUByte;
-import org.epics.util.array.ArrayUInteger;
-import org.epics.util.array.ArrayULong;
-import org.epics.util.array.ArrayUShort;
-import org.epics.util.array.ListBoolean;
-import org.epics.util.array.ListLong;
-import org.epics.util.array.ListNumber;
-import org.epics.util.array.ListUInteger;
-import org.epics.util.array.ListULong;
-import org.epics.util.number.UByte;
-import org.epics.util.number.UInteger;
-import org.epics.util.number.ULong;
-import org.epics.util.number.UShort;
-import org.epics.util.number.UnsignedConversions;
+import org.epics.util.array.*;
+import org.epics.util.number.*;
 import org.epics.util.text.NumberFormats;
-import org.epics.vtype.Alarm;
-import org.epics.vtype.AlarmSeverity;
-import org.epics.vtype.AlarmStatus;
-import org.epics.vtype.Array;
-import org.epics.vtype.Display;
-import org.epics.vtype.EnumDisplay;
-import org.epics.vtype.SimpleValueFormat;
-import org.epics.vtype.Time;
-import org.epics.vtype.VBoolean;
-import org.epics.vtype.VBooleanArray;
-import org.epics.vtype.VByte;
-import org.epics.vtype.VByteArray;
-import org.epics.vtype.VDouble;
-import org.epics.vtype.VDoubleArray;
-import org.epics.vtype.VEnum;
-import org.epics.vtype.VEnumArray;
-import org.epics.vtype.VFloat;
-import org.epics.vtype.VFloatArray;
-import org.epics.vtype.VInt;
-import org.epics.vtype.VIntArray;
-import org.epics.vtype.VLong;
-import org.epics.vtype.VLongArray;
-import org.epics.vtype.VNumber;
-import org.epics.vtype.VNumberArray;
-import org.epics.vtype.VShort;
-import org.epics.vtype.VShortArray;
-import org.epics.vtype.VString;
-import org.epics.vtype.VStringArray;
-import org.epics.vtype.VType;
-import org.epics.vtype.VUByte;
-import org.epics.vtype.VUByteArray;
-import org.epics.vtype.VUInt;
-import org.epics.vtype.VUIntArray;
-import org.epics.vtype.VULong;
-import org.epics.vtype.VULongArray;
-import org.epics.vtype.VUShort;
-import org.epics.vtype.VUShortArray;
-import org.epics.vtype.ValueFormat;
+import org.epics.vtype.*;
 import org.phoebus.core.vtypes.VTypeHelper;
 
 import java.math.BigInteger;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -99,7 +39,7 @@ import java.util.stream.Collectors;
 public final class Utilities {
 
     /**
-     * <code>VTypeComparison</code> is the result of comparison of two {@link org.epics.vtype.VType} values. The {@link #string} field
+     * <code>VTypeComparison</code> is the result of comparison of two {@link VType} values. The {@link #string} field
      * provides the textual representation of the comparison and the {@link #valuesEqual} provides information whether
      * the values are equal (0), the first value is greater than second (1), or the first value is less than second
      * (-1). This only applies to scalar values. In case of array values the comparison can only result in 0 or 1.

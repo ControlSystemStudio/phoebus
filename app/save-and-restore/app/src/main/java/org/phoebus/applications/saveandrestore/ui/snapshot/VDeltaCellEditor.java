@@ -22,10 +22,10 @@ package org.phoebus.applications.saveandrestore.ui.snapshot;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import org.phoebus.applications.saveandrestore.common.Utilities;
-import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
-import org.phoebus.applications.saveandrestore.common.VNoData;
-import org.phoebus.applications.saveandrestore.common.VTypePair;
+import org.phoebus.applications.saveandrestore.ui.Utilities;
+import org.phoebus.applications.saveandrestore.ui.VDisconnectedData;
+import org.phoebus.applications.saveandrestore.ui.VNoData;
+import org.phoebus.applications.saveandrestore.ui.VTypePair;
 
 import java.util.Formatter;
 

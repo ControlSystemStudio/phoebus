@@ -23,6 +23,7 @@ public class Messages {
 
     public static String alertContinue;
     public static String alertAddingPVsToConfiguration;
+    public static String authenticationFailed;
     public static String baseSetpoint;
     public static String buttonSearch;
     public static String cannotCompareHeader;
@@ -30,6 +31,7 @@ public class Messages {
     public static String closeConfigurationWarning;
     public static String closeCompositeSnapshotWarning;
     public static String closeTabPrompt;
+    public static String compositeSnapshotConsistencyCheckFailed;
     public static String contextMenuAddTagWithComment;
     public static String contextMenuCreateSnapshot;
     public static String contextMenuCompareSnapshots;
@@ -47,15 +49,21 @@ public class Messages {
     public static String contextMenuTagAsGolden;
     public static String contextMenuTagsWithComment;
     public static String contextMenuOpenCompositeSnapshotForRestore;
+
     public static String copyOrMoveNotAllowedBody;
     public static String copyOrMoveNotAllowedHeader;
     public static String copyUniqueIdToClipboard;
+
+    public static String createNewTagDialogHeader;
+    public static String createNewTagDialogTitle;
+    public static String createCompositeSnapshotFailed;
+    public static String createConfigurationFailed;
+    public static String createNodeFailed;
     public static String currentPVValue;
     public static String currentReadbackValue;
     public static String currentSetpointValue;
-    public static String createNewTagDialogHeader;
-    public static String createNewTagDialogTitle;
     public static String deleteFilter;
+    public static String deleteFilterFailed;
 
     public static String duplicatePVNamesAdditionalItems;
     public static String duplicatePVNamesCheckFailed;
@@ -110,12 +118,15 @@ public class Messages {
     public static String saveFilter;
 
     public static String saveFilterConfirmOverwrite;
+    public static String saveFilterFailed;
 
     public static String saveSnapshotErrorContent;
+    public static String saveSnapshotFailed;
     public static String saveTagButtonLabel;
     public static String search;
     public static String searchEntryToolTip;
     public static String searchErrorBody;
+    public static String searchFailed;
     public static String searchNoResultsTitle;
     public static String searchNoResult;
 
@@ -126,6 +137,7 @@ public class Messages {
     public static String storedReadbackValue;
     public static String storedValues;
     public static String tableColumnDeltaValue;
+    public static String tagAddFailed;
     public static String tagNameLabel;
     public static String tagCommentLabel;
     public static String tagRemoveConfirmationTitle;
@@ -145,13 +157,16 @@ public class Messages {
     public static String toolTipMultiplierSpinner;
     public static String unnamedSnapshot;
 
-    static
-    {
+    public static String updateCompositeSnapshotFailed;
+    public static String updateConfigurationFailed;
+
+    public static String updateNodeFailed;
+
+    static {
         NLS.initializeMessages(Messages.class);
     }
 
-    private Messages()
-    {
+    private Messages() {
         // Prevent instantiation
     }
 

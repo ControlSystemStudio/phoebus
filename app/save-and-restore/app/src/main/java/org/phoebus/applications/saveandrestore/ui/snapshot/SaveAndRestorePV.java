@@ -20,8 +20,8 @@
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
 import org.epics.vtype.VType;
-import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
-import org.phoebus.applications.saveandrestore.common.VNoData;
+import org.phoebus.applications.saveandrestore.ui.VDisconnectedData;
+import org.phoebus.applications.saveandrestore.ui.VNoData;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 
