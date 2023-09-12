@@ -13,6 +13,7 @@ import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
+import org.apache.kafka.common.KafkaException;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.ui.AlarmConfigSelector;
@@ -73,22 +74,30 @@ class AlarmTableInstance implements AppInstance
     private Node create(final URI input) throws Exception
     {
         final String[] parsed = AlarmURI.parseAlarmURI(input);
-        server = parsed[0];
+        server = AlarmSystem.server;
         config_name = parsed[1];
 
         try
         {
-            client = new AlarmClient(server, config_name, AlarmSystem.kafka_properties);
-            table = new AlarmTableUI(client);
-            mediator = new AlarmTableMediator(client, table);
-            client.addListener(mediator);
-            client.start();
+            try {
+                client = new AlarmClient(server, config_name, AlarmSystem.kafka_properties);
+            }
+            catch (KafkaException e) {
+                logger.log(Level.SEVERE, "Failed to connect to Kafka server: " + e.getMessage());
+            }
 
+            table = new AlarmTableUI(client);
             if (AlarmSystem.config_names.length > 0)
             {
                 final AlarmConfigSelector configs = new AlarmConfigSelector(config_name, this::changeConfig);
                 // Place after "Active Alarms: 12" and strut
                 table.getToolbar().getItems().add(2, configs);
+            }
+
+            if (client != null) {
+                mediator = new AlarmTableMediator(client, table);
+                client.addListener(mediator);
+                client.start();
             }
 
             return table;
