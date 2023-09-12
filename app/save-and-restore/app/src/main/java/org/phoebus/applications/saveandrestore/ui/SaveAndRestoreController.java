@@ -172,6 +172,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     private SecureStore secureStore;
 
+    private SimpleBooleanProperty userIsAuthenticated = new SimpleBooleanProperty();
+
     /**
      * @param uri If non-null, this is used to load a configuration or snapshot into the view.
      */
@@ -1424,17 +1426,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     }
 
     public boolean isUserAuthenticated(){
-        if(secureStore == null){
-            return false;
-        }
-        try {
-            ScopedAuthenticationToken token =
-                    secureStore.getScopedAuthenticationToken(AuthenticationScope.SAVE_AND_RESTORE);
-            return token != null && token.getUsername() != null && token.getPassword() != null;
-        } catch (Exception e) {
-            LOG.log(Level.WARNING, "Unable to retrieve authentication token for save-and-restore scope", e);
-        }
-        return false;
+        return userIsAuthenticated.get();
     }
 
     /**
@@ -1498,5 +1490,15 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         return configAndSnapshotNode[1].getUniqueId() != null &&
                 parentItem.getValue().getUniqueId().equals(configAndSnapshotNode[0].getUniqueId()) &&
                 !selectedItem.getValue().getUniqueId().equals(configAndSnapshotNode[1].getUniqueId());
+    }
+
+    /**
+     * Sets {@link #userIsAuthenticated} value based on presence of
+     * {@link AuthenticationScope#SAVE_AND_RESTORE} in the list of valid tokens.
+     * @param validTokens List of valid {@link ScopedAuthenticationToken}s in the {@link SecureStore}.
+     */
+    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens){
+        userIsAuthenticated.set(validTokens.stream()
+                .filter(t -> t.getAuthenticationScope().equals(AuthenticationScope.SAVE_AND_RESTORE)).findFirst().isPresent());
     }
 }
