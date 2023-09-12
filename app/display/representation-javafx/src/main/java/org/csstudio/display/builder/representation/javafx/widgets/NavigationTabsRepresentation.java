@@ -259,19 +259,21 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
                          .forEach(widget -> {
                              NavigationTabsWidget nestedNavigationTabsWidget = (NavigationTabsWidget) widget;
                              NavigationTabsRepresentation nestedNavigationTabsRepresentation = (NavigationTabsRepresentation) nestedNavigationTabsWidget.getUserData(Widget.USER_DATA_REPRESENTATION);
-                             SelectedNavigationTabs nestedNavigationTabsRepresentation_selectedNavigationTabs;
+                             if (nestedNavigationTabsRepresentation != null) {
+                                 SelectedNavigationTabs nestedNavigationTabsRepresentation_selectedNavigationTabs;
 
-                             if (!selectedNavigationTabsHashMapForCurrentTab.containsKey(nestedNavigationTabsWidget.getName())) {
-                                 nestedNavigationTabsRepresentation_selectedNavigationTabs = new SelectedNavigationTabs(nestedNavigationTabsWidget.propActiveTab().getValue());
-                                 selectedNavigationTabsHashMapForCurrentTab.put(nestedNavigationTabsWidget.getName(), nestedNavigationTabsRepresentation_selectedNavigationTabs);
-                             }
-                             else {
-                                 nestedNavigationTabsRepresentation_selectedNavigationTabs = selectedNavigationTabsHashMapForCurrentTab.get(nestedNavigationTabsWidget.getName());
-                                 if (nestedNavigationTabsWidget.propTabs().size() > nestedNavigationTabsRepresentation_selectedNavigationTabs.left) {
-                                     nestedNavigationTabsWidget.propActiveTab().setValue(nestedNavigationTabsRepresentation_selectedNavigationTabs.left);
+                                 if (!selectedNavigationTabsHashMapForCurrentTab.containsKey(nestedNavigationTabsWidget.getName())) {
+                                     nestedNavigationTabsRepresentation_selectedNavigationTabs = new SelectedNavigationTabs(nestedNavigationTabsWidget.propActiveTab().getValue());
+                                     selectedNavigationTabsHashMapForCurrentTab.put(nestedNavigationTabsWidget.getName(), nestedNavigationTabsRepresentation_selectedNavigationTabs);
                                  }
+                                 else {
+                                     nestedNavigationTabsRepresentation_selectedNavigationTabs = selectedNavigationTabsHashMapForCurrentTab.get(nestedNavigationTabsWidget.getName());
+                                     if (nestedNavigationTabsWidget.propTabs().size() > nestedNavigationTabsRepresentation_selectedNavigationTabs.left) {
+                                         nestedNavigationTabsWidget.propActiveTab().setValue(nestedNavigationTabsRepresentation_selectedNavigationTabs.left);
+                                     }
+                                 }
+                                 nestedNavigationTabsRepresentation.selectedNavigationTabs = nestedNavigationTabsRepresentation_selectedNavigationTabs;
                              }
-                             nestedNavigationTabsRepresentation.selectedNavigationTabs = nestedNavigationTabsRepresentation_selectedNavigationTabs;
                         });
 
                 model_widget.runtimePropEmbeddedModel().setValue(new_model);
