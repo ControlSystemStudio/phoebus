@@ -603,10 +603,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
     }
 
-    public void nodeDoubleClicked() {
-        nodeDoubleClicked(treeView.getSelectionModel().getSelectedItem().getValue());
-    }
-
     /**
      * Handles double click on the specified tree node. Actual action depends on the {@link Node} type.
      *
@@ -628,7 +624,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 ((SnapshotTab) tab).loadSnapshot(node);
                 break;
             case COMPOSITE_SNAPSHOT:
-                openCompositeSnapshotForRestore();
+                TreeItem<Node> treeItem = browserSelectionModel.getSelectedItems().get(0);
+                tab = new SnapshotTab(treeItem.getValue(), saveAndRestoreService);
+                ((SnapshotTab) tab).loadSnapshot(treeItem.getValue());
                 return;
             case FOLDER:
             default:
@@ -1297,15 +1295,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         return null;
     }
 
-    protected void openCompositeSnapshotForRestore() {
-        TreeItem<Node> treeItem = browserSelectionModel.getSelectedItems().get(0);
-        SnapshotTab tab = new SnapshotTab(treeItem.getValue(), saveAndRestoreService);
-        tab.loadSnapshot(treeItem.getValue());
-
-        tabPane.getTabs().add(tab);
-        tabPane.getSelectionModel().select(tab);
-    }
-
     @Override
     public void filterAddedOrUpdated(Filter filter) {
         if (!filtersList.contains(filter)) {
@@ -1500,5 +1489,11 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens){
         userIsAuthenticated.set(validTokens.stream()
                 .filter(t -> t.getAuthenticationScope().equals(AuthenticationScope.SAVE_AND_RESTORE)).findFirst().isPresent());
+        tabPane.getTabs().forEach(t -> {
+            if(t instanceof ConfigurationTab){
+                ConfigurationTab configurationTab = (ConfigurationTab)t;
+                configurationTab.secureStoreChanged(validTokens);
+            }
+        });
     }
 }

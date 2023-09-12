@@ -5,9 +5,10 @@
 <?import javafx.scene.control.cell.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane fx:id="root" style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationController">
+<?import javafx.scene.text.Font?>
+<BorderPane fx:id="root" style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationController">
     <center>
-        <GridPane id="parent" fx:id="parent" hgap="5.0" style="-fx-background-color: #f4f4f4;" BorderPane.alignment="TOP_LEFT">
+        <GridPane id="parent" fx:id="parent" alignment="TOP_RIGHT" hgap="5.0" style="-fx-background-color: #f4f4f4;" BorderPane.alignment="TOP_LEFT">
             <children>
                 <Label text="%configurationName" GridPane.halignment="RIGHT" GridPane.valignment="CENTER">
                     <GridPane.margin>
@@ -40,6 +41,28 @@
                         <Insets bottom="5.0" left="5.0" right="5.0" top="6.0" />
                     </GridPane.margin>
                 </Button>
+                <Label maxWidth="1.7976931348623157E308" GridPane.columnIndex="5" GridPane.hgrow="ALWAYS" />
+                <Label text="%authenticatedUserLabel" GridPane.columnIndex="6" GridPane.halignment="LEFT">
+                    <font>
+                        <Font size="14.0" />
+                    </font>
+               <GridPane.margin>
+                  <Insets />
+               </GridPane.margin>
+               <padding>
+                  <Insets right="10.0" />
+               </padding></Label>
+                <Label fx:id="authenticatedUserId" text="%authenticatedUserNone" GridPane.columnIndex="6" GridPane.halignment="LEFT" GridPane.rowIndex="1">
+                    <font>
+                        <Font size="18.0" />
+                    </font>
+               <GridPane.margin>
+                  <Insets />
+               </GridPane.margin>
+               <padding>
+                  <Insets right="10.0" />
+               </padding>
+                </Label>
                 <Label text="%lastModifiedDate" GridPane.halignment="RIGHT" GridPane.rowIndex="2">
                     <GridPane.margin>
                         <Insets left="8.0" />
@@ -53,7 +76,7 @@
                 </Label>
                 <Label fx:id="createdByField" text="Created by" GridPane.columnIndex="1" GridPane.rowIndex="3" />
 
-                <TableView fx:id="pvTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.columnSpan="5" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS">
+                <TableView fx:id="pvTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.columnSpan="7" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS">
                     <columns>
                         <TableColumn prefWidth="-1.0" text="%pvList">
                             <columns>
@@ -87,6 +110,9 @@
                 <ColumnConstraints />
                 <ColumnConstraints />
                 <ColumnConstraints minWidth="120.0" />
+            <ColumnConstraints />
+            <ColumnConstraints />
+            <ColumnConstraints />
             </columnConstraints>
             <rowConstraints>
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
@@ -101,7 +127,7 @@
         </GridPane>
     </center>
     <bottom>
-        <GridPane alignment="CENTER_LEFT" style="-fx-background-color: #f4f4f4;" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.halignment="LEFT" GridPane.rowIndex="4">
+        <GridPane fx:id="addPVsPane" style="-fx-background-color: #f4f4f4;" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.halignment="LEFT" GridPane.rowIndex="4">
             <children>
                 <Label alignment="CENTER" text="%pvName" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="0">
                     <GridPane.margin>

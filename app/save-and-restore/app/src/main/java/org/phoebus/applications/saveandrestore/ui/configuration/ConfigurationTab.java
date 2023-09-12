@@ -27,7 +27,9 @@ import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
 import org.phoebus.framework.nls.NLS;
+import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -116,5 +118,9 @@ public class ConfigurationTab extends SaveAndRestoreTab {
         } else {
             updateTabTitle(tabTitle.substring(2));
         }
+    }
+
+    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens){
+        configurationController.secureStoreChanged(validTokens);
     }
 }

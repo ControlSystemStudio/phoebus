@@ -37,7 +37,7 @@ import java.util.logging.Logger;
 public class SaveAndRestoreInstance implements AppInstance {
 
     private final AppDescriptor appDescriptor;
-    private SaveAndRestoreController controller;
+    private final SaveAndRestoreController saveAndRestoreController;
 
     public SaveAndRestoreInstance(AppDescriptor appDescriptor, URI uri) {
         this.appDescriptor = appDescriptor;
@@ -64,9 +64,9 @@ public class SaveAndRestoreInstance implements AppInstance {
             Logger.getLogger(SaveAndRestoreApplication.class.getName()).log(Level.SEVERE, "Failed loading fxml", e);
         }
 
-        controller = loader.getController();
+        saveAndRestoreController = loader.getController();
 
-        tab.setOnCloseRequest(event -> controller.handleTabClosed());
+        tab.setOnCloseRequest(event -> saveAndRestoreController.handleTabClosed());
 
         DockPane.getActiveDockPane().addTab(tab);
     }
@@ -78,14 +78,14 @@ public class SaveAndRestoreInstance implements AppInstance {
 
     @Override
     public void save(Memento memento) {
-        controller.saveLocalState();
+        saveAndRestoreController.saveLocalState();
     }
 
     public void openResource(URI uri) {
-        controller.openResource(uri);
+        saveAndRestoreController.openResource(uri);
     }
 
     public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens){
-        controller.secureStoreChanged(validTokens);
+        saveAndRestoreController.secureStoreChanged(validTokens);
     }
 }
