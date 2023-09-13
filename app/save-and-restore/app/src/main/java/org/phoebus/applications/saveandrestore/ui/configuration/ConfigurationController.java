@@ -38,13 +38,10 @@ import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
-//import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
-import org.phoebus.security.store.SecureStore;
-import org.phoebus.security.tokens.AuthenticationScope;
-import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
@@ -60,7 +57,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class ConfigurationController implements NodeChangedListener {
+public class ConfigurationController extends SaveAndRestoreBaseController implements NodeChangedListener {
 
     @FXML
     private BorderPane root;
@@ -137,8 +134,6 @@ public class ConfigurationController implements NodeChangedListener {
         this.configurationTab = configurationTab;
     }
 
-    private final SimpleBooleanProperty userIsAuthenticated = new SimpleBooleanProperty();
-
     private final SimpleStringProperty authenticatedUserProperty = new SimpleStringProperty(Messages.authenticatedUserNone);
 
     @FXML
@@ -160,8 +155,8 @@ public class ConfigurationController implements NodeChangedListener {
         });
 
         deleteMenuItem.disableProperty().bind(Bindings.createBooleanBinding(() -> pvTable.getSelectionModel().getSelectedItems().isEmpty()
-                || userIsAuthenticated.not().get(),
-                pvTable.getSelectionModel().getSelectedItems(), userIsAuthenticated));
+                        || userIdentity.isNull().get(),
+                pvTable.getSelectionModel().getSelectedItems(), userIdentity));
 
         pvNameColumn.setEditable(true);
         pvNameColumn.setCellValueFactory(new PropertyValueFactory<>("pvName"));
@@ -210,9 +205,9 @@ public class ConfigurationController implements NodeChangedListener {
         pvNameField.textProperty().bindBidirectional(pvNameProperty);
         readbackPvNameField.textProperty().bindBidirectional(readbackPvNameProperty);
         configurationNameField.textProperty().bindBidirectional(configurationNameProperty);
-        configurationNameField.disableProperty().bind(userIsAuthenticated.not());
+        configurationNameField.disableProperty().bind(userIdentity.isNull());
         descriptionTextArea.textProperty().bindBidirectional(configurationDescriptionProperty);
-        descriptionTextArea.disableProperty().bind(userIsAuthenticated.not());
+        descriptionTextArea.disableProperty().bind(userIdentity.isNull());
 
         configurationEntries.addListener((ListChangeListener<ConfigPv>) change -> {
             while (change.next()) {
@@ -229,8 +224,8 @@ public class ConfigurationController implements NodeChangedListener {
         saveButton.disableProperty().bind(Bindings.createBooleanBinding(() -> dirty.not().get() ||
                         configurationDescriptionProperty.isEmpty().get() ||
                         configurationNameProperty.isEmpty().get() ||
-                        userIsAuthenticated.not().get(),
-                dirty, configurationDescriptionProperty, configurationNameProperty, userIsAuthenticated));
+                        userIdentity.isNull().get(),
+                dirty, configurationDescriptionProperty, configurationNameProperty, userIdentity));
 
         addPvButton.disableProperty().bind(pvNameField.textProperty().isEmpty());
 
@@ -253,22 +248,7 @@ public class ConfigurationController implements NodeChangedListener {
         });
 
         authenticatedUserId.textProperty().bind(authenticatedUserProperty);
-        addPVsPane.disableProperty().bind(userIsAuthenticated.not());
-
-        // Initialize userIsAuthenticated property
-
-        try {
-            SecureStore secureStore = new SecureStore();
-            ScopedAuthenticationToken token =
-                    secureStore.getScopedAuthenticationToken(AuthenticationScope.SAVE_AND_RESTORE);
-            if(token != null){
-                userIsAuthenticated.set(true);
-                authenticatedUserProperty.set(token.getUsername());
-            }
-        } catch (Exception e) {
-            logger.log(Level.WARNING, "Unable to retrieve authentication token for " +
-                    AuthenticationScope.SAVE_AND_RESTORE.getName() + " scope", e);
-        }
+        addPVsPane.disableProperty().bind(userIdentity.isNull());
 
         SaveAndRestoreService.getInstance().addNodeChangeListener(this);
     }
@@ -416,20 +396,6 @@ public class ConfigurationController implements NodeChangedListener {
                     .created(node.getCreated())
                     .lastModified(node.getLastModified())
                     .build());
-        }
-    }
-
-    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens){
-        Optional<ScopedAuthenticationToken> token =
-            validTokens.stream()
-                .filter(t -> t.getAuthenticationScope().equals(AuthenticationScope.SAVE_AND_RESTORE)).findFirst();
-        if(token.isPresent()){
-            userIsAuthenticated.set(true);
-            authenticatedUserProperty.set(token.get().getUsername());
-        }
-        else{
-            userIsAuthenticated.set(false);
-            authenticatedUserProperty.set(Messages.authenticatedUserNone);
         }
     }
 }

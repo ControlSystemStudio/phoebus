@@ -30,33 +30,10 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
+import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.MultipleSelectionModel;
-import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.SplitPane;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TextInputDialog;
-import javafx.scene.control.Tooltip;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.TransferMode;
+import javafx.scene.input.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.util.Callback;
@@ -94,15 +71,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.ResourceBundle;
-import java.util.Stack;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -110,7 +79,8 @@ import java.util.stream.Collectors;
 /**
  * Main controller for the save and restore UI.
  */
-public class SaveAndRestoreController implements Initializable, NodeChangedListener, NodeAddedListener, FilterChangeListener {
+public class SaveAndRestoreController extends SaveAndRestoreBaseController
+        implements Initializable, NodeChangedListener, NodeAddedListener, FilterChangeListener {
 
     @FXML
     protected TreeView<Node> treeView;
@@ -170,17 +140,12 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     private final ObservableList<Filter> filtersList = FXCollections.observableArrayList();
 
-    private SecureStore secureStore;
-
-    private SimpleBooleanProperty userIsAuthenticated = new SimpleBooleanProperty();
-
     /**
      * @param uri If non-null, this is used to load a configuration or snapshot into the view.
      */
     public SaveAndRestoreController(URI uri) {
         this.uri = uri;
     }
-
 
 
     @Override
@@ -211,7 +176,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         newRootFolderMenuItem.setOnAction(ae -> createNewFolder());
         rootFolderContextMenu.getItems().add(newRootFolderMenuItem);
         rootFolderContextMenu.setOnShowing(event -> {
-            if(!isUserAuthenticated()){
+            if (userIdentity.isNull().get()) {
                 Platform.runLater(() -> rootFolderContextMenu.hide());
             }
         });
@@ -295,18 +260,12 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         // considered in paste actions.
         Clipboard.getSystemClipboard().clear();
 
-        try {
-            secureStore = new SecureStore();
-        } catch (Exception e) {
-            LOG.log(Level.WARNING, "SecureStore could not be created. Authentication won't work.", e);
-        }
-
         loadTreeData();
     }
 
     /**
      * Loads the data for the tree root as provided (persisted) by the current
-     * {@link org.phoebus.applications.saveandrestore.SaveAndRestoreClient}.
+     * {@link org.phoebus.applications.saveandrestore.client.SaveAndRestoreClient}.
      */
     public void loadTreeData() {
 
@@ -591,7 +550,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
                 @Override
                 public void failed() {
-                    if(parentTreeItem.getParent() != null) { // Parent is null for root folder
+                    if (parentTreeItem.getParent() != null) { // Parent is null for root folder
                         expandTreeNode(parentTreeItem.getParent());
                     }
                     ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
@@ -1102,8 +1061,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             return true;
         }
         NodeType nodeType = selectedItems.get(0).getValue().getNodeType();
-        for(int i = 1; i < selectedItems.size(); i++){
-            if(!selectedItems.get(i).getValue().getNodeType().equals(nodeType)){
+        for (int i = 1; i < selectedItems.size(); i++) {
+            if (!selectedItems.get(i).getValue().getNodeType().equals(nodeType)) {
                 return false;
             }
         }
@@ -1324,7 +1283,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
     }
 
-    public void copySelectionToClipboard(){
+    public void copySelectionToClipboard() {
         List<TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
         List<Node> selectedNodes = selectedItems.stream().map(TreeItem::getValue).collect(Collectors.toList());
         ClipboardContent clipboardContent = new ClipboardContent();
@@ -1339,18 +1298,19 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      *     <li>All selected nodes must be of same type.</li>
      *     <li>All selected nodes must have same parent.</li>
      * </ul>
+     *
      * @return <code>true</code> if selection may be copied to clipboard, otherwise <code>false</code>.
      */
-    public boolean mayCopy(){
-        if(!isUserAuthenticated()){
+    public boolean mayCopy() {
+        if (userIdentity.isNull().get()) {
             return false;
         }
         List<Node> selectedNodes = browserSelectionModel.getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
-        if(selectedNodes.size() == 1){
+        if (selectedNodes.size() == 1) {
             return true;
         }
         NodeType nodeTypeOfFirst = selectedNodes.get(0).getNodeType();
-        if(selectedNodes.stream().filter(n -> !n.getNodeType().equals(nodeTypeOfFirst)).findFirst().isPresent()){
+        if (selectedNodes.stream().filter(n -> !n.getNodeType().equals(nodeTypeOfFirst)).findFirst().isPresent()) {
             return false;
         }
         TreeItem<Node> parentOfFirst = browserSelectionModel.getSelectedItems().get(0).getParent();
@@ -1365,38 +1325,38 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      *     <li>Configurations and composite snapshots may be pasted only onto folder.</li>
      *     <li>Snapshot may be pasted only onto configuration.</li>
      * </ul>
-     * @return  <code>true</code> if selection may be pasted, otherwise <code>false</code>.
+     *
+     * @return <code>true</code> if selection may be pasted, otherwise <code>false</code>.
      */
-    public boolean mayPaste(){
-        if(!isUserAuthenticated()){
+    public boolean mayPaste() {
+        if (userIdentity.isNull().get()) {
             return false;
         }
         Object clipBoardContent = Clipboard.getSystemClipboard().getContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT);
-        if(clipBoardContent == null ||  browserSelectionModel.getSelectedItems().size() != 1){
+        if (clipBoardContent == null || browserSelectionModel.getSelectedItems().size() != 1) {
             return false;
         }
         // Check is made if target node is of supported type for the clipboard content.
-        List<Node> selectedNodes = (List<Node>)clipBoardContent;
+        List<Node> selectedNodes = (List<Node>) clipBoardContent;
         NodeType nodeTypeOfFirst = selectedNodes.get(0).getNodeType();
         NodeType nodeTypeOfTarget = browserSelectionModel.getSelectedItem().getValue().getNodeType();
-        if((nodeTypeOfFirst.equals(NodeType.COMPOSITE_SNAPSHOT) ||
-                nodeTypeOfFirst.equals(NodeType.CONFIGURATION)) && !nodeTypeOfTarget.equals(NodeType.FOLDER)){
+        if ((nodeTypeOfFirst.equals(NodeType.COMPOSITE_SNAPSHOT) ||
+                nodeTypeOfFirst.equals(NodeType.CONFIGURATION)) && !nodeTypeOfTarget.equals(NodeType.FOLDER)) {
             return false;
-        }
-        else if(nodeTypeOfFirst.equals(NodeType.SNAPSHOT) && !nodeTypeOfTarget.equals(NodeType.CONFIGURATION)){
+        } else if (nodeTypeOfFirst.equals(NodeType.SNAPSHOT) && !nodeTypeOfTarget.equals(NodeType.CONFIGURATION)) {
             return false;
         }
         return true;
     }
 
-    public void pasteFromClipboard(){
+    public void pasteFromClipboard() {
         disabledUi.set(true);
         Object selectedNodes = Clipboard.getSystemClipboard().getContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT);
-        if(selectedNodes == null || browserSelectionModel.getSelectedItems().size() != 1){
+        if (selectedNodes == null || browserSelectionModel.getSelectedItems().size() != 1) {
             return;
         }
         List<String> selectedNodeIds =
-                ((List<Node>)selectedNodes).stream().map(Node::getUniqueId).collect(Collectors.toList());
+                ((List<Node>) selectedNodes).stream().map(Node::getUniqueId).collect(Collectors.toList());
         JobManager.schedule("copy nodes", monitor -> {
             try {
                 saveAndRestoreService.copyNodes(selectedNodeIds, browserSelectionModel.getSelectedItem().getValue().getUniqueId());
@@ -1412,10 +1372,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 treeView.refresh();
             });
         });
-    }
-
-    public boolean isUserAuthenticated(){
-        return userIsAuthenticated.get();
     }
 
     /**
@@ -1443,7 +1399,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     /**
      * @return <code>true</code> selection contains multiple {@link Node}s, otherwise <code>false</code>.
      */
-    public boolean multipleNodesSelected(){
+    public boolean multipleNodesSelected() {
         return browserSelectionModel.getSelectedItems().size() > 1;
     }
 
@@ -1481,31 +1437,11 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 !selectedItem.getValue().getUniqueId().equals(configAndSnapshotNode[1].getUniqueId());
     }
 
-    /**
-     * Sets {@link #userIsAuthenticated} value based on presence of
-     * {@link AuthenticationScope#SAVE_AND_RESTORE} in the list of valid tokens.
-     * @param validTokens List of valid {@link ScopedAuthenticationToken}s in the {@link SecureStore}.
-     */
-    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens){
-        userIsAuthenticated.set(validTokens.stream()
-                .filter(t -> t.getAuthenticationScope().equals(AuthenticationScope.SAVE_AND_RESTORE)).findFirst().isPresent());
+    @Override
+    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens) {
+        super.secureStoreChanged(validTokens);
         tabPane.getTabs().forEach(t -> {
-            if(t instanceof ConfigurationTab){
-                ConfigurationTab configurationTab = (ConfigurationTab)t;
-                configurationTab.secureStoreChanged(validTokens);
-            }
-            else if(t instanceof SnapshotTab){
-                SnapshotTab snapshotTab = (SnapshotTab)t;
-                snapshotTab.secureStoreChanged(validTokens);
-            }
-            else if(t instanceof CompositeSnapshotTab){
-                CompositeSnapshotTab compositeSnapshotTab = (CompositeSnapshotTab) t;
-                compositeSnapshotTab.secureStoreChanged(validTokens);
-            }
+            ((SaveAndRestoreTab) t).secureStoreChanged(validTokens);
         });
-    }
-
-    public boolean getUserIsAuthenticated(){
-        return userIsAuthenticated.get();
     }
 }

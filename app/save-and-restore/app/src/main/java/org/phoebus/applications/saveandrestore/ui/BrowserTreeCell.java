@@ -86,7 +86,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
         });
 
         setOnDragDetected(event -> {
-            if (!saveAndRestoreController.selectedNodesOfSameType() || !saveAndRestoreController.getUserIsAuthenticated()) {
+            if (saveAndRestoreController.getUserIdentity().isNull().get() || !saveAndRestoreController.selectedNodesOfSameType()) {
                 return;
             }
             final ClipboardContent content = new ClipboardContent();

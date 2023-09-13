@@ -36,8 +36,6 @@ import java.util.logging.Logger;
 
 public class ConfigurationTab extends SaveAndRestoreTab {
 
-    private ConfigurationController configurationController;
-
     public ConfigurationTab() {
         configure();
     }
@@ -61,7 +59,7 @@ public class ConfigurationTab extends SaveAndRestoreTab {
                 return null;
             });
             setContent(loader.load());
-            configurationController = loader.getController();
+            controller = loader.getController();
             setGraphic(new ImageView(ImageRepository.CONFIGURATION));
         } catch (Exception e) {
             Logger.getLogger(ConfigurationTab.class.getName())
@@ -70,7 +68,7 @@ public class ConfigurationTab extends SaveAndRestoreTab {
         }
 
         setOnCloseRequest(event -> {
-            if (!configurationController.handleConfigurationTabClosed()) {
+            if (!((ConfigurationController)controller).handleConfigurationTabClosed()) {
                 event.consume();
             } else {
                 SaveAndRestoreService.getInstance().removeNodeChangeListener(this);
@@ -88,11 +86,12 @@ public class ConfigurationTab extends SaveAndRestoreTab {
     public void editConfiguration(Node configurationNode) {
         setId(configurationNode.getUniqueId());
         textProperty().set(configurationNode.getName());
-        configurationController.loadConfiguration(configurationNode);
+        ((ConfigurationController)controller).loadConfiguration(configurationNode);
     }
 
     public void configureForNewConfiguration(Node parentNode) {
-        configurationController.newConfiguration(parentNode);
+        textProperty().set(Messages.contextMenuNewConfiguration);
+        ((ConfigurationController)controller).newConfiguration(parentNode);
     }
 
     @Override
@@ -118,9 +117,5 @@ public class ConfigurationTab extends SaveAndRestoreTab {
         } else if(!dirty){
             updateTabTitle(tabTitle.substring(2));
         }
-    }
-
-    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens){
-        configurationController.secureStoreChanged(validTokens);
     }
 }

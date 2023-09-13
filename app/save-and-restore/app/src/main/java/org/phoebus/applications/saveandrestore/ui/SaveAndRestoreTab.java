@@ -25,6 +25,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
+import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.util.List;
@@ -33,6 +34,8 @@ import java.util.List;
  * Base class for save-n-restore {@link Tab}s containing common functionality.
  */
 public abstract class SaveAndRestoreTab extends Tab implements NodeChangedListener{
+
+    protected SaveAndRestoreBaseController controller;
 
     public SaveAndRestoreTab(){
         ContextMenu contextMenu = new ContextMenu();
@@ -56,5 +59,9 @@ public abstract class SaveAndRestoreTab extends Tab implements NodeChangedListen
 
         contextMenu.getItems().addAll(closeAll, closeOthers);
         setContextMenu(contextMenu);
+    }
+
+    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens){
+        controller.secureStoreChanged(validTokens);
     }
 }

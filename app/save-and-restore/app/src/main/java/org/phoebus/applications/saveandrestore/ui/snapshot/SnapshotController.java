@@ -30,6 +30,7 @@ import org.epics.vtype.*;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.VNoData;
 import org.phoebus.framework.jobs.JobManager;
@@ -49,7 +50,7 @@ import java.util.regex.Pattern;
  * Once the snapshot has been saved, this controller calls the {@link SnapshotTab} API to load
  * the view associated with restore actions.
  */
-public class SnapshotController {
+public class SnapshotController extends SaveAndRestoreBaseController {
 
 
     @FXML
@@ -88,6 +89,7 @@ public class SnapshotController {
 
     @FXML
     public void initialize() {
+
         // Locate registered SaveAndRestoreEventReceivers
         eventReceivers = ServiceLoader.load(SaveAndRestoreEventReceiver.class);
         progressIndicator.visibleProperty().bind(disabledUi);
@@ -389,6 +391,7 @@ public class SnapshotController {
         return snapshot;
     }
 
+    @Override
     public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens){
         snapshotControlsViewController.secureStoreChanged(validTokens);
     }

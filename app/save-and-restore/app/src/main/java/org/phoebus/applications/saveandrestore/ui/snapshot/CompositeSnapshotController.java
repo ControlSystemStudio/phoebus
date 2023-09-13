@@ -29,21 +29,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
+import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
@@ -53,18 +40,12 @@ import javafx.util.Callback;
 import org.phoebus.applications.saveandrestore.DirectoryUtilities;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
-import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
-import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
-import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.security.store.SecureStore;
-import org.phoebus.security.tokens.AuthenticationScope;
-import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
@@ -72,17 +53,11 @@ import org.phoebus.util.time.TimestampFormats;
 
 import java.text.MessageFormat;
 import java.time.Instant;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Stack;
+import java.util.*;
 import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class CompositeSnapshotController {
+public class CompositeSnapshotController extends SaveAndRestoreBaseController {
 
     @FXML
     private StackPane root;
@@ -150,7 +125,6 @@ public class CompositeSnapshotController {
     private ChangeListener<String> nodeNameChangeListener;
     private ChangeListener<String> descriptionChangeListener;
 
-    private final SimpleBooleanProperty userIsAuthenticated = new SimpleBooleanProperty();
 
     public CompositeSnapshotController(CompositeSnapshotTab compositeSnapshotTab, SaveAndRestoreController saveAndRestoreController) {
         this.compositeSnapshotTab = compositeSnapshotTab;
@@ -175,9 +149,8 @@ public class CompositeSnapshotController {
         });
 
         deleteMenuItem.disableProperty().bind(Bindings.createBooleanBinding(() ->
-                        snapshotTable.getSelectionModel().getSelectedItems().isEmpty() ||
-                        userIsAuthenticated.not().get(),
-                snapshotTable.getSelectionModel().getSelectedItems(), userIsAuthenticated));
+                        snapshotTable.getSelectionModel().getSelectedItems().isEmpty() || userIdentity.isNull().get(),
+                snapshotTable.getSelectionModel().getSelectedItems(), userIdentity));
 
         snapshotDateColumn.setCellFactory(new Callback<>() {
             @Override
@@ -283,9 +256,9 @@ public class CompositeSnapshotController {
         });
 
         compositeSnapshotNameField.textProperty().bindBidirectional(compositeSnapshotNameProperty);
-        compositeSnapshotNameField.disableProperty().bind(userIsAuthenticated.not());
+        compositeSnapshotNameField.disableProperty().bind(userIdentity.isNull());
         descriptionTextArea.textProperty().bindBidirectional(compositeSnapshotDescriptionProperty);
-        descriptionTextArea.disableProperty().bind(userIsAuthenticated.not());
+        descriptionTextArea.disableProperty().bind(userIdentity.isNull());
         compositeSnapshotLastModifiedDateField.textProperty().bindBidirectional(lastUpdatedProperty);
         compositeSnapshotCreatedDateField.textProperty().bindBidirectional(createdDateProperty);
         createdByField.textProperty().bindBidirectional(createdByProperty);
@@ -298,8 +271,8 @@ public class CompositeSnapshotController {
         saveButton.disableProperty().bind(Bindings.createBooleanBinding(() -> dirty.not().get() ||
                         compositeSnapshotDescriptionProperty.isEmpty().get() ||
                         compositeSnapshotNameProperty.isEmpty().get() ||
-                        userIsAuthenticated.not().get(),
-                dirty, compositeSnapshotDescriptionProperty, compositeSnapshotNameProperty, userIsAuthenticated.not()));
+                        userIdentity.isNull().get(),
+                dirty, compositeSnapshotDescriptionProperty, compositeSnapshotNameProperty, userIdentity));
 
         snapshotTable.setOnDragOver(event -> {
             if (event.getDragboard().hasContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT)) {
@@ -309,7 +282,7 @@ public class CompositeSnapshotController {
         });
 
         snapshotTable.setOnDragDropped(event -> {
-            if(userIsAuthenticated.not().get()){
+            if (userIdentity.isNull().get()) {
                 event.consume();
                 return;
             }
@@ -329,19 +302,6 @@ public class CompositeSnapshotController {
                 compositeSnapshotTab.annotateDirty(n);
             }
         });
-
-        try {
-            SecureStore secureStore = new SecureStore();
-            ScopedAuthenticationToken token =
-                    secureStore.getScopedAuthenticationToken(AuthenticationScope.SAVE_AND_RESTORE);
-            if (token != null) {
-                userIsAuthenticated.set(true);
-            }
-        } catch (Exception e) {
-            Logger.getLogger(CompositeSnapshotController.class.getName()).log(Level.WARNING, "Unable to retrieve authentication token for " +
-                    AuthenticationScope.SAVE_AND_RESTORE.getName() + " scope", e);
-        }
-
     }
 
     @FXML
@@ -438,18 +398,17 @@ public class CompositeSnapshotController {
     /**
      * Configures the controller to create a new composite snapshot.
      *
-     * @param parentNode The parent {@link Node} for the new composite, i.e. must be a
-     *                   {@link Node} of type {@link NodeType#FOLDER}.
+     * @param parentNode    The parent {@link Node} for the new composite, i.e. must be a
+     *                      {@link Node} of type {@link NodeType#FOLDER}.
      * @param snapshotNodes Potentially empty list of {@link Node}s of type {@link NodeType#SNAPSHOT}
      *                      or {@link NodeType#COMPOSITE_SNAPSHOT}, or both.
      */
     public void newCompositeSnapshot(Node parentNode, List<Node> snapshotNodes) {
         parentFolder = parentNode;
         compositeSnapshotNode = Node.builder().nodeType(NodeType.COMPOSITE_SNAPSHOT).build();
-        if(snapshotNodes.isEmpty()){
+        if (snapshotNodes.isEmpty()) {
             dirty.set(false);
-        }
-        else{
+        } else {
             dirty.set(true);
             //snapshotEntries.addAll(snapshotNodes);
             addToCompositeSnapshot(snapshotNodes);
@@ -544,16 +503,5 @@ public class CompositeSnapshotController {
         snapshotEntries.removeListener(entriesListChangeListener);
         compositeSnapshotNameProperty.removeListener(nodeNameChangeListener);
         compositeSnapshotDescriptionProperty.removeListener(descriptionChangeListener);
-    }
-
-    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens){
-        Optional<ScopedAuthenticationToken> token =
-                validTokens.stream()
-                        .filter(t -> t.getAuthenticationScope().equals(AuthenticationScope.SAVE_AND_RESTORE)).findFirst();
-        if (token.isPresent()) {
-            userIsAuthenticated.set(true);
-        } else {
-            userIsAuthenticated.set(false);
-        }
     }
 }

@@ -93,7 +93,7 @@ public abstract class ContextMenuBase extends ContextMenu {
      * Subclasses use this to disable menu items if needed, e.g. disable delete if user has not signed in.
      */
     protected void runChecks() {
-        userIsAuthenticatedProperty.set(saveAndRestoreController.isUserAuthenticated());
+        userIsAuthenticatedProperty.set(saveAndRestoreController.getUserIdentity().isNotNull().get());
         boolean multipleNodesSelected = saveAndRestoreController.multipleNodesSelected();
         multipleNodesSelectedProperty.set(multipleNodesSelected);
         if (multipleNodesSelected) { // No need to check this if only one node was selected
