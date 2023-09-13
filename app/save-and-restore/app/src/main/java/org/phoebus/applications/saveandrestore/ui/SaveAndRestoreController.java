@@ -1498,6 +1498,10 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 SnapshotTab snapshotTab = (SnapshotTab)t;
                 snapshotTab.secureStoreChanged(validTokens);
             }
+            else if(t instanceof CompositeSnapshotTab){
+                CompositeSnapshotTab compositeSnapshotTab = (CompositeSnapshotTab) t;
+                compositeSnapshotTab.secureStoreChanged(validTokens);
+            }
         });
     }
 }

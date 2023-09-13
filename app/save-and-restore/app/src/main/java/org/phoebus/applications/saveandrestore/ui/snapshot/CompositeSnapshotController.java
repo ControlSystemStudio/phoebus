@@ -62,6 +62,9 @@ import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.security.store.SecureStore;
+import org.phoebus.security.tokens.AuthenticationScope;
+import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
@@ -75,6 +78,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Stack;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class CompositeSnapshotController {
@@ -145,6 +150,8 @@ public class CompositeSnapshotController {
     private ChangeListener<String> nodeNameChangeListener;
     private ChangeListener<String> descriptionChangeListener;
 
+    private final SimpleBooleanProperty userIsAuthenticated = new SimpleBooleanProperty();
+
     public CompositeSnapshotController(CompositeSnapshotTab compositeSnapshotTab, SaveAndRestoreController saveAndRestoreController) {
         this.compositeSnapshotTab = compositeSnapshotTab;
         this.saveAndRestoreController = saveAndRestoreController;
@@ -167,8 +174,10 @@ public class CompositeSnapshotController {
             snapshotTable.refresh();
         });
 
-        deleteMenuItem.disableProperty().bind(Bindings.createBooleanBinding(() -> snapshotTable.getSelectionModel().getSelectedItems().isEmpty(),
-                snapshotTable.getSelectionModel().getSelectedItems()));
+        deleteMenuItem.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                        snapshotTable.getSelectionModel().getSelectedItems().isEmpty() ||
+                        userIsAuthenticated.not().get(),
+                snapshotTable.getSelectionModel().getSelectedItems(), userIsAuthenticated));
 
         snapshotDateColumn.setCellFactory(new Callback<>() {
             @Override
@@ -274,7 +283,9 @@ public class CompositeSnapshotController {
         });
 
         compositeSnapshotNameField.textProperty().bindBidirectional(compositeSnapshotNameProperty);
+        compositeSnapshotNameField.disableProperty().bind(userIsAuthenticated.not());
         descriptionTextArea.textProperty().bindBidirectional(compositeSnapshotDescriptionProperty);
+        descriptionTextArea.disableProperty().bind(userIsAuthenticated.not());
         compositeSnapshotLastModifiedDateField.textProperty().bindBidirectional(lastUpdatedProperty);
         compositeSnapshotCreatedDateField.textProperty().bindBidirectional(createdDateProperty);
         createdByField.textProperty().bindBidirectional(createdByProperty);
@@ -286,8 +297,9 @@ public class CompositeSnapshotController {
 
         saveButton.disableProperty().bind(Bindings.createBooleanBinding(() -> dirty.not().get() ||
                         compositeSnapshotDescriptionProperty.isEmpty().get() ||
-                        compositeSnapshotNameProperty.isEmpty().get(),
-                dirty, compositeSnapshotDescriptionProperty, compositeSnapshotNameProperty));
+                        compositeSnapshotNameProperty.isEmpty().get() ||
+                        userIsAuthenticated.not().get(),
+                dirty, compositeSnapshotDescriptionProperty, compositeSnapshotNameProperty, userIsAuthenticated.not()));
 
         snapshotTable.setOnDragOver(event -> {
             if (event.getDragboard().hasContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT)) {
@@ -297,6 +309,10 @@ public class CompositeSnapshotController {
         });
 
         snapshotTable.setOnDragDropped(event -> {
+            if(userIsAuthenticated.not().get()){
+                event.consume();
+                return;
+            }
             List<Node> sourceNodes = (List<Node>) event.getDragboard().getContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT);
             if (!mayDrop(sourceNodes)) {
                 return;
@@ -313,6 +329,18 @@ public class CompositeSnapshotController {
                 compositeSnapshotTab.annotateDirty(n);
             }
         });
+
+        try {
+            SecureStore secureStore = new SecureStore();
+            ScopedAuthenticationToken token =
+                    secureStore.getScopedAuthenticationToken(AuthenticationScope.SAVE_AND_RESTORE);
+            if (token != null) {
+                userIsAuthenticated.set(true);
+            }
+        } catch (Exception e) {
+            Logger.getLogger(CompositeSnapshotController.class.getName()).log(Level.WARNING, "Unable to retrieve authentication token for " +
+                    AuthenticationScope.SAVE_AND_RESTORE.getName() + " scope", e);
+        }
 
     }
 
@@ -518,4 +546,14 @@ public class CompositeSnapshotController {
         compositeSnapshotDescriptionProperty.removeListener(descriptionChangeListener);
     }
 
+    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens){
+        Optional<ScopedAuthenticationToken> token =
+                validTokens.stream()
+                        .filter(t -> t.getAuthenticationScope().equals(AuthenticationScope.SAVE_AND_RESTORE)).findFirst();
+        if (token.isPresent()) {
+            userIsAuthenticated.set(true);
+        } else {
+            userIsAuthenticated.set(false);
+        }
+    }
 }

@@ -32,6 +32,7 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.framework.nls.NLS;
+import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import java.io.IOException;
@@ -145,5 +146,9 @@ public class CompositeSnapshotTab extends Tab {
      */
     public void addToCompositeSnapshot(List<Node> snapshotNodes) {
         compositeSnapshotController.addToCompositeSnapshot(snapshotNodes);
+    }
+
+    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens){
+        compositeSnapshotController.secureStoreChanged(validTokens);
     }
 }
