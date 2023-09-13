@@ -146,7 +146,6 @@ public class ConfigurationController implements NodeChangedListener {
 
         saveAndRestoreService = SaveAndRestoreService.getInstance();
 
-
         pvTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         pvTable.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> selectionEmpty.set(nv == null));
 

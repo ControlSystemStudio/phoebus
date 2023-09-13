@@ -4,11 +4,11 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.control.cell.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
-<?import javafx.scene.text.Font?>
 <BorderPane fx:id="root" style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationController">
     <center>
-        <GridPane id="parent" fx:id="parent" alignment="TOP_RIGHT" hgap="5.0" style="-fx-background-color: #f4f4f4;" BorderPane.alignment="TOP_LEFT">
+        <GridPane id="parent" fx:id="controlsPane" alignment="TOP_RIGHT" hgap="5.0" style="-fx-background-color: #f4f4f4;" BorderPane.alignment="TOP_LEFT">
             <children>
                 <Label text="%configurationName" GridPane.halignment="RIGHT" GridPane.valignment="CENTER">
                     <GridPane.margin>
@@ -41,8 +41,8 @@
                         <Insets bottom="5.0" left="5.0" right="5.0" top="6.0" />
                     </GridPane.margin>
                 </Button>
-                <Label maxWidth="1.7976931348623157E308" GridPane.columnIndex="5" GridPane.hgrow="ALWAYS" />
-                <Label text="%authenticatedUserLabel" GridPane.columnIndex="6" GridPane.halignment="LEFT">
+                <Label maxWidth="1.7976931348623157E308" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" />
+                <Label text="%authenticatedUserLabel" GridPane.columnIndex="5" GridPane.halignment="LEFT">
                     <font>
                         <Font size="14.0" />
                     </font>
@@ -52,7 +52,7 @@
                <padding>
                   <Insets right="10.0" />
                </padding></Label>
-                <Label fx:id="authenticatedUserId" text="%authenticatedUserNone" GridPane.columnIndex="6" GridPane.halignment="LEFT" GridPane.rowIndex="1">
+                <Label fx:id="authenticatedUserId" text="%authenticatedUserNone" GridPane.columnIndex="5" GridPane.halignment="LEFT" GridPane.rowIndex="1">
                     <font>
                         <Font size="18.0" />
                     </font>
@@ -76,21 +76,21 @@
                 </Label>
                 <Label fx:id="createdByField" text="Created by" GridPane.columnIndex="1" GridPane.rowIndex="3" />
 
-                <TableView fx:id="pvTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.columnSpan="7" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS">
+                <TableView fx:id="pvTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.columnSpan="6" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS">
                     <columns>
                         <TableColumn prefWidth="-1.0" text="%pvList">
                             <columns>
-                                <TableColumn fx:id="pvNameColumn" editable="true" prefWidth="${parent.width * 0.45}" text="%pvName">
+                                <TableColumn fx:id="pvNameColumn" editable="true" prefWidth="${controlsPane.width * 0.45}" text="%pvName">
                                     <!--cellValueFactory>
                                         <PropertyValueFactory property="pvName" />
                                     </cellValueFactory-->
                                 </TableColumn>
-                                <TableColumn fx:id="readbackPvNameColumn" prefWidth="${parent.width * 0.45}" text="%pvNameReadback">
+                                <TableColumn fx:id="readbackPvNameColumn" prefWidth="${controlsPane.width * 0.45}" text="%pvNameReadback">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="readbackPvName" />
                                     </cellValueFactory>
                                 </TableColumn>
-                                <TableColumn fx:id="readOnlyColumn" prefWidth="${parent.width * 0.1}" text="%pvReadOnly">
+                                <TableColumn fx:id="readOnlyColumn" prefWidth="${controlsPane.width * 0.1}" text="%pvReadOnly">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="readOnly" />
                                     </cellValueFactory>
@@ -108,9 +108,7 @@
                 <ColumnConstraints />
                 <ColumnConstraints minWidth="120.0" />
                 <ColumnConstraints />
-                <ColumnConstraints />
                 <ColumnConstraints minWidth="120.0" />
-            <ColumnConstraints />
             <ColumnConstraints />
             <ColumnConstraints />
             </columnConstraints>

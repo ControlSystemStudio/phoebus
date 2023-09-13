@@ -39,13 +39,15 @@ import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
+import org.phoebus.security.store.SecureStore;
+import org.phoebus.security.tokens.AuthenticationScope;
+import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.util.time.TimestampFormats;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.ServiceLoader;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -107,6 +109,9 @@ public class SnapshotControlsViewController {
     @FXML
     private ToolBar filterToolbar;
 
+    @FXML
+    private Label authenticatedUserId;
+
     private List<List<Pattern>> regexPatterns = new ArrayList<>();
 
     protected final SimpleStringProperty snapshotNameProperty = new SimpleStringProperty();
@@ -130,6 +135,11 @@ public class SnapshotControlsViewController {
 
     private final SimpleObjectProperty<Node> snapshotNodeProperty = new SimpleObjectProperty();
 
+    private final SimpleBooleanProperty userIsAuthenticated = new SimpleBooleanProperty();
+
+    private final SimpleStringProperty authenticatedUserProperty =
+            new SimpleStringProperty(Messages.authenticatedUserNone);
+
     public void setSnapshotController(SnapshotController snapshotController) {
         this.snapshotController = snapshotController;
     }
@@ -138,13 +148,16 @@ public class SnapshotControlsViewController {
     public void initialize() {
 
         snapshotName.textProperty().bindBidirectional(snapshotNameProperty);
+        snapshotName.disableProperty().bind(userIsAuthenticated.not());
         snapshotComment.textProperty().bindBidirectional(snapshotCommentProperty);
+        snapshotComment.disableProperty().bind(userIsAuthenticated.not());
         createdBy.textProperty().bind(createdByTextProperty);
         createdDate.textProperty().bind(createdDateTextProperty);
         snapshotLastModifiedLabel.textProperty().bind(lastModifiedDateTextProperty);
 
-        takeSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() -> snapshotNodeProperty.isNotNull().get() &&
-                !snapshotNodeProperty.get().getNodeType().equals(NodeType.SNAPSHOT), snapshotNodeProperty));
+        takeSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                (snapshotNodeProperty.isNotNull().get() && !snapshotNodeProperty.get().getNodeType().equals(NodeType.SNAPSHOT)) ||
+                userIsAuthenticated.not().get(), snapshotNodeProperty, userIsAuthenticated));
 
         snapshotNameProperty.addListener(((observableValue, oldValue, newValue) ->
                 snapshotDataDirty.set(newValue != null && (snapshotNodeProperty.isNull().get() || snapshotNodeProperty.isNotNull().get() && !newValue.equals(snapshotNodeProperty.get().getName())))));
@@ -154,20 +167,26 @@ public class SnapshotControlsViewController {
         saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
                         snapshotDataDirty.not().get() ||
                                 snapshotNameProperty.isEmpty().get() ||
-                                snapshotCommentProperty.isEmpty().get(),
-                snapshotDataDirty, snapshotNameProperty, snapshotCommentProperty));
+                                snapshotCommentProperty.isEmpty().get() ||
+                                userIsAuthenticated.not().get(),
+                snapshotDataDirty, snapshotNameProperty, snapshotCommentProperty, userIsAuthenticated));
 
         saveSnapshotAndCreateLogEntryButton.disableProperty().bind(Bindings.createBooleanBinding(() -> (
                         snapshotDataDirty.not().get()) ||
                         snapshotNameProperty.isEmpty().get() ||
-                        snapshotCommentProperty.isEmpty().get(),
-                snapshotDataDirty, snapshotNameProperty, snapshotCommentProperty));
+                        snapshotCommentProperty.isEmpty().get() ||
+                        userIsAuthenticated.not().get(),
+                snapshotDataDirty, snapshotNameProperty, snapshotCommentProperty, userIsAuthenticated));
 
         // Do not show the create log entry button if no event receivers have been registered
         saveSnapshotAndCreateLogEntryButton.visibleProperty().set(ServiceLoader.load(SaveAndRestoreEventReceiver.class).iterator().hasNext());
 
-        restoreButton.disableProperty().bind(snapshotRestorableProperty.not());
-        restoreAndLogButton.disableProperty().bind(snapshotRestorableProperty.not());
+        restoreButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                snapshotRestorableProperty.not().get() ||
+                userIsAuthenticated.not().get(), snapshotRestorableProperty, userIsAuthenticated));
+        restoreAndLogButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                snapshotRestorableProperty.not().get() ||
+                userIsAuthenticated.not().get(), snapshotRestorableProperty, userIsAuthenticated));
 
         SpinnerValueFactory<Double> thresholdSpinnerValueFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, 999.0, 0.0, 0.01);
         thresholdSpinnerValueFactory.setConverter(new DoubleStringConverter());
@@ -264,6 +283,23 @@ public class SnapshotControlsViewController {
                 });
             }
         });
+
+        authenticatedUserId.textProperty().bind(authenticatedUserProperty);
+
+        // Initialize userIsAuthenticated property
+
+        try {
+            SecureStore secureStore = new SecureStore();
+            ScopedAuthenticationToken token =
+                    secureStore.getScopedAuthenticationToken(AuthenticationScope.SAVE_AND_RESTORE);
+            if (token != null) {
+                userIsAuthenticated.set(true);
+                authenticatedUserProperty.set(token.getUsername());
+            }
+        } catch (Exception e) {
+            Logger.getLogger(SnapshotControlsViewController.class.getName()).log(Level.WARNING, "Unable to retrieve authentication token for " +
+                    AuthenticationScope.SAVE_AND_RESTORE.getName() + " scope", e);
+        }
     }
 
     public SimpleStringProperty getSnapshotNameProperty() {
@@ -326,7 +362,21 @@ public class SnapshotControlsViewController {
         filterToolbar.disableProperty().set(disabled);
     }
 
-    public void setSnapshotRestorableProperty(boolean restorable){
+    public void setSnapshotRestorableProperty(boolean restorable) {
         snapshotRestorableProperty.set(restorable);
+    }
+
+    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens) {
+
+        Optional<ScopedAuthenticationToken> token =
+                validTokens.stream()
+                        .filter(t -> t.getAuthenticationScope().equals(AuthenticationScope.SAVE_AND_RESTORE)).findFirst();
+        if (token.isPresent()) {
+            userIsAuthenticated.set(true);
+            authenticatedUserProperty.set(token.get().getUsername());
+        } else {
+            userIsAuthenticated.set(false);
+            authenticatedUserProperty.set(Messages.authenticatedUserNone);
+        }
     }
 }

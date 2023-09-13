@@ -113,9 +113,9 @@ public class ConfigurationTab extends SaveAndRestoreTab {
 
     public void annotateDirty(boolean dirty) {
         String tabTitle = textProperty().get();
-        if (dirty) {
+        if (dirty && !tabTitle.contains("*")) {
             updateTabTitle("* " + tabTitle);
-        } else {
+        } else if(!dirty){
             updateTabTitle(tabTitle.substring(2));
         }
     }

@@ -31,9 +31,11 @@ import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
 import org.phoebus.framework.nls.NLS;
+import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -170,5 +172,9 @@ public class SnapshotTab extends SaveAndRestoreTab {
 
     public Node getConfigNode() {
         return snapshotController.getConfigurationNode();
+    }
+
+    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens){
+        snapshotController.secureStoreChanged(validTokens);
     }
 }

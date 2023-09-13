@@ -33,6 +33,9 @@ import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventRe
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.VNoData;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.security.store.SecureStore;
+import org.phoebus.security.tokens.AuthenticationScope;
+import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
@@ -125,7 +128,6 @@ public class SnapshotController {
             snapshotData.setSnapshotItems(configurationToSnapshotItems(configPvs));
             snapshot.setSnapshotData(snapshotData);
             snapshotProperty.set(snapshot);
-            //List<TableEntry> tableEntries = snapshotTableViewController.createTableEntries(snapshot);
             Platform.runLater(() -> snapshotTableViewController.showSnapshotInTable(snapshot));
         });
     }
@@ -385,5 +387,9 @@ public class SnapshotController {
         snapshot.setSnapshotNode(snapshotNode);
         snapshot.setSnapshotData(snapshotData);
         return snapshot;
+    }
+
+    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens){
+        snapshotControlsViewController.secureStoreChanged(validTokens);
     }
 }

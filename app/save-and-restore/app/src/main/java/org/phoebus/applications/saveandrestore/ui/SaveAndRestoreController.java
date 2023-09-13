@@ -1494,6 +1494,10 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 ConfigurationTab configurationTab = (ConfigurationTab)t;
                 configurationTab.secureStoreChanged(validTokens);
             }
+            else if(t instanceof SnapshotTab){
+                SnapshotTab snapshotTab = (SnapshotTab)t;
+                snapshotTab.secureStoreChanged(validTokens);
+            }
         });
     }
 }
