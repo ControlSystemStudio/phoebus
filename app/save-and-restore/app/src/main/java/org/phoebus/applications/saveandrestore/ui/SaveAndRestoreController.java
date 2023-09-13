@@ -1440,6 +1440,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     @Override
     public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens) {
         super.secureStoreChanged(validTokens);
+        ((BrowserTreeCell.CellGraphic)treeView.getRoot().getGraphic()).setText(userIdentity.get());
         tabPane.getTabs().forEach(t -> {
             ((SaveAndRestoreTab) t).secureStoreChanged(validTokens);
         });

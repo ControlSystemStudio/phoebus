@@ -157,7 +157,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
             return;
         }
         // Use custom layout as this makes it easier to set opacity
-        HBox hBox = new HBox();
+        CellGraphic hBox = new CellGraphic(node);
         // saveAndRestoreController is null if configuration management is accessed from context menu
         if (saveAndRestoreController != null && !saveAndRestoreController.matchesFilter(node)) {
             hBox.setOpacity(0.4);
@@ -174,48 +174,76 @@ public class BrowserTreeCell extends TreeCell<Node> {
         setTooltip(new Tooltip(stringBuilder.toString()));
         switch (node.getNodeType()) {
             case SNAPSHOT:
-                if (node.hasTag(Tag.GOLDEN)) {
-                    hBox.getChildren().add(new ImageView(ImageRepository.GOLDEN_SNAPSHOT));
-                } else {
-                    hBox.getChildren().add(new ImageView(ImageRepository.SNAPSHOT));
-                }
-                hBox.getChildren().add(new Label(node.getName()));
-                if (node.getTags() != null && !node.getTags().isEmpty()) {
-                    ImageView tagImage = new ImageView(ImageCache.getImage(BrowserTreeCell.class, "/icons/save-and-restore/snapshot-tags.png"));
-                    tagImage.setFitHeight(13);
-                    tagImage.setPreserveRatio(true);
-                    hBox.getChildren().add(tagImage);
-                }
                 setContextMenu(snapshotContextMenu);
                 break;
             case COMPOSITE_SNAPSHOT:
-                hBox.getChildren().add(new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
-                hBox.getChildren().add(new Label(node.getName()));
-                if (node.getTags() != null && !node.getTags().isEmpty()) {
-                    ImageView tagImage = new ImageView(ImageCache.getImage(BrowserTreeCell.class, "/icons/save-and-restore/snapshot-tags.png"));
-                    tagImage.setFitHeight(13);
-                    tagImage.setPreserveRatio(true);
-                    hBox.getChildren().add(tagImage);
-                }
                 setContextMenu(compositeSnapshotContextMenu);
                 break;
             case CONFIGURATION:
-                hBox.getChildren().add(new ImageView(ImageRepository.CONFIGURATION));
-                hBox.getChildren().add(new Label(node.getName()));
                 setContextMenu(configurationContextMenu);
                 break;
-            case FOLDER:
-                String name = node.getName();
+            case FOLDER: ;
                 if (node.getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)) {
+                    setTooltip(new Tooltip(SaveAndRestoreService.getInstance().getServiceIdentifier()));
                     setContextMenu(rootFolderContextMenu);
-                    name += " (" + SaveAndRestoreService.getInstance().getServiceIdentifier() + ")";
                 } else {
                     setContextMenu(folderContextMenu);
                 }
-                hBox.getChildren().add(new ImageView(ImageRepository.FOLDER));
-                hBox.getChildren().add(new Label(name));
                 break;
         }
         setGraphic(hBox);
+    }
+
+    public class CellGraphic extends HBox{
+        private String text;
+        private Label nameLabel;
+        public CellGraphic(Node node){
+            nameLabel = new Label(node.getName());
+            switch (node.getNodeType()) {
+                case SNAPSHOT:
+                    if (node.hasTag(Tag.GOLDEN)) {
+                        getChildren().add(new ImageView(ImageRepository.GOLDEN_SNAPSHOT));
+                    } else {
+                        getChildren().add(new ImageView(ImageRepository.SNAPSHOT));
+                    }
+                    getChildren().add(new Label(node.getName()));
+                    if (node.getTags() != null && !node.getTags().isEmpty()) {
+                        ImageView tagImage = new ImageView(ImageCache.getImage(BrowserTreeCell.class, "/icons/save-and-restore/snapshot-tags.png"));
+                        tagImage.setFitHeight(13);
+                        tagImage.setPreserveRatio(true);
+                        getChildren().add(tagImage);
+                    }
+                    break;
+                case COMPOSITE_SNAPSHOT:
+                    getChildren().add(new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
+                    getChildren().add(nameLabel);
+                    if (node.getTags() != null && !node.getTags().isEmpty()) {
+                        ImageView tagImage = new ImageView(ImageCache.getImage(BrowserTreeCell.class, "/icons/save-and-restore/snapshot-tags.png"));
+                        tagImage.setFitHeight(13);
+                        tagImage.setPreserveRatio(true);
+                        getChildren().add(tagImage);
+                    }
+                    break;
+                case CONFIGURATION:
+                    getChildren().add(new ImageView(ImageRepository.CONFIGURATION));
+                    getChildren().add(nameLabel);
+                    break;
+                case FOLDER:
+                    String name = node.getName();
+                    if (node.getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID) && saveAndRestoreController.userIdentity.isNotNull().get()){
+                        name += " (" + saveAndRestoreController.userIdentity.get() + ")";
+                    }
+                    setText(name);
+                    getChildren().add(new ImageView(ImageRepository.FOLDER));
+                    getChildren().add(nameLabel);
+                    break;
+            }
+        }
+
+        public void setText(String text){
+            if(text != null){
+                nameLabel.textProperty().set(text);
+            }
+        }
     }
 }
