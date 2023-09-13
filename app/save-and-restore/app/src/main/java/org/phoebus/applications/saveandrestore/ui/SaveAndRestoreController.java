@@ -1504,4 +1504,8 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
             }
         });
     }
+
+    public boolean getUserIsAuthenticated(){
+        return userIsAuthenticated.get();
+    }
 }
