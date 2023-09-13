@@ -22,11 +22,8 @@ package org.phoebus.applications.saveandrestore.ui.snapshot;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Insets;
-import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
@@ -88,7 +85,8 @@ public class CompositeSnapshotTab extends Tab {
         compositeSnapshotController = loader.getController();
 
         setContent(rootNode);
-        setGraphic(getTabGraphic());
+        setGraphic(new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
+        textProperty().bind(tabTitleProperty);
 
         setOnCloseRequest(event -> {
             if (!compositeSnapshotController.handleCompositeSnapshotTabClosed()) {
@@ -97,7 +95,7 @@ public class CompositeSnapshotTab extends Tab {
         });
     }
 
-    public void setNodeName(String nodeName){
+    public void setNodeName(String nodeName) {
         Platform.runLater(() -> tabTitleProperty.set("[" + Messages.Edit + "] " + nodeName));
     }
 
@@ -108,19 +106,8 @@ public class CompositeSnapshotTab extends Tab {
         }
     }
 
-    private javafx.scene.Node getTabGraphic() {
-        HBox container = new HBox();
-        ImageView imageView = new ImageView(ImageRepository.COMPOSITE_SNAPSHOT);
-        Label label = new Label("");
-        label.textProperty().bindBidirectional(tabTitleProperty);
-        HBox.setMargin(label, new Insets(1, 5, 0, 3));
-        HBox.setMargin(imageView, new Insets(1, 2, 0, 3));
-        container.getChildren().addAll(imageView, label);
-
-        return container;
-    }
-
     public void configureForNewCompositeSnapshot(Node parentNode, List<Node> snapshotNodes) {
+        tabTitleProperty.set(Messages.contextMenuNewCompositeSnapshot);
         compositeSnapshotController.newCompositeSnapshot(parentNode, snapshotNodes);
     }
 
@@ -128,8 +115,8 @@ public class CompositeSnapshotTab extends Tab {
      * Configures UI to edit an existing composite snapshot {@link Node}
      *
      * @param compositeSnapshotNode non-null configuration {@link Node}
-     * @param snapshotNodes A potentially empty (but non-null) list of snapshot nodes that should
-     *                      be added to the list of references snapshots.
+     * @param snapshotNodes         A potentially empty (but non-null) list of snapshot nodes that should
+     *                              be added to the list of references snapshots.
      */
     public void editCompositeSnapshot(Node compositeSnapshotNode, List<Node> snapshotNodes) {
         setId("edit_" + compositeSnapshotNode.getUniqueId());
@@ -140,8 +127,8 @@ public class CompositeSnapshotTab extends Tab {
     /**
      * Adds additional snapshot nodes to an existing composite snapshot.
      *
-     * @param  snapshotNodes Potentially empty (but non-null) list of snapshot nodes to include into
-     *                       the composite snapshot.
+     * @param snapshotNodes Potentially empty (but non-null) list of snapshot nodes to include into
+     *                      the composite snapshot.
      */
     public void addToCompositeSnapshot(List<Node> snapshotNodes) {
         compositeSnapshotController.addToCompositeSnapshot(snapshotNodes);
