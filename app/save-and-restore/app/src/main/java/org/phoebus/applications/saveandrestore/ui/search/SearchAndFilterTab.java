@@ -75,10 +75,8 @@ public class SearchAndFilterTab extends SaveAndRestoreTab implements NodeChanged
 
         searchAndFilterViewController = loader.getController();
 
-        ImageView imageView = new ImageView(ImageCache.getImage(ImageCache.class, "/icons/sar-search_18x18.png"));
-
-        textProperty().set(Messages.search);
-        setGraphic(imageView);
+        setText(Messages.search);
+        setGraphic(new ImageView(ImageCache.getImage(ImageCache.class, "/icons/sar-search_18x18.png")));
 
         setOnCloseRequest(event -> SaveAndRestoreService.getInstance().removeNodeChangeListener(this));
 

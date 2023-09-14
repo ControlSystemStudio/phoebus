@@ -105,6 +105,7 @@ public class CompositeSnapshotTab extends SaveAndRestoreTab {
     }
 
     public void configureForNewCompositeSnapshot(Node parentNode, List<Node> snapshotNodes) {
+        tabTitleProperty.set(Messages.contextMenuNewCompositeSnapshot);
         ((CompositeSnapshotController) controller).newCompositeSnapshot(parentNode, snapshotNodes);
     }
 
