@@ -723,6 +723,17 @@ Body:
       }
     ]
 
+Authentication
+--------------
+
+All non-GET endpoints are subject to authentication, i.e. clients must send a basic authentication header. The
+service can be configured to delegate authentication to Active Directory or remote or local LDAP. For demo and test
+purposes hard coded credentials are found in the ``WebSecurityConfig`` class. See the file ``application.properties``
+for information on how to select authentication method.
+
+There is no authorization mechanism, i.e. all authenticated users can perform all actions through the protected
+endpoints. Authorization may be added in future releases.
+
 Migration
 ---------
 

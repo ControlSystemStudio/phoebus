@@ -622,7 +622,7 @@ File ../../app/display/model/src/main/resources/display_model_preferences.proper
    
    # When writing a display file, skip properties that are still at default values?
    skip_defaults=true
-
+   
    # Add a comment containing the date, time, and username when saving an OPI in the Display Editor.
    enable_saved_on_comments=true
 
@@ -671,7 +671,7 @@ File ../../app/display/representation/src/main/resources/display_representation_
    # Length limit for tool tips
    # Tool tips that are too long can be a problem
    # on some window systems.
-   tooltip_length=150
+   tooltip_length=200
    
    # Timeout for load / unload of Embedded Widget content [ms]
    embedded_timeout=5000
@@ -1035,6 +1035,10 @@ File ../../core/logbook/src/main/resources/logbook_preferences.properties::
    auto_title=true
    
    # Determines if a log entry created from context menu (e.g. display or data browser)
+   # should auto generate a body (e.g. "Display Screenshot...").
+   auto_body=true
+   
+   # Determines if a log entry created from context menu (e.g. display or data browser)
    # should auto generate properties (e.g. "resources.file").
    auto_property=false
 
@@ -1075,6 +1079,11 @@ File ../../app/logbook/olog/ui/src/main/resources/log_olog_ui_preferences.proper
    # to log entries, and consequently UI elements and views related to log entry
    # groups will not be shown.
    log_entry_groups_support=false
+   
+   # Log entry update support. If set to false user will not be able to update log entries
+   # , and consequently UI elements and views related to updating log entry and viewing log history
+   #  will not be displayed.
+   log_entry_update_support=true
    
    # Comma separated list of "hidden" properties. For instance, properties that serve internal
    # business logic, but should not be rendered in the properties view.
@@ -1395,32 +1404,29 @@ File ../../app/pvtree/src/main/resources/pv_tree_preferences.properties::
 saveandrestore
 --------------
 
-File ../../app/save-and-restore/service/src/main/resources/client_preferences.properties::
+File ../../app/save-and-restore/app/src/main/resources/save_and_restore_preferences.properties::
 
-   #
-   # Copyright (C) 2020 European Spallation Source ERIC.
-   #
-   #  This program is free software; you can redistribute it and/or
-   #  modify it under the terms of the GNU General Public License
-   #  as published by the Free Software Foundation; either version 2
-   #  of the License, or (at your option) any later version.
-   #
-   #  This program is distributed in the hope that it will be useful,
-   #  but WITHOUT ANY WARRANTY; without even the implied warranty of
-   #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   #  GNU General Public License for more details.
-   #
-   #  You should have received a copy of the GNU General Public License
-   #  along with this program; if not, write to the Free Software
-   #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-   #
-   
    # -----------------------------------------------
    # Package org.phoebus.applications.saveandrestore
    # -----------------------------------------------
    
+   # Sort snapshots in reverse order of created time. Last item comes first.
+   sortSnapshotsTimeReversed=false
+   
+   # Read timeout (in ms) when taking snapshot
+   readTimeout=5000
+   
+   # Limit used in "paginated" search, i.e. the number of search results per page
+   search_result_page_size=30
+   
+   # Default save-and-restore search query. Used unless a saved query is located.
+   default_search_query=tags=golden
+   
+   # If declared add a date automatically in the name of the snapshot "Take Snapshot"
+   #default_snapshot_name_date_format=yyyy-MM-dd HH:mm:ss
+   
    # The URL to the save-and-restore service
-   jmasar.service.url=http://localhost:8080
+   jmasar.service.url=http://localhost:8080/save-restore
    
    # Read timeout (in ms) used by the Jersey client
    httpClient.readTimeout=1000
@@ -1768,6 +1774,30 @@ File ../../core/ui/src/main/resources/phoebus_ui_preferences.properties::
    
    alarm_area_panel_undefined_severity_text_color=192,192,192
    alarm_area_panel_undefined_severity_background_color=200,0,200,200
+   
+   # When Picture- and/or Symbol widgets are present in an OPI,
+   # zooming in under Windows using the D3D graphics library can
+   # cause excessive VRAM usage. Setting a cache hint can work as
+   # a workaround. Since it has been observed that the cache hints
+   # also can cause graphical errors, the setting of a cache hint
+   # is a configurable option, which must explicitly be set to
+   # have effect.
+   #
+   # The setting defaults to the default caching behavior.
+   #
+   # Valid options are:
+   #       "" (the empty string) or "NONE" - The default caching behavior: caching is DISABLED, and the cache hint is set to "CacheHint.DEFAULT".
+   #       "DEFAULT"                       - Caching is ENABLED, and the cache hint is set to "CacheHint.DEFAULT".
+   #       "SPEED"                         - Based on very limited testing, this option seems to work the best as a workaround for the excessive VRAM usage.
+   #       "QUALITY"
+   #       "SCALE"                         - This option has been observed to cause graphical errors on several systems: rotated widgets have been observed to be translated instead of rotated.
+   #       "ROTATE"
+   #       "SCALE_AND_ROTATE"
+   #
+   # If an invalid option is entered, a warning is logged, and the
+   # default caching behavior is used (i.e., caching is DISABLED,
+   # and the cache hint is set to "CacheHint.DEFAULT").
+   cache_hint_for_picture_and_symbol_widgets=
 
 
 update

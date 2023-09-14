@@ -11,6 +11,9 @@ The application uses the save-and-restore service deployed on the network such t
 HTTP(s). The URL of the service is specified in the save-and-restore.properties file, or in the settings file
 pointed to on the command line.
 
+Actions that create, modify or delete data are protected by the service. User must sign in through the
+Crendentials Manager application. See also below.
+
 Nodes and node types
 --------------------
 
@@ -392,7 +395,11 @@ The items of this context menu offers actions associated with a PV, which is sim
 other applications. However, user should be aware that the "Data Browser" item will launch the Data Browser app for
 the selected PV *around the point in time defined by the PV timestamp*.
 
+Authentication
+--------------
 
+In order to create, modify or delete data (configurations, snapshots) user must sign in through the Credentials Manager application. The UI will
+enable/disable elements based on the authentication status. The restore operation is also protected by authentication.
 
 
 
