@@ -40,15 +40,13 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
-import org.phoebus.security.store.SecureStore;
-import org.phoebus.security.tokens.AuthenticationScope;
-import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.util.time.TimestampFormats;
 
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.ServiceLoader;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -109,9 +107,6 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
 
     @FXML
     private ToolBar filterToolbar;
-
-    @FXML
-    private Label authenticatedUserId;
 
     private List<List<Pattern>> regexPatterns = new ArrayList<>();
 

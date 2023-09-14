@@ -23,7 +23,6 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<?import javafx.scene.text.Font?>
 <VBox maxHeight="1.7976931348623157E308" prefWidth="1188.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotControlsViewController">
     <ToolBar prefHeight="40.0">
         <ToggleButton fx:id="showLiveReadbackButton" mnemonicParsing="false">
@@ -43,14 +42,14 @@
             </tooltip>
         </ToggleButton>
     </ToolBar>
-    <GridPane hgap="5.0" fx:id="controlsPane">
+    <GridPane fx:id="controlsPane" hgap="5.0">
         <columnConstraints>
-            <ColumnConstraints />
-            <ColumnConstraints />
             <ColumnConstraints />
             <ColumnConstraints />
             <ColumnConstraints maxWidth="125.0" minWidth="120.0" prefWidth="125.0" />
             <ColumnConstraints maxWidth="173.0" minWidth="154.0" prefWidth="173.0" />
+         <ColumnConstraints />
+         <ColumnConstraints />
         </columnConstraints>
         <rowConstraints>
             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
@@ -71,28 +70,6 @@
                 <Insets />
             </GridPane.margin>
         </TextField>
-        <Label maxWidth="1.7976931348623157E308" GridPane.columnIndex="6" GridPane.hgrow="ALWAYS" />
-        <Label text="%authenticatedUserLabel" GridPane.columnIndex="7" GridPane.halignment="LEFT">
-            <font>
-                <Font size="14.0" />
-            </font>
-            <GridPane.margin>
-                <Insets />
-            </GridPane.margin>
-            <padding>
-                <Insets right="10.0" />
-            </padding></Label>
-        <Label fx:id="authenticatedUserId" text="%authenticatedUserNone" GridPane.columnIndex="7" GridPane.halignment="LEFT" GridPane.rowIndex="1">
-            <font>
-                <Font size="18.0" />
-            </font>
-            <GridPane.margin>
-                <Insets />
-            </GridPane.margin>
-            <padding>
-                <Insets right="10.0" />
-            </padding>
-        </Label>
         <Label text="%createdDate" GridPane.halignment="RIGHT" GridPane.rowIndex="1" GridPane.valignment="CENTER">
             <GridPane.margin>
                 <Insets left="8.0" />

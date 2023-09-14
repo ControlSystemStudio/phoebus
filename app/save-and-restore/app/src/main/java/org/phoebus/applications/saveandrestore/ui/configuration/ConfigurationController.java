@@ -103,8 +103,6 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
     private Label configurationLastModifiedDateField;
     @FXML
     private Label createdByField;
-    @FXML
-    private Label authenticatedUserId;
 
     @FXML
     private Pane addPVsPane;
@@ -133,8 +131,6 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
     public ConfigurationController(ConfigurationTab configurationTab) {
         this.configurationTab = configurationTab;
     }
-
-    private final SimpleStringProperty authenticatedUserProperty = new SimpleStringProperty(Messages.authenticatedUserNone);
 
     @FXML
     public void initialize() {
@@ -247,7 +243,6 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
             }
         });
 
-        authenticatedUserId.textProperty().bind(authenticatedUserProperty);
         addPVsPane.disableProperty().bind(userIdentity.isNull());
 
         SaveAndRestoreService.getInstance().addNodeChangeListener(this);

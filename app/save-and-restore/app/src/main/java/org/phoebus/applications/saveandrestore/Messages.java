@@ -24,7 +24,6 @@ public class Messages {
     public static String alertContinue;
     public static String alertAddingPVsToConfiguration;
     public static String authenticationFailed;
-    public static String authenticatedUserNone;
     public static String baseSetpoint;
     public static String buttonSearch;
     public static String cannotCompareHeader;

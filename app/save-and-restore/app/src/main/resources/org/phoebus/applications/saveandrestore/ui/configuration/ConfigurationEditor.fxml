@@ -4,7 +4,6 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.control.cell.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
 
 <BorderPane fx:id="root" style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationController">
     <center>
@@ -41,28 +40,6 @@
                         <Insets bottom="5.0" left="5.0" right="5.0" top="6.0" />
                     </GridPane.margin>
                 </Button>
-                <Label maxWidth="1.7976931348623157E308" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" />
-                <Label text="%authenticatedUserLabel" GridPane.columnIndex="5" GridPane.halignment="LEFT">
-                    <font>
-                        <Font size="14.0" />
-                    </font>
-               <GridPane.margin>
-                  <Insets />
-               </GridPane.margin>
-               <padding>
-                  <Insets right="10.0" />
-               </padding></Label>
-                <Label fx:id="authenticatedUserId" text="%authenticatedUserNone" GridPane.columnIndex="5" GridPane.halignment="LEFT" GridPane.rowIndex="1">
-                    <font>
-                        <Font size="18.0" />
-                    </font>
-               <GridPane.margin>
-                  <Insets />
-               </GridPane.margin>
-               <padding>
-                  <Insets right="10.0" />
-               </padding>
-                </Label>
                 <Label text="%lastModifiedDate" GridPane.halignment="RIGHT" GridPane.rowIndex="2">
                     <GridPane.margin>
                         <Insets left="8.0" />
@@ -109,7 +86,6 @@
                 <ColumnConstraints minWidth="120.0" />
                 <ColumnConstraints />
                 <ColumnConstraints minWidth="120.0" />
-            <ColumnConstraints />
             <ColumnConstraints />
             </columnConstraints>
             <rowConstraints>
