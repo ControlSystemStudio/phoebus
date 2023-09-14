@@ -84,7 +84,10 @@ public abstract class ContextMenuBase extends ContextMenu {
         copyUniqueIdToClipboardMenuItem.setOnAction(ae -> saveAndRestoreController.copyUniqueNodeIdToClipboard());
         copyUniqueIdToClipboardMenuItem.disableProperty().bind(multipleNodesSelectedProperty);
 
-        setOnShowing(event -> runChecks());
+        // Controller may be null, e.g. when adding PVs from channel table
+        if(saveAndRestoreController != null){
+            setOnShowing(event -> runChecks());
+        }
     }
 
 

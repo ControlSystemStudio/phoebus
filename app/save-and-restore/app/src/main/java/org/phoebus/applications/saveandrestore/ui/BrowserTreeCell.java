@@ -18,21 +18,15 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
-import javafx.scene.control.TreeCell;
-import javafx.scene.control.TreeItem;
+import javafx.application.Platform;
+import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
@@ -49,29 +43,16 @@ import java.util.List;
  */
 public class BrowserTreeCell extends TreeCell<Node> {
 
-    private final ContextMenu folderContextMenu;
-    private final ContextMenu configurationContextMenu;
-    private final ContextMenu snapshotContextMenu;
-    private final ContextMenu rootFolderContextMenu;
-    private final ContextMenu compositeSnapshotContextMenu;
     private final SaveAndRestoreController saveAndRestoreController;
 
     private static final Border BORDER = new Border(new BorderStroke(Color.GREEN, BorderStrokeStyle.SOLID,
             new CornerRadii(5.0), BorderStroke.THIN));
 
     public BrowserTreeCell() {
-        this(null, null, null, null, null, null);
+        this(null);
     }
 
-    public BrowserTreeCell(ContextMenu folderContextMenu, ContextMenu configurationContextMenu,
-                           ContextMenu snapshotContextMenu, ContextMenu rootFolderContextMenu,
-                           ContextMenu compositeSnapshotContextMenu,
-                           SaveAndRestoreController saveAndRestoreController) {
-        this.folderContextMenu = folderContextMenu;
-        this.configurationContextMenu = configurationContextMenu;
-        this.snapshotContextMenu = snapshotContextMenu;
-        this.rootFolderContextMenu = rootFolderContextMenu;
-        this.compositeSnapshotContextMenu = compositeSnapshotContextMenu;
+    public BrowserTreeCell(SaveAndRestoreController saveAndRestoreController) {
         this.saveAndRestoreController = saveAndRestoreController;
 
         // This is need in order to suppress the context menu when right-clicking in a portion of the
@@ -110,9 +91,9 @@ public class BrowserTreeCell extends TreeCell<Node> {
         setOnDragOver(event ->
         {
             final Node node = getItem();
-            if(node != null){
+            if (node != null) {
                 List<Node> sourceNodes = (List<Node>) event.getDragboard().getContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT);
-                if(DragNDropUtil.mayDrop(event.getTransferMode(), node, sourceNodes)){
+                if (DragNDropUtil.mayDrop(event.getTransferMode(), node, sourceNodes)) {
                     event.acceptTransferModes(event.getTransferMode());
                     setBorder(BORDER);
                 }
@@ -151,14 +132,15 @@ public class BrowserTreeCell extends TreeCell<Node> {
     public void updateItem(Node node, boolean empty) {
         super.updateItem(node, empty);
         if (empty) {
+            setText(null);
             setGraphic(null);
             setTooltip(null);
             getStyleClass().remove("filter-match");
             return;
         }
         // Use custom layout as this makes it easier to set opacity
-        CellGraphic hBox = new CellGraphic(node);
-        // saveAndRestoreController is null if configuration management is accessed from context menu
+        HBox hBox = new HBox();
+        // saveAndRestoreController is null if configuration management is from OPI or channel table
         if (saveAndRestoreController != null && !saveAndRestoreController.matchesFilter(node)) {
             hBox.setOpacity(0.4);
         }
@@ -174,76 +156,65 @@ public class BrowserTreeCell extends TreeCell<Node> {
         setTooltip(new Tooltip(stringBuilder.toString()));
         switch (node.getNodeType()) {
             case SNAPSHOT:
-                setContextMenu(snapshotContextMenu);
+                if (node.hasTag(Tag.GOLDEN)) {
+                    hBox.getChildren().add(new ImageView(ImageRepository.GOLDEN_SNAPSHOT));
+                } else {
+                    hBox.getChildren().add(new ImageView(ImageRepository.SNAPSHOT));
+                }
+                hBox.getChildren().add(new Label(node.getName()));
+                if (node.getTags() != null && !node.getTags().isEmpty()) {
+                    ImageView tagImage = new ImageView(ImageCache.getImage(BrowserTreeCell.class, "/icons/save-and-restore/snapshot-tags.png"));
+                    tagImage.setFitHeight(13);
+                    tagImage.setPreserveRatio(true);
+                    hBox.getChildren().add(tagImage);
+                }
+                if(saveAndRestoreController != null){
+                    setContextMenu(new ContextMenuSnapshot(saveAndRestoreController));
+                }
                 break;
             case COMPOSITE_SNAPSHOT:
-                setContextMenu(compositeSnapshotContextMenu);
+                hBox.getChildren().add(new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
+                hBox.getChildren().add(new Label(node.getName()));
+                if (node.getTags() != null && !node.getTags().isEmpty()) {
+                    ImageView tagImage = new ImageView(ImageCache.getImage(BrowserTreeCell.class, "/icons/save-and-restore/snapshot-tags.png"));
+                    tagImage.setFitHeight(13);
+                    tagImage.setPreserveRatio(true);
+                    getChildren().add(tagImage);
+                }
+                if(saveAndRestoreController != null){
+                    setContextMenu(new ContextMenuCompositeSnapshot(saveAndRestoreController));
+                }
                 break;
             case CONFIGURATION:
-                setContextMenu(configurationContextMenu);
+                hBox.getChildren().add(new ImageView(ImageRepository.CONFIGURATION));
+                hBox.getChildren().add(new Label(node.getName()));
+                if(saveAndRestoreController != null){
+                    setContextMenu(new ContextMenuConfiguration(saveAndRestoreController));
+                }
                 break;
-            case FOLDER: ;
+            case FOLDER:
+                hBox.getChildren().add(new ImageView(ImageRepository.FOLDER));
+                hBox.getChildren().add(new Label(node.getName()));
                 if (node.getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID)) {
                     setTooltip(new Tooltip(SaveAndRestoreService.getInstance().getServiceIdentifier()));
-                    setContextMenu(rootFolderContextMenu);
-                } else {
-                    setContextMenu(folderContextMenu);
+                    ContextMenu rootFolderContextMenu = new ContextMenu();
+                    MenuItem newRootFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(ImageRepository.FOLDER));
+                    newRootFolderMenuItem.setOnAction(ae -> saveAndRestoreController.createNewFolder());
+                    rootFolderContextMenu.getItems().add(newRootFolderMenuItem);
+                    rootFolderContextMenu.setOnShowing(event -> {
+                        if (saveAndRestoreController.getUserIdentity().isNull().get()) {
+                            Platform.runLater(() -> rootFolderContextMenu.hide());
+                        }
+                    });
+                    if(saveAndRestoreController != null){
+                        setContextMenu(rootFolderContextMenu);
+                    }
+
+                } else if (saveAndRestoreController != null){
+                    setContextMenu(new ContextMenuFolder(saveAndRestoreController));
                 }
                 break;
         }
         setGraphic(hBox);
-    }
-
-    public class CellGraphic extends HBox{
-        private String text;
-        private Label nameLabel;
-        public CellGraphic(Node node){
-            nameLabel = new Label(node.getName());
-            switch (node.getNodeType()) {
-                case SNAPSHOT:
-                    if (node.hasTag(Tag.GOLDEN)) {
-                        getChildren().add(new ImageView(ImageRepository.GOLDEN_SNAPSHOT));
-                    } else {
-                        getChildren().add(new ImageView(ImageRepository.SNAPSHOT));
-                    }
-                    getChildren().add(new Label(node.getName()));
-                    if (node.getTags() != null && !node.getTags().isEmpty()) {
-                        ImageView tagImage = new ImageView(ImageCache.getImage(BrowserTreeCell.class, "/icons/save-and-restore/snapshot-tags.png"));
-                        tagImage.setFitHeight(13);
-                        tagImage.setPreserveRatio(true);
-                        getChildren().add(tagImage);
-                    }
-                    break;
-                case COMPOSITE_SNAPSHOT:
-                    getChildren().add(new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
-                    getChildren().add(nameLabel);
-                    if (node.getTags() != null && !node.getTags().isEmpty()) {
-                        ImageView tagImage = new ImageView(ImageCache.getImage(BrowserTreeCell.class, "/icons/save-and-restore/snapshot-tags.png"));
-                        tagImage.setFitHeight(13);
-                        tagImage.setPreserveRatio(true);
-                        getChildren().add(tagImage);
-                    }
-                    break;
-                case CONFIGURATION:
-                    getChildren().add(new ImageView(ImageRepository.CONFIGURATION));
-                    getChildren().add(nameLabel);
-                    break;
-                case FOLDER:
-                    String name = node.getName();
-                    if (node.getUniqueId().equals(Node.ROOT_FOLDER_UNIQUE_ID) && saveAndRestoreController.userIdentity.isNotNull().get()){
-                        name += " (" + saveAndRestoreController.userIdentity.get() + ")";
-                    }
-                    setText(name);
-                    getChildren().add(new ImageView(ImageRepository.FOLDER));
-                    getChildren().add(nameLabel);
-                    break;
-            }
-        }
-
-        public void setText(String text){
-            if(text != null){
-                nameLabel.textProperty().set(text);
-            }
-        }
     }
 }

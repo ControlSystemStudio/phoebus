@@ -57,8 +57,6 @@ import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
-import org.phoebus.security.store.SecureStore;
-import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -106,12 +104,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     protected SaveAndRestoreService saveAndRestoreService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-
-    protected ContextMenu folderContextMenu;
-    protected ContextMenu configurationContextMenu;
-    protected ContextMenu snapshotContextMenu;
-    protected ContextMenu rootFolderContextMenu;
-    protected ContextMenu compositeSnapshotContextMenu;
 
     protected MultipleSelectionModel<TreeItem<Node>> browserSelectionModel;
 
@@ -168,23 +160,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         filtersComboBox.disableProperty().bind(filterEnabledProperty.not());
         filterEnabledProperty.addListener((observable, oldValue, newValue) -> filterEnabledChanged(newValue));
 
-        folderContextMenu = new ContextMenuFolder(this);
-        configurationContextMenu = new ContextMenuConfiguration(this);
-
-        rootFolderContextMenu = new ContextMenu();
-        MenuItem newRootFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(ImageRepository.FOLDER));
-        newRootFolderMenuItem.setOnAction(ae -> createNewFolder());
-        rootFolderContextMenu.getItems().add(newRootFolderMenuItem);
-        rootFolderContextMenu.setOnShowing(event -> {
-            if (userIdentity.isNull().get()) {
-                Platform.runLater(() -> rootFolderContextMenu.hide());
-            }
-        });
-
-        snapshotContextMenu = new ContextMenuSnapshot(this);
-
-        compositeSnapshotContextMenu = new ContextMenuCompositeSnapshot(this);
-
         treeView.setEditable(true);
 
         treeView.setOnMouseClicked(me -> {
@@ -203,9 +178,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         saveAndRestoreService.addNodeAddedListener(this);
         saveAndRestoreService.addFilterChangeListener(this);
 
-        treeView.setCellFactory(p -> new BrowserTreeCell(folderContextMenu,
-                configurationContextMenu, snapshotContextMenu, rootFolderContextMenu, compositeSnapshotContextMenu,
-                this));
+        treeView.setCellFactory(p -> new BrowserTreeCell(this));
 
         progressIndicator.visibleProperty().bind(disabledUi);
         disabledUi.addListener((observable, oldValue, newValue) -> treeView.setDisable(newValue));
@@ -259,6 +232,12 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         // Clear clipboard to make sure that only custom data format is
         // considered in paste actions.
         Clipboard.getSystemClipboard().clear();
+
+        userIdentity.addListener((a, b, c) -> {
+            String name = c == null ? "Root folder" :
+                    "Root folder (" + userIdentity.get() + ")";
+            treeView.getRoot().setValue(Node.builder().uniqueId(Node.ROOT_FOLDER_UNIQUE_ID).name(name).build());
+        });
 
         loadTreeData();
     }
@@ -1389,7 +1368,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
         for (int i = 1; i < selectedItems.size(); i++) {
             TreeItem<Node> treeItem = selectedItems.get(i);
             if (!treeItem.getParent().getValue().getUniqueId().equals(parentNodeOfFirst.getUniqueId())) {
-                System.out.println(parentNodeOfFirst.getUniqueId() + " " + treeItem.getParent().getValue().getUniqueId());
                 return false;
             }
         }
@@ -1440,7 +1418,6 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
     @Override
     public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens) {
         super.secureStoreChanged(validTokens);
-        ((BrowserTreeCell.CellGraphic)treeView.getRoot().getGraphic()).setText(userIdentity.get());
         tabPane.getTabs().forEach(t -> {
             ((SaveAndRestoreTab) t).secureStoreChanged(validTokens);
         });
