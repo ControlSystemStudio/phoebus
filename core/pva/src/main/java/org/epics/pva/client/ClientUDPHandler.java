@@ -102,23 +102,24 @@ class ClientUDPHandler extends UDPHandler
         local_multicast = Network.configureLocalIPv4Multicast(udp_search4, PVASettings.EPICS_PVA_BROADCAST_PORT);
         udp_localaddr4 = (InetSocketAddress) udp_search4.getLocalAddress();
 
-        // IPv6 socket
+        String ipV6Msg;
+
+        // IPv6 sockets
+        // Beacon socket only receives, does not send broadcasts
         if (PVASettings.EPICS_PVA_ENABLE_IPV6) {
             udp_search6 = Network.createUDP(StandardProtocolFamily.INET6, null, 0);
-            // Beacon socket only receives, does not send broadcasts
-            udp_beacon = Network.createUDP(StandardProtocolFamily.INET6, null, PVASettings.EPICS_PVA_BROADCAST_PORT);
             udp_localaddr6 = (InetSocketAddress) udp_search6.getLocalAddress();
-            logger.log(Level.FINE, "Awaiting search replies on UDP " + udp_localaddr4 +
-                                " and " + udp_localaddr6 +
-                                ", and beacons on " + Network.getLocalAddress(udp_beacon));
+            ipV6Msg = String.format(" and %s", udp_localaddr6);
+            udp_beacon = Network.createUDP(StandardProtocolFamily.INET6, null, PVASettings.EPICS_PVA_BROADCAST_PORT);
         }
         else {
             udp_search6 = null;
-            udp_beacon = null;
+            udp_beacon = Network.createUDP(StandardProtocolFamily.INET, null, PVASettings.EPICS_PVA_BROADCAST_PORT);
             udp_localaddr6 = null;
-            logger.log(Level.FINE, "Awaiting search replies on UDP " + udp_localaddr4);
+            ipV6Msg = "";
         }
-
+        String logMsg = String.format("Awaiting search replies on UDP %s%s and beacons on %s", udp_localaddr4, ipV6Msg, Network.getLocalAddress(udp_beacon));
+        logger.log(Level.FINE, logMsg);
     }
 
     /** @param target Address to which message will be sent
@@ -354,8 +355,8 @@ class ClientUDPHandler extends UDPHandler
         {
             if (PVASettings.EPICS_PVA_ENABLE_IPV6){
                 udp_search6.close();
-                udp_beacon.close();
             }
+            udp_beacon.close();
             udp_search4.close();
 
             if (search_thread6 != null)
