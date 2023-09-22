@@ -149,7 +149,12 @@ class ClientUDPHandler extends UDPHandler
         }
         else
         {
-            assert PVASettings.EPICS_PVA_ENABLE_IPV6: "EPICS_PVA_ENABLE_IPV6 must be enabled to use IPv6 address!";
+            if (!PVASettings.EPICS_PVA_ENABLE_IPV6) {
+                throw new Exception(
+                    "EPICS_PVA_ENABLE_IPV6 must be enabled to use IPv6 address!"
+                );
+            }
+
             synchronized (udp_search6)
             {
                 if (info.getAddress().getAddress().isMulticastAddress())
