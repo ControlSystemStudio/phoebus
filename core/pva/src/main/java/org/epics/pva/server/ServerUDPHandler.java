@@ -79,6 +79,8 @@ class ServerUDPHandler extends UDPHandler
 
                 if (info.isIPv6())
                 {
+                    if (!PVASettings.EPICS_PVA_ENABLE_IPV6)
+                        throw new Exception("Must have IPv6 enabled for IPv6 address!");
                     if (udp6 != null)
                         throw new Exception("EPICS_PVAS_INTF_ADDR_LIST has more than one IPv4 address");
                     udp6 = Network.createUDP(StandardProtocolFamily.INET6, info.getAddress().getAddress(), PVASettings.EPICS_PVAS_BROADCAST_PORT);
