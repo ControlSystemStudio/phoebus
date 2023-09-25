@@ -15,7 +15,7 @@ import org.phoebus.logbook.Logbook;
 /**
  * Logbook object that can be represented as XML/JSON in payload data.
  *
- * @author Eric Berryman taken from Ralph Lange <Ralph.Lange@bessy.de>
+ * @author Eric Berryman taken from Ralph Lange {@literal <Ralph.Lange@bessy.de>}
  */
 @XmlType(propOrder = {"id", "name", "owner", "xmlLogs"})
 @XmlRootElement(name = "logbook")
@@ -61,7 +61,7 @@ public class XmlLogbook {
     /**
      * Setter for logbook id.
      *
-     * @param name logbook id
+     * @param id logbook id
      */
     public void setId(Long id) {
         this.id = id;

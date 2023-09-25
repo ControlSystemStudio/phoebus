@@ -15,10 +15,12 @@ import org.phoebus.framework.spi.PVProposalProvider;
 /** Autocompletion Service for PVs
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class PVProposalService extends ProposalService
 {
-    public static final PVProposalService INSTANCE = new PVProposalService();
+    /**
+     * Singleton
+     */
+	public static final PVProposalService INSTANCE = new PVProposalService();
 
     private PVProposalService()
     {

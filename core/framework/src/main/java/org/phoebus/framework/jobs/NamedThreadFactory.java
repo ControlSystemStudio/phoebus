@@ -23,6 +23,10 @@ public class NamedThreadFactory implements ThreadFactory
     final private String name;
     final private AtomicInteger count = new AtomicInteger(1);
 
+    /**
+     * Constructor
+     * @param name of factory
+     */
     public NamedThreadFactory(final String name)
     {
         this.name = name;

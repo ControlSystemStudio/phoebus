@@ -58,7 +58,6 @@ public class ADLSensitive extends WidgetPart {
      * The default constructor.
      *
      * @param sensitive An ADLWidget that correspond a ADL Sensitive Item.
-     * @param parentWidgetModel The Widget that set the parameter from ADLWidget.
      * @throws WrongADLFormatException Wrong ADL format or untreated parameter found.
      */
     public ADLSensitive(final ADLWidget sensitive) throws WrongADLFormatException {

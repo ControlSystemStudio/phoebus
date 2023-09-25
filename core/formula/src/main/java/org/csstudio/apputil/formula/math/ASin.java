@@ -1,9 +1,14 @@
 package org.csstudio.apputil.formula.math;
 
-@SuppressWarnings("nls")
+/**
+ * ASin class
+ */
 public class ASin extends OneArgMathFunction
 {
-    public ASin()
+	 /**
+     * Constructor
+     */
+	public ASin()
     {
         super("asin", "Inverse sine", Math::asin);
     }

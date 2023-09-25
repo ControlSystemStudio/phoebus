@@ -201,7 +201,7 @@ public class TimeRelativeIntervalPane extends GridPane
         start_spec.setText(TimestampFormats.SECONDS_FORMAT.format(instant));
     }
 
-    /** @param instant Relative start time span */
+    /** @param amount Relative start time span */
     public void setStart(final TemporalAmount amount)
     {
         rel_start.setTimespan(amount);
@@ -219,7 +219,7 @@ public class TimeRelativeIntervalPane extends GridPane
         end_spec.setText(TimestampFormats.SECONDS_FORMAT.format(instant));
    }
 
-    /** @param instant Relative end time span */
+    /** @param amount Relative end time span */
     public void setEnd(final TemporalAmount amount)
     {
         rel_end.setTimespan(amount);

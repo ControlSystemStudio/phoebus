@@ -36,7 +36,7 @@ import org.python.core.PyException;
  *  A loop on the other hand will perform one unit of work per loop
  *  iteration.
  *
- *  <p>The {@link ExecutableScan} queries each command for the number of work
+ *  <p>The @see ExecutableScan queries each command for the number of work
  *  units that it will perform, and the command must then update
  *  the {@link ScanContext} with the number of performed work
  *  units.

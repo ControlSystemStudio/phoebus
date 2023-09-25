@@ -150,7 +150,7 @@ final public class NDShape
      *  @param a One shape
      *  @param b Other shape
      *  @return Combined shape. <code>null</code> if shapes don't match at the end.
-     *  @see #hasEqualEnd(NDShape)
+     *  @see NDShape #hasEqualEnd()
      */
     public static NDShape combine(final NDShape a, final NDShape b)
     {

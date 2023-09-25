@@ -31,7 +31,6 @@ public class CartesianPlot2Model extends AbstractADL2Model<XYPlotWidget> {
 
     /**
      * @param adlWidget
-     * @param colorMap
      */
     @Override
     public void processWidget(ADLWidget adlWidget) {

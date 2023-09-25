@@ -1,9 +1,14 @@
 package org.csstudio.apputil.formula.math;
 
-@SuppressWarnings("nls")
+/**
+ * Round class see @Math round function
+ */
 public class Round extends OneArgMathFunction
 {
-    public Round()
+	/**
+     * Constructor
+     */
+	public Round()
     {
         super("round", "Round", Math::round);
     }

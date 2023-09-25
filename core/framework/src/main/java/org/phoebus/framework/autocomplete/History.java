@@ -23,12 +23,14 @@ import java.util.List;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class History implements ProposalProvider
 {
     private final LinkedList<String> history = new LinkedList<>();
     private final int max_size;
 
+    /**
+     * Constructor
+     */
     public History()
     {
         this(10);

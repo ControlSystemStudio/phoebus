@@ -15,10 +15,11 @@ import java.util.logging.Level;
 /** Information about key locations
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class Locations
 {
+	/** system property for phoebus installation path */
     public static final String PHOEBUS_INSTALL = "phoebus.install";
+    /** system property for phoebus logged user */
     public static final String PHOEBUS_USER = "phoebus.user";
 
     /** Initialize locations */
@@ -77,6 +78,7 @@ public class Locations
      *  <p>Can be set via "phoebus.install".
      *
      *  <p>Defaults to the location of the lib/framework.jar.
+     *  @return the directory of the installation
      */
     public static File install()
     {

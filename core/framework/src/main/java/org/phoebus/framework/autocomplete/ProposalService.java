@@ -26,12 +26,14 @@ import org.phoebus.framework.jobs.NamedThreadFactory;
  *  @see PVProposalService
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class ProposalService
 {
     /** Logger for autocompletion */
     public static final Logger logger = Logger.getLogger(ProposalService.class.getPackageName());
 
+    /**
+	* functional interface Handler
+	*/
     @FunctionalInterface
     public interface Handler
     {
@@ -49,6 +51,10 @@ public class ProposalService
     protected final List<ProposalProvider> providers;
     private final List<Future<?>> submitted = new ArrayList<>();
 
+    /**
+     * Constructor
+     * @param providers the list of provider
+     */
     public ProposalService(final ProposalProvider... providers)
     {
         this.providers = new ArrayList<>(providers.length + 1);

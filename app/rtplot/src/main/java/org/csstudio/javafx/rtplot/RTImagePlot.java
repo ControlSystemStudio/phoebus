@@ -43,7 +43,6 @@ import javafx.stage.Stage;
 
 /** Real-time plot
  *
- *  @param <XTYPE> Data type used for the {@link PlotDataItem}
  *  @author Kay Kasemir
  */
 public class RTImagePlot extends BorderPane
@@ -56,7 +55,6 @@ public class RTImagePlot extends BorderPane
 
     /** Constructor
      *  @param active Active mode where plot reacts to mouse/keyboard?
-     *  @param type Type of X axis
      */
     public RTImagePlot(final boolean active)
     {
@@ -403,7 +401,7 @@ public class RTImagePlot extends BorderPane
         plot.setColorMapSize(size);
     }
 
-    /** @param size Color bar size in pixels */
+    /** @param font  */
     public void setColorMapFont(final Font font)
     {
         plot.setColorMapFont(font);

@@ -157,6 +157,34 @@ then press &lt;SPACE&gt; to activate button.</text>
     <tooltip>$(actions)</tooltip>
   </widget>
   <widget type="action_button" version="3.0.0">
+    <name>Action Button_40</name>
+    <actions>
+      <action type="open_display">
+        <file>11_datasources.bob</file>
+        <target>replace</target>
+        <description>Datasources</description>
+      </action>
+    </actions>
+    <y>360</y>
+    <width>120</width>
+    <height>26</height>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_41</name>
+    <actions>
+      <action type="open_display">
+        <file>12_formulas.bob</file>
+        <target>replace</target>
+        <description>Formulas</description>
+      </action>
+    </actions>
+    <y>400</y>
+    <width>120</width>
+    <height>26</height>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
     <name>Action Button_26</name>
     <actions>
       <action type="open_display">
@@ -165,7 +193,7 @@ then press &lt;SPACE&gt; to activate button.</text>
         <description>Enablement</description>
       </action>
     </actions>
-    <y>360</y>
+    <y>440</y>
     <width>120</width>
     <height>26</height>
     <tooltip>$(actions)</tooltip>

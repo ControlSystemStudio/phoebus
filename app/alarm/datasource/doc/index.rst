@@ -10,7 +10,7 @@ to take a set of actions needed to effectively handle an alarm.
 
 The alarm datasource provides a subsection of the alarm information and functionality.
 This makes it possible for user to access beast alarm information of any other cs-studio application.
-OPI screens can now embed informatino about from the alarm server, like the acknowledgement state of a pv, etc..
+OPI screens can now embed information about from the alarm server, like the acknowledgement state of a pv, etc..
 
 PV syntax
 ---------

@@ -16,7 +16,7 @@ Check Eclipse Preferences::
 
 Debugging with Eclipse
 
-This assumes the project has been imported as a maven project into Eclipse(see instructions in README)::
+This assumes the project has been imported as a maven project into Eclipse (see instructions in README)::
 
     1. Open Eclipse
     2. Go to `Run->External Tools->External Run COnfigurations`
@@ -29,6 +29,12 @@ This assumes the project has been imported as a maven project into Eclipse(see i
     --add-opens java.base/jdk.internal.misc=ALL-UNNAMED -Dio.netty.tryReflectionSetAccessible=true
     -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005 -jar path_to_repo/phoebus/phoebus-product/target/product-4.6.6-SNAPSHOT.jar
     ```
+   or
+    ```
+    --add-opens java.base/jdk.internal.misc=ALL-UNNAMED -Dio.netty.tryReflectionSetAccessible=true
+    -agentlib:jdwp=transport=dt_socket,server=y,address=0.0.0.0:5005,suspend=n -jar path_to_repo/phoebus/phoebus-product/target/product-4.6.6-SNAPSHOT.jar
+    ```
+
     6. Click `Run`. The Eclipse console should output a port number. Write it down; we'll use it for
        debugging later on.
     7. Go to `Debug Configurations`

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017-2021 Oak Ridge National Laboratory.
+ * Copyright (c) 2017-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -33,7 +33,6 @@ import org.phoebus.framework.rdb.RDBInfo.Dialect;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class RDBConnectionPool
 {
     /** Logger for the package */
@@ -56,8 +55,12 @@ public class RDBConnectionPool
     private volatile boolean closed = false;
     private final int instance;
     private final RDBInfo info;
+    /** All open connections */
+    private final List<Connection> connections = new ArrayList<>();
+    /** Idle connections, kept open for re-use */
     private final List<Connection> pool = new ArrayList<>();
 
+    /** Future for clear_timer, used to update/cancel */
     private final AtomicReference<Future<?>> cleanup = new AtomicReference<>();
 
     private volatile int timeout = 10;
@@ -67,10 +70,10 @@ public class RDBConnectionPool
      *  <p>URL format depends on the database dialect.
      *
      *  <p>For MySQL resp. Oracle, the formats are:
-     *  <pre>
+     *  <pre>{@code
      *     jdbc:mysql://[host]:[port]/[database]?user=[user]&password=[password]
      *     jdbc:oracle:thin:[user]/[password]@//[host]:[port]/[database]
-     *  </pre>
+     *  }</pre>
      *
      *  For Oracle, the port is usually 1521.
      *
@@ -135,6 +138,7 @@ public class RDBConnectionPool
 
         // No suitable existing connection, create new one
         connection = info.connect();
+        connections.add(connection);
         if (total_connections != null)
         {
             total_connections.put(connection, new Exception("Open connection " + this));
@@ -157,6 +161,7 @@ public class RDBConnectionPool
             {
                 // Ignore, closing anyway
             }
+            connections.remove(connection);
             logger.log(Level.INFO, this + " is closed", new Exception("Call stack"));
         }
         push(connection);
@@ -187,13 +192,23 @@ public class RDBConnectionPool
         closed = true;
 
         closeIdleConnections();
-        
+
         logger.log(Level.INFO, () -> "Cleared " + this);
 
         // In case a timer was running, cancel
         final Future<?> previous = cleanup.getAndSet(null);
         if (previous != null)
             previous.cancel(false);
+
+        for (Connection c : connections)
+            try
+            {
+                c.close();
+            }
+            catch (Exception ex)
+            {
+                // Ignore, closing anyway
+            }
     }
 
     private void closeIdleConnections()
@@ -217,6 +232,7 @@ public class RDBConnectionPool
         {
             logger.log(Level.FINE, () -> "Closing connection of " + this);
             connection.close();
+            connections.remove(connection);
         }
         catch (Exception ex)
         {

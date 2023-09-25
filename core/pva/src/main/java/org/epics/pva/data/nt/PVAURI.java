@@ -32,21 +32,18 @@ import java.util.stream.Collectors;
  * NTURI is the EPICS V4 Normative Type that describes a Uniform Resource Identifier (URI) bib:uri.
  * </p>
  * NTURI  :=
- * <ul>
+ * 
  * structure
- * <li>
+ * 
  * <ul>
  * <li>string scheme</li>
  * <li>string authority   : opt</li>
  * <li>string path</li>
  * <li>structure query    : opt
+ * </ul>
  * <ul>
- *     <li>{string | double | int <field-name>}0+
- *  *     {<field-type> <field-name>}0+</li>
- * </ul>
- * </li>
- * </ul>
- * </li>
+ *      <li>{@literal{string | double | int <field-name>}0+}</li>
+ *  	<li>{@literal{<field-type> <field-name>}0+}</li>
  * </ul>
  * <p>
  *     Zero or more pvData Fields whose type are not defined until runtime, may be added to an NTURI
@@ -55,6 +52,7 @@ import java.util.stream.Collectors;
  * </p>
  */
 public class PVAURI extends PVAStructure {
+	/** structure name	 */
     public static final String STRUCT_NAME = "epics:nt/NTURI:1.0";
 
     private static final String SCHEME_NAME = "scheme";
@@ -95,7 +93,7 @@ public class PVAURI extends PVAStructure {
      * Set all non-optional parameters.
      *
      * @param name   Name of PV
-     * @param scheme The scheme name must be given. For the pva scheme, the scheme name is “pva”. The pva scheme
+     * @param scheme The scheme name must be given. For the pva scheme, the scheme name is 'pva'. The pva scheme
      *               implies but does not require use of the pvAccess protocol.
      * @param path   The path gives the channel from which data is being requested.
      */
@@ -107,7 +105,7 @@ public class PVAURI extends PVAStructure {
      * Set all the parameters of the NTURI
      *
      * @param name      Name of PV
-     * @param scheme    The scheme name must be given. For the pva scheme, the scheme name is “pva”. The pva scheme
+     * @param scheme    The scheme name must be given. For the pva scheme, the scheme name is 'pva'. The pva scheme
      *                  implies but does not require use of the pvAccess protocol.
      * @param authority If given, then the IP name or address of an EPICS network pvAccess or channel access server.
      * @param path      The path gives the channel from which data is being requested.
@@ -141,7 +139,7 @@ public class PVAURI extends PVAStructure {
     /**
      * Gets the query in a map format
      *
-     * @return Returns the query in a Map<String, String>, returns empty
+     * @return Returns the query in a  {@literal Map<String, String>}, returns empty
      *         an empty map if the query is null.
      * @throws NotValueException If a query in the queries structure
      *                           does not implement {@link PVAValue}

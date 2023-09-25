@@ -36,7 +36,7 @@ public class SelectionService {
     /**
      * Add a selection change listener
      *
-     * @param selectionListner
+     * @param selectionListner listener
      */
     public void addListener(SelectionChangeListener selectionListner) {
         listeners.add(selectionListner);
@@ -45,7 +45,7 @@ public class SelectionService {
     /**
      * Remove a selection change listener
      *
-     * @param selectionListner
+     * @param selectionListner listener
      */
     public void removeListener(SelectionChangeListener selectionListner) {
         listeners.remove(selectionListner);
@@ -62,8 +62,8 @@ public class SelectionService {
 
     /**
      * Set the selection
-     *
-     * @param source    the source of the new selection
+     * @param <T> 		the Type of selected object
+     * @param source	the source of the new selection
      * @param selection A list of objects to be warpped into a new selection
      */
     public <T> void setSelection(Object source, List<T> selection) {

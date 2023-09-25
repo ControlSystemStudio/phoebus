@@ -228,7 +228,7 @@ public class MergedModel<T extends LogMessage>
      * @param start_spec
      *            The start time.
      * @param end_spec
-     *            The end time. Set to {@value RelativeTime#NOW} to enable the
+     *            The end time. Set to value RelativeTime#NOW to enable the
      *            reception of live messages via JMS.
      */
     public void setTimerange(final String start_spec, final String end_spec)

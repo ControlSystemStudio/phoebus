@@ -22,9 +22,13 @@ public class MaxNode implements Node
 {
     private final Node args[];
 
-    public MaxNode(final Node args[])
+    /**
+     * Constructor
+     * @param nodeArray , arrays of nodes
+     */
+    public MaxNode(final Node nodeArray[])
     {
-        this.args = args;
+        this.args = nodeArray;
     }
 
     @Override
@@ -63,7 +67,6 @@ public class MaxNode implements Node
         return false;
     }
 
-    @SuppressWarnings("nls")
     @Override
     public String toString()
     {

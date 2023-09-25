@@ -17,8 +17,15 @@ import java.util.Comparator;
  */
 public class CompareNatural
 {
-    public static final Comparator<String> INSTANCE = (a, b) -> compareTo(a, b);
-
+    /** Singleton */
+	public static final Comparator<String> INSTANCE = (a, b) -> compareTo(a, b);
+	
+	/**
+	 * Compare two string 
+	 * @param s1 string 1
+	 * @param s2 string 2
+	 * @return result of comparison
+	 */
     public static int compareTo(final String s1, final String s2)
     {
        // Skip all identical characters

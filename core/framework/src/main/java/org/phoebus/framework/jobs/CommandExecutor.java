@@ -29,7 +29,6 @@ import java.util.logging.Level;
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class CommandExecutor implements Callable<Integer>
 {
     /** Seconds to wait for a launched program */
@@ -38,6 +37,11 @@ public class CommandExecutor implements Callable<Integer>
     private final ProcessBuilder process_builder;
     private volatile Process process;
 
+    /**
+     * Constructor
+     * @param cmd command line
+     * @param directory execution
+     */
     public CommandExecutor(final String cmd, final File directory)
     {
         final List<String> cmd_parts = splitCmd(cmd);

@@ -47,7 +47,9 @@ public class LinearMeterScale extends NumericAxis
     }
 
     /** Configure scale layout
-     *  @param
+     *  @param p1x
+     *  @param p1y
+     *  @param s
      */
     public void configure(int p1x, int p1y, double s)
     {

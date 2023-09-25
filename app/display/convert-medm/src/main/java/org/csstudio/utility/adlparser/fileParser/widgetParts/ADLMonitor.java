@@ -39,12 +39,8 @@ public class ADLMonitor extends ADLConnected {
     /**
      * The default constructor.
      *
-     * @param adlWidget
-     *            An ADLWidget that correspond a ADL Monitor.
-     * @param parentWidgetModel
-     *            The Widget that set the parameter from ADLWidget.
-     * @throws WrongADLFormatException
-     *             Wrong ADL format or untreated parameter found.
+     * @param adlWidget An ADLWidget that correspond a ADL Monitor.
+     * @throws WrongADLFormatException Wrong ADL format or untreated parameter found.
      */
     public ADLMonitor(final ADLWidget adlWidget) throws WrongADLFormatException {
         super(adlWidget);

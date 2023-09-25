@@ -55,17 +55,17 @@ public interface ChannelFinderClient {
 
 	/**
 	 * Returns a channel that exactly matches the channelName
-	 * <tt>channelName</tt>.
+	 * <code>channelName</code>.
 	 * 
 	 * @param channelName
 	 *            - name of the required channel.
-	 * @return {@link Channel} with name <tt>channelName</tt> or null
+	 * @return {@link Channel} with name <code>channelName</code> or null
 	 * @throws ChannelFinderException - channelfinder exception
 	 */
 	public Channel getChannel(String channelName) throws ChannelFinderException;
 
 	/**
-	 * Destructively set a single channel <tt>channel</tt>, if the channel
+	 * Destructively set a single channel <code>channel</code>, if the channel
 	 * already exists it will be replaced with the given channel.
 	 * 
 	 * @param channel
@@ -76,7 +76,7 @@ public interface ChannelFinderClient {
 
 
 	/**
-	 * Destructively set a Tag <tt>tag</tt> with no associated channels to the
+	 * Destructively set a Tag <code>tag</code> with no associated channels to the
 	 * database.
 	 * 
 	 * @param tag
@@ -85,7 +85,7 @@ public interface ChannelFinderClient {
 	public void set(Tag.Builder tag);
 
 	/**
-	 * Destructively set tag <tt>tag</tt> to channel <tt>channelName</tt> and
+	 * Destructively set tag <code>tag</code> to channel <code>channelName</code> and
 	 * remove the tag from all other channels.
 	 * 
 	 * @param tag
@@ -98,7 +98,7 @@ public interface ChannelFinderClient {
 			throws ChannelFinderException;
 
 	/**
-	 * Set tag <tt>tag</tt> on the set of channels {channels} and remove it from
+	 * Set tag <code>tag</code> on the set of channels {channels} and remove it from
 	 * all others.
 	 * 
 	 * @param tag
@@ -112,7 +112,7 @@ public interface ChannelFinderClient {
 			throws ChannelFinderException;
 
 	/**
-	 * Destructively set a new property <tt>property</tt>.
+	 * Destructively set a new property <code>property</code>.
 	 * 
 	 * @param prop
 	 *            - the property to be set.
@@ -120,8 +120,8 @@ public interface ChannelFinderClient {
 	public void set(Property.Builder prop) throws ChannelFinderException;
 
 	/**
-	 * Destructively set property <tt>prop</tt> and add it to the channel
-	 * <tt>channelName</tt> and remove it from all others.
+	 * Destructively set property <code>prop</code> and add it to the channel
+	 * <code>channelName</code> and remove it from all others.
 	 * 
 	 * @param prop
 	 *            - property to be set.
@@ -131,10 +131,10 @@ public interface ChannelFinderClient {
 	public void set(Property.Builder prop, String channelName);
 
 	/**
-	 * Destructively set property <tt>prop</tt> and add it to the channels
-	 * <tt>channelNames</tt> removing it from all other channels. By default all
+	 * Destructively set property <code>prop</code> and add it to the channels
+	 * <code>channelNames</code> removing it from all other channels. By default all
 	 * channels will contain the property with the same value specified in the
-	 * <tt>prop</tt>.<br>
+	 * <code>prop</code>.<br>
 	 * to individually set the value for each channel use channelPropertyMap.
 	 * 
 	 * @param prop
@@ -146,8 +146,8 @@ public interface ChannelFinderClient {
 	public void set(Property.Builder prop, Collection<String> channelNames);
 
 	/**
-	 * Destructively set the property <tt>prop</tt> and add it to the channels
-	 * specified in the <tt>channelPropertyMap</tt>, where the map key is the
+	 * Destructively set the property <code>prop</code> and add it to the channels
+	 * specified in the <code>channelPropertyMap</code>, where the map key is the
 	 * channel name and the associated value is the property value to be used
 	 * for that channel.
 	 * 
@@ -160,7 +160,7 @@ public interface ChannelFinderClient {
 			Map<String, String> channelPropertyMap);
 
 	/**
-	 * Update existing channel with <tt>channel</tt>.
+	 * Update existing channel with <code>channel</code>.
 	 * 
 	 * @param channel - channel builder
 	 * @throws  ChannelFinderException - channelfinder exception
@@ -168,8 +168,8 @@ public interface ChannelFinderClient {
 	public void update(Channel.Builder channel) throws ChannelFinderException;
 
 	/**
-	 * Update Tag <tt>tag </tt> by adding it to Channel with name
-	 * <tt>channelName</tt>, without affecting the other instances of this tag.
+	 * Update Tag <code>tag </code> by adding it to Channel with name
+	 * <code>channelName</code>, without affecting the other instances of this tag.
 	 * 
 	 * @param tag
 	 *            the tag to be added
@@ -182,8 +182,8 @@ public interface ChannelFinderClient {
 
 	/**
 	 * 
-	 * Update the Tag <tt>tag</tt> by adding it to the set of the channels with
-	 * names <tt>channelNames</tt>, without affecting the other instances of
+	 * Update the Tag <code>tag</code> by adding it to the set of the channels with
+	 * names <code>channelNames</code>, without affecting the other instances of
 	 * this tag.
 	 * 
 	 * @param tag
@@ -196,8 +196,8 @@ public interface ChannelFinderClient {
 			throws ChannelFinderException;
 
 	/**
-	 * Update Property <tt>property</tt> by adding it to the channel
-	 * <tt>channelName</tt>, without affecting the other channels.
+	 * Update Property <code>property</code> by adding it to the channel
+	 * <code>channelName</code>, without affecting the other channels.
 	 * 
 	 * @param property
 	 *            - the property to be updated
@@ -210,8 +210,8 @@ public interface ChannelFinderClient {
 			throws ChannelFinderException;
 
 	/**
-	 * Update the channels identified with <tt>channelNames</tt> with the
-	 * property <tt>property</tt>
+	 * Update the channels identified with <code>channelNames</code> with the
+	 * property <code>property</code>
 	 * 
 	 * @param property - property builder
 	 * @param channelNames - list of channel names
@@ -221,7 +221,7 @@ public interface ChannelFinderClient {
 			Collection<String> channelNames) throws ChannelFinderException;
 
 	/**
-	 * Update the property <tt>property</tt> on all channels specified in the
+	 * Update the property <code>property</code> on all channels specified in the
 	 * channelPropValueMap, where the key in the map is the channel name and the
 	 * value is the value for that property
 	 * 
@@ -234,13 +234,13 @@ public interface ChannelFinderClient {
 			throws ChannelFinderException;
 
 	/**
-	 * Search for channels who's name match the pattern <tt>pattern</tt>.<br>
+	 * Search for channels who's name match the pattern <code>pattern</code>.<br>
 	 * The pattern can contain wildcard char * or ?.<br>
 	 * 
 	 * @param pattern
 	 *            - the search pattern for the channel names
 	 * @return A Collection of channels who's name match the pattern
-	 *         <tt>pattern</tt>
+	 *         <code>pattern</code>
 	 * @throws  ChannelFinderException - channelfinder exception
 	 */
 	public Collection<Channel> findByName(String pattern)
@@ -248,13 +248,13 @@ public interface ChannelFinderClient {
 
 	/**
 	 * Search for channels with tags who's name match the pattern
-	 * <tt>pattern</tt>.<br>
+	 * <code>pattern</code>.<br>
 	 * The pattern can contain wildcard char * or ?.<br>
 	 * 
 	 * @param pattern
 	 *            - the search pattern for the tag names
 	 * @return A Collection of channels which contain tags who's name match the
-	 *         pattern <tt>pattern</tt>
+	 *         pattern <code>pattern</code>
 	 * @throws  ChannelFinderException - channelfinder exception
 	 */
 	public Collection<Channel> findByTag(String pattern)
@@ -262,7 +262,7 @@ public interface ChannelFinderClient {
 
 	/**
 	 * Search for channels with properties who's Value match the pattern
-	 * <tt>pattern</tt>.<br>
+	 * <code>pattern</code>.<br>
 	 * The pattern can contain wildcard char * or ?.<br>
 	 * 
 	 * @param property
@@ -270,8 +270,8 @@ public interface ChannelFinderClient {
 	 * @param pattern
 	 *            - the seatch pattern for the property value.
 	 * @return A collection of channels containing the property with name
-	 *         <tt>propertyName</tt> who's value matches the pattern
-	 *         <tt> pattern</tt>.
+	 *         <code>propertyName</code> who's value matches the pattern
+	 *         <code> pattern</code>.
 	 * @throws  ChannelFinderException - channelfinder exception
 	 */
 	public Collection<Channel> findByProperty(String property,
@@ -283,7 +283,7 @@ public interface ChannelFinderClient {
 	 * Tags=tagNamePattern Each criteria is logically ANDed, || seperated values
 	 * are logically ORed
 	 * 
-	 * Query for channels based on the Query string <tt>query</tt> example:
+	 * Query for channels based on the Query string <code>query</code> example:
 	 * find("SR* Cell=1,2 Tags=GolderOrbit,myTag)<br>
 	 * 
 	 * this will return all channels with names starting with SR AND have
@@ -356,7 +356,7 @@ public interface ChannelFinderClient {
 			throws ChannelFinderException;
 
 	/**
-	 * Delete the channel identified by <tt>channel</tt>
+	 * Delete the channel identified by <code>channel</code>
 	 * 
 	 * @param channelName
 	 *            channel to be removed
@@ -365,7 +365,7 @@ public interface ChannelFinderClient {
 	public void deleteChannel(String channelName) throws ChannelFinderException;
 
 	/**
-	 * Delete the set of channels identified by <tt>channels</tt>
+	 * Delete the set of channels identified by <code>channels</code>
 	 * 
 	 * @param channels - list of channel builders
 	 * @throws  ChannelFinderException - channelfinder exception
@@ -375,53 +375,53 @@ public interface ChannelFinderClient {
 			throws ChannelFinderException;
 
 	/**
-	 * Delete tag <tt>tag</tt> from the channel with the name
-	 * <tt>channelName</tt>
+	 * Delete tag <code>tag</code> from the channel with the name
+	 * <code>channelName</code>
 	 * 
 	 * @param tag
 	 *            - the tag to be deleted.
 	 * @param channelName
-	 *            - the channel from which to delete the tag <tt>tag</tt>
+	 *            - the channel from which to delete the tag <code>tag</code>
 	 * @throws  ChannelFinderException - channelfinder exception
 	 */
 	public void delete(Tag.Builder tag, String channelName)
 			throws ChannelFinderException;
 
 	/**
-	 * Remove the tag <tt>tag </tt> from all the channels <tt>channelNames</tt>
+	 * Remove the tag <code>tag </code> from all the channels <code>channelNames</code>
 	 * 
 	 * @param tag
 	 *            - the tag to be deleted.
 	 * @param channelNames
-	 *            - the channels from which to delete the tag <tt>tag</tt>
+	 *            - the channels from which to delete the tag <code>tag</code>
 	 * @throws  ChannelFinderException - channelfinder exception
 	 */
 	public void delete(Tag.Builder tag, Collection<String> channelNames)
 			throws ChannelFinderException;
 
 	/**
-	 * Remove property <tt>property</tt> from the channel with name
-	 * <tt>channelName</tt>
+	 * Remove property <code>property</code> from the channel with name
+	 * <code>channelName</code>
 	 * 
 	 * @param property
 	 *            - the property to be deleted.
 	 * @param channelName
 	 *            - the channel from which to delete the property
-	 *            <tt>property</tt>
+	 *            <code>property</code>
 	 * @throws  ChannelFinderException - channelfinder exception
 	 */
 	public void delete(Property.Builder property, String channelName)
 			throws ChannelFinderException;
 
 	/**
-	 * Remove the property <tt>property</tt> from the set of channels
-	 * <tt>channelNames</tt>
+	 * Remove the property <code>property</code> from the set of channels
+	 * <code>channelNames</code>
 	 * 
 	 * @param property
 	 *            - the property to be deleted.
 	 * @param channelNames
 	 *            - the channels from which to delete the property
-	 *            <tt>property</tt>
+	 *            <code>property</code>
 	 * @throws  ChannelFinderException - channelfinder exception
 	 */
 	public void delete(Property.Builder property,

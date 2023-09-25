@@ -28,7 +28,6 @@ import java.util.Optional;
  *
  * @author carcassi, shroffk
  */
-@SuppressWarnings("nls")
 public class TimeRelativeInterval {
 
     private final Object start;
@@ -229,6 +228,10 @@ public class TimeRelativeInterval {
         }
     }
 
+    /**
+     * @param reference time
+     * @return absolute interval
+     */
     public TimeInterval toAbsoluteInterval(Instant reference) {
         Instant absoluteStart;
         Instant absoluteEnd;
@@ -288,6 +291,7 @@ public class TimeRelativeInterval {
         return TimeInterval.between(absoluteStart, absoluteEnd);
     }
 
+    /** @return time interval */
     public TimeInterval toAbsoluteInterval() {
         return toAbsoluteInterval(Instant.now());
     }

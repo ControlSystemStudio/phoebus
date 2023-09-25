@@ -29,43 +29,21 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Side;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.CustomMenuItem;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
-import javafx.scene.control.ToggleButton;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.selection.SelectionService;
-import org.phoebus.logbook.Attachment;
-import org.phoebus.logbook.LogClient;
-import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.LogFactory;
-import org.phoebus.logbook.LogService;
-import org.phoebus.logbook.Logbook;
-import org.phoebus.logbook.LogbookException;
-import org.phoebus.logbook.LogbookPreferences;
-import org.phoebus.logbook.Tag;
-import org.phoebus.logbook.olog.ui.AttachmentsViewController;
-import org.phoebus.logbook.olog.ui.HelpViewer;
-import org.phoebus.logbook.olog.ui.LogbookUIPreferences;
-import org.phoebus.logbook.olog.ui.PreviewViewer;
-import org.phoebus.logbook.olog.ui.SingleLogEntryDisplayController;
+import org.phoebus.logbook.*;
+import org.phoebus.logbook.olog.ui.*;
 import org.phoebus.logbook.olog.ui.menu.SendToLogBookApp;
 import org.phoebus.olog.es.api.OlogProperties;
 import org.phoebus.olog.es.api.model.OlogAttachment;
 import org.phoebus.olog.es.api.model.OlogLog;
 import org.phoebus.security.store.SecureStore;
+import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.security.tokens.SimpleAuthenticationToken;
 import org.phoebus.ui.dialog.ListSelectionPopOver;
@@ -77,11 +55,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -451,7 +425,7 @@ public class LogEntryUpdateController {
                         try {
                             SecureStore store = new SecureStore();
                             ScopedAuthenticationToken scopedAuthenticationToken =
-                                    new ScopedAuthenticationToken(LogService.AUTHENTICATION_SCOPE, usernameProperty.get(), passwordProperty.get());
+                                    new ScopedAuthenticationToken(AuthenticationScope.LOGBOOK, usernameProperty.get(), passwordProperty.get());
                             store.setScopedAuthentication(scopedAuthenticationToken);
                         } catch (Exception ex) {
                             logger.log(Level.WARNING, "Secure Store file not found.", ex);
@@ -639,7 +613,7 @@ public class LogEntryUpdateController {
         });
     }
 
-    private void retrieveAttachments(){
+    private void retrieveAttachments() {
         JobManager.schedule("Fetch attachment data", monitor -> {
 
             LogClient logClient =
@@ -663,7 +637,7 @@ public class LogEntryUpdateController {
                         return fileAttachment;
                     }).collect(Collectors.toList());
             // Update UI
-            Platform.runLater(()->{
+            Platform.runLater(() -> {
                 attachmentsViewController.setAttachments(attachments);
             });
         });
@@ -676,7 +650,7 @@ public class LogEntryUpdateController {
             // Get the SecureStore. Retrieve username and password.
             try {
                 SecureStore store = new SecureStore();
-                ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken(LogService.AUTHENTICATION_SCOPE);
+                ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken(AuthenticationScope.LOGBOOK);
                 // Could be accessed from JavaFX Application Thread when updating, so synchronize.
                 synchronized (usernameProperty) {
                     usernameProperty.set(scopedAuthenticationToken == null ? "" : scopedAuthenticationToken.getUsername());

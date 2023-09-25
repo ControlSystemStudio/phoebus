@@ -64,7 +64,7 @@ public class TemporalAmountPane extends GridPane
     };
 
     /** Constructor
-     *  @param include_now Should pane include 'now'?
+     *  @param type Should pane include 'now'?
      */
     public TemporalAmountPane(final Type type)
     {

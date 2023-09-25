@@ -50,7 +50,7 @@ import java.util.logging.Logger;
  *  Provide a context menu item for creating or adding to a saveset
  *  from the selection of {@link ProcessVariable}s.
  *
- *  @author Genie Jhang <changj@frib.msu.edu>
+ *  @author Genie Jhang {@literal <changj@frib.msu.edu>}
  */
 @SuppressWarnings("nls")
 public class ContextMenuCreateSaveset implements ContextMenuEntry

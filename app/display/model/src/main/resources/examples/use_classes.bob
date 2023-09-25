@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <display version="2.0.0">
-  <name>Display</name>
+  <name>Classes</name>
   <widget type="label" version="2.0.0">
     <name>Label</name>
     <class>TITLE</class>

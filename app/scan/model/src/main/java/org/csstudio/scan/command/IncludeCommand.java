@@ -37,7 +37,8 @@ public class IncludeCommand extends ScanCommand
     }
 
     /** Initialize
-     *  @param comment Comment
+     *  @param scan_file
+     *  @param macros
      */
     public IncludeCommand(final String scan_file, final String macros)
     {

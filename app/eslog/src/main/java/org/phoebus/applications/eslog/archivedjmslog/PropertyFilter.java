@@ -34,7 +34,7 @@ public abstract class PropertyFilter
      *
      * The inversion is already considered in the result of
      * {@link PropertyFilter#match(LogMessage)} and
-     * {@link PropertyFilter#match(Function).
+     * {@link PropertyFilter#match(Function)}.
      *
      * @return The value of the inverted property.
      */

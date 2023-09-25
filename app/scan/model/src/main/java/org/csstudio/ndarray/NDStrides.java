@@ -37,7 +37,7 @@ final public class NDStrides
     }
 
     /** Initialize
-     *  @param shape Array strides, e.g. [1, 2]
+     *  @param strides Array strides, e.g. [1, 2]
      */
     public NDStrides(final List<Integer> strides)
     {

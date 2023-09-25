@@ -19,12 +19,12 @@ import org.w3c.dom.Element;
 
 /** Read {@link ScanCommand}s from XML stream.
  *
- *  <p>Depends on a {@link SimpleScanCommandFactory} to
+ *  <p>Depends on a see SimpleScanCommandFactory to
  *  create the {@link ScanCommand} instances.
  *
  *  @author Kay Kasemir
  */
-@SuppressWarnings("nls")
+
 public class XMLCommandReader
 {
     /** Read scan commands from XML string

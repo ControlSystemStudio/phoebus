@@ -28,7 +28,7 @@ import javafx.scene.input.Clipboard;
 @SuppressWarnings("nls")
 public class PasteFiles extends MenuItem
 {
-    /** @param Node Node for error dialog
+    /** @param node Node for error dialog
      *  @param target_item Item (directory) into which files from clipboard should be copied
      */
     public PasteFiles(final Node node, final TreeItem<FileInfo> target_item)

@@ -27,7 +27,7 @@ public class RegionOfInterest
     private volatile Rectangle2D region;
 
     /** Not meant to be called by user.
-     *  Call {@link RTImagePlot#addROI()} to create ROI
+     *  Call {@link RTImagePlot #addROI()} to create ROI
      */
     public RegionOfInterest(final String name, final Color color,
                             final boolean visible,

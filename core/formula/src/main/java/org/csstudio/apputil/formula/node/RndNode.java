@@ -14,7 +14,11 @@ import org.csstudio.apputil.formula.Node;
  */
 public class RndNode extends AbstractUnaryNode
 {
-    public RndNode(Node n)
+    /**
+     * Constructor
+     * @param n , the node to random
+     */
+	public RndNode(Node n)
     {
         super(n);
     }
@@ -25,7 +29,6 @@ public class RndNode extends AbstractUnaryNode
         return a * Math.random();
     }
 
-    @SuppressWarnings("nls")
     @Override
     public String toString()
     {

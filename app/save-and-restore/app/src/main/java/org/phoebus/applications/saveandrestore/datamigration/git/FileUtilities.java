@@ -19,50 +19,12 @@
  */
 package org.phoebus.applications.saveandrestore.datamigration.git;
 
-import org.epics.util.array.ArrayBoolean;
-import org.epics.util.array.ArrayByte;
-import org.epics.util.array.ArrayDouble;
-import org.epics.util.array.ArrayFloat;
-import org.epics.util.array.ArrayInteger;
-import org.epics.util.array.ArrayLong;
-import org.epics.util.array.ArrayShort;
-import org.epics.util.array.CollectionNumbers;
-import org.epics.util.array.ListBoolean;
-import org.epics.util.array.ListByte;
-import org.epics.util.array.ListDouble;
-import org.epics.util.array.ListFloat;
-import org.epics.util.array.ListInteger;
-import org.epics.util.array.ListLong;
-import org.epics.util.array.ListShort;
+import org.epics.util.array.*;
 import org.epics.util.stats.Range;
-import org.epics.vtype.Alarm;
-import org.epics.vtype.AlarmSeverity;
-import org.epics.vtype.AlarmStatus;
-import org.epics.vtype.Display;
-import org.epics.vtype.EnumDisplay;
-import org.epics.vtype.Time;
-import org.epics.vtype.VBoolean;
-import org.epics.vtype.VBooleanArray;
-import org.epics.vtype.VByte;
-import org.epics.vtype.VByteArray;
-import org.epics.vtype.VDouble;
-import org.epics.vtype.VDoubleArray;
-import org.epics.vtype.VEnum;
-import org.epics.vtype.VEnumArray;
-import org.epics.vtype.VFloat;
-import org.epics.vtype.VFloatArray;
-import org.epics.vtype.VInt;
-import org.epics.vtype.VIntArray;
-import org.epics.vtype.VLong;
-import org.epics.vtype.VLongArray;
-import org.epics.vtype.VShort;
-import org.epics.vtype.VShortArray;
-import org.epics.vtype.VString;
-import org.epics.vtype.VStringArray;
-import org.epics.vtype.VType;
-import org.phoebus.applications.saveandrestore.common.VDisconnectedData;
+import org.epics.vtype.*;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.ui.VDisconnectedData;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -74,13 +36,7 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.regex.Pattern;
+import java.util.*;
 
 
 /**
@@ -108,22 +64,14 @@ public final class FileUtilities {
     public static final String H_VALUE = "VALUE";
     public static final String H_READ_ONLY = "READ_ONLY";
     // the complete snapshot file header
-    public static final String SNAPSHOT_FILE_HEADER = H_PV_NAME + "," + H_SELECTED + "," + H_TIMESTAMP + "," + H_STATUS
-            + "," + H_SEVERITY + "," + H_VALUE_TYPE + "," + H_VALUE + "," + H_READBACK + "," + H_READBACK_VALUE + ","
-            + H_DELTA + "," + H_READ_ONLY;
-    public static final String SAVE_SET_HEADER = H_PV_NAME + "," + H_READBACK + "," + H_DELTA + "," + H_READ_ONLY;
     // delimiter of array values
     private static final String ARRAY_SPLITTER = "\\;";
     // delimiter of enum value and enum constants
     private static final String ENUM_VALUE_SPLITTER = "\\~";
-    // proposed length of snapshot file data line entry (pv name only)
-    private static final int SNP_ENTRY_LENGTH = 700;
-    // proposed length of configuration data line entry (pv name only)
-    private static final int BSD_ENTRY_LENGTH = 250;
+
     // the format used to store the timestamp of when the snapshot was taken
     private static final ThreadLocal<DateFormat> TIMESTAMP_FORMATTER = ThreadLocal
             .withInitial(() -> new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS"));
-    private static final Pattern LINE_BREAK_PATTERN = Pattern.compile("\\n");
 
     /**
      * Private constructor to prevent instantiation of this class.
@@ -158,7 +106,7 @@ public final class FileUtilities {
             } else if (header == null) {
                 header = line.split("\\,");
                 for (int i = 0; i < header.length; i++) {
-                    headerMap.put(header[i].toUpperCase(Locale.UK), Integer.valueOf(i));
+                    headerMap.put(header[i].toUpperCase(Locale.UK), i);
                 }
             } else {
                 if (headerMap.isEmpty()) {
@@ -173,7 +121,6 @@ public final class FileUtilities {
                 Integer idx = headerMap.get(H_PV_NAME);
                 String name = idx == null || idx > length ? null : trim(split[idx]);
                 idx = headerMap.get(H_SELECTED);
-                String sel = idx == null || idx > length ? null : trim(split[idx]);
                 idx = headerMap.get(H_TIMESTAMP);
                 String timestamp = idx == null || idx > length ? null : trim(split[idx]);
                 idx = headerMap.get(H_STATUS);
@@ -191,9 +138,8 @@ public final class FileUtilities {
                 idx = headerMap.get(H_DELTA);
                 //String delta = idx == null || idx > length ? "" : trim(split[idx]);
                 idx = headerMap.get(H_READ_ONLY);
-                Boolean readOnly = idx == null || idx > length ? Boolean.FALSE : Boolean.valueOf(trim(split[idx]));
 
-                VType data = null, readbackData = null;
+                VType data, readbackData;
                 try {
                     data = piecesToVType(timestamp, status, severity, value, valueType);
                 } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
@@ -256,7 +202,7 @@ public final class FileUtilities {
         String[] t = timestamp != null && timestamp.indexOf('.') > 0 ? timestamp.split("\\.")
                 : new String[]{"0", "0"};
         Time time = Time.of(Instant.ofEpochSecond(Long.parseLong(t[0]), Integer.parseInt(t[1])));
-        AlarmStatus alarmStatus = null;
+        AlarmStatus alarmStatus;
         try {
             alarmStatus = AlarmStatus.valueOf(status);
         } catch (IllegalArgumentException e) {
@@ -271,10 +217,9 @@ public final class FileUtilities {
         String[] valueAndLabels = value.split(ENUM_VALUE_SPLITTER);
         if (valueAndLabels.length > 0) {
             try {
-                if(valueAndLabels[0].isEmpty()){
+                if (valueAndLabels[0].isEmpty()) {
                     valueAndLabels[0] = "";
-                }
-                else if (valueAndLabels[0].charAt(0) == '[') {
+                } else if (valueAndLabels[0].charAt(0) == '[') {
                     valueAndLabels[0] = valueAndLabels[0].substring(1, valueAndLabels[0].length() - 1);
                 }
                 if (valueAndLabels.length > 1) {
@@ -480,7 +425,7 @@ public final class FileUtilities {
                     throw new IOException(String.format("Invalid content: %s.", line));
                 }
                 // there are no fields in here that may contain a comma
-                String name = null, readback = null, delta = null;
+                String name, readback = null, delta = null;
                 boolean readOnly = false;
                 if (namesIndex > -1) {
                     name = trim(split[namesIndex]);

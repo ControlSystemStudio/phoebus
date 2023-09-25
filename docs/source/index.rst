@@ -22,6 +22,7 @@ User Documentation:
    authorization
    applications
    services
+   services_architecture
 
 Developer Documentation:
 
@@ -37,6 +38,7 @@ Developer Documentation:
    preference_properties
    changelog
    docker
+   trouble_shooting
    eclipse_debugging
    gui_testing
 

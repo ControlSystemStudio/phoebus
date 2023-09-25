@@ -2,10 +2,15 @@ package org.csstudio.apputil.formula.math;
 
 import java.util.List;
 
-@SuppressWarnings("nls")
+/**
+ * Sin class see @Math sin function
+ */
 public class Sin extends OneArgMathFunction
 {
-    public Sin()
+	/**
+     * Constructor
+     */
+	public Sin()
     {
         super("sin", "Sine", Math::sin);
     }

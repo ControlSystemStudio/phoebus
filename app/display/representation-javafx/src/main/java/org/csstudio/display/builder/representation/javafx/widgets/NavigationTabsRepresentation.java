@@ -12,14 +12,18 @@ import static org.csstudio.display.builder.representation.EmbeddedDisplayReprese
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
+import javafx.util.Pair;
+import org.apache.commons.lang3.tuple.MutablePair;
 import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
+import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.widgets.NavigationTabsWidget;
@@ -54,6 +58,13 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
     private final DirtyFlag dirty_tabs = new DirtyFlag();
     private final DirtyFlag dirty_tab_look = new DirtyFlag();
     private final DirtyFlag dirty_active_tab = new DirtyFlag();
+    private class SelectedNavigationTabs extends MutablePair<Integer, HashMap<Pair<Integer, String>, HashMap<String, SelectedNavigationTabs>>> {
+        public SelectedNavigationTabs(int activeTab) {
+            left = activeTab;
+            right = new HashMap<>();  // 'right' is a mapping of the form: Tab Number & Tab Name (Integer, String) -> Name of Navigator Tab Widget (String) -> Opened Tab and Sub-Tabs (SelectedNavigationTabs)
+        }
+    };
+    protected SelectedNavigationTabs selectedNavigationTabs = new SelectedNavigationTabs(0);
     private final UntypedWidgetPropertyListener sizesChangedListener = this::sizesChanged;
     private final UntypedWidgetPropertyListener tabLookChangedListener = this::tabLookChanged;
     private final WidgetPropertyListener<Integer> activeTabChangedListener = this::activeTabChanged;
@@ -176,6 +187,7 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
         dirty_active_tab.mark();
         toolkit.scheduleUpdate(this);
         tab_display_listener.propertyChanged(null, null, null);
+        selectedNavigationTabs.left = tab_index;
     }
 
     /** Update to the next pending display
@@ -231,6 +243,39 @@ public class NavigationTabsRepresentation extends RegionBaseRepresentation<Navig
                     return null;
                 });
                 checkCompletion(model_widget, completion, "timeout representing new content");
+
+                int tabNumber = model_widget.propActiveTab().getValue();
+                String tabName = model_widget.propTabs().getValue().get(model_widget.propActiveTab().getValue()).name().getValue();
+                Pair<Integer, String> tabNumberAndTabName = new Pair<>(tabNumber, tabName);
+
+                if (!selectedNavigationTabs.right.containsKey(tabNumberAndTabName)) {
+                    selectedNavigationTabs.right.put(tabNumberAndTabName, new HashMap<>());
+                }
+                HashMap<String, SelectedNavigationTabs> selectedNavigationTabsHashMapForCurrentTab = selectedNavigationTabs.right.get(tabNumberAndTabName);
+
+                new_model.getChildren()
+                         .stream()
+                         .filter(widget -> widget instanceof NavigationTabsWidget)
+                         .forEach(widget -> {
+                             NavigationTabsWidget nestedNavigationTabsWidget = (NavigationTabsWidget) widget;
+                             NavigationTabsRepresentation nestedNavigationTabsRepresentation = (NavigationTabsRepresentation) nestedNavigationTabsWidget.getUserData(Widget.USER_DATA_REPRESENTATION);
+                             if (nestedNavigationTabsRepresentation != null) {
+                                 SelectedNavigationTabs nestedNavigationTabsRepresentation_selectedNavigationTabs;
+
+                                 if (!selectedNavigationTabsHashMapForCurrentTab.containsKey(nestedNavigationTabsWidget.getName())) {
+                                     nestedNavigationTabsRepresentation_selectedNavigationTabs = new SelectedNavigationTabs(nestedNavigationTabsWidget.propActiveTab().getValue());
+                                     selectedNavigationTabsHashMapForCurrentTab.put(nestedNavigationTabsWidget.getName(), nestedNavigationTabsRepresentation_selectedNavigationTabs);
+                                 }
+                                 else {
+                                     nestedNavigationTabsRepresentation_selectedNavigationTabs = selectedNavigationTabsHashMapForCurrentTab.get(nestedNavigationTabsWidget.getName());
+                                     if (nestedNavigationTabsWidget.propTabs().size() > nestedNavigationTabsRepresentation_selectedNavigationTabs.left) {
+                                         nestedNavigationTabsWidget.propActiveTab().setValue(nestedNavigationTabsRepresentation_selectedNavigationTabs.left);
+                                     }
+                                 }
+                                 nestedNavigationTabsRepresentation.selectedNavigationTabs = nestedNavigationTabsRepresentation_selectedNavigationTabs;
+                             }
+                        });
+
                 model_widget.runtimePropEmbeddedModel().setValue(new_model);
             }
             catch (Exception ex)
