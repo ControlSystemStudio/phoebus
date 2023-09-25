@@ -23,6 +23,7 @@ import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -39,6 +40,9 @@ public class NodeController extends BaseController {
     @SuppressWarnings("unused")
     @Autowired
     private NodeDAO nodeDAO;
+
+    @Autowired
+    public String roleAdmin; // This MUST be public!!!
 
     private final Logger logger = Logger.getLogger(NodeController.class.getName());
 
@@ -132,9 +136,36 @@ public class NodeController extends BaseController {
      */
     @SuppressWarnings("unused")
     @DeleteMapping(value = "/node/{uniqueNodeId}", produces = JSON)
-    public void deleteNode(@PathVariable final String uniqueNodeId) {
+    @PreAuthorize("hasRole(this.role2) or this.mayDelete(#uniqueNodeId, #principal)")
+    public void deleteNode(@PathVariable final String uniqueNodeId, Principal principal) {
         logger.info("Deleting node with unique id " + uniqueNodeId);
         nodeDAO.deleteNode(uniqueNodeId);
+    }
+
+    /**
+     * NOTE: this method MUST be public!
+     *
+     * An authenticated user may delete a node if the following hold true:
+     * <ul>
+     *     <li>User identity is same as the the target {@link Node}'s user id.</li>
+     *     <li>Target {@link Node} is a snapshot.</li>
+     *     <li>Target {@link Node} is not a snapshot, but has no child nodes.</li>
+     * </ul>
+     *
+     * @param nodeId Unique node id identifying the target of the user's delete operation.
+     * @param principal Identifies user.
+     * @return <code>false</code> if user may not delete the {@link Node}.
+     */
+    @SuppressWarnings("unused")
+    public boolean mayDelete(String nodeId, Principal principal){
+        Node node = nodeDAO.getNode(nodeId);
+        if(!node.getUserName().equals(principal.getName())){
+            return false;
+        }
+        if(node.getNodeType().equals(NodeType.CONFIGURATION) || node.getNodeType().equals(NodeType.FOLDER)){
+            return nodeDAO.getChildNodes(node.getUniqueId()).isEmpty();
+        }
+        return true;
     }
 
     /**

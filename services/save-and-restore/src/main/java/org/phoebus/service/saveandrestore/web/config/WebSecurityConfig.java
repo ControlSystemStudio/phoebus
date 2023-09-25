@@ -10,8 +10,10 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configurers.ldap.LdapAuthenticationProviderConfigurer;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,7 +25,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@EnableWebSecurity
 @Configuration
+@EnableGlobalMethodSecurity(
+        prePostEnabled = true,
+        securedEnabled = true,
+        jsr250Enabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     /**
@@ -75,11 +82,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${auth.impl:demo}")
     String authenitcationImplementation;
 
+    @Value("${role.user:sar-user}")
+    private String roleUser;
+
+    @Value("${role.superuser:sar-superuser}")
+    private String roleSuperUser;
+
+    @Value("${role.admin:sar-admin}")
+    private String roleAdmin;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable();
         http.authorizeRequests().anyRequest().authenticated();
-        AuthenticationManager am = authenticationManager();
         http.addFilterBefore(new SessionFilter(authenticationManager()), UsernamePasswordAuthenticationFilter.class);
     }
 
@@ -93,8 +108,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(AuthenticationManagerBuilder auth) throws Exception {
-        DefaultSpringSecurityContextSource contextSource;
-        DefaultLdapAuthoritiesPopulator myAuthPopulator;
         switch(authenitcationImplementation){
             case "ad":
                 ActiveDirectoryLdapAuthenticationProvider adProvider = new ActiveDirectoryLdapAuthenticationProvider(ad_domain, ad_url);
@@ -103,14 +116,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 auth.authenticationProvider(adProvider);
                 break;
             case "ldap":
-                contextSource = new DefaultSpringSecurityContextSource(ldap_url);
+                DefaultSpringSecurityContextSource contextSource = new DefaultSpringSecurityContextSource(ldap_url);
                 if (ldap_manager_dn != null && !ldap_manager_dn.isEmpty() && ldap_manager_password != null && !ldap_manager_password.isEmpty()) {
                     contextSource.setUserDn(ldap_manager_dn);
                     contextSource.setPassword(ldap_manager_password);
                 }
+                contextSource.setBase(ldap_base_dn);
                 contextSource.afterPropertiesSet();
 
-                myAuthPopulator = new DefaultLdapAuthoritiesPopulator(contextSource, ldap_groups_search_base);
+                DefaultLdapAuthoritiesPopulator myAuthPopulator = new DefaultLdapAuthoritiesPopulator(contextSource, ldap_groups_search_base);
                 myAuthPopulator.setGroupSearchFilter(ldap_groups_search_pattern);
                 myAuthPopulator.setSearchSubtree(true);
                 myAuthPopulator.setIgnorePartialResultException(true);
@@ -126,6 +140,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 if (ldap_user_search_base != null && !ldap_user_search_base.isEmpty()) {
                     configurer.userSearchBase(ldap_user_search_base);
                 }
+                //configurer.authoritiesMapper(new LDAPAuthoritiesMapper());
                 configurer.contextSource(contextSource);
                 break;
             case "ldap_embedded":
@@ -146,8 +161,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 break;
             case "demo":
                 auth.inMemoryAuthentication()
-                        .withUser("admin").password(encoder().encode("adminPass")).roles("ADMIN").and()
-                        .withUser("user").password(encoder().encode("userPass")).roles("USER");
+                        .withUser("admin").password(encoder().encode("adminPass")).roles(roleAdmin()).and()
+                        .withUser("user").password(encoder().encode("userPass")).roles(roleUser()).and()
+                        .withUser("superuser").password(encoder().encode("superUserPass")).roles(roleSuperUser());
                 break;
             default:
                 Logger.getLogger(WebSecurityConfig.class.getName())
@@ -177,5 +193,20 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         return objectMapper;
+    }
+
+    @Bean
+    public String roleUser(){
+        return roleUser.toUpperCase();
+    }
+
+    @Bean
+    public String roleSuperUser(){
+        return roleSuperUser.toUpperCase();
+    }
+
+    @Bean
+    public String roleAdmin(){
+        return roleAdmin.toUpperCase();
     }
 }
