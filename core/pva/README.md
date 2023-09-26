@@ -106,9 +106,9 @@ IPv6 Support
 
 Both the server and client support IPv6, which at this time needs to be enabled
 by configuring the `EPICS_PVAS_INTF_ADDR_LIST` of the server respectively the
-`EPICS_PVA_ADDR_LIST` and/or `EPICS_PVA_NAME_SERVERS` of the client to provide the desired IPv6 addresses.
+`EPICS_PVA_ADDR_LIST` and/or `EPICS_PVA_NAME_SERVERS` of the client to provide the desired IPv6 addresses. To completely disable any IPv6 functionality, set `EPICS_PVA_ENABLE_IPV6` to false.
 
-See Javadoc of `EPICS_PVAS_INTF_ADDR_LIST`, `EPICS_PVA_ADDR_LIST` and `EPICS_PVA_NAME_SERVERS` in `PVASettings`
+See Javadoc of `EPICS_PVAS_INTF_ADDR_LIST`, , `EPICS_PVA_ADDR_LIST`, `EPICS_PVA_NAME_SERVERS` and `EPICS_PVA_ENABLE_IPV6` in `PVASettings`
 for details.
 
 Command-line Example
