@@ -11,6 +11,8 @@ import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
@@ -108,7 +110,8 @@ class JythonScriptSupport extends BaseScriptSupport implements AutoCloseable
             // Add the examples/connect2j to path.
             // During development, examples are in
             // "file:/some/path/phoebus/applications/display/model/target/classes/examples"
-            final String examples = ModelPlugin.class.getResource("/examples").toString();
+            String examplesURL = ModelPlugin.class.getResource("/examples").toString();
+            String examples = URLDecoder.decode(examplesURL, StandardCharsets.UTF_8);
             if (examples.startsWith("file:"))
                 paths.add(examples.substring(5) + "/connect2j");
             // In the compiled version, examples are in
