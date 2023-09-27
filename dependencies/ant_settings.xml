@@ -52,23 +52,27 @@
   </target>
 	
   <target name="jfxarch" description="Determine JavaFX architecture">
-    <!-- Check if target platform is for linux, mac, win -->
+    <!-- Check if target platform is for linux, plain mac, mac-aarch64, win -->
     <fileset dir="${dependencies}/phoebus-target/target/lib" id="jfxfiles">
       <include name="javafx-base-*-linux.jar"/>
       <include name="javafx-base-*-mac.jar"/>
+      <include name="javafx-base-*-mac-aarch64.jar"/>
       <include name="javafx-base-*-win.jar"/>
     </fileset>
     
     <echo message="JFX 'base' File: ${toString:jfxfiles}"/>
     
     <condition property="jfxarch" value="linux">
-      <contains string="${toString:jfxfiles}" substring="-linux"/>
+      <contains string="${toString:jfxfiles}" substring="-linux.jar"/>
     </condition>
     <condition property="jfxarch" value="mac">
-      <contains string="${toString:jfxfiles}" substring="-mac"/>
+      <contains string="${toString:jfxfiles}" substring="-mac.jar"/>
+    </condition>
+    <condition property="jfxarch" value="mac-aarch64">
+      <contains string="${toString:jfxfiles}" substring="-mac-aarch64.jar"/>
     </condition>
     <condition property="jfxarch" value="win">
-      <contains string="${toString:jfxfiles}" substring="-win"/>
+      <contains string="${toString:jfxfiles}" substring="-win.jar"/>
     </condition>
     <!-- Simpler, but requires full name incl. version. Cannot use 'javafx-base-*-linux.jar'
     <available file="phoebus-target/target/lib/javafx-base-11-linux.jar" property="jfxarch" value="linux" />
