@@ -22,7 +22,7 @@ import java.util.BitSet;
 public abstract class PVAData
 {
     /** Name */
-    protected final String name;
+    protected String name;
 
     /** @param name Name for data item */
     protected PVAData(final String name)

@@ -253,6 +253,7 @@ public class PVAStructureHelper
         builder.timeStamp(new PVATimeStamp(Instant.now()));
         List<PVAData> table = new ArrayList<>();
 
+
         int columnCount = vTable.getColumnCount();
         String[] columnNames = new String[columnCount];
         for(int i = 0; i < columnCount; i++){
@@ -260,6 +261,8 @@ public class PVAStructureHelper
         }
         PVAStringArray names = new PVAStringArray("labels", columnNames);
         //table.add(names);
+
+        builder.descriptor("");
 
         List<PVAData> valuesData = new ArrayList<>();
         for(int i = 0; i < columnCount; i++){
@@ -272,15 +275,17 @@ public class PVAStructureHelper
                 }
                 PVAIntArray ints =
                         new PVAIntArray(i == 0 ? "A" : "B", false, integers);
+                //valuesData.add(ints);
                 builder.addColumn(ints);
+                //builder.addColumn(ints);
             }
         }
 
-        PVAStructure valueStruct = new PVAStructure("value", "", valuesData);
-        //table.add(valueStruct);
+        PVAStructure valueStruct = new PVAStructure("value", "value", valuesData);
 
-        builder.name("");
-        //builder.table(valuesData);
+        builder.name("record");
+        //builder.table(table);
+
         return builder.build();
     }
 

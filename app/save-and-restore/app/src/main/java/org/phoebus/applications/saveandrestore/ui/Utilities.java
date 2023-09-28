@@ -17,6 +17,9 @@
  */
 package org.phoebus.applications.saveandrestore.ui;
 
+import org.epics.pva.data.*;
+import org.epics.pva.data.nt.PVAAlarm;
+import org.epics.pva.data.nt.PVATimeStamp;
 import org.epics.util.array.*;
 import org.epics.util.number.*;
 import org.epics.util.text.NumberFormats;
@@ -26,6 +29,7 @@ import org.phoebus.pv.pva.PVAStructureHelper;
 
 import java.math.BigInteger;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -323,12 +327,39 @@ public final class Utilities {
             return ((VBoolean) type).getValue();
         }
         else if(type instanceof VTable) {
+            VTable vTable = (VTable)type;
+            /*
+            PVAAlarm alarm = new PVAAlarm();
+            PVATimeStamp time = new PVATimeStamp(Instant.now());
+            PVAStringArray labels = new PVAStringArray("label", vTable.getColumnName(0), vTable.getColumnName(1));
+            List<PVAData> data = new ArrayList<>();
+            PVAIntArray d1 = null;
+            PVAIntArray d2 = null;
+            for(int i = 0; i < vTable.getColumnCount(); i++){
+                ArrayInteger ai = (ArrayInteger)vTable.getColumnData(0);
+                int[] ii = new int[ai.size()];
+                for(int j = 0; j < ai.size(); j++){
+                    ii[j] = ai.getInt(j);
+                }
+                if(i == 0){
+                    d1 = new PVAIntArray("A", false, ii);
+                }
+                if(i == 1){
+                    d2 = new PVAIntArray("B", false, ii);
+                }
+            }
+            PVAStructure value = new PVAStructure("value", "", data);
+            PVAStructure table = new PVAStructure("epics:nt/NTTable:1.0","", List.of(d1, d2));
+            return table;
+             */
+
             try{
                 return PVAStructureHelper.fromVTable((VTable) type);
             }
             catch (Exception e){
                 e.printStackTrace();
             }
+
         }
         return null;
     }
@@ -898,7 +929,12 @@ public final class Utilities {
         } else if (value instanceof VBooleanArray && baseValue instanceof VBooleanArray) {
             boolean equal = areValuesEqual(value, baseValue, Optional.empty());
             return new VTypeComparison(equal ? "---" : "NOT EQUAL", equal ? 0 : 1, equal);
-        } else {
+        }
+        else if (value instanceof VTable && baseValue instanceof VTable) {
+            boolean equal = areValuesEqual(value, baseValue, Optional.empty());
+            return new VTypeComparison(equal ? "---" : "NOT EQUAL", equal ? 0 : 1, equal);
+        }
+        else {
             String str = valueToString(value);
             boolean valuesEqual = areValuesEqual(value, baseValue, Optional.empty());
             return new VTypeComparison(str, valuesEqual ? 0 : 1, valuesEqual);
@@ -940,7 +976,7 @@ public final class Utilities {
     }
 
     /**
-     * Checks if the values of the given vtype are equal and returns true if they are or false if they are not.
+     * Checks if the values of the given {@link VType} are equal and returns true if they are or false if they are not.
      * Timestamps, alarms and other parameters are ignored.
      *
      * @param v1        the first value to check
@@ -1128,9 +1164,60 @@ public final class Utilities {
             }
             return true;
         }
+        else if(v1 instanceof VTable && v2 instanceof VTable){
+            VTable vTable1 = (VTable)v1;
+            VTable vTable2 = (VTable)v2;
+            if(vTable1.getColumnCount() != vTable2.getColumnCount() ||
+                    vTable1.getRowCount() != vTable2.getRowCount()){
+                return false;
+            }
+            for(int i = 0; i < vTable1.getColumnCount(); i++){
+                if(!vTable1.getColumnType(i).equals(vTable2.getColumnType(i))){
+                    return false;
+                }
+                if(!vTable1.getColumnName(i).equals(vTable2.getColumnName(i))){
+                    return false;
+                }
+                if(!areVTypeArraysEqual(vTable1.getColumnType(i), vTable1.getColumnData(i), vTable2.getColumnData(i))){
+                    return false;
+                }
+            }
+            return true;
+        }
         // no support for MultiScalars (VMultiDouble, VMultiInt, VMultiString, VMultiEnum), VStatistics, VTable,
         // VImage
         return false;
+    }
+
+    /**
+     * Compares objects based on the
+     * @param clazz
+     * @param a1
+     * @param a2
+     * @return
+     */
+    public static boolean areVTypeArraysEqual(Class clazz, Object a1, Object a2){
+        switch(clazz.getName()){
+            case "int":
+            case "long":
+            case "double":
+            case "float":
+            case "short":
+            case "byte":
+                return areValuesEqual(VNumberArray.of((ListNumber) a1, Alarm.none(), Time.now(), Display.none()),
+                        VNumberArray.of((ListNumber) a2, Alarm.none(), Time.now(), Display.none()),
+                        Optional.empty());
+            case "boolean":
+                return areValuesEqual(VBooleanArray.of((ListBoolean) a1, Alarm.none(), Time.now()),
+                        VBooleanArray.of((ListBoolean) a2, Alarm.none(), Time.now()),
+                        Optional.empty());
+            case "java.lang.String":
+                return areValuesEqual(VStringArray.of((List) a1, Alarm.none(), Time.now()),
+                        VStringArray.of((List) a2, Alarm.none(), Time.now()),
+                        Optional.empty());
+            default:
+                return false;
+        }
     }
 
     /**

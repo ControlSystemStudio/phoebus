@@ -7,6 +7,8 @@
  ******************************************************************************/
 package org.epics.pva.data;
 
+import org.epics.pva.data.nt.PVATable;
+
 import static org.epics.pva.PVASettings.logger;
 
 import java.nio.ByteBuffer;
@@ -68,7 +70,7 @@ public class PVAStructure extends PVADataWithID
     }
 
     /** Structure type name */
-    private final String struct_name;
+    private String struct_name;
 
     /** Unmodifiable list of elements.
      *
@@ -76,7 +78,7 @@ public class PVAStructure extends PVADataWithID
      *  no elements can be added, removed, replaced.
      *
      */
-    private final List<PVAData> elements;
+    private  List<PVAData> elements;
 
     /** @param name Name of the structure (may be "")
      *  @param struct_name Type name of the structure (may be "")
@@ -109,8 +111,31 @@ public class PVAStructure extends PVADataWithID
         if (! (new_value instanceof PVAStructure))
             throw new Exception("Cannot set " + getStructureName() + " " + name + " to " + new_value);
 
-        final PVAStructure other = (PVAStructure) new_value;
-        final int N = elements.size();
+        if(new_value instanceof PVATable){
+            this.name = "value";
+            this.struct_name = "structure";
+            PVAInt pvaInt = new PVAInt("queueSize", true, 0);
+            PVABool pvaBool = new PVABool("atomic", false);
+            PVAStructure options = new PVAStructure("_options", "", List.of(pvaInt, pvaBool));
+            PVAStructure record = new PVAStructure("record", "", List.of(options));
+            /*
+            elements = new ArrayList<>();
+            elements.add(record);
+            elements.add(((PVAStructure)new_value).elements.get(2));
+            elements.add(((PVAStructure)new_value).elements.get(3));
+            elements.add(((PVAStructure)new_value).elements.get(0));
+            elements.add(((PVAStructure)new_value).elements.get(1));
+
+             */
+            PVAStringArray a = new PVAStringArray("_0", "0", "1");
+            PVAStringArray b = new PVAStringArray("_1", "6", "7");
+            elements = List.of(a, b);
+            return;
+        }
+
+        PVAStructure other = (PVAStructure) new_value;
+        int N = elements.size();
+
         if (other.elements.size() != N)
             throw new Exception("Incompatible structures, got " + other.elements.size() + " elements but expected " + N);
         for (int i=0; i<N; ++i)

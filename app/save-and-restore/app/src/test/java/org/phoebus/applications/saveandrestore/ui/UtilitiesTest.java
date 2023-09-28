@@ -18,12 +18,18 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
+import org.apache.xalan.xsltc.util.IntegerArray;
+import org.epics.pva.data.PVAStringArray;
+import org.epics.pva.data.nt.PVAAlarm;
+import org.epics.pva.data.nt.PVATable;
+import org.epics.pva.data.nt.PVATimeStamp;
 import org.epics.util.array.*;
 import org.epics.vtype.*;
 import org.junit.jupiter.api.Test;
 
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -1490,5 +1496,59 @@ public class UtilitiesTest {
         val1 = VStringArray.of(Arrays.asList("a", "b", "c"), alarm, time);
         val2 = VStringArray.of(Arrays.asList("a", "b", "c"), alarm, time);
         assertTrue(Utilities.areValuesEqual(val1, val2, Optional.empty()));
+    }
+
+    @Test
+    public void testAreVTablesEqual(){
+
+        VTable vTable1 = VTable.of(List.of(Integer.TYPE, Double.TYPE),
+                List.of("a", "b"),
+                List.of(ArrayInteger.of(1, 2, 3), ArrayDouble.of(7.0, 8.0, 9.0)));
+        VTable vTable2 = VTable.of(List.of(Integer.TYPE, Double.TYPE),
+                List.of("a", "b"),
+                List.of(ArrayInteger.of(1, 2, 3), ArrayDouble.of(7.0, 8.0, 9.0)));
+
+        assertTrue(Utilities.areValuesEqual(vTable1, vTable2, Optional.empty()));
+
+        vTable2 = VTable.of(List.of(Integer.TYPE, Integer.TYPE),
+                List.of("a", "b"),
+                List.of(ArrayInteger.of(1, 2, 3), ArrayInteger.of(7, 8, 9)));
+
+        assertFalse(Utilities.areValuesEqual(vTable1, vTable2, Optional.empty()));
+
+        vTable2 = VTable.of(List.of(Integer.TYPE, Double.TYPE),
+                List.of("a", "b"),
+                List.of(ArrayInteger.of(1, 2, 3), ArrayDouble.of(7.0, 8.0)));
+
+        assertFalse(Utilities.areValuesEqual(vTable1, vTable2, Optional.empty()));
+
+        vTable1 = VTable.of(List.of(String.class, Double.TYPE),
+                List.of("a", "b"),
+                List.of(List.of("AAA", "BBB", "CCC"), ArrayDouble.of(7.0, 8.0, 9.0)));
+
+        vTable2 = VTable.of(List.of(String.class, Double.TYPE),
+                List.of("a", "b"),
+                List.of(List.of("AAA", "BBB", "CCC"), ArrayDouble.of(7.0, 8.0, 9.0)));
+
+        assertTrue(Utilities.areValuesEqual(vTable1, vTable2, Optional.empty()));
+    }
+
+    @Test
+    public void testAreVTypeArraysEqual(){
+        assertTrue(Utilities.areVTypeArraysEqual(Integer.TYPE, ArrayInteger.of(1, 2, 3), ArrayInteger.of(1, 2, 3)));
+        assertTrue(Utilities.areVTypeArraysEqual(Integer.TYPE, ArrayUInteger.of(1, 2, 3), ArrayUInteger.of(1, 2, 3)));
+        assertTrue(Utilities.areVTypeArraysEqual(Long.TYPE, ArrayLong.of(1L, 2L, 3L), ArrayLong.of(1L, 2L, 3L)));
+        assertTrue(Utilities.areVTypeArraysEqual(Long.TYPE, ArrayULong.of(1L, 2L, 3L), ArrayULong.of(1L, 2L, 3L)));
+        assertTrue(Utilities.areVTypeArraysEqual(Double.TYPE, ArrayDouble.of(7.0, 8.0, 9.0), ArrayDouble.of(7.0, 8.0, 9.0)));
+        assertTrue(Utilities.areVTypeArraysEqual(Float.TYPE, ArrayFloat.of(7.0f, 8.0f, 9.0f), ArrayFloat.of(7.0f, 8.0f, 9.0f)));
+        assertTrue(Utilities.areVTypeArraysEqual(Short.TYPE, ArrayShort.of((short)7.0, (short)8.0, (short)9.0), ArrayShort.of((short)7.0, (short)8.0, (short)9.0)));
+        assertTrue(Utilities.areVTypeArraysEqual(Short.TYPE, ArrayUShort.of((short)7.0, (short)8.0, (short)9.0), ArrayUShort.of((short)7.0, (short)8.0, (short)9.0)));
+        assertTrue(Utilities.areVTypeArraysEqual(Byte.TYPE, ArrayByte.of((byte)7, (byte)8, (byte)9), ArrayByte.of((byte)7, (byte)8, (byte)9)));
+        assertTrue(Utilities.areVTypeArraysEqual(Byte.TYPE, ArrayUByte.of((byte)7, (byte)8, (byte)9), ArrayUByte.of((byte)7, (byte)8, (byte)9)));
+        assertTrue(Utilities.areVTypeArraysEqual(Boolean.TYPE, ArrayBoolean.of(true, false), ArrayBoolean.of(true, false)));
+
+        assertTrue(Utilities.areVTypeArraysEqual(String.class, List.of("AAA", "BBB", "CCC"), List.of("AAA", "BBB", "CCC")));
+
+        assertFalse(Utilities.areVTypeArraysEqual(Byte.TYPE, ArrayShort.of((byte)7, (byte)8, (byte)9), ArrayShort.of((byte)7, (byte)8, (byte)10)));
     }
 }
