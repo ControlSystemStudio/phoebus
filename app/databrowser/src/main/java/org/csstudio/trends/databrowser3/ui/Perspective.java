@@ -11,13 +11,14 @@ import static org.csstudio.trends.databrowser3.Activator.logger;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.imports.SampleImportAction;
@@ -32,6 +33,7 @@ import org.csstudio.trends.databrowser3.ui.properties.AddPVorFormulaMenuItem;
 import org.csstudio.trends.databrowser3.ui.properties.PropertyPanel;
 import org.csstudio.trends.databrowser3.ui.properties.RemoveUnusedAxes;
 import org.csstudio.trends.databrowser3.ui.sampleview.SampleView;
+import org.csstudio.trends.databrowser3.ui.sampleview.ToggleSampleViewPositionMenuItem;
 import org.csstudio.trends.databrowser3.ui.search.SearchView;
 import org.csstudio.trends.databrowser3.ui.selection.DatabrowserSelection;
 import org.csstudio.trends.databrowser3.ui.waveformview.WaveformView;
@@ -71,28 +73,35 @@ public class Perspective extends SplitPane
                                 SHOW_SEARCH = "show_search",
                                 SHOW_PROPERTIES = "show_properties",
                                 SHOW_EXPORT = "show_export",
-                                SHOW_WAVEFORM = "show_waveform";
+                                SHOW_WAVEFORM = "show_waveform",
+                                SHOW_SAMPLEVIEW = "show_sampleview",
+                                SAMPLEVIEW_IN_BOTTOM_TABS = "sampleview_in_bottom_tabs";
 
     private static final Preferences prefs = PhoebusPreferenceService.userNodeForClass(Perspective.class);
 
     private final Model model = new Model();
     private final ModelBasedPlot plot = new ModelBasedPlot(true);
-    private SearchView search;
+    private SearchView search = null;
     private ExportView export = null;
-    private SampleView inspect = null;
+    private SampleView sampleview = null;
     private WaveformView waveform = null;
+    private final PropertyPanel property_panel;
+
 
     private final Controller controller;
     private final TabPane left_tabs = new TabPane(),
                           bottom_tabs = new TabPane();
-    private final SplitPane plot_and_tabs = new SplitPane(plot.getPlot(), bottom_tabs);
-    private PropertyPanel property_panel;
-    private Tab search_tab, properties_tab, export_tab, inspect_tab, waveform_tab = null;
+    private final Pane top_pane = new StackPane();
+    private final SplitPane plot_and_tabs = new SplitPane(top_pane, bottom_tabs);
+    private Tab search_tab, properties_tab, export_tab, sampleview_tab, waveform_tab;
 
 
     /** @param minimal Only show the essentials? */
     public Perspective(final boolean minimal)
     {
+        top_pane.getChildren().setAll(plot.getPlot());
+
+
         property_panel = new PropertyPanel(model, plot.getPlot().getUndoableActionManager());
         properties_tab = new Tab(Messages.PropertiesTabName, property_panel);
         properties_tab.setGraphic(Activator.getIcon("properties"));
@@ -174,8 +183,8 @@ public class Perspective extends SplitPane
         final MenuItem show_samples = new MenuItem(Messages.InspectSamples, Activator.getIcon("search"));
         show_samples.setOnAction(event ->
         {
-            createInspectionTab();
-            showBottomTab(inspect_tab);
+            createSampleViewTab();
+            showBottomTab(sampleview_tab);
         });
 
         final MenuItem show_waveform = new MenuItem(Messages.OpenWaveformView, Activator.getIcon("wavesample"));
@@ -202,7 +211,7 @@ public class Perspective extends SplitPane
             items.add(new PrintAction(plot.getPlot().getCenter()));
             items.add(new SaveSnapshotAction(plot.getPlot().getCenter()));
 
-            SelectionService.getInstance().setSelection(this, Arrays.asList(DatabrowserSelection.of(model, plot)));
+            SelectionService.getInstance().setSelection(this, List.of(DatabrowserSelection.of(model, plot)));
             List<ContextMenuEntry> supported = ContextMenuService.getInstance().listSupportedContextMenuEntries();
             supported.stream().forEach(action -> {
                 MenuItem menuItem = new MenuItem(action.getName(), new ImageView(action.getIcon()));
@@ -222,6 +231,57 @@ public class Perspective extends SplitPane
                 items.add(new RemoveUnusedAxes(model, undo));
             }
             items.addAll(new SeparatorMenuItem(), show_search, show_properties, show_export, show_samples, show_waveform, refresh);
+
+            menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
+        });
+    }
+
+    private void createSampleViewContextMenu() {
+        final ContextMenu menu = new ContextMenu();
+        final ObservableList<MenuItem> items = menu.getItems();
+
+        final UndoableActionManager undo = plot.getPlot().getUndoableActionManager();
+
+        final List<MenuItem> add_data = new ArrayList<>();
+        add_data.add(new AddPVorFormulaMenuItem(plot.getPlot(), model, undo, false));
+        add_data.add(new AddPVorFormulaMenuItem(plot.getPlot(), model, undo, true));
+
+        for (String type : SampleImporters.getTypes())
+            add_data.add(new SampleImportAction(model, type, undo));
+
+        final MenuItem show_search = new MenuItem(Messages.OpenSearchView, Activator.getIcon("search"));
+        show_search.setOnAction(event -> showSearchTab());
+
+        final MenuItem show_properties = new MenuItem(Messages.OpenPropertiesView, Activator.getIcon("properties"));
+        show_properties.setOnAction(event ->
+        {
+            // Update pref that properties were last opened
+            prefs.putBoolean(SHOW_PROPERTIES, true);
+            showBottomTab(properties_tab);
+        });
+
+        final MenuItem show_export = new MenuItem(Messages.OpenExportView, Activator.getIcon("export"));
+        show_export.setOnAction(event ->
+        {
+            createExportTab();
+            showBottomTab(export_tab);
+        });
+
+        final MenuItem show_waveform = new MenuItem(Messages.OpenWaveformView, Activator.getIcon("wavesample"));
+        show_waveform.setOnAction(event ->
+        {
+            createWaveformTab();
+            showBottomTab(waveform_tab);
+        });
+        final MenuItem refresh = new MenuItem(Messages.Refresh, Activator.getIcon("refresh_remote"));
+        refresh.setOnAction(event -> sampleview.update());
+
+
+        sampleview.setOnContextMenuRequested(event -> {
+            items.clear();
+            items.addAll(new ToggleSampleViewPositionMenuItem(this), new SeparatorMenuItem());
+            items.addAll(add_data);
+            items.addAll(new SeparatorMenuItem(), show_search, show_properties, show_export, show_waveform, refresh);
 
             menu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
@@ -249,15 +309,33 @@ public class Perspective extends SplitPane
         }
     }
 
-    private void createInspectionTab()
+    private void createSampleViewTab()
     {
-        if (inspect_tab == null)
+        if (sampleview_tab == null)
         {
-            inspect = new SampleView(model);
-            inspect_tab = new Tab(Messages.InspectSamples, inspect);
-            inspect_tab.setGraphic(Activator.getIcon("search"));
-            inspect_tab.setOnClosed(evt -> autoMinimizeBottom());
+            sampleview = new SampleView(model);
+            sampleview_tab = new Tab(Messages.InspectSamples, sampleview);
+            sampleview_tab.setGraphic(Activator.getIcon("search"));
+            sampleview_tab.setOnClosed(evt -> autoMinimizeBottom());
+
+            createSampleViewContextMenu();
         }
+    }
+
+    // Gets called from the SampleView contextmenu, so we can assume it's not null
+    public void setSampleviewLocation(boolean set_in_bottom_tabs) {
+        if (set_in_bottom_tabs) {
+            top_pane.getChildren().setAll(plot.getPlot());
+            showBottomTab(sampleview_tab);
+        }
+        else {
+            bottom_tabs.getTabs().remove(sampleview_tab);
+            top_pane.getChildren().setAll(sampleview);
+        }
+    }
+
+    public boolean isSampleViewInBottomTabs() {
+        return bottom_tabs.getTabs().contains(sampleview_tab);
     }
 
     private void createWaveformTab()
@@ -442,6 +520,17 @@ public class Perspective extends SplitPane
             }
         });
 
+        memento.getBoolean(SHOW_SAMPLEVIEW).ifPresent(show ->
+        {
+            if (show)
+            {
+                createSampleViewTab();
+                memento.getBoolean(SAMPLEVIEW_IN_BOTTOM_TABS).ifPresent(in_bottom_tabs -> {
+                    setSampleviewLocation(in_bottom_tabs);
+                });
+            }
+        });
+
         // Has no effect when run right now?
         Platform.runLater(() ->
         {
@@ -473,6 +562,7 @@ public class Perspective extends SplitPane
         if (left_tabs.getTabs().contains(search_tab))
             memento.setBoolean(SHOW_SEARCH, true);
 
+            // properties open by default. save only if closed
         if (! bottom_tabs.getTabs().contains(properties_tab))
             memento.setBoolean(SHOW_PROPERTIES, false);
 
@@ -481,6 +571,15 @@ public class Perspective extends SplitPane
 
         if (bottom_tabs.getTabs().contains(waveform_tab))
             memento.setBoolean(SHOW_WAVEFORM, true);
+
+        if (top_pane.getChildren().contains(sampleview)) {
+            memento.setBoolean(SHOW_SAMPLEVIEW, true);
+            memento.setBoolean(SAMPLEVIEW_IN_BOTTOM_TABS, false);
+        }
+        if (bottom_tabs.getTabs().contains(sampleview_tab)) {
+            memento.setBoolean(SHOW_SAMPLEVIEW, true);
+            memento.setBoolean(SAMPLEVIEW_IN_BOTTOM_TABS, true);
+        }
     }
 
     /** Reclaim resources */

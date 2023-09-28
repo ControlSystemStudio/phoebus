@@ -30,6 +30,7 @@ import org.csstudio.trends.databrowser3.model.PVItem;
 import org.csstudio.trends.databrowser3.model.PlotSample;
 import org.csstudio.trends.databrowser3.model.RequestType;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
+import org.csstudio.trends.databrowser3.ui.sampleview.ItemSampleViewFilter;
 import org.phoebus.archive.vtype.DefaultVTypeFormat;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
@@ -93,6 +94,7 @@ public class TracesTab extends Tab
     private static final List<String> trace_types = List.of(TraceType.getDisplayNames());
     private static final List<String> line_styles = List.of(LineStyle.getDisplayNames());
     private static final List<String> point_types = List.of(PointType.getDisplayNames());
+    private static final List<String> filter_types = List.of(ItemSampleViewFilter.FilterType.getDisplayNames());
 
     private final Model model;
 
@@ -681,6 +683,53 @@ public class TracesTab extends Tab
         col.setEditable(true);
         PropertyPanel.addTooltip(col, Messages.WaveformIndexColTT);
         trace_table.getColumns().add(col);
+
+        // Filter Type Column ----------
+        col = new TableColumn<>(Messages.TracesFilterType);
+        col.setCellValueFactory(cell ->
+            new SimpleStringProperty(cell.getValue().getSampleViewFilter().getFilterType().toString()));
+        col.setCellFactory(cell -> new DirectChoiceBoxTableCell<>(FXCollections.observableArrayList(filter_types)));
+        col.setOnEditCommit(event ->
+        {
+            final int index = filter_types.indexOf(event.getNewValue());
+            final ItemSampleViewFilter.FilterType type = ItemSampleViewFilter.FilterType.values()[index];
+
+            // Make a copy so that we can undo the change
+            final ItemSampleViewFilter filter = new ItemSampleViewFilter(event.getRowValue().getSampleViewFilter());
+            filter.setFilterType(type);
+
+            new ChangeSampleViewFilterCommand(undo, event.getRowValue(), filter);
+        });
+
+        PropertyPanel.addTooltip(col, Messages.TracesFilterTypeTT);
+        trace_table.getColumns().add(col);
+
+
+        // Filter Value Column ----------
+        col = new TableColumn<>(Messages.TracesFilterValue);
+        col.setCellValueFactory(cell ->
+            new SimpleStringProperty(Double.toString(cell.getValue().getSampleViewFilter().getFilterValue())));
+        col.setCellFactory(TextFieldTableCell.forTableColumn());
+        col.setOnEditCommit(event ->
+        {
+            final ModelItem item = event.getRowValue();
+            try
+            {
+                // Make a copy so that we can undo the change
+                final ItemSampleViewFilter filter = new ItemSampleViewFilter(item.getSampleViewFilter());
+                filter.setFilterValue(Double.parseDouble(event.getNewValue()));
+
+                new ChangeSampleViewFilterCommand(undo, item, filter);
+            }
+            catch (Exception e)
+            {
+                trace_table.refresh();
+            }
+        });
+
+        PropertyPanel.addTooltip(col, Messages.TracesFilterValueTT);
+        trace_table.getColumns().add(col);
+
 
         trace_table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         trace_table.setEditable(true);

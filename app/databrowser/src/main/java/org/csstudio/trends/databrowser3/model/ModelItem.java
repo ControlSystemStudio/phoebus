@@ -20,6 +20,7 @@ import org.csstudio.javafx.rtplot.TraceType;
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
 import org.csstudio.trends.databrowser3.persistence.XMLPersistence;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
+import org.csstudio.trends.databrowser3.ui.sampleview.ItemSampleViewFilter;
 import org.phoebus.framework.persistence.XMLUtil;
 import org.w3c.dom.Element;
 
@@ -83,6 +84,9 @@ abstract public class ModelItem
      * and there is no setter method.
      */
     private String uniqueId;
+
+    /** Item specific settings for SampleView filter*/
+    private ItemSampleViewFilter sample_view_filter = new ItemSampleViewFilter();
 
     /** Initialize
      *  @param name Name of the PV or the formula
@@ -359,6 +363,25 @@ abstract public class ModelItem
         // Do nothing.
     }
 
+    /**
+     *
+     * @return Current SampleView Filter
+     */
+    public ItemSampleViewFilter getSampleViewFilter()
+    {
+        return sample_view_filter;
+    }
+
+    /**
+     *
+     * @param sample_view_filter New Filter object to be used for the SampleView display of this item
+     */
+    public void setSampleViewFilter(ItemSampleViewFilter sample_view_filter)
+    {
+        this.sample_view_filter = sample_view_filter;
+        fireItemLookChanged();
+    }
+
     /** @return Samples held by this item */
     abstract public PlotSamples getSamples();
 
@@ -427,6 +450,14 @@ abstract public class ModelItem
         writer.writeStartElement(XMLPersistence.TAG_WAVEFORM_INDEX);
         writer.writeCharacters(Integer.toString(getWaveformIndex()));
         writer.writeEndElement();
+
+        writer.writeStartElement(XMLPersistence.TAG_FILTER_TYPE);
+        writer.writeCharacters(getSampleViewFilter().getFilterType().name());
+        writer.writeEndElement();
+
+        writer.writeStartElement(XMLPersistence.TAG_FILTER_VALUE);
+        writer.writeCharacters(Double.toString(getSampleViewFilter().getFilterValue()));
+        writer.writeEndElement();
     }
 
     /** Load common XML configuration elements into this item
@@ -490,6 +521,31 @@ abstract public class ModelItem
             }
         }
         setWaveformIndex(XMLUtil.getChildInteger(node, XMLPersistence.TAG_WAVEFORM_INDEX).orElse(0));
+
+        try
+        {
+            String filter_type_from_document =
+                    XMLUtil.getChildString(node, XMLPersistence.TAG_FILTER_TYPE)
+                            .orElse(ItemSampleViewFilter.FilterType.NO_FILTER.name());
+            sample_view_filter.setFilterType(ItemSampleViewFilter.FilterType.valueOf(filter_type_from_document));
+        }
+        catch (Throwable ex)
+        {
+            sample_view_filter.setFilterType(ItemSampleViewFilter.FilterType.NO_FILTER); // Default to no filter
+        }
+
+        try
+        {
+            double filter_value_from_document =
+                    XMLUtil.getChildDouble(node, XMLPersistence.TAG_FILTER_VALUE)
+                            .orElse(0.0);
+            sample_view_filter.setFilterValue(filter_value_from_document);
+        }
+        catch (Throwable ex)
+        {
+            sample_view_filter.setFilterValue(0.0); // Default to 0.0
+        }
+
     }
 
     /** Dispose all data */

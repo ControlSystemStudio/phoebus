@@ -119,6 +119,8 @@ public class XMLPersistence
                                TAG_POINT_TYPE = "point_type",
                                TAG_POINT_SIZE = "point_size",
                                TAG_WAVEFORM_INDEX = "waveform_index",
+                               TAG_FILTER_TYPE = "filter_type",
+                               TAG_FILTER_VALUE = "filter_value",
                                TAG_SCAN_PERIOD = "period",
                                TAG_LIVE_SAMPLE_BUFFER_SIZE = "ring_size",
                                TAG_REQUEST = "request",
