@@ -127,8 +127,8 @@ public class PVAStructure extends PVADataWithID
             elements.add(((PVAStructure)new_value).elements.get(1));
 
              */
-            PVAStringArray a = new PVAStringArray("_0", "0", "1");
-            PVAStringArray b = new PVAStringArray("_1", "6", "7");
+            PVADoubleArray a = new PVADoubleArray("A", 0,1);
+            PVADoubleArray b = new PVADoubleArray("B", 6,7);
             elements = List.of(a, b);
             return;
         }
