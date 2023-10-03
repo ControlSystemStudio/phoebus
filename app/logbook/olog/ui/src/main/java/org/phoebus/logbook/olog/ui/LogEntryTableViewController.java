@@ -497,7 +497,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     /**
      * Wrapper class for a {@link LogEntry} and a flag indicating whether details of the
-     * log entry meta data should be rendered in the list view.
+     * log entry meta-data should be rendered in the list view.
      */
     public static class TableViewListItem {
         private final SimpleBooleanProperty showDetails = new SimpleBooleanProperty(true);

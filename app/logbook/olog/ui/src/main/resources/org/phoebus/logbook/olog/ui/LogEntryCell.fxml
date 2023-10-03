@@ -11,7 +11,7 @@ summary of the log entry and its metadata.
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<VBox fx:id="root" prefWidth="400.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryCellController">
+<VBox fx:id="root" prefWidth="400.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.LogEntryCellController">
     <GridPane>
         <columnConstraints>
             <ColumnConstraints />
@@ -33,12 +33,19 @@ summary of the log entry and its metadata.
             </Label>
             <HBox GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.hgrow="ALWAYS">
                 <children>
-                    <Pane HBox.hgrow="ALWAYS" />
+                    <Label fx:id="updatedIndicator" maxWidth="1.7976931348623157E308" text="*" HBox.hgrow="ALWAYS">
+                        <font>
+                            <Font size="20.0" />
+                        </font>
+                  <HBox.margin>
+                     <Insets left="3.0" />
+                  </HBox.margin>
+                    </Label>
                     <ImageView fx:id="conversationIcon" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true" />
                     <ImageView fx:id="attachmentIcon" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true" />
                 </children>
             </HBox>
-            <Label fx:id="owner" text="Owner" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1"/>
+            <Label fx:id="owner" text="Owner" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
             <Label fx:id="time" text="Time" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
         </children>
         <padding>
@@ -72,7 +79,7 @@ summary of the log entry and its metadata.
             </ImageView>
             <Label fx:id="tags" text="Tags" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
             <Label fx:id="level" text="Shift Start" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
-            <Label fx:id="description" text="very long description placeholder" GridPane.columnSpan="3" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2"/>
+            <Label fx:id="description" text="very long description placeholder" GridPane.columnSpan="3" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" />
         </children>
         <padding>
             <Insets bottom="5.0" left="5.0" right="5.0" />
