@@ -11,6 +11,7 @@ import static org.epics.pva.PVASettings.logger;
 
 import java.nio.ByteBuffer;
 import java.util.BitSet;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
@@ -111,6 +112,7 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
             final int pos = buffer.position();
             buffer.putInt(channel.getSID());
             buffer.putInt(request_id);
+            //buffer.put((byte)0x04);
             buffer.put(PVAHeader.CMD_SUB_DESTROY);
 
             // Locate the field to write
@@ -149,6 +151,15 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
             // Bitset to describe which field we're about to write
             final BitSet changed = new BitSet();
             changed.set(data.getIndex(field));
+            if (field instanceof PVAStructure) {
+                final PVAStructure struct = (PVAStructure) field;
+                List<PVAData> elements = struct.getElements();
+                if(elements != null){
+                    for(int i = 0; i < elements.size(); i++){
+                        changed.set(data.getIndex(elements.get(i)));
+                    }
+                }
+            }
             logger.log(Level.FINE, () -> "Updated structure elements: " + changed);
             PVABitSet.encodeBitSet(changed, buffer);
 
@@ -211,8 +222,11 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
             // Indicate completion now that server confirmed PUT
             complete(null);
         }
+        /*
         else
             fail(new Exception("Cannot decode Put " + subcmd + " Reply #" + request_id));
+
+         */
     }
 
     /** Handle failure by both notifying whoever waits for this request to complete

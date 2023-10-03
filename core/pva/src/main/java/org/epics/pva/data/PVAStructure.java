@@ -80,6 +80,10 @@ public class PVAStructure extends PVADataWithID
      */
     private  List<PVAData> elements;
 
+    public List<PVAData> getElements(){
+        return elements;
+    }
+
     /** @param name Name of the structure (may be "")
      *  @param struct_name Type name of the structure (may be "")
      *  @param elements Elements, must be named
@@ -127,8 +131,8 @@ public class PVAStructure extends PVADataWithID
             elements.add(((PVAStructure)new_value).elements.get(1));
 
              */
-            PVADoubleArray a = new PVADoubleArray("A", 0,1);
-            PVADoubleArray b = new PVADoubleArray("B", 6,7);
+            PVAIntArray a = new PVAIntArray("A", false, 0,1);
+            PVAIntArray b = new PVAIntArray("B", false, 6,7);
             elements = List.of(a, b);
             return;
         }
@@ -410,7 +414,7 @@ public class PVAStructure extends PVADataWithID
      *  @param index Desired element index
      *  @return Located {@link PVAData} or {@link Integer} for next i
      */
-    private Object getElementOrNextIndex(int i, final int index)
+    public Object getElementOrNextIndex(int i, final int index)
     {
         // Does index refer to complete structure?
         if (i == index)

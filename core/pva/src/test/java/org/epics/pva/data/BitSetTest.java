@@ -58,6 +58,13 @@ public class BitSetTest
         buffer.flip();
         System.out.println(Hexdump.toHexdump(buffer));
 
+        bits.clear();
+        bits.set(14);
+        buffer.clear();
+        PVABitSet.encodeBitSet(bits, buffer);
+        buffer.flip();
+        System.out.println(Hexdump.toHexdump(buffer));
+
         final BitSet copy = PVABitSet.decodeBitSet(buffer);
         assertThat(copy, equalTo(bits));
     }
