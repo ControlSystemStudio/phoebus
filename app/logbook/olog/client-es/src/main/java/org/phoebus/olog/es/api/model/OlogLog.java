@@ -6,6 +6,7 @@
 package org.phoebus.olog.es.api.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.phoebus.logbook.Attachment;
 import org.phoebus.logbook.LogEntry;
@@ -188,6 +189,7 @@ public class OlogLog implements LogEntry {
      *
      * @return modifiedDate
      */
+    @JsonProperty("modifyDate")
     @Override
     public Instant getModifiedDate() {
         return modifiedDate;
