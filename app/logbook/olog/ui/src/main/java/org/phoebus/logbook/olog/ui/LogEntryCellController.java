@@ -71,12 +71,9 @@ public class LogEntryCellController {
     @FXML
     private Pane detailsPane;
 
-    @FXML
-    private Node updatedIndicator;
 
     private SimpleBooleanProperty expanded = new SimpleBooleanProperty(true);
 
-    private SimpleBooleanProperty logEntryUpdatedProperty = new SimpleBooleanProperty();
 
     public LogEntryCellController() {
 
@@ -93,8 +90,6 @@ public class LogEntryCellController {
         // hide/show using CSS pseudo-selector "grouped"
         // that is defined in LogEntryTableViewController
         conversationIcon.setImage(conversation);
-
-        updatedIndicator.visibleProperty().bind(logEntryUpdatedProperty);
     }
 
     @FXML
@@ -132,8 +127,6 @@ public class LogEntryCellController {
             logEntryId.setText(logEntry.getLogEntry().getId() != null ? logEntry.getLogEntry().getId().toString() : "");
             level.setText(logEntry.getLogEntry().getLevel());
 
-            logEntryUpdatedProperty.set(logEntry.getLogEntry().getModifiedDate() != null &&
-                    !logEntry.getLogEntry().getCreatedDate().equals(logEntry.getLogEntry().getModifiedDate()));
         }
     }
 

@@ -1,8 +1,10 @@
 package org.phoebus.logbook.olog.ui;
 
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
@@ -52,6 +54,9 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
     @FXML
     WebView webView;
 
+    @FXML
+    private Node updatedIndicator;
+
     private WebEngine webEngine;
 
     @FXML
@@ -84,6 +89,8 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
     private LogEntry logEntry;
     private final LogClient logClient;
 
+    private SimpleBooleanProperty logEntryUpdated = new SimpleBooleanProperty();
+
     public SingleLogEntryDisplayController(LogClient logClient) {
         super(logClient.getServiceUrl());
         this.logClient = logClient;
@@ -101,6 +108,8 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
         webEngine = webView.getEngine();
         // This will make links clicked in the WebView to open in default browser.
         webEngine.getLoadWorker().stateProperty().addListener(new HyperLinkRedirectListener(webView));
+
+        updatedIndicator.visibleProperty().bind(logEntryUpdated);
     }
 
     public void setLogEntry(LogEntry entry) {
@@ -154,6 +163,9 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
 
         logEntryId.setText(Long.toString(entry.getId()));
         level.setText(entry.getLevel());
+
+        logEntryUpdated.set(logEntry.getModifiedDate() != null &&
+                !logEntry.getModifiedDate().equals(logEntry.getCreatedDate()));
     }
 
     /**

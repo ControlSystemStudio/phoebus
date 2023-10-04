@@ -133,6 +133,9 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
         stringBuilder.append(SECONDS_FORMAT.format(logEntry.getCreatedDate())).append(", ");
         stringBuilder.append(logEntry.getOwner()).append(", ");
         stringBuilder.append(logEntry.getTitle());
+        if(logEntry.getModifiedDate() != null && !logEntry.getModifiedDate().equals(logEntry.getCreatedDate())){
+            stringBuilder.append(" *");
+        }
         stringBuilder.append("<div class='entry-id'>").append(logEntry.getId()).append("</div>");
         if(logEntry.getAttachments().size() > 0){
             stringBuilder.append("<div class='attachment-icon'>&nbsp;</div>");
