@@ -116,9 +116,7 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
         updatedIndicator.setOnMouseEntered(me -> {
             updatedIndicator.setCursor(Cursor.HAND);
         });
-        updatedIndicator.setOnMouseClicked(me -> {
-            // TODO: download current and archived entries.
-        });
+        updatedIndicator.setOnMouseClicked(this::handle);
 
     }
 
@@ -226,5 +224,9 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
         stringBuffer.append("</div></body></html>");
 
         return stringBuffer.toString();
+    }
+
+    private void handle(MouseEvent me) {
+        new ArchivedLogEntriesHandler(logClient).handle(webView, logEntry.getId());
     }
 }

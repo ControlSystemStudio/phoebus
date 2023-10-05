@@ -505,4 +505,21 @@ public class OlogClient implements LogClient {
         ClientResponse clientResponse = service.path("").get(ClientResponse.class);
         return clientResponse.getEntity(String.class);
     }
+
+    @Override
+    public SearchResult getArchivedEntries(long id){
+        try {
+            final OlogSearchResult ologSearchResult = OlogObjectMappers.logEntryDeserializer.readValue(
+                    service.path("logs/archived/" + id)
+                            .header(OLOG_CLIENT_INFO_HEADER, CLIENT_INFO)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .get(String.class),
+                    OlogSearchResult.class);
+            return SearchResult.of(new ArrayList<>(ologSearchResult.getLogs()),
+                    ologSearchResult.getHitCount());
+        } catch (UniformInterfaceException | ClientHandlerException | IOException e) {
+            logger.log(Level.WARNING, "failed to retrieve archived log entries", e);
+            throw new RuntimeException(e);
+        }
+    }
 }
