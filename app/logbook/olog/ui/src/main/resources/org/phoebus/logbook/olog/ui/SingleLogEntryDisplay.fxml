@@ -34,12 +34,12 @@
                               <Insets left="5.0" />
                            </padding>
                                 </Label>
-                                <Label fx:id="updatedIndicator" text="*">
+                                <Label fx:id="updatedIndicator" style="-fx-text-fill: blue;" text="*">
                                     <font>
-                                        <Font size="20.0" />
+                                        <Font size="24.0" />
                                     </font>
                            <HBox.margin>
-                              <Insets left="3.0" />
+                              <Insets left="2.0" />
                            </HBox.margin>
                                 </Label>
                             </children>

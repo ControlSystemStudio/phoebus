@@ -3,7 +3,9 @@ package org.phoebus.logbook.olog.ui;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -12,6 +14,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -110,6 +113,13 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
         webEngine.getLoadWorker().stateProperty().addListener(new HyperLinkRedirectListener(webView));
 
         updatedIndicator.visibleProperty().bind(logEntryUpdated);
+        updatedIndicator.setOnMouseEntered(me -> {
+            updatedIndicator.setCursor(Cursor.HAND);
+        });
+        updatedIndicator.setOnMouseClicked(me -> {
+            // TODO: download current and archived entries.
+        });
+
     }
 
     public void setLogEntry(LogEntry entry) {
