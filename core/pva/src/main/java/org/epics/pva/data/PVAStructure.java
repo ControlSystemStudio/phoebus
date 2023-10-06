@@ -78,12 +78,6 @@ public class PVAStructure extends PVADataWithID
      */
     private final List<PVAData> elements;
 
-    /**
-     * @return The elements {@link List}
-     */
-    public List<PVAData> getElements(){
-        return elements;
-    }
 
     /** @param name Name of the structure (may be "")
      *  @param struct_name Type name of the structure (may be "")
