@@ -4,10 +4,7 @@ import com.google.common.base.Strings;
 import javafx.scene.image.Image;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
-import org.phoebus.logbook.LogClient;
-import org.phoebus.logbook.LogFactory;
-import org.phoebus.logbook.LogService;
-import org.phoebus.logbook.LogbookPreferences;
+import org.phoebus.logbook.*;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.net.URI;
@@ -22,6 +19,8 @@ public class LogEntryTableApp implements AppResourceDescriptor {
 
     private static final String SUPPORTED_SCHEMA = "logbook";
     private LogFactory logFactory;
+
+    private LogEntryTable logEntryTable;
 
     @Override
     public void start() {
@@ -44,7 +43,8 @@ public class LogEntryTableApp implements AppResourceDescriptor {
 
     @Override
     public AppInstance create() {
-        return new LogEntryTable(this);
+        logEntryTable = new LogEntryTable(this);
+        return logEntryTable;
     }
 
     @Override
@@ -59,12 +59,21 @@ public class LogEntryTableApp implements AppResourceDescriptor {
      */
     @Override
     public AppInstance create(URI resource) {
-        LogEntryTable logEntryTable = new LogEntryTable(this);
+        logEntryTable = new LogEntryTable(this);
         logEntryTable.setResource(resource);
         return logEntryTable;
     }
 
     public LogClient getClient() {
         return logFactory.getLogClient();
+    }
+
+    /**
+     * Handler for a {@link LogEntry} change, new or updated. The log table
+     * controller is called to refresh the UI as needed.
+     * @param logEntry A new or updated {@link LogEntry}
+     */
+    public void handleLogEntryChange(LogEntry logEntry){
+        logEntryTable.logEntryChanged(logEntry);
     }
 }

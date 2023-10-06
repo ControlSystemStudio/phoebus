@@ -3,7 +3,6 @@ package org.phoebus.logbook.olog.ui;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
@@ -19,13 +18,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.logbook.Attachment;
-import org.phoebus.logbook.LogClient;
-import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.Logbook;
-import org.phoebus.logbook.LogbookException;
-import org.phoebus.logbook.Property;
-import org.phoebus.logbook.Tag;
+import org.phoebus.logbook.*;
 import org.phoebus.olog.es.api.model.OlogAttachment;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.web.HyperLinkRedirectListener;
@@ -92,7 +85,7 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
     private LogEntry logEntry;
     private final LogClient logClient;
 
-    private SimpleBooleanProperty logEntryUpdated = new SimpleBooleanProperty();
+    private final SimpleBooleanProperty logEntryUpdated = new SimpleBooleanProperty();
 
     public SingleLogEntryDisplayController(LogClient logClient) {
         super(logClient.getServiceUrl());
@@ -113,9 +106,7 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
         webEngine.getLoadWorker().stateProperty().addListener(new HyperLinkRedirectListener(webView));
 
         updatedIndicator.visibleProperty().bind(logEntryUpdated);
-        updatedIndicator.setOnMouseEntered(me -> {
-            updatedIndicator.setCursor(Cursor.HAND);
-        });
+        updatedIndicator.setOnMouseEntered(me -> updatedIndicator.setCursor(Cursor.HAND));
         updatedIndicator.setOnMouseClicked(this::handle);
 
     }
@@ -227,6 +218,6 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
     }
 
     private void handle(MouseEvent me) {
-        new ArchivedLogEntriesHandler(logClient).handle(webView, logEntry.getId());
+        new ArchivedLogEntriesManager(logClient).handle(webView, logEntry);
     }
 }

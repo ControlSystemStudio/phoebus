@@ -44,6 +44,8 @@ public class OlogClient implements LogClient {
     private static final String CLIENT_INFO =
             "CS Studio " + Messages.AppVersion + " on " + System.getProperty("os.name");
 
+    private List<LogEntryChangeHandler> changeHandlers = new ArrayList<>();
+
     /**
      * Builder Class to help create a olog client.
      *
@@ -183,11 +185,16 @@ public class OlogClient implements LogClient {
         client.setFollowRedirects(true);
         client.setConnectTimeout(3000);
         this.service = client.resource(UriBuilder.fromUri(ologURI).build());
+
+        ServiceLoader<LogEntryChangeHandler> serviceLoader = ServiceLoader.load(LogEntryChangeHandler.class);
+        serviceLoader.stream().forEach(p -> changeHandlers.add(p.get()));
     }
 
     @Override
     public LogEntry set(LogEntry log) throws LogbookException {
-        return save(log, null);
+        LogEntry newEntry = save(log, null);
+        changeHandlers.forEach(h -> h.logEntryChanged(newEntry));
+        return newEntry;
     }
 
     /**
@@ -443,7 +450,9 @@ public class OlogClient implements LogClient {
                     .accept(MediaType.APPLICATION_XML)
                     .accept(MediaType.APPLICATION_JSON)
                     .post(ClientResponse.class, OlogObjectMappers.logEntrySerializer.writeValueAsString(logEntry));
-            return OlogObjectMappers.logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), OlogLog.class);
+            LogEntry updated = OlogObjectMappers.logEntryDeserializer.readValue(clientResponse.getEntityInputStream(), OlogLog.class);
+            changeHandlers.forEach(h -> h.logEntryChanged(updated));
+            return updated;
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Unable to update log entry id=" + logEntry.getId(), e);
             return null;

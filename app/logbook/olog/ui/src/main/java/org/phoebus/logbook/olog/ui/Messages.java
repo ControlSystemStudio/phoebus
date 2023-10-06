@@ -16,6 +16,7 @@ public class Messages
             AdvancedSearchHide,
             Apply,
             ArchivedDownloadFailed,
+            ArchivedLaunchExternalAppFailed,
             ArchivedNoEntriesFound,
             ArchivedSaveFailed,
             CloseRequestHeader,

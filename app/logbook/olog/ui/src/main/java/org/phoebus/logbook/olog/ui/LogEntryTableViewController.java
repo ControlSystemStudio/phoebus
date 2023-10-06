@@ -532,4 +532,15 @@ public class LogEntryTableViewController extends LogbookSearchController {
     public void showHelp() {
         new HelpViewer(LogbookUIPreferences.search_help).show();
     }
+
+    /**
+     * Handler for a {@link LogEntry} change, new or updated.
+     * A search is triggered to make sure the result list reflects the change, and
+     * the detail view controller is called to refresh, if applicable.
+     * @param logEntry
+     */
+    public void logEntryChanged(LogEntry logEntry){
+        search();
+        logEntryDisplayController.updateLogEntry(logEntry);
+    }
 }

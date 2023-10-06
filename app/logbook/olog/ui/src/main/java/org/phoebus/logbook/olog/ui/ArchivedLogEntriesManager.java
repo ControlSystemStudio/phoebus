@@ -32,6 +32,7 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.logbook.LogClient;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.SearchResult;
+import org.phoebus.ui.application.ApplicationLauncherService;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import java.io.BufferedOutputStream;
@@ -42,29 +43,37 @@ import java.text.MessageFormat;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * This class downloads archived log entries and then prompt user for a file in which the
  * list of log entries is written as pretty printed JSON.
+ *
+ * If an external application has been configured for extension json, it will be launched once the
+ * file has been saved successfully.
  */
-public class ArchivedLogEntriesHandler {
+public class ArchivedLogEntriesManager {
     private LogClient logClient;
 
-    public ArchivedLogEntriesHandler(LogClient logClient) {
+    public ArchivedLogEntriesManager(LogClient logClient) {
         this.logClient = logClient;
     }
 
     /**
      * Downloads archived log entries as a {@link org.phoebus.framework.jobs.Job} and then
      * launches a {@link FileChooser} such that user can specify target file name for the retrieved data.
+     * <p>
+     * The current {@link LogEntry} is written as first JSON object in the output file.
      *
-     * @param ownerNode  {@link Node} used by {@link FileChooser}.
-     * @param logEntryId A (valid) log entry id shared among all archived entries with same id.
+     * @param ownerNode {@link Node} used by {@link FileChooser}.
+     * @param logEntry  A (valid) log entry id shared among all archived entries with same id.
      */
-    public void handle(Node ownerNode, long logEntryId) {
+    public void handle(Node ownerNode, LogEntry logEntry) {
         JobManager.schedule("Get Archived Log Entries", monitor -> {
+            long logEntryId = logEntry.getId();
             SearchResult searchResult;
             try {
                 searchResult = logClient.getArchivedEntries(logEntryId);
@@ -108,17 +117,20 @@ public class ArchivedLogEntriesHandler {
                     BufferedOutputStream writer = null;
                     try {
                         writer = new BufferedOutputStream(new FileOutputStream(destinationFile));
-                        for (LogEntry logEntry : searchResult.getLogs()) {
-                            writer.write(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(logEntry).getBytes());
-                        }
+                        List<LogEntry> allLogEntries = new ArrayList<>();
+                        allLogEntries.add(logEntry); // Current log entry is first element in array...
+                        allLogEntries.addAll(searchResult.getLogs()); // ...add all archived log entries
+                        writer.write(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(allLogEntries).getBytes());
                     } catch (Exception e) {
-                        Logger.getLogger(ArchivedLogEntriesHandler.class.getName())
+                        Logger.getLogger(ArchivedLogEntriesManager.class.getName())
                                 .log(Level.WARNING, "Unable to save archived log entries to file", e);
                         Platform.runLater(() -> {
                             ExceptionDetailsErrorDialog.openError("Error", Messages.ArchivedSaveFailed, e);
                         });
                     } finally {
                         if (writer != null) {
+                            // Launch viewer, if one has been configured for extension json
+                            ApplicationLauncherService.openFile(destinationFile, false, null);
                             try {
                                 writer.flush();
                                 writer.close();
@@ -129,7 +141,6 @@ public class ArchivedLogEntriesHandler {
                     }
                 }
             });
-
         });
     }
 }
