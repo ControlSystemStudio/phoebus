@@ -218,8 +218,11 @@ To build for a different platform, create the `dependencies` in one of these way
     # Either create the build platform for Linux..
     ( cd phoebus; mvn clean verify  -Djavafx.platform=linux  -f dependencies/pom.xml )
 
-    # or Mac OS X ..
+    # or Mac OS X (Intel)
     ( cd phoebus; mvn clean verify  -Djavafx.platform=mac    -f dependencies/pom.xml )
+
+    # or Mac OS X (M2)
+    ( cd phoebus; mvn clean verify  -Djavafx.platform=mac-aarch64  -f dependencies/pom.xml )
 
     # or Windows:
     ( cd phoebus; mvn clean verify  -Djavafx.platform=win    -f dependencies/pom.xml )

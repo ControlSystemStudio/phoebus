@@ -6,7 +6,7 @@ then
     echo ''
     echo 'URL, for example http://your.update.site/path/to/product-$(arch).zip,'
     echo 'is where the update process will check for a new version.'
-    echo 'It may contain $(arch), which gets replaced by "linux", "mac" or "win"'
+    echo 'It may contain $(arch), which gets replaced by "linux", "mac", "mac-aarch64" or "win"'
     echo 'depending on the OS.'
     echo ''
     echo 'Redirect the output into a file settings.ini'

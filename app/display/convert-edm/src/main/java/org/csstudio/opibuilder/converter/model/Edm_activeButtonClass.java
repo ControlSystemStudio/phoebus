@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Oak Ridge National Laboratory.
+ * Copyright (c) 2013-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -24,7 +24,7 @@ public class Edm_activeButtonClass extends EdmWidget {
     @EdmAttributeAn @EdmOptionalAn private String onLabel;
     @EdmAttributeAn @EdmOptionalAn private String offLabel;
     @EdmAttributeAn @EdmOptionalAn private String buttonType;
-    @EdmAttributeAn @EdmOptionalAn private int controlBitsPos;
+    @EdmAttributeAn @EdmOptionalAn private int controlBitPos;
 
     @EdmAttributeAn @EdmOptionalAn private String labelType;
 
@@ -37,8 +37,8 @@ public class Edm_activeButtonClass extends EdmWidget {
     public String getButtonType() {
         return buttonType;
     }
-    public int getControlBitsPos() {
-        return controlBitsPos;
+    public int getControlBitPos() {
+        return controlBitPos;
     }
 
     public EdmColor getOnColor() {

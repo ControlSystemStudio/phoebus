@@ -30,7 +30,8 @@ public class NetworkTest
 {
     // If running on a host that does not support IPv6,
     // ignore the checks that require a local "::1" IPv6 address
-    private static final boolean ignore_local_ipv6 = Boolean.parseBoolean(System.getProperty("ignore_local_ipv6"));
+    private static final boolean ignore_local_ipv6 = Boolean.parseBoolean(System.getProperty("ignore_local_ipv6"))
+                                                     || !PVASettings.EPICS_PVA_ENABLE_IPV6;
 
     @Test
     public void testBroadcastAddresses()

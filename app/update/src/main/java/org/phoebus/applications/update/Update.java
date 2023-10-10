@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -130,7 +130,12 @@ abstract public class Update
         if (PlatformInfo.is_linux)
             return text.replace("$(arch)", "linux");
         else if (PlatformInfo.is_mac_os_x)
-            return text.replace("$(arch)", "mac");
+        {
+            if ("aarch64".equalsIgnoreCase(System.getProperty("os.arch")))
+                return text.replace("$(arch)", "mac-aarch64");
+            else
+                return text.replace("$(arch)", "mac");
+        }
         else
             return text.replace("$(arch)", "win");
     }

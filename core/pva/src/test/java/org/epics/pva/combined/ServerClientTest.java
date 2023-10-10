@@ -34,6 +34,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import org.epics.pva.PVASettings;
 import org.epics.pva.client.MonitorListener;
 import org.epics.pva.client.PVAChannel;
 import org.epics.pva.client.PVAClient;
@@ -77,6 +78,8 @@ public class ServerClientTest {
     private static final long afterLastEventTimeOut = 1000;
 
     private static PVAServer testServer() {
+        if (!PVASettings.EPICS_PVA_ENABLE_IPV6)
+            PVASettings.EPICS_PVAS_INTF_ADDR_LIST = "0.0.0.0";
         try {
             return new PVAServer();
         } catch (Exception e) {

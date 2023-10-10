@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -27,8 +27,8 @@ public class Convert_activeButtonClass extends ConverterBase<BoolButtonWidget>
 
         if (t.getControlPv() != null)
             widget.propPVName().setValue(convertPVName(t.getControlPv()));
-        if (t.getAttribute("controlBitsPos").isExistInEDL())
-            widget.propBit().setValue(t.getControlBitsPos());
+        if (t.getAttribute("controlBitPos").isExistInEDL())
+            widget.propBit().setValue(t.getControlBitPos());
 
         // EDM widget has no LED
         widget.propShowLED().setValue(false);
