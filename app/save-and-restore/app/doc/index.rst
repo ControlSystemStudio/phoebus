@@ -395,11 +395,21 @@ The items of this context menu offers actions associated with a PV, which is sim
 other applications. However, user should be aware that the "Data Browser" item will launch the Data Browser app for
 the selected PV *around the point in time defined by the PV timestamp*.
 
-Authentication
---------------
+Authentication and Authorization
+--------------------------------
 
-In order to create, modify or delete data (configurations, snapshots) user must sign in through the Credentials Manager application. The UI will
-enable/disable elements based on the authentication status. The restore operation is also protected by authentication.
+Authorization uses a role-based approach like so:
 
+* Unauthenticated users may read data, i.e. browse the tree and view configurations and snapshots.
+* Role0:
+    * Create/update and save configurations
+    * Take and save snapshots.
+    * Delete nodes if user id matches and:
+        * Node is a snapshot
+        * Node is configuration or folder with no child nodes
+* Role1: +perform restore operation
+* Role2: no restrictions
+
+Actual roles are defined and managed on the service. Role (group) membership is managed in Active Directory or LDAP.
 
 

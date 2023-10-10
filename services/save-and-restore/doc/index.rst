@@ -723,16 +723,28 @@ Body:
       }
     ]
 
-Authentication
---------------
+Authentication and Authorization
+--------------------------------
 
 All non-GET endpoints are subject to authentication, i.e. clients must send a basic authentication header. The
 service can be configured to delegate authentication to Active Directory or remote or local LDAP. For demo and test
 purposes hard coded credentials are found in the ``WebSecurityConfig`` class. See the file ``application.properties``
 for information on how to select authentication method.
 
-There is no authorization mechanism, i.e. all authenticated users can perform all actions through the protected
-endpoints. Authorization may be added in future releases.
+Authorization uses a role-based approach like so:
+
+* Unauthenticated users may read data, i.e. access GET endpoints.
+* Role0:
+    * Create/update and save configurations
+    * Take and save snapshots.
+    * Delete nodes if user id matches and:
+        * Node is a snapshot
+        * Node is configuration or folder with no child nodes
+* Role1: +perform restore operation
+* Role2: no restrictions
+
+Roles must be defined as groups in Active Directory or LDAP. Role/group names can be configured in ``application.properties``.
+
 
 Migration
 ---------

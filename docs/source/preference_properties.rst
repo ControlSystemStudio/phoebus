@@ -165,7 +165,9 @@ File ../../app/alarm/logging-ui/src/main/resources/alarm_logging_preferences.pro
    # Package org.phoebus.applications.alarm.logging.ui
    # -------------------------------------------------
    
+   # The URL of the REST API exposed by the alarm logger service (not the elasticsearch port as it was prior to Phoebus 4.0)
    service_uri = http://localhost:9000
+   
    results_max_size = 10000
 
 
