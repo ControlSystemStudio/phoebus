@@ -41,9 +41,6 @@ public class NodeController extends BaseController {
     @Autowired
     private NodeDAO nodeDAO;
 
-    @Autowired
-    public String roleAdmin; // This MUST be public!!!
-
     private final Logger logger = Logger.getLogger(NodeController.class.getName());
 
     /**
@@ -64,12 +61,10 @@ public class NodeController extends BaseController {
      */
     @SuppressWarnings("unused")
     @PutMapping(value = "/node", produces = JSON)
+    @PreAuthorize("hasRole(this.roleUser)")
     public Node createNode(@RequestParam(name = "parentNodeId") String parentsUniqueId,
                            @RequestBody final Node node,
                            Principal principal) {
-        if (node.getUserName() == null || node.getUserName().isEmpty()) {
-            throw new IllegalArgumentException("User name must be non-null and of non-zero length");
-        }
         if (node.getName() == null || node.getName().isEmpty()) {
             throw new IllegalArgumentException("Node name must be non-null and of non-zero length");
         }
@@ -136,7 +131,7 @@ public class NodeController extends BaseController {
      */
     @SuppressWarnings("unused")
     @DeleteMapping(value = "/node/{uniqueNodeId}", produces = JSON)
-    @PreAuthorize("hasRole(this.role2) or this.mayDelete(#uniqueNodeId, #principal)")
+    @PreAuthorize("hasRole(this.roleAdmin) or this.mayDelete(#uniqueNodeId, #principal)")
     public void deleteNode(@PathVariable final String uniqueNodeId, Principal principal) {
         logger.info("Deleting node with unique id " + uniqueNodeId);
         nodeDAO.deleteNode(uniqueNodeId);
@@ -144,13 +139,13 @@ public class NodeController extends BaseController {
 
     /**
      * NOTE: this method MUST be public!
-     *
-     * An authenticated user may delete a node if the following hold true:
+     * <p>
+     * An authenticated user may delete a node if User identity is same as the target {@link Node}'s user id and:
      * <ul>
-     *     <li>User identity is same as the the target {@link Node}'s user id.</li>
      *     <li>Target {@link Node} is a snapshot.</li>
      *     <li>Target {@link Node} is not a snapshot, but has no child nodes.</li>
      * </ul>
+     * </p>
      *
      * @param nodeId Unique node id identifying the target of the user's delete operation.
      * @param principal Identifies user.
@@ -164,6 +159,25 @@ public class NodeController extends BaseController {
         }
         if(node.getNodeType().equals(NodeType.CONFIGURATION) || node.getNodeType().equals(NodeType.FOLDER)){
             return nodeDAO.getChildNodes(node.getUniqueId()).isEmpty();
+        }
+        return true;
+    }
+
+    /**
+     * NOTE: this method MUST be public!
+     *
+     * <p>
+     * An authenticated user may update a node if user identity is same as the target {@link Node}'s user id.
+     * </p>
+     *
+     * @param node {@link Node} identifying the target of the user's delete operation.
+     * @param principal Identifies user.
+     * @return <code>false</code> if user may not delete the {@link Node}.
+     */
+    @SuppressWarnings("unused")
+    public boolean mayUpdate(Node node, Principal principal){
+        if(!nodeDAO.getNode(node.getUniqueId()).getUserName().equals(principal.getName())){
+            return false;
         }
         return true;
     }
@@ -184,6 +198,7 @@ public class NodeController extends BaseController {
      */
     @SuppressWarnings("unused")
     @PostMapping(value = "/node", produces = JSON)
+    @PreAuthorize("hasRole(this.roleUser) and this.mayUpdate(#nodeToUpdate, #principal)")
     public Node updateNode(@RequestParam(value = "customTimeForMigration", required = false, defaultValue = "false") String customTimeForMigration,
                            @RequestBody Node nodeToUpdate,
                            Principal principal) {

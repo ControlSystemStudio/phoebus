@@ -734,14 +734,14 @@ for information on how to select authentication method.
 Authorization uses a role-based approach like so:
 
 * Unauthenticated users may read data, i.e. access GET endpoints.
-* Role0:
+* Role "user":
     * Create/update and save configurations
     * Take and save snapshots.
     * Delete nodes if user id matches and:
         * Node is a snapshot
         * Node is configuration or folder with no child nodes
-* Role1: +perform restore operation
-* Role2: no restrictions
+* Role "superuser": +perform restore operation
+* Role "admin": no restrictions
 
 Roles must be defined as groups in Active Directory or LDAP. Role/group names can be configured in ``application.properties``.
 

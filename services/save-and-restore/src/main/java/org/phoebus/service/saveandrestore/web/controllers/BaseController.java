@@ -20,6 +20,7 @@ package org.phoebus.service.saveandrestore.web.controllers;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -45,6 +46,15 @@ public abstract class BaseController {
 	public static final String JSON = "application/json";
 	
 	private final Logger logger = Logger.getLogger(BaseController.class.getName());
+
+	@Autowired
+	public String roleAdmin; // This MUST be public!!!
+
+	@Autowired
+	public String roleSuperuser; // This MUST be public!!!
+
+	@Autowired
+	public String roleUser; // This MUST be public!!!
 
 
 	/**

@@ -21,6 +21,7 @@ import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,6 +43,7 @@ public class ConfigurationController extends BaseController {
 
     @SuppressWarnings("unused")
     @PutMapping(produces = JSON)
+    @PreAuthorize("hasRole(this.roleUser)")
     public Configuration createConfiguration(@RequestParam(value = "parentNodeId") String parentNodeId,
                                              @RequestBody Configuration configuration,
                                              Principal principal) {

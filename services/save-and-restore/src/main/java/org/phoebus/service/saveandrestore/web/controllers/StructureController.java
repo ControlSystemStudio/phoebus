@@ -21,6 +21,7 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -52,6 +53,7 @@ public class StructureController extends BaseController {
      */
     @SuppressWarnings("unused")
     @PostMapping(value = "/move", produces = JSON)
+    @PreAuthorize("hasRole(this.roleAdmin)")
     public Node moveNodes(@RequestParam(value = "to") String to,
                           @RequestBody List<String> nodes,
                           Principal principal) {

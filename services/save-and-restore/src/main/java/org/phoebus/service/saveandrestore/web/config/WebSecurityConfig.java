@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configurers.ldap.LdapAuthenticationProviderConfigurer;
@@ -31,6 +33,7 @@ import java.util.logging.Logger;
         prePostEnabled = true,
         securedEnabled = true,
         jsr250Enabled = true)
+@SuppressWarnings("unused")
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     /**
@@ -86,10 +89,34 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private String roleUser;
 
     @Value("${role.superuser:sar-superuser}")
-    private String roleSuperUser;
+    private String roleSuperuser;
 
     @Value("${role.admin:sar-admin}")
     private String roleAdmin;
+
+    @Value("${demo.user:user}")
+    private String demoUser;
+
+    @Value("${demo.user.password:userPass}")
+    private String demoUserPassword;
+
+    @Value("${demo.superuser:superuser}")
+    private String demoSuperuser;
+
+    @Value("${demo.superuser.password:superuserPass}")
+    private String demoSuperuserPassword;
+
+    @Value("${demo.admin:admin}")
+    private String demoAdmin;
+
+    @Value("${demo.admin.password:adminPass}")
+    private String demoAdminPassword;
+
+    @Value("${demo.readOnly:johndoe}")
+    private String demoReadOnly;
+
+    @Value("${demo.readOnly.password:1234}")
+    private String demoReadOnlyPassword;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -161,9 +188,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 break;
             case "demo":
                 auth.inMemoryAuthentication()
-                        .withUser("admin").password(encoder().encode("adminPass")).roles(roleAdmin()).and()
-                        .withUser("user").password(encoder().encode("userPass")).roles(roleUser()).and()
-                        .withUser("superuser").password(encoder().encode("superUserPass")).roles(roleSuperUser());
+                        .withUser(demoAdmin).password(encoder().encode(demoAdminPassword)).roles(roleAdmin()).and()
+                        .withUser(demoUser).password(encoder().encode(demoUserPassword)).roles(roleUser()).and()
+                        .withUser(demoSuperuser).password(encoder().encode(demoSuperuserPassword)).roles(roleSuperuser());
                 break;
             default:
                 Logger.getLogger(WebSecurityConfig.class.getName())
@@ -201,12 +228,71 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public String roleSuperUser(){
-        return roleSuperUser.toUpperCase();
+    public String roleSuperuser(){
+        return roleSuperuser.toUpperCase();
     }
 
     @Bean
     public String roleAdmin(){
         return roleAdmin.toUpperCase();
+    }
+
+    @Bean("demoUser")
+    public String demoUser(){
+        return demoUser;
+    }
+
+    @Bean("demoUserPassword")
+    public String demoUserPassword(){
+        return demoUserPassword;
+    }
+
+    @Bean("demoSuperuser")
+    public String demoSuperuser(){
+        return demoSuperuser;
+    }
+
+    @Bean("demoSuperuserPassword")
+    public String demoSuperuserPassword(){
+        return demoSuperuserPassword;
+    }
+
+    @Bean("demoAdmin")
+    public String demoAdmin(){
+        return demoAdmin;
+    }
+
+    @Bean("demoAdminPassword")
+    public String demoAdminPassword(){
+        return demoAdminPassword;
+    }
+
+    @Bean("demoReadOnly")
+    public String demoReadOnly(){
+        return demoReadOnly;
+    }
+
+    @Bean("demoReadOnlyPassword")
+    public String demoReadOnlyPassword(){
+        return demoReadOnlyPassword;
+    }
+
+
+    /**
+     * Configures role hierarchy, i.e. user -> superuser -> admin. Do not remove this {@link Bean}!
+     * <p>
+     * <h2>NOTE!</h2>
+     * Some Spring Security documentation will state that &quot;and&quot; can be used instead of new-line char to
+     * separate rule items. But that does NOT work, at least not with the Spring Security version used in this project.
+     * </p>
+     * @return A {@link RoleHierarchy} object.
+     */
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        RoleHierarchyImpl hierarchy = new RoleHierarchyImpl();
+        hierarchy.setHierarchy("ROLE_" + roleAdmin.toUpperCase() + " > ROLE_" + roleSuperuser.toUpperCase() + "\n" +
+                "ROLE_" + roleSuperuser.toUpperCase() +" > ROLE_" + roleUser.toUpperCase() + "\n" +
+                "ROLE_" + roleAdmin.toUpperCase() + " > ROLE_" + roleUser.toUpperCase());
+        return hierarchy;
     }
 }
