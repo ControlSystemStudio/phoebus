@@ -195,7 +195,7 @@ public class NodeController extends BaseController {
      */
     @SuppressWarnings("unused")
     @PostMapping(value = "/node", produces = JSON)
-    @PreAuthorize("hasRole(this.roleUser) and this.mayUpdate(#nodeToUpdate, #principal)")
+    @PreAuthorize("hasRole(this.roleAdmin) or (hasRole(this.roleUser) and this.mayUpdate(#nodeToUpdate, #principal))")
     public Node updateNode(@RequestParam(value = "customTimeForMigration", required = false, defaultValue = "false") String customTimeForMigration,
                            @RequestBody Node nodeToUpdate,
                            Principal principal) {

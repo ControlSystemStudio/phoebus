@@ -244,6 +244,13 @@ public class NodeControllerTest {
 
         mockMvc.perform(request).andExpect(status().isForbidden());
 
+        request = post("/config")
+                .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
+                .contentType(JSON)
+                .content(confurationAsString);
+
+        mockMvc.perform(request).andExpect(status().isOk());
+
         when(nodeDAO.getNode("hhh")).thenReturn(Node.builder().nodeType(NodeType.CONFIGURATION).userName("notUser").build());
 
         request = post("/config")
@@ -620,6 +627,14 @@ public class NodeControllerTest {
                 .contentType(JSON)
                 .content(objectMapper.writeValueAsString(node));
         mockMvc.perform(request).andExpect(status().isForbidden());
+
+        request = post("/node")
+                .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
+                .param("customTimeForMigration", "false")
+                .contentType(JSON)
+                .content(objectMapper.writeValueAsString(node));
+        mockMvc.perform(request).andExpect(status().isOk());
+
 
         request = post("/node")
                 .param("customTimeForMigration", "false")

@@ -60,12 +60,11 @@ public class ConfigurationController extends BaseController {
 
     @SuppressWarnings("unused")
     @PostMapping(produces = JSON)
-    @PreAuthorize("hasRole(this.roleAdmin) or this.mayUpdate(#configuration, #principal)")
+    @PreAuthorize("hasRole(this.roleAdmin) or (hasRole(this.roleAdmin) or this.mayUpdate(#configuration, #principal))")
     public Configuration updateConfiguration(@RequestBody Configuration configuration,
                                              Principal principal) {
         configuration.getConfigurationNode().setUserName(principal.getName());
-        Configuration c = nodeDAO.updateConfiguration(configuration);
-        return c;
+        return nodeDAO.updateConfiguration(configuration);
     }
 
     /**
