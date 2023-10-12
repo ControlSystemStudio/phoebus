@@ -167,7 +167,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 if (ldap_user_search_base != null && !ldap_user_search_base.isEmpty()) {
                     configurer.userSearchBase(ldap_user_search_base);
                 }
-                //configurer.authoritiesMapper(new LDAPAuthoritiesMapper());
                 configurer.contextSource(contextSource);
                 break;
             case "ldap_embedded":
@@ -190,7 +189,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 auth.inMemoryAuthentication()
                         .withUser(demoAdmin).password(encoder().encode(demoAdminPassword)).roles(roleAdmin()).and()
                         .withUser(demoUser).password(encoder().encode(demoUserPassword)).roles(roleUser()).and()
-                        .withUser(demoSuperuser).password(encoder().encode(demoSuperuserPassword)).roles(roleSuperuser());
+                        .withUser(demoSuperuser).password(encoder().encode(demoSuperuserPassword)).roles(roleSuperuser()).and()
+                        .withUser(demoReadOnly).password(encoder().encode(demoReadOnlyPassword)).roles();
                 break;
             default:
                 Logger.getLogger(WebSecurityConfig.class.getName())
