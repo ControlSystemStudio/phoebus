@@ -207,6 +207,61 @@ public class NodeControllerTest {
     }
 
     @Test
+    public void testUpdateConfig() throws Exception{
+        reset(nodeDAO);
+
+        Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("config").uniqueId("hhh")
+                .userName("user").build();
+
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(config);
+
+        String confurationAsString = objectMapper.writeValueAsString(configuration);
+
+        Configuration updatedConfiguration = new Configuration();
+        updatedConfiguration.setConfigurationNode(Node.builder().nodeType(NodeType.CONFIGURATION).name("config").uniqueId("hhh")
+                .userName(demoAdmin).build());
+
+        when(nodeDAO.updateConfiguration(updatedConfiguration)).thenReturn(updatedConfiguration);
+
+        MockHttpServletRequestBuilder request = post("/config")
+                .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
+                .contentType(JSON)
+                .content(confurationAsString);
+
+        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
+                .andReturn();
+
+        // Make sure response contains expected data
+        objectMapper.readValue(result.getResponse().getContentAsString(), Configuration.class);
+
+        when(nodeDAO.getNode("hhh")).thenReturn(Node.builder().nodeType(NodeType.CONFIGURATION).userName("notUser").build());
+
+        request = post("/config")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .contentType(JSON)
+                .content(confurationAsString);
+
+        mockMvc.perform(request).andExpect(status().isForbidden());
+
+        when(nodeDAO.getNode("hhh")).thenReturn(Node.builder().nodeType(NodeType.CONFIGURATION).userName("notUser").build());
+
+        request = post("/config")
+                .header(HttpHeaders.AUTHORIZATION, superuserAuthorization)
+                .contentType(JSON)
+                .content(confurationAsString);
+
+        mockMvc.perform(request).andExpect(status().isForbidden());
+
+        request = post("/config")
+                .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
+                .contentType(JSON)
+                .content(confurationAsString);
+
+        mockMvc.perform(request).andExpect(status().isForbidden());
+    }
+
+    @Test
     public void testCreateNodeBadRequests() throws Exception {
         reset(nodeDAO);
 

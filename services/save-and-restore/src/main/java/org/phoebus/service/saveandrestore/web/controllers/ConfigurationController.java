@@ -19,6 +19,7 @@ package org.phoebus.service.saveandrestore.web.controllers;
 
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
+import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -59,9 +60,28 @@ public class ConfigurationController extends BaseController {
 
     @SuppressWarnings("unused")
     @PostMapping(produces = JSON)
+    @PreAuthorize("hasRole(this.roleAdmin) or this.mayUpdate(#configuration, #principal)")
     public Configuration updateConfiguration(@RequestBody Configuration configuration,
                                              Principal principal) {
         configuration.getConfigurationNode().setUserName(principal.getName());
-        return nodeDAO.updateConfiguration(configuration);
+        Configuration c = nodeDAO.updateConfiguration(configuration);
+        return c;
+    }
+
+    /**
+     * NOTE: this method MUST be public!
+     *
+     * <p>
+     * An authenticated user may update a configuration if user identity is same as the target {@link Node}'s user id.
+     * </p>
+     *
+     * @param configuration {@link Configuration} identifying the target of the user's update operation.
+     * @param principal Identifies user.
+     * @return <code>false</code> if user may not update the {@link Node}.
+     */
+    @SuppressWarnings("unused")
+    public boolean mayUpdate(Configuration configuration, Principal principal){
+        Node configNode = nodeDAO.getNode(configuration.getConfigurationNode().getUniqueId());
+        return configNode.getUserName().equals(principal.getName());
     }
 }

@@ -170,16 +170,13 @@ public class NodeController extends BaseController {
      * An authenticated user may update a node if user identity is same as the target {@link Node}'s user id.
      * </p>
      *
-     * @param node {@link Node} identifying the target of the user's delete operation.
+     * @param node {@link Node} identifying the target of the user's update operation.
      * @param principal Identifies user.
-     * @return <code>false</code> if user may not delete the {@link Node}.
+     * @return <code>false</code> if user may not update the {@link Node}.
      */
     @SuppressWarnings("unused")
     public boolean mayUpdate(Node node, Principal principal){
-        if(!nodeDAO.getNode(node.getUniqueId()).getUserName().equals(principal.getName())){
-            return false;
-        }
-        return true;
+        return nodeDAO.getNode(node.getUniqueId()).getUserName().equals(principal.getName());
     }
 
     /**
