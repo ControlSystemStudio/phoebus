@@ -58,6 +58,18 @@ public class SnapshotController extends BaseController {
         return nodeDAO.saveSnapshot(parentNodeId, snapshot);
     }
 
+    /**
+     * NOTE: this method MUST be public!
+     *
+     * <p>
+     * An authenticated user may save a snapshot, and update if user identity is same as the target's
+     * snapshot {@link Node}.
+     * </p>
+     *
+     * @param snapshot {@link Snapshot} identifying the target of the user's update operation.
+     * @param principal Identifies user.
+     * @return <code>false</code> if user may not update the {@link Snapshot}.
+     */
     public boolean maySave(Snapshot snapshot, Principal principal){
         if(snapshot.getSnapshotNode().getUniqueId() == null){
             return true;

@@ -74,11 +74,6 @@ public class SnapshotControllerTest {
     @Autowired
     private String demoUser;
 
-    @Autowired
-    private String demoSuperuser;
-
-    @Autowired
-    private String demoAdmin;
 
     @Test
     public void testSaveSnapshotWrongNodeType() throws Exception {

@@ -64,6 +64,18 @@ public class CompositeSnapshotController extends BaseController {
         return nodeDAO.updateCompositeSnapshot(compositeSnapshot);
     }
 
+    /**
+     * NOTE: this method MUST be public!
+     *
+     * <p>
+     * An authenticated user may save a composite snapshot, and update if user identity is same as the target's
+     * composite snapshot {@link Node}.
+     * </p>
+     *
+     * @param compositeSnapshot {@link CompositeSnapshot} identifying the target of the user's update operation.
+     * @param principal Identifies user.
+     * @return <code>false</code> if user may not update the {@link CompositeSnapshot}.
+     */
     public boolean mayUpdate(CompositeSnapshot compositeSnapshot, Principal principal){
         Node node = nodeDAO.getNode(compositeSnapshot.getCompositeSnapshotNode().getUniqueId());
         return node.getUserName().equals(principal.getName());
