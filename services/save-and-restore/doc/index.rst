@@ -735,11 +735,15 @@ Authorization uses a role-based approach like so:
 
 * Unauthenticated users may read data, i.e. access GET endpoints.
 * Role "user":
-    * Create/update and save configurations
-    * Take and save snapshots.
-    * Delete nodes if user id matches and:
-        * Node is a snapshot
-        * Node is configuration or folder with no child nodes
+    * Create and save configurations
+    * Create and save snapshots.
+    * Create and save composite snapshots
+    * Create and save filters
+    * Update and delete objects if user name matches object's user id and:
+        * Object is a snapshot node and not referenced in a composite snapshot node
+        * Object is a composite snapshot node
+        * Object is configuration or folder node with no child nodes
+        * Object is a filter
 * Role "superuser": +perform restore operation
 * Role "admin": no restrictions
 
