@@ -22,7 +22,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-
 import com.sun.jersey.api.client.*;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
@@ -246,18 +245,15 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     }
 
     @Override
-    public void deleteNode(String uniqueNodeId) {
-        WebResource webResource = getClient().resource(jmasarServiceUrl + "/node/" + uniqueNodeId);
-        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).delete(ClientResponse.class);
+    public void deleteNodes(List<String> nodeIds) {
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/node");
+        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
+                .entity(nodeIds, CONTENT_TYPE_JSON)
+                .delete(ClientResponse.class);
         if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = response.getEntity(String.class);
             throw new SaveAndRestoreClientException("Failed : HTTP error code : " + response.getStatus() + ", error message: " + message);
         }
-    }
-
-    @Override
-    public void deleteNodes(List<String> nodeIds) {
-        nodeIds.forEach(this::deleteNode);
     }
 
     @Override

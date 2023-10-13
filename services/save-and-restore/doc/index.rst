@@ -736,7 +736,7 @@ Authorization uses a role-based approach like so:
 * Unauthenticated users may read data, i.e. access GET endpoints.
 * Role "user":
     * Create and save configurations
-    * Create and save snapshots.
+    * Create and save snapshots
     * Create and save composite snapshots
     * Create and save filters
     * Update and delete objects if user name matches object's user id and:

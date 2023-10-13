@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.lang.annotation.Inherited;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -124,15 +125,31 @@ public class ElasticsearchDAO implements NodeDAO {
         return nodes;
     }
 
+    /**
+     *  {@inheritDoc}
+     */
     @Override
+    @Deprecated
     public void deleteNode(String nodeId) {
-        Node nodeToDelete = getNode(nodeId);
-        if (nodeToDelete == null) {
-            throw new NodeNotFoundException("Cannot delete non-existing node");
-        } else if (nodeToDelete.getUniqueId().equals(ROOT_FOLDER_UNIQUE_ID)) {
-            throw new IllegalArgumentException("Root node cannot be deleted");
+        deleteNodes(List.of(nodeId));
+    }
+
+    /**
+     *  {@inheritDoc}
+     */
+    @Override
+    public void deleteNodes(List<String> nodeIds){
+        List<Node> nodes = new ArrayList<>();
+        for(String nodeId : nodeIds){
+            Node nodeToDelete = getNode(nodeId);
+            if (nodeToDelete == null) {
+                throw new NodeNotFoundException("Cannot delete non-existing node");
+            } else if (nodeToDelete.getUniqueId().equals(ROOT_FOLDER_UNIQUE_ID)) {
+                throw new IllegalArgumentException("Root node cannot be deleted");
+            }
+            nodes.add(nodeToDelete);
         }
-        deleteNode(nodeToDelete);
+        nodes.forEach(this::deleteNode);
     }
 
     @Override

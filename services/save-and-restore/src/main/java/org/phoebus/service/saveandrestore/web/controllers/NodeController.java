@@ -132,9 +132,34 @@ public class NodeController extends BaseController {
     @SuppressWarnings("unused")
     @DeleteMapping(value = "/node/{uniqueNodeId}", produces = JSON)
     @PreAuthorize("hasRole(this.roleAdmin) or this.mayDelete(#uniqueNodeId, #principal)")
+    @Deprecated
     public void deleteNode(@PathVariable final String uniqueNodeId, Principal principal) {
         logger.info("Deleting node with unique id " + uniqueNodeId);
         nodeDAO.deleteNode(uniqueNodeId);
+    }
+
+    @SuppressWarnings("unused")
+    @DeleteMapping(value = "/node", produces = JSON)
+    @PreAuthorize("hasRole(this.roleAdmin) or this.mayDelete(#nodeIds, #principal)")
+    public void deleteNodes(@RequestBody List<String> nodeIds, Principal principal) {
+        nodeDAO.deleteNodes(nodeIds);
+    }
+
+    /**
+     * NOTE: this method MUST be public!
+     *
+     * Checks if all the nodes provided to this method can be deleted by the user.
+     *
+     * @return <code>true</code> only if <b>all</b> if the nodes can be deleted by the user.
+     */
+    @SuppressWarnings("unused")
+    public boolean mayDelete(List<String> nodeIds, Principal principal){
+        for (String nodeId : nodeIds){
+            if(!mayDelete(nodeId, principal)){
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

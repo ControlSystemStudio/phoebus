@@ -95,8 +95,6 @@ public interface SaveAndRestoreClient {
      */
     Node updateNode(Node nodeToUpdate, boolean customTimeForMigration);
 
-    void deleteNode(String uniqueNodeId);
-
     /**
      * Deletes a list of {@link Node}s
      *

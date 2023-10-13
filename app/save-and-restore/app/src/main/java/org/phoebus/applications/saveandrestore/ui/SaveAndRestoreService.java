@@ -313,7 +313,7 @@ public class SaveAndRestoreService {
      */
     public List<Filter> getAllFilters() throws Exception {
         Future<List<Filter>> future =
-                executor.submit(() -> saveAndRestoreClient.getAllFilters());
+                executor.submit(saveAndRestoreClient::getAllFilters);
         return future.get();
     }
 
@@ -338,7 +338,7 @@ public class SaveAndRestoreService {
         Future<List<Node>> future =
                 executor.submit(() -> saveAndRestoreClient.addTag(tagData));
         List<Node> updatedNodes = future.get();
-        updatedNodes.forEach(n -> notifyNodeChangeListeners(n));
+        updatedNodes.forEach(this::notifyNodeChangeListeners);
         return updatedNodes;
     }
 
@@ -353,7 +353,7 @@ public class SaveAndRestoreService {
         Future<List<Node>> future =
                 executor.submit(() -> saveAndRestoreClient.deleteTag(tagData));
         List<Node> updatedNodes = future.get();
-        updatedNodes.forEach(n -> notifyNodeChangeListeners(n));
+        updatedNodes.forEach(this::notifyNodeChangeListeners);
         return updatedNodes;
     }
 
