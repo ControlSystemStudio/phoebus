@@ -64,7 +64,8 @@ public class ConfigurationController extends BaseController {
     public Configuration updateConfiguration(@RequestBody Configuration configuration,
                                              Principal principal) {
         configuration.getConfigurationNode().setUserName(principal.getName());
-        return nodeDAO.updateConfiguration(configuration);
+        Configuration c = nodeDAO.updateConfiguration(configuration);
+        return c;
     }
 
     /**

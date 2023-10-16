@@ -697,9 +697,10 @@ public class ElasticsearchDAO implements NodeDAO {
 
         Node existingConfigurationNode = getNode(configuration.getConfigurationNode().getUniqueId());
 
-        // Set name and description, even if unchanged.
+        // Set name, description and user even if unchanged.
         existingConfigurationNode.setName(configuration.getConfigurationNode().getName());
         existingConfigurationNode.setDescription(configuration.getConfigurationNode().getDescription());
+        existingConfigurationNode.setUserName(configuration.getConfigurationNode().getUserName());
         // Update last modified date
         existingConfigurationNode.setLastModified(new Date());
         existingConfigurationNode = updateNode(existingConfigurationNode, false);

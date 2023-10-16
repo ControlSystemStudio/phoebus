@@ -21,9 +21,7 @@ package org.phoebus.applications.saveandrestore.ui;
 import javafx.application.Platform;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
+import javafx.scene.input.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import org.phoebus.applications.saveandrestore.Messages;
@@ -126,6 +124,12 @@ public class BrowserTreeCell extends TreeCell<Node> {
             event.setDropCompleted(true);
             event.consume();
         });
+
+        // This is to suppress expansion of the TreeItem on double-click.
+        addEventFilter(MouseEvent.MOUSE_PRESSED, (MouseEvent e) -> {
+            if (e.getClickCount() % 2 == 0 && e.getButton().equals(MouseButton.PRIMARY))
+                e.consume();
+        });
     }
 
     @Override
@@ -150,7 +154,8 @@ public class BrowserTreeCell extends TreeCell<Node> {
             stringBuilder.append(comment).append(System.lineSeparator());
         }
         if (node.getCreated() != null) { // Happens if configuration management is accessed from context menu
-            stringBuilder.append(TimestampFormats.SECONDS_FORMAT.format(node.getCreated().toInstant())).append(" (").append(node.getUserName()).append(")");
+            stringBuilder.append(TimestampFormats.SECONDS_FORMAT
+                    .format(node.getLastModified() != null ? node.getLastModified().toInstant() : node.getCreated().toInstant())).append(" (").append(node.getUserName()).append(")");
         }
         // Tooltip with at least date and user id is set on all tree items
         setTooltip(new Tooltip(stringBuilder.toString()));

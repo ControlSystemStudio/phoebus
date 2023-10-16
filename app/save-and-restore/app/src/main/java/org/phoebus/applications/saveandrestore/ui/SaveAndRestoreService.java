@@ -145,7 +145,7 @@ public class SaveAndRestoreService {
         Future<Configuration> future = executor.submit(() -> saveAndRestoreClient.updateConfiguration(configuration));
         Configuration updatedConfiguration = future.get();
         // Associated configuration Node may have a new name
-        notifyNodeChangeListeners(configuration.getConfigurationNode());
+        notifyNodeChangeListeners(updatedConfiguration.getConfigurationNode());
         return updatedConfiguration;
     }
 
