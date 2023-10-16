@@ -11,6 +11,7 @@ import static org.epics.pva.PVASettings.logger;
 
 import java.nio.ByteBuffer;
 import java.util.BitSet;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
@@ -137,17 +138,31 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
                 fail(ex);
             }
 
+            // Bitset to describe which field(s) we're about to write
+            final BitSet changed = new BitSet();
             if (field instanceof PVAStructure)
             {
                 final PVAStructure struct = (PVAStructure) field;
                 // For enumerated type, write to index.
                 if ("enum_t".equals(struct.getStructureName()) ||
-                    data.getStructureName().toLowerCase().indexOf("ntenum") > 0)
+                        data.getStructureName().toLowerCase().indexOf("ntenum") > 0){
                     field = struct.get("index");
+                }
+                else{
+                    // Must also set bits for the elements of the structure
+                    List<PVAData> elements = struct.get();
+                    if(elements != null){
+                        for(int i = 0; i < elements.size(); i++){
+                            changed.set(data.getIndex(elements.get(i)));
+                        }
+                    }
+                }
             }
+            // Set bit for the field to write
+            changed.set(data.getIndex(field));
 
             // Bitset to describe which field we're about to write
-            final BitSet changed = new BitSet();
+            //final BitSet changed = new BitSet();
             changed.set(data.getIndex(field));
             logger.log(Level.FINE, () -> "Updated structure elements: " + changed);
             PVABitSet.encodeBitSet(changed, buffer);
