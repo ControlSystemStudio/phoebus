@@ -84,6 +84,7 @@ public class PVAStructure extends PVADataWithID
         return elements;
     }
 
+
     /** @param name Name of the structure (may be "")
      *  @param struct_name Type name of the structure (may be "")
      *  @param elements Elements, must be named

@@ -242,6 +242,16 @@ public class PVASettings
      */
     public static int EPICS_PVA_MAX_BEACON_AGE = 300;
 
+
+
+    /** Whether to allow PVA to use IPv6 
+     *
+     *  <p> If this is false then PVA will not attempt to 
+     *   use any IPv6 capability at all. This is useful if your
+     *   system does not have any IPv6 support.  
+     */
+    public static boolean EPICS_PVA_ENABLE_IPV6 = true;
+
     static
     {
         EPICS_PVA_ADDR_LIST = get("EPICS_PVA_ADDR_LIST", EPICS_PVA_ADDR_LIST);
@@ -262,6 +272,7 @@ public class PVASettings
         EPICS_PVA_FAST_BEACON_MIN = get("EPICS_PVA_FAST_BEACON_MIN", EPICS_PVA_FAST_BEACON_MIN);
         EPICS_PVA_FAST_BEACON_MAX = get("EPICS_PVA_FAST_BEACON_MAX", EPICS_PVA_FAST_BEACON_MAX);
         EPICS_PVA_MAX_BEACON_AGE = get("EPICS_PVA_MAX_BEACON_AGE", EPICS_PVA_MAX_BEACON_AGE);
+        EPICS_PVA_ENABLE_IPV6 = get("EPICS_PVA_ENABLE_IPV6", EPICS_PVA_ENABLE_IPV6);
     }
 
     /** Get setting from property, environment or default

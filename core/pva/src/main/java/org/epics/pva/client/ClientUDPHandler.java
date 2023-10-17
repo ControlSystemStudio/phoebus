@@ -100,19 +100,26 @@ class ClientUDPHandler extends UDPHandler
         udp_search4 = Network.createUDP(StandardProtocolFamily.INET, null, 0);
         udp_search4.socket().setBroadcast(true);
         local_multicast = Network.configureLocalIPv4Multicast(udp_search4, PVASettings.EPICS_PVA_BROADCAST_PORT);
-
-        // IPv6 socket
-        udp_search6 = Network.createUDP(StandardProtocolFamily.INET6, null, 0);
-
-        // Beacon socket only receives, does not send broadcasts
-        udp_beacon = Network.createUDP(StandardProtocolFamily.INET6, null, PVASettings.EPICS_PVA_BROADCAST_PORT);
-
         udp_localaddr4 = (InetSocketAddress) udp_search4.getLocalAddress();
-        udp_localaddr6 = (InetSocketAddress) udp_search6.getLocalAddress();
 
-        logger.log(Level.FINE, "Awaiting search replies on UDP " + udp_localaddr4 +
-                               " and " + udp_localaddr6 +
-                               ", and beacons on " + Network.getLocalAddress(udp_beacon));
+        String ipV6Msg;
+
+        // IPv6 sockets
+        // Beacon socket only receives, does not send broadcasts
+        if (PVASettings.EPICS_PVA_ENABLE_IPV6) {
+            udp_search6 = Network.createUDP(StandardProtocolFamily.INET6, null, 0);
+            udp_localaddr6 = (InetSocketAddress) udp_search6.getLocalAddress();
+            ipV6Msg = String.format(" and %s", udp_localaddr6);
+            udp_beacon = Network.createUDP(StandardProtocolFamily.INET6, null, PVASettings.EPICS_PVA_BROADCAST_PORT);
+        }
+        else {
+            udp_search6 = null;
+            udp_beacon = Network.createUDP(StandardProtocolFamily.INET, null, PVASettings.EPICS_PVA_BROADCAST_PORT);
+            udp_localaddr6 = null;
+            ipV6Msg = "";
+        }
+        String logMsg = String.format("Awaiting search replies on UDP %s%s and beacons on %s", udp_localaddr4, ipV6Msg, Network.getLocalAddress(udp_beacon));
+        logger.log(Level.FINE, logMsg);
     }
 
     /** @param target Address to which message will be sent
@@ -142,6 +149,12 @@ class ClientUDPHandler extends UDPHandler
         }
         else
         {
+            if (!PVASettings.EPICS_PVA_ENABLE_IPV6) {
+                throw new Exception(
+                    "EPICS_PVA_ENABLE_IPV6 must be enabled to use IPv6 address!"
+                );
+            }
+
             synchronized (udp_search6)
             {
                 if (info.getAddress().getAddress().isMulticastAddress())
@@ -163,10 +176,12 @@ class ClientUDPHandler extends UDPHandler
         search_thread4.setDaemon(true);
         search_thread4.start();
 
-        final ByteBuffer receive_buffer6 = ByteBuffer.allocate(PVASettings.MAX_UDP_PACKET);
-        search_thread6 = new Thread(() -> listen(udp_search6, receive_buffer6), "UDP6-receiver " + Network.getLocalAddress(udp_search6));
-        search_thread6.setDaemon(true);
-        search_thread6.start();
+        if (PVASettings.EPICS_PVA_ENABLE_IPV6) {
+            final ByteBuffer receive_buffer6 = ByteBuffer.allocate(PVASettings.MAX_UDP_PACKET);
+            search_thread6 = new Thread(() -> listen(udp_search6, receive_buffer6), "UDP6-receiver " + Network.getLocalAddress(udp_search6));
+            search_thread6.setDaemon(true);
+            search_thread6.start();
+        }
 
         beacon_thread = new Thread(() -> listen(udp_beacon, beacon_buffer), "UDP-beacon-receiver " + Network.getLocalAddress(udp_beacon));
         beacon_thread.setDaemon(true);
@@ -343,9 +358,11 @@ class ClientUDPHandler extends UDPHandler
         // Close sockets, wait a little for threads to exit
         try
         {
-            udp_search6.close();
-            udp_search4.close();
+            if (PVASettings.EPICS_PVA_ENABLE_IPV6){
+                udp_search6.close();
+            }
             udp_beacon.close();
+            udp_search4.close();
 
             if (search_thread6 != null)
                 search_thread6.join(5000);
