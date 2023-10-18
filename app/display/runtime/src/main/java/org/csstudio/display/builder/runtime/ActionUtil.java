@@ -282,6 +282,12 @@ public class ActionUtil
             final String parent_file = widget_model.getUserData(DisplayModel.USER_DATA_INPUT_FILE);
             final String parent_dir = ModelResourceUtil.getDirectory(parent_file);
 
+            // Check if the parent_dir exists or is reachable. If not, use "." as the parent_dir.
+            File parentDirectory = new File(parent_dir);
+            if (!parentDirectory.exists() || !parentDirectory.isDirectory()) {
+              logger.log(Level.WARNING, "Parent directory {0} does not exist or is not reachable. Using current directory instead.", parent_dir);
+              parent_dir = ".";
+            }
             // Execute (this is already running on background thread)
             logger.log(Level.FINE, "Executing command {0} in {1}", new Object[] { command, parent_dir });
             final CommandExecutor executor = new CommandExecutor(command, new File(parent_dir));
