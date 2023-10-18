@@ -2,6 +2,7 @@ package org.phoebus.logbook.olog.ui;
 
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -70,7 +71,9 @@ public class LogEntryCellController {
     @FXML
     private Pane detailsPane;
 
+
     private SimpleBooleanProperty expanded = new SimpleBooleanProperty(true);
+
 
     public LogEntryCellController() {
 
@@ -123,6 +126,7 @@ public class LogEntryCellController {
 
             logEntryId.setText(logEntry.getLogEntry().getId() != null ? logEntry.getLogEntry().getId().toString() : "");
             level.setText(logEntry.getLogEntry().getLevel());
+
         }
     }
 

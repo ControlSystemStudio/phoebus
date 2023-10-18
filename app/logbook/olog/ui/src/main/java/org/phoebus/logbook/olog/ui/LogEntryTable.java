@@ -7,6 +7,7 @@ import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.logbook.LogClient;
+import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
 import org.phoebus.logbook.olog.ui.write.AttachmentsEditorController;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -106,5 +107,15 @@ public class LogEntryTable implements AppInstance {
     public void save(final Memento memento) {
         OlogQueryManager.getInstance().save();
         memento.setBoolean(HIDE_DETAILS, controller.getShowDetails());
+    }
+
+    /**
+     * Handler for a {@link LogEntry} change, new or updated.
+     * A search is triggered to make sure the result list reflects the change, and
+     * the detail view controller is called to refresh, if applicable.
+     * @param logEntry A new or updated {@link LogEntry}
+     */
+    public void logEntryChanged(LogEntry logEntry){
+        controller.logEntryChanged(logEntry);
     }
 }
