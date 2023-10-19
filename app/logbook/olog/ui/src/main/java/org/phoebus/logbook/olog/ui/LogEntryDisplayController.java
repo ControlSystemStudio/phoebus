@@ -116,10 +116,6 @@ public class LogEntryDisplayController {
         if(logEntry == null){
             currentViewProperty.set(EMPTY);
         }
-        // There is no need to update the view if it is already showing it.
-        else if(logEntryProperty.get() != null && logEntryProperty.get().getId().equals(logEntry.getId())){
-            return;
-        }
         else{
             logEntryProperty.set(logEntry);
             singleLogEntryDisplayController.setLogEntry(logEntry);
@@ -132,5 +128,15 @@ public class LogEntryDisplayController {
 
     public LogEntry getLogEntry() {
         return logEntryProperty.get();
+    }
+
+    /**
+     * Updates the current {@link LogEntry} if it matches the passed argument.
+     * @param logEntry A log entry that has been updated by user and saved by service.
+     */
+    public void updateLogEntry(LogEntry logEntry){
+        if(logEntryProperty.get().getId() == logEntry.getId()){
+            setLogEntry(logEntry);
+        }
     }
 }

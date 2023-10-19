@@ -497,7 +497,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     /**
      * Wrapper class for a {@link LogEntry} and a flag indicating whether details of the
-     * log entry meta data should be rendered in the list view.
+     * log entry meta-data should be rendered in the list view.
      */
     public static class TableViewListItem {
         private final SimpleBooleanProperty showDetails = new SimpleBooleanProperty(true);
@@ -531,5 +531,16 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     public void showHelp() {
         new HelpViewer(LogbookUIPreferences.search_help).show();
+    }
+
+    /**
+     * Handler for a {@link LogEntry} change, new or updated.
+     * A search is triggered to make sure the result list reflects the change, and
+     * the detail view controller is called to refresh, if applicable.
+     * @param logEntry
+     */
+    public void logEntryChanged(LogEntry logEntry){
+        search();
+        logEntryDisplayController.updateLogEntry(logEntry);
     }
 }

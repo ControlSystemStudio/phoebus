@@ -1,8 +1,11 @@
 package org.phoebus.logbook.olog.ui;
 
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.Cursor;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
@@ -10,17 +13,12 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.logbook.Attachment;
-import org.phoebus.logbook.LogClient;
-import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.Logbook;
-import org.phoebus.logbook.LogbookException;
-import org.phoebus.logbook.Property;
-import org.phoebus.logbook.Tag;
+import org.phoebus.logbook.*;
 import org.phoebus.olog.es.api.model.OlogAttachment;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.web.HyperLinkRedirectListener;
@@ -51,6 +49,9 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
     Label logTitle;
     @FXML
     WebView webView;
+
+    @FXML
+    private Node updatedIndicator;
 
     private WebEngine webEngine;
 
@@ -84,6 +85,8 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
     private LogEntry logEntry;
     private final LogClient logClient;
 
+    private final SimpleBooleanProperty logEntryUpdated = new SimpleBooleanProperty();
+
     public SingleLogEntryDisplayController(LogClient logClient) {
         super(logClient.getServiceUrl());
         this.logClient = logClient;
@@ -101,6 +104,11 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
         webEngine = webView.getEngine();
         // This will make links clicked in the WebView to open in default browser.
         webEngine.getLoadWorker().stateProperty().addListener(new HyperLinkRedirectListener(webView));
+
+        updatedIndicator.visibleProperty().bind(logEntryUpdated);
+        updatedIndicator.setOnMouseEntered(me -> updatedIndicator.setCursor(Cursor.HAND));
+        updatedIndicator.setOnMouseClicked(this::handle);
+
     }
 
     public void setLogEntry(LogEntry entry) {
@@ -154,6 +162,9 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
 
         logEntryId.setText(Long.toString(entry.getId()));
         level.setText(entry.getLevel());
+
+        logEntryUpdated.set(logEntry.getModifiedDate() != null &&
+                !logEntry.getModifiedDate().equals(logEntry.getCreatedDate()));
     }
 
     /**
@@ -204,5 +215,9 @@ public class SingleLogEntryDisplayController extends HtmlAwareController {
         stringBuffer.append("</div></body></html>");
 
         return stringBuffer.toString();
+    }
+
+    private void handle(MouseEvent me) {
+        new ArchivedLogEntriesManager(logClient).handle(webView, logEntry);
     }
 }
