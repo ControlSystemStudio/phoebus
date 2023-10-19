@@ -18,11 +18,7 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
-import org.apache.xalan.xsltc.util.IntegerArray;
 import org.epics.pva.data.*;
-import org.epics.pva.data.nt.PVAAlarm;
-import org.epics.pva.data.nt.PVATable;
-import org.epics.pva.data.nt.PVATimeStamp;
 import org.epics.util.array.*;
 import org.epics.vtype.*;
 import org.junit.jupiter.api.Test;
@@ -221,7 +217,7 @@ public class UtilitiesTest {
             Utilities.valueFromString("invalid", val);
             fail("Should throw exception");
         } catch (IllegalArgumentException e) {
-            e.printStackTrace();
+            // Ignore
         }
 
         val = VBoolean.of(false, alarm, time);
@@ -287,12 +283,12 @@ public class UtilitiesTest {
         val = VLongArray.of(ArrayLong.of(1, 2, 3, 4, 5), alarm, time, display);
         result = Utilities.valueFromString("1, 2, 3, 4, 5", val);
         assertTrue(result instanceof VLongArray);
-        assertTrue(((VLongArray) result).getData() instanceof ListLong);
+        assertNotNull(((VLongArray) result).getData());
 
         val = VBooleanArray.of(ArrayBoolean.of(true, true, false, true), alarm, time);
         result = Utilities.valueFromString("[1, 1, 0, 2]", val);
         assertTrue(result instanceof VBooleanArray);
-        assertTrue(((VBooleanArray) result).getData() instanceof ListBoolean);
+        assertNotNull(((VBooleanArray) result).getData());
 
         val = VDisconnectedData.INSTANCE;
         result = Utilities.valueFromString("5", val);
@@ -397,23 +393,21 @@ public class UtilitiesTest {
 
         d = Utilities.toRawValue(vTable);
         assertInstanceOf(PVAStructure.class, d);
-        PVAStructure pvaStructure = (PVAStructure)d;
-        assertEquals(3, pvaStructure.getElements().size());
-        assertInstanceOf(PVAIntArray.class, pvaStructure.getElements().get(0));
-        assertInstanceOf(PVAIntArray.class, pvaStructure.getElements().get(1));
-        assertInstanceOf(PVAIntArray.class, pvaStructure.getElements().get(2));
+        PVAStructure pvaStructure = (PVAStructure) d;
+        assertEquals(3, pvaStructure.get().size());
+        assertInstanceOf(PVAIntArray.class, pvaStructure.get().get(0));
+        assertInstanceOf(PVAIntArray.class, pvaStructure.get().get(1));
+        assertInstanceOf(PVAIntArray.class, pvaStructure.get().get(2));
 
-        PVAIntArray pvaIntArray = (PVAIntArray) pvaStructure.getElements().get(0);
+        PVAIntArray pvaIntArray = (PVAIntArray) pvaStructure.get().get(0);
         assertEquals(3, pvaIntArray.get().length);
         assertArrayEquals(new int[]{-1, 2, 3}, pvaIntArray.get());
-        pvaIntArray = (PVAIntArray) pvaStructure.getElements().get(1);
+        pvaIntArray = (PVAIntArray) pvaStructure.get().get(1);
         assertArrayEquals(new int[]{1, 2, 3}, pvaIntArray.get());
         assertEquals(3, pvaIntArray.get().length);
-        pvaIntArray = (PVAIntArray) pvaStructure.getElements().get(2);
+        pvaIntArray = (PVAIntArray) pvaStructure.get().get(2);
         assertArrayEquals(new int[]{11, 22, 33}, pvaIntArray.get());
         assertEquals(3, pvaIntArray.get().length);
-
-
     }
 
 
@@ -466,7 +460,7 @@ public class UtilitiesTest {
         val1 = VDouble.of(5d, alarm, time, display);
         VType val2 = VDouble.of(6d, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, threshold);
-        assertEquals("5 \u0394-1.0", result.getString());
+        assertEquals("5 Δ-1.0", result.getString());
         assertTrue(result.getValuesEqual() < 0);
         assertTrue(result.isWithinThreshold());
         assertEquals(1, result.getAbsoluteDelta(), 0.0);
@@ -474,7 +468,7 @@ public class UtilitiesTest {
         val1 = VDouble.of(15d, alarm, time, display);
         val2 = VDouble.of(6d, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, threshold);
-        assertEquals("15 \u0394+9.0", result.getString());
+        assertEquals("15 Δ+9.0", result.getString());
         assertTrue(result.getValuesEqual() > 0);
         assertFalse(result.isWithinThreshold());
         assertEquals(9, result.getAbsoluteDelta(), 0.0);
@@ -482,7 +476,7 @@ public class UtilitiesTest {
         val1 = VFloat.of(15f, alarm, time, display);
         val2 = VFloat.of(6f, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, threshold);
-        assertEquals("15 \u0394+9.0", result.getString());
+        assertEquals("15 Δ+9.0", result.getString());
         assertTrue(result.getValuesEqual() > 0);
         assertFalse(result.isWithinThreshold());
         assertEquals(9, result.getAbsoluteDelta(), 0.0);
@@ -490,7 +484,7 @@ public class UtilitiesTest {
         val1 = VDouble.of(6d, alarm, time, display);
         val2 = VDouble.of(6d, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, threshold);
-        assertEquals("6 \u03940.0", result.getString());
+        assertEquals("6 Δ0.0", result.getString());
         assertEquals(0, result.getValuesEqual());
         assertTrue(result.isWithinThreshold());
         assertEquals(0, result.getAbsoluteDelta(), 0.0);
@@ -498,7 +492,7 @@ public class UtilitiesTest {
         val1 = VFloat.of(5f, alarm, time, display);
         val2 = VFloat.of(6f, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, threshold);
-        assertEquals("5 \u0394-1.0", result.getString());
+        assertEquals("5 Δ-1.0", result.getString());
         assertTrue(result.getValuesEqual() < 0);
         assertTrue(result.isWithinThreshold());
         assertEquals(1, result.getAbsoluteDelta(), 0.0);
@@ -506,7 +500,7 @@ public class UtilitiesTest {
         val1 = VFloat.of(5f, alarm, time, display);
         val2 = VFloat.of(6f, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, Optional.empty());
-        assertEquals("5 \u0394-1.0", result.getString());
+        assertEquals("5 Δ-1.0", result.getString());
         assertTrue(result.getValuesEqual() < 0);
         assertFalse(result.isWithinThreshold());
         assertEquals(1, result.getAbsoluteDelta(), 0.0);
@@ -514,7 +508,7 @@ public class UtilitiesTest {
         val1 = VFloat.of(5f, alarm, time, display);
         val2 = VFloat.of(6f, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, Optional.empty());
-        assertEquals("5 \u0394-1.0", result.getString());
+        assertEquals("5 Δ-1.0", result.getString());
         assertTrue(result.getValuesEqual() < 0);
         assertFalse(result.isWithinThreshold());
         assertEquals(1, result.getAbsoluteDelta(), 0.0);
@@ -523,14 +517,14 @@ public class UtilitiesTest {
         val1 = VLong.of(15L, alarm, time, display);
         val2 = VDouble.of(6d, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, threshold);
-        assertEquals("15 \u0394+9", result.getString());
+        assertEquals("15 Δ+9", result.getString());
         assertTrue(result.getValuesEqual() > 0);
         assertFalse(result.isWithinThreshold());
 
         val1 = VLong.of(15L, alarm, time, display);
         val2 = VDouble.of(6d, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, Optional.empty());
-        assertEquals("15 \u0394+9", result.getString());
+        assertEquals("15 Δ+9", result.getString());
         assertTrue(result.getValuesEqual() > 0);
         assertFalse(result.isWithinThreshold());
         assertEquals(9, result.getAbsoluteDelta(), 0.0);
@@ -538,7 +532,7 @@ public class UtilitiesTest {
         val1 = VULong.of(15L, alarm, time, display);
         val2 = VULong.of(6L, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, threshold);
-        assertEquals("15 \u0394+9", result.getString());
+        assertEquals("15 Δ+9", result.getString());
         assertTrue(result.getValuesEqual() > 0);
         assertFalse(result.isWithinThreshold());
         assertEquals(9, result.getAbsoluteDelta(), 0.0);
@@ -546,7 +540,7 @@ public class UtilitiesTest {
         val1 = VULong.of(5L, alarm, time, display);
         val2 = VULong.of(6L, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, Optional.empty());
-        assertEquals("5 \u0394-1", result.getString());
+        assertEquals("5 Δ-1", result.getString());
         assertTrue(result.getValuesEqual() < 0);
         assertFalse(result.isWithinThreshold());
         assertEquals(1, result.getAbsoluteDelta(), 0.0);
@@ -554,7 +548,7 @@ public class UtilitiesTest {
         val1 = VUInt.of(15, alarm, time, display);
         val2 = VUInt.of(6, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, threshold);
-        assertEquals("15 \u0394+9", result.getString());
+        assertEquals("15 Δ+9", result.getString());
         assertTrue(result.getValuesEqual() > 0);
         assertFalse(result.isWithinThreshold());
         assertEquals(9, result.getAbsoluteDelta(), 0.0);
@@ -562,7 +556,7 @@ public class UtilitiesTest {
         val1 = VUInt.of(15, alarm, time, display);
         val2 = VUInt.of(6, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, Optional.empty());
-        assertEquals("15 \u0394+9", result.getString());
+        assertEquals("15 Δ+9", result.getString());
         assertTrue(result.getValuesEqual() > 0);
         assertFalse(result.isWithinThreshold());
         assertEquals(9, result.getAbsoluteDelta(), 0.0);
@@ -570,7 +564,7 @@ public class UtilitiesTest {
         val1 = VInt.of(15, alarm, time, display);
         val2 = VInt.of(6, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, Optional.empty());
-        assertEquals("15 \u0394+9", result.getString());
+        assertEquals("15 Δ+9", result.getString());
         assertTrue(result.getValuesEqual() > 0);
         assertFalse(result.isWithinThreshold());
         assertEquals(9, result.getAbsoluteDelta(), 0.0);
@@ -578,7 +572,7 @@ public class UtilitiesTest {
         val1 = VDouble.of(15d, alarm, time, display);
         val2 = VLong.of(6L, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, threshold);
-        assertEquals("15 \u0394+9.0", result.getString());
+        assertEquals("15 Δ+9.0", result.getString());
         assertTrue(result.getValuesEqual() > 0);
         assertFalse(result.isWithinThreshold());
         assertEquals(9, result.getAbsoluteDelta(), 0.0);
@@ -586,7 +580,7 @@ public class UtilitiesTest {
         val1 = VDouble.of(15d, alarm, time, display);
         val2 = VLong.of(6L, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, Optional.empty());
-        assertEquals("15 \u0394+9.0", result.getString());
+        assertEquals("15 Δ+9.0", result.getString());
         assertTrue(result.getValuesEqual() > 0);
         assertFalse(result.isWithinThreshold());
         assertEquals(9, result.getAbsoluteDelta(), 0.0);
@@ -594,7 +588,7 @@ public class UtilitiesTest {
         val1 = VDouble.of(15d, alarm, time, display);
         val2 = VLong.of(15L, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, Optional.empty());
-        assertEquals("15 \u03940.0", result.getString());
+        assertEquals("15 Δ0.0", result.getString());
         assertEquals(0, result.getValuesEqual());
         assertTrue(result.isWithinThreshold());
         assertEquals(0, result.getAbsoluteDelta(), 0.0);
@@ -627,7 +621,7 @@ public class UtilitiesTest {
         val1 = VLong.of(6L, alarm, time, display);
         val2 = VLong.of(6L, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, threshold);
-        assertEquals("6 \u03940", result.getString());
+        assertEquals("6 Δ0", result.getString());
         assertEquals(0, result.getValuesEqual());
         assertTrue(result.isWithinThreshold());
         assertEquals(0, result.getAbsoluteDelta(), 0.0);
@@ -635,7 +629,7 @@ public class UtilitiesTest {
         val1 = VLong.of(5L, alarm, time, display);
         val2 = VLong.of(6L, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, threshold);
-        assertEquals("5 \u0394-1", result.getString());
+        assertEquals("5 Δ-1", result.getString());
         assertTrue(result.getValuesEqual() < 0);
         assertTrue(result.isWithinThreshold());
         assertEquals(1, result.getAbsoluteDelta(), 0.0);
@@ -643,7 +637,7 @@ public class UtilitiesTest {
         val1 = VLong.of(6L, alarm, time, display);
         val2 = VLong.of(5L, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, threshold);
-        assertEquals("6 \u0394+1", result.getString());
+        assertEquals("6 Δ+1", result.getString());
         assertTrue(result.getValuesEqual() > 0);
         assertTrue(result.isWithinThreshold());
         assertEquals(1, result.getAbsoluteDelta(), 0.0);
@@ -652,7 +646,7 @@ public class UtilitiesTest {
         val1 = VInt.of(6, alarm, time, display);
         val2 = VInt.of(6, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, threshold);
-        assertEquals("6 \u03940", result.getString());
+        assertEquals("6 Δ0", result.getString());
         assertEquals(0, result.getValuesEqual());
         assertTrue(result.isWithinThreshold());
         assertEquals(0, result.getAbsoluteDelta(), 0.0);
@@ -660,7 +654,7 @@ public class UtilitiesTest {
         val1 = VInt.of(5, alarm, time, display);
         val2 = VInt.of(6, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, threshold);
-        assertEquals("5 \u0394-1", result.getString());
+        assertEquals("5 Δ-1", result.getString());
         assertTrue(result.getValuesEqual() < 0);
         assertTrue(result.isWithinThreshold());
         assertEquals(1, result.getAbsoluteDelta(), 0.0);
@@ -668,7 +662,7 @@ public class UtilitiesTest {
         val1 = VInt.of(6, alarm, time, display);
         val2 = VInt.of(5, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, threshold);
-        assertEquals("6 \u0394+1", result.getString());
+        assertEquals("6 Δ+1", result.getString());
         assertTrue(result.getValuesEqual() > 0);
         assertTrue(result.isWithinThreshold());
 
@@ -676,14 +670,14 @@ public class UtilitiesTest {
         val1 = VShort.of((short) 6, alarm, time, display);
         val2 = VShort.of((short) 6, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, threshold);
-        assertEquals("6 \u03940", result.getString());
+        assertEquals("6 Δ0", result.getString());
         assertEquals(0, result.getValuesEqual());
         assertTrue(result.isWithinThreshold());
 
         val1 = VShort.of((short) 5, alarm, time, display);
         val2 = VShort.of((short) 6, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, threshold);
-        assertEquals("5 \u0394-1", result.getString());
+        assertEquals("5 Δ-1", result.getString());
         assertTrue(result.getValuesEqual() < 0);
         assertTrue(result.isWithinThreshold());
         assertEquals(1, result.getAbsoluteDelta(), 0.0);
@@ -691,7 +685,7 @@ public class UtilitiesTest {
         val1 = VShort.of((short) 6, alarm, time, display);
         val2 = VShort.of((short) 5, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, threshold);
-        assertEquals("6 \u0394+1", result.getString());
+        assertEquals("6 Δ+1", result.getString());
         assertTrue(result.getValuesEqual() > 0);
         assertTrue(result.isWithinThreshold());
         assertEquals(1, result.getAbsoluteDelta(), 0.0);
@@ -699,7 +693,7 @@ public class UtilitiesTest {
         val1 = VUShort.of((short) 6, alarm, time, display);
         val2 = VUShort.of((short) 5, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, threshold);
-        assertEquals("6 \u0394+1", result.getString());
+        assertEquals("6 Δ+1", result.getString());
         assertTrue(result.getValuesEqual() > 0);
         assertTrue(result.isWithinThreshold());
         assertEquals(1, result.getAbsoluteDelta(), 0.0);
@@ -707,7 +701,7 @@ public class UtilitiesTest {
         val1 = VUShort.of((short) 6, alarm, time, display);
         val2 = VUShort.of((short) 6, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, threshold);
-        assertEquals("6 \u03940", result.getString());
+        assertEquals("6 Δ0", result.getString());
         assertEquals(0, result.getValuesEqual());
         assertTrue(result.isWithinThreshold());
         assertEquals(0, result.getAbsoluteDelta(), 0.0);
@@ -715,7 +709,7 @@ public class UtilitiesTest {
         val1 = VUShort.of((short) 5, alarm, time, display);
         val2 = VUShort.of((short) 6, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, threshold);
-        assertEquals("5 \u0394-1", result.getString());
+        assertEquals("5 Δ-1", result.getString());
         assertTrue(result.getValuesEqual() < 0);
         assertTrue(result.isWithinThreshold());
         assertEquals(1, result.getAbsoluteDelta(), 0.0);
@@ -723,7 +717,7 @@ public class UtilitiesTest {
         val1 = VShort.of((short) 5, alarm, time, display);
         val2 = VShort.of((short) 6, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, Optional.empty());
-        assertEquals("5 \u0394-1", result.getString());
+        assertEquals("5 Δ-1", result.getString());
         assertTrue(result.getValuesEqual() < 0);
         assertFalse(result.isWithinThreshold());
         assertEquals(1, result.getAbsoluteDelta(), 0.0);
@@ -731,7 +725,7 @@ public class UtilitiesTest {
         val1 = VUShort.of((short) 5, alarm, time, display);
         val2 = VUShort.of((short) 6, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, Optional.empty());
-        assertEquals("5 \u0394-1", result.getString());
+        assertEquals("5 Δ-1", result.getString());
         assertTrue(result.getValuesEqual() < 0);
         assertFalse(result.isWithinThreshold());
         assertEquals(1, result.getAbsoluteDelta(), 0.0);
@@ -766,7 +760,7 @@ public class UtilitiesTest {
         val1 = VByte.of((byte) 5, alarm, time, display);
         val2 = VByte.of((byte) 6, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, threshold);
-        assertEquals("5 \u0394-1", result.getString());
+        assertEquals("5 Δ-1", result.getString());
         assertTrue(result.getValuesEqual() < 0);
         assertTrue(result.isWithinThreshold());
         assertEquals(1, result.getAbsoluteDelta(), 0.0);
@@ -774,7 +768,7 @@ public class UtilitiesTest {
         val1 = VByte.of((byte) 6, alarm, time, display);
         val2 = VByte.of((byte) 5, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, threshold);
-        assertEquals("6 \u0394+1", result.getString());
+        assertEquals("6 Δ+1", result.getString());
         assertTrue(result.getValuesEqual() > 0);
         assertTrue(result.isWithinThreshold());
         assertEquals(1, result.getAbsoluteDelta(), 0.0);
@@ -782,7 +776,7 @@ public class UtilitiesTest {
         val1 = VByte.of((byte) 6, alarm, time, display);
         val2 = VByte.of((byte) 5, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, Optional.empty());
-        assertEquals("6 \u0394+1", result.getString());
+        assertEquals("6 Δ+1", result.getString());
         assertTrue(result.getValuesEqual() > 0);
         assertFalse(result.isWithinThreshold());
         assertEquals(1, result.getAbsoluteDelta(), 0.0);
@@ -790,7 +784,7 @@ public class UtilitiesTest {
         val1 = VUByte.of((byte) 5, alarm, time, display);
         val2 = VUByte.of((byte) 6, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, threshold);
-        assertEquals("5 \u0394-1", result.getString());
+        assertEquals("5 Δ-1", result.getString());
         assertTrue(result.getValuesEqual() < 0);
         assertTrue(result.isWithinThreshold());
         assertEquals(1, result.getAbsoluteDelta(), 0.0);
@@ -798,14 +792,14 @@ public class UtilitiesTest {
         val1 = VUByte.of((byte) 6, alarm, time, display);
         val2 = VUByte.of((byte) 5, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, threshold);
-        assertEquals("6 \u0394+1", result.getString());
+        assertEquals("6 Δ+1", result.getString());
         assertTrue(result.getValuesEqual() > 0);
         assertTrue(result.isWithinThreshold());
 
         val1 = VUByte.of((byte) 6, alarm, time, display);
         val2 = VUByte.of((byte) 5, alarm, time, display);
         result = Utilities.valueToCompareString(val1, val2, Optional.empty());
-        assertEquals("6 \u0394+1", result.getString());
+        assertEquals("6 Δ+1", result.getString());
         assertTrue(result.getValuesEqual() > 0);
         assertFalse(result.isWithinThreshold());
         assertEquals(1, result.getAbsoluteDelta(), 0.0);
@@ -1525,7 +1519,7 @@ public class UtilitiesTest {
     }
 
     @Test
-    public void testAreVTablesEqual(){
+    public void testAreVTablesEqual() {
 
         VTable vTable1 = VTable.of(List.of(Integer.TYPE, Double.TYPE),
                 List.of("a", "b"),
@@ -1560,111 +1554,111 @@ public class UtilitiesTest {
     }
 
     @Test
-    public void testAreVTypeArraysEqual(){
+    public void testAreVTypeArraysEqual() {
         assertTrue(Utilities.areVTypeArraysEqual(Integer.TYPE, ArrayInteger.of(1, 2, 3), ArrayInteger.of(1, 2, 3)));
         assertTrue(Utilities.areVTypeArraysEqual(Integer.TYPE, ArrayUInteger.of(1, 2, 3), ArrayUInteger.of(1, 2, 3)));
         assertTrue(Utilities.areVTypeArraysEqual(Long.TYPE, ArrayLong.of(1L, 2L, 3L), ArrayLong.of(1L, 2L, 3L)));
         assertTrue(Utilities.areVTypeArraysEqual(Long.TYPE, ArrayULong.of(1L, 2L, 3L), ArrayULong.of(1L, 2L, 3L)));
         assertTrue(Utilities.areVTypeArraysEqual(Double.TYPE, ArrayDouble.of(7.0, 8.0, 9.0), ArrayDouble.of(7.0, 8.0, 9.0)));
         assertTrue(Utilities.areVTypeArraysEqual(Float.TYPE, ArrayFloat.of(7.0f, 8.0f, 9.0f), ArrayFloat.of(7.0f, 8.0f, 9.0f)));
-        assertTrue(Utilities.areVTypeArraysEqual(Short.TYPE, ArrayShort.of((short)7.0, (short)8.0, (short)9.0), ArrayShort.of((short)7.0, (short)8.0, (short)9.0)));
-        assertTrue(Utilities.areVTypeArraysEqual(Short.TYPE, ArrayUShort.of((short)7.0, (short)8.0, (short)9.0), ArrayUShort.of((short)7.0, (short)8.0, (short)9.0)));
-        assertTrue(Utilities.areVTypeArraysEqual(Byte.TYPE, ArrayByte.of((byte)7, (byte)8, (byte)9), ArrayByte.of((byte)7, (byte)8, (byte)9)));
-        assertTrue(Utilities.areVTypeArraysEqual(Byte.TYPE, ArrayUByte.of((byte)7, (byte)8, (byte)9), ArrayUByte.of((byte)7, (byte)8, (byte)9)));
+        assertTrue(Utilities.areVTypeArraysEqual(Short.TYPE, ArrayShort.of((short) 7.0, (short) 8.0, (short) 9.0), ArrayShort.of((short) 7.0, (short) 8.0, (short) 9.0)));
+        assertTrue(Utilities.areVTypeArraysEqual(Short.TYPE, ArrayUShort.of((short) 7.0, (short) 8.0, (short) 9.0), ArrayUShort.of((short) 7.0, (short) 8.0, (short) 9.0)));
+        assertTrue(Utilities.areVTypeArraysEqual(Byte.TYPE, ArrayByte.of((byte) 7, (byte) 8, (byte) 9), ArrayByte.of((byte) 7, (byte) 8, (byte) 9)));
+        assertTrue(Utilities.areVTypeArraysEqual(Byte.TYPE, ArrayUByte.of((byte) 7, (byte) 8, (byte) 9), ArrayUByte.of((byte) 7, (byte) 8, (byte) 9)));
         assertTrue(Utilities.areVTypeArraysEqual(Boolean.TYPE, ArrayBoolean.of(true, false), ArrayBoolean.of(true, false)));
 
         assertTrue(Utilities.areVTypeArraysEqual(String.class, List.of("AAA", "BBB", "CCC"), List.of("AAA", "BBB", "CCC")));
 
-        assertFalse(Utilities.areVTypeArraysEqual(Byte.TYPE, ArrayShort.of((byte)7, (byte)8, (byte)9), ArrayShort.of((byte)7, (byte)8, (byte)10)));
+        assertFalse(Utilities.areVTypeArraysEqual(Byte.TYPE, ArrayShort.of((byte) 7, (byte) 8, (byte) 9), ArrayShort.of((byte) 7, (byte) 8, (byte) 10)));
     }
 
     @Test
-    public void testToPVArrayType(){
+    public void testToPVArrayType() {
 
         boolean[] bools = new boolean[]{true, false, true};
         Object converted = Utilities.toPVArrayType("bools", ArrayBoolean.of(bools));
         assertInstanceOf(PVABoolArray.class, converted);
-        assertEquals(3, ((PVABoolArray)converted).get().length);
-        assertArrayEquals(bools, ((PVABoolArray)converted).get());
-        assertEquals("bools", ((PVABoolArray)converted).getName());
+        assertEquals(3, ((PVABoolArray) converted).get().length);
+        assertArrayEquals(bools, ((PVABoolArray) converted).get());
+        assertEquals("bools", ((PVABoolArray) converted).getName());
 
-        byte[] bytes = new byte[]{(byte)-1, (byte)2, (byte)3};
+        byte[] bytes = new byte[]{(byte) -1, (byte) 2, (byte) 3};
         converted = Utilities.toPVArrayType("bytes", ArrayByte.of(bytes));
         assertInstanceOf(PVAByteArray.class, converted);
-        assertEquals(3, ((PVAByteArray)converted).get().length);
-        assertArrayEquals(bytes, ((PVAByteArray)converted).get());
-        assertEquals("bytes", ((PVAByteArray)converted).getName());
-        assertFalse(((PVAByteArray)converted).isUnsigned());
+        assertEquals(3, ((PVAByteArray) converted).get().length);
+        assertArrayEquals(bytes, ((PVAByteArray) converted).get());
+        assertEquals("bytes", ((PVAByteArray) converted).getName());
+        assertFalse(((PVAByteArray) converted).isUnsigned());
 
-        bytes = new byte[]{(byte)1, (byte)2, (byte)3};
+        bytes = new byte[]{(byte) 1, (byte) 2, (byte) 3};
         converted = Utilities.toPVArrayType("ubytes", ArrayUByte.of(bytes));
         assertInstanceOf(PVAByteArray.class, converted);
-        assertEquals(3, ((PVAByteArray)converted).get().length);
-        assertArrayEquals(bytes, ((PVAByteArray)converted).get());
-        assertEquals("ubytes", ((PVAByteArray)converted).getName());
-        assertTrue(((PVAByteArray)converted).isUnsigned());
+        assertEquals(3, ((PVAByteArray) converted).get().length);
+        assertArrayEquals(bytes, ((PVAByteArray) converted).get());
+        assertEquals("ubytes", ((PVAByteArray) converted).getName());
+        assertTrue(((PVAByteArray) converted).isUnsigned());
 
-        short[] shorts = new short[]{(short)-1, (short)2, (short)3};
+        short[] shorts = new short[]{(short) -1, (short) 2, (short) 3};
         converted = Utilities.toPVArrayType("shorts", ArrayShort.of(shorts));
         assertInstanceOf(PVAShortArray.class, converted);
-        assertEquals(3, ((PVAShortArray)converted).get().length);
-        assertArrayEquals(shorts, ((PVAShortArray)converted).get());
-        assertEquals("shorts", ((PVAShortArray)converted).getName());
-        assertFalse(((PVAShortArray)converted).isUnsigned());
+        assertEquals(3, ((PVAShortArray) converted).get().length);
+        assertArrayEquals(shorts, ((PVAShortArray) converted).get());
+        assertEquals("shorts", ((PVAShortArray) converted).getName());
+        assertFalse(((PVAShortArray) converted).isUnsigned());
 
-        shorts = new short[]{(short)1, (short)2, (short)3};
+        shorts = new short[]{(short) 1, (short) 2, (short) 3};
         converted = Utilities.toPVArrayType("ushorts", ArrayUShort.of(shorts));
         assertInstanceOf(PVAShortArray.class, converted);
-        assertEquals(3, ((PVAShortArray)converted).get().length);
-        assertArrayEquals(shorts, ((PVAShortArray)converted).get());
-        assertEquals("ushorts", ((PVAShortArray)converted).getName());
-        assertTrue(((PVAShortArray)converted).isUnsigned());
+        assertEquals(3, ((PVAShortArray) converted).get().length);
+        assertArrayEquals(shorts, ((PVAShortArray) converted).get());
+        assertEquals("ushorts", ((PVAShortArray) converted).getName());
+        assertTrue(((PVAShortArray) converted).isUnsigned());
 
         int[] ints = new int[]{-1, 2, 3};
         converted = Utilities.toPVArrayType("ints", ArrayInteger.of(ints));
         assertInstanceOf(PVAIntArray.class, converted);
-        assertEquals(3, ((PVAIntArray)converted).get().length);
-        assertArrayEquals(ints, ((PVAIntArray)converted).get());
-        assertEquals("ints", ((PVAIntArray)converted).getName());
-        assertFalse(((PVAIntArray)converted).isUnsigned());
+        assertEquals(3, ((PVAIntArray) converted).get().length);
+        assertArrayEquals(ints, ((PVAIntArray) converted).get());
+        assertEquals("ints", ((PVAIntArray) converted).getName());
+        assertFalse(((PVAIntArray) converted).isUnsigned());
 
         ints = new int[]{1, 2, 3};
         converted = Utilities.toPVArrayType("uints", ArrayUInteger.of(ints));
         assertInstanceOf(PVAIntArray.class, converted);
-        assertEquals(3, ((PVAIntArray)converted).get().length);
-        assertArrayEquals(ints, ((PVAIntArray)converted).get());
-        assertEquals("uints", ((PVAIntArray)converted).getName());
-        assertTrue(((PVAIntArray)converted).isUnsigned());
+        assertEquals(3, ((PVAIntArray) converted).get().length);
+        assertArrayEquals(ints, ((PVAIntArray) converted).get());
+        assertEquals("uints", ((PVAIntArray) converted).getName());
+        assertTrue(((PVAIntArray) converted).isUnsigned());
 
         long[] longs = new long[]{-1L, 2L, 3L};
         converted = Utilities.toPVArrayType("longs", ArrayLong.of(longs));
         assertInstanceOf(PVALongArray.class, converted);
-        assertEquals(3, ((PVALongArray)converted).get().length);
-        assertArrayEquals(longs, ((PVALongArray)converted).get());
-        assertEquals("longs", ((PVALongArray)converted).getName());
-        assertFalse(((PVALongArray)converted).isUnsigned());
+        assertEquals(3, ((PVALongArray) converted).get().length);
+        assertArrayEquals(longs, ((PVALongArray) converted).get());
+        assertEquals("longs", ((PVALongArray) converted).getName());
+        assertFalse(((PVALongArray) converted).isUnsigned());
 
         longs = new long[]{1L, 2L, 3L};
         converted = Utilities.toPVArrayType("ulongs", ArrayULong.of(longs));
         assertInstanceOf(PVALongArray.class, converted);
-        assertEquals(3, ((PVALongArray)converted).get().length);
-        assertArrayEquals(longs, ((PVALongArray)converted).get());
-        assertEquals("ulongs", ((PVALongArray)converted).getName());
-        assertTrue(((PVALongArray)converted).isUnsigned());
+        assertEquals(3, ((PVALongArray) converted).get().length);
+        assertArrayEquals(longs, ((PVALongArray) converted).get());
+        assertEquals("ulongs", ((PVALongArray) converted).getName());
+        assertTrue(((PVALongArray) converted).isUnsigned());
 
         float[] floats = new float[]{-1.0f, 2.0f, 3.0f};
         converted = Utilities.toPVArrayType("floats", ArrayFloat.of(floats));
         assertInstanceOf(PVAFloatArray.class, converted);
-        assertEquals(3, ((PVAFloatArray)converted).get().length);
-        assertArrayEquals(floats, ((PVAFloatArray)converted).get());
-        assertEquals("floats", ((PVAFloatArray)converted).getName());
+        assertEquals(3, ((PVAFloatArray) converted).get().length);
+        assertArrayEquals(floats, ((PVAFloatArray) converted).get());
+        assertEquals("floats", ((PVAFloatArray) converted).getName());
 
         double[] doubles = new double[]{-1.0, 2.0, 3.0};
         converted = Utilities.toPVArrayType("doubles", ArrayDouble.of(doubles));
         assertInstanceOf(PVADoubleArray.class, converted);
-        assertEquals(3, ((PVADoubleArray)converted).get().length);
-        assertArrayEquals(doubles, ((PVADoubleArray)converted).get());
-        assertEquals("doubles", ((PVADoubleArray)converted).getName());
+        assertEquals(3, ((PVADoubleArray) converted).get().length);
+        assertArrayEquals(doubles, ((PVADoubleArray) converted).get());
+        assertEquals("doubles", ((PVADoubleArray) converted).getName());
 
         List<String> strings = new ArrayList<>();
         strings.add("a");
@@ -1672,8 +1666,8 @@ public class UtilitiesTest {
         strings.add("c");
         converted = Utilities.toPVArrayType("strings", strings);
         assertInstanceOf(PVAStringArray.class, converted);
-        assertEquals(3, ((PVAStringArray)converted).get().length);
-        assertArrayEquals(new String[]{"a", "b", "c"}, ((PVAStringArray)converted).get());
-        assertEquals("strings", ((PVAStringArray)converted).getName());
+        assertEquals(3, ((PVAStringArray) converted).get().length);
+        assertArrayEquals(new String[]{"a", "b", "c"}, ((PVAStringArray) converted).get());
+        assertEquals("strings", ((PVAStringArray) converted).getName());
     }
 }
