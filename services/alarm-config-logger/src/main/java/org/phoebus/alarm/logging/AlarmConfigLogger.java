@@ -199,7 +199,7 @@ public class AlarmConfigLogger implements Runnable {
     /**
      * Process a single alarm configuration event
      *
-     * @param path
+     * @param rawPath
      * @param alarm_config
      * @param commit
      */
