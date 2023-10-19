@@ -19,7 +19,9 @@ package org.phoebus.applications.saveandrestore.ui;
 
 import org.epics.pva.data.*;
 import org.epics.pva.data.nt.PVAAlarm;
+import org.epics.pva.data.nt.PVATable;
 import org.epics.pva.data.nt.PVATimeStamp;
+import org.epics.pvdata.pv.PVULongArray;
 import org.epics.util.array.*;
 import org.epics.util.number.*;
 import org.epics.util.text.NumberFormats;
@@ -286,7 +288,7 @@ public final class Utilities {
 
     /**
      * Extracts the raw value from the given data object. The raw value is either one of the primitive wrappers or some
-     * kind of a list type if the value is an {@link Array}.
+     * list type if the value is an {@link Array}.
      *
      * @param type the value to extract the raw data from
      * @return the raw data
@@ -328,44 +330,19 @@ public final class Utilities {
         }
         else if(type instanceof VTable) {
             VTable vTable = (VTable)type;
-            /*
-            PVAAlarm alarm = new PVAAlarm();
-            PVATimeStamp time = new PVATimeStamp(Instant.now());
-            PVAStringArray labels = new PVAStringArray("label", vTable.getColumnName(0), vTable.getColumnName(1));
-            List<PVAData> data = new ArrayList<>();
-            PVAIntArray d1 = null;
-            PVAIntArray d2 = null;
-            for(int i = 0; i < vTable.getColumnCount(); i++){
-                ArrayInteger ai = (ArrayInteger)vTable.getColumnData(0);
-                int[] ii = new int[ai.size()];
-                for(int j = 0; j < ai.size(); j++){
-                    ii[j] = ai.getInt(j);
-                }
-                if(i == 0){
-                    d1 = new PVAIntArray("A", false, ii);
-                }
-                if(i == 1){
-                    d2 = new PVAIntArray("B", false, ii);
-                }
+            int columnCount = vTable.getColumnCount();
+            List dataArrays = new ArrayList();
+            for(int i = 0; i < columnCount; i++){
+                dataArrays.add(toPVArrayType(vTable.getColumnName(i), vTable.getColumnData(i)));
             }
-            PVAStructure value = new PVAStructure("value", "", data);
-            PVAStructure table = new PVAStructure("epics:nt/NTTable:1.0","", List.of(d1, d2));
+            PVAStructure table = new PVAStructure(PVATable.STRUCT_NAME,"", dataArrays);
             return table;
-             */
-
-            try{
-                return PVAStructureHelper.fromVTable((VTable) type);
-            }
-            catch (Exception e){
-                e.printStackTrace();
-            }
-
         }
         return null;
     }
 
     /**
-     * Transforms the value of the given {@link VType} to a human readable string. This method uses formatting to format
+     * Transforms the value of the given {@link VType} to a human-readable string. This method uses formatting to format
      * all values, which may result in the arrays being truncated.
      *
      * @param type the data to transform
@@ -1384,5 +1361,77 @@ public final class Utilities {
                     vn1.getTime().getTimestamp().equals(vn2.getTime().getTimestamp());
         }
         return false;
+    }
+
+    /**
+     *
+     * @param name
+     * @param object
+     * @return
+     */
+    protected static Object toPVArrayType(String name, Object object) {
+        if (object instanceof ListBoolean) {
+            ListBoolean listBoolean = (ListBoolean) object;
+            boolean[] booleans = new boolean[listBoolean.size()];
+            for (int i = 0; i < listBoolean.size(); i++) {
+                booleans[i] = listBoolean.getBoolean(i);
+            }
+            return new PVABoolArray(name, booleans);
+        }
+        else if (object instanceof ListNumber) {
+            ListNumber listNumber = (ListNumber) object;
+            if (object instanceof ArrayByte || object instanceof ArrayUByte) {
+                byte[] bytes = new byte[listNumber.size()];
+                for (int i = 0; i < listNumber.size(); i++) {
+                    bytes[i] = listNumber.getByte(i);
+                }
+                return new PVAByteArray(name, object instanceof ArrayUByte, bytes);
+            } else if (object instanceof ArrayShort || object instanceof ArrayUShort) {
+                short[] shorts = new short[listNumber.size()];
+                for (int i = 0; i < listNumber.size(); i++) {
+                    shorts[i] = listNumber.getShort(i);
+                }
+                return new PVAShortArray(name, object instanceof ArrayUShort, shorts);
+            } else if (object instanceof ArrayInteger || object instanceof ArrayUInteger) {
+                int[] ints = new int[listNumber.size()];
+                for (int i = 0; i < listNumber.size(); i++) {
+                    ints[i] = listNumber.getInt(i);
+                }
+                return new PVAIntArray(name, object instanceof ArrayUInteger, ints);
+            } else if (object instanceof ArrayUInteger) {
+                int[] ints = new int[listNumber.size()];
+                for (int i = 0; i < listNumber.size(); i++) {
+                    ints[i] = listNumber.getInt(i);
+                }
+                return new PVAIntArray(name, object instanceof ArrayUInteger, ints);
+            } else if (object instanceof ArrayLong || object instanceof ArrayULong) {
+                long[] longs = new long[listNumber.size()];
+                for (int i = 0; i < listNumber.size(); i++) {
+                    longs[i] = listNumber.getLong(i);
+                }
+                return new PVALongArray(name, object instanceof ArrayULong, longs);
+            } else if (object instanceof ArrayFloat) {
+                float[] floats = new float[listNumber.size()];
+                for (int i = 0; i < listNumber.size(); i++) {
+                    floats[i] = listNumber.getFloat(i);
+                }
+                return new PVAFloatArray(name, floats);
+            } else if (object instanceof ArrayDouble) {
+                double[] doubles = new double[listNumber.size()];
+                for (int i = 0; i < listNumber.size(); i++) {
+                    doubles[i] = listNumber.getDouble(i);
+                }
+                return new PVADoubleArray(name, doubles);
+            }
+            else {
+                throw new IllegalArgumentException("Conversion of type " + object.getClass().getCanonicalName() + " not supported");
+            }
+        }
+        else { // Assume this always is for string arrays
+            Collection<String> list = (Collection<String>) object;
+            String[] strings = new String[list.size()];
+            strings = list.toArray(strings);
+            return new PVAStringArray(name, strings);
+        }
     }
 }

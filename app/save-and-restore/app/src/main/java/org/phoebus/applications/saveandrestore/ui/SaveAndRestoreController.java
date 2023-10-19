@@ -286,7 +286,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
     /**
      * Loads the data for the tree root as provided (persisted) by the current
-     * {@link org.phoebus.applications.saveandrestore.SaveAndRestoreClient}.
+     * {@link org.phoebus.applications.saveandrestore.client.SaveAndRestoreClient}.
      */
     public void loadTreeData() {
 
