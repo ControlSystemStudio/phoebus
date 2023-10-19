@@ -280,12 +280,12 @@ public class ActionUtil
             // Resolve command relative to the source widget model (not 'top'!)
             final DisplayModel widget_model = source_widget.getDisplayModel();
             final String parent_file = widget_model.getUserData(DisplayModel.USER_DATA_INPUT_FILE);
-            final String parent_dir = ModelResourceUtil.getDirectory(parent_file);
+            String parent_dir = ModelResourceUtil.getDirectory(parent_file);
 
             // Check if the parent_dir exists or is reachable. If not, use "." as the parent_dir.
             File parentDirectory = new File(parent_dir);
             if (!parentDirectory.exists() || !parentDirectory.isDirectory()) {
-              logger.log(Level.WARNING, "Parent directory {0} does not exist or is not reachable. Using current directory instead.", parent_dir);
+              logger.log(Level.WARNING, "Parent directory {0} does not exist or is not reachable. Using current directory instead to execute command.", parent_dir);
               parent_dir = ".";
             }
             // Execute (this is already running on background thread)
