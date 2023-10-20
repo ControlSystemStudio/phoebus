@@ -38,6 +38,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.phoebus.service.saveandrestore.web.controllers.BaseController.JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -77,9 +78,12 @@ public class FilterControllerTest {
     @Test
     public void testSaveFilter() throws Exception {
 
+        reset(nodeDAO);
+
         Filter filter = new Filter();
         filter.setName("name");
         filter.setQueryString("query");
+        filter.setUser("user");
 
         String filterString = objectMapper.writeValueAsString(filter);
 
