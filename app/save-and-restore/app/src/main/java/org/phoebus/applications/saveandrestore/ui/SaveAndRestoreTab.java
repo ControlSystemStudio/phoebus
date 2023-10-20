@@ -27,31 +27,32 @@ import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.ui.javafx.ImageCache;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Base class for save-n-restore {@link Tab}s containing common functionality.
  */
-public abstract class SaveAndRestoreTab extends Tab implements NodeChangedListener{
+public abstract class SaveAndRestoreTab extends Tab implements NodeChangedListener {
 
-    public SaveAndRestoreTab(){
+    public SaveAndRestoreTab() {
         ContextMenu contextMenu = new ContextMenu();
 
         MenuItem closeAll = new MenuItem(org.phoebus.ui.application.Messages.DockCloseAll,
                 new ImageView(ImageCache.getImage(SnapshotTab.class, "/icons/remove_multiple.png")));
-        closeAll.setOnAction(e -> {
-            getTabPane().getTabs().removeAll(getTabPane().getTabs());
-        });
+        closeAll.setOnAction(e -> getTabPane().getTabs().removeAll(getTabPane().getTabs()));
 
         MenuItem closeOthers = new MenuItem(org.phoebus.ui.application.Messages.DockCloseOthers,
                 new ImageView(ImageCache.getImage(SnapshotTab.class, "/icons/remove_multiple.png")));
+        List<Tab> tabsToClose = new ArrayList<>();
         closeOthers.setOnAction(e -> {
             List<Tab> tabs = getTabPane().getTabs();
-            Platform.runLater(() -> tabs.forEach(t -> {
+            tabs.forEach(t -> {
                 if (!t.equals(this)) {
-                    tabs.remove(t);
+                    tabsToClose.add(t);
                 }
-            }));
+            });
+            Platform.runLater(() -> tabsToClose.forEach(tabs::remove));
         });
 
         contextMenu.getItems().addAll(closeAll, closeOthers);
