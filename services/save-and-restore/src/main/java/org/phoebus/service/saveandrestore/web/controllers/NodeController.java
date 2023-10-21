@@ -128,6 +128,7 @@ public class NodeController extends BaseController {
      * </p>
      *
      * @param uniqueNodeId The non-zero id of the node to delete
+     * @param principal {@link Principal} of authenticated user.
      */
     @SuppressWarnings("unused")
     @DeleteMapping(value = "/node/{uniqueNodeId}", produces = JSON)
@@ -149,7 +150,8 @@ public class NodeController extends BaseController {
      * NOTE: this method MUST be public!
      *
      * Checks if all the nodes provided to this method can be deleted by the user.
-     *
+     * @param nodeIds The list of {@link Node} ids subject to the check.
+     * @param principal {@link Principal} of authenticated user.
      * @return <code>true</code> only if <b>all</b> if the nodes can be deleted by the user.
      */
     @SuppressWarnings("unused")
@@ -164,13 +166,11 @@ public class NodeController extends BaseController {
 
     /**
      * NOTE: this method MUST be public!
-     * <p>
      * An authenticated user may delete a node if User identity is same as the target {@link Node}'s user id and:
      * <ul>
      *     <li>Target {@link Node} is a snapshot.</li>
      *     <li>Target {@link Node} is not a snapshot, but has no child nodes.</li>
      * </ul>
-     * </p>
      *
      * @param nodeId Unique node id identifying the target of the user's delete operation.
      * @param principal Identifies user.

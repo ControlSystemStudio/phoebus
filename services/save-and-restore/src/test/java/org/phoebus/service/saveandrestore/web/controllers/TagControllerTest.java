@@ -30,6 +30,7 @@ import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -56,6 +57,9 @@ public class TagControllerTest {
 
     @Autowired
     private NodeDAO nodeDAO;
+
+    @Autowired
+    private String userAuthorization;
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -88,6 +92,7 @@ public class TagControllerTest {
         when(nodeDAO.addTag(tagData)).thenReturn(List.of(node));
 
         MockHttpServletRequestBuilder request = post("/tags").contentType(JSON)
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
                 .content(objectMapper.writeValueAsString(tagData));
         MvcResult result = mockMvc.perform(request)
                 .andExpect(status().isOk()).andExpect(content().contentType(JSON))
@@ -104,6 +109,7 @@ public class TagControllerTest {
         TagData tagData = new TagData();
         tagData.setUniqueNodeIds(List.of("uniqueId"));
         MockHttpServletRequestBuilder request = post("/tags").contentType(JSON)
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
                 .content(objectMapper.writeValueAsString(tagData));
         mockMvc.perform(request)
                 .andExpect(status().isBadRequest());
@@ -112,6 +118,7 @@ public class TagControllerTest {
         tag.setName(null);
         tagData.setTag(tag);
         request = post("/tags").contentType(JSON)
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
                 .content(objectMapper.writeValueAsString(tagData));
         mockMvc.perform(request)
                 .andExpect(status().isBadRequest());
@@ -119,6 +126,7 @@ public class TagControllerTest {
         tag.setName("");
         tagData.setTag(tag);
         request = post("/tags").contentType(JSON)
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
                 .content(objectMapper.writeValueAsString(tagData));
         mockMvc.perform(request)
                 .andExpect(status().isBadRequest());
@@ -127,6 +135,7 @@ public class TagControllerTest {
         tagData.setTag(tag);
         tagData.setUniqueNodeIds(null);
         request = post("/tags").contentType(JSON)
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
                 .content(objectMapper.writeValueAsString(tagData));
         mockMvc.perform(request)
                 .andExpect(status().isBadRequest());

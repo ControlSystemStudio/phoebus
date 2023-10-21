@@ -53,6 +53,7 @@ public class TagController extends BaseController {
      * Adds a {@link Tag} to specified list of target {@link Node}s. The {@link Tag} contained
      * in tagData must be non-null, and its name must be non-null and non-empty.
      * @param tagData See {@link TagData}
+     * @param principal {@link Principal} of authenticated user.
      * @return The list of updated {@link Node}s
      */
     @PostMapping("/tags")

@@ -352,6 +352,8 @@ public class NodeControllerTest {
 
         mockMvc.perform(request).andExpect(status().isForbidden());
 
+        when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").userName(demoUser).build());
+
         request =
                 delete("/node/a")
                         .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization);
