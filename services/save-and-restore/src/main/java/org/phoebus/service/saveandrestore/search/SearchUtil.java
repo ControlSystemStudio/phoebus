@@ -47,6 +47,8 @@ public class SearchUtil {
     @SuppressWarnings("unused")
     @Value("${elasticsearch.tree_node.index:saveandrestore_tree}")
     public String ES_TREE_INDEX;
+    @Value("${elasticsearch.configuration_node.index:saveandrestore_configuration}")
+    public String ES_CONFIGURATION_INDEX;
     @SuppressWarnings("unused")
     @Value("${elasticsearch.result.size.search.default:100}")
     private int defaultSearchSize;
@@ -286,5 +288,17 @@ public class SearchUtil {
                 .timeout("60s")
                 .size(Math.min(_searchResultSize, maxSearchSize))
                 .from(_from));
+    }
+
+    private SearchRequest buildSearchRequestForPV(MultiValueMap<String, String> searchParameters) {
+        NestedQuery innerNestedQuery;
+        WildcardQuery matchQuery = WildcardQuery.of(m -> m.field("pvList.pvName").value(searchParameters.get("pv").get(0)));
+        innerNestedQuery = NestedQuery.of(n1 -> n1.path("pvList").query(matchQuery._toQuery()));
+        Builder boolQueryBuilder = new Builder();
+        boolQueryBuilder.must(innerNestedQuery._toQuery());
+        return SearchRequest.of(s -> s.index(ES_CONFIGURATION_INDEX)
+                .query(boolQueryBuilder.build()._toQuery())
+                .timeout("60s")
+                .size(Math.min(999, maxSearchSize)));
     }
 }
