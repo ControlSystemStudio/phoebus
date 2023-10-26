@@ -143,10 +143,14 @@ public class EditorGUI
 
         // Use Ctrl-C .. except on Mac, where it's Command-C ..
         final boolean meta = event.isShortcutDown();
-        if (meta  &&  code == KeyCode.Z)
+        if(code == KeyCode.F5)
+            editor.reloadDisplay(this);
+        else if (meta  &&  code == KeyCode.Z)
             editor.getUndoableActionManager().undoLast();
         else if (meta  &&  code == KeyCode.Y)
             editor.getUndoableActionManager().redoLast();
+        else if (meta  &&  code == KeyCode.G)
+            editor.runDisplay(this);
         else if (in_editor  &&  meta  &&  code == KeyCode.C)
             editor.copyToClipboard();
         else if (in_editor  &&  !meta  &&  code == KeyCode.C)

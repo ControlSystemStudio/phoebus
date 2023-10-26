@@ -241,11 +241,14 @@ public class DisplayRuntimeInstance implements AppInstance
     /** Handle Alt-left & right as navigation keys */
     private void handleKeys(final KeyEvent event)
     {
+        KeyCode keycode = event.getCode();
+        if(keycode == KeyCode.F5)
+            this.reload();
         if (event.isAltDown())
         {
-            if (event.getCode() == KeyCode.LEFT  &&  !navigate_backward.isDisabled())
+            if (keycode == KeyCode.LEFT  &&  !navigate_backward.isDisabled())
                 navigate_backward.getOnAction().handle(null);
-            else if (event.getCode() == KeyCode.RIGHT  &&  !navigate_forward.isDisabled())
+            else if (keycode == KeyCode.RIGHT  &&  !navigate_forward.isDisabled())
                 navigate_forward.getOnAction().handle(null);
         }
     }

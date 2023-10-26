@@ -139,7 +139,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         }
 
         // 'control' ('command' on Mac OS X)
-        if (event.isShortcutDown())
+        if (event.isShortcutDown() || event.isMiddleButtonDown())
             target_modifier = Optional.of(OpenDisplayActionInfo.Target.TAB);
         else if (event.isShiftDown())
             target_modifier = Optional.of(OpenDisplayActionInfo.Target.WINDOW);
