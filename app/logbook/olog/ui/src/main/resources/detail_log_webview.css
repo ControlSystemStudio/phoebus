@@ -85,3 +85,12 @@ background:
     float: right;
     padding-right: 10px
 }
+
+.updated-indicator {
+    font-size: 20px;
+    text-decoration: none;
+}
+
+a{
+    text-decoration: none;
+}

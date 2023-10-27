@@ -7,7 +7,7 @@
 <?import javafx.scene.text.*?>
 <?import javafx.scene.web.*?>
 
-<SplitPane dividerPositions="0.75" orientation="VERTICAL" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.SingleLogEntryDisplayController">
+<SplitPane dividerPositions="0.75" orientation="VERTICAL" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.phoebus.logbook.olog.ui.SingleLogEntryDisplayController">
     <items>
         <VBox maxHeight="1.7976931348623157E308">
             <children>
@@ -24,19 +24,31 @@
                         <RowConstraints />
                     </rowConstraints>
                     <children>
-
-                        <Label fx:id="logTitle" text="owner">
-                            <font>
-                                <Font size="18.0" />
-                            </font>
-                            <padding>
-                                <Insets left="5.0" />
-                            </padding>
-                            <GridPane.margin>
-                                <Insets />
-                            </GridPane.margin>
-                        </Label>
-                        <Label fx:id="logOwner" text="title" GridPane.rowIndex="1">
+                        <HBox>
+                            <children>
+                                <Label fx:id="logTitle" text="Title">
+                                    <font>
+                                        <Font size="18.0" />
+                                    </font>
+                           <padding>
+                              <Insets left="5.0" />
+                           </padding>
+                                </Label>
+                                <Label fx:id="updatedIndicator" style="-fx-text-fill: blue;" text="*">
+                                    <font>
+                                        <Font size="24.0" />
+                                    </font>
+                           <HBox.margin>
+                              <Insets left="2.0" />
+                           </HBox.margin>
+                                </Label>
+                            </children>
+                     <GridPane.margin>
+                        <Insets top="3.0" />
+                     </GridPane.margin>
+                           
+                        </HBox>
+                        <Label fx:id="logOwner" text="Owner" GridPane.rowIndex="1">
                             <padding>
                                 <Insets left="5.0" />
                             </padding>

@@ -505,4 +505,12 @@ public interface LogClient {
     default String serviceInfo(){
         return null;
     }
+
+    /**
+     * @param id Unique log entry id
+     * @return A list of archived {@link LogEntry}s corresponding to the unique id.
+     */
+    default SearchResult getArchivedEntries(long id){
+        return null;
+    }
 }

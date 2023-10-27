@@ -199,6 +199,10 @@ class ChannelSearch
         // while multicast and broadcast messages are not.
         for (AddressInfo addr : udp_addresses)
         {
+            if(addr.getAddress().getAddress() == null){ // E.g. address unreachable
+                logger.log(Level.CONFIG, "Skipping unreachable address " + addr.getAddress());
+                continue;
+            }
             // Trouble is, how do you recognize a unicast address?
             if (addr.getAddress().getAddress().isMulticastAddress())
             {   // Multicast -> Certainly no unicast!
