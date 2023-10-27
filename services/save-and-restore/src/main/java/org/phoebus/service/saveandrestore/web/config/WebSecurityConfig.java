@@ -22,17 +22,27 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
 import org.springframework.security.ldap.authentication.ad.ActiveDirectoryLdapAuthenticationProvider;
 import org.springframework.security.ldap.userdetails.DefaultLdapAuthoritiesPopulator;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @EnableWebSecurity
 @Configuration
+
+/*
 @EnableGlobalMethodSecurity(
         prePostEnabled = true,
         securedEnabled = true,
         jsr250Enabled = true)
+
+ */
+
 @SuppressWarnings("unused")
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
@@ -118,12 +128,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${demo.readOnly.password:1234}")
     private String demoReadOnlyPassword;
 
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable();
+        http.authorizeRequests().antMatchers(HttpMethod.DELETE, "/node/**").hasRole(roleUser.toUpperCase());
+        http.authorizeRequests().antMatchers(HttpMethod.POST, "/node/**").hasRole(roleUser.toUpperCase());
+        http.authorizeRequests().antMatchers(HttpMethod.PUT, "/node/**").hasRole(roleUser.toUpperCase());
+        http.authorizeRequests().antMatchers(HttpMethod.POST, "/snapshot/**").authenticated();
         http.authorizeRequests().anyRequest().authenticated();
         http.addFilterBefore(new SessionFilter(authenticationManager()), UsernamePasswordAuthenticationFilter.class);
     }
+
+
 
     @Override
     public void configure(WebSecurity web) {
@@ -132,10 +149,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         web.ignoring().antMatchers(HttpMethod.POST, "/**/login*");
     }
 
-
     @Override
     public void configure(AuthenticationManagerBuilder auth) throws Exception {
-        switch(authenitcationImplementation){
+        switch (authenitcationImplementation) {
             case "ad":
                 ActiveDirectoryLdapAuthenticationProvider adProvider = new ActiveDirectoryLdapAuthenticationProvider(ad_domain, ad_url);
                 adProvider.setConvertSubErrorCodesToExceptions(true);
@@ -223,57 +239,57 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public String roleUser(){
+    public String roleUser() {
         return roleUser.toUpperCase();
     }
 
     @Bean
-    public String roleSuperuser(){
+    public String roleSuperuser() {
         return roleSuperuser.toUpperCase();
     }
 
     @Bean
-    public String roleAdmin(){
+    public String roleAdmin() {
         return roleAdmin.toUpperCase();
     }
 
     @Bean("demoUser")
-    public String demoUser(){
+    public String demoUser() {
         return demoUser;
     }
 
     @Bean("demoUserPassword")
-    public String demoUserPassword(){
+    public String demoUserPassword() {
         return demoUserPassword;
     }
 
     @Bean("demoSuperuser")
-    public String demoSuperuser(){
+    public String demoSuperuser() {
         return demoSuperuser;
     }
 
     @Bean("demoSuperuserPassword")
-    public String demoSuperuserPassword(){
+    public String demoSuperuserPassword() {
         return demoSuperuserPassword;
     }
 
     @Bean("demoAdmin")
-    public String demoAdmin(){
+    public String demoAdmin() {
         return demoAdmin;
     }
 
     @Bean("demoAdminPassword")
-    public String demoAdminPassword(){
+    public String demoAdminPassword() {
         return demoAdminPassword;
     }
 
     @Bean("demoReadOnly")
-    public String demoReadOnly(){
+    public String demoReadOnly() {
         return demoReadOnly;
     }
 
     @Bean("demoReadOnlyPassword")
-    public String demoReadOnlyPassword(){
+    public String demoReadOnlyPassword() {
         return demoReadOnlyPassword;
     }
 
@@ -283,13 +299,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
      * <h2>NOTE!</h2>
      * Some Spring Security documentation will state that &quot;and&quot; can be used instead of new-line char to
      * separate rule items. But that does NOT work, at least not with the Spring Security version used in this project.
+     *
      * @return A {@link RoleHierarchy} object.
      */
     @Bean
     public RoleHierarchy roleHierarchy() {
         RoleHierarchyImpl hierarchy = new RoleHierarchyImpl();
         hierarchy.setHierarchy("ROLE_" + roleAdmin.toUpperCase() + " > ROLE_" + roleSuperuser.toUpperCase() + "\n" +
-                "ROLE_" + roleSuperuser.toUpperCase() +" > ROLE_" + roleUser.toUpperCase() + "\n" +
+                "ROLE_" + roleSuperuser.toUpperCase() + " > ROLE_" + roleUser.toUpperCase() + "\n" +
                 "ROLE_" + roleAdmin.toUpperCase() + " > ROLE_" + roleUser.toUpperCase());
         return hierarchy;
     }

@@ -20,10 +20,12 @@ package org.phoebus.service.saveandrestore.web.controllers;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.applications.saveandrestore.model.security.UserNotAuthorizedException;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -132,17 +134,23 @@ public class NodeController extends BaseController {
      */
     @SuppressWarnings("unused")
     @DeleteMapping(value = "/node/{uniqueNodeId}", produces = JSON)
-    @PreAuthorize("hasRole(this.roleAdmin) or this.mayDelete(#uniqueNodeId, #principal)")
+    //@PreAuthorize("hasRole(this.roleAdmin) or this.mayDelete(#uniqueNodeId, #principal)")
     @Deprecated
     public void deleteNode(@PathVariable final String uniqueNodeId, Principal principal) {
+        if(!principal.getName().equals(demoAdmin) && !mayDelete(uniqueNodeId, principal)){
+            throw new UserNotAuthorizedException("User not authorized to delete node");
+        }
         logger.info("Deleting node with unique id " + uniqueNodeId);
         nodeDAO.deleteNode(uniqueNodeId);
     }
 
     @SuppressWarnings("unused")
     @DeleteMapping(value = "/node", produces = JSON)
-    @PreAuthorize("hasRole(this.roleAdmin) or this.mayDelete(#nodeIds, #principal)")
+    //@PreAuthorize("hasRole(this.roleAdmin) or this.mayDelete(#nodeIds, #principal)")
     public void deleteNodes(@RequestBody List<String> nodeIds, Principal principal) {
+        if(!principal.getName().equals(demoAdmin) && !mayDelete(nodeIds, principal)){
+            throw new UserNotAuthorizedException("User not authorized to delete nodes");
+        }
         nodeDAO.deleteNodes(nodeIds);
     }
 

@@ -20,6 +20,7 @@ package org.phoebus.service.saveandrestore.web.controllers;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 
+import org.phoebus.applications.saveandrestore.model.security.UserNotAuthorizedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -55,6 +56,9 @@ public abstract class BaseController {
 
 	@Autowired
 	public String roleUser; // This MUST be public!!!
+
+	@Autowired
+	public String demoAdmin;
 
 
 	/**
@@ -95,7 +99,13 @@ public abstract class BaseController {
 		log(exception);
 		return new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_FOUND);
 	}
-	
+
+	@ExceptionHandler(UserNotAuthorizedException.class)
+	public ResponseEntity<String> handleUserNotAuthorizedException(HttpServletRequest req, UserNotAuthorizedException exception){
+		log(exception);
+		return new ResponseEntity<>(exception.getMessage(), HttpStatus.FORBIDDEN);
+	}
+
 	private void log(Throwable throwable) {
 		logger.log(Level.INFO, "Intercepted " + throwable.getClass().getName(), throwable);
 	}
