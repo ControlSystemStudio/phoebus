@@ -121,6 +121,9 @@ public class AlarmSystem extends AlarmSystemConstants
     /** Macros used in UI display/command/web links */
     public static MacroValueProvider macros;
 
+    /** Disable notify feature */
+    @Preference public static boolean sort_alarm_items;
+
     static
     {
     	final PreferencesReader prefs = AnnotatedPreferences.initialize(AlarmSystem.class, "/alarm_preferences.properties");
