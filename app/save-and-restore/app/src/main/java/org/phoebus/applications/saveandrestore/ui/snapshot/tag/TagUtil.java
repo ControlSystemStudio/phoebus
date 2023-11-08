@@ -44,7 +44,9 @@ import org.phoebus.applications.saveandrestore.ui.TagProposalProvider;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotNewTagDialog;
 import org.phoebus.framework.autocomplete.ProposalService;
 import org.phoebus.ui.autocomplete.AutocompleteMenu;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -132,6 +134,9 @@ public class TagUtil {
                                 List<org.phoebus.applications.saveandrestore.model.Node> updatedNodes = SaveAndRestoreService.getInstance().deleteTag(tagData);
                                 callback.accept(updatedNodes);
                             } catch (Exception e) {
+                                ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
+                                        Messages.errorDeleteTagFailed,
+                                        e);
                                 Logger.getLogger(TagUtil.class.getName()).log(Level.WARNING, "Failed to remove tag from node", e);
                             }
                         }
@@ -168,6 +173,9 @@ public class TagUtil {
                 tagData.setUniqueNodeIds(selectedNodeIds);
                 updatedNodes.addAll(SaveAndRestoreService.getInstance().addTag(tagData));
             } catch (Exception e) {
+                ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
+                        Messages.errorAddTagFailed,
+                        e);
                 Logger.getLogger(TagUtil.class.getName()).log(Level.WARNING, "Failed to add tag to node");
             }
         });
@@ -213,6 +221,9 @@ public class TagUtil {
                 try {
                     SaveAndRestoreService.getInstance().deleteTag(tagData);
                 } catch (Exception e) {
+                    ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
+                            Messages.errorDeleteTagFailed,
+                            e);
                     Logger.getLogger(TagUtil.class.getName()).log(Level.SEVERE, "Failed to delete tag");
                 }
             });
@@ -227,6 +238,9 @@ public class TagUtil {
                 try {
                     SaveAndRestoreService.getInstance().addTag(tagData);
                 } catch (Exception e) {
+                    ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
+                            Messages.errorAddTagFailed,
+                            e);
                     Logger.getLogger(TagUtil.class.getName()).log(Level.SEVERE, "Failed to add tag");
                 }
             });

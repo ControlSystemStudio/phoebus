@@ -26,6 +26,8 @@ import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.TagData;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -53,19 +55,20 @@ public class TagController extends BaseController {
      * Adds a {@link Tag} to specified list of target {@link Node}s. The {@link Tag} contained
      * in tagData must be non-null, and its name must be non-null and non-empty.
      * @param tagData See {@link TagData}
-     * @param principal {@link Principal} of authenticated user.
+     * @param authentication {@link Authentication} of authenticated user.
      * @return The list of updated {@link Node}s
      */
     @PostMapping("/tags")
+    @PreAuthorize("hasRole(this.roleAdmin) or (hasRole(this.roleUser) and @authorizationHelper.mayAddOrDeleteTag(#tagData, #authentication))")
     public List<Node> addTag(@RequestBody TagData tagData,
-                             Principal principal) {
+                             Authentication authentication) {
         if (tagData.getTag() == null ||
                 tagData.getTag().getName() == null ||
                 tagData.getTag().getName().isEmpty() ||
                 tagData.getUniqueNodeIds() == null) {
             throw new IllegalArgumentException("Cannot add tag, data invalid");
         }
-        tagData.getTag().setUserName(principal.getName());
+        tagData.getTag().setUserName(authentication.getName());
         return nodeDAO.addTag(tagData);
     }
 
@@ -76,12 +79,13 @@ public class TagController extends BaseController {
      * @return The list of updated {@link Node}s
      */
     @DeleteMapping("/tags")
-    public List<Node> deleteTag(@RequestBody TagData tagData) {
+    @PreAuthorize("hasRole(this.roleAdmin) or (hasRole(this.roleUser) and @authorizationHelper.mayAddOrDeleteTag(#tagData, #authentication))")
+    public List<Node> deleteTag(@RequestBody TagData tagData, Authentication authentication) {
         if (tagData.getTag() == null ||
                 tagData.getTag().getName() == null ||
                 tagData.getTag().getName().isEmpty() ||
                 tagData.getUniqueNodeIds() == null) {
-            throw new IllegalArgumentException("Cannot add tag, data invalid");
+            throw new IllegalArgumentException("Cannot delete tag, data invalid");
         }
         return nodeDAO.deleteTag(tagData);
     }

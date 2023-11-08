@@ -19,25 +19,30 @@
 
 package org.phoebus.service.saveandrestore.web.controllers;
 
-import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
-import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * {@link Service} class implementing domain specific authorization rules in order to
  * grant or deny access to certain REST endpoints.
  */
 @Service("authorizationHelper")
+@SuppressWarnings("unused")
 public class AuthorizationHelper {
 
     @Autowired
     private NodeDAO nodeDAO;
+
+    @Autowired
+    private String roleAdmin;
 
     /**
      * Checks if all the nodes provided to this method can be deleted by the user.
@@ -46,7 +51,6 @@ public class AuthorizationHelper {
      * @param principal {@link Principal} of authenticated user.
      * @return <code>true</code> only if <b>all</b> if the nodes can be deleted by the user.
      */
-    @SuppressWarnings("unused")
     public boolean mayDelete(List<String> nodeIds, Principal principal) {
         for (String nodeId : nodeIds) {
             if (!mayDelete(nodeId, principal)) {
@@ -67,7 +71,6 @@ public class AuthorizationHelper {
      * @param principal Identifies user.
      * @return <code>false</code> if user may not delete the {@link Node}.
      */
-    @SuppressWarnings("unused")
     public boolean mayDelete(String nodeId, Principal principal) {
         Node node = nodeDAO.getNode(nodeId);
         if (!node.getUserName().equals(principal.getName())) {
@@ -86,7 +89,6 @@ public class AuthorizationHelper {
      * @param principal Identifies user.
      * @return <code>false</code> if user may not update the {@link Node}.
      */
-    @SuppressWarnings("unused")
     public boolean mayUpdate(Node node, Principal principal) {
         return nodeDAO.getNode(node.getUniqueId()).getUserName().equals(principal.getName());
     }
@@ -101,10 +103,27 @@ public class AuthorizationHelper {
      * @param principal         Identifies user.
      * @return <code>false</code> if user may not update the {@link CompositeSnapshot}.
      */
-    @SuppressWarnings("unused")
+
     public boolean mayUpdate(CompositeSnapshot compositeSnapshot, Principal principal) {
-        Node node = nodeDAO.getNode(compositeSnapshot.getCompositeSnapshotNode().getUniqueId());
-        return node.getUserName().equals(principal.getName());
+        return isOwner(compositeSnapshot.getCompositeSnapshotNode().getUniqueId(), principal.getName());
     }
 
+    public boolean mayAddOrDeleteTag(TagData tagData, Authentication authentication){
+        Tag tag = tagData.getTag();
+        List<String> roles = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList());
+        if(tag.getName().equals(Tag.GOLDEN)){
+            return roles.contains(roleAdmin);
+        }
+        for(String nodeId : tagData.getUniqueNodeIds()){
+            if(!isOwner(nodeId, authentication.getName())){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isOwner(String nodeId, String username){
+        Node node = nodeDAO.getNode(nodeId);
+        return node.getUserName().equals(username);
+    }
 }

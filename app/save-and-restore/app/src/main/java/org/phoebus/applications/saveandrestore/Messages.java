@@ -70,9 +70,11 @@ public class Messages {
     public static String duplicatePVNamesFoundInSelection;
     public static String editFilter;
     public static String errorActionFailed;
+    public static String errorAddTagFailed;
     public static String errorCreateFolderFailed;
     public static String errorCreateConfigurationFailed;
     public static String errorDeleteNodeFailed;
+    public static String errorDeleteTagFailed;
     public static String errorGeneric;
     public static String errorUnableToRetrieveData;
     public static String exportConfigurationLabel;
