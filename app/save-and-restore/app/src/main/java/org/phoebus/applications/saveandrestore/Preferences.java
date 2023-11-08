@@ -31,6 +31,9 @@ public class Preferences {
     @Preference
     public static String default_snapshot_name_date_format;
 
+    @Preference
+    public static boolean authentication_enabled;
+
     static
     {
         AnnotatedPreferences.initialize(Preferences.class, "/save_and_restore_preferences.properties");

@@ -23,14 +23,6 @@ gidNumber: 27001
 uidNumber: 27001
 memberUid: user
 
-dn: cn=sar-superuser,ou=Group,dc=sar,dc=local
-cn: sar-superuser
-objectClass: posixGroup
-description: save-n-restore superuser
-gidNumber: 27002
-uidNumber: 27002
-memberUid: superuser
-
 dn: cn=sar-admin,ou=Group,dc=sar,dc=local
 cn: sar-admin
 objectClass: posixGroup
@@ -46,17 +38,6 @@ objectClass: posixAccount
 description: User with sar-user role
 cn: user
 userPassword: userPass
-uidNumber: 23004
-gidNumber: 23004
-homeDirectory: /dev/null
-
-dn: uid=superuser,ou=Group,dc=sar,dc=local
-uid: superuser
-objectClass: account
-objectClass: posixAccount
-description: User with sar-user role
-cn: superuser
-userPassword: superuserPass
 uidNumber: 23004
 gidNumber: 23004
 homeDirectory: /dev/null

@@ -90,16 +90,10 @@ public class NodeControllerTest {
     private String demoUser;
 
     @Autowired
-    private String demoSuperuser;
-
-    @Autowired
     private String demoAdmin;
 
     @Autowired
     private String userAuthorization;
-
-    @Autowired
-    private String superuserAuthorization;
 
     @Autowired
     private String adminAuthorization;
@@ -141,12 +135,6 @@ public class NodeControllerTest {
 
         request = put("/node?parentNodeId=a")
                 .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
-                .contentType(JSON)
-                .content(content);
-        mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON));
-
-        request = put("/node?parentNodeId=a")
-                .header(HttpHeaders.AUTHORIZATION, superuserAuthorization)
                 .contentType(JSON)
                 .content(content);
         mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON));
@@ -254,13 +242,6 @@ public class NodeControllerTest {
         when(nodeDAO.getNode("hhh")).thenReturn(Node.builder().nodeType(NodeType.CONFIGURATION).userName("notUser").build());
 
         request = post("/config")
-                .header(HttpHeaders.AUTHORIZATION, superuserAuthorization)
-                .contentType(JSON)
-                .content(confurationAsString);
-
-        mockMvc.perform(request).andExpect(status().isForbidden());
-
-        request = post("/config")
                 .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
                 .contentType(JSON)
                 .content(confurationAsString);
@@ -350,7 +331,7 @@ public class NodeControllerTest {
         MockHttpServletRequestBuilder request =
                 delete("/node/a");
 
-        mockMvc.perform(request).andExpect(status().isForbidden());
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
 
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").userName(demoUser).build());
 
@@ -410,22 +391,6 @@ public class NodeControllerTest {
         request =
                 delete("/node/a")
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
-        mockMvc.perform(request).andExpect(status().isForbidden());
-
-        when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.CONFIGURATION).userName(demoUser).build());
-        when(nodeDAO.getChildNodes("a")).thenReturn(List.of(Node.builder().build()));
-
-        request =
-                delete("/node/a")
-                        .header(HttpHeaders.AUTHORIZATION, superuserAuthorization);
-        mockMvc.perform(request).andExpect(status().isForbidden());
-
-        when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.FOLDER).userName(demoUser).build());
-        when(nodeDAO.getChildNodes("a")).thenReturn(List.of(Node.builder().build()));
-
-        request =
-                delete("/node/a")
-                        .header(HttpHeaders.AUTHORIZATION, superuserAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.CONFIGURATION).userName(demoUser).build());
@@ -535,14 +500,6 @@ public class NodeControllerTest {
 
         mockMvc.perform(request).andExpect(status().isForbidden());
 
-        request = post("/move")
-                .header(HttpHeaders.AUTHORIZATION, superuserAuthorization)
-                .contentType(JSON)
-                .content(objectMapper.writeValueAsString(Arrays.asList("a")))
-                .param("to", "b")
-                .param("username", "username");
-
-        mockMvc.perform(request).andExpect(status().isForbidden());
 
         request = post("/move")
                 .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
@@ -559,7 +516,7 @@ public class NodeControllerTest {
                 .param("to", "b")
                 .param("username", "username");
 
-        mockMvc.perform(request).andExpect(status().isForbidden());
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -642,7 +599,7 @@ public class NodeControllerTest {
                 .param("customTimeForMigration", "false")
                 .contentType(JSON)
                 .content(objectMapper.writeValueAsString(node));
-        mockMvc.perform(request).andExpect(status().isForbidden());
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
 
         request = post("/node")
                 .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)

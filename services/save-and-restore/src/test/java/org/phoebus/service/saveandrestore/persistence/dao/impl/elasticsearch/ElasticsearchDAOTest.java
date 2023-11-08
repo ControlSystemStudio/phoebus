@@ -36,6 +36,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 
@@ -56,6 +57,7 @@ import static org.mockito.Mockito.*;
 @EnableConfigurationProperties
 @ContextHierarchy({@ContextConfiguration(classes = {ElasticTestConfig.class})})
 @TestExecutionListeners({DependencyInjectionTestExecutionListener.class})
+@TestPropertySource(locations = "classpath:test_application.properties")
 @Profile("IT")
 public class ElasticsearchDAOTest {
 

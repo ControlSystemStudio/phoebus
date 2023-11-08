@@ -48,7 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = ControllersTestConfig.class)
 @TestPropertySource(locations = "classpath:test_application.properties")
-@WebMvcTest(NodeController.class)
+@WebMvcTest(SnapshotController.class)
 public class SnapshotControllerTest {
 
     @Autowired
@@ -56,9 +56,6 @@ public class SnapshotControllerTest {
 
     @Autowired
     private String userAuthorization;
-
-    @Autowired
-    private String superuserAuthorization;
 
     @Autowired
     private String adminAuthorization;
@@ -126,19 +123,13 @@ public class SnapshotControllerTest {
         request = put("/snapshot?parentNodeId=a")
                 .contentType(JSON)
                 .content(snapshotString);
-        mockMvc.perform(request).andExpect(status().isForbidden());
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
 
         request = put("/snapshot?parentNodeId=a")
                 .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
                 .contentType(JSON)
                 .content(snapshotString);
         mockMvc.perform(request).andExpect(status().isForbidden());
-
-        request = put("/snapshot?parentNodeId=a")
-                .header(HttpHeaders.AUTHORIZATION, superuserAuthorization)
-                .contentType(JSON)
-                .content(snapshotString);
-        mockMvc.perform(request).andExpect(status().isOk());
 
         request = put("/snapshot?parentNodeId=a")
                 .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
@@ -173,16 +164,10 @@ public class SnapshotControllerTest {
         request = put("/snapshot?parentNodeId=a")
                 .contentType(JSON)
                 .content(snapshotString);
-        mockMvc.perform(request).andExpect(status().isForbidden());
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
 
         request = put("/snapshot?parentNodeId=a")
                 .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
-                .contentType(JSON)
-                .content(snapshotString);
-        mockMvc.perform(request).andExpect(status().isForbidden());
-
-        request = put("/snapshot?parentNodeId=a")
-                .header(HttpHeaders.AUTHORIZATION, superuserAuthorization)
                 .contentType(JSON)
                 .content(snapshotString);
         mockMvc.perform(request).andExpect(status().isForbidden());

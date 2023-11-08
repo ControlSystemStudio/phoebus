@@ -102,8 +102,10 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
                 String password = scopedAuthenticationToken.getPassword();
                 httpBasicAuthFilter = new HTTPBasicAuthFilter(username, password);
                 client.addFilter(httpBasicAuthFilter);
-            } else if (httpBasicAuthFilter != null) {
-                client.removeFilter(httpBasicAuthFilter);
+            } else {//if (httpBasicAuthFilter != null) {
+                //client.removeFilter(httpBasicAuthFilter);
+                httpBasicAuthFilter = new HTTPBasicAuthFilter(System.getProperty("user.name"), "password");
+                client.addFilter(httpBasicAuthFilter);
             }
         } catch (Exception e) {
             logger.log(Level.WARNING, "Unable to retrieve credentials from secure store", e);

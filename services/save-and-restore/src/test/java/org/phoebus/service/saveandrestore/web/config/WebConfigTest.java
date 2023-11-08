@@ -25,10 +25,12 @@ import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.ContextHierarchy;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
 @ContextHierarchy({@ContextConfiguration(classes = {WebConfiguration.class, ControllersTestConfig.class})})
+@TestPropertySource(locations = "classpath:test_application.properties")
 @SuppressWarnings("unused")
 public class WebConfigTest {
 

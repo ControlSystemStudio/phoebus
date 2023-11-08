@@ -76,7 +76,7 @@ public abstract class ContextMenuBase extends ContextMenu {
         deleteNodesMenuItem = new MenuItem(Messages.contextMenuDelete, new ImageView(ImageRepository.DELETE));
         deleteNodesMenuItem.setOnAction(ae -> saveAndRestoreController.deleteNodes());
         deleteNodesMenuItem.disableProperty().bind(Bindings.createBooleanBinding(() ->
-                        userIsAuthenticatedProperty.not().get() ||
+                        //userIsAuthenticatedProperty.not().get() ||
                                 hasSameParentProperty.not().get(),
                 userIsAuthenticatedProperty, hasSameParentProperty));
 

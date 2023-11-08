@@ -20,7 +20,10 @@
 package org.phoebus.service.saveandrestore.web.controllers;
 
 import org.phoebus.applications.saveandrestore.model.UserData;
+import org.phoebus.service.saveandrestore.web.config.AuthEnabledCondition;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -37,8 +40,8 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings("unused")
 @RestController
+@Conditional(AuthEnabledCondition.class)
 public class AuthenticationController extends BaseController {
-
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -54,7 +57,8 @@ public class AuthenticationController extends BaseController {
     @PostMapping(value = "login")
     public ResponseEntity<UserData> login(@RequestParam(value = "username") String userName,
                                           @RequestParam(value = "password") String password) {
-        Authentication authentication = new UsernamePasswordAuthenticationToken(userName, password);
+        Authentication authentication =
+                new UsernamePasswordAuthenticationToken(userName, password);
         try {
             authentication = authenticationManager.authenticate(authentication);
         } catch (AuthenticationException e) {

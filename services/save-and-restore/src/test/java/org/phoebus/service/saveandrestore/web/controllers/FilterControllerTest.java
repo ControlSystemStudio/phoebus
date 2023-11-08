@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -47,8 +48,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = ControllersTestConfig.class)
-@WebMvcTest(NodeController.class)
-
+@WebMvcTest(FilterController.class)
+@TestPropertySource(locations = "classpath:test_application.properties")
 public class FilterControllerTest {
 
     @Autowired
@@ -62,9 +63,6 @@ public class FilterControllerTest {
 
     @Autowired
     private String userAuthorization;
-
-    @Autowired
-    private String superuserAuthorization;
 
     @Autowired
     private String adminAuthorization;
@@ -102,13 +100,6 @@ public class FilterControllerTest {
         objectMapper.readValue(s, Filter.class);
 
         request = put("/filter")
-                .header(HttpHeaders.AUTHORIZATION, superuserAuthorization)
-                .contentType(JSON)
-                .content(filterString);
-
-        mockMvc.perform(request).andExpect(status().isOk());
-
-        request = put("/filter")
                 .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
                 .contentType(JSON)
                 .content(filterString);
@@ -126,7 +117,7 @@ public class FilterControllerTest {
                 .contentType(JSON)
                 .content(filterString);
 
-        mockMvc.perform(request).andExpect(status().isForbidden());
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -149,18 +140,13 @@ public class FilterControllerTest {
         mockMvc.perform(request).andExpect(status().isOk());
 
         request = delete("/filter/name")
-                .header(HttpHeaders.AUTHORIZATION, superuserAuthorization)
-                .contentType(JSON);
-        mockMvc.perform(request).andExpect(status().isForbidden());
-
-        request = delete("/filter/name")
                 .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
                 .contentType(JSON);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
         request = delete("/filter/name")
                 .contentType(JSON);
-        mockMvc.perform(request).andExpect(status().isForbidden());
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
 
         filter.setUser("notUser");
         when(nodeDAO.getAllFilters()).thenReturn(List.of(filter));

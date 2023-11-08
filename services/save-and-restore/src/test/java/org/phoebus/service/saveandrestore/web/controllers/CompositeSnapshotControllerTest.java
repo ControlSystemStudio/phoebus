@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -54,14 +55,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = ControllersTestConfig.class)
-@WebMvcTest(NodeController.class)
+@WebMvcTest(CompositeSnapshotController.class)
+@TestPropertySource(locations = "classpath:test_application.properties")
 public class CompositeSnapshotControllerTest {
 
     @Autowired
     private String userAuthorization;
-
-    @Autowired
-    private String superuserAuthorization;
 
     @Autowired
     private String adminAuthorization;
@@ -112,13 +111,6 @@ public class CompositeSnapshotControllerTest {
         objectMapper.readValue(s, CompositeSnapshot.class);
 
         request = put("/composite-snapshot?parentNodeId=id")
-                .header(HttpHeaders.AUTHORIZATION, superuserAuthorization)
-                .contentType(JSON)
-                .content(compositeSnapshotString);
-
-        mockMvc.perform(request).andExpect(status().isOk());
-
-        request = put("/composite-snapshot?parentNodeId=id")
                 .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
                 .contentType(JSON)
                 .content(compositeSnapshotString);
@@ -136,7 +128,7 @@ public class CompositeSnapshotControllerTest {
                 .contentType(JSON)
                 .content(compositeSnapshotString);
 
-        mockMvc.perform(request).andExpect(status().isForbidden());
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
 
         reset(nodeDAO);
     }
@@ -188,13 +180,6 @@ public class CompositeSnapshotControllerTest {
         mockMvc.perform(request).andExpect(status().isForbidden());
 
         request = post("/composite-snapshot")
-                .header(HttpHeaders.AUTHORIZATION, superuserAuthorization)
-                .contentType(JSON)
-                .content(compositeSnapshotString);
-
-        mockMvc.perform(request).andExpect(status().isForbidden());
-
-        request = post("/composite-snapshot")
                 .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
                 .contentType(JSON)
                 .content(compositeSnapshotString);
@@ -205,7 +190,7 @@ public class CompositeSnapshotControllerTest {
                 .contentType(JSON)
                 .content(compositeSnapshotString);
 
-        mockMvc.perform(request).andExpect(status().isForbidden());
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
 
         when(nodeDAO.getNode("c")).thenReturn(Node.builder().nodeType(NodeType.COMPOSITE_SNAPSHOT).uniqueId("c").userName("notUser").build());
 
@@ -316,19 +301,11 @@ public class CompositeSnapshotControllerTest {
         request = post("/composite-snapshot-consistency-check")
                 .contentType(JSON)
                 .content(objectMapper.writeValueAsString(List.of("id")));
-
-        mockMvc.perform(request).andExpect(status().isForbidden());
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
 
 
         request = post("/composite-snapshot-consistency-check")
                 .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
-                .contentType(JSON)
-                .content(objectMapper.writeValueAsString(List.of("id")));
-
-        mockMvc.perform(request).andExpect(status().isOk());
-
-        request = post("/composite-snapshot-consistency-check")
-                .header(HttpHeaders.AUTHORIZATION, superuserAuthorization)
                 .contentType(JSON)
                 .content(objectMapper.writeValueAsString(List.of("id")));
 

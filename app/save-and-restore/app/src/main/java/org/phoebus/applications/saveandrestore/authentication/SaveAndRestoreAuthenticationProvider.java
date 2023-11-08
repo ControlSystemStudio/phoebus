@@ -19,6 +19,7 @@
 
 package org.phoebus.applications.saveandrestore.authentication;
 
+import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.security.authorization.ServiceAuthenticationProvider;
 import org.phoebus.security.tokens.AuthenticationScope;
@@ -51,5 +52,10 @@ public class SaveAndRestoreAuthenticationProvider implements ServiceAuthenticati
     @Override
     public AuthenticationScope getAuthenticationScope(){
         return AuthenticationScope.SAVE_AND_RESTORE;
+    }
+
+    @Override
+    public boolean isActive(){
+        return Preferences.authentication_enabled;
     }
 }

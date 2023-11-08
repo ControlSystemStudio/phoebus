@@ -20,12 +20,12 @@ package org.phoebus.service.saveandrestore.web.controllers;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.applications.saveandrestore.model.security.UserNotAuthorizedException;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -134,82 +134,18 @@ public class NodeController extends BaseController {
      */
     @SuppressWarnings("unused")
     @DeleteMapping(value = "/node/{uniqueNodeId}", produces = JSON)
-    //@PreAuthorize("hasRole(this.roleAdmin) or this.mayDelete(#uniqueNodeId, #principal)")
+    @PreAuthorize("hasRole(this.roleAdmin) or @authorizationHelper.mayDelete(#uniqueNodeId, #principal)")
     @Deprecated
     public void deleteNode(@PathVariable final String uniqueNodeId, Principal principal) {
-        if(!principal.getName().equals(demoAdmin) && !mayDelete(uniqueNodeId, principal)){
-            throw new UserNotAuthorizedException("User not authorized to delete node");
-        }
         logger.info("Deleting node with unique id " + uniqueNodeId);
         nodeDAO.deleteNode(uniqueNodeId);
     }
 
     @SuppressWarnings("unused")
     @DeleteMapping(value = "/node", produces = JSON)
-    //@PreAuthorize("hasRole(this.roleAdmin) or this.mayDelete(#nodeIds, #principal)")
+    @PreAuthorize("hasRole(this.roleAdmin) or @authorizationHelper.mayDelete(#nodeIds, #principal)")
     public void deleteNodes(@RequestBody List<String> nodeIds, Principal principal) {
-        if(!principal.getName().equals(demoAdmin) && !mayDelete(nodeIds, principal)){
-            throw new UserNotAuthorizedException("User not authorized to delete nodes");
-        }
         nodeDAO.deleteNodes(nodeIds);
-    }
-
-    /**
-     * NOTE: this method MUST be public!
-     *
-     * Checks if all the nodes provided to this method can be deleted by the user.
-     * @param nodeIds The list of {@link Node} ids subject to the check.
-     * @param principal {@link Principal} of authenticated user.
-     * @return <code>true</code> only if <b>all</b> if the nodes can be deleted by the user.
-     */
-    @SuppressWarnings("unused")
-    public boolean mayDelete(List<String> nodeIds, Principal principal){
-        for (String nodeId : nodeIds){
-            if(!mayDelete(nodeId, principal)){
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * NOTE: this method MUST be public!
-     * An authenticated user may delete a node if User identity is same as the target {@link Node}'s user id and:
-     * <ul>
-     *     <li>Target {@link Node} is a snapshot.</li>
-     *     <li>Target {@link Node} is not a snapshot, but has no child nodes.</li>
-     * </ul>
-     *
-     * @param nodeId Unique node id identifying the target of the user's delete operation.
-     * @param principal Identifies user.
-     * @return <code>false</code> if user may not delete the {@link Node}.
-     */
-    @SuppressWarnings("unused")
-    public boolean mayDelete(String nodeId, Principal principal){
-        Node node = nodeDAO.getNode(nodeId);
-        if(!node.getUserName().equals(principal.getName())){
-            return false;
-        }
-        if(node.getNodeType().equals(NodeType.CONFIGURATION) || node.getNodeType().equals(NodeType.FOLDER)){
-            return nodeDAO.getChildNodes(node.getUniqueId()).isEmpty();
-        }
-        return true;
-    }
-
-    /**
-     * NOTE: this method MUST be public!
-     *
-     * <p>
-     * An authenticated user may update a node if user identity is same as the target {@link Node}'s user id.
-     * </p>
-     *
-     * @param node {@link Node} identifying the target of the user's update operation.
-     * @param principal Identifies user.
-     * @return <code>false</code> if user may not update the {@link Node}.
-     */
-    @SuppressWarnings("unused")
-    public boolean mayUpdate(Node node, Principal principal){
-        return nodeDAO.getNode(node.getUniqueId()).getUserName().equals(principal.getName());
     }
 
     /**
@@ -228,7 +164,7 @@ public class NodeController extends BaseController {
      */
     @SuppressWarnings("unused")
     @PostMapping(value = "/node", produces = JSON)
-    @PreAuthorize("hasRole(this.roleAdmin) or (hasRole(this.roleUser) and this.mayUpdate(#nodeToUpdate, #principal))")
+    @PreAuthorize("hasRole(this.roleAdmin) or (hasRole(this.roleUser) and @authorizationHelper.mayUpdate(#nodeToUpdate, #principal))")
     public Node updateNode(@RequestParam(value = "customTimeForMigration", required = false, defaultValue = "false") String customTimeForMigration,
                            @RequestBody Node nodeToUpdate,
                            Principal principal) {
