@@ -27,10 +27,11 @@ import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.Fil
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.SnapshotDataRepository;
 import org.phoebus.service.saveandrestore.search.SearchUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.context.annotation.*;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
 import org.springframework.util.Base64Utils;
 
 @SpringBootConfiguration
@@ -45,12 +46,6 @@ public class ControllersTestConfig {
 
     @Autowired
     private String demoUserPassword;
-
-    @Autowired
-    private String demoSuperuser;
-
-    @Autowired
-    private String demoSuperuserPassword;
 
     @Autowired
     private String demoAdmin;
@@ -107,22 +102,17 @@ public class ControllersTestConfig {
     }
 
     @Bean("userAuthorization")
-    public String userAuthorization(){
-        return "Basic " + Base64Utils.encodeToString((demoUser +":" + demoUserPassword).getBytes());
-    }
-
-    @Bean("superuserAuthorization")
-    public String superuserAuthorization(){
-        return "Basic " + Base64Utils.encodeToString((demoSuperuser +":" + demoSuperuserPassword).getBytes());
+    public String userAuthorization() {
+        return "Basic " + Base64Utils.encodeToString((demoUser + ":" + demoUserPassword).getBytes());
     }
 
     @Bean("adminAuthorization")
-    public String adminAuthorization(){
-        return "Basic " + Base64Utils.encodeToString((demoAdmin +":" + demoAdminPassword).getBytes());
+    public String adminAuthorization() {
+        return "Basic " + Base64Utils.encodeToString((demoAdmin + ":" + demoAdminPassword).getBytes());
     }
 
     @Bean("readOnlyAuthorization")
-    public String readOnlyAuthorization(){
-        return "Basic " + Base64Utils.encodeToString((demoReadOnly +":" + demoReadOnlyPassword).getBytes());
+    public String readOnlyAuthorization() {
+        return "Basic " + Base64Utils.encodeToString((demoReadOnly + ":" + demoReadOnlyPassword).getBytes());
     }
 }

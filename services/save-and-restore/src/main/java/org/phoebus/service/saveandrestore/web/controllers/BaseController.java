@@ -1,36 +1,33 @@
-/** 
+/**
  * Copyright (C) 2018 European Spallation Source ERIC.
- *
+ * <p>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package org.phoebus.service.saveandrestore.web.controllers;
 
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-
 import org.phoebus.applications.saveandrestore.model.security.UserNotAuthorizedException;
+import org.phoebus.service.saveandrestore.NodeNotFoundException;
+import org.phoebus.service.saveandrestore.SnapshotNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import org.phoebus.service.saveandrestore.NodeNotFoundException;
-import org.phoebus.service.saveandrestore.SnapshotNotFoundException;
-
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -43,70 +40,64 @@ import java.util.logging.Logger;
 @RestController
 @SuppressWarnings("unused")
 public abstract class BaseController {
-	
-	public static final String JSON = "application/json";
-	
-	private final Logger logger = Logger.getLogger(BaseController.class.getName());
 
-	@Autowired
-	public String roleAdmin; // This MUST be public!!!
+    public static final String JSON = "application/json";
 
-	@Autowired
-	public String roleSuperuser; // This MUST be public!!!
+    private final Logger logger = Logger.getLogger(BaseController.class.getName());
 
-	@Autowired
-	public String roleUser; // This MUST be public!!!
+    @Autowired
+    public String roleAdmin; // This MUST be public!!!
 
-	@Autowired
-	public String demoAdmin;
+    @Autowired
+    public String roleUser; // This MUST be public!!!
 
 
-	/**
-	 * Intercepts {@link SnapshotNotFoundException} and triggers a {@link HttpStatus#NOT_FOUND}.
-	 * @param req The servlet request
-	 * @param exception The exception to intercept
-	 * @return A {@link ResponseEntity} carrying the underlying exception message.
-	 */
-	@ExceptionHandler(SnapshotNotFoundException.class)
-	public ResponseEntity<String> handleSnapshotNotFoundException(HttpServletRequest req,
-			SnapshotNotFoundException exception) {
-		log(exception);
-		return new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_FOUND);
-	}
-	
-	/**
-	 * Intercepts {@link IllegalArgumentException} and triggers a {@link HttpStatus#BAD_REQUEST}.
-	 * @param req The servlet request
-	 * @param exception The exception to intercept
-	 * @return A {@link ResponseEntity} carrying the underlying exception message.
-	 */
-	@ExceptionHandler(IllegalArgumentException.class)
-	public ResponseEntity<String> handleIllegalArgumentException(HttpServletRequest req,
-			IllegalArgumentException exception) {
-		log(exception);
-		return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
-	}
-	
-	/**
-	 * Intercepts {@link NodeNotFoundException} and triggers a {@link HttpStatus#NOT_FOUND}.
-	 * @param req The {@link HttpServlet} request
-	 * @param exception The exception to intercept
-	 * @return A {@link ResponseEntity} carrying the underlying exception message.
-	 */
-	@ExceptionHandler(NodeNotFoundException.class)
-	public ResponseEntity<String> handleNodeNotFoundException(HttpServletRequest req,
-			NodeNotFoundException exception) {
-		log(exception);
-		return new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_FOUND);
-	}
+    /**
+     * Intercepts {@link SnapshotNotFoundException} and triggers a {@link HttpStatus#NOT_FOUND}.
+     * @param req The servlet request
+     * @param exception The exception to intercept
+     * @return A {@link ResponseEntity} carrying the underlying exception message.
+     */
+    @ExceptionHandler(SnapshotNotFoundException.class)
+    public ResponseEntity<String> handleSnapshotNotFoundException(HttpServletRequest req,
+                                                                  SnapshotNotFoundException exception) {
+        log(exception);
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_FOUND);
+    }
 
-	@ExceptionHandler(UserNotAuthorizedException.class)
-	public ResponseEntity<String> handleUserNotAuthorizedException(HttpServletRequest req, UserNotAuthorizedException exception){
-		log(exception);
-		return new ResponseEntity<>(exception.getMessage(), HttpStatus.FORBIDDEN);
-	}
+    /**
+     * Intercepts {@link IllegalArgumentException} and triggers a {@link HttpStatus#BAD_REQUEST}.
+     * @param req The servlet request
+     * @param exception The exception to intercept
+     * @return A {@link ResponseEntity} carrying the underlying exception message.
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgumentException(HttpServletRequest req,
+                                                                 IllegalArgumentException exception) {
+        log(exception);
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
+    }
 
-	private void log(Throwable throwable) {
-		logger.log(Level.INFO, "Intercepted " + throwable.getClass().getName(), throwable);
-	}
+    /**
+     * Intercepts {@link NodeNotFoundException} and triggers a {@link HttpStatus#NOT_FOUND}.
+     * @param req The {@link HttpServlet} request
+     * @param exception The exception to intercept
+     * @return A {@link ResponseEntity} carrying the underlying exception message.
+     */
+    @ExceptionHandler(NodeNotFoundException.class)
+    public ResponseEntity<String> handleNodeNotFoundException(HttpServletRequest req,
+                                                              NodeNotFoundException exception) {
+        log(exception);
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(UserNotAuthorizedException.class)
+    public ResponseEntity<String> handleUserNotAuthorizedException(HttpServletRequest req, UserNotAuthorizedException exception) {
+        log(exception);
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.FORBIDDEN);
+    }
+
+    private void log(Throwable throwable) {
+        logger.log(Level.INFO, "Intercepted " + throwable.getClass().getName(), throwable);
+    }
 }

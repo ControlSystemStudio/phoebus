@@ -29,12 +29,16 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(
-        prePostEnabled = true,
-        securedEnabled = true,
-        jsr250Enabled = true)
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+@Conditional(AuthEnabledCondition.class)
 @SuppressWarnings("unused")
-public class WebSecurityConfig {
+public class WebSecurityConfig extends AnonymousWebSecurityConfig {
+
+    /**
+     * Authentication implementation.
+     */
+    @Value("${auth.impl:none}")
+    protected String authenitcationImplementation;
 
     /**
      * External Active Directory configuration properties
@@ -65,45 +69,6 @@ public class WebSecurityConfig {
     @Value("${ldap.user.search.filter:invalid}")
     String ldap_user_search_filter;
 
-    /**
-     * Authentication implementation.
-     */
-    @Value("${auth.impl:none}")
-    String authenitcationImplementation;
-
-    @Value("${role.user:sar-user}")
-    private String roleUser;
-
-    @Value("${role.superuser:sar-superuser}")
-    private String roleSuperuser;
-
-    @Value("${role.admin:sar-admin}")
-    private String roleAdmin;
-
-    @Value("${demo.user:user}")
-    private String demoUser;
-
-    @Value("${demo.user.password:userPass}")
-    private String demoUserPassword;
-
-    @Value("${demo.superuser:superuser}")
-    private String demoSuperuser;
-
-    @Value("${demo.superuser.password:superuserPass}")
-    private String demoSuperuserPassword;
-
-    @Value("${demo.admin:admin}")
-    private String demoAdmin;
-
-    @Value("${demo.admin.password:adminPass}")
-    private String demoAdminPassword;
-
-    @Value("${demo.readOnly:johndoe}")
-    private String demoReadOnly;
-
-    @Value("${demo.readOnly.password:1234}")
-    private String demoReadOnlyPassword;
-
     @Bean
     public WebSecurityCustomizer ignoringCustomizer() {
         return web -> {
@@ -116,12 +81,9 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf().disable();
-        if ("none".equalsIgnoreCase(authenitcationImplementation.trim())) {
-            http.anonymous();
-        } else {
-            http.authorizeRequests().anyRequest().authenticated();
-            http.httpBasic();
-        }
+        http.authorizeRequests().anyRequest().authenticated();
+        http.httpBasic();
+
         return http.build();
     }
 
@@ -183,7 +145,6 @@ public class WebSecurityConfig {
                 .passwordEncoder(encoder())
                 .withUser(demoAdmin).password(encoder().encode(demoAdminPassword)).roles(roleAdmin()).and()
                 .withUser(demoUser).password(encoder().encode(demoUserPassword)).roles(roleUser()).and()
-                .withUser(demoSuperuser).password(encoder().encode(demoSuperuserPassword)).roles(roleSuperuser()).and()
                 .withUser(demoReadOnly).password(encoder().encode(demoReadOnlyPassword)).roles().and().and().build();
     }
 
@@ -201,62 +162,6 @@ public class WebSecurityConfig {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         return objectMapper;
     }
-
-    @Bean
-    public String roleUser() {
-        return roleUser.toUpperCase();
-    }
-
-    @Bean
-    public String roleSuperuser() {
-        return roleSuperuser.toUpperCase();
-    }
-
-    @Bean
-    public String roleAdmin() {
-        return roleAdmin.toUpperCase();
-    }
-
-    @Bean("demoUser")
-    public String demoUser() {
-        return demoUser;
-    }
-
-    @Bean("demoUserPassword")
-    public String demoUserPassword() {
-        return demoUserPassword;
-    }
-
-    @Bean("demoSuperuser")
-    public String demoSuperuser() {
-        return demoSuperuser;
-    }
-
-    @Bean("demoSuperuserPassword")
-    public String demoSuperuserPassword() {
-        return demoSuperuserPassword;
-    }
-
-    @Bean("demoAdmin")
-    public String demoAdmin() {
-        return demoAdmin;
-    }
-
-    @Bean("demoAdminPassword")
-    public String demoAdminPassword() {
-        return demoAdminPassword;
-    }
-
-    @Bean("demoReadOnly")
-    public String demoReadOnly() {
-        return demoReadOnly;
-    }
-
-    @Bean("demoReadOnlyPassword")
-    public String demoReadOnlyPassword() {
-        return demoReadOnlyPassword;
-    }
-
 
     /**
      * Configures role hierarchy, i.e. user - superuser - admin. Do not remove this {@link Bean}!

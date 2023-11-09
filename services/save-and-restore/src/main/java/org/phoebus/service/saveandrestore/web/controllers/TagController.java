@@ -30,11 +30,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.List;
 
 /**
- * {@link TagController} class for supporting RESTful APIs for tag
+ * {@link TagController} class for supporting REST-ful APIs for tag
  *
  * @author <a href="mailto:changj@frib.msu.edu">Genie Jhang</a>
  */
@@ -54,39 +53,34 @@ public class TagController extends BaseController {
     /**
      * Adds a {@link Tag} to specified list of target {@link Node}s. The {@link Tag} contained
      * in tagData must be non-null, and its name must be non-null and non-empty.
-     * @param tagData See {@link TagData}
+     *
+     * @param tagData        See {@link TagData}
+     * @param userName Must be non-null and non-empty if authentication/authorization is disabled.
      * @param authentication {@link Authentication} of authenticated user.
      * @return The list of updated {@link Node}s
      */
     @PostMapping("/tags")
     @PreAuthorize("hasRole(this.roleAdmin) or (hasRole(this.roleUser) and @authorizationHelper.mayAddOrDeleteTag(#tagData, #authentication))")
     public List<Node> addTag(@RequestBody TagData tagData,
+                             @RequestParam(name = "username", required = false) String userName,
                              Authentication authentication) {
-        if (tagData.getTag() == null ||
-                tagData.getTag().getName() == null ||
-                tagData.getTag().getName().isEmpty() ||
-                tagData.getUniqueNodeIds() == null) {
-            throw new IllegalArgumentException("Cannot add tag, data invalid");
+        if(authentication == null && (userName == null || userName.isEmpty())){
+            throw new IllegalArgumentException("Cannot determine username for tag");
         }
-        tagData.getTag().setUserName(authentication.getName());
+        tagData.getTag().setUserName(authentication == null ? userName : authentication.getName());
         return nodeDAO.addTag(tagData);
     }
 
     /**
      * Removes a {@link Tag} from specified list of target {@link Node}s. The {@link Tag} contained
-     *      * in tagData must be non-null, and its name must be non-null and non-empty.
+     * * in tagData must be non-null, and its name must be non-null and non-empty.
+     *
      * @param tagData See {@link TagData}
      * @return The list of updated {@link Node}s
      */
     @DeleteMapping("/tags")
     @PreAuthorize("hasRole(this.roleAdmin) or (hasRole(this.roleUser) and @authorizationHelper.mayAddOrDeleteTag(#tagData, #authentication))")
     public List<Node> deleteTag(@RequestBody TagData tagData, Authentication authentication) {
-        if (tagData.getTag() == null ||
-                tagData.getTag().getName() == null ||
-                tagData.getTag().getName().isEmpty() ||
-                tagData.getUniqueNodeIds() == null) {
-            throw new IllegalArgumentException("Cannot delete tag, data invalid");
-        }
         return nodeDAO.deleteTag(tagData);
     }
 }

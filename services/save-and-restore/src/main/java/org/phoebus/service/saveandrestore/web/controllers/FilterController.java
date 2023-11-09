@@ -45,32 +45,11 @@ public class FilterController extends BaseController {
      */
     @SuppressWarnings("unused")
     @PutMapping(value = "/filter", produces = JSON)
-    @PreAuthorize("hasRole(this.roleAdmin) or (hasRole(this.roleUser) and this.maySaveOrDelete(#filter.getName(), #principal))")
+    @PreAuthorize("hasRole(this.roleAdmin) or (hasRole(this.roleUser) and @authorizationHelper.maySaveOrDeleteFilter(#filter.getName(), #principal))")
     public Filter saveFilter(@RequestBody final Filter filter,
                              Principal principal) {
         filter.setUser(principal.getName());
         return nodeDAO.saveFilter(filter);
-    }
-
-
-    /**
-     * NOTE: this method MUST be public!
-     *
-     * <p>
-     * An authenticated user may save a filter, and update if user identity is same as the target's
-     * name field.
-     * </p>
-     *
-     * @param filterName   Unique name identifying the target of the user's update operation.
-     * @param principal Identifies user.
-     * @return <code>false</code> if user may not update the {@link Filter}.
-     */
-    @SuppressWarnings("unused")
-    public boolean maySaveOrDelete(String filterName, Principal principal) {
-        Optional<Filter> filter1 =
-                nodeDAO.getAllFilters().stream().filter(f ->
-                        f.getName().equals(filterName)).findFirst();
-        return filter1.map(value -> value.getUser().equals(principal.getName())).orElse(true);
     }
 
     @SuppressWarnings("unused")
@@ -81,7 +60,7 @@ public class FilterController extends BaseController {
 
     @SuppressWarnings("unused")
     @DeleteMapping(value = "/filter/{name}")
-    @PreAuthorize("hasRole(this.roleAdmin) or (hasRole(this.roleUser) and this.maySaveOrDelete(#name, #principal))")
+    @PreAuthorize("hasRole(this.roleAdmin) or (hasRole(this.roleUser) and @authorizationHelper.maySaveOrDeleteFilter(#name, #principal))")
     public void deleteFilter(@PathVariable final String name, Principal principal) {
         nodeDAO.deleteFilter(name);
     }

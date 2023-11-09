@@ -24,12 +24,12 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class DAOTest {
 
     @Test
-    public void testExtractDuplicatePVNames(){
+    public void testExtractDuplicatePVNames() {
         List<String> allPVNames = Arrays.asList("a", "b", "c", "d", "D", "a", "B", "a", "b");
         List<String> duplicates = new ElasticsearchDAO().extractDuplicates(allPVNames);
         assertEquals(2, duplicates.size());

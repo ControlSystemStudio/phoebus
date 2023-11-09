@@ -63,6 +63,9 @@ public class TagControllerTest {
     @Autowired
     private String userAuthorization;
 
+    @Autowired
+    private String demoUser;
+
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
@@ -86,11 +89,13 @@ public class TagControllerTest {
         Tag tag = new Tag();
         tag.setName("tag");
 
-        Node node = Node.builder().name("name").uniqueId("uniqueId").tags(List.of(tag)).build();
+        Node node = Node.builder().name("name").uniqueId("uniqueId").userName(demoUser).tags(List.of(tag)).build();
 
         TagData tagData = new TagData();
         tagData.setTag(tag);
         tagData.setUniqueNodeIds(List.of("uniqueId"));
+
+        when(nodeDAO.getNode("uniqueId")).thenReturn(node);
         when(nodeDAO.addTag(tagData)).thenReturn(List.of(node));
 
         MockHttpServletRequestBuilder request = post("/tags").contentType(JSON)
@@ -110,6 +115,10 @@ public class TagControllerTest {
 
         TagData tagData = new TagData();
         tagData.setUniqueNodeIds(List.of("uniqueId"));
+
+        Node node = Node.builder().name("name").uniqueId("uniqueId").userName(demoUser).build();
+        when(nodeDAO.getNode("uniqueId")).thenReturn(node);
+
         MockHttpServletRequestBuilder request = post("/tags").contentType(JSON)
                 .header(HttpHeaders.AUTHORIZATION, userAuthorization)
                 .content(objectMapper.writeValueAsString(tagData));

@@ -20,14 +20,18 @@
 package org.phoebus.service.saveandrestore.web.controllers;
 
 import org.phoebus.applications.saveandrestore.model.*;
+import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
+import org.phoebus.service.saveandrestore.web.config.AuthEnabledCondition;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -35,6 +39,7 @@ import java.util.stream.Collectors;
  * grant or deny access to certain REST endpoints.
  */
 @Service("authorizationHelper")
+@Conditional(AuthEnabledCondition.class)
 @SuppressWarnings("unused")
 public class AuthorizationHelper {
 
@@ -103,12 +108,24 @@ public class AuthorizationHelper {
      * @param principal         Identifies user.
      * @return <code>false</code> if user may not update the {@link CompositeSnapshot}.
      */
-
     public boolean mayUpdate(CompositeSnapshot compositeSnapshot, Principal principal) {
         return isOwner(compositeSnapshot.getCompositeSnapshotNode().getUniqueId(), principal.getName());
     }
 
+    /**
+     * An authenticated user may add or delete {@link Tag}s if user identity is same as the target's
+     * snapshot {@link Node}. However, to add or delete golden tag user must have admin privileges.
+     * @param tagData {@link TagData} containing {@link Node} ids and {@link Tag} name.
+     * @param authentication {@link Authentication} providing username and roles.
+     * @return <code>true</code> if {@link Tag} can be added or deleted.
+     */
     public boolean mayAddOrDeleteTag(TagData tagData, Authentication authentication){
+        if (tagData.getTag() == null ||
+                tagData.getTag().getName() == null ||
+                tagData.getTag().getName().isEmpty() ||
+                tagData.getUniqueNodeIds() == null) {
+            throw new IllegalArgumentException("Cannot add tag, data invalid");
+        }
         Tag tag = tagData.getTag();
         List<String> roles = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList());
         if(tag.getName().equals(Tag.GOLDEN)){
@@ -125,5 +142,27 @@ public class AuthorizationHelper {
     private boolean isOwner(String nodeId, String username){
         Node node = nodeDAO.getNode(nodeId);
         return node.getUserName().equals(username);
+    }
+
+    /**
+     *
+     * <p>
+     * An authenticated user may save a filter, and update/delete if user identity is same as the target's
+     * name field.
+     * </p>
+     *
+     * @param filterName   Unique name identifying the target of the user's update operation.
+     * @param principal Identifies user.
+     * @return <code>false</code> if user may not update the {@link Filter}.
+     */
+    public boolean maySaveOrDeleteFilter(String filterName, Principal principal) {
+        Optional<Filter> filter1 =
+                nodeDAO.getAllFilters().stream().filter(f ->
+                        f.getName().equals(filterName)).findFirst();
+        // If the filter does not (yet) exist, save is OK
+        if(filter1.isEmpty()){
+            return true;
+        }
+        return filter1.map(value -> value.getUser().equals(principal.getName())).orElse(true);
     }
 }
