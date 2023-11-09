@@ -22,15 +22,14 @@ import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
-import org.csstudio.trends.databrowser3.model.Model;
-import org.csstudio.trends.databrowser3.model.ModelItem;
-import org.csstudio.trends.databrowser3.model.PlotSample;
-import org.csstudio.trends.databrowser3.model.PlotSamples;
+import org.csstudio.trends.databrowser3.model.*;
+import org.csstudio.trends.databrowser3.ui.properties.ChangeSampleViewFilterCommand;
 import org.epics.vtype.*;
 import org.phoebus.archive.vtype.DoubleVTypeFormat;
 import org.phoebus.archive.vtype.VTypeFormat;
 import org.phoebus.archive.vtype.VTypeHelper;
 import org.phoebus.ui.pv.SeverityColors;
+import org.phoebus.ui.undo.UndoableActionManager;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.util.HashMap;
@@ -47,7 +46,10 @@ import java.util.stream.Collectors;
 @SuppressWarnings("nls")
 public class SampleView extends VBox {
     private final Model model;
+    private final UndoableActionManager undo;
     private final ComboBox<ModelItemListItem> items = new ComboBox<>();
+    private final ComboBox<ItemSampleViewFilter.FilterType> filter_type = new ComboBox<>();
+    private final TextField filter_value = new TextField();
     private final Label sample_count = new Label(Messages.SampleView_Count);
     private final TableView<PlotSampleWrapper> sample_table = new TableView<>();
     private volatile ModelItemListItem modelItem = null; // Wrapped ModelItem for the combobox to display all samples from all PVs
@@ -69,11 +71,35 @@ public class SampleView extends VBox {
         }
     }
 
+    private final ModelListener model_listener = new ModelListener() {
+        @Override
+        public void itemAdded(ModelItem item) {
+            update();
+        }
+
+        @Override
+        public void itemRemoved(ModelItem item) {
+            update();
+        }
+
+        @Override
+        public void changedItemLook(ModelItem item) {
+            update();
+        }
+
+        @Override
+        public void itemRefreshRequested(PVItem item) {
+            update();
+        }
+    };
+
     /**
      * @param model Model
      */
-    public SampleView(final Model model) {
+    public SampleView(final Model model, UndoableActionManager undo) {
         this.model = model;
+        this.undo = undo;
+        model.addListener(model_listener);
 
         items.setOnAction(event -> select(items.getSelectionModel().getSelectedItem()));
 
@@ -86,10 +112,31 @@ public class SampleView extends VBox {
         refresh.setOnAction(event -> update());
 
         final Label label = new Label(Messages.SampleView_Item);
-        final HBox top_row = new HBox(5, label, items, refresh);
+        final HBox top_row = new HBox(8, label, items, refresh);
         top_row.setAlignment(Pos.CENTER_LEFT);
 
-        final HBox second_row = new HBox(5, sample_count, new Region());
+        filter_type.setTooltip(new Tooltip(Messages.SampleView_FilterTypeTT));
+        filter_type.getItems().setAll(ItemSampleViewFilter.FilterType.values());
+        if (modelItem != null)
+            filter_type.setValue(this.modelItem.getModelItem().getSampleViewFilter().getFilterType());
+        filter_type.setOnAction(event -> {
+            final ItemSampleViewFilter filter = new ItemSampleViewFilter(modelItem.getModelItem().getSampleViewFilter());
+            filter.setFilterType(filter_type.getValue());
+
+            new ChangeSampleViewFilterCommand(undo, modelItem.getModelItem(), filter);
+        });
+
+        filter_value.setTooltip(new Tooltip(Messages.SampleView_FilterValueTT));
+        filter_value.setOnAction(event -> {
+            // Make a copy so that we can undo the change
+            final ItemSampleViewFilter filter = new ItemSampleViewFilter(modelItem.getModelItem().getSampleViewFilter());
+            filter.setFilterValue(Double.parseDouble(filter_value.getText()));
+
+            new ChangeSampleViewFilterCommand(undo, modelItem.getModelItem(), filter);
+        });
+
+            // Todo: move to right side of row
+        final HBox second_row = new HBox(5, sample_count, new Region(), filter_type, filter_value);
 
 
         // Combo should fill the available space.
@@ -171,6 +218,8 @@ public class SampleView extends VBox {
         }
 
         items.getSelectionModel().select(modelItem);
+        filter_value.setText(String.valueOf(this.modelItem.getModelItem().getSampleViewFilter().getFilterValue()));
+        filter_type.setValue(this.modelItem.getModelItem().getSampleViewFilter().getFilterType());
 
         // Update samples off the UI thread
         if (modelItem.isAllSelection()) {
@@ -242,6 +291,9 @@ public class SampleView extends VBox {
 
         // Display the PVitem name (Column 4)
         sample_table.getColumns().get(4).setVisible(modelItem != null && modelItem.isAllSelection()); // Hide the PVitem name (Column 4) when not needed
+        filter_type.setVisible(modelItem != null && !modelItem.isAllSelection());
+        filter_value.setVisible(modelItem != null && !modelItem.isAllSelection());
+
         // Hide samples that are not visible in the plot when viewing all items
         sample_count.setText(Messages.SampleView_Count + " " + all_samples_size
                 + " (" + Messages.SampleView_Count_Visible + " " + this.samples.size() + ")");
@@ -316,6 +368,34 @@ public class SampleView extends VBox {
                     }
 
                     if (sample_value >= filter_value && previous_sample_value < filter_value) {
+                        new_samples.add(sample);
+                    }
+                    last_viewed_sample.put(sample.getModelItem(), sample);
+                    break;
+                case THRESHOLD_DOWN:
+                    // Handle sample bundles
+                    if (sample.getVType() instanceof VStatistics) {
+                        double previous_sample_value_min = ((VStatistics) previous_sample_for_item.getVType()).getMin();
+                        double sample_value_min = ((VStatistics) sample.getVType()).getMin();
+                        double sample_value_max = ((VStatistics) sample.getVType()).getMax();
+
+                        // Compare minimum of prev to maximum of current.
+                        // also check if threshold was passed within a bundle
+                        if ((previous_sample_value_min > filter_value && sample_value_max <= filter_value)
+                                || (sample_value_max > filter_value && sample_value_min <= filter_value)) {
+                            new_samples.add(sample);
+                        }
+                        last_viewed_sample.put(sample.getModelItem(), sample);
+                        continue;
+                    }
+
+                    if (!(sample.getVType() instanceof VNumber || sample.getVType() instanceof VEnum)) {
+                        //System.out.println("Cannot compare non-numerical types");
+                        new_samples.add(sample);
+                        continue;
+                    }
+
+                    if (previous_sample_value > filter_value && sample_value <= filter_value) {
                         new_samples.add(sample);
                     }
                     last_viewed_sample.put(sample.getModelItem(), sample);
@@ -442,7 +522,7 @@ public class SampleView extends VBox {
                         }
 
                         if (item.getModelItem().getResolvedName().equals(item.getModelItem().getDisplayName()) || item.getModelItem().getDisplayName().isEmpty()) {
-                            System.out.println("item.getModelItem().getResolvedName(): " + item.getModelItem().getResolvedName());
+                            //System.out.println("item.getModelItem().getResolvedName(): " + item.getModelItem().getResolvedName());
                             setText(item.getModelItem().getResolvedName());
                         } else {
                             setText(item.getModelItem().getDisplayName() + " (" + item.getModelItem().getResolvedName() + ")");

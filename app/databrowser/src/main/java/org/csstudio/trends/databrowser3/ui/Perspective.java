@@ -183,7 +183,7 @@ public class Perspective extends SplitPane
         final MenuItem show_samples = new MenuItem(Messages.InspectSamples, Activator.getIcon("search"));
         show_samples.setOnAction(event ->
         {
-            createSampleViewTab();
+            createSampleViewTab(plot.getPlot().getUndoableActionManager());
             showBottomTab(sampleview_tab);
         });
 
@@ -243,8 +243,8 @@ public class Perspective extends SplitPane
         final UndoableActionManager undo = plot.getPlot().getUndoableActionManager();
 
         final List<MenuItem> add_data = new ArrayList<>();
-        add_data.add(new AddPVorFormulaMenuItem(plot.getPlot(), model, undo, false));
-        add_data.add(new AddPVorFormulaMenuItem(plot.getPlot(), model, undo, true));
+        add_data.add(new AddPVorFormulaMenuItem(sampleview, model, undo, false));
+        add_data.add(new AddPVorFormulaMenuItem(sampleview, model, undo, true));
 
         for (String type : SampleImporters.getTypes())
             add_data.add(new SampleImportAction(model, type, undo));
@@ -309,11 +309,11 @@ public class Perspective extends SplitPane
         }
     }
 
-    private void createSampleViewTab()
+    private void createSampleViewTab(UndoableActionManager undo)
     {
         if (sampleview_tab == null)
         {
-            sampleview = new SampleView(model);
+            sampleview = new SampleView(model, undo);
             sampleview_tab = new Tab(Messages.InspectSamples, sampleview);
             sampleview_tab.setGraphic(Activator.getIcon("search"));
             sampleview_tab.setOnClosed(evt -> autoMinimizeBottom());
@@ -524,7 +524,7 @@ public class Perspective extends SplitPane
         {
             if (show)
             {
-                createSampleViewTab();
+                createSampleViewTab(plot.getPlot().getUndoableActionManager());
                 memento.getBoolean(SAMPLEVIEW_IN_BOTTOM_TABS).ifPresent(in_bottom_tabs -> {
                     setSampleviewLocation(in_bottom_tabs);
                 });

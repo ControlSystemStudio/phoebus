@@ -1,5 +1,8 @@
 package org.csstudio.trends.databrowser3.ui.sampleview;
 
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+
 import static org.csstudio.trends.databrowser3.Messages.*;
 
 public class ItemSampleViewFilter {
@@ -8,7 +11,8 @@ public class ItemSampleViewFilter {
         ALARM_UP(SampleView_ItemFilter_ALARM_UP),
         ALARM_CHANGES(SampleView_ItemFilter_ALARM_CHANGES),
         THRESHOLD_UP(SampleView_ItemFilter_THRESHOLD_UP),
-        THRESHOLD_CHANGES(SampleView_ItemFilter_THRESHOLD_CHANGES);
+        THRESHOLD_CHANGES(SampleView_ItemFilter_THRESHOLD_CHANGES),
+        THRESHOLD_DOWN(SampleView_ItemFilter_THRESHOLD_DOWN);
 
         private final String label;
 
@@ -33,16 +37,21 @@ public class ItemSampleViewFilter {
     }
 
     private FilterType state;
-    private double filterValue;
+    private final DoubleProperty filterValue = new SimpleDoubleProperty();
 
     public ItemSampleViewFilter() {
         this.state = FilterType.NO_FILTER;
-        this.filterValue = 0.0f;
+        this.filterValue.set(0.0d);
+    }
+
+    public ItemSampleViewFilter(FilterType type) {
+        this.state = type;
+        this.filterValue.set(0.0d);
     }
 
     public ItemSampleViewFilter(ItemSampleViewFilter source) {
         this.state = source.getFilterType();
-        this.filterValue = source.getFilterValue();
+        this.filterValue.set(source.getFilterValue());
     }
 
     public FilterType getFilterType() {
@@ -53,11 +62,15 @@ public class ItemSampleViewFilter {
         this.state = state;
     }
 
-    public double getFilterValue() {
+    public Double getFilterValue() {
+        return filterValue.get();
+    }
+
+    public DoubleProperty filterValueProperty() {
         return filterValue;
     }
 
     public void setFilterValue(double filterValue) {
-        this.filterValue = filterValue;
+        this.filterValue.set(filterValue);
     }
 }
