@@ -33,6 +33,7 @@ import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.phoebus.archive.vtype.DefaultVTypeFormat;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.AlertWithToggle;
 import org.phoebus.ui.dialog.DialogHelper;
@@ -146,7 +147,7 @@ public class TracesTab extends Tab
 
         RequestTypeCell()
         {
-            button.setTooltip(new Tooltip(Messages.RequestTypeTT));
+            TooltipHelper.setTooltip(button, new Tooltip(Messages.RequestTypeTT));
         }
 
         @Override
@@ -506,7 +507,7 @@ public class TracesTab extends Tab
                 {
                     super.updateItem(value, empty);
                     if (empty)
-                        this.setTooltip(null);
+                        TooltipHelper.setTooltip(this, null);
                     else
                     {
                         if (getTableRow() == null)
@@ -514,14 +515,14 @@ public class TracesTab extends Tab
                         final ModelItem item = getTableRow().getItem();
                         if (! (item instanceof PVItem))
                         {
-                            this.setTooltip(null);
+                            TooltipHelper.setTooltip(this, null);
                             return;
                         }
                         // Dynamic Tooltip that shows time range for the buffer
                         final int size = ((PVItem) getTableRow().getItem()).getLiveCapacity();
                         final String span = SecondsParser.formatSeconds(size);
                         String text = MessageFormat.format(Messages.LiveBufferSizeInfoFmt, size, span);
-                        this.setTooltip(new Tooltip(text));
+                        TooltipHelper.setTooltip(this, new Tooltip(text));
                     }
                 }
             };

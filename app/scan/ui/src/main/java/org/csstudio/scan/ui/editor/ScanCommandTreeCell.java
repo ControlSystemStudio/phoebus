@@ -145,7 +145,7 @@ public class ScanCommandTreeCell extends TreeCell<ScanCommand>
           {
               setText(command.toString());
               setGraphic(ImageCache.getImageView(ScanCommandFactory.getImage(command.getCommandID())));
-              setTooltip(new Tooltip(command.getCommandName() + " @ " + command.getAddress()));
+              org.phoebus.ui.TooltipHelper.setTooltip(this, new Tooltip(command.getCommandName() + " @ " + command.getAddress()));
 
               // Highlight the active command
               // Cannot use 'background' because that's already used for 'selected' item

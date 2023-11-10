@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import org.csstudio.javafx.rtplot.Activator;
 import org.csstudio.javafx.rtplot.Messages;
 import org.csstudio.javafx.rtplot.RTImagePlot;
+import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.undo.UndoButtons;
 
 import javafx.scene.control.Button;
@@ -79,7 +80,7 @@ public class ImageToolbarHandler
         }
         final Button item = new Button();
         item.setGraphic(new ImageView(icon));
-        item.setTooltip(new Tooltip(tool_tip));
+        TooltipHelper.setTooltip(item, new Tooltip(tool_tip));
         item.setMinSize(ToolbarHandler.BUTTON_WIDTH, ToolbarHandler.BUTTON_HEIGHT);
         toolbar.getItems().add(item);
         return item;
@@ -163,7 +164,7 @@ public class ImageToolbarHandler
 			logger.log(Level.WARNING, "Cannot get icon" + icon, ex);
 			item.setText(icon.toString());
 		}
-        item.setTooltip(new Tooltip(tool_tip));
+        TooltipHelper.setTooltip(item, new Tooltip(tool_tip));
         item.setMinSize(ToolbarHandler.BUTTON_WIDTH, ToolbarHandler.BUTTON_HEIGHT);
 
         toolbar.getItems().add(item);

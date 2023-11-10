@@ -35,6 +35,7 @@ import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.csstudio.display.builder.model.widgets.GroupWidget;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
+import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.javafx.PlatformInfo;
 import org.phoebus.ui.javafx.Tracker;
@@ -306,7 +307,7 @@ public class SelectedWidgetUITracker extends Tracker
         // but we set the exact size in here
         inline_editor.setManaged(false);
         inline_editor.setPromptText(property.getDescription()); // Not really shown since TextField will have focus
-        inline_editor.setTooltip(new Tooltip(property.getDescription()));
+        TooltipHelper.setTooltip(inline_editor, new Tooltip(property.getDescription()));
         inline_editor.relocate(tracker.getX(), tracker.getY());
         inline_editor.resize(Math.max(100, tracker.getWidth()), Math.max(20, tracker.getHeight()));
         getChildren().add(inline_editor);

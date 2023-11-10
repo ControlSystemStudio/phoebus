@@ -25,6 +25,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
+import org.phoebus.ui.TooltipHelper;
 
 import javax.tools.Tool;
 
@@ -41,7 +42,7 @@ public class TooltipTableColumn<T> extends TableColumn<TableEntry, T> {
     private Label label;
 
     public void setTooltip(String tooltip) {
-        label.setTooltip(new Tooltip(tooltip));
+        TooltipHelper.setTooltip(label, new Tooltip(tooltip));
     }
 
     public void setLabelText(String labelText){
@@ -76,7 +77,7 @@ public class TooltipTableColumn<T> extends TableColumn<TableEntry, T> {
 
     public void setup(String text, String tooltip, int minWidth, int prefWidth, boolean resizable) {
         label = new Label(text);
-        label.setTooltip(new Tooltip(tooltip));
+        TooltipHelper.setTooltip(label, new Tooltip(tooltip));
         label.setTextAlignment(TextAlignment.CENTER);
         setGraphic(label);
 

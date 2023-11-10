@@ -29,6 +29,7 @@ import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
+import org.phoebus.ui.TooltipHelper;
 
 /** Dialog for adding annotation to a trace
  *  @param <XTYPE> Data type used for the {@link PlotDataItem}
@@ -73,7 +74,7 @@ public class AddAnnotationDialog<XTYPE extends Comparable<XTYPE>> extends Dialog
 
         Label label = new Label(Messages.AddAnnotation_Trace);
         trace_list = new ListView<>(traces);
-        trace_list.setTooltip(new Tooltip(Messages.AddAnnotation_Trace_TT));
+        TooltipHelper.setTooltip(trace_list, new Tooltip(Messages.AddAnnotation_Trace_TT));
         trace_list.setPrefHeight(100);
         trace_list.setCellFactory(view -> new TraceCell());
         if (traces.size() > 0)
@@ -85,7 +86,7 @@ public class AddAnnotationDialog<XTYPE extends Comparable<XTYPE>> extends Dialog
         label = new Label(Messages.AddAnnotation_Content);
         text = new TextArea();
         text.setText(Messages.AddAnnotation_DefaultText);
-        text.setTooltip(new Tooltip(Messages.AddAnnotation_Text_TT));
+        TooltipHelper.setTooltip(text, new Tooltip(Messages.AddAnnotation_Text_TT));
         text.setPrefHeight(100);
 		content.add(label, 0, 1);
         content.add(text, 1, 1);

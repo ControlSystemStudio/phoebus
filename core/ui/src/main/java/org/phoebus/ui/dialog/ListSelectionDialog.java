@@ -22,6 +22,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.ui.Messages;
+import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.javafx.ClearingTextField;
 import org.phoebus.ui.javafx.ImageCache;
 
@@ -105,15 +106,15 @@ public class ListSelectionDialog extends Dialog<Boolean>
         availableItems.setId(AVAILABLE_ID);
         
         final Button add = new Button(Messages.Add, ImageCache.getImageView(ImageCache.class, ADD_ICON));
-        add.setTooltip(new Tooltip(Messages.Add_Tooltip));
+        TooltipHelper.setTooltip(add, new Tooltip(Messages.Add_Tooltip));
         add.setOnAction(event -> addSelectedItems());
 
         final Button remove = new Button(org.phoebus.ui.javafx.Messages.Remove, ImageCache.getImageView(ImageCache.class, REMOVE_ICON));
-        remove.setTooltip(new Tooltip(Messages.Remove_Tooltip));
+        TooltipHelper.setTooltip(remove, new Tooltip(Messages.Remove_Tooltip));
         remove.setOnAction(event -> removeItems(selectedItems.getSelectionModel().getSelectedItems()));
 
         final Button clear  = new Button(Messages.Clear, ImageCache.getImageView(ImageCache.class, CLEAR_ICON));
-        clear.setTooltip(new Tooltip(Messages.Clear_Tooltip));
+        TooltipHelper.setTooltip(clear, new Tooltip(Messages.Clear_Tooltip));
         clear.setOnAction(event ->  removeItems(selectedItems.getItems()));
 
         add.setPrefWidth(buttonWidth);
@@ -200,7 +201,7 @@ public class ListSelectionDialog extends Dialog<Boolean>
         
         final ClearingTextField searchField = new ClearingTextField();
         searchField.setId(SEARCH_ID);
-        searchField.setTooltip(new Tooltip(Messages.SearchAvailableItems));
+        TooltipHelper.setTooltip(searchField, new Tooltip(Messages.SearchAvailableItems));
 
         searchField.textProperty().addListener((obs, oldVal, newVal) ->
         {

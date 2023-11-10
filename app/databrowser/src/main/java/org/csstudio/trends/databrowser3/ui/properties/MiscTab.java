@@ -12,6 +12,7 @@ import java.time.Duration;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelListener;
+import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.geometry.Insets;
@@ -103,7 +104,7 @@ public class MiscTab extends Tab
 
 
         layout.add(new Label(Messages.TitleLbl), 0, 0);
-        title.setTooltip(new Tooltip(Messages.TitleTT));
+        TooltipHelper.setTooltip(title, new Tooltip(Messages.TitleTT));
         title.setOnAction(event ->
         {
             updating = true;
@@ -163,7 +164,7 @@ public class MiscTab extends Tab
         });
 
         layout.add(new Label(Messages.SaveChangesLbl), 0, 5);
-        save_changes.setTooltip(new Tooltip(Messages.SaveChangesTT));
+        TooltipHelper.setTooltip(save_changes, new Tooltip(Messages.SaveChangesTT));
         save_changes.setOnAction(event ->
         {
             updating = true;

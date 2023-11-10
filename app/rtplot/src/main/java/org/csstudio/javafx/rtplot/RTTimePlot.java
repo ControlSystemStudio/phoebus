@@ -100,7 +100,7 @@ public class RTTimePlot extends RTPlot<Instant>
         if (enabled)
         {   // Show that scrolling is 'on', and tool tip explains that it can be turned off
             scroll_img.imageProperty().set(scroll_on);
-            scroll.setTooltip(new Tooltip(Messages.Scroll_Off_TT));
+            org.phoebus.ui.TooltipHelper.setTooltip(scroll, new Tooltip(Messages.Scroll_Off_TT));
             // Scroll once so that end of axis == 'now',
             // because otherwise one of the listeners might right away
             // disable scrolling
@@ -111,7 +111,7 @@ public class RTTimePlot extends RTPlot<Instant>
         else
         {   // Other way around
             scroll_img.imageProperty().set(scroll_off);
-            scroll.setTooltip(new Tooltip(Messages.Scroll_On_TT));
+            org.phoebus.ui.TooltipHelper.setTooltip(scroll, new Tooltip(Messages.Scroll_On_TT));
             was_scrolling = scrolling.getAndSet(null);
         }
         if (was_scrolling != null)

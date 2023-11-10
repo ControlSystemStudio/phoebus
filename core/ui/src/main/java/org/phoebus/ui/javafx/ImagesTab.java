@@ -13,6 +13,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
+import org.phoebus.ui.TooltipHelper;
 
 /** Tab that allows the viewing and selection of images and screen shots from the file system, application, or system clip board.
  *  @author Evan Smith
@@ -33,7 +34,7 @@ public class ImagesTab extends Tab
 
         setText(Messages.Images);
         setClosable(false);
-        setTooltip(new Tooltip(Messages.AddImages));
+        TooltipHelper.setTooltip(this, new Tooltip(Messages.AddImages));
 
         setContent(images);
     }

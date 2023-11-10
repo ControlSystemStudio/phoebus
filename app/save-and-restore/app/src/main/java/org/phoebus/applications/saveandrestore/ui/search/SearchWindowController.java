@@ -52,6 +52,7 @@ import org.phoebus.applications.saveandrestore.ui.HelpViewer;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.util.time.TimestampFormats;
@@ -152,10 +153,10 @@ public class SearchWindowController implements Initializable {
             protected void updateItem(Node node, boolean empty) {
                 super.updateItem(node, empty);
                 if (node == null || empty) {
-                    setTooltip(null);
+                    TooltipHelper.setTooltip(this, null);
                     setOnMouseClicked(null);
                 } else {
-                    setTooltip(new Tooltip(Messages.searchEntryToolTip));
+                    TooltipHelper.setTooltip(this, new Tooltip(Messages.searchEntryToolTip));
 
                     setOnMouseClicked(action -> {
                         if (action.getClickCount() == 2) {

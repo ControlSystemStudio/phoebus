@@ -59,6 +59,7 @@ import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.framework.workbench.Locations;
 import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.Preferences;
+import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.application.MenuEntryService.MenuTreeNode;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ListPickerDialog;
@@ -791,7 +792,7 @@ public class PhoebusApplication extends Application {
         homeIcon.setFitHeight(16.0);
         homeIcon.setFitWidth(16.0);
         home_display_button = new Button(null, homeIcon);
-        home_display_button.setTooltip(new Tooltip(Messages.HomeTT));
+        TooltipHelper.setTooltip(home_display_button, new Tooltip(Messages.HomeTT));
         toolBar.getItems().add(home_display_button);
 
         final TopResources homeResource = TopResources.parse(Preferences.home_display);
@@ -799,12 +800,12 @@ public class PhoebusApplication extends Application {
         home_display_button.setOnAction(event -> openResource(homeResource.getResource(0), false));
 
         top_resources_button = new MenuButton(null, ImageCache.getImageView(getClass(), "/icons/fldr_obj.png"));
-        top_resources_button.setTooltip(new Tooltip(Messages.TopResources));
+        TooltipHelper.setTooltip(top_resources_button, new Tooltip(Messages.TopResources));
         top_resources_button.setDisable(true);
         toolBar.getItems().add(top_resources_button);
 
         layout_menu_button = new MenuButton(null, ImageCache.getImageView(getClass(), "/icons/layouts.png"));
-        layout_menu_button.setTooltip(new Tooltip(Messages.LayoutTT));
+        TooltipHelper.setTooltip(layout_menu_button, new Tooltip(Messages.LayoutTT));
         toolBar.getItems().add(layout_menu_button);
 
         // Contributed Entries
@@ -819,7 +820,7 @@ public class PhoebusApplication extends Application {
                 button.setText(entry.getName());
             else {
                 button.setGraphic(new ImageView(icon));
-                button.setTooltip(new Tooltip(entry.getName()));
+                TooltipHelper.setTooltip(button, new Tooltip(entry.getName()));
             }
 
             // Want to handle button presses with 'Control' in different way,
@@ -1431,19 +1432,19 @@ public class PhoebusApplication extends Application {
                 prompt.getDialogPane().getButtonTypes().add(exitPhoebusWithoutSavingUnsavedChanges);
 
                 Button cancel_button = (Button) prompt.getDialogPane().lookupButton(ButtonType.CANCEL);
-                cancel_button.setTooltip(new Tooltip(cancel_button.getText()));
+                TooltipHelper.setTooltip(cancel_button, new Tooltip(cancel_button.getText()));
 
                 Button clearSelectionOfCheckboxes_button = (Button) prompt.getDialogPane().lookupButton(clearSelectionOfCheckboxes);
-                clearSelectionOfCheckboxes_button.setTooltip(new Tooltip(clearSelectionOfCheckboxes_button.getText()));
+                TooltipHelper.setTooltip(clearSelectionOfCheckboxes_button, new Tooltip(clearSelectionOfCheckboxes_button.getText()));
 
                 Button selectAllCheckboxes_button = (Button) prompt.getDialogPane().lookupButton(selectAllCheckboxes);
-                selectAllCheckboxes_button.setTooltip(new Tooltip(selectAllCheckboxes_button.getText()));
+                TooltipHelper.setTooltip(selectAllCheckboxes_button, new Tooltip(selectAllCheckboxes_button.getText()));
 
                 Button saveSelectedItems_button = (Button) prompt.getDialogPane().lookupButton(saveSelectedItems);
-                saveSelectedItems_button.setTooltip(new Tooltip(saveSelectedItems_button.getText()));
+                TooltipHelper.setTooltip(saveSelectedItems_button, new Tooltip(saveSelectedItems_button.getText()));
 
                 Button exitPhoebusWithoutSavingUnsavedChanges_button = (Button) prompt.getDialogPane().lookupButton(exitPhoebusWithoutSavingUnsavedChanges);
-                exitPhoebusWithoutSavingUnsavedChanges_button.setTooltip(new Tooltip(exitPhoebusWithoutSavingUnsavedChanges_button.getText()));
+                TooltipHelper.setTooltip(exitPhoebusWithoutSavingUnsavedChanges_button, new Tooltip(exitPhoebusWithoutSavingUnsavedChanges_button.getText()));
                 List<Consumer<Boolean>> setCheckBoxStatusActions = new LinkedList<>();
                 List<Supplier<Boolean>> getCheckBoxStatusActions = new LinkedList<>();
                 List<Supplier<SaveStatus>> saveActions = new LinkedList<>();
@@ -1463,12 +1464,12 @@ public class PhoebusApplication extends Application {
                     if (getCheckBoxStatusActions.stream().allMatch(getCheckBoxStatus -> getCheckBoxStatus.get())) {
                         selectAllCheckboxes_button.setDisable(true);
                         saveSelectedItems_button.setText(Messages.UnsavedChanges_saveButtonText_saveAnd + " " + closeActionName);
-                        saveSelectedItems_button.setTooltip(new Tooltip(saveSelectedItems_button.getText()));
+                        TooltipHelper.setTooltip(saveSelectedItems_button, new Tooltip(saveSelectedItems_button.getText()));
                     }
                     else {
                         selectAllCheckboxes_button.setDisable(false);
                         saveSelectedItems_button.setText(Messages.UnsavedChanges_saveButtonText);
-                        saveSelectedItems_button.setTooltip(new Tooltip(saveSelectedItems_button.getText()));
+                        TooltipHelper.setTooltip(saveSelectedItems_button, new Tooltip(saveSelectedItems_button.getText()));
                     }
                 };
 

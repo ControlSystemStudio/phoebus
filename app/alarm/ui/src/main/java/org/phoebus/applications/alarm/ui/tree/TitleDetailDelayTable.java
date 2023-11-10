@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.phoebus.applications.alarm.model.TitleDetailDelay;
 import org.phoebus.applications.alarm.ui.AlarmUI;
+import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.MultiLineInputDialog;
 import org.phoebus.ui.javafx.ImageCache;
@@ -292,7 +293,7 @@ public class TitleDetailDelayTable extends BorderPane
 
     private void createButtons()
     {
-        add.setTooltip(new Tooltip("Add a new table item."));
+        TooltipHelper.setTooltip(add, new Tooltip("Add a new table item."));
         add.setOnAction(event ->
         {
             items.add(new TitleDetailDelay("", "", 0));
@@ -308,7 +309,7 @@ public class TitleDetailDelayTable extends BorderPane
                 200, TimeUnit.MILLISECONDS);
         });
 
-        edit.setTooltip(new Tooltip("Edit the detail field of table item."));
+        TooltipHelper.setTooltip(edit, new Tooltip("Edit the detail field of table item."));
         edit.setOnAction(event ->
         {
             final int row = table.getSelectionModel().getSelectedIndex();
@@ -323,7 +324,7 @@ public class TitleDetailDelayTable extends BorderPane
             });
         });
 
-        up.setTooltip(new Tooltip("Move table item up."));
+        TooltipHelper.setTooltip(up, new Tooltip("Move table item up."));
         up.setOnAction(event ->
         {
             final List<Integer> idx = new ArrayList<>(table.getSelectionModel().getSelectedIndices());
@@ -346,7 +347,7 @@ public class TitleDetailDelayTable extends BorderPane
             }
         });
 
-        down.setTooltip(new Tooltip("Move table item down."));
+        TooltipHelper.setTooltip(down, new Tooltip("Move table item down."));
         down.setOnAction(event ->
         {
             final List<Integer> idx = new ArrayList<>(table.getSelectionModel().getSelectedIndices());
@@ -370,7 +371,7 @@ public class TitleDetailDelayTable extends BorderPane
             }
         });
 
-        delete.setTooltip(new Tooltip("Delete selected table items."));
+        TooltipHelper.setTooltip(delete, new Tooltip("Delete selected table items."));
         delete.setOnAction(event ->
         {
             final List<Integer> idx = new ArrayList<>(table.getSelectionModel().getSelectedIndices());

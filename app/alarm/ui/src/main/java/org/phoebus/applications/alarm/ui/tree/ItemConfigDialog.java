@@ -16,6 +16,7 @@ import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.client.AlarmClientNode;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.ui.tree.datetimepicker.DateTimePicker;
+import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.util.time.SecondsParser;
 import org.phoebus.util.time.TimeParser;
@@ -93,13 +94,13 @@ class ItemConfigDialog extends Dialog<Boolean>
 
             layout.add(new Label("Description:"), 0, row);
             description = new TextField(leaf.getDescription());
-            description.setTooltip(new Tooltip("Alarm description, also used for annunciation"));
+            TooltipHelper.setTooltip(description, new Tooltip("Alarm description, also used for annunciation"));
             layout.add(description, 1, row++);
             GridPane.setHgrow(description, Priority.ALWAYS);
 
             layout.add(new Label("Behavior:"), 0, row);
             enabled = new CheckBox("Enabled");
-            enabled.setTooltip(new Tooltip("Enable alarms? See also 'Enabling Filter'"));
+            TooltipHelper.setTooltip(enabled, new Tooltip("Enable alarms? See also 'Enabling Filter'"));
             enabled.setSelected(leaf.isEnabled());
             enabled.setOnAction((event) ->
             {
@@ -111,23 +112,23 @@ class ItemConfigDialog extends Dialog<Boolean>
             });
 
             latching = new CheckBox("Latch");
-            latching.setTooltip(new Tooltip("Latch alarm until acknowledged?"));
+            TooltipHelper.setTooltip(latching, new Tooltip("Latch alarm until acknowledged?"));
             latching.setSelected(leaf.isLatching());
 
             annunciating = new CheckBox("Annunciate");
-            annunciating.setTooltip(new Tooltip("Request audible alarm annunciation (using the description)?"));
+            TooltipHelper.setTooltip(annunciating, new Tooltip("Request audible alarm annunciation (using the description)?"));
             annunciating.setSelected(leaf.isAnnunciating());
 
             layout.add(new HBox(10, enabled, latching, annunciating), 1, row++);
 
             layout.add(new Label("Disable until:"), 0, row);
             enabled_date_picker = new DateTimePicker();
-            enabled_date_picker.setTooltip(new Tooltip("Select a date until which the alarm should be disabled"));
+            TooltipHelper.setTooltip(enabled_date_picker, new Tooltip("Select a date until which the alarm should be disabled"));
             enabled_date_picker.setDateTimeValue(leaf.getEnabledDate());
             enabled_date_picker.setPrefSize(280, 25);
 
             relative_date = new ComboBox<String>();
-            relative_date.setTooltip(new Tooltip("Select a predefined duration for disabling the alarm"));
+            TooltipHelper.setTooltip(relative_date, new Tooltip("Select a predefined duration for disabling the alarm"));
             relative_date.getItems().addAll(AlarmSystem.shelving_options);
             relative_date.setPrefSize(200, 25);
 
@@ -175,21 +176,21 @@ class ItemConfigDialog extends Dialog<Boolean>
                 }
                 delay_tt.setText("Alarms are indicated when they persist for at least this long.\n" + detail);
             });
-            delay.setTooltip(delay_tt);
+            TooltipHelper.setTooltip(delay, delay_tt);
             delay.setEditable(true);
             delay.setPrefWidth(80);
             layout.add(delay, 1, row++);
 
             layout.add(new Label("Alarm Count [within delay]:"), 0, row);
             count = new Spinner<>(0, Integer.MAX_VALUE, leaf.getCount());
-            count.setTooltip(new Tooltip("Alarms are indicated when they occur this often within the delay"));
+            TooltipHelper.setTooltip(count, new Tooltip("Alarms are indicated when they occur this often within the delay"));
             count.setEditable(true);
             count.setPrefWidth(80);
             layout.add(count, 1, row++);
 
             layout.add(new Label("Enabling Filter:"), 0, row);
             filter = new TextField(leaf.getFilter());
-            filter.setTooltip(new Tooltip("Optional expression for enabling the alarm"));
+            TooltipHelper.setTooltip(filter, new Tooltip("Optional expression for enabling the alarm"));
             layout.add(filter, 1, row++);
 
             // Disable most of the detail when PV not enabled

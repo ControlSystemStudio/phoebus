@@ -23,6 +23,7 @@ import org.csstudio.display.builder.editor.util.WidgetTransfer;
 import org.csstudio.display.builder.model.WidgetCategory;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetFactory;
+import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.javafx.ClearingTextField;
 
 import javafx.geometry.Insets;
@@ -97,7 +98,7 @@ public class Palette
 
         final TextField searchField = new ClearingTextField();
         searchField.setPromptText(Messages.SearchTextField);
-        searchField.setTooltip(new Tooltip(Messages.WidgetFilterTT));
+        TooltipHelper.setTooltip(searchField, new Tooltip(Messages.WidgetFilterTT));
         searchField.setPrefColumnCount(9);
         searchField.textProperty().addListener( ( observable, oldValue, search_text ) ->
         {
@@ -187,7 +188,7 @@ public class Palette
 
             button.setPrefWidth(PREFERRED_WIDTH);
             button.setAlignment(Pos.BASELINE_LEFT);
-            button.setTooltip(new Tooltip(desc.getDescription()));
+            TooltipHelper.setTooltip(button, new Tooltip(desc.getDescription()));
             button.setOnAction(event ->
             {
                 // Remember the widget-to-create via rubberband

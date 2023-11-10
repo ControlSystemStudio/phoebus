@@ -32,6 +32,7 @@ import org.csstudio.display.builder.representation.javafx.PVTableItem;
 import org.csstudio.display.builder.representation.javafx.PVTableItem.AutoCompletedTableCell;
 import org.csstudio.display.builder.representation.javafx.ScriptsDialog;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
+import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.MultiLineInputDialog;
 import org.phoebus.ui.javafx.EditCell;
@@ -680,7 +681,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         rules_table.getColumns().add(name_col);
         rules_table.setEditable(true);
         rules_table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        rules_table.setTooltip(new Tooltip(Messages.RulesDialog_RulesTT));
+        TooltipHelper.setTooltip(rules_table, new Tooltip(Messages.RulesDialog_RulesTT));
         rules_table.setPlaceholder(new Label(Messages.RulesDialog_NoRules));
 
         // Buttons
@@ -852,7 +853,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         expressions_table.getColumns().add(val_exp_col);
         expressions_table.setEditable(true);
         expressions_table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        expressions_table.setTooltip(new Tooltip(Messages.RulesDialog_ExpressionsTT));
+        TooltipHelper.setTooltip(expressions_table, new Tooltip(Messages.RulesDialog_ExpressionsTT));
         expressions_table.setPlaceholder(new Label(Messages.RulesDialog_NoExpressions));
 
         // Buttons
@@ -947,7 +948,7 @@ public class RulesDialog extends Dialog<List<RuleInfo>>
         pvs_table.getColumns().add(trigger_col);
         pvs_table.setEditable(true);
         pvs_table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        pvs_table.setTooltip(new Tooltip(Messages.RulesDialog_PVsTT));
+        TooltipHelper.setTooltip(pvs_table, new Tooltip(Messages.RulesDialog_PVsTT));
         pvs_table.setPlaceholder(new Label(Messages.RulesDialog_NoPVs));
 
         // Buttons

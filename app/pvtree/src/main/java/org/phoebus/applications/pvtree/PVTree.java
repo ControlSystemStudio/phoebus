@@ -18,6 +18,7 @@ import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dnd.DataFormats;
 
@@ -61,12 +62,12 @@ public class PVTree implements AppInstance
     {
         final Label label = new Label(Messages.PV_Label);
         pv_name.setOnAction(event -> setPVName(pv_name.getText()));
-        pv_name.setTooltip(new Tooltip(Messages.PV_TT));
+        TooltipHelper.setTooltip(pv_name, new Tooltip(Messages.PV_TT));
 
         PVAutocompleteMenu.INSTANCE.attachField(pv_name);
 
         final ToggleButton latch = new ToggleButton(null, getImageView("run.png"));
-        latch.setTooltip(new Tooltip(Messages.LatchTT));
+        TooltipHelper.setTooltip(latch, new Tooltip(Messages.LatchTT));
         latch.setOnAction(event ->
         {
             tree.getModel().latchOnAlarm(latch.isSelected());
@@ -77,15 +78,15 @@ public class PVTree implements AppInstance
         });
 
         final Button collapse = new Button(null, getImageView("collapse.gif"));
-        collapse.setTooltip(new Tooltip(Messages.CollapseTT));
+        TooltipHelper.setTooltip(collapse, new Tooltip(Messages.CollapseTT));
         collapse.setOnAction(event -> tree.expandAll(false));
 
         final Button alarms = new Button(null, getImageView("alarmtree.png"));
-        alarms.setTooltip(new Tooltip(Messages.ExpandAlarmsTT));
+        TooltipHelper.setTooltip(alarms, new Tooltip(Messages.ExpandAlarmsTT));
         alarms.setOnAction(event -> tree.expandAlarms());
 
         final Button expand = new Button(null, getImageView("pvtree.png"));
-        expand.setTooltip(new Tooltip(Messages.ExpandAllTT));
+        TooltipHelper.setTooltip(expand, new Tooltip(Messages.ExpandAllTT));
         expand.setOnAction(event -> tree.expandAll(true));
 
         // center vertically

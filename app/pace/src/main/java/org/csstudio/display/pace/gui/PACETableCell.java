@@ -54,7 +54,7 @@ public class PACETableCell extends TextFieldTableCell<Instance, String>
         {
             cell = null;
             setBorder(null);
-            setTooltip(null);
+           TooltipHelper.setTooltip(, null);
         }
         else
         {
@@ -65,7 +65,7 @@ public class PACETableCell extends TextFieldTableCell<Instance, String>
             {
                 cell = instance.getCell(col-1);
                 setBorder(cell.isEdited() ? EDITED : null);
-                setTooltip(tooltip);
+               TooltipHelper.setTooltip(, tooltip);
             }
         }
     }

@@ -11,6 +11,7 @@ import org.phoebus.applications.eslog.archivedjmslog.LogArchiveModel;
 import org.phoebus.applications.eslog.model.EventLogMessage;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
+import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 
@@ -99,7 +100,7 @@ class EsLogInstance implements AppInstance
                     {
                         this.setText(null);
                         this.setStyle(null);
-                        this.setTooltip(null);
+                        TooltipHelper.setTooltip(this, null);
                     }
                 }
             };

@@ -10,6 +10,7 @@ package org.csstudio.trends.databrowser3.ui.properties;
 import org.csstudio.javafx.rtplot.util.RGBFactory;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.phoebus.framework.persistence.Memento;
+import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.scene.control.ColorPicker;
@@ -88,7 +89,7 @@ public class PropertyPanel extends TabPane
         col.setCellFactory(c ->
         {
             final TableCell<S, T> cell = orig.call(c);
-            cell.setTooltip(new Tooltip(text));
+            TooltipHelper.setTooltip(cell, new Tooltip(text));
             return cell;
         });
     }

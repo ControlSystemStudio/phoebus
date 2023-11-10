@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Platform;
@@ -118,13 +119,13 @@ public class Viewer3dPane extends VBox
                 }
             }
         });
-        fileButton.setTooltip(new Tooltip("Select resource from file system."));
+        TooltipHelper.setTooltip(fileButton, new Tooltip("Select resource from file system."));
 
         refreshButton.setOnAction(event -> reload());
-        refreshButton.setTooltip(new Tooltip("Refresh structure from resource."));
+        TooltipHelper.setTooltip(refreshButton, new Tooltip("Refresh structure from resource."));
 
         resetViewButton.setOnAction(event -> viewer.reset());
-        resetViewButton.setTooltip(new Tooltip("Reset view rotation and zoom."));
+        TooltipHelper.setTooltip(resetViewButton, new Tooltip("Reset view rotation and zoom."));
 
         HBox.setHgrow(textField, Priority.ALWAYS);
         toolbar.setSpacing(10);
@@ -140,7 +141,7 @@ public class Viewer3dPane extends VBox
             }
         });
 
-        textField.setTooltip(new Tooltip("Enter in the URL of a resource to load."));
+        TooltipHelper.setTooltip(textField, new Tooltip("Enter in the URL of a resource to load."));
 
         clearViewerButton.setOnAction(event ->
         {
@@ -149,7 +150,7 @@ public class Viewer3dPane extends VBox
             current_resource = null;
             setInput.accept(null);
         });
-        clearViewerButton.setTooltip(new Tooltip("Clear the viewer of any loaded resources."));
+        TooltipHelper.setTooltip(clearViewerButton, new Tooltip("Clear the viewer of any loaded resources."));
 
         getChildren().addAll(toolbar, viewer);
 

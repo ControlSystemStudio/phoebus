@@ -37,6 +37,7 @@ import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Tag;
+import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -152,7 +153,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
         super.updateItem(node, empty);
         if (empty) {
             setGraphic(null);
-            setTooltip(null);
+            TooltipHelper.setTooltip(this, null);
             getStyleClass().remove("filter-match");
             return;
         }
@@ -171,7 +172,7 @@ public class BrowserTreeCell extends TreeCell<Node> {
             stringBuilder.append(TimestampFormats.SECONDS_FORMAT.format(node.getCreated().toInstant())).append(" (").append(node.getUserName()).append(")");
         }
         // Tooltip with at least date and user id is set on all tree items
-        setTooltip(new Tooltip(stringBuilder.toString()));
+        TooltipHelper.setTooltip(this, new Tooltip(stringBuilder.toString()));
         switch (node.getNodeType()) {
             case SNAPSHOT:
                 if (node.hasTag(Tag.GOLDEN)) {

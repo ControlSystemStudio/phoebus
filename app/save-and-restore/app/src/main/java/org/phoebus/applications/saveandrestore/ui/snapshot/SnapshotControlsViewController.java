@@ -39,6 +39,7 @@ import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
+import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -184,7 +185,7 @@ public class SnapshotControlsViewController {
         multiplierSpinner.getEditor().textProperty()
                 .addListener((a, o, n) -> {
                     multiplierSpinner.getEditor().getStyleClass().remove("input-error");
-                    multiplierSpinner.setTooltip(null);
+                    TooltipHelper.setTooltip(multiplierSpinner, null);
                     snapshotRestorableProperty.set(true);
                     double parsedNumber;
                     try {
@@ -193,7 +194,7 @@ public class SnapshotControlsViewController {
                         //parseAndUpdateThreshold(thresholdSpinner.getEditor().getText().trim());
                     } catch (NumberFormatException e) {
                         multiplierSpinner.getEditor().getStyleClass().add("input-error");
-                        multiplierSpinner.setTooltip(new Tooltip(Messages.toolTipMultiplierSpinner));
+                        TooltipHelper.setTooltip(multiplierSpinner, new Tooltip(Messages.toolTipMultiplierSpinner));
                         snapshotRestorableProperty.set(false);
                     }
                 });
@@ -306,7 +307,7 @@ public class SnapshotControlsViewController {
 
     private void parseAndUpdateThreshold(String value) {
         thresholdSpinner.getEditor().getStyleClass().remove("input-error");
-        thresholdSpinner.setTooltip(null);
+        TooltipHelper.setTooltip(thresholdSpinner, null);
 
         double parsedNumber;
         try {
@@ -314,7 +315,7 @@ public class SnapshotControlsViewController {
             snapshotController.updateThreshold(parsedNumber);
         } catch (Exception e) {
             thresholdSpinner.getEditor().getStyleClass().add("input-error");
-            thresholdSpinner.setTooltip(new Tooltip(Messages.toolTipMultiplierSpinner));
+            TooltipHelper.setTooltip(thresholdSpinner, new Tooltip(Messages.toolTipMultiplierSpinner));
         }
     }
 

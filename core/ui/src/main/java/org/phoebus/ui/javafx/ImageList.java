@@ -28,6 +28,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.phoebus.ui.TooltipHelper;
 
 /** List of images, with buttons to add/remove screen shot, image from file system or clip board.
  *  @author Evan Smith
@@ -120,7 +121,7 @@ public class ImageList extends VBox
         preview.setManaged(false);
 
         final Button removeImage   = new Button(Messages.Remove, ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
-        removeImage.setTooltip(new Tooltip(Messages.RemoveImage));
+        TooltipHelper.setTooltip(removeImage, new Tooltip(Messages.RemoveImage));
         removeImage.setOnAction(event ->
         {
             final Image image = preview.getImage();
@@ -175,9 +176,9 @@ public class ImageList extends VBox
         final Button captureWindow = new Button(Messages.CSSWindow);
         final Button clipboard     = new Button(Messages.Clipboard);
 
-        addImage.setTooltip(new Tooltip(Messages.AddImageTooltip));
-        captureWindow.setTooltip(new Tooltip(Messages.CSSWindowTooltip));
-        clipboard.setTooltip(new Tooltip(Messages.ClipboardTooltip));
+        TooltipHelper.setTooltip(addImage, new Tooltip(Messages.AddImageTooltip));
+        TooltipHelper.setTooltip(captureWindow, new Tooltip(Messages.CSSWindowTooltip));
+        TooltipHelper.setTooltip(clipboard, new Tooltip(Messages.ClipboardTooltip));
 
         addImage.setOnAction(event ->
         {

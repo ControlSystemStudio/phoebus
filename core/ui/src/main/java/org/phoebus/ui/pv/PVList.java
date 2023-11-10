@@ -23,6 +23,7 @@ import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.pv.RefCountMap.ReferencedEntry;
+import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.javafx.ImageCache;
@@ -119,7 +120,7 @@ public class PVList extends BorderPane
     {
         final Button refresh = new Button();
         refresh.setGraphic(ImageCache.getImageView(PVList.class, "/icons/refresh.png"));
-        refresh.setTooltip(new Tooltip(Messages.PVListRefreshTT));
+        TooltipHelper.setTooltip(refresh, new Tooltip(Messages.PVListRefreshTT));
         refresh.setOnAction(event -> triggerRefresh());
         return refresh;
         // If more buttons are added:

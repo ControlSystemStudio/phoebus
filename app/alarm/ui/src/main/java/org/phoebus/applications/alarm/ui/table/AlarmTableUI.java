@@ -32,6 +32,7 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
+import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.javafx.Brightness;
@@ -327,7 +328,7 @@ public class AlarmTableUI extends BorderPane
                 JobManager.schedule("unack", monitor -> client.acknowledge(row.item, false));
         });
 
-        search.setTooltip(new Tooltip("Enter pattern ('vac', 'amp*trip')\nfor PV Name or Description,\npress RETURN to select"));
+        TooltipHelper.setTooltip(search, new Tooltip("Enter pattern ('vac', 'amp*trip')\nfor PV Name or Description,\npress RETURN to select"));
         search.textProperty().addListener(prop -> selectRows());
 
     	if (AlarmSystem.disable_notify_visible)
@@ -354,12 +355,12 @@ public class AlarmTableUI extends BorderPane
         if (maintenance_mode)
         {
             server_mode.setGraphic(ImageCache.getImageView(AlarmUI.class, "/icons/maintenance_mode.png"));
-            server_mode.setTooltip(new Tooltip("Maintenance Mode\nINVALID alarms are not annunciated and automatically acknowledged.\nPress to return to Normal Mode"));
+            TooltipHelper.setTooltip(server_mode, new Tooltip("Maintenance Mode\nINVALID alarms are not annunciated and automatically acknowledged.\nPress to return to Normal Mode"));
         }
         else
         {
             server_mode.setGraphic(ImageCache.getImageView(AlarmUI.class, "/icons/normal_mode.png"));
-            server_mode.setTooltip(new Tooltip("Enable maintenance mode?\n\nIn maintenance mode, INVALID alarms are not annunciated;\nthey are automatically acknowledged.\nThis is meant to reduce the impact of alarm from IOC reboots\nor systems that are turned off for maintenance."));
+            TooltipHelper.setTooltip(server_mode, new Tooltip("Enable maintenance mode?\n\nIn maintenance mode, INVALID alarms are not annunciated;\nthey are automatically acknowledged.\nThis is meant to reduce the impact of alarm from IOC reboots\nor systems that are turned off for maintenance."));
 
         }
     }
@@ -369,12 +370,12 @@ public class AlarmTableUI extends BorderPane
         if (disable_notify)
         {
             server_notify.setGraphic(ImageCache.getImageView(AlarmUI.class, "/icons/disable_notify.png"));
-            server_notify.setTooltip(new Tooltip("Enable email notifications for alarms?\n\nEmail notifications are currently disabled for alarms.\n\nPress to re-enable the email notifications."));
+            TooltipHelper.setTooltip(server_notify, new Tooltip("Enable email notifications for alarms?\n\nEmail notifications are currently disabled for alarms.\n\nPress to re-enable the email notifications."));
         }
         else
         {
             server_notify.setGraphic(ImageCache.getImageView(AlarmUI.class, "/icons/enable_notify.png"));
-            server_notify.setTooltip(new Tooltip("Disable Email notifications for alarms?\n\nEmail notifications for alarms will be disabled."));
+            TooltipHelper.setTooltip(server_notify, new Tooltip("Disable Email notifications for alarms?\n\nEmail notifications for alarms will be disabled."));
 
         }
     }

@@ -25,6 +25,7 @@ import org.phoebus.applications.email.EmailApp;
 import org.phoebus.email.EmailPreferences;
 import org.phoebus.email.EmailService;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
+import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.javafx.FilesTab;
 import org.phoebus.ui.javafx.ImagesTab;
 import org.phoebus.util.time.TimestampFormats;
@@ -192,7 +193,7 @@ public class EmailDialogController {
 
         txtFrom.setPromptText("Enter your email address");
         txtTo.setPromptText("Enter receipient's email address(es)");
-        txtTo.setTooltip(new Tooltip("Enter receipient's email address(es), comma-separated"));
+        TooltipHelper.setTooltip(txtTo, new Tooltip("Enter receipient's email address(es), comma-separated"));
         txtSubject.setPromptText("Enter Subject");
 
         choiceBox.setItems(supportedMimeTypes);

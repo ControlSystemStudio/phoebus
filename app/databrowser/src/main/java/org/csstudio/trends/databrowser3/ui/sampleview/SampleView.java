@@ -36,6 +36,7 @@ import org.csstudio.trends.databrowser3.model.PlotSamples;
 import org.phoebus.archive.vtype.DoubleVTypeFormat;
 import org.phoebus.archive.vtype.VTypeFormat;
 import org.phoebus.archive.vtype.VTypeHelper;
+import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.pv.SeverityColors;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -83,7 +84,7 @@ public class SampleView extends VBox {
         items.setButtonCell(factory.call(null));
 
         final Button refresh = new Button(Messages.SampleView_Refresh);
-        refresh.setTooltip(new Tooltip(Messages.SampleView_RefreshTT));
+        TooltipHelper.setTooltip(refresh, new Tooltip(Messages.SampleView_RefreshTT));
         refresh.setOnAction(event -> update());
 
         final Label label = new Label(Messages.SampleView_Item);

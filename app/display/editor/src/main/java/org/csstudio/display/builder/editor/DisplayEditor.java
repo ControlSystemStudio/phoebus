@@ -49,6 +49,7 @@ import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.undo.UndoButtons;
@@ -243,7 +244,7 @@ public class DisplayEditor
         zoom_levels.getItems().addAll(JFXRepresentation.ZOOM_LEVELS);
         zoom_levels.setEditable(true);
         zoom_levels.setValue(JFXRepresentation.DEFAULT_ZOOM_LEVEL);
-        zoom_levels.setTooltip(new Tooltip(Messages.SelectZoomLevel));
+        TooltipHelper.setTooltip(zoom_levels, new Tooltip(Messages.SelectZoomLevel));
         zoom_levels.setPrefWidth(100.0);
         // For Ctrl-Wheel zoom gesture
         zoomListener zl = new zoomListener(zoom_levels);
@@ -266,7 +267,7 @@ public class DisplayEditor
             createMenuItem(ActionDescription.MOVE_UP),
             createMenuItem(ActionDescription.MOVE_DOWN),
             createMenuItem(ActionDescription.TO_FRONT));
-        order.setTooltip(new Tooltip(Messages.Order));
+        TooltipHelper.setTooltip(order, new Tooltip(Messages.Order));
 
         final MenuButton align = new MenuButton(null, null,
             createMenuItem(ActionDescription.ALIGN_LEFT),
@@ -276,19 +277,19 @@ public class DisplayEditor
             createMenuItem(ActionDescription.ALIGN_MIDDLE),
             createMenuItem(ActionDescription.ALIGN_BOTTOM),
             createMenuItem(ActionDescription.ALIGN_GRID));
-        align.setTooltip(new Tooltip(Messages.Align));
+        TooltipHelper.setTooltip(align, new Tooltip(Messages.Align));
 
         final MenuButton size = new MenuButton(null, null,
             createMenuItem(ActionDescription.MATCH_WIDTH),
             createMenuItem(ActionDescription.MATCH_HEIGHT));
-        size.setTooltip(new Tooltip(Messages.Size));
+        TooltipHelper.setTooltip(size, new Tooltip(Messages.Size));
 
         final MenuButton dist = new MenuButton(null, null,
             createMenuItem(ActionDescription.DIST_HORIZ),
             createMenuItem(ActionDescription.DIST_VERT),
             createMenuItem(ActionDescription.DIST_HORIZ_GAP),
             createMenuItem(ActionDescription.DIST_VERT_GAP));
-        dist.setTooltip(new Tooltip(Messages.Distribute));
+        TooltipHelper.setTooltip(dist, new Tooltip(Messages.Distribute));
 
         // Use the first item as the icon for the drop-down...
         try
@@ -365,7 +366,7 @@ public class DisplayEditor
         {
             logger.log(Level.WARNING, "Cannot load action icon", ex);
         }
-        button.setTooltip(new Tooltip(action.getToolTip()));
+        TooltipHelper.setTooltip(button, new Tooltip(action.getToolTip()));
         button.setSelected(selected);
         button.selectedProperty()
               .addListener((observable, old_value, enabled) -> action.run(this, enabled) );
