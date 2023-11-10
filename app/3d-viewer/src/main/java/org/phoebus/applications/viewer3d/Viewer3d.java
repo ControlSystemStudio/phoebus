@@ -42,6 +42,7 @@ import javafx.scene.shape.TriangleMesh;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.util.Duration;
+import org.phoebus.ui.TooltipHelper;
 
 /**
  * Class to display 3 dimensional objects in a rotating camera view.
@@ -458,7 +459,7 @@ public class Viewer3d extends Pane
         final Tooltip tt = new Tooltip(content);
         tt.setShowDelay(SHOW_QUICKLY);
         tt.setShowDuration(SHOW_FOREVER);
-        Tooltip.install(node, tt);
+        TooltipHelper.installTooltip(node, tt);
     }
 
     /**

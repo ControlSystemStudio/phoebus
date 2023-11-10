@@ -29,6 +29,7 @@ import org.epics.vtype.DisplayProvider;
 import org.epics.vtype.Time;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.MacroValueProvider;
+import org.phoebus.ui.TooltipHelper;
 import org.phoebus.util.time.TimestampFormats;
 
 import javafx.scene.Node;
@@ -161,7 +162,7 @@ public class TooltipSupport
         tooltip.setShowDelay(Duration.millis(JFXPreferences.tooltip_delay_ms));
         tooltip.setShowDuration(Duration.seconds(JFXPreferences.tooltip_display_sec));
 
-        Tooltip.install(node, tooltip);
+        TooltipHelper.installTooltip(node, tooltip);
         if (node.getProperties().get(TOOLTIP_PROP_KEY) != tooltip)
             throw new IllegalStateException("JavaFX Tooltip behavior changed");
     }
