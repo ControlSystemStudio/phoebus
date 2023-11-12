@@ -57,7 +57,7 @@ public class DisplayInfo
         // Get basic file or http 'path' from path
         final String path;
         if (uri.getScheme() == null  ||  uri.getScheme().equals("file"))
-            path = uri.getRawPath();
+            path = uri.getPath();
         else
         {
             final StringBuilder buf = new StringBuilder();
