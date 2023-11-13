@@ -112,7 +112,9 @@ public class DisplayInfo
      */
     public static DisplayInfo forModel(final DisplayModel model)
     {
-        return new DisplayInfo(model.getUserData(DisplayModel.USER_DATA_INPUT_FILE),
+        String filepath = model.getUserData(DisplayModel.USER_DATA_INPUT_FILE);
+        String filepath_withForwardSlashes = !filepath.substring(0,1).equals("/") ? "/" + filepath.replace('\\', '/') : filepath;
+        return new DisplayInfo(filepath_withForwardSlashes,
                 model.getDisplayName(),
                 model.propMacros().getValue(),
                 false);
