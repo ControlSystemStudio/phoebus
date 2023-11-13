@@ -52,12 +52,4 @@ public interface ServiceAuthenticationProvider {
      */
     AuthenticationScope getAuthenticationScope();
 
-    /**
-     * Indicates if a provider is active. Inactive providers suggest authentication is disabled or should
-     * not be accessible in the credentials management UI.
-     * @return <code>true</code> if the authentication provider is active, otherwise <code>false</code>.
-     */
-    default boolean isActive(){
-        return true;
-    }
 }

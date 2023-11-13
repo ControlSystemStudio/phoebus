@@ -23,6 +23,8 @@ import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.expression.SecurityExpressionRoot;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -130,27 +132,56 @@ public class NodeController extends BaseController {
      * </p>
      *
      * @param uniqueNodeId The non-zero id of the node to delete
-     * @param principal {@link Principal} of authenticated user.
+     * @param authentication {@link Authentication} of authenticated user.
      */
+    /*
     @SuppressWarnings("unused")
     @DeleteMapping(value = "/node/{uniqueNodeId}", produces = JSON)
-    @PreAuthorize("hasRole(this.roleAdmin) or @authorizationHelper.mayDelete(#uniqueNodeId, #principal)")
+    @PreAuthorize("hasRole(this.roleAdmin) or @authorizationHelper.mayDelete(#uniqueNodeId, #authentication)")
     @Deprecated
-    public void deleteNode(@PathVariable final String uniqueNodeId, Principal principal) {
+    public void deleteNode(@PathVariable final String uniqueNodeId, Authentication authentication) {
         logger.info("Deleting node with unique id " + uniqueNodeId);
         nodeDAO.deleteNode(uniqueNodeId);
     }
 
+     */
+
+    /**
+     * Deletes all {@link Node}s contained in the provided list.
+     * <br>
+     * Checks are made to make sure user may delete
+     * the {@link Node}s, see {@link AuthorizationHelper}. If the checks fail on any of the {@link Node} ids,
+     * checks are aborted and client will receive an HTTP 403 response.
+     * <br>
+     * Note that the {@link PreAuthorize} annotations calls a helper method in {@link AuthorizationHelper}, using
+     * the list of {@link Node} ids and a Spring injected object - <code>root</code> - used to check
+     * authorities of the user.
+     * <br>
+     * Note also that an unauthenticated user (e.g. no basic authentication header in client's request) will
+     * receive a HTTP 401 response, i.e. the {@link PreAuthorize} check is not invoked.
+     * @param nodeIds
+     */
     @SuppressWarnings("unused")
     @DeleteMapping(value = "/node", produces = JSON)
-    @PreAuthorize("hasRole(this.roleAdmin) or @authorizationHelper.mayDelete(#nodeIds, #principal)")
-    public void deleteNodes(@RequestBody List<String> nodeIds, Principal principal) {
+    @PreAuthorize("@authorizationHelper.mayDelete(#nodeIds, #root)")
+    public void deleteNodes(@RequestBody List<String> nodeIds) {
         nodeDAO.deleteNodes(nodeIds);
     }
 
     /**
      * Updates a {@link Node}. The purpose is to support modification of name or comment/description, or both. Modification of
      * node type is not supported.
+     *
+     * <br>
+     * Checks are made to make sure user may update
+     * the {@link Node}, see {@link AuthorizationHelper}. If the checks fail client will receive an HTTP 403 response.
+     * <br>
+     * Note that the {@link PreAuthorize} annotations calls a helper method in {@link AuthorizationHelper}, using
+     * the of {@link Node} id and a Spring injected object - <code>root</code> - used to check
+     * authorities of the user.
+     * <br>
+     * Note also that an unauthenticated user (e.g. no basic authentication header in client's request) will
+     * receive a HTTP 401 response, i.e. the {@link PreAuthorize} check is not invoked.
      *
      * <p>
      * A {@link HttpStatus#BAD_REQUEST} is returned if a node of the same name and type already exists in the parent folder,
@@ -164,13 +195,14 @@ public class NodeController extends BaseController {
      */
     @SuppressWarnings("unused")
     @PostMapping(value = "/node", produces = JSON)
-    @PreAuthorize("hasRole(this.roleAdmin) or (hasRole(this.roleUser) and @authorizationHelper.mayUpdate(#nodeToUpdate, #principal))")
+    @PreAuthorize("@authorizationHelper.mayUpdate(#nodeToUpdate, #root)")
     public Node updateNode(@RequestParam(value = "customTimeForMigration", required = false, defaultValue = "false") String customTimeForMigration,
                            @RequestBody Node nodeToUpdate,
                            Principal principal) {
         if (!areTagsValid(nodeToUpdate)) {
             throw new IllegalArgumentException("Node may not contain golden tag");
         }
+        nodeToUpdate.setUserName(principal.getName());
         return nodeDAO.updateNode(nodeToUpdate, Boolean.valueOf(customTimeForMigration));
     }
 

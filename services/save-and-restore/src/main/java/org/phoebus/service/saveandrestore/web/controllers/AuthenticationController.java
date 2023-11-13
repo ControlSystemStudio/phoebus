@@ -40,7 +40,6 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings("unused")
 @RestController
-@Conditional(AuthEnabledCondition.class)
 public class AuthenticationController extends BaseController {
 
     @Autowired

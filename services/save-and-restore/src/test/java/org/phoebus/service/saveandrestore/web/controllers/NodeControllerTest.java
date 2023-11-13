@@ -328,36 +328,28 @@ public class NodeControllerTest {
      */
     @Test
     public void testDeleteFolder() throws Exception {
+
+        //.header(HttpHeaders.AUTHORIZATION, userAuthorization)
+        //        .contentType(JSON).content(objectMapper.writeValueAsString(config));
+
         MockHttpServletRequestBuilder request =
-                delete("/node/a");
+                post("/node");
 
         mockMvc.perform(request).andExpect(status().isUnauthorized());
 
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").userName(demoUser).build());
 
         request =
-                delete("/node/a")
-                        .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization);
-        mockMvc.perform(request).andExpect(status().isForbidden());
-
-        request =
-                delete("/node/a")
-                        .header(HttpHeaders.AUTHORIZATION, adminAuthorization);
-        mockMvc.perform(request).andExpect(status().isOk());
-
-        reset(nodeDAO);
-
-        when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").userName(demoUser).build());
-
-        request =
-                delete("/node/a")
+                delete("/node")
+                        .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isOk());
 
         when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").userName("notDemoUser").build());
 
         request =
-                delete("/node/a")
+                delete("/node")
+                        .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
@@ -365,7 +357,8 @@ public class NodeControllerTest {
         when(nodeDAO.getChildNodes("a")).thenReturn(Collections.emptyList());
 
         request =
-                delete("/node/a")
+                delete("/node")
+                        .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isOk());
 
@@ -373,7 +366,8 @@ public class NodeControllerTest {
         when(nodeDAO.getChildNodes("a")).thenReturn(Collections.emptyList());
 
         request =
-                delete("/node/a")
+                delete("/node")
+                        .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isOk());
 
@@ -381,7 +375,8 @@ public class NodeControllerTest {
         when(nodeDAO.getChildNodes("a")).thenReturn(List.of(Node.builder().build()));
 
         request =
-                delete("/node/a")
+                delete("/node")
+                        .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
@@ -389,7 +384,8 @@ public class NodeControllerTest {
         when(nodeDAO.getChildNodes("a")).thenReturn(List.of(Node.builder().build()));
 
         request =
-                delete("/node/a")
+                delete("/node")
+                        .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
                         .header(HttpHeaders.AUTHORIZATION, userAuthorization);
         mockMvc.perform(request).andExpect(status().isForbidden());
 
@@ -397,7 +393,8 @@ public class NodeControllerTest {
         when(nodeDAO.getChildNodes("a")).thenReturn(List.of(Node.builder().build()));
 
         request =
-                delete("/node/a")
+                delete("/node")
+                        .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
                         .header(HttpHeaders.AUTHORIZATION, adminAuthorization);
         mockMvc.perform(request).andExpect(status().isOk());
 
@@ -405,7 +402,8 @@ public class NodeControllerTest {
         when(nodeDAO.getChildNodes("a")).thenReturn(List.of(Node.builder().build()));
 
         request =
-                delete("/node/a")
+                delete("/node")
+                        .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
                         .header(HttpHeaders.AUTHORIZATION, adminAuthorization);
         mockMvc.perform(request).andExpect(status().isOk());
     }

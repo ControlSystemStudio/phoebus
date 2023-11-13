@@ -24,12 +24,20 @@ import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.web.config.AuthEnabledCondition;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.security.access.expression.SecurityExpressionRoot;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -39,9 +47,11 @@ import java.util.stream.Collectors;
  * grant or deny access to certain REST endpoints.
  */
 @Service("authorizationHelper")
-@Conditional(AuthEnabledCondition.class)
 @SuppressWarnings("unused")
 public class AuthorizationHelper {
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
     @Autowired
     private NodeDAO nodeDAO;
@@ -49,16 +59,30 @@ public class AuthorizationHelper {
     @Autowired
     private String roleAdmin;
 
+    @Autowired
+    private String roleUser;
+
+    @Value("${authorization.bypass:true}")
+    public boolean bypassAuthorization;
+
     /**
-     * Checks if all the nodes provided to this method can be deleted by the user.
+     * Checks if all the nodes provided to this method can be deleted by the user. User with admin privileges is always
+     * permitted to delete, while a user not having required role may never delete.
      *
      * @param nodeIds   The list of {@link Node} ids subject to the check.
-     * @param principal {@link Principal} of authenticated user.
+     * @param methodSecurityExpressionOperations {@link MethodSecurityExpressionOperations} Spring managed object
+     *        queried for authorization.
      * @return <code>true</code> only if <b>all</b> if the nodes can be deleted by the user.
      */
-    public boolean mayDelete(List<String> nodeIds, Principal principal) {
+    public boolean mayDelete(List<String> nodeIds, MethodSecurityExpressionOperations methodSecurityExpressionOperations) {
+        if(bypassAuthorization || methodSecurityExpressionOperations.hasAuthority("ROLE_" + roleAdmin)){
+            return true;
+        }
+        if(!methodSecurityExpressionOperations.hasAuthority("ROLE_" + roleUser)){
+            return false;
+        }
         for (String nodeId : nodeIds) {
-            if (!mayDelete(nodeId, principal)) {
+            if (!mayDelete(nodeId, ((User)methodSecurityExpressionOperations.getAuthentication().getPrincipal()).getUsername())) {
                 return false;
             }
         }
@@ -66,19 +90,19 @@ public class AuthorizationHelper {
     }
 
     /**
-     * An authenticated user may delete a node if User identity is same as the target {@link Node}'s user id and:
+     * An authenticated user may delete id user identity is same as the target {@link Node}'s user unique id and:
      * <ul>
      *     <li>Target {@link Node} is a snapshot.</li>
      *     <li>Target {@link Node} is not a snapshot, but has no child nodes.</li>
      * </ul>
      *
-     * @param nodeId    Unique node id identifying the target of the user's delete operation.
-     * @param principal Identifies user.
+     * @param nodeId The target {@link Node}'s unique node id.
+     * @param userName {@link MethodSecurityExpressionOperations} Username of authenticated user.
      * @return <code>false</code> if user may not delete the {@link Node}.
      */
-    public boolean mayDelete(String nodeId, Principal principal) {
+    private boolean mayDelete(String nodeId, String userName) {
         Node node = nodeDAO.getNode(nodeId);
-        if (!node.getUserName().equals(principal.getName())) {
+        if (!node.getUserName().equals(userName)){
             return false;
         }
         if (node.getNodeType().equals(NodeType.CONFIGURATION) || node.getNodeType().equals(NodeType.FOLDER)) {
@@ -88,60 +112,79 @@ public class AuthorizationHelper {
     }
 
     /**
-     * An authenticated user may update a node if user identity is same as the target {@link Node}'s user id.
+     * An authenticated user may update a node if user has admin privileges, or
+     * if user identity is same as the target {@link Node}'s user id.
      *
-     * @param node      {@link Node} identifying the target of the user's update operation.
-     * @param principal Identifies user.
+     * @param node {@link Node} identifying the target of the user's update operation.
+     * @param methodSecurityExpressionOperations {@link MethodSecurityExpressionOperations} Spring managed object
+     *        queried for authorization.
      * @return <code>false</code> if user may not update the {@link Node}.
      */
-    public boolean mayUpdate(Node node, Principal principal) {
-        return nodeDAO.getNode(node.getUniqueId()).getUserName().equals(principal.getName());
+    public boolean mayUpdate(Node node, MethodSecurityExpressionOperations methodSecurityExpressionOperations) {
+        if(bypassAuthorization || methodSecurityExpressionOperations.hasAuthority("ROLE_" + roleAdmin)){
+            return true;
+        }
+        if(!methodSecurityExpressionOperations.hasAuthority("ROLE_" + roleUser)){
+            return false;
+        }
+        return nodeDAO.getNode(node.getUniqueId()).getUserName()
+                .equals(((User)methodSecurityExpressionOperations.getAuthentication().getPrincipal()).getUsername());
     }
 
     /**
-     * <p>
-     * An authenticated user may save a composite snapshot, and update if user identity is same as the target's
-     * composite snapshot {@link Node}.
-     * </p>
+     * An authenticated user may update a composite snapshot if user has admin privileges, or
+     * if user identity is same as the target {@link Node}'s user id.
      *
      * @param compositeSnapshot {@link CompositeSnapshot} identifying the target of the user's update operation.
-     * @param principal         Identifies user.
+     * @param methodSecurityExpressionOperations {@link MethodSecurityExpressionOperations} Spring managed object
+     *        queried for authorization.
      * @return <code>false</code> if user may not update the {@link CompositeSnapshot}.
      */
-    public boolean mayUpdate(CompositeSnapshot compositeSnapshot, Principal principal) {
-        return isOwner(compositeSnapshot.getCompositeSnapshotNode().getUniqueId(), principal.getName());
+    public boolean mayUpdate(CompositeSnapshot compositeSnapshot, MethodSecurityExpressionOperations methodSecurityExpressionOperations) {
+        if(bypassAuthorization || methodSecurityExpressionOperations.hasAuthority("ROLE_" + roleAdmin)){
+            return true;
+        }
+        if(!methodSecurityExpressionOperations.hasAuthority("ROLE_" + roleUser)){
+            return false;
+        }
+        return nodeDAO.getNode(compositeSnapshot.getCompositeSnapshotNode().getUniqueId()).getUserName()
+                .equals(((User)methodSecurityExpressionOperations.getAuthentication().getPrincipal()).getUsername());
     }
 
     /**
      * An authenticated user may add or delete {@link Tag}s if user identity is same as the target's
      * snapshot {@link Node}. However, to add or delete golden tag user must have admin privileges.
+     *
      * @param tagData {@link TagData} containing {@link Node} ids and {@link Tag} name.
-     * @param authentication {@link Authentication} providing username and roles.
+     * @param methodSecurityExpressionOperations {@link MethodSecurityExpressionOperations} Spring managed object
+     *        queried for authorization.
      * @return <code>true</code> if {@link Tag} can be added or deleted.
      */
-    public boolean mayAddOrDeleteTag(TagData tagData, Authentication authentication){
+    public boolean mayAddOrDeleteTag(TagData tagData, MethodSecurityExpressionOperations methodSecurityExpressionOperations){
         if (tagData.getTag() == null ||
                 tagData.getTag().getName() == null ||
                 tagData.getTag().getName().isEmpty() ||
                 tagData.getUniqueNodeIds() == null) {
             throw new IllegalArgumentException("Cannot add tag, data invalid");
         }
-        Tag tag = tagData.getTag();
-        List<String> roles = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList());
-        if(tag.getName().equals(Tag.GOLDEN)){
-            return roles.contains(roleAdmin);
+        if(bypassAuthorization || methodSecurityExpressionOperations.hasAuthority("ROLE_" + roleAdmin)){
+            return true;
         }
+        if(!methodSecurityExpressionOperations.hasAuthority("ROLE_" + roleUser)){
+            return false;
+        }
+        Tag tag = tagData.getTag();
+        if(tag.getName().equals(Tag.GOLDEN)){
+            return methodSecurityExpressionOperations.hasAuthority("ROLE_" + roleAdmin);
+        }
+        String username = ((User)methodSecurityExpressionOperations.getAuthentication().getPrincipal()).getUsername();
         for(String nodeId : tagData.getUniqueNodeIds()){
-            if(!isOwner(nodeId, authentication.getName())){
+            Node node = nodeDAO.getNode(nodeId);
+            if(!node.getUserName().equals(username)){
                 return false;
             }
         }
         return true;
-    }
-
-    private boolean isOwner(String nodeId, String username){
-        Node node = nodeDAO.getNode(nodeId);
-        return node.getUserName().equals(username);
     }
 
     /**
@@ -152,10 +195,17 @@ public class AuthorizationHelper {
      * </p>
      *
      * @param filterName   Unique name identifying the target of the user's update operation.
-     * @param principal Identifies user.
+     * @param methodSecurityExpressionOperations {@link MethodSecurityExpressionOperations} Spring managed object
+     *        queried for authorization.
      * @return <code>false</code> if user may not update the {@link Filter}.
      */
-    public boolean maySaveOrDeleteFilter(String filterName, Principal principal) {
+    public boolean maySaveOrDeleteFilter(String filterName, MethodSecurityExpressionOperations methodSecurityExpressionOperations) {
+        if(bypassAuthorization || methodSecurityExpressionOperations.hasAuthority("ROLE_" + roleAdmin)){
+            return true;
+        }
+        if(!methodSecurityExpressionOperations.hasAuthority("ROLE_" + roleUser)){
+            return false;
+        }
         Optional<Filter> filter1 =
                 nodeDAO.getAllFilters().stream().filter(f ->
                         f.getName().equals(filterName)).findFirst();
@@ -163,6 +213,7 @@ public class AuthorizationHelper {
         if(filter1.isEmpty()){
             return true;
         }
-        return filter1.map(value -> value.getUser().equals(principal.getName())).orElse(true);
+        String username = ((User)methodSecurityExpressionOperations.getAuthentication().getPrincipal()).getUsername();
+        return filter1.map(value -> value.getUser().equals(username)).orElse(true);
     }
 }

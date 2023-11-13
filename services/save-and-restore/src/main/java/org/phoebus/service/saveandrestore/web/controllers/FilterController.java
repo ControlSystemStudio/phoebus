@@ -45,7 +45,7 @@ public class FilterController extends BaseController {
      */
     @SuppressWarnings("unused")
     @PutMapping(value = "/filter", produces = JSON)
-    @PreAuthorize("hasRole(this.roleAdmin) or (hasRole(this.roleUser) and @authorizationHelper.maySaveOrDeleteFilter(#filter.getName(), #principal))")
+    @PreAuthorize("@authorizationHelper.maySaveOrDeleteFilter(#filter.getName(), #root)")
     public Filter saveFilter(@RequestBody final Filter filter,
                              Principal principal) {
         filter.setUser(principal.getName());
@@ -60,7 +60,7 @@ public class FilterController extends BaseController {
 
     @SuppressWarnings("unused")
     @DeleteMapping(value = "/filter/{name}")
-    @PreAuthorize("hasRole(this.roleAdmin) or (hasRole(this.roleUser) and @authorizationHelper.maySaveOrDeleteFilter(#name, #principal))")
+    @PreAuthorize("@authorizationHelper.maySaveOrDeleteFilter(#name, #root)")
     public void deleteFilter(@PathVariable final String name, Principal principal) {
         nodeDAO.deleteFilter(name);
     }

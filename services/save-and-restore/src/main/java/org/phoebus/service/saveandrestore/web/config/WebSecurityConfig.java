@@ -30,9 +30,8 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-@Conditional(AuthEnabledCondition.class)
 @SuppressWarnings("unused")
-public class WebSecurityConfig extends AnonymousWebSecurityConfig {
+public class WebSecurityConfig {
 
     /**
      * Authentication implementation.
@@ -69,6 +68,74 @@ public class WebSecurityConfig extends AnonymousWebSecurityConfig {
     @Value("${ldap.user.search.filter:invalid}")
     String ldap_user_search_filter;
 
+    @Value("${role.user:sar-user}")
+    public String roleUser;
+
+    @Value("${role.admin:sar-admin}")
+    public String roleAdmin;
+
+    @Value("${demo.user:user}")
+    public String demoUser;
+
+    @Value("${demo.user.password:userPass}")
+    public String demoUserPassword;
+
+    @Value("${demo.admin:admin}")
+    public String demoAdmin;
+
+    @Value("${demo.admin.password:adminPass}")
+    public String demoAdminPassword;
+
+    @Value("${demo.readOnly:johndoe}")
+    public String demoReadOnly;
+
+    @Value("${demo.readOnly.password:1234}")
+    public String demoReadOnlyPassword;
+
+    @Bean
+    public String roleUser() {
+        return roleUser.toUpperCase();
+    }
+
+    @Bean
+    public String roleAdmin() {
+        return roleAdmin.toUpperCase();
+    }
+
+    @Bean
+    public String demoUser(){
+        return demoUser;
+    }
+
+    @Bean
+    public String demoUserPassword(){
+        return demoUserPassword;
+    }
+
+    @Bean
+    public String demoAdmin(){
+        return demoAdmin;
+    }
+
+    @Bean
+    public String demoAdminPassword(){
+        return demoAdminPassword;
+    }
+
+    @Bean
+    public String demoReadOnly(){
+        return demoReadOnly;
+    }
+
+    @Bean
+    public String demoReadOnlyPassword(){
+        return demoReadOnlyPassword;
+    }
+
+    @Bean
+    public String authenticationImplementation(){
+        return authenitcationImplementation;
+    }
     @Bean
     public WebSecurityCustomizer ignoringCustomizer() {
         return web -> {
@@ -81,7 +148,12 @@ public class WebSecurityConfig extends AnonymousWebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf().disable();
-        http.authorizeRequests().anyRequest().authenticated();
+        if("none".equalsIgnoreCase(authenitcationImplementation.trim())){
+            http.authorizeRequests().antMatchers("/**").permitAll();
+        }
+        else{
+            http.authorizeRequests().anyRequest().authenticated();
+        }
         http.httpBasic();
 
         return http.build();

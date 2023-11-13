@@ -54,8 +54,4 @@ public class SaveAndRestoreAuthenticationProvider implements ServiceAuthenticati
         return AuthenticationScope.SAVE_AND_RESTORE;
     }
 
-    @Override
-    public boolean isActive(){
-        return Preferences.authentication_enabled;
-    }
 }

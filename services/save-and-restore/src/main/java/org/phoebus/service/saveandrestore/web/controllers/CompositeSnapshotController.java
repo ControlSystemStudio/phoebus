@@ -54,7 +54,7 @@ public class CompositeSnapshotController extends BaseController {
     }
 
     @PostMapping(value = "/composite-snapshot", produces = JSON)
-    @PreAuthorize("hasRole(this.roleAdmin) or (hasRole(this.roleUser) and @authorizationHelper.mayUpdate(#compositeSnapshot, #principal))")
+    @PreAuthorize("@authorizationHelper.mayUpdate(#compositeSnapshot, #root)")
     public CompositeSnapshot updateCompositeSnapshot(@RequestBody CompositeSnapshot compositeSnapshot,
                                                      Principal principal) {
         if(!compositeSnapshot.getCompositeSnapshotNode().getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)){

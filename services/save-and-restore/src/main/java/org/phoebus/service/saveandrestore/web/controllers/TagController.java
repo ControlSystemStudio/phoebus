@@ -30,6 +30,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 /**
@@ -55,19 +56,14 @@ public class TagController extends BaseController {
      * in tagData must be non-null, and its name must be non-null and non-empty.
      *
      * @param tagData        See {@link TagData}
-     * @param userName Must be non-null and non-empty if authentication/authorization is disabled.
-     * @param authentication {@link Authentication} of authenticated user.
+     * @param principal {@link Principal} of authenticated user.
      * @return The list of updated {@link Node}s
      */
     @PostMapping("/tags")
-    @PreAuthorize("hasRole(this.roleAdmin) or (hasRole(this.roleUser) and @authorizationHelper.mayAddOrDeleteTag(#tagData, #authentication))")
+    @PreAuthorize("@authorizationHelper.mayAddOrDeleteTag(#tagData, #root)")
     public List<Node> addTag(@RequestBody TagData tagData,
-                             @RequestParam(name = "username", required = false) String userName,
-                             Authentication authentication) {
-        if(authentication == null && (userName == null || userName.isEmpty())){
-            throw new IllegalArgumentException("Cannot determine username for tag");
-        }
-        tagData.getTag().setUserName(authentication == null ? userName : authentication.getName());
+                             Principal principal) {
+        tagData.getTag().setUserName(principal.getName());
         return nodeDAO.addTag(tagData);
     }
 
@@ -79,8 +75,8 @@ public class TagController extends BaseController {
      * @return The list of updated {@link Node}s
      */
     @DeleteMapping("/tags")
-    @PreAuthorize("hasRole(this.roleAdmin) or (hasRole(this.roleUser) and @authorizationHelper.mayAddOrDeleteTag(#tagData, #authentication))")
-    public List<Node> deleteTag(@RequestBody TagData tagData, Authentication authentication) {
+    @PreAuthorize("@authorizationHelper.mayAddOrDeleteTag(#tagData, #root)")
+    public List<Node> deleteTag(@RequestBody TagData tagData) {
         return nodeDAO.deleteTag(tagData);
     }
 }
