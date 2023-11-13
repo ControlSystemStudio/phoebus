@@ -11,6 +11,8 @@ import static org.phoebus.ui.application.PhoebusApplication.logger;
 
 import java.io.File;
 import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -167,7 +169,8 @@ public class DockItemWithInput extends DockItem
                 TooltipHelper.setTooltip(name_tab, new Tooltip(Messages.DockNotSaved));
             else
             {
-                TooltipHelper.setTooltip(name_tab, new Tooltip(input.toString()));
+                String decodedInputURI = URLDecoder.decode(input.toString(), StandardCharsets.UTF_8);
+                TooltipHelper.setTooltip(name_tab, new Tooltip(decodedInputURI));
                 setLabel(name);
             }
         });
