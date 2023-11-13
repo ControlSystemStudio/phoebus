@@ -16,6 +16,7 @@ import java.util.logging.LogManager;
 
 import org.csstudio.display.builder.editor.actions.ActionDescription;
 import org.csstudio.display.builder.model.ModelPlugin;
+import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 import org.phoebus.ui.javafx.ImageCache;
 

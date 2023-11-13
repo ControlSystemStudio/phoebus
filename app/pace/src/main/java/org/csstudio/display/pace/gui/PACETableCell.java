@@ -20,6 +20,7 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
 import javafx.util.converter.DefaultStringConverter;
+import org.phoebus.ui.TooltipHelper;
 
 /** Table cell
  *
@@ -54,7 +55,7 @@ public class PACETableCell extends TextFieldTableCell<Instance, String>
         {
             cell = null;
             setBorder(null);
-           TooltipHelper.setTooltip(, null);
+            TooltipHelper.setTooltip(this, null);
         }
         else
         {
@@ -65,7 +66,7 @@ public class PACETableCell extends TextFieldTableCell<Instance, String>
             {
                 cell = instance.getCell(col-1);
                 setBorder(cell.isEdited() ? EDITED : null);
-               TooltipHelper.setTooltip(, tooltip);
+                TooltipHelper.setTooltip(this, tooltip);
             }
         }
     }
