@@ -385,8 +385,8 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         {
             indicateChange();
             // Keep sorted by inserting at appropriate index
+            final List<TreeItem<AlarmTreeItem<?>>> items = view_parent.getChildren();
             if (AlarmSystem.sort_alarm_items) {
-	            final List<TreeItem<AlarmTreeItem<?>>> items = view_parent.getChildren();
 	            final int index = Collections.binarySearch(items, view_item,
 	                                                       (a, b) -> CompareNatural.compareTo(a.getValue().getName(),
 	                                                                                          b.getValue().getName()));
