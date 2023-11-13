@@ -26,6 +26,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import org.phoebus.ui.javafx.NonCachingScrollPane;
 
 /** Navigation Tabs
  *
@@ -95,7 +96,7 @@ public class NavigationTabs extends BorderPane
     public NavigationTabs()
     {
         // Scroll pane in case body exceeds size of this, the other BorderPane
-        final ScrollPane scroll = new ScrollPane(body);
+        final ScrollPane scroll = new NonCachingScrollPane(body);
         scroll.getStyleClass().add("navtab_scroll");
 
         // Inner border pane to auto-resize 'body' and add border + padding via style sheet
