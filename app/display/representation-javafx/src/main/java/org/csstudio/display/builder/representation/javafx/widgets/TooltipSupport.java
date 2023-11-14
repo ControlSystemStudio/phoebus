@@ -42,12 +42,18 @@ import javafx.util.Duration;
 @SuppressWarnings("nls")
 public class TooltipSupport
 {
+    /** Instead of tracking the tool tip attached to a node ourselves,
+     *  we use this property that JavaFX 8+ happens to set,
+     *  defined in Tooltip.TOOLTIP_PROP_KEY.
+     *  If the JFX implementation changes, we'll need use our own property key.
+     */
+    private static final String TOOLTIP_PROP_KEY = "javafx.scene.control.Tooltip";
+
     /** Legacy tool tip: "$(pv_name)\n$(pv_value)" where number of '\n' can vary */
     private static final Pattern legacy_tooltip = Pattern.compile("\\$\\(pv_name\\)\\s*\\$\\(pv_value\\)");
 
     /** System property to disable tool tips (for debugging problems seen on Linux) */
     private static boolean disable_tooltips = Boolean.parseBoolean(System.getProperty("org.csstudio.display.builder.disable_tooltips"));
-    private static Runnable tooltipUninstaller = () -> { };
 
     /** Attach tool tip
      *  @param node Node that should have the tool tip
@@ -156,7 +162,12 @@ public class TooltipSupport
         tooltip.setShowDelay(Duration.millis(JFXPreferences.tooltip_delay_ms));
         tooltip.setShowDuration(Duration.seconds(JFXPreferences.tooltip_display_sec));
 
-        tooltipUninstaller = TooltipHelper.installTooltip(node, tooltip);
+        TooltipHelper.installTooltip(node, tooltip);
+        /*
+        if (node.getProperties().get(TOOLTIP_PROP_KEY) != tooltip)
+            throw new IllegalStateException("JavaFX Tooltip behavior changed");
+
+         */
     }
 
     /** Detach tool tip.
@@ -166,6 +177,8 @@ public class TooltipSupport
     {
         if (disable_tooltips)
             return;
-        tooltipUninstaller.run();
+        final Tooltip tooltip = (Tooltip) node.getProperties().get(TOOLTIP_PROP_KEY);
+        if (tooltip != null)
+            Tooltip.uninstall(node, tooltip);
     }
 }
