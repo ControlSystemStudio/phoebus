@@ -22,6 +22,7 @@ import org.springframework.security.config.ldap.LdapBindAuthenticationManagerFac
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
+import org.springframework.security.ldap.authentication.ad.ActiveDirectoryLdapAuthenticationProvider;
 import org.springframework.security.ldap.userdetails.DefaultLdapAuthoritiesPopulator;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 import org.springframework.security.ldap.userdetails.PersonContextMapper;
@@ -197,6 +198,22 @@ public class WebSecurityConfig {
         }
         configurer.contextSource(contextSource);
         return myAuthPopulator;
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "auth.impl", havingValue = "ad")
+    public AuthenticationManager authenticationProvider() throws Exception {
+        ActiveDirectoryLdapAuthenticationProvider adProvider =
+                new ActiveDirectoryLdapAuthenticationProvider(ad_domain, ad_url);
+        adProvider.setConvertSubErrorCodesToExceptions(true);
+        adProvider.setUseAuthenticationRequestCredentials(true);
+        adProvider.setUserDetailsContextMapper(new PersonContextMapper());
+        return new AuthenticationManagerBuilder(new ObjectPostProcessor<>() {
+            @Override
+            public <O> O postProcess(O object) {
+                return object;
+            }
+        }).authenticationProvider(adProvider).build();
     }
 
     @Bean
