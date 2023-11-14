@@ -36,9 +36,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
-import javax.ws.rs.core.MultivaluedMap;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -64,7 +62,7 @@ public class SearchControllerTest {
     private ObjectMapper objectMapper;
 
     @Test
-    public void testSearch() throws Exception{
+    public void testSearch() throws Exception {
         SearchResult searchResult = new SearchResult();
         searchResult.setHitCount(1);
         searchResult.setNodes(List.of(Node.builder().name("node").build()));

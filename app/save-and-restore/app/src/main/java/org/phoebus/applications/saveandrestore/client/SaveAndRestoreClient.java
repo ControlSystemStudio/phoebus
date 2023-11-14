@@ -151,7 +151,9 @@ public interface SaveAndRestoreClient {
 
     SnapshotData getSnapshotData(String uniqueId);
 
-    Snapshot saveSnapshot(String parentNodeId, Snapshot snapshot);
+    Snapshot createSnapshot(String parentNodeId, Snapshot snapshot);
+
+    Snapshot updateSnapshot(Snapshot snapshot);
 
     /**
      * Creates a new {@link CompositeSnapshot}.

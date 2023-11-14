@@ -44,7 +44,7 @@ public class ConfigurationController extends BaseController {
 
     @SuppressWarnings("unused")
     @PutMapping(produces = JSON)
-    @PreAuthorize("hasRole(this.roleUser)")
+    @PreAuthorize("@authorizationHelper.mayCreate(#root)")
     public Configuration createConfiguration(@RequestParam(value = "parentNodeId") String parentNodeId,
                                              @RequestBody Configuration configuration,
                                              Principal principal) {
@@ -60,28 +60,10 @@ public class ConfigurationController extends BaseController {
 
     @SuppressWarnings("unused")
     @PostMapping(produces = JSON)
-    @PreAuthorize("hasRole(this.roleAdmin) or (hasRole(this.roleAdmin) or this.mayUpdate(#configuration, #principal))")
+    @PreAuthorize("@authorizationHelper.mayUpdate(#configuration, #root)")
     public Configuration updateConfiguration(@RequestBody Configuration configuration,
                                              Principal principal) {
         configuration.getConfigurationNode().setUserName(principal.getName());
-        Configuration c = nodeDAO.updateConfiguration(configuration);
-        return c;
-    }
-
-    /**
-     * NOTE: this method MUST be public!
-     *
-     * <p>
-     * An authenticated user may update a configuration if user identity is same as the target {@link Node}'s user id.
-     * </p>
-     *
-     * @param configuration {@link Configuration} identifying the target of the user's update operation.
-     * @param principal Identifies user.
-     * @return <code>false</code> if user may not update the {@link Node}.
-     */
-    @SuppressWarnings("unused")
-    public boolean mayUpdate(Configuration configuration, Principal principal){
-        Node configNode = nodeDAO.getNode(configuration.getConfigurationNode().getUniqueId());
-        return configNode.getUserName().equals(principal.getName());
+        return nodeDAO.updateConfiguration(configuration);
     }
 }

@@ -22,25 +22,15 @@ package org.phoebus.service.saveandrestore.web.controllers;
 import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
-import org.phoebus.service.saveandrestore.web.config.AuthEnabledCondition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.security.access.expression.SecurityExpressionRoot;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authorization.AuthorizationManager;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
-import java.security.Principal;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * {@link Service} class implementing domain specific authorization rules in order to
@@ -62,8 +52,10 @@ public class AuthorizationHelper {
     @Autowired
     private String roleUser;
 
-    @Value("${authorization.bypass:true}")
-    public boolean bypassAuthorization;
+    @Value("${authorization.permitall:true}")
+    public boolean permitAll;
+
+    private static final String ROLE_PREFIX = "ROLE_";
 
     /**
      * Checks if all the nodes provided to this method can be deleted by the user. User with admin privileges is always
@@ -75,10 +67,10 @@ public class AuthorizationHelper {
      * @return <code>true</code> only if <b>all</b> if the nodes can be deleted by the user.
      */
     public boolean mayDelete(List<String> nodeIds, MethodSecurityExpressionOperations methodSecurityExpressionOperations) {
-        if(bypassAuthorization || methodSecurityExpressionOperations.hasAuthority("ROLE_" + roleAdmin)){
+        if(permitAll || methodSecurityExpressionOperations.hasAuthority(ROLE_PREFIX + roleAdmin)){
             return true;
         }
-        if(!methodSecurityExpressionOperations.hasAuthority("ROLE_" + roleUser)){
+        if(!methodSecurityExpressionOperations.hasAuthority(ROLE_PREFIX + roleUser)){
             return false;
         }
         for (String nodeId : nodeIds) {
@@ -121,10 +113,10 @@ public class AuthorizationHelper {
      * @return <code>false</code> if user may not update the {@link Node}.
      */
     public boolean mayUpdate(Node node, MethodSecurityExpressionOperations methodSecurityExpressionOperations) {
-        if(bypassAuthorization || methodSecurityExpressionOperations.hasAuthority("ROLE_" + roleAdmin)){
+        if(permitAll || methodSecurityExpressionOperations.hasAuthority(ROLE_PREFIX + roleAdmin)){
             return true;
         }
-        if(!methodSecurityExpressionOperations.hasAuthority("ROLE_" + roleUser)){
+        if(!methodSecurityExpressionOperations.hasAuthority(ROLE_PREFIX + roleUser)){
             return false;
         }
         return nodeDAO.getNode(node.getUniqueId()).getUserName()
@@ -141,13 +133,54 @@ public class AuthorizationHelper {
      * @return <code>false</code> if user may not update the {@link CompositeSnapshot}.
      */
     public boolean mayUpdate(CompositeSnapshot compositeSnapshot, MethodSecurityExpressionOperations methodSecurityExpressionOperations) {
-        if(bypassAuthorization || methodSecurityExpressionOperations.hasAuthority("ROLE_" + roleAdmin)){
+        if(permitAll || methodSecurityExpressionOperations.hasAuthority(ROLE_PREFIX + roleAdmin)){
             return true;
         }
-        if(!methodSecurityExpressionOperations.hasAuthority("ROLE_" + roleUser)){
+        if(!methodSecurityExpressionOperations.hasAuthority(ROLE_PREFIX + roleUser)){
             return false;
         }
         return nodeDAO.getNode(compositeSnapshot.getCompositeSnapshotNode().getUniqueId()).getUserName()
+                .equals(((User)methodSecurityExpressionOperations.getAuthentication().getPrincipal()).getUsername());
+    }
+
+    /**
+     * An authenticated user may update a configuration if user has admin privileges, or
+     * if user identity is same as the target {@link Node}'s user id.
+     *
+     * @param configuration {@link Configuration} identifying the target of the user's update operation.
+     * @param methodSecurityExpressionOperations {@link MethodSecurityExpressionOperations} Spring managed object
+     *        queried for authorization.
+     * @return <code>false</code> if user may not update the {@link Configuration}.
+     */
+    public boolean mayUpdate(Configuration configuration, MethodSecurityExpressionOperations methodSecurityExpressionOperations) {
+        if(permitAll || methodSecurityExpressionOperations.hasAuthority(ROLE_PREFIX + roleAdmin)){
+            return true;
+        }
+        if(!methodSecurityExpressionOperations.hasAuthority(ROLE_PREFIX + roleUser)){
+            return false;
+        }
+        return nodeDAO.getNode(configuration.getConfigurationNode().getUniqueId()).getUserName()
+                .equals(((User)methodSecurityExpressionOperations.getAuthentication().getPrincipal()).getUsername());
+    }
+
+    /**
+     * An authenticated user may update a snapshot if user has admin privileges, or
+     * if user identity is same as the target {@link Node}'s user id.
+     *
+     * @param snapshot {@link Snapshot} identifying the target of the user's update operation.
+     * @param methodSecurityExpressionOperations {@link MethodSecurityExpressionOperations} Spring managed object
+     *        queried for authorization.
+     * @return <code>false</code> if user may not update the {@link Snapshot}.
+     */
+    public boolean mayUpdate(Snapshot snapshot, MethodSecurityExpressionOperations methodSecurityExpressionOperations) {
+        if(permitAll || methodSecurityExpressionOperations.hasAuthority(ROLE_PREFIX + roleAdmin)){
+            return true;
+        }
+        if(!methodSecurityExpressionOperations.hasAuthority(ROLE_PREFIX + roleUser)){
+            return false;
+        }
+        // If snapshot's node has null id, then this is a
+        return nodeDAO.getNode(snapshot.getSnapshotNode().getUniqueId()).getUserName()
                 .equals(((User)methodSecurityExpressionOperations.getAuthentication().getPrincipal()).getUsername());
     }
 
@@ -167,15 +200,15 @@ public class AuthorizationHelper {
                 tagData.getUniqueNodeIds() == null) {
             throw new IllegalArgumentException("Cannot add tag, data invalid");
         }
-        if(bypassAuthorization || methodSecurityExpressionOperations.hasAuthority("ROLE_" + roleAdmin)){
+        if(permitAll || methodSecurityExpressionOperations.hasAuthority(ROLE_PREFIX + roleAdmin)){
             return true;
         }
-        if(!methodSecurityExpressionOperations.hasAuthority("ROLE_" + roleUser)){
+        if(!methodSecurityExpressionOperations.hasAuthority(ROLE_PREFIX + roleUser)){
             return false;
         }
         Tag tag = tagData.getTag();
         if(tag.getName().equals(Tag.GOLDEN)){
-            return methodSecurityExpressionOperations.hasAuthority("ROLE_" + roleAdmin);
+            return methodSecurityExpressionOperations.hasAuthority(ROLE_PREFIX + roleAdmin);
         }
         String username = ((User)methodSecurityExpressionOperations.getAuthentication().getPrincipal()).getUsername();
         for(String nodeId : tagData.getUniqueNodeIds()){
@@ -200,10 +233,10 @@ public class AuthorizationHelper {
      * @return <code>false</code> if user may not update the {@link Filter}.
      */
     public boolean maySaveOrDeleteFilter(String filterName, MethodSecurityExpressionOperations methodSecurityExpressionOperations) {
-        if(bypassAuthorization || methodSecurityExpressionOperations.hasAuthority("ROLE_" + roleAdmin)){
+        if(permitAll || methodSecurityExpressionOperations.hasAuthority(ROLE_PREFIX + roleAdmin)){
             return true;
         }
-        if(!methodSecurityExpressionOperations.hasAuthority("ROLE_" + roleUser)){
+        if(!methodSecurityExpressionOperations.hasAuthority(ROLE_PREFIX + roleUser)){
             return false;
         }
         Optional<Filter> filter1 =
@@ -215,5 +248,29 @@ public class AuthorizationHelper {
         }
         String username = ((User)methodSecurityExpressionOperations.getAuthentication().getPrincipal()).getUsername();
         return filter1.map(value -> value.getUser().equals(username)).orElse(true);
+    }
+
+    /**
+     * Checks if user is allowed to create an object (node, snapshot...). This is the case if authorization
+     * is disabled or if user has (basic) user role.
+     *
+     * @param methodSecurityExpressionOperations {@link MethodSecurityExpressionOperations} Spring managed object
+     *        queried for authorization.
+     * @return <code>false</code> if user may not create the object, otherwise <code>true</code>.
+     */
+    public boolean mayCreate(MethodSecurityExpressionOperations methodSecurityExpressionOperations){
+        return permitAll || methodSecurityExpressionOperations.hasAuthority(ROLE_PREFIX + roleUser);
+    }
+
+    /**
+     * Checks if user is allowed to move or copy objects. This is the case if authorization
+     * is disabled or if user has admin role.
+     *
+     * @param methodSecurityExpressionOperations {@link MethodSecurityExpressionOperations} Spring managed object
+     *        queried for authorization.
+     * @return <code>false</code> if user may not create the object, otherwise <code>true</code>.
+     */
+    public boolean mayMoveOrCopy(MethodSecurityExpressionOperations methodSecurityExpressionOperations) {
+        return permitAll || methodSecurityExpressionOperations.hasAuthority(ROLE_PREFIX + roleAdmin);
     }
 }

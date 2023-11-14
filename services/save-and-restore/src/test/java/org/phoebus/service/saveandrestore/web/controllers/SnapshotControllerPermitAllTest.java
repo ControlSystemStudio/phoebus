@@ -43,26 +43,22 @@ import java.util.List;
 
 import static org.mockito.Mockito.when;
 import static org.phoebus.service.saveandrestore.web.controllers.BaseController.JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = ControllersTestConfig.class)
-@TestPropertySource(locations = "classpath:test_application.properties")
+@TestPropertySource(locations = "classpath:test_application_permit_all.properties")
 @WebMvcTest(SnapshotController.class)
-public class SnapshotControllerTest {
+public class SnapshotControllerPermitAllTest {
 
     @Autowired
     private NodeDAO nodeDAO;
 
     @Autowired
     private String userAuthorization;
-
-    @Autowired
-    private String adminAuthorization;
 
     @Autowired
     private String readOnlyAuthorization;
@@ -75,40 +71,8 @@ public class SnapshotControllerTest {
     @Autowired
     private String demoUser;
 
-
     @Test
-    public void testSaveSnapshotWrongNodeType() throws Exception {
-
-        Node node = Node.builder().uniqueId("uniqueId").userName(demoUser).nodeType(NodeType.FOLDER).build();
-
-        Snapshot snapshot = new Snapshot();
-        snapshot.setSnapshotNode(node);
-
-        when(nodeDAO.getNode("uniqueId")).thenReturn(node);
-
-        MockHttpServletRequestBuilder request = put("/snapshot?parentNodeId=a")
-                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
-                .contentType(JSON)
-                .content(objectMapper.writeValueAsString(snapshot));
-
-        mockMvc.perform(request).andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void testSaveSnapshotNoParentNodeId() throws Exception {
-        Snapshot snapshot = new Snapshot();
-        snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT).build());
-
-        MockHttpServletRequestBuilder request = put("/snapshot")
-                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
-                .contentType(JSON)
-                .content(objectMapper.writeValueAsString(snapshot));
-
-        mockMvc.perform(request).andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void testCreateSnapshot() throws Exception {
+    public void testSaveNewSnapshot() throws Exception {
         Node node = Node.builder().uniqueId("uniqueId").nodeType(NodeType.SNAPSHOT).userName(demoUser).build();
         Snapshot snapshot = new Snapshot();
         snapshot.setSnapshotNode(node);
@@ -139,13 +103,35 @@ public class SnapshotControllerTest {
                 .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
                 .contentType(JSON)
                 .content(snapshotString);
-        mockMvc.perform(request).andExpect(status().isForbidden());
-
-        request = put("/snapshot?parentNodeId=a")
-                .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
-                .contentType(JSON)
-                .content(snapshotString);
         mockMvc.perform(request).andExpect(status().isOk());
+    }
+
+    @Test
+    public void testDeleteSnapshot() throws Exception{
+
+        when(nodeDAO.getNode("a")).thenReturn(Node.builder()
+                .nodeType(NodeType.SNAPSHOT)
+                .uniqueId("a").userName(demoUser).build());
+
+        MockHttpServletRequestBuilder request =
+                delete("/node")
+                        .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
+                        .header(HttpHeaders.AUTHORIZATION, userAuthorization);
+
+        mockMvc.perform(request).andExpect(status().isOk());
+
+        request =
+                delete("/node")
+                        .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
+                        .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization);
+
+        mockMvc.perform(request).andExpect(status().isOk());
+
+        request =
+                delete("/node")
+                        .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")));
+
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -180,51 +166,6 @@ public class SnapshotControllerTest {
                 .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
                 .contentType(JSON)
                 .content(snapshotString);
-        mockMvc.perform(request).andExpect(status().isForbidden());
-
-        request = post("/snapshot")
-                .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
-                .contentType(JSON)
-                .content(snapshotString);
         mockMvc.perform(request).andExpect(status().isOk());
-    }
-
-    @Test
-    public void testDeleteSnapshot() throws Exception{
-
-        when(nodeDAO.getNode("a")).thenReturn(Node.builder()
-                .nodeType(NodeType.SNAPSHOT)
-                .uniqueId("a").userName(demoUser).build());
-
-        MockHttpServletRequestBuilder request =
-                delete("/node")
-                        .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
-                        .header(HttpHeaders.AUTHORIZATION, userAuthorization);
-
-        mockMvc.perform(request).andExpect(status().isOk());
-
-        request =
-                delete("/node")
-                        .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
-                        .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization);
-
-        mockMvc.perform(request).andExpect(status().isForbidden());
-
-        when(nodeDAO.getNode("a")).thenReturn(Node.builder()
-                .nodeType(NodeType.SNAPSHOT)
-                .uniqueId("a").userName("otherUser").build());
-
-        request =
-                delete("/node")
-                        .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
-                        .header(HttpHeaders.AUTHORIZATION, adminAuthorization);
-
-        mockMvc.perform(request).andExpect(status().isOk());
-
-        request =
-                delete("/node")
-                        .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")));
-
-        mockMvc.perform(request).andExpect(status().isUnauthorized());
     }
 }

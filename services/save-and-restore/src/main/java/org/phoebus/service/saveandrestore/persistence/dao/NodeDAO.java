@@ -134,7 +134,16 @@ public interface NodeDAO {
      * @param snapshot The {@link Snapshot} data.
      * @return The persisted {@link Snapshot} data.
      */
-    Snapshot saveSnapshot(String parentNodeId, Snapshot snapshot);
+    Snapshot createSnapshot(String parentNodeId, Snapshot snapshot);
+
+    /**
+     * Updates a {@link Snapshot} with respect to name, description/comment. No other properties of the
+     * node can be modified, but last updated date will be set accordingly.
+     *
+     * @param snapshot The {@link Snapshot} subject to update.
+     * @return The {@link Snapshot} object as read from the persistence implementation.
+     */
+    Snapshot updateSnapshot(Snapshot snapshot);
 
     /**
      * Updates a {@link Node} with respect to name, description/comment and tags. No other properties of the

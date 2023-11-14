@@ -27,7 +27,6 @@ import org.phoebus.applications.saveandrestore.model.TagData;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -55,7 +54,7 @@ public class TagController extends BaseController {
      * Adds a {@link Tag} to specified list of target {@link Node}s. The {@link Tag} contained
      * in tagData must be non-null, and its name must be non-null and non-empty.
      *
-     * @param tagData        See {@link TagData}
+     * @param tagData   See {@link TagData}
      * @param principal {@link Principal} of authenticated user.
      * @return The list of updated {@link Node}s
      */

@@ -60,7 +60,7 @@ public class ContextMenuSnapshot extends ContextMenuBase {
         tagWithComment = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
         tagWithComment.setOnShowing(event -> saveAndRestoreController.tagWithComment(tagWithComment));
         tagWithComment.disableProperty().bind(Bindings.createBooleanBinding(() ->
-                        multipleNodesSelectedProperty.get(), //|| userIsAuthenticatedProperty.not().get(),
+                        multipleNodesSelectedProperty.get() || userIsAuthenticatedProperty.not().get(),
                 multipleNodesSelectedProperty, userIsAuthenticatedProperty));
 
         MenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
@@ -84,8 +84,8 @@ public class ContextMenuSnapshot extends ContextMenuBase {
 
         tagGoldenMenuItem = new MenuItem(Messages.contextMenuTagAsGolden, new ImageView(ImageRepository.SNAPSHOT));
         tagGoldenMenuItem.disableProperty().bind(Bindings.createBooleanBinding(() ->
-                        multipleNodesSelectedProperty.get() || /*userIsAuthenticatedProperty.not().get() ||*/ mayTagOrUntagGoldenProperty.not().get(),
-                multipleNodesSelectedProperty, /*userIsAuthenticatedProperty,*/ mayTagOrUntagGoldenProperty));
+                        multipleNodesSelectedProperty.get() || userIsAuthenticatedProperty.not().get() || mayTagOrUntagGoldenProperty.not().get(),
+                multipleNodesSelectedProperty, userIsAuthenticatedProperty, mayTagOrUntagGoldenProperty));
 
         Image copyIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/copy.png");
         MenuItem copyMenuItem = new MenuItem(Messages.copy, new ImageView(copyIcon));

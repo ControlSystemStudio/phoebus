@@ -36,7 +36,7 @@ public class WebSecurityConfig {
     /**
      * Authentication implementation.
      */
-    @Value("${auth.impl:none}")
+    @Value("${auth.impl:demo}")
     protected String authenitcationImplementation;
 
     /**
@@ -148,14 +148,8 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf().disable();
-        if("none".equalsIgnoreCase(authenitcationImplementation.trim())){
-            http.authorizeRequests().antMatchers("/**").permitAll();
-        }
-        else{
-            http.authorizeRequests().anyRequest().authenticated();
-        }
+        http.authorizeRequests().anyRequest().authenticated();
         http.httpBasic();
-
         return http.build();
     }
 

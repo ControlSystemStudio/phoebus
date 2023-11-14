@@ -102,10 +102,8 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
                 String password = scopedAuthenticationToken.getPassword();
                 httpBasicAuthFilter = new HTTPBasicAuthFilter(username, password);
                 client.addFilter(httpBasicAuthFilter);
-            } else {//if (httpBasicAuthFilter != null) {
-                //client.removeFilter(httpBasicAuthFilter);
-                httpBasicAuthFilter = new HTTPBasicAuthFilter(System.getProperty("user.name"), "password");
-                client.addFilter(httpBasicAuthFilter);
+            } else if (httpBasicAuthFilter != null) {
+                client.removeFilter(httpBasicAuthFilter);
             }
         } catch (Exception e) {
             logger.log(Level.WARNING, "Unable to retrieve credentials from secure store", e);
@@ -182,8 +180,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     @Override
     public Node createNewNode(String parentNodeId, Node node) {
         WebResource webResource = getClient().resource(jmasarServiceUrl + "/node")
-                .queryParam("parentNodeId", parentNodeId)   // Request parameter username is needed in case authorization/authentication is disabled.
-                .queryParam("username", System.getProperty("user.name"));
+                .queryParam("parentNodeId", parentNodeId);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(node, CONTENT_TYPE_JSON)
                 .put(ClientResponse.class);
@@ -207,9 +204,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     @Override
     public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration) {
         WebResource webResource = getClient().resource(jmasarServiceUrl + "/node")
-                .queryParam("customTimeForMigration", customTimeForMigration ? "true" : "false")
-                // Request parameter username is needed in case authorization/authentication is disabled.
-                .queryParam("username", System.getProperty("user.name"));
+                .queryParam("customTimeForMigration", customTimeForMigration ? "true" : "false");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(nodeToUpdate, CONTENT_TYPE_JSON)
@@ -347,9 +342,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     public Configuration createConfiguration(String parentNodeId, Configuration configuration) {
         WebResource webResource =
                 getClient().resource(jmasarServiceUrl + "/config")
-                        .queryParam("parentNodeId", parentNodeId)
-                        // Request parameter username is needed in case authorization/authentication is disabled.
-                        .queryParam("username", System.getProperty("user.name"));
+                        .queryParam("parentNodeId", parentNodeId);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(configuration, CONTENT_TYPE_JSON)
                 .put(ClientResponse.class);
@@ -367,9 +360,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
 
     @Override
     public Configuration updateConfiguration(Configuration configuration) {
-        WebResource webResource = getClient().resource(jmasarServiceUrl + "/config")
-                // Request parameter username is needed in case authorization/authentication is disabled.
-                .queryParam("username", System.getProperty("user.name"));
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/config");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(configuration, CONTENT_TYPE_JSON)
@@ -393,12 +384,10 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     }
 
     @Override
-    public Snapshot saveSnapshot(String parentNodeId, Snapshot snapshot) {
+    public Snapshot createSnapshot(String parentNodeId, Snapshot snapshot) {
         WebResource webResource =
                 getClient().resource(jmasarServiceUrl + "/snapshot")
-                        .queryParam("parentNodeId", parentNodeId)
-                        // Request parameter username is needed in case authorization/authentication is disabled.
-                        .queryParam("username", System.getProperty("user.name"));
+                        .queryParam("parentNodeId", parentNodeId);
         ClientResponse response;
         try {
             response = webResource.accept(CONTENT_TYPE_JSON)
@@ -420,12 +409,35 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     }
 
     @Override
+    public Snapshot updateSnapshot(Snapshot snapshot) {
+        WebResource webResource =
+                getClient().resource(jmasarServiceUrl + "/snapshot");
+        ClientResponse response;
+        try {
+            response = webResource.accept(CONTENT_TYPE_JSON)
+                    .entity(snapshot, CONTENT_TYPE_JSON)
+                    .post(ClientResponse.class);
+        } catch (UniformInterfaceException e) {
+            throw new RuntimeException(e);
+        }
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
+            String message = Messages.searchFailed;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Unable to parse response", e);
+            }
+            throw new SaveAndRestoreClientException(message);
+        }
+        return response.getEntity(Snapshot.class);
+    }
+
+
+    @Override
     public CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot) {
         WebResource webResource =
                 getClient().resource(jmasarServiceUrl + "/composite-snapshot")
-                        .queryParam("parentNodeId", parentNodeId)
-                        // Request parameter username is needed in case authorization/authentication is disabled.
-                        .queryParam("username", System.getProperty("user.name"));
+                        .queryParam("parentNodeId", parentNodeId);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(compositeSnapshot, CONTENT_TYPE_JSON)
                 .put(ClientResponse.class);
@@ -463,9 +475,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
 
     @Override
     public CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot) {
-        WebResource webResource = getClient().resource(jmasarServiceUrl + "/composite-snapshot")
-                // Request parameter username is needed in case authorization/authentication is disabled.
-                .queryParam("username", System.getProperty("user.name"));
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/composite-snapshot");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(compositeSnapshot, CONTENT_TYPE_JSON)
@@ -502,9 +512,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
 
     @Override
     public Filter saveFilter(Filter filter) {
-        WebResource webResource = getClient().resource(jmasarServiceUrl + "/filter")
-                // Request parameter username is needed in case authorization/authentication is disabled.
-                .queryParam("username", System.getProperty("user.name"));
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/filter");
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(filter, CONTENT_TYPE_JSON)
                 .put(ClientResponse.class);
@@ -566,9 +574,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     public List<Node> addTag(TagData tagData) {
 
         WebResource webResource =
-                getClient().resource(jmasarServiceUrl + "/tags")
-                        // Request parameter username is needed in case authorization/authentication is disabled.
-                        .queryParam("username", System.getProperty("user.name"));
+                getClient().resource(jmasarServiceUrl + "/tags");
         ClientResponse response;
         try {
             response = webResource.accept(CONTENT_TYPE_JSON)

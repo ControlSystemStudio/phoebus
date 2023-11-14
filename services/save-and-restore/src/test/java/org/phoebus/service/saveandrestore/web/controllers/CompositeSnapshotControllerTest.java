@@ -77,7 +77,7 @@ public class CompositeSnapshotControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static CompositeSnapshot compositeSnapshot;
 

@@ -34,8 +34,6 @@ import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.VNoData;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.security.store.SecureStore;
-import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -153,13 +151,22 @@ public class SnapshotController extends SaveAndRestoreBaseController {
             List<SnapshotItem> snapshotItems = snapshotProperty.get().getSnapshotData().getSnapshotItems();
             SnapshotData snapshotData = new SnapshotData();
             snapshotData.setSnapshotItems(snapshotItems);
-            Snapshot snapshot = new Snapshot();
+            Snapshot snapshot = snapshotProperty.get();
+            // Creating new or updating existing (e.g. name change)?
+            if (snapshot == null) {
+                snapshot = new Snapshot();
+                snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT)
+                        .name(snapshotControlsViewController.getSnapshotNameProperty().get())
+                        .description(snapshotControlsViewController.getSnapshotCommentProperty().get()).build());
+            } else {
+                snapshot.getSnapshotNode().setName(snapshotControlsViewController.getSnapshotNameProperty().get());
+                snapshot.getSnapshotNode().setDescription(snapshotControlsViewController.getSnapshotCommentProperty().get());
+            }
             snapshot.setSnapshotData(snapshotData);
-            snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT)
-                    .name(snapshotControlsViewController.getSnapshotNameProperty().get())
-                    .description(snapshotControlsViewController.getSnapshotCommentProperty().get()).build());
+
             try {
                 snapshot = SaveAndRestoreService.getInstance().saveSnapshot(configurationNode, snapshot);
+                snapshotProperty.set(snapshot);
                 Node _snapshotNode = snapshot.getSnapshotNode();
                 javafx.scene.Node jfxNode = (javafx.scene.Node) actionEvent.getSource();
                 String userData = (String) jfxNode.getUserData();
@@ -363,7 +370,7 @@ public class SnapshotController extends SaveAndRestoreBaseController {
             Snapshot snapshot = getSnapshotFromService(snapshotNode);
             snapshotTableViewController.addSnapshot(snapshot);
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.getLogger(SnapshotController.class.getName()).log(Level.WARNING, "Failed to add snapshot", e);
         } finally {
             disabledUi.set(false);
         }
@@ -392,7 +399,7 @@ public class SnapshotController extends SaveAndRestoreBaseController {
     }
 
     @Override
-    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens){
+    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens) {
         snapshotControlsViewController.secureStoreChanged(validTokens);
     }
 }

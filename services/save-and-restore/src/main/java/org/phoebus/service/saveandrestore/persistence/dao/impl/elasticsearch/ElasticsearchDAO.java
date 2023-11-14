@@ -723,7 +723,7 @@ public class ElasticsearchDAO implements NodeDAO {
     }
 
     @Override
-    public Snapshot saveSnapshot(String parentNodeId, Snapshot snapshot) {
+    public Snapshot createSnapshot(String parentNodeId, Snapshot snapshot) {
 
         SnapshotData sanitizedSnapshotData = removeDuplicateSnapshotItems(snapshot.getSnapshotData());
         snapshot.setSnapshotData(sanitizedSnapshotData);
@@ -743,6 +743,27 @@ public class ElasticsearchDAO implements NodeDAO {
         Snapshot newSnapshot = new Snapshot();
         newSnapshot.setSnapshotData(newSnapshotData);
         newSnapshot.setSnapshotNode(newSnapshotNode);
+
+        return newSnapshot;
+    }
+
+    @Override
+    public Snapshot updateSnapshot(Snapshot snapshot) {
+
+        SnapshotData sanitizedSnapshotData = removeDuplicateSnapshotItems(snapshot.getSnapshotData());
+        snapshot.setSnapshotData(sanitizedSnapshotData);
+
+        snapshot.getSnapshotNode().setNodeType(NodeType.SNAPSHOT); // Force node type
+        SnapshotData newSnapshotData;
+        try {
+            newSnapshotData = snapshotDataRepository.save(snapshot.getSnapshotData());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        Snapshot newSnapshot = new Snapshot();
+        newSnapshot.setSnapshotData(newSnapshotData);
+        newSnapshot.setSnapshotNode(snapshot.getSnapshotNode());
 
         return newSnapshot;
     }

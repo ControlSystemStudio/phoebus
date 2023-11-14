@@ -46,10 +46,11 @@
         <columnConstraints>
             <ColumnConstraints />
             <ColumnConstraints />
+            <ColumnConstraints />
+            <ColumnConstraints />
             <ColumnConstraints maxWidth="125.0" minWidth="120.0" prefWidth="125.0" />
             <ColumnConstraints maxWidth="173.0" minWidth="154.0" prefWidth="173.0" />
-         <ColumnConstraints />
-         <ColumnConstraints />
+
         </columnConstraints>
         <rowConstraints>
             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />

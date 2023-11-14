@@ -17,7 +17,6 @@
  */
 package org.phoebus.service.saveandrestore.web.controllers;
 
-import org.phoebus.applications.saveandrestore.model.security.UserNotAuthorizedException;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.SnapshotNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,12 +88,6 @@ public abstract class BaseController {
                                                               NodeNotFoundException exception) {
         log(exception);
         return new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler(UserNotAuthorizedException.class)
-    public ResponseEntity<String> handleUserNotAuthorizedException(HttpServletRequest req, UserNotAuthorizedException exception) {
-        log(exception);
-        return new ResponseEntity<>(exception.getMessage(), HttpStatus.FORBIDDEN);
     }
 
     private void log(Throwable throwable) {

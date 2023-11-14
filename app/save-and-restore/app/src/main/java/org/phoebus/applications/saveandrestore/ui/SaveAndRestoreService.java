@@ -235,7 +235,14 @@ public class SaveAndRestoreService {
             return snapshotItem;
         }).collect(Collectors.toList());
         snapshot.getSnapshotData().setSnapshotItems(beautifiedItems);
-        Future<Snapshot> future = executor.submit(() -> saveAndRestoreClient.saveSnapshot(configurationNode.getUniqueId(), snapshot));
+        Future<Snapshot> future = executor.submit(() -> {
+            if(snapshot.getSnapshotNode().getUniqueId() == null){
+                return saveAndRestoreClient.createSnapshot(configurationNode.getUniqueId(), snapshot);
+            }
+            else{
+                return saveAndRestoreClient.updateSnapshot(snapshot);
+            }
+        });
         Snapshot updatedSnapshot = future.get();
         // Notify listeners as the configuration node has a new child node.
         notifyNodeChangeListeners(configurationNode);

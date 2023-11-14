@@ -24,10 +24,12 @@ File ../../app/alarm/model/src/main/resources/alarm_preferences.properties::
    # A file to configure the properites of kafka clients
    kafka_properties=
    
-   # Name of alarm tree root
+   # Name of alarm tree root.
+   # Configures the alarm configuration used by the alarm server.
+   # For the UI, it sets the default alarm configuration.
    config_name=Accelerator
    
-   # Names of selectable alarm configurations
+   # Names of selectable alarm configurations for UI.
    # The `config_name` will be used as the default for newly opened tools,
    # and if `config_names` is empty, it remains the only option.
    # When one or more comma-separated configurations are listed,
@@ -1214,6 +1216,17 @@ File ../../core/pv/src/main/resources/pv_ca_preferences.properties::
    # -------------------------
    # Package org.phoebus.pv.ca
    # -------------------------
+   
+   # By default, we use the following preferences settings,
+   # but when the System property "jca.use_env" is "true",
+   # JCA falls back to the EPICS_CA_... environment variables.
+   #
+   # Sites that prefer to use the EPICS_CA_... environment variables
+   # thus need to add
+   #
+   #      -Djca.use_env=true
+   #
+   # to their launcher script.
    
    # Channel Access address list
    addr_list=

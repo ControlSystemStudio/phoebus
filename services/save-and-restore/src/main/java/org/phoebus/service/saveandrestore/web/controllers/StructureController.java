@@ -53,7 +53,7 @@ public class StructureController extends BaseController {
      */
     @SuppressWarnings("unused")
     @PostMapping(value = "/move", produces = JSON)
-    @PreAuthorize("hasRole(this.roleAdmin)")
+    @PreAuthorize("@authorizationHelper.mayMoveOrCopy(#root)")
     public Node moveNodes(@RequestParam(value = "to") String to,
                           @RequestBody List<String> nodes,
                           Principal principal) {
@@ -77,6 +77,7 @@ public class StructureController extends BaseController {
      */
     @SuppressWarnings("unused")
     @PostMapping(value = "/copy", produces = JSON)
+    @PreAuthorize("@authorizationHelper.mayMoveOrCopy(#root)")
     public Node copyNodes(@RequestParam(value = "to") String to,
                           @RequestBody List<String> nodes,
                           Principal principal) {

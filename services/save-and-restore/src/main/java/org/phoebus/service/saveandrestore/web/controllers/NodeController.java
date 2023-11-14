@@ -65,7 +65,7 @@ public class NodeController extends BaseController {
      */
     @SuppressWarnings("unused")
     @PutMapping(value = "/node", produces = JSON)
-    @PreAuthorize("hasRole(this.roleUser)")
+    @PreAuthorize("@authorizationHelper.mayCreate(#root)")
     public Node createNode(@RequestParam(name = "parentNodeId") String parentsUniqueId,
                            @RequestBody final Node node,
                            Principal principal) {

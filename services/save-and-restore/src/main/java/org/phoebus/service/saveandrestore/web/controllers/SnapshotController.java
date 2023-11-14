@@ -47,34 +47,25 @@ public class SnapshotController extends BaseController {
     }
 
     @PutMapping(value = "/snapshot", produces = JSON)
-    @PreAuthorize("hasRole(this.roleAdmin) or (hasRole(this.roleUser) and this.maySave(#snapshot, #principal))")
-    public Snapshot saveSnapshot(@RequestParam(value = "parentNodeId") String parentNodeId,
+    @PreAuthorize("@authorizationHelper.mayCreate(#root)")
+    public Snapshot createSnapshot(@RequestParam(value = "parentNodeId") String parentNodeId,
                                  @RequestBody Snapshot snapshot,
                                  Principal principal) {
         if(!snapshot.getSnapshotNode().getNodeType().equals(NodeType.SNAPSHOT)){
             throw new IllegalArgumentException("Snapshot node of wrong type");
         }
         snapshot.getSnapshotNode().setUserName(principal.getName());
-        return nodeDAO.saveSnapshot(parentNodeId, snapshot);
+        return nodeDAO.createSnapshot(parentNodeId, snapshot);
     }
 
-    /**
-     * NOTE: this method MUST be public!
-     *
-     * <p>
-     * An authenticated user may save a snapshot, and update if user identity is same as the target's
-     * snapshot {@link Node}.
-     * </p>
-     *
-     * @param snapshot {@link Snapshot} identifying the target of the user's update operation.
-     * @param principal Identifies user.
-     * @return <code>false</code> if user may not update the {@link Snapshot}.
-     */
-    public boolean maySave(Snapshot snapshot, Principal principal){
-        if(snapshot.getSnapshotNode().getUniqueId() == null){
-            return true;
+    @PostMapping(value = "/snapshot", produces = JSON)
+    @PreAuthorize("@authorizationHelper.mayUpdate(#snapshot, #root)")
+    public Snapshot updateSnapshot(@RequestBody Snapshot snapshot,
+                                   Principal principal) {
+        if(!snapshot.getSnapshotNode().getNodeType().equals(NodeType.SNAPSHOT)){
+            throw new IllegalArgumentException("Snapshot node of wrong type");
         }
-        Node node = nodeDAO.getNode(snapshot.getSnapshotNode().getUniqueId());
-        return node.getUserName().equals(principal.getName());
+        snapshot.getSnapshotNode().setUserName(principal.getName());
+        return nodeDAO.updateSnapshot(snapshot);
     }
 }

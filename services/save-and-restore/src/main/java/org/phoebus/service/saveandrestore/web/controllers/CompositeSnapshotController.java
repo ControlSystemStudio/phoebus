@@ -42,7 +42,7 @@ public class CompositeSnapshotController extends BaseController {
     private NodeDAO nodeDAO;
 
     @PutMapping(value = "/composite-snapshot", produces = JSON)
-    @PreAuthorize("hasRole(this.roleUser)")
+    @PreAuthorize("@authorizationHelper.mayCreate(#root)")
     public CompositeSnapshot createCompositeSnapshot(@RequestParam(value = "parentNodeId") String parentNodeId,
                                                      @RequestBody CompositeSnapshot compositeSnapshot,
                                                      Principal principal) {
