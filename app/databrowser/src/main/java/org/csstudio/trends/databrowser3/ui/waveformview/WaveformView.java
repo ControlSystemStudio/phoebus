@@ -33,7 +33,6 @@ import org.csstudio.trends.databrowser3.ui.ToggleToolbarMenuItem;
 import org.epics.vtype.VNumberArray;
 import org.epics.vtype.VType;
 import org.phoebus.archive.vtype.VTypeHelper;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.application.SaveSnapshotAction;
 import org.phoebus.ui.javafx.MultiCheckboxCombo;
 import org.phoebus.ui.javafx.PrintAction;
@@ -160,7 +159,7 @@ public class WaveformView extends VBox
         });
 
         final Button refresh = new Button(Messages.SampleView_Refresh);
-        TooltipHelper.setTooltip(refresh, new Tooltip(Messages.SampleView_RefreshTT));
+        refresh.setTooltip(new Tooltip(Messages.SampleView_RefreshTT));
         refresh.setOnAction(event -> updatePVs());
 
         final Label label = new Label(Messages.SampleView_Item);
@@ -179,7 +178,7 @@ public class WaveformView extends VBox
 
         sample_index.setBlockIncrement(1);
         sample_index.disableProperty().bind(Bindings.isEmpty(items.selectedOptions()));
-        TooltipHelper.setTooltip(sample_index, new Tooltip(Messages.WaveformTimeSelector));
+        sample_index.setTooltip(new Tooltip(Messages.WaveformTimeSelector));
         sample_index.valueProperty().addListener(p -> showSelectedSample());
 
         timestamp.setEditable(false);

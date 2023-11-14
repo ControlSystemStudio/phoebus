@@ -163,11 +163,8 @@ public class TooltipSupport
         tooltip.setShowDuration(Duration.seconds(JFXPreferences.tooltip_display_sec));
 
         TooltipHelper.installTooltip(node, tooltip);
-        /*
         if (node.getProperties().get(TOOLTIP_PROP_KEY) != tooltip)
             throw new IllegalStateException("JavaFX Tooltip behavior changed");
-
-         */
     }
 
     /** Detach tool tip.

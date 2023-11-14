@@ -20,7 +20,6 @@ import org.csstudio.trends.databrowser3.model.Model;
 import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.selection.SelectionService;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.undo.UndoableActionManager;
@@ -91,11 +90,11 @@ public class SearchView extends SplitPane
         // Archive List
 
         // Pattern: ____________ [Search]
-        TooltipHelper.setTooltip(pattern, new Tooltip(Messages.SearchPatternTT));
+        pattern.setTooltip(new Tooltip(Messages.SearchPatternTT));
         pattern.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(pattern, Priority.ALWAYS);
         final Button search = new Button(Messages.Search);
-        TooltipHelper.setTooltip(search, new Tooltip(Messages.SearchTT));
+        search.setTooltip(new Tooltip(Messages.SearchTT));
         final HBox search_row = new HBox(5.0, new Label(Messages.SearchPattern), pattern, search);
         search_row.setAlignment(Pos.CENTER_LEFT);
         pattern.setOnAction(event -> searchForChannels());
@@ -103,9 +102,9 @@ public class SearchView extends SplitPane
 
         //  ( ) Add .. (x) Replace search result
         final RadioButton result_add = new RadioButton(Messages.AppendSearchResults);
-        TooltipHelper.setTooltip(result_add, new Tooltip(Messages.AppendSearchResultsTT));
+        result_add.setTooltip(new Tooltip(Messages.AppendSearchResultsTT));
         result_replace = new RadioButton(Messages.ReplaceSearchResults);
-        TooltipHelper.setTooltip(result_replace, new Tooltip(Messages.ReplaceSearchResultsTT));
+        result_replace.setTooltip(new Tooltip(Messages.ReplaceSearchResultsTT));
         final ToggleGroup result_handling = new ToggleGroup();
         result_add.setToggleGroup(result_handling);
         result_replace.setToggleGroup(result_handling);

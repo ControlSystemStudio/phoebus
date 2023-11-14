@@ -29,7 +29,6 @@ import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.properties.NamedWidgetColor;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.dialog.PopOver;
 import org.phoebus.ui.javafx.ClearingTextField;
 
@@ -336,7 +335,7 @@ public class WidgetColorPopOverController implements Initializable {
 
         //  Search field
         //searchField.setPromptText(Messages.WidgetColorPopOver_SearchField);
-        TooltipHelper.setTooltip(searchField, new Tooltip(Messages.WidgetColorPopOver_SearchFieldTT));
+        searchField.setTooltip(new Tooltip(Messages.WidgetColorPopOver_SearchFieldTT));
         searchField.setPrefColumnCount(9);
         searchField.textProperty().addListener(o -> {
 

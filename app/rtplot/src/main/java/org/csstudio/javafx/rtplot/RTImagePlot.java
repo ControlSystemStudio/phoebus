@@ -24,7 +24,6 @@ import org.csstudio.javafx.rtplot.internal.undo.ChangeImageZoom;
 import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
 import org.epics.util.array.ListNumber;
 import org.epics.vtype.VImageType;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ToolbarHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
@@ -136,7 +135,7 @@ public class RTImagePlot extends BorderPane
 		String tip = isHigh ? axis.getValueRange().getHigh().toString() :
 			axis.getValueRange().getLow().toString();
     	axisLimitsField.setText(tip);
-        TooltipHelper.setTooltip(axisLimitsField, new Tooltip(tip));
+    	axisLimitsField.setTooltip(new Tooltip(tip));
 		axisLimitsField.setVisible(true);
 		axisLimitsField.relocate(area.getX(), area.getY());
 		axisLimitsField.resize(area.getWidth(), area.getHeight());

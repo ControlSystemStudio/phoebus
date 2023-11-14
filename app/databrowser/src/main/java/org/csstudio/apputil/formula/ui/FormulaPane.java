@@ -33,7 +33,6 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
-import org.phoebus.ui.TooltipHelper;
 
 /** Editor pane for a Formula
  *  @author Kay Kasemir
@@ -187,7 +186,7 @@ public class FormulaPane extends GridPane
         input_table.getColumns().add(col);
 
         input_table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        TooltipHelper.setTooltip(input_table, new Tooltip(Messages.FormulaTabTT));
+        input_table.setTooltip(new Tooltip(Messages.FormulaTabTT));
         input_table.setEditable(true);
         // Double-click (on input column) adds that variable name to formula
         input_table.addEventHandler(MouseEvent.MOUSE_PRESSED, event ->
@@ -283,7 +282,7 @@ public class FormulaPane extends GridPane
         final Button button = new Button(text);
         button.setFocusTraversable(false);
         button.setMaxWidth(Double.MAX_VALUE);
-        TooltipHelper.setTooltip(button, new Tooltip(tooltip));
+        button.setTooltip(new Tooltip(tooltip));
         button.setOnAction(on_action);
         return button;
     }

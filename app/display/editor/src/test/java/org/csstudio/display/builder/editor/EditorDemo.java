@@ -86,7 +86,7 @@ public class EditorDemo extends ApplicationWrapper
         {
             logger.log(Level.WARNING, "Cannot load action icon", ex);
         }
-        TooltipHelper.setTooltip(button, new Tooltip(action.getToolTip()));
+        button.setTooltip(new Tooltip(action.getToolTip()));
         button.setOnAction(event -> action.run(editor.getDisplayEditor()));
         return button;
     }

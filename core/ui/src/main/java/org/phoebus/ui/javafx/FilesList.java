@@ -11,7 +11,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.application.ApplicationLauncherService;
 
 import javafx.beans.binding.Bindings;
@@ -110,8 +109,8 @@ public class FilesList extends VBox
         final Button attach = new Button(Messages.AttachFile);
         final Button remove = new Button(Messages.RemoveSelected, ImageCache.getImageView(ImageCache.class, "/icons/delete.png"));
 
-        TooltipHelper.setTooltip(attach, new Tooltip(Messages.AddImageLog));
-        TooltipHelper.setTooltip(remove, new Tooltip(Messages.RemoveSelectedFiles));
+        attach.setTooltip(new Tooltip(Messages.AddImageLog));
+        remove.setTooltip(new Tooltip(Messages.RemoveSelectedFiles));
 
         // Only enable 'remove' when file(s) selected
         remove.disableProperty().bind(Bindings.isEmpty(files.getSelectionModel().getSelectedItems()));

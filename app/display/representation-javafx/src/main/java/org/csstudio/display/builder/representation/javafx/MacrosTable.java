@@ -14,7 +14,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.phoebus.framework.macros.Macros;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.EditCell;
 
@@ -248,7 +247,7 @@ public class MacrosTable
         table.getColumns().add(value_col);
         table.setEditable(true);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        TooltipHelper.setTooltip(table, new Tooltip(Messages.MacrosTable_ToolTip));
+        table.setTooltip(new Tooltip(Messages.MacrosTable_ToolTip));
 
         content.add(table, 0, 0, 1, 3);
         GridPane.setHgrow(table, Priority.ALWAYS);

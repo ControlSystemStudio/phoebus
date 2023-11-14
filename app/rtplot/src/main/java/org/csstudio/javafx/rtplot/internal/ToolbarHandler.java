@@ -17,7 +17,6 @@ import org.csstudio.javafx.rtplot.Messages;
 import org.csstudio.javafx.rtplot.RTPlot;
 import org.csstudio.javafx.rtplot.RTPlotListener;
 import org.csstudio.javafx.rtplot.data.PlotDataItem;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.undo.UndoButtons;
 
@@ -95,7 +94,7 @@ public class ToolbarHandler<XTYPE extends Comparable<XTYPE>>
         }
         final Button item = new Button();
         item.setGraphic(icon);
-        TooltipHelper.setTooltip(item, new Tooltip(tool_tip));
+        item.setTooltip(new Tooltip(tool_tip));
 
         // Buttons should size based on the icon, but
         // without explicit size, they sometimes start out zero-sized.
@@ -241,7 +240,7 @@ public class ToolbarHandler<XTYPE extends Comparable<XTYPE>>
             logger.log(Level.WARNING, "Cannot get icon" + icon, ex);
             item.setText(icon.toString());
         }
-        TooltipHelper.setTooltip(item, new Tooltip(tool_tip));
+        item.setTooltip(new Tooltip(tool_tip));
         // setMinSize tends to have all icons end up in top-left corner?!
         item.setPrefSize(BUTTON_WIDTH, BUTTON_HEIGHT);
 

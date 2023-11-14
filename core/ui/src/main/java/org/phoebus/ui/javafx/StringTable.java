@@ -59,7 +59,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
-import org.phoebus.ui.TooltipHelper;
 
 /** Table of strings
  *
@@ -604,7 +603,7 @@ public class StringTable extends BorderPane
             //                      BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
             //                      BackgroundPosition.CENTER,
             //                      new BackgroundSize(16, 16, false, false, false, false))));
-            TooltipHelper.setTooltip(button, new Tooltip(tool_tip));
+            button.setTooltip(new Tooltip(tool_tip));
         }
         catch (Exception ex)
         {

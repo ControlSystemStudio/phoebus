@@ -28,7 +28,6 @@ import org.csstudio.display.builder.model.properties.NamedWidgetFont;
 import org.csstudio.display.builder.model.properties.WidgetFont;
 import org.csstudio.display.builder.model.properties.WidgetFontStyle;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.dialog.PopOver;
 
 import javafx.application.Platform;
@@ -320,7 +319,7 @@ public class WidgetFontPopOverController implements Initializable {
 
 
         //  Search field
-        TooltipHelper.setTooltip(searchField, new Tooltip(Messages.WidgetFontPopOver_SearchPromptTT));
+        searchField.setTooltip(new Tooltip(Messages.WidgetFontPopOver_SearchPromptTT));
         searchField.setPrefColumnCount(9);
         searchField.textProperty().addListener(o -> {
 

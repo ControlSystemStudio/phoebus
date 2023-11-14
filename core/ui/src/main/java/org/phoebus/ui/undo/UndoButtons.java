@@ -8,7 +8,6 @@
 package org.phoebus.ui.undo;
 
 import org.phoebus.ui.Messages;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Platform;
@@ -28,13 +27,13 @@ public class UndoButtons
     {
         final Button undo_btn = new Button();
         undo_btn.setGraphic(ImageCache.getImageView(UndoButtons.class, "/icons/undo.png"));
-        TooltipHelper.setTooltip(undo_btn, new Tooltip(Messages.Undo_TT));
+        undo_btn.setTooltip(new Tooltip(Messages.Undo_TT));
         undo_btn.setDisable(!undo_manager.canUndo());
         undo_btn.setOnAction(event -> undo_manager.undoLast());
 
         final Button redo_btn = new Button();
         redo_btn.setGraphic(ImageCache.getImageView(UndoButtons.class, "/icons/redo.png"));
-        TooltipHelper.setTooltip(redo_btn, new Tooltip(Messages.Redo_TT));
+        redo_btn.setTooltip(new Tooltip(Messages.Redo_TT));
         redo_btn.setDisable(!undo_manager.canRedo());
         redo_btn.setOnAction(event -> undo_manager.redoLast());
 

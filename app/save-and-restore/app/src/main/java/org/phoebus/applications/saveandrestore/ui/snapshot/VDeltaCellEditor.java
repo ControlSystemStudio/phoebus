@@ -26,7 +26,6 @@ import org.phoebus.applications.saveandrestore.ui.Utilities;
 import org.phoebus.applications.saveandrestore.ui.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.VNoData;
 import org.phoebus.applications.saveandrestore.ui.VTypePair;
-import org.phoebus.ui.TooltipHelper;
 
 import java.util.Formatter;
 
@@ -61,19 +60,19 @@ public class VDeltaCellEditor<T> extends VTypeCellEditor<T>{
         getStyleClass().remove("diff-cell");
         if (item == null || empty) {
             setText("");
-            TooltipHelper.setTooltip(this, null);
+            setTooltip(null);
             setGraphic(null);
         } else {
             if (item == VDisconnectedData.INSTANCE) {
                 setText(VDisconnectedData.DISCONNECTED);
                 setGraphic(new ImageView(DISCONNECTED_IMAGE));
                 tooltip.setText("No Value Available");
-                TooltipHelper.setTooltip(this, tooltip);
+                setTooltip(tooltip);
                 getStyleClass().add("diff-cell");
             } else if (item == VNoData.INSTANCE) {
                 setText(item.toString());
                 tooltip.setText("No Value Available");
-                TooltipHelper.setTooltip(this, tooltip);
+                setTooltip(tooltip);
             } else if (item instanceof VTypePair) {
                 VTypePair pair = (VTypePair) item;
                 if (pair.value == VDisconnectedData.INSTANCE) {
@@ -100,7 +99,7 @@ public class VDeltaCellEditor<T> extends VTypeCellEditor<T>{
                 }
 
                 tooltip.setText(item.toString());
-                TooltipHelper.setTooltip(this, tooltip);
+                setTooltip(tooltip);
             }
         }
     }

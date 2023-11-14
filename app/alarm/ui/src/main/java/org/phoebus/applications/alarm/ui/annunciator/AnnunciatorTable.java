@@ -19,7 +19,6 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.talk.TalkClient;
 import org.phoebus.applications.alarm.talk.TalkClientListener;
 import org.phoebus.applications.alarm.ui.AlarmUI;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.ToolbarHelper;
@@ -238,7 +237,7 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
         annunciatorController = new AnnunciatorController(annunciator_threshold, this::addAnnunciationToTable);
 
         // Top button row
-        TooltipHelper.setTooltip(muteButton, muteTip);
+        muteButton.setTooltip(muteTip);
         muteButton.setOnAction(event ->
         {
             // Mute is true when the annunciator should be muted.
@@ -246,17 +245,17 @@ public class AnnunciatorTable extends VBox implements TalkClientListener
             // Update image
             final ImageView image = (ImageView) muteButton.getGraphic();
             image.setImage(mute ? anunciate_icon : mute_icon);
-            TooltipHelper.setTooltip(muteButton, mute ? annunciateTip : muteTip);
+            muteButton.setTooltip(mute ? annunciateTip : muteTip);
             annunciatorController.setMuted(mute);
             // Refresh the table cell items so that they recalculate their background color.
             table.refresh();
         });
 
-        TooltipHelper.setTooltip(testButton, new Tooltip("Play test message"));
+        testButton.setTooltip(new Tooltip("Play test message"));
         testButton.setOnAction(event ->
             annunciatorController.annunciate(new AnnunciatorMessage(false, SeverityLevel.OK, Instant.now(), "Testing 1 2 3")) );
 
-        TooltipHelper.setTooltip(clearTableButton, new Tooltip("Clear the messages in the table."));
+        clearTableButton.setTooltip(new Tooltip("Clear the messages in the table."));
         clearTableButton.setOnAction(event ->
         {
             final Alert alert  = new Alert(AlertType.CONFIRMATION);

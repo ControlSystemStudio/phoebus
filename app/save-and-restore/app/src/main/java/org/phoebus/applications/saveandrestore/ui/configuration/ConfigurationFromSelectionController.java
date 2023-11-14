@@ -54,7 +54,6 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.core.types.ProcessVariable;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.net.URL;
@@ -209,10 +208,10 @@ public class ConfigurationFromSelectionController implements Initializable {
         configurationNameField.textProperty().addListener((observableValue, oldName, newName) -> {
             if (nodeListInFolder.contains(newName)) {
                 configurationNameField.getStyleClass().add("input-error");
-                TooltipHelper.setTooltip(configurationNameField, new Tooltip(Messages.toolTipConfigurationExists + (!isDisabledConfigurationSelectionInBrowsing ? System.lineSeparator() + Messages.toolTipConfigurationExistsOption : "")));
+                configurationNameField.setTooltip(new Tooltip(Messages.toolTipConfigurationExists + (!isDisabledConfigurationSelectionInBrowsing ? System.lineSeparator() + Messages.toolTipConfigurationExistsOption : "")));
             } else {
                 configurationNameField.getStyleClass().remove("input-error");
-                TooltipHelper.setTooltip(configurationNameField, null);
+                configurationNameField.setTooltip(null);
             }
         });
 

@@ -307,7 +307,7 @@ public class PropertyPanelSection extends GridPane
 
             final ToggleButton macroButton = new ToggleButton("", ImageCache.getImageView(DisplayEditor.class, "/icons/macro-edit.png"));
             macroButton.getStyleClass().add("macro_button");
-            TooltipHelper.setTooltip(macroButton, new Tooltip(Messages.MacroEditButton));
+            macroButton.setTooltip(new Tooltip(Messages.MacroEditButton));
             BorderPane.setMargin(macroButton, new Insets(0, 0, 0, 3));
             BorderPane.setAlignment(macroButton, Pos.CENTER);
 
@@ -360,7 +360,7 @@ public class PropertyPanelSection extends GridPane
             StackPane.setAlignment(check, Pos.CENTER_LEFT);
             final ToggleButton macroButton = new ToggleButton("", ImageCache.getImageView(DisplayEditor.class, "/icons/macro-edit.png"));
             macroButton.getStyleClass().add("macro_button");
-            TooltipHelper.setTooltip(macroButton, new Tooltip(Messages.MacroEditButton));
+            macroButton.setTooltip(new Tooltip(Messages.MacroEditButton));
             BorderPane.setMargin(macroButton, new Insets(0, 0, 0, 3));
             BorderPane.setAlignment(macroButton, Pos.CENTER);
 
@@ -619,7 +619,7 @@ public class PropertyPanelSection extends GridPane
         final Label label = new Label(property.getDescription());
         label.setMaxWidth(Double.MAX_VALUE);
         final String tooltip = property.getDescription() + " (" + property.getPath() + ")";
-        TooltipHelper.setTooltip(label, new Tooltip(tooltip));
+        label.setTooltip(new Tooltip(tooltip));
 //        setGridLinesVisible(true); // For debugging the layout
 
         Node field = bindSimplePropertyField(undo, bindings, property, other);
@@ -734,7 +734,7 @@ public class PropertyPanelSection extends GridPane
             {   // Checkbox to select if array is included in class definition
                 final CheckBox check = new CheckBox();
                 check.setPadding(new Insets(0, 5, 0, 0));
-                TooltipHelper.setTooltip(check, use_class_tooltip);
+                check.setTooltip(use_class_tooltip);
                 final WidgetPropertyBinding<?,?> binding = new UseWidgetClassBinding(undo, check, spinner, property, other);
                 bindings.add(binding);
                 binding.bind();
@@ -744,7 +744,7 @@ public class PropertyPanelSection extends GridPane
             {   // Show if property is set by the class, not editable.
                 final Label indicator = new Label();
                 indicator.setPadding(new Insets(0, 5, 0, 0));
-                TooltipHelper.setTooltip(indicator, using_class_tooltip);
+                indicator.setTooltip(using_class_tooltip);
                 final WidgetPropertyBinding<?,?> binding = new ShowWidgetClassBinding(spinner, property, indicator);
                 bindings.add(binding);
                 binding.bind();
@@ -835,7 +835,7 @@ public class PropertyPanelSection extends GridPane
                 {
                     final CheckBox check = new CheckBox();
                     check.setPadding(new Insets(0, 5, 0, 0));
-                    TooltipHelper.setTooltip(check, use_class_tooltip);
+                    check.setTooltip(use_class_tooltip);
                     final WidgetPropertyBinding<?,?> binding = new UseWidgetClassBinding(undo, check, field, property, other);
                     bindings.add(binding);
                     binding.bind();
@@ -847,7 +847,7 @@ public class PropertyPanelSection extends GridPane
                 // Show if property is set by the class, not editable.
                 final Label indicator = new Label();
                 indicator.setPadding(new Insets(0, 5, 0, 0));
-                TooltipHelper.setTooltip(indicator, using_class_tooltip);
+                indicator.setTooltip(using_class_tooltip);
                 final WidgetPropertyBinding<?,?> binding = new ShowWidgetClassBinding(field, property, indicator);
                 bindings.add(binding);
                 binding.bind();

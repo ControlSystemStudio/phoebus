@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.csstudio.display.builder.runtime.Messages;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.control.ButtonBase;
@@ -104,7 +103,7 @@ public abstract class NavigationAction extends SplitMenuButton
         setGraphic(image);
         // Don't react to '&' etc. in display names
         setMnemonicParsing(false);
-        TooltipHelper.setTooltip(this, new Tooltip(tooltip));
+        setTooltip(new Tooltip(tooltip));
 
         // Automatically enable/disable
         final DisplayNavigation.Listener listener = nav -> updateUI(nav);

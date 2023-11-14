@@ -28,7 +28,6 @@ import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.security.authorization.AuthorizationService;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
@@ -572,7 +571,7 @@ public class PVTable extends VBox
     {
         final Button button = new Button();
         button.setGraphic(new ImageView(PVTableApplication.getIcon(icon)));
-        TooltipHelper.setTooltip(button, new Tooltip(tooltip));
+        button.setTooltip(new Tooltip(tooltip));
         button.setOnAction(handler);
         return button;
     }

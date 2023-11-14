@@ -28,7 +28,6 @@ import org.csstudio.trends.databrowser3.ui.TimeRangePopover;
 import org.phoebus.archive.vtype.Style;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.persistence.Memento;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.dialog.PopOver;
@@ -109,16 +108,16 @@ public class ExportView extends VBox
         grid.setPadding(new Insets(5));
 
         grid.add(new Label(Messages.StartTimeLbl), 0, 0);
-        TooltipHelper.setTooltip(start, new Tooltip(Messages.StartTimeTT));
+        start.setTooltip(new Tooltip(Messages.StartTimeTT));
         GridPane.setHgrow(start, Priority.ALWAYS);
         grid.add(start, 1, 0);
 
         final Button sel_times = new Button(Messages.StartEndDialogBtn);
-        TooltipHelper.setTooltip(sel_times, new Tooltip(Messages.StartEndDialogTT));
+        sel_times.setTooltip(new Tooltip(Messages.StartEndDialogTT));
         grid.add(sel_times, 2, 0);
 
         grid.add(new Label(Messages.EndTimeLbl), 0, 1);
-        TooltipHelper.setTooltip(end, new Tooltip(Messages.EndTimeTT));
+        end.setTooltip(new Tooltip(Messages.EndTimeTT));
         GridPane.setHgrow(end, Priority.ALWAYS);
         grid.add(end, 1, 1);
 
@@ -137,7 +136,7 @@ public class ExportView extends VBox
             popover.show((Region) event.getSource());
         });
 
-        TooltipHelper.setTooltip(use_plot_times, new Tooltip(Messages.ExportPlotStartEndTT));
+        use_plot_times.setTooltip(new Tooltip(Messages.ExportPlotStartEndTT));
         grid.add(use_plot_times, 2, 1);
 
         use_plot_times.selectedProperty().addListener((prop, was_selected, selected) ->
@@ -158,26 +157,26 @@ public class ExportView extends VBox
 
         // Order of source_* radio buttons must match the corresponding Source.* ordinal
         final RadioButton source_plot = new RadioButton(Source.PLOT.toString());
-        TooltipHelper.setTooltip(source_plot, new Tooltip(Messages.ExportSource_PlotTT));
+        source_plot.setTooltip(new Tooltip(Messages.ExportSource_PlotTT));
         source_plot.setToggleGroup(sources);
 
-        TooltipHelper.setTooltip(source_raw, new Tooltip(Messages.ExportSource_RawArchiveTT));
+        source_raw.setTooltip(new Tooltip(Messages.ExportSource_RawArchiveTT));
         source_raw.setToggleGroup(sources);
 
         final RadioButton source_opt = new RadioButton(Source.OPTIMIZED_ARCHIVE.toString());
-        TooltipHelper.setTooltip(source_opt, new Tooltip(Messages.ExportSource_OptimizedArchiveTT));
+        source_opt.setTooltip(new Tooltip(Messages.ExportSource_OptimizedArchiveTT));
         source_opt.setToggleGroup(sources);
 
         optimize.setPrefColumnCount(6);
-        TooltipHelper.setTooltip(optimize, new Tooltip(Messages.ExportOptimizationTT));
+        optimize.setTooltip(new Tooltip(Messages.ExportOptimizationTT));
         optimize.disableProperty().bind(source_opt.selectedProperty().not());
 
         final RadioButton source_lin = new RadioButton(Source.LINEAR_INTERPOLATION.toString());
-        TooltipHelper.setTooltip(source_lin, new Tooltip(Messages.ExportSource_LinearTT));
+        source_lin.setTooltip(new Tooltip(Messages.ExportSource_LinearTT));
         source_lin.setToggleGroup(sources);
 
         linear.setPrefColumnCount(8);
-        TooltipHelper.setTooltip(linear, new Tooltip(Messages.ExportDefaultLinearInterpolationTT));
+        linear.setTooltip(new Tooltip(Messages.ExportDefaultLinearInterpolationTT));
         linear.disableProperty().bind(source_lin.selectedProperty().not());
 
         final HBox source_options = new HBox(5, source_plot, source_raw, source_opt, optimize, source_lin, linear, useUnixTimeStamp);
@@ -200,27 +199,27 @@ public class ExportView extends VBox
         grid.setPadding(new Insets(5));
 
         final RadioButton type_spreadsheet = new RadioButton(Messages.ExportTypeSpreadsheet);
-        TooltipHelper.setTooltip(type_spreadsheet, new Tooltip(Messages.ExportTypeSpreadsheetTT));
+        type_spreadsheet.setTooltip(new Tooltip(Messages.ExportTypeSpreadsheetTT));
         type_spreadsheet.setToggleGroup(table_types);
         grid.add(type_spreadsheet, 0, 0);
 
-        TooltipHelper.setTooltip(type_matlab, new Tooltip(Messages.ExportTypeMatlabTT));
+        type_matlab.setTooltip(new Tooltip(Messages.ExportTypeMatlabTT));
         type_matlab.setToggleGroup(table_types);
         grid.add(type_matlab, 1, 0);
 
         type_spreadsheet.setSelected(true);
 
-        TooltipHelper.setTooltip(tabular, new Tooltip(Messages.ExportTabularTT));
+        tabular.setTooltip(new Tooltip(Messages.ExportTabularTT));
         tabular.setSelected(true);
         grid.add(tabular, 0, 1);
 
         // Tabular only applies to spreadsheet
         tabular.disableProperty().bind(type_matlab.selectedProperty());
 
-        TooltipHelper.setTooltip(min_max_col, new Tooltip(Messages.ExportMinMaxColTT));
+        min_max_col.setTooltip(new Tooltip(Messages.ExportMinMaxColTT));
         grid.add(min_max_col, 1, 1);
 
-        TooltipHelper.setTooltip(sev_stat, new Tooltip(Messages.ExportValueInfoTT));
+        sev_stat.setTooltip(new Tooltip(Messages.ExportValueInfoTT));
         grid.add(sev_stat, 2, 1);
 
         sev_stat.disableProperty().bind(type_matlab.selectedProperty());
@@ -231,22 +230,22 @@ public class ExportView extends VBox
         min_max_col.setDisable(! minMaxAllowed());
 
         final RadioButton format_default = new RadioButton(Messages.Format_Default);
-        TooltipHelper.setTooltip(format_default, new Tooltip(Messages.ExportFormat_DefaultTT));
+        format_default.setTooltip(new Tooltip(Messages.ExportFormat_DefaultTT));
         format_default.setToggleGroup(formats);
         grid.add(format_default, 0, 2);
 
         final RadioButton format_decimal = new RadioButton(Messages.Format_Decimal);
-        TooltipHelper.setTooltip(format_decimal, new Tooltip(Messages.ExportFormat_DecimalTT));
+        format_decimal.setTooltip(new Tooltip(Messages.ExportFormat_DecimalTT));
         format_decimal.setToggleGroup(formats);
         grid.add(format_decimal, 1, 2);
 
         final RadioButton format_expo = new RadioButton(Messages.Format_Exponential);
-        TooltipHelper.setTooltip(format_expo, new Tooltip(Messages.ExportFormat_ExponentialTT));
+        format_expo.setTooltip(new Tooltip(Messages.ExportFormat_ExponentialTT));
         format_expo.setToggleGroup(formats);
         grid.add(format_expo, 2, 2);
 
         format_digits.setPrefColumnCount(3);
-        TooltipHelper.setTooltip(format_digits, new Tooltip(Messages.ExportDigitsTT));
+        format_digits.setTooltip(new Tooltip(Messages.ExportDigitsTT));
         format_digits.disableProperty().bind(format_default.selectedProperty());
         grid.add(format_digits, 3, 2);
 
@@ -267,10 +266,10 @@ public class ExportView extends VBox
         // * Output *
         // Filename: ______________ [Browse] [Export]
         filename.setPromptText(Messages.ExportDefaultFilename);
-        TooltipHelper.setTooltip(filename, new Tooltip(Messages.ExportFilenameTT));
+        filename.setTooltip(new Tooltip(Messages.ExportFilenameTT));
 
         final Button sel_filename = new Button(Messages.ExportBrowse);
-        TooltipHelper.setTooltip(sel_filename, new Tooltip(Messages.ExportBrowseTT));
+        sel_filename.setTooltip(new Tooltip(Messages.ExportBrowseTT));
         sel_filename.setOnAction(event -> selectFilename());
 
         final Button export = new Button(Messages.ExportStartExport, Activator.getIcon("export"));

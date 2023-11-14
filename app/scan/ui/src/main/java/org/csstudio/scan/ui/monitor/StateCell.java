@@ -14,7 +14,6 @@ import java.util.logging.Level;
 import org.csstudio.scan.client.ScanClient;
 import org.csstudio.scan.info.ScanState;
 import org.csstudio.scan.ui.Messages;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.collections.ObservableList;
@@ -60,7 +59,7 @@ class StateCell extends TableCell<ScanInfoProxy, ScanState>
         button.setMinSize(ButtonBase.USE_PREF_SIZE, ButtonBase.USE_PREF_SIZE);
         button.setPrefHeight(20);
         button.setGraphic(ImageCache.getImageView(StateCell.class, icon));
-        TooltipHelper.setTooltip(button, new Tooltip(tooltip));
+        button.setTooltip(new Tooltip(tooltip));
         button.setOnAction(event ->
         {
             try

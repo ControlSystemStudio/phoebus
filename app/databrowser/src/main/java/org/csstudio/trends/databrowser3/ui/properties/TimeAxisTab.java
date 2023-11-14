@@ -16,7 +16,6 @@ import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelListener;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.csstudio.trends.databrowser3.ui.ChangeTimerangeAction;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.undo.UndoableActionManager;
 import org.phoebus.util.time.TimeParser;
 import org.phoebus.util.time.TimeRelativeInterval;
@@ -95,7 +94,7 @@ public class TimeAxisTab extends Tab
         layout.add(end, 3, 0);
 
         final Button times = new Button(Messages.StartEndDialogBtn, Activator.getIcon("time_range"));
-        TooltipHelper.setTooltip(times, times_tt);
+        times.setTooltip(times_tt);
         times.setOnAction(event ->  ChangeTimerangeAction.run(model, times, undo));
         layout.add(times, 4, 0);
 

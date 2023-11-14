@@ -93,8 +93,8 @@ public class LogbooksTagsView extends VBox
     private void formatLogbooks()
     {
         Tooltip tooltip = new Tooltip(Messages.LogbooksTooltip);
-        TooltipHelper.setTooltip(addLogbook, tooltip);
-        TooltipHelper.setTooltip(logbookSelector, tooltip);
+        addLogbook.setTooltip(tooltip);
+        logbookSelector.setTooltip(tooltip);
         logbookLabel.setPrefWidth(LABEL_WIDTH);
         logbookLabel.setTextFill(Color.RED);
         logbookField.textProperty().addListener((changeListener, oldVal, newVal) ->
@@ -149,8 +149,8 @@ public class LogbooksTagsView extends VBox
     private void formatTags()
     {
         Tooltip tooltip = new Tooltip(Messages.TagsTooltip);
-        TooltipHelper.setTooltip(addTag, tooltip);
-        TooltipHelper.setTooltip(tagSelector, tooltip);
+        addTag.setTooltip(tooltip);
+        tagSelector.setTooltip(tooltip);
         tagLabel.setPrefWidth(LABEL_WIDTH);
         tagSelector.setOnAction(actionEvent ->
         {

@@ -29,7 +29,6 @@ import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.JobRunnable;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.util.ResourceParser;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -164,10 +163,10 @@ public class DockItemWithInput extends DockItem
         Platform.runLater(() ->
         {
             if (input == null)
-                TooltipHelper.setTooltip(name_tab, new Tooltip(Messages.DockNotSaved));
+                name_tab.setTooltip(new Tooltip(Messages.DockNotSaved));
             else
             {
-                TooltipHelper.setTooltip(name_tab, new Tooltip(input.toString()));
+                name_tab.setTooltip(new Tooltip(input.toString()));
                 setLabel(name);
             }
         });

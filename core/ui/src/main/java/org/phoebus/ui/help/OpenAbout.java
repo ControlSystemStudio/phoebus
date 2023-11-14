@@ -21,7 +21,6 @@ import org.phoebus.framework.preferences.PropertyPreferenceLoader;
 import org.phoebus.framework.preferences.PropertyPreferenceWriter;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.framework.workbench.Locations;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.application.Messages;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.OpenFileDialog;
@@ -73,7 +72,7 @@ public class OpenAbout implements MenuEntry
             else
             {
                 final Button button = new Button("...");
-                TooltipHelper.setTooltip(button, new Tooltip(Messages.HelpAboutOpenLocation));
+                button.setTooltip(new Tooltip(Messages.HelpAboutOpenLocation));
                 button.setOnAction(event ->
                 {
                     // Open file browser, then close the 'about' dialog

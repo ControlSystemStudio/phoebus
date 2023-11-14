@@ -163,7 +163,7 @@ public class FieldsViewController implements Initializable{
         userFieldLabel.setText(Messages.Username);
         passwordFieldLabel.setText(Messages.Password);
         dateLabel.setText(Messages.Date);
-        TooltipHelper.setTooltip(dateField, new Tooltip(Messages.CurrentDate));
+        dateField.setTooltip(new Tooltip(Messages.CurrentDate));
         levelLabel.setText(LogbookUiPreferences.level_field_name);
         titleLabel.setText(Messages.Title);
     }

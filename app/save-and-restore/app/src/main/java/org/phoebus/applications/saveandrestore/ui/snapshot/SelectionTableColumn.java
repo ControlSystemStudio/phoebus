@@ -24,7 +24,6 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.input.MouseButton;
 import org.phoebus.applications.saveandrestore.ui.VNoData;
-import org.phoebus.ui.TooltipHelper;
 
 /**
  * <code>SelectionTableColumn</code> is the table column for the first column in the table, which displays
@@ -46,7 +45,7 @@ public class SelectionTableColumn extends TooltipTableColumn<Boolean> {
 
     @Override
     public void setTooltip(String tooltip) {
-        TooltipHelper.setTooltip(selectAllCheckBox, new Tooltip(tooltip));
+        selectAllCheckBox.setTooltip(new Tooltip(tooltip));
     }
 
     @Override

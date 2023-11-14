@@ -10,7 +10,6 @@ package org.csstudio.scan.ui.datatable;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.Tooltip;
 import javafx.util.Duration;
-import org.phoebus.ui.TooltipHelper;
 
 /**
  * Cell representation for Scan Data Table
@@ -47,7 +46,7 @@ public class DataCell extends TableCell<DataRow, String>
         if (empty)
         {
             setText(null);
-            TooltipHelper.setTooltip(this, null);
+            setTooltip(null);
             tooltip.setText(null);
         }
         else
@@ -57,7 +56,7 @@ public class DataCell extends TableCell<DataRow, String>
             if (null == item || null == timestamp)
                 return;
             tooltip.setText(item + SEP + timestamp);
-            TooltipHelper.setTooltip(this, tooltip);
+            setTooltip(tooltip);
         }
     }
 }

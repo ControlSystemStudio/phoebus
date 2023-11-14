@@ -12,7 +12,6 @@ import org.csstudio.display.builder.editor.Messages;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.framework.workbench.ApplicationService;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Platform;
@@ -39,7 +38,7 @@ public class ExecuteDisplayAction implements Runnable
         final Runnable action = new ExecuteDisplayAction(editor);
         final Button button = new Button();
         button.setGraphic(new ImageView(icon));
-        TooltipHelper.setTooltip(button, new Tooltip(Messages.Run));
+        button.setTooltip(new Tooltip(Messages.Run));
         button.setOnAction(event -> action.run());
         return button;
     }

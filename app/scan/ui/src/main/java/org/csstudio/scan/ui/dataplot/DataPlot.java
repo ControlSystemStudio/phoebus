@@ -34,7 +34,6 @@ import org.csstudio.scan.data.ScanData;
 import org.csstudio.scan.info.ScanInfo;
 import org.csstudio.scan.ui.Messages;
 import org.csstudio.scan.ui.ScanDataReader;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.ToolbarHelper;
 
@@ -103,10 +102,10 @@ public class DataPlot extends VBox
     public DataPlot(final LongConsumer scan_id_listener)
     {
         this.scan_id_listener = scan_id_listener;
-        TooltipHelper.setTooltip(scan_selector, new Tooltip("Select a Scan"));
-        TooltipHelper.setTooltip(x_device_selector, new Tooltip("Select device for horizontal axis"));
-        TooltipHelper.setTooltip(add_y_device, new Tooltip("Add trace for another device to plot"));
-        TooltipHelper.setTooltip(remove_y_device, new Tooltip("Remove last trace from plot"));
+        scan_selector.setTooltip(new Tooltip("Select a Scan"));
+        x_device_selector.setTooltip(new Tooltip("Select device for horizontal axis"));
+        add_y_device.setTooltip(new Tooltip("Add trace for another device to plot"));
+        remove_y_device.setTooltip(new Tooltip("Remove last trace from plot"));
         remove_y_device.setOnAction(event -> removeYDevice());
 
         toolbar.getItems().setAll(ToolbarHelper.createSpring(), scan_selector, x_device_selector);
@@ -188,7 +187,7 @@ public class DataPlot extends VBox
         while (i < y_devices.size())
         {
             final MenuButton y_device_selector = new MenuButton("Value " + (1 + i++));
-            TooltipHelper.setTooltip(y_device_selector, new Tooltip("Select device for value axis"));
+            y_device_selector.setTooltip(new Tooltip("Select device for value axis"));
             y_device_selectors.add(y_device_selector);
         }
 

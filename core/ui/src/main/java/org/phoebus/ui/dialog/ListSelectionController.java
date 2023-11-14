@@ -12,7 +12,6 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import org.phoebus.ui.Messages;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.util.ArrayList;
@@ -84,16 +83,16 @@ public class ListSelectionController {
     @FXML
     public void initialize() {
 
-        TooltipHelper.setTooltip(searchField, new Tooltip(Messages.SearchAvailableItems));
+        searchField.setTooltip(new Tooltip(Messages.SearchAvailableItems));
         searchField.textProperty().addListener((obs, oldVal, newVal) -> {
             String filter = searchField.getText();
             filteredAvailable.setPredicate(buildSearchFilterPredicate(filter));
         });
-        TooltipHelper.setTooltip(add, new Tooltip(Messages.Add_Tooltip));
+        add.setTooltip(new Tooltip(Messages.Add_Tooltip));
         add.setGraphic(ImageCache.getImageView(ImageCache.class, ADD_ICON));
-        TooltipHelper.setTooltip(remove, new Tooltip(Messages.Remove_Tooltip));
+        remove.setTooltip(new Tooltip(Messages.Remove_Tooltip));
         remove.setGraphic(ImageCache.getImageView(ImageCache.class, REMOVE_ICON));
-        TooltipHelper.setTooltip(clear, new Tooltip(Messages.Clear_Tooltip));
+        clear.setTooltip(new Tooltip(Messages.Clear_Tooltip));
         clear.setGraphic(ImageCache.getImageView(ImageCache.class, CLEAR_ICON));
 
         Platform.runLater(() -> {

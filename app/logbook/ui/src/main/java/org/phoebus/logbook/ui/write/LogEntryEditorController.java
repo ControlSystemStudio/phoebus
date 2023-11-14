@@ -135,8 +135,8 @@ public class LogEntryEditorController {
 
     private void localize(){
         submit.setText(Messages.Submit);
-        TooltipHelper.setTooltip(submit, new Tooltip(Messages.SubmitTooltip));
+        submit.setTooltip(new Tooltip(Messages.SubmitTooltip));
         cancel.setText(Messages.Cancel);
-        TooltipHelper.setTooltip(cancel, new Tooltip(Messages.CancelTooltip));
+        cancel.setTooltip(new Tooltip(Messages.CancelTooltip));
     }
 }

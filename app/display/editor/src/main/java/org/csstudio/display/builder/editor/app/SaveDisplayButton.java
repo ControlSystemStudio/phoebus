@@ -24,7 +24,7 @@ public class SaveDisplayButton extends Button
     public SaveDisplayButton(final DisplayEditorInstance editor)
     {
         setGraphic(ImageCache.getImageView(ImageCache.class, "/icons/save_edit.png"));
-        org.phoebus.ui.TooltipHelper.setTooltip(this, new Tooltip(Messages.SaveDisplay_TT));
+        setTooltip(new Tooltip(Messages.SaveDisplay_TT));
         setOnAction(event ->
         {
             JobManager.schedule(Messages.SaveDisplay, monitor ->

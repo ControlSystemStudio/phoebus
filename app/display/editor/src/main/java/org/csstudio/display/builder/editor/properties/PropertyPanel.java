@@ -19,7 +19,6 @@ import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.javafx.ClearingTextField;
 
 import javafx.geometry.Insets;
@@ -52,7 +51,7 @@ public class PropertyPanel extends BorderPane
         section = new PropertyPanelSection();
 
         searchField.setPromptText(Messages.SearchTextField);
-        TooltipHelper.setTooltip(searchField, new Tooltip(Messages.PropertyFilterTT));
+        searchField.setTooltip(new Tooltip(Messages.PropertyFilterTT));
         searchField.textProperty().addListener( ( observable, oldValue, newValue ) -> setSelectedWidgets(editor.getWidgetSelectionHandler().getSelection()));
         HBox.setHgrow(searchField, Priority.NEVER);
 

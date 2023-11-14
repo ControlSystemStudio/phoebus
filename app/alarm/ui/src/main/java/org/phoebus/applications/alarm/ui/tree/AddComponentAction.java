@@ -14,7 +14,6 @@ import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.model.AlarmTreeLeaf;
 import org.phoebus.applications.alarm.ui.Messages;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -60,10 +59,10 @@ class AddComponentAction extends MenuItem
 
             final ToggleGroup types = new ToggleGroup();
             type_node.setToggleGroup(types);
-            TooltipHelper.setTooltip(type_node, new Tooltip("Create a new node in the alarm configuration hierachy"));
+            type_node.setTooltip(new Tooltip("Create a new node in the alarm configuration hierachy"));
 
             type_pv.setToggleGroup(types);
-            TooltipHelper.setTooltip(type_pv, new Tooltip("Add a PV or a list of space-separated PVs to the alarm configuration"));
+            type_pv.setTooltip(new Tooltip("Add a PV or a list of space-separated PVs to the alarm configuration"));
 
             layout.add(new HBox(5, type_node, type_pv), 1, 0);
 
@@ -76,7 +75,7 @@ class AddComponentAction extends MenuItem
                 type_pv.setSelected(true);
 
             layout.add(new Label("Name:"), 0, 1);
-            TooltipHelper.setTooltip(name, new Tooltip("Name of new node or PV"));
+            name.setTooltip(new Tooltip("Name of new node or PV"));
             GridPane.setHgrow(name, Priority.ALWAYS);
             layout.add(name, 1, 1);
 

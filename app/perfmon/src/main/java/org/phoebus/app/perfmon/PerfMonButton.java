@@ -9,7 +9,6 @@ package org.phoebus.app.perfmon;
 
 import javafx.scene.control.Button;
 import javafx.scene.control.Tooltip;
-import org.phoebus.ui.TooltipHelper;
 
 /** Button (meant for status bar) that shows performance info
  *  @author Kay Kasemir
@@ -24,7 +23,7 @@ public class PerfMonButton extends Button
         updateFPS(60.0);
         fps_monitor = new FPSMonitor(this::updateFPS);
         fps_monitor.start();
-        TooltipHelper.setTooltip(this, new Tooltip("Press for GC"));
+        setTooltip(new Tooltip("Press for GC"));
         setOnAction(event ->
         {
             Runtime.getRuntime().gc();

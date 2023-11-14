@@ -35,7 +35,6 @@ import org.phoebus.applications.saveandrestore.SafeMultiply;
 import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.applications.saveandrestore.ui.*;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.text.SimpleDateFormat;
@@ -81,7 +80,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
 
         CheckBox selectAllCheckBox = new CheckBox();
         selectAllCheckBox.selectedProperty().set(true);
-        TooltipHelper.setTooltip(selectAllCheckBox, new Tooltip(Messages.includeThisPV));
+        selectAllCheckBox.setTooltip(new Tooltip(Messages.includeThisPV));
         selectAllCheckBox.selectedProperty().addListener((ob, o, n) ->
                 snapshotTableView.getItems().stream().filter(te -> te.readOnlyProperty().not().get())
                         .forEach(te -> te.selectedProperty().set(n)));

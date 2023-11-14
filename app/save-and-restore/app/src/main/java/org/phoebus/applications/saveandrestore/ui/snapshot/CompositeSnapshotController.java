@@ -62,7 +62,6 @@ import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
@@ -228,10 +227,10 @@ public class CompositeSnapshotController {
             protected void updateItem(Node node, boolean empty) {
                 super.updateItem(node, empty);
                 if (node == null || empty) {
-                    TooltipHelper.setTooltip(this, null);
+                    setTooltip(null);
                     setOnMouseClicked(null);
                 } else {
-                    TooltipHelper.setTooltip(this, new Tooltip(Messages.searchEntryToolTip));
+                    setTooltip(new Tooltip(Messages.searchEntryToolTip));
                     setOnMouseClicked(action -> {
                         if (action.getClickCount() == 2) {
                             Stack<Node> copiedStack = new Stack<>();

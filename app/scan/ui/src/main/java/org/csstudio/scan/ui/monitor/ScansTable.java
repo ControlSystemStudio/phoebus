@@ -21,7 +21,6 @@ import org.csstudio.scan.info.ScanState;
 import org.csstudio.scan.ui.ScanUIPreferences;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
@@ -124,7 +123,7 @@ public class ScansTable extends VBox
                         row.getItem().info.getPerformedWorkUnits(),
                         row.getItem().info.getTotalWorkUnits(),
                         percent.intValue());
-                TooltipHelper.setTooltip(progress, new Tooltip(txt));
+                progress.setTooltip(new Tooltip(txt));
             }
             setGraphic(progress);
         }

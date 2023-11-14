@@ -18,7 +18,6 @@ import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.csstudio.trends.databrowser3.preferences.Preferences;
 import org.csstudio.trends.databrowser3.ui.properties.AddAxisCommand;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.undo.UndoableActionManager;
 
@@ -119,7 +118,7 @@ public class AddPVDialog extends Dialog<Boolean>
             layout.add(new Label(nm), 0, ++row);
             final TextField name = new TextField();
             name.textProperty().addListener(event -> checkDuplicateName(name));
-            TooltipHelper.setTooltip(name, new Tooltip(formula ? Messages.AddFormula_NameTT : Messages.AddPV_NameTT));
+            name.setTooltip(new Tooltip(formula ? Messages.AddFormula_NameTT : Messages.AddPV_NameTT));
             if (! formula)
                 PVAutocompleteMenu.INSTANCE.attachField(name);
             names.add(name);
@@ -129,13 +128,13 @@ public class AddPVDialog extends Dialog<Boolean>
             {
                 layout.add(new Label(Messages.AddPV_Period), 0, ++row);
                 final TextField period = new TextField(Double.toString(Preferences.scan_period));
-                TooltipHelper.setTooltip(period, new Tooltip(Messages.AddPV_PeriodTT));
+                period.setTooltip(new Tooltip(Messages.AddPV_PeriodTT));
                 periods.add(period);
                 period.setDisable(true);
                 layout.add(period, 1, row);
 
                 final CheckBox monitor = new CheckBox(Messages.AddPV_OnChange);
-                TooltipHelper.setTooltip(monitor, new Tooltip(Messages.AddPV_OnChangeTT));
+                monitor.setTooltip(new Tooltip(Messages.AddPV_OnChangeTT));
                 monitor.setSelected(true);
                 monitors.add(monitor);
                 monitor.setOnAction(event -> period.setDisable(monitor.isSelected()));
@@ -144,7 +143,7 @@ public class AddPVDialog extends Dialog<Boolean>
 
             layout.add(new Label(Messages.AddPV_Axis), 0, ++row);
             final ChoiceBox<String> axis = new ChoiceBox<>(axis_options);
-            TooltipHelper.setTooltip(axis, new Tooltip(Messages.AddPV_AxisTT));
+            axis.setTooltip(new Tooltip(Messages.AddPV_AxisTT));
             axis.getSelectionModel().select(0);
             axes.add(axis);
             layout.add(axes.get(i), 1, row);

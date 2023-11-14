@@ -23,7 +23,6 @@ import org.csstudio.scan.ui.Messages;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.ImageCache;
@@ -111,7 +110,7 @@ public class ScanMonitor implements AppInstance
             final ScanClient client = model.getScanClient();
 
             final Button resume = new Button("", ImageCache.getImageView(StateCell.class, "/icons/resume.png"));
-            TooltipHelper.setTooltip(resume, new Tooltip(Messages.scan_resume_all));
+            resume.setTooltip(new Tooltip(Messages.scan_resume_all));
             resume.setOnAction(event ->
             {
                 try
@@ -125,7 +124,7 @@ public class ScanMonitor implements AppInstance
             });
 
             final Button pause = new Button("", ImageCache.getImageView(StateCell.class, "/icons/pause.png"));
-            TooltipHelper.setTooltip(pause, new Tooltip(Messages.scan_pause_all));
+            pause.setTooltip(new Tooltip(Messages.scan_pause_all));
             pause.setOnAction(event ->
             {
                 try
@@ -139,7 +138,7 @@ public class ScanMonitor implements AppInstance
             });
 
             final Button abort = new Button("", ImageCache.getImageView(StateCell.class, "/icons/abort.png"));
-            TooltipHelper.setTooltip(abort, new Tooltip(Messages.scan_abort_all));
+            abort.setTooltip(new Tooltip(Messages.scan_abort_all));
             abort.setOnAction(event ->
             {
                 try

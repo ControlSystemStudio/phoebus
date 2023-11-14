@@ -36,7 +36,6 @@ import org.csstudio.scan.ui.simulation.SimulationDisplayApplication;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.workbench.ApplicationService;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
@@ -190,7 +189,7 @@ public class ScanEditor extends SplitPane
     private ToolBar createToolbar()
     {
         pause.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/pause.png"));
-        TooltipHelper.setTooltip(pause, new Tooltip(Messages.scan_pause));
+        pause.setTooltip(new Tooltip(Messages.scan_pause));
         pause.setOnAction(event ->
         {
             try
@@ -204,7 +203,7 @@ public class ScanEditor extends SplitPane
         });
 
         resume.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/resume.png"));
-        TooltipHelper.setTooltip(resume, new Tooltip(Messages.scan_resume));
+        resume.setTooltip(new Tooltip(Messages.scan_resume));
         resume.setOnAction(event ->
         {
             try
@@ -218,7 +217,7 @@ public class ScanEditor extends SplitPane
         });
 
         next.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/next.png"));
-        TooltipHelper.setTooltip(next, new Tooltip(Messages.scan_next));
+        next.setTooltip(new Tooltip(Messages.scan_next));
         next.setOnAction(event ->
         {
             try
@@ -232,7 +231,7 @@ public class ScanEditor extends SplitPane
         });
 
         abort.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/abort.png"));
-        TooltipHelper.setTooltip(abort, new Tooltip(Messages.scan_abort));
+        abort.setTooltip(new Tooltip(Messages.scan_abort));
         abort.setOnAction(event ->
         {
             try
@@ -246,7 +245,7 @@ public class ScanEditor extends SplitPane
         });
 
         jump_to_current.setGraphic(ImageCache.getImageView(ScanSystem.class, "/icons/current.png"));
-        TooltipHelper.setTooltip(jump_to_current, new Tooltip(Messages.scan_jump_to_current_command));
+        jump_to_current.setTooltip(new Tooltip(Messages.scan_jump_to_current_command));
         jump_to_current.setOnAction(event -> scan_tree.revealActiveItem(jump_to_current.isSelected()));
 
         final Button[] undo_redo = UndoButtons.createButtons(undo);

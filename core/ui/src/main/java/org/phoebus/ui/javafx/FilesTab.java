@@ -12,7 +12,6 @@ import java.util.List;
 
 import javafx.scene.control.Tab;
 import javafx.scene.control.Tooltip;
-import org.phoebus.ui.TooltipHelper;
 
 /** Tab that allows showing and maintaining a list of files.
  *  @author Evan Smith
@@ -38,7 +37,7 @@ public class FilesTab extends Tab
         files = new FilesList(editable);
         setText(Messages.Files);
         setClosable(false);
-        TooltipHelper.setTooltip(this, new Tooltip(Messages.AddFileAttachments));
+        setTooltip(new Tooltip(Messages.AddFileAttachments));
 
         setContent(files);
 

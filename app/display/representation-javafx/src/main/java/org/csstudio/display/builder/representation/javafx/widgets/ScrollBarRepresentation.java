@@ -19,7 +19,6 @@ import org.csstudio.display.builder.model.widgets.ScrollBarWidget;
 import org.csstudio.display.builder.representation.javafx.Cursors;
 import org.epics.vtype.Display;
 import org.epics.vtype.VType;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.javafx.Styles;
 
 import javafx.beans.value.ObservableValue;
@@ -230,10 +229,10 @@ public class ScrollBarRepresentation extends RegionBaseRepresentation<ScrollBar,
             if (tip != null)
                 tip.setText(text);
             else
-                TooltipHelper.setTooltip(jfx_node, new Tooltip(text));
+                jfx_node.setTooltip(new Tooltip(text));
         }
         else if (tip != null)
-            TooltipHelper.setTooltip(jfx_node, null);
+            jfx_node.setTooltip(null);
         toolkit.fireWrite(model_widget, new_value);
     }
 

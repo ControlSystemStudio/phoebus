@@ -28,7 +28,6 @@ import org.csstudio.javafx.rtplot.internal.TraceImpl;
 import org.csstudio.javafx.rtplot.internal.YAxisImpl;
 import org.csstudio.javafx.rtplot.internal.undo.ChangeAxisRanges;
 import org.csstudio.javafx.rtplot.internal.util.GraphicsUtils;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.ToolbarHelper;
@@ -159,7 +158,7 @@ public class  RTPlot<XTYPE extends Comparable<XTYPE>> extends BorderPane
 		String tip = isHigh ? axis.getValueRange().getHigh().toString() :
 			axis.getValueRange().getLow().toString();
     	axisLimitsField.setText(tip);
-        TooltipHelper.setTooltip(axisLimitsField, new Tooltip(Messages.AxisLimits_TT + tip));
+    	axisLimitsField.setTooltip(new Tooltip(Messages.AxisLimits_TT + tip));
 		axisLimitsField.setVisible(true);
 		axisLimitsField.relocate(area.getX(), area.getY());
 		axisLimitsField.resize(area.getWidth(), area.getHeight());

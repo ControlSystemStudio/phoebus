@@ -25,7 +25,6 @@ import org.csstudio.display.builder.representation.javafx.PVTableItem.AutoComple
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
 import org.phoebus.framework.util.ResourceParser;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.ui.application.ApplicationLauncherService;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.MultiLineInputDialog;
@@ -400,7 +399,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
         scripts_table.getColumns().add(scripts_name_col);
         scripts_table.setEditable(true);
         scripts_table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        TooltipHelper.setTooltip(scripts_table, new Tooltip(Messages.ScriptsDialog_ScriptsTT));
+        scripts_table.setTooltip(new Tooltip(Messages.ScriptsDialog_ScriptsTT));
         scripts_table.setPlaceholder(new Label(Messages.ScriptsDialog_NoScripts));
 
         // Buttons
@@ -522,7 +521,7 @@ public class ScriptsDialog extends Dialog<List<ScriptInfo>>
         pvs_table.getColumns().add(pvs_trigger_col);
         pvs_table.setEditable(true);
         pvs_table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        TooltipHelper.setTooltip(pvs_table, new Tooltip(Messages.ScriptsDialog_PVsTT));
+        pvs_table.setTooltip(new Tooltip(Messages.ScriptsDialog_PVsTT));
         pvs_table.setPlaceholder(new Label(Messages.ScriptsDialog_NoPVs));
 
         // Buttons
