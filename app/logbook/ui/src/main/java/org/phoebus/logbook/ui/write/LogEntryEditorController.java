@@ -30,7 +30,6 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.phoebus.logbook.LogEntry;
 import org.phoebus.logbook.ui.Messages;
-import org.phoebus.ui.TooltipHelper;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;

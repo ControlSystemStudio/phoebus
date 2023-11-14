@@ -33,7 +33,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import org.phoebus.logbook.ui.LogbookUiPreferences;
 import org.phoebus.logbook.ui.Messages;
-import org.phoebus.ui.TooltipHelper;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.net.URL;
