@@ -115,7 +115,7 @@ public class AlarmConfigLogger implements Runnable {
             }
         }
         // Set up the ssh keys if used
-        if(Boolean.parseBoolean(props.getProperty("use_ssh", "false"))) {
+        if(Boolean.parseBoolean(props.getProperty("use_ssh_keys", "false"))) {
             File sshDir = new File(FS.DETECTED.userHome(), ".ssh");
             JGitKeyCache cache = new JGitKeyCache();
             SshdSessionFactoryBuilder builder = new SshdSessionFactoryBuilder();
@@ -268,7 +268,7 @@ public class AlarmConfigLogger implements Runnable {
                             PushCommand pushCommand = git.push();
                             pushCommand.setRemote(REMOTE_NAME);
                             pushCommand.setForce(true);
-                            if (Boolean.parseBoolean(props.getProperty("use_ssh", "false"))) {
+                            if (Boolean.parseBoolean(props.getProperty("use_ssh_keys", "false"))) {
                                 pushCommand.setTransportConfigCallback(transport -> {
                                     SshTransport sshTransport = (SshTransport) transport;
                                     sshTransport.setSshSessionFactory(sshdSessionFactory);

@@ -40,6 +40,7 @@ import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Scale;
+import org.phoebus.ui.javafx.NonCachingScrollPane;
 
 /** Creates JavaFX item for model widget
  *
@@ -143,7 +144,7 @@ public class EmbeddedDisplayRepresentation extends RegionBaseRepresentation<Pane
         inner = new Pane();
         inner.getTransforms().add(zoom = new Scale());
 
-        scroll = new ScrollPane(inner);
+        scroll = new NonCachingScrollPane(inner);
         scroll.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
         scroll.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
         //  By default it seems that the minimum size is set to 36x36.
