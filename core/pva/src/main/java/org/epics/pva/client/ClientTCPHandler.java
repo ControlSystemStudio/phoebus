@@ -124,9 +124,11 @@ class ClientTCPHandler extends TCPHandler
         last_life_sign = last_message_sent = System.currentTimeMillis();
         final long period = Math.max(1, PVASettings.EPICS_PVA_CONN_TMO * 1000L / 30 * 3);
         alive_check = timer.scheduleWithFixedDelay(this::checkResponsiveness, period, period, TimeUnit.MILLISECONDS);
-        // Don't start the send thread, yet.
+
+        // Start receiver, but not the send thread, yet.
         // To prevent sending messages before the server is ready,
         // it's started when server confirms the connection.
+        startReceiver();
     }
 
     private static Socket createSocket(final InetSocketAddress address, final boolean tls) throws Exception

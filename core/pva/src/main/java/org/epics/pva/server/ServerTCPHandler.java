@@ -12,6 +12,7 @@ import static org.epics.pva.PVASettings.logger;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.util.Objects;
 import java.util.logging.Level;
 
 import org.epics.pva.common.CommandHandlers;
@@ -62,10 +63,11 @@ class ServerTCPHandler extends TCPHandler
     public ServerTCPHandler(final PVAServer server, final Socket client, final TLSHandshakeInfo tls_info) throws Exception
     {
         super(client, false);
-        this.server = server;
+        this.server = Objects.requireNonNull(server);
         this.tls_info = tls_info;
 
         server.register(this);
+        startReceiver();
         startSender();
 
         // Initialize TCP connection by setting byte order..
