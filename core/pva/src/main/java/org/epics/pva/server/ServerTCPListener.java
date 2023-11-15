@@ -15,6 +15,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -57,7 +58,7 @@ class ServerTCPListener
 
     public ServerTCPListener(final PVAServer server) throws Exception
     {
-        this.server = server;
+        this.server = Objects.requireNonNull(server);
 
         // Is TLS configured?
         final boolean tls = !PVASettings.EPICS_PVAS_TLS_KEYCHAIN.isBlank();
