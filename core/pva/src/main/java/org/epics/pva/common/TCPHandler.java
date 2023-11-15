@@ -16,6 +16,7 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -61,7 +62,7 @@ abstract public class TCPHandler
     private final boolean client_mode;
 
     /** TCP socket to PVA peer
-     * 
+     *
      *  Reading and writing is handled by receive and send threads,
      *  but 'protected' so that derived classes may peek at socket properties.
      */
@@ -105,10 +106,10 @@ abstract public class TCPHandler
     });
 
     /** Thread that runs {@link TCPHandler#receiver()} */
-    private final Future<Void> receive_thread;
+    private volatile Future<Void> receive_thread = null;
 
     /** Thread that runs {@link TCPHandler#sender()} */
-    private volatile Future<Void> send_thread;
+    private volatile Future<Void> send_thread = null;
 
     /** Start receiving messages
      *
@@ -122,7 +123,7 @@ abstract public class TCPHandler
      */
     public TCPHandler(final Socket socket, final boolean client_mode)
     {
-        this.socket = socket;
+        this.socket = Objects.requireNonNull(socket);
         this.client_mode = client_mode;
 
         // Receive buffer byte order is set based on header flag of each received message.
@@ -130,8 +131,13 @@ abstract public class TCPHandler
         // For server, it stays that way.
         // For client, order is updated during connection validation (PVAHeader.CTRL_SET_BYTE_ORDER)
         send_buffer.order(ByteOrder.nativeOrder());
+    }
 
-        // Start receiving data
+    /** Start receiving data
+     *  To be called by Client/ServerTCPHandler when fully constructed
+     */
+    protected void startReceiver()
+    {
         receive_thread = thread_pool.submit(this::receiver);
     }
 
@@ -558,7 +564,7 @@ abstract public class TCPHandler
         {
             running = false;
             socket.close();
-            if (wait)
+            if (wait && receive_thread != null)
                 receive_thread.get(5, TimeUnit.SECONDS);
         }
         catch (Exception ex)
