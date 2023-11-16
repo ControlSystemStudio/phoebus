@@ -112,9 +112,23 @@ public class DisplayInfo
      */
     public static DisplayInfo forModel(final DisplayModel model)
     {
-        String filepath = model.getUserData(DisplayModel.USER_DATA_INPUT_FILE);
-        String filepath_withForwardSlashes = !filepath.substring(0,1).equals("/") ? "/" + filepath.replace('\\', '/') : filepath;
-        return new DisplayInfo(filepath_withForwardSlashes,
+        String path;
+        {
+            String userDataInputFile = model.getUserData(DisplayModel.USER_DATA_INPUT_FILE);
+            if (   !userDataInputFile.startsWith("/")
+                && !userDataInputFile.startsWith("examples:")
+                && !userDataInputFile.startsWith("file:")
+                && !userDataInputFile.startsWith("http:")
+                && !userDataInputFile.startsWith("https:")) {
+                // Add leading '/' and replace occurrences of '\' by '/' in the file path on Windows:
+                path = "/" + userDataInputFile.replace('\\', '/');
+            }
+            else {
+                path = userDataInputFile;
+            }
+        }
+
+        return new DisplayInfo(path,
                 model.getDisplayName(),
                 model.propMacros().getValue(),
                 false);
