@@ -119,7 +119,9 @@ public class DisplayInfo
                 && !userDataInputFile.startsWith("examples:")
                 && !userDataInputFile.startsWith("file:")
                 && !userDataInputFile.startsWith("http:")
-                && !userDataInputFile.startsWith("https:")) {
+                && !userDataInputFile.startsWith("https:")
+                && !userDataInputFile.startsWith("ftp:")
+                && !userDataInputFile.startsWith("jar:")) {
                 // Add leading '/' and replace occurrences of '\' by '/' in the file path on Windows:
                 path = "/" + userDataInputFile.replace('\\', '/');
             }
