@@ -74,6 +74,8 @@ public class DatabrowserAdapterFactory implements AdapterFactory {
                                        .appendDescription(getBody(databrowserSelection));
             try
             {
+                databrowserSelection.makeTimeRangeAbsolute();
+
                 final File image_file = databrowserSelection.getPlot() == null ? null : new Screenshot(databrowserSelection.getPlot()).writeToTempfile("image");
                 if(image_file != null){
                     log.attach(AttachmentImpl.of(image_file));
