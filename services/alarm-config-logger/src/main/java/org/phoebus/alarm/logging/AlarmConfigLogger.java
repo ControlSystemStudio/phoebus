@@ -128,7 +128,7 @@ public class AlarmConfigLogger implements Runnable {
             sshdSessionFactory = builder.build(cache);
         }
         // Setup basic username/password auth
-        if (props.contains("username") && props.contains("password")) {
+        if (props.containsKey("username") && props.containsKey("password")) {
             usernamePasswordCredentialsProvider = new UsernamePasswordCredentialsProvider(
                     props.getProperty("username"),
                     props.getProperty("password"));
