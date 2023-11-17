@@ -83,7 +83,7 @@ public class ArraySizePropertyBinding extends WidgetPropertyBinding<Spinner<Inte
             for (Widget w : other)
             {
                 final ArrayWidgetProperty other_prop = (ArrayWidgetProperty) w.getProperty(path);
-                undo.add(new RemoveArrayElementAction<>(other_prop));
+                undo.execute(new RemoveArrayElementAction<>(other_prop));
             }
         }
     };
