@@ -97,7 +97,10 @@ public class TooltipSupport
             String spec = ((MacroizedWidgetProperty<?>)tooltip_property).getSpecification();
 
             final Widget widget = tooltip_property.getWidget();
-            Object vtype = widget.getPropertyValue(runtimePropPVValue);
+            Object vtype = null;
+            if (widget.checkProperty(runtimePropPVValue.getName()).isPresent()) {
+                vtype = widget.getPropertyValue(runtimePropPVValue);
+            }
             Display display = Display.displayOf(vtype);
 
             // If 'vtype' supports it (i.e., it is an instance of "DisplayProvider"),
