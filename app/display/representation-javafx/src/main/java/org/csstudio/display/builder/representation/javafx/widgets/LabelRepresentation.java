@@ -71,6 +71,7 @@ public class LabelRepresentation extends RegionBaseRepresentation<Label, LabelWi
         model_widget.propVerticalAlignment().addUntypedPropertyListener(styleChangedListener);
         model_widget.propRotationStep().addUntypedPropertyListener(styleChangedListener);
         model_widget.propWrapWords().addUntypedPropertyListener(styleChangedListener);
+        model_widget.propLineSpacing().addUntypedPropertyListener(styleChangedListener);
 
         // Changing the text might require a resize,
         // so handle those properties together.
@@ -93,6 +94,7 @@ public class LabelRepresentation extends RegionBaseRepresentation<Label, LabelWi
         model_widget.propWrapWords().removePropertyListener(styleChangedListener);
         model_widget.propText().removePropertyListener(contentChangedListener);
         model_widget.propAutoSize().removePropertyListener(contentChangedListener);
+        model_widget.propLineSpacing().removePropertyListener(styleChangedListener);
         super.unregisterListeners();
     }
 
@@ -173,6 +175,8 @@ public class LabelRepresentation extends RegionBaseRepresentation<Label, LabelWi
                 jfx_node.setBackground(new Background(new BackgroundFill(color, CornerRadii.EMPTY, Insets.EMPTY)));
             }
             jfx_node.setFont(JFXUtil.convert(model_widget.propFont().getValue()));
+            Integer lineSpacing = model_widget.propLineSpacing().getValue();
+            jfx_node.setLineSpacing(lineSpacing);
         }
     }
 }

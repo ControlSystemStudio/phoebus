@@ -240,6 +240,7 @@ public class Messages
                          WidgetProperties_LevelLoLo,
                          WidgetProperties_LimitsFromPV,
                          WidgetProperties_LineColor,
+                         WidgetProperties_LineSpacing,
                          WidgetProperties_LineWidth,
                          WidgetProperties_Locale,
                          WidgetProperties_Macros,

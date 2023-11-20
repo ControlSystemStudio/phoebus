@@ -28,11 +28,14 @@ import org.csstudio.display.builder.model.WidgetCategory;
 import org.csstudio.display.builder.model.WidgetConfigurator;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyCategory;
+import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.NamedWidgetFonts;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
 import org.csstudio.display.builder.model.persist.WidgetFontService;
+import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
 import org.csstudio.display.builder.model.properties.HorizontalAlignment;
 import org.csstudio.display.builder.model.properties.RotationStep;
 import org.csstudio.display.builder.model.properties.VerticalAlignment;
@@ -104,11 +107,16 @@ public class LabelWidget extends MacroWidget
     private volatile WidgetProperty<WidgetColor> background;
     private volatile WidgetProperty<Boolean> transparent;
     private volatile WidgetProperty<WidgetFont> font;
+    private volatile WidgetProperty<Integer> lineSpacing;
     private volatile WidgetProperty<HorizontalAlignment> horizontal_alignment;
     private volatile WidgetProperty<VerticalAlignment> vertical_alignment;
     private volatile WidgetProperty<RotationStep> rotation_step;
     private volatile WidgetProperty<Boolean> auto_size;
     private volatile WidgetProperty<Boolean> wrap_words;
+
+    /** 'line_spacing' property */
+    public static final WidgetPropertyDescriptor<Integer> propLineSpacing =
+            CommonWidgetProperties.newIntegerPropertyDescriptor(WidgetPropertyCategory.DISPLAY, "line_spacing", Messages.WidgetProperties_LineSpacing);
 
     /** Constructor */
     public LabelWidget()
@@ -122,6 +130,7 @@ public class LabelWidget extends MacroWidget
         super.defineProperties(properties);
         properties.add(text = propText.createProperty(this, Messages.LabelWidget_Text));
         properties.add(font = propFont.createProperty(this, WidgetFontService.get(NamedWidgetFonts.DEFAULT)));
+        properties.add(lineSpacing = propLineSpacing.createProperty(this, 0));
         properties.add(foreground = propForegroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.TEXT)));
         properties.add(background = propBackgroundColor.createProperty(this, WidgetColorService.getColor(NamedWidgetColors.BACKGROUND)));
         properties.add(transparent = propTransparent.createProperty(this, true));
@@ -150,6 +159,12 @@ public class LabelWidget extends MacroWidget
     public WidgetProperty<WidgetFont> propFont()
     {
         return font;
+    }
+
+    /** @return 'line_spacing' property */
+    public WidgetProperty<Integer> propLineSpacing()
+    {
+        return lineSpacing;
     }
 
     /** @return 'foreground_color' property */
