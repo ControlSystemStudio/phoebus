@@ -115,20 +115,25 @@ public class AlarmConfigLogger implements Runnable {
             }
         }
         // Set up the ssh keys if used
-        if(Boolean.parseBoolean(props.getProperty("use_ssh_keys", "false"))) {
-            File sshDir = new File(FS.DETECTED.userHome(), ".ssh");
-            JGitKeyCache cache = new JGitKeyCache();
-            SshdSessionFactoryBuilder builder = new SshdSessionFactoryBuilder();
-            if(props.containsKey("private_key")) {
-                File key = new File(props.getProperty("private_key"));
-                builder.setDefaultKeysProvider(file -> new CachingKeyPairProvider(List.of(key.getAbsoluteFile().toPath()), cache));
-            }
-            builder.setHomeDirectory(FS.DETECTED.userHome());
-            builder.setSshDirectory(sshDir);
-            sshdSessionFactory = builder.build(cache);
+        if(props.containsKey("use_ssh_keys") && Boolean.parseBoolean(props.getProperty("use_ssh_keys"))) {
+			try {
+				File sshDir = new File(FS.DETECTED.userHome(), ".ssh");
+				JGitKeyCache cache = new JGitKeyCache();
+				SshdSessionFactoryBuilder builder = new SshdSessionFactoryBuilder();
+				if(props.containsKey("private_key")) {
+					File key = new File(props.getProperty("private_key"));
+					builder.setDefaultKeysProvider(file -> new CachingKeyPairProvider(List.of(key.getAbsoluteFile().toPath()), cache));
+				}
+				builder.setHomeDirectory(FS.DETECTED.userHome());
+				builder.setSshDirectory(sshDir);
+				sshdSessionFactory = builder.build(cache);
+			} catch (NullPointerException  e) {
+					logger.log(Level.WARNING, "Failed to open .ssh/private_key", e);
+			}
+
         }
         // Setup basic username/password auth
-        if (props.contains("username") && props.contains("password")) {
+        if (props.containsKey("username") && props.containsKey("password")) {
             usernamePasswordCredentialsProvider = new UsernamePasswordCredentialsProvider(
                     props.getProperty("username"),
                     props.getProperty("password"));
@@ -268,7 +273,7 @@ public class AlarmConfigLogger implements Runnable {
                             PushCommand pushCommand = git.push();
                             pushCommand.setRemote(REMOTE_NAME);
                             pushCommand.setForce(true);
-                            if (Boolean.parseBoolean(props.getProperty("use_ssh_keys", "false"))) {
+                            if (Boolean.parseBoolean(props.getProperty("use_ssh_keys"))) {
                                 pushCommand.setTransportConfigCallback(transport -> {
                                     SshTransport sshTransport = (SshTransport) transport;
                                     sshTransport.setSshSessionFactory(sshdSessionFactory);

@@ -11,6 +11,8 @@ import static org.csstudio.display.builder.model.ModelPlugin.logger;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 
 import javax.xml.stream.XMLOutputFactory;
@@ -117,5 +119,18 @@ public class MacroXMLUtil
             logger.log(Level.WARNING, "Cannot serialize macros " + macros, ex);
         }
         return xml.toString();
+    }
+
+    /** @deprecated Use macros.getValue("M") or macros.getNames()
+     *  @param macros Macros to represent as Map
+     *  @return Map representation for macros
+     */
+    public static Map<String, String> toMap(final Macros macros)
+    {
+        Map<String, String> readMacroMap = new HashMap<>();
+        macros.forEach((s, s2) -> {
+            readMacroMap.put(s,s2);
+        });
+        return readMacroMap;
     }
 }

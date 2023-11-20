@@ -200,7 +200,7 @@ public class AlarmUI
 
     /** Verify authorization, qualified by model's current config
      *  @param model Alarm client model
-     *  @param auto Authorization name
+     *  @param authorization Authorization name
      *  @return <code>true</code> if the user has authorization
      */
     private static boolean haveQualifiedAuthorization(final AlarmClient model, final String authorization)

@@ -15,6 +15,8 @@ public class Messages
 
     public static String acknowledgeFailed;
     public static String addComponentFailed;
+    public static String disableAlarmFailed;
+    public static String enableAlarmFailed;
     public static String moveItemFailed;
     public static String removeComponentFailed;
     public static String renameItemFailed;

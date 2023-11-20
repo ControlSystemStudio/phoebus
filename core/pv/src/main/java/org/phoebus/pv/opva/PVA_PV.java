@@ -8,6 +8,7 @@
 package org.phoebus.pv.opva;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 
@@ -249,7 +250,7 @@ class PVA_PV extends PV implements ChannelRequester, MonitorRequester
 
     /** {@inheritDoc} */
     @Override
-    public Future<VType> asyncRead() throws Exception
+    public CompletableFuture<VType> asyncRead() throws Exception
     {
         final PVGetHandler result = new PVGetHandler(this);
         channel.createChannelGet(result, read_request);
@@ -265,7 +266,7 @@ class PVA_PV extends PV implements ChannelRequester, MonitorRequester
 
     /** {@inheritDoc} */
     @Override
-    public Future<?> asyncWrite(Object new_value) throws Exception
+    public CompletableFuture<?> asyncWrite(Object new_value) throws Exception
     {
         if (enum_labels != null  &&  new_value instanceof String)
         {   // Convert string-for-enum into index of corresponding label

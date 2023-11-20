@@ -559,7 +559,7 @@ public class AlarmLogTableController {
                         }
                         alarmInfo.show();
                     }),
-                    (url, ex) -> ExceptionDetailsErrorDialog.openError("Alarm Log Info Error", ex.getMessage(), ex)
+                    (url, ex) -> ExceptionDetailsErrorDialog.openError("Alarm Log Info Error", ex)
             );
 
         });

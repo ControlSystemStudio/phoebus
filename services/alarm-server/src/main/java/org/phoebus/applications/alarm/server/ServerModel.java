@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import org.apache.kafka.clients.consumer.Consumer;
@@ -76,22 +77,23 @@ class ServerModel
     /** Did the last connectivity check fail? */
     private boolean connection_lost = false;
 
+    /**
+     * Timeout in seconds waiting for response from Kafka when sending producer messages.
+     */
+    private static final int KAFKA_CLIENT_TIMEOUT = 10;
 
     /** @param kafka_servers Servers
      *  @param config_name Name of alarm tree root
      *  @param initial_states
      *  @param listener
      *  @param kafka_properties_file Additional properties to pass to the kafka client
-     *  @throws Exception on error
      */
     public ServerModel(final String kafka_servers, final String config_name,
                        final ConcurrentHashMap<String, ClientState> initial_states,
                        final ServerModelListener listener,
-                       final String kafka_properties_file) throws Exception
+                       final String kafka_properties_file)
     {
         this.initial_states = initial_states;
-        // initial_states.entrySet().forEach(state ->
-        //    System.out.println("Initial state for " + state.getKey() + " : " + state.getValue()));
 
         config_state_topic = Objects.requireNonNull(config_name);
         command_topic  = config_name + AlarmSystem.COMMAND_TOPIC_SUFFIX;
@@ -187,7 +189,7 @@ class ServerModel
         // but silently drops them, so clients will get out of sync,
         // and since Kafka is down, it won't track the most recent alarm state
         // for future clients...
-        if (connected == false  &&  connection_lost == false)
+        if (!connected && !connection_lost)
             logger.log(Level.WARNING, "Lost Kafka connectitity");
         else if (connected &&  connection_lost)
         {
@@ -334,9 +336,8 @@ class ServerModel
      *
      *  @param name PV name
      *  @return Node, <code>null</code> if model does not contain the PV
-     *  @throws Exception on error
      */
-    public AlarmServerPV findPV(final String name) throws Exception
+    public AlarmServerPV findPV(final String name)
     {
         return findPV(name, root);
     }
@@ -471,7 +472,7 @@ class ServerModel
         {
             final String json = new_state == null ? null : new String(JsonModelWriter.toJsonBytes(new_state, AlarmLogic.getMaintenanceMode(), AlarmLogic.getDisableNotify()));
             final ProducerRecord<String, String> record = new ProducerRecord<>(config_state_topic, AlarmSystem.STATE_PREFIX + path, json);
-            producer.send(record);
+            producer.send(record).get(KAFKA_CLIENT_TIMEOUT, TimeUnit.SECONDS);
             last_state_update = System.currentTimeMillis();
         }
         catch (Throwable ex)
@@ -482,7 +483,7 @@ class ServerModel
 
     /** Send alarm update to 'config' topic
      *  @param path Path of item that has a new state
-     *  @param new_state That new state
+     *  @param config That new state
      */
     public void sendConfigUpdate(final String path, final AlarmTreeItem<AlarmState> config)
     {
@@ -490,7 +491,7 @@ class ServerModel
         {
             final String json = config == null ? null : new String(JsonModelWriter.toJsonBytes(config));
             final ProducerRecord<String, String> record = new ProducerRecord<>(config_state_topic, AlarmSystem.CONFIG_PREFIX + path, json);
-            producer.send(record);
+            producer.send(record).get(KAFKA_CLIENT_TIMEOUT, TimeUnit.SECONDS);
         }
         catch (Throwable ex)
         {
@@ -511,7 +512,7 @@ class ServerModel
 
             final String json = JsonModelWriter.talkToString(severity, message);
             final ProducerRecord<String, String> record = new ProducerRecord<>(talk_topic, AlarmSystem.TALK_PREFIX + path, json);
-            producer.send(record);
+            producer.send(record).get(KAFKA_CLIENT_TIMEOUT, TimeUnit.SECONDS);
         }
         catch (Throwable ex)
         {

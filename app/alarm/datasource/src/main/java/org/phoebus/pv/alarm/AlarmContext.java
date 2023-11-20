@@ -116,11 +116,14 @@ public class AlarmContext
                     }
                     if (node != null)
                     {
-                        try {
-                            alarmModels.get(alarmPV.getInfo().getRoot()).acknowledge(node, ack);
-                        } catch (Exception e) {
-                            logger.log(Level.WARNING, "Failed to acknowledge alarm", e);
-                        }
+                        AlarmTreeItem<?> alarmClientNode = node;
+                        JobManager.schedule("Acknowledge/unacknowledge alarm", monitor -> {
+                            try {
+                                alarmModels.get(alarmPV.getInfo().getRoot()).acknowledge(alarmClientNode, ack);
+                            } catch (Exception e) {
+                                logger.log(Level.WARNING, "Failed to acknowledge alarm", e);
+                            }
+                        });
                     }
                 }
             }
@@ -153,8 +156,14 @@ public class AlarmContext
                             for (AlarmClientLeaf pv : pvs)
                             {
                                 final AlarmClientLeaf copy = pv.createDetachedCopy();
-                                if (copy.setEnabled(enable))
-                                    alarmModels.get(alarmPV.getInfo().getRoot()).sendItemConfigurationUpdate(pv.getPathName(), copy);
+                                if (copy.setEnabled(enable)){
+                                    try {
+                                        alarmModels.get(alarmPV.getInfo().getRoot()).sendItemConfigurationUpdate(pv.getPathName(), copy);
+                                    } catch (Exception e) {
+                                        logger.log(Level.WARNING, "Failed to send item configuration update to " + alarmPV.getInfo().getRoot(), e);
+                                        throw e;
+                                    }
+                                }
                             }
                         });
                     }

@@ -420,7 +420,7 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
     }
 
     @Override
-    public Future<VType> asyncRead() throws Exception
+    public CompletableFuture<VType> asyncRead() throws Exception
     {
         final DBRType type = channel.getFieldType();
         if (type == null   ||  type == DBRType.UNKNOWN)
@@ -453,7 +453,7 @@ public class JCA_PV extends PV implements ConnectionListener, MonitorListener, A
     }
 
     @Override
-    public Future<?> asyncWrite(final Object new_value) throws Exception
+    public CompletableFuture<?> asyncWrite(final Object new_value) throws Exception
     {
         final PutCallbackFuture result = new PutCallbackFuture();
         performWrite(new_value, result);

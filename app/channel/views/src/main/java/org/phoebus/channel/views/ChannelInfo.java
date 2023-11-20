@@ -99,7 +99,7 @@ public class ChannelInfo implements ContextMenuEntry {
                     result -> Platform.runLater(() -> {
                         controller.addChannels(result);
                     }),
-                    (url, ex) -> ExceptionDetailsErrorDialog.openError("ChannelFinder Query Error", ex.getMessage(), ex));
+                    (url, ex) -> ExceptionDetailsErrorDialog.openError("ChannelFinder Query Error", ex));
 
         });
 

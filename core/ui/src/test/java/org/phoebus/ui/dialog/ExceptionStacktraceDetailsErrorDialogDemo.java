@@ -7,25 +7,26 @@
  ******************************************************************************/
 package org.phoebus.ui.dialog;
 
+import javafx.stage.Stage;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 
-import javafx.stage.Stage;
-
-/** Demo of the error dialog
- *  @author Kay Kasemir
+/** Demo of the error dialog with a summary of the stack trace
+ *  @author Kay Kasemir, Kunal Shroff
  */
 @SuppressWarnings("nls")
-public class ExceptionDetailsErrorDialogDemo extends ApplicationWrapper
+public class ExceptionStacktraceDetailsErrorDialogDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage)
     {
-        Exception ex = new Exception("This is a test");
-        ExceptionDetailsErrorDialog.openError("Test", "This is a test\nAnother line", ex);
+        Exception rootCause = new Exception("The ROOT cause of the test exception");
+        Exception cause = new Exception("The cause of the test exception", rootCause);
+        Exception ex = new Exception("This is a test", cause);
+        ExceptionDetailsErrorDialog.openError("Test", ex);
     }
 
     public static void main(String[] args)
     {
-        launch(ExceptionDetailsErrorDialogDemo.class, args);
+        launch(ExceptionStacktraceDetailsErrorDialogDemo.class, args);
     }
 }

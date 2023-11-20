@@ -82,6 +82,16 @@
     -fx-background-radius: 0;
 }
 
+.file_path
+{
+    -fx-padding: 3 5 0 5;
+}
+
+.file_path_pane
+{
+    -fx-padding: 2 0 1 0;
+}
+
 .structure_property_name
 {
     -fx-font-weight: bold;
