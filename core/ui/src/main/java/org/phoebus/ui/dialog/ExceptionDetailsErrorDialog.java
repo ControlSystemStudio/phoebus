@@ -9,12 +9,19 @@ package org.phoebus.ui.dialog;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.Arrays;
+import java.util.Optional;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 
 /** Dialog that shows error message with exception detail
  *  @author Kay Kasemir
@@ -49,11 +56,35 @@ public class ExceptionDetailsErrorDialog
         openError(null, title, message, exception);
     }
 
+    /** Open dialog that shows detail of error, the message/header text is constructed using the messages from the
+     * exception's stacktrace
+     *
+     *  <p>May be called from non-UI thread
+     *
+     *  @param title Title
+     *  @param exception Exception
+     */
+    public static void openError(final String title, final Exception exception)
+    {
+        StringBuilder message = new StringBuilder();
+        message.append(exception.getMessage()).append(System.lineSeparator());
+        Throwable cause = exception.getCause();
+        while(cause != null) {
+            message.append(cause.getMessage()).append(System.lineSeparator());
+            cause = cause.getCause();
+        }
+        openError(null, title, message.toString(), exception);
+    }
+
     private static void doOpenError(final Node node, final String title, final String message, final Exception exception)
     {
         final Alert dialog = new Alert(AlertType.ERROR);
         dialog.setTitle(title);
         dialog.setHeaderText(message);
+
+        // A custom button which copies the message to clipboard
+        final ButtonType copyMessage = new ButtonType("Copy Msg & Close", ButtonBar.ButtonData.RIGHT);
+        dialog.getButtonTypes().add(copyMessage);
 
         if (exception != null)
         {
@@ -78,6 +109,14 @@ public class ExceptionDetailsErrorDialog
         if (node != null)
             DialogHelper.positionDialog(dialog, node, -400, -200);
 
-        dialog.showAndWait();
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.isPresent() && result.get() == copyMessage) {
+            final Clipboard clipboard = Clipboard.getSystemClipboard();
+            final ClipboardContent content = new ClipboardContent();
+            content.putString(message);
+            clipboard.setContent(content);
+        }
     }
+
+
 }

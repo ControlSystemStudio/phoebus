@@ -7,15 +7,14 @@
  ******************************************************************************/
 package org.phoebus.ui.dialog;
 
-import org.phoebus.ui.javafx.ApplicationWrapper;
-
 import javafx.stage.Stage;
+import org.phoebus.ui.javafx.ApplicationWrapper;
 
 /** Demo of the error dialog
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ExceptionDetailsErrorDialogDemo extends ApplicationWrapper
+public class ExceptionStacktraceDetailsErrorDialogDemo extends ApplicationWrapper
 {
     @Override
     public void start(final Stage stage)
@@ -23,11 +22,11 @@ public class ExceptionDetailsErrorDialogDemo extends ApplicationWrapper
         Exception rootCuse = new Exception("The ROOT cause of the test exception");
         Exception cause = new Exception("The cause of the test exception", rootCuse);
         Exception ex = new Exception("This is a test", cause);
-        ExceptionDetailsErrorDialog.openError("Test", "This is a test\nAnother line", ex);
+        ExceptionDetailsErrorDialog.openError("Test", ex);
     }
 
     public static void main(String[] args)
     {
-        launch(ExceptionDetailsErrorDialogDemo.class, args);
+        launch(ExceptionStacktraceDetailsErrorDialogDemo.class, args);
     }
 }
