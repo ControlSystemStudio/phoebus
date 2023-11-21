@@ -20,9 +20,7 @@ public class ExceptionDetailsErrorDialogDemo extends ApplicationWrapper
     @Override
     public void start(final Stage stage)
     {
-        Exception rootCuse = new Exception("The ROOT cause of the test exception");
-        Exception cause = new Exception("The cause of the test exception", rootCuse);
-        Exception ex = new Exception("This is a test", cause);
+        Exception ex = new Exception("This is a test");
         ExceptionDetailsErrorDialog.openError("Test", "This is a test\nAnother line", ex);
     }
 

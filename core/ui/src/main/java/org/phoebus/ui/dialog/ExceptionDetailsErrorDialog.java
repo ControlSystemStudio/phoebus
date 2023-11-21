@@ -90,7 +90,7 @@ public class ExceptionDetailsErrorDialog
 
     private static void doOpenError(final Node node, final String title, final String message, final Exception exception, final boolean append_stacktrace_msgs)
     {
-        StringBuilder messageBuilder = new StringBuilder(message);
+        StringBuilder messageBuilder = new StringBuilder(message).append(LINE_SEPARATOR);
         if(append_stacktrace_msgs)
         {
             messageBuilder.append(exception.getMessage() != null ? exception.getMessage() : exception.getClass()).append(LINE_SEPARATOR).append("Cause:").append(LINE_SEPARATOR);
