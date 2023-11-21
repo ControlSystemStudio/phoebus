@@ -29,6 +29,8 @@ import javafx.scene.input.ClipboardContent;
 @SuppressWarnings("nls")
 public class ExceptionDetailsErrorDialog
 {
+    private static final String LINE_SEPARATOR = System.lineSeparator();
+
     /** Open dialog that shows detail of error
      *
      *  <p>May be called from non-UI thread
@@ -67,10 +69,13 @@ public class ExceptionDetailsErrorDialog
     public static void openError(final String title, final Exception exception)
     {
         StringBuilder message = new StringBuilder();
-        message.append(exception.getMessage()).append(System.lineSeparator());
+        message.append(exception.getMessage()).append(LINE_SEPARATOR).append("Cause:").append(LINE_SEPARATOR);
         Throwable cause = exception.getCause();
-        while(cause != null) {
-            message.append(cause.getMessage()).append(System.lineSeparator());
+        int exceptionIndex = 1;
+        while(cause != null)
+        {
+            message.append("["+exceptionIndex+"] ").append(cause.getMessage()).append(LINE_SEPARATOR);
+            exceptionIndex++;
             cause = cause.getCause();
         }
         openError(null, title, message.toString(), exception);
