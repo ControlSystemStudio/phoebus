@@ -39,7 +39,7 @@ public abstract class LogbookSearchController {
         logbookSearchJob = LogbookSearchJob.submit(this.client,
                 map,
                 logs -> Platform.runLater(() -> setLogs(logs)),
-                (url, ex) -> ExceptionDetailsErrorDialog.openError("Logbook Search Error", ex.getMessage(), ex));
+                (url, ex) -> ExceptionDetailsErrorDialog.openError("Logbook Search Error", ex));
     }
 
     public abstract void setLogs(List<LogEntry> logs);

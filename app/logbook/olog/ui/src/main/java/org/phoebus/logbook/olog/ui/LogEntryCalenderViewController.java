@@ -256,7 +256,7 @@ public class LogEntryCalenderViewController extends LogbookSearchController {
                 },
                 (msg, ex) -> {
                     searchInProgress.set(false);
-                    ExceptionDetailsErrorDialog.openError("Logbook Search Error", ex.getMessage(), ex);
+                    ExceptionDetailsErrorDialog.openError("Logbook Search Error", ex);
                 });
     }
 
