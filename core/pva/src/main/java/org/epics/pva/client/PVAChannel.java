@@ -38,6 +38,13 @@ import org.epics.pva.data.PVAStructure;
  *
  *  <p>When no longer in use, the channel should be {@link #close()}d.
  *
+ * 
+ * Note that several methods return a CompletableFuture.
+ * This has been done because at this time the Futures used internally are indeed CompletableFutures
+ * and this type offers an extensive API for composition and chaining of futures.
+ * But note that user code must never call 'complete(..)' nor 'completeExceptionally()'
+ * on the provided CompletableFutures.
+ * 
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
