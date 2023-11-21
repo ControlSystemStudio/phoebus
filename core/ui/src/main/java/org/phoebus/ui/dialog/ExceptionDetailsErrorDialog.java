@@ -69,12 +69,12 @@ public class ExceptionDetailsErrorDialog
     public static void openError(final String title, final Exception exception)
     {
         StringBuilder message = new StringBuilder();
-        message.append(exception.getMessage()).append(LINE_SEPARATOR).append("Cause:").append(LINE_SEPARATOR);
+        message.append(exception.getMessage() != null ? exception.getMessage() : exception.getClass()).append(LINE_SEPARATOR).append("Cause:").append(LINE_SEPARATOR);
         Throwable cause = exception.getCause();
         int exceptionIndex = 1;
-        while(cause != null)
+        while (cause != null)
         {
-            message.append("["+exceptionIndex+"] ").append(cause.getMessage()).append(LINE_SEPARATOR);
+            message.append("[" + exceptionIndex + "] ").append(cause.getMessage() != null ? cause.getMessage() : cause.getClass().getName()).append(LINE_SEPARATOR);
             exceptionIndex++;
             cause = cause.getCause();
         }
