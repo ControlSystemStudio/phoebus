@@ -11,7 +11,6 @@ import static org.epics.pva.PVASettings.logger;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -116,7 +115,7 @@ public class PVAChannel extends SearchRequest.Channel implements AutoCloseable
     }
 
     /** Wait for channel to connect
-     *  @return {@link Future} to await connection.
+     *  @return {@link CompletableFuture} to await connection.
      *          <code>true</code> on success,
      *          {@link TimeoutException} on timeout.
      */
@@ -207,18 +206,18 @@ public class PVAChannel extends SearchRequest.Channel implements AutoCloseable
      *  the values are not set.
      *
      *  @param subfield Sub field to get, "" for complete data type
-     *  @return {@link Future} for fetching the result
+     *  @return {@link CompletableFuture} for fetching the result
      */
-    public Future<PVAStructure> info(final String subfield)
+    public CompletableFuture<PVAStructure> info(final String subfield)
     {
         return new GetTypeRequest(this, subfield);
     }
 
     /** Read (get) channel's value from server
      *  @param request Request, "" for all fields, or "field_a, field_b.subfield"
-     *  @return {@link Future} for fetching the result
+     *  @return {@link CompletableFuture} for fetching the result
      */
-    public Future<PVAStructure> read(final String request)
+    public CompletableFuture<PVAStructure> read(final String request)
     {
         return new GetRequest(this, request);
     }
@@ -243,11 +242,11 @@ public class PVAChannel extends SearchRequest.Channel implements AutoCloseable
      *  @param request Request for element to write, e.g. "field(value)"
      *  @param new_value New value: Number, String
      *  @throws Exception on error
-     *  @return {@link Future} for awaiting completion and getting Exception in case of error
+     *  @return {@link CompletableFuture} for awaiting completion and getting Exception in case of error
      *  @deprecated Use {@link #write(boolean, String, Object)}
      */
     @Deprecated
-    public Future<Void> write(final String request, final Object new_value) throws Exception
+    public CompletableFuture<Void> write(final String request, final Object new_value) throws Exception
     {
         return write(false, request, new_value);
     }
@@ -273,9 +272,9 @@ public class PVAChannel extends SearchRequest.Channel implements AutoCloseable
     *  @param request Request for element to write, e.g. "field(value)"
     *  @param new_value New value: Number, String
     *  @throws Exception on error
-    *  @return {@link Future} for awaiting completion and getting Exception in case of error
+    *  @return {@link CompletableFuture} for awaiting completion and getting Exception in case of error
     */
-    public Future<Void> write(final boolean completion, final String request, final Object new_value) throws Exception
+    public CompletableFuture<Void> write(final boolean completion, final String request, final Object new_value) throws Exception
     {
         return new PutRequest(this, completion, request, new_value);
     }
@@ -317,9 +316,9 @@ public class PVAChannel extends SearchRequest.Channel implements AutoCloseable
 
     /** Invoke remote procedure call (RPC)
      *  @param request Request, i.e. parameters sent to the RPC call
-     *  @return {@link Future} for fetching the result returned by the RPC call
+     *  @return {@link CompletableFuture} for fetching the result returned by the RPC call
      */
-    public Future<PVAStructure> invoke(final PVAStructure request)
+    public CompletableFuture<PVAStructure> invoke(final PVAStructure request)
     {
         return new RPCRequest(this, request);
     }
