@@ -13,7 +13,8 @@ import org.phoebus.ui.javafx.ApplicationWrapper;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-/** Demo of the error dialog, with a summary of the stack trace containing exceptions with null messages
+/** Demo of the error dialog, with a summary of the stack trace containing exceptions with null messages and a cyclic
+ *  chain
  *  @author Kay Kasemir, Kunal Shroff
  */
 @SuppressWarnings("nls")
@@ -25,8 +26,9 @@ public class ExceptionStacktraceWithNullErrorDialogDemo extends ApplicationWrapp
         Exception rootCause = new FileNotFoundException();
         Exception cause = new IOException();
         cause.initCause(rootCause);
+        rootCause.initCause(cause);
         Exception ex = new Exception("This is a test", cause);
-        ExceptionDetailsErrorDialog.openError("Test", ex);
+        ExceptionDetailsErrorDialog.openError(null,"Test", "", ex, true);
     }
 
     public static void main(String[] args)
