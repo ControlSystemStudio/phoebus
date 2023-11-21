@@ -1,7 +1,7 @@
 Architecture
 ============
 
-.. figure:: architecture.png
+.. figure:: phoebus_architecture.png
 
 The fundamental phoebus architecture consists of **core** modules,
 user-interface related **core-ui** modules, and **app** modules.
