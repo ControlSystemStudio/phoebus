@@ -333,7 +333,7 @@ public final class Utilities {
             int columnCount = vTable.getColumnCount();
             List dataArrays = new ArrayList();
             for(int i = 0; i < columnCount; i++){
-                dataArrays.add(toPVArrayType(vTable.getColumnName(i), vTable.getColumnData(i)));
+                dataArrays.add(toPVArrayType("Col " + i, vTable.getColumnData(i)));
             }
             PVAStructure table = new PVAStructure(PVATable.STRUCT_NAME,"", dataArrays);
             return table;
