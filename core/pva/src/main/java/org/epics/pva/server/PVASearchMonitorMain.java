@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022 Oak Ridge National Laboratory.
+ * Copyright (c) 2022-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
@@ -50,6 +51,7 @@ public class PVASearchMonitorMain
             this.name = name;
         }
 
+        /** Sort by search count */
         @Override
         public int compareTo(final SearchInfo other)
         {
@@ -93,7 +95,7 @@ public class PVASearchMonitorMain
         LogManager.getLogManager().readConfiguration(PVASettings.class.getResourceAsStream("/pva_logging.properties"));
         setLogLevel(Level.WARNING);
         long update_period = 10;
-        boolean once = false;
+        final AtomicBoolean once = new AtomicBoolean();
 
         for (int i=0; i<args.length; ++i)
         {
@@ -104,9 +106,12 @@ public class PVASearchMonitorMain
                 return;
             }
             if (arg.startsWith("-1"))
-                once = true;
+                once.set(true);
             else if (arg.startsWith("-p") && (i+1) < args.length)
+            {
                 update_period = Long.parseLong(args[i+1]);
+                ++i;
+            }
             else if (arg.startsWith("-v") && (i+1) < args.length)
             {
                 switch (Integer.parseInt(args[i+1]))
@@ -138,8 +143,8 @@ public class PVASearchMonitorMain
 
         final SearchHandler search_handler = (seq, cid, name, addr, reply_sender) ->
         {
-            // Quit when receiving search for name "QUIT"
-            if (name.equals("QUIT"))
+            // In "continuing" mode, quit when receiving search for name "QUIT"
+            if (!once.get()  &&  name.equals("QUIT"))
                 done.countDown();
 
             final SearchInfo search = searches.computeIfAbsent(name, n -> new SearchInfo(name));
@@ -155,7 +160,7 @@ public class PVASearchMonitorMain
         (   final PVAServer server = new PVAServer(search_handler)  )
         {
             System.out.println("Monitoring search requests for " + update_period + " seconds...");
-            if (! once)
+            if (! once.get())
                 System.out.println("Run 'pvget QUIT' to stop");
             while (! done.await(update_period, TimeUnit.SECONDS))
             {
@@ -172,7 +177,7 @@ public class PVASearchMonitorMain
                                       info.client.toString(),
                                       now.getEpochSecond() - info.last.getEpochSecond());
                 });
-                if (once)
+                if (once.get())
                     break;
             }
         }
