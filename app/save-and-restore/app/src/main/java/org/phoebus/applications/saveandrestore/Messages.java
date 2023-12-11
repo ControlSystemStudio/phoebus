@@ -19,6 +19,7 @@ package org.phoebus.applications.saveandrestore;
 
 import org.phoebus.framework.nls.NLS;
 
+@SuppressWarnings("unused")
 public class Messages {
 
     public static String alertContinue;
@@ -126,9 +127,6 @@ public class Messages {
     public static String searchEntryToolTip;
     public static String searchErrorBody;
     public static String searchFailed;
-    public static String searchNoResultsTitle;
-    public static String searchNoResult;
-
     public static String setpoint;
     public static String setpointPVWhen;
     public static String severity;
