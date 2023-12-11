@@ -47,6 +47,7 @@ import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.TagData;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
+import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
 import org.phoebus.service.saveandrestore.persistence.config.ElasticConfig;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ConfigurationDataRepository;
@@ -57,7 +58,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Profile;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -1844,12 +1849,13 @@ public class DAOTestIT {
     }
 
     /**
-     * Deletes all child nodes of the root node, i.e. all data except root node.
+     * Deletes all objects in all indices.
      */
     private void clearAllData() {
         List<Node> childNodes = nodeDAO.getChildNodes(Node.ROOT_FOLDER_UNIQUE_ID);
         childNodes.forEach(node -> nodeDAO.deleteNode(node.getUniqueId()));
         nodeDAO.deleteAllFilters();
+
     }
 
 
@@ -2222,5 +2228,60 @@ public class DAOTestIT {
         assertFalse(unformattedQueryStringFilter.getQueryString().contains("unsupoorted"));
 
         clearAllData();
+    }
+
+    @Test
+    public void testSearchForPvs() throws Exception{
+        Node rootNode = nodeDAO.getRootNode();
+        Node folderNode =
+                Node.builder().name("folder").build();
+        folderNode = nodeDAO.createNode(rootNode.getUniqueId(), folderNode);
+
+        Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("Myconfig1").build();
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(config);
+        ConfigurationData configurationData = new ConfigurationData();
+        configurationData.setPvList(Arrays.asList(ConfigPv.builder().pvName("pv1").build(),
+                ConfigPv.builder().pvName("pv2").build()));
+        configuration.setConfigurationData(configurationData);
+
+        configuration = nodeDAO.createConfiguration(folderNode.getUniqueId(), configuration);
+
+        Node config2 = Node.builder().nodeType(NodeType.CONFIGURATION).name("Myconfig2").build();
+        Configuration configuration2 = new Configuration();
+        configuration2.setConfigurationNode(config2);
+        ConfigurationData configurationData2 = new ConfigurationData();
+        configurationData2.setPvList(Arrays.asList(ConfigPv.builder().pvName("pv12").build(),
+                ConfigPv.builder().pvName("pv22").build()));
+        configuration2.setConfigurationData(configurationData2);
+
+        configuration2 = nodeDAO.createConfiguration(folderNode.getUniqueId(), configuration2);
+
+        MultiValueMap<String, String> searchParameters = new LinkedMultiValueMap<>();
+
+        searchParameters.put("pvs", List.of("pv1", "pv22", "pv12"));
+
+        SearchResult searchResult = nodeDAO.search(searchParameters);
+        assertEquals(2, searchResult.getHitCount());
+        assertEquals(configuration.getConfigurationNode().getUniqueId(), searchResult.getNodes().get(0).getUniqueId());
+        assertEquals(configuration2.getConfigurationNode().getUniqueId(), searchResult.getNodes().get(1).getUniqueId());
+
+        searchParameters.put("name", List.of("Myconfig2"));
+        searchResult = nodeDAO.search(searchParameters);
+        assertEquals(1, searchResult.getHitCount());
+
+        searchParameters.clear();
+
+        searchParameters.put("pvs", List.of("pv1", "pv2"));
+        searchResult = nodeDAO.search(searchParameters);
+        assertEquals(1, searchResult.getHitCount());
+
+        searchParameters.clear();
+        searchResult = nodeDAO.search(searchParameters);
+        // No pvs specified -> find all nodes.
+        assertEquals(4, searchResult.getHitCount());
+
+        clearAllData();
+
     }
 }

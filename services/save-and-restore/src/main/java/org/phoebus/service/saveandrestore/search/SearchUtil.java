@@ -3,16 +3,8 @@ package org.phoebus.service.saveandrestore.search;
 import co.elastic.clients.elasticsearch._types.FieldSort;
 import co.elastic.clients.elasticsearch._types.SortOptions;
 import co.elastic.clients.elasticsearch._types.SortOrder;
-import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.*;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery.Builder;
-import co.elastic.clients.elasticsearch._types.query_dsl.ChildScoreMode;
-import co.elastic.clients.elasticsearch._types.query_dsl.DisMaxQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.FuzzyQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.NestedQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.Query;
-import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.WildcardQuery;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,13 +16,8 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
 
 /**
  * A utility class for creating a search query for log entries based on time,
@@ -66,6 +53,7 @@ public class SearchUtil {
         List<String> descriptionTerms = new ArrayList<>();
         List<String> nodeNameTerms = new ArrayList<>();
         List<String> nodeTypeTerms = new ArrayList<>();
+        List<String> uniqueIdTerms = new ArrayList<>();
         boolean temporalSearch = false;
         ZonedDateTime start = ZonedDateTime.ofInstant(Instant.EPOCH, ZoneId.systemDefault());
         ZonedDateTime end = ZonedDateTime.now();
@@ -74,6 +62,13 @@ public class SearchUtil {
 
         for (Entry<String, List<String>> parameter : searchParameters.entrySet()) {
             switch (parameter.getKey().strip().toLowerCase()) {
+                case "uniqueid":
+                    for (String value : parameter.getValue()) {
+                        for (String pattern : value.split("[|,;]")) {
+                            uniqueIdTerms.add(pattern.trim());
+                        }
+                    }
+                    break;
                 // Search for node name. List of names cannot be split on space char as it is allowed in a node name.
                 case "name":
                     for (String value : parameter.getValue()) {
@@ -234,6 +229,11 @@ public class SearchUtil {
             boolQueryBuilder.must(descQuery.build()._toQuery());
         }
 
+        // Add uniqueId query
+        if(!uniqueIdTerms.isEmpty()){
+            boolQueryBuilder.must(IdsQuery.of(id -> id.values(uniqueIdTerms))._toQuery());
+        }
+
         // Add the name query
         if (!nodeNameTerms.isEmpty()) {
             DisMaxQuery.Builder nodeNameQuery = new DisMaxQuery.Builder();
@@ -290,15 +290,32 @@ public class SearchUtil {
                 .from(_from));
     }
 
-    private SearchRequest buildSearchRequestForPV(MultiValueMap<String, String> searchParameters) {
-        NestedQuery innerNestedQuery;
-        WildcardQuery matchQuery = WildcardQuery.of(m -> m.field("pvList.pvName").value(searchParameters.get("pv").get(0)));
-        innerNestedQuery = NestedQuery.of(n1 -> n1.path("pvList").query(matchQuery._toQuery()));
+    /**
+     * Builds a query on the configuration index to find {@link org.phoebus.applications.saveandrestore.model.ConfigurationData}
+     * documents containing any of the PV names passed to this method.
+     * @param pvValues List of PV names. Query will user or-strategy.
+     * @return A {@link SearchRequest} object, no limit on result size except maximum Elastic limit.
+     */
+    public SearchRequest buildSearchRequestForPvs(List<String> pvValues) {
+        int searchResultSize = defaultSearchSize;
         Builder boolQueryBuilder = new Builder();
-        boolQueryBuilder.must(innerNestedQuery._toQuery());
+        DisMaxQuery.Builder pvQuery = new DisMaxQuery.Builder();
+        List<Query> pvQueries = new ArrayList<>();
+        for (String value : pvValues) {
+            for (String pattern : value.split("[|,;]")) {
+                pvQueries.add(WildcardQuery.of(w -> w.field("pvList.pvName")
+                        .caseInsensitive(true)
+                        .value(pattern.trim()))._toQuery());
+            }
+        }
+        Query pvsQuery = pvQuery.queries(pvQueries).build()._toQuery();
+        NestedQuery nestedPvsQuery = NestedQuery.of(n -> n.path("pvList").query(pvsQuery).scoreMode(ChildScoreMode.None));
+        boolQueryBuilder.must(nestedPvsQuery._toQuery());
+
         return SearchRequest.of(s -> s.index(ES_CONFIGURATION_INDEX)
                 .query(boolQueryBuilder.build()._toQuery())
                 .timeout("60s")
-                .size(Math.min(999, maxSearchSize)));
+                .size(Math.min(searchResultSize, maxSearchSize))
+                .from(0));
     }
 }

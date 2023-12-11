@@ -22,31 +22,29 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.Refresh;
 import co.elastic.clients.elasticsearch._types.Result;
 import co.elastic.clients.elasticsearch._types.query_dsl.MatchAllQuery;
-import co.elastic.clients.elasticsearch.core.CountRequest;
-import co.elastic.clients.elasticsearch.core.CountResponse;
-import co.elastic.clients.elasticsearch.core.DeleteByQueryRequest;
-import co.elastic.clients.elasticsearch.core.DeleteByQueryResponse;
-import co.elastic.clients.elasticsearch.core.DeleteRequest;
-import co.elastic.clients.elasticsearch.core.DeleteResponse;
-import co.elastic.clients.elasticsearch.core.ExistsRequest;
-import co.elastic.clients.elasticsearch.core.GetRequest;
-import co.elastic.clients.elasticsearch.core.GetResponse;
-import co.elastic.clients.elasticsearch.core.IndexRequest;
-import co.elastic.clients.elasticsearch.core.IndexResponse;
+import co.elastic.clients.elasticsearch.core.*;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
+import org.phoebus.applications.saveandrestore.model.search.SearchResult;
+import org.phoebus.service.saveandrestore.model.ESTreeNode;
+import org.phoebus.service.saveandrestore.search.SearchUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Repository
 public class ConfigurationDataRepository implements CrudRepository<ConfigurationData, String> {
@@ -57,6 +55,9 @@ public class ConfigurationDataRepository implements CrudRepository<Configuration
     @Autowired
     @Qualifier("client")
     ElasticsearchClient client;
+
+    @Autowired
+    private SearchUtil searchUtil;
 
     private final Logger logger = Logger.getLogger(ConfigurationDataRepository.class.getName());
 
@@ -190,5 +191,22 @@ public class ConfigurationDataRepository implements CrudRepository<Configuration
             logger.log(Level.SEVERE, "Failed to delete all ConfigurationData objects", e);
             throw new RuntimeException(e);
         }
+    }
+
+    public List<ConfigurationData> searchOnPvName(MultiValueMap<String, String> searchParameters){
+        Optional<Map.Entry<String, List<String>>> optional =
+                searchParameters.entrySet().stream().filter(e -> e.getKey().strip().toLowerCase().equals("pvs")).findFirst();
+        if(optional.isEmpty()){
+            return Collections.emptyList();
+        }
+        SearchRequest searchRequest = searchUtil.buildSearchRequestForPvs(optional.get().getValue());
+        try {
+            SearchResponse<ConfigurationData> searchResponse = client.search(searchRequest, ConfigurationData.class);
+            List<ConfigurationData> configurationDataList = searchResponse.hits().hits().stream().map(h -> h.source()).collect(Collectors.toList());
+            return configurationDataList;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }

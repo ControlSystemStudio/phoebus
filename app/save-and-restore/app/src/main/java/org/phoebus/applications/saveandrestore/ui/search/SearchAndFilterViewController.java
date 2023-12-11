@@ -458,7 +458,7 @@ public class SearchAndFilterViewController implements Initializable, FilterChang
         // This is to accept numerical input only, and at most 3 digits (maximizing search to 999 hits).
         pageSizeTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (DIGIT_PATTERN.matcher(newValue).matches()) {
-                if ("".equals(newValue)) {
+                if (newValue.isEmpty()) {
                     pageSizeProperty.set(Preferences.search_result_page_size);
                 } else if (newValue.length() > 3) {
                     pageSizeTextField.setText(oldValue);
@@ -487,15 +487,14 @@ public class SearchAndFilterViewController implements Initializable, FilterChang
         resultTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         resultTableView.setOnDragDetected(e -> {
             List<Node> selectedNodes = resultTableView.getSelectionModel().getSelectedItems();
-            if(selectedNodes.stream().filter(n ->
+            if(selectedNodes.stream().anyMatch(n ->
                     !n.getNodeType().equals(NodeType.SNAPSHOT) &&
-                            !n.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)).findFirst().isPresent())
+                            !n.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)))
             {
                 return;
             }
             final ClipboardContent content = new ClipboardContent();
-            final List<Node> nodes = new ArrayList<>();
-            resultTableView.getSelectionModel().getSelectedItems().forEach(i -> nodes.add(i));
+            final List<Node> nodes = new ArrayList<>(resultTableView.getSelectionModel().getSelectedItems());
             content.put(SaveAndRestoreApplication.NODE_SELECTION_FORMAT, nodes);
             final Dragboard db = resultTableView.startDragAndDrop(TransferMode.LINK);
             db.setContent(content);
@@ -577,6 +576,7 @@ public class SearchAndFilterViewController implements Initializable, FilterChang
 
         Map<String, String> params =
                 SearchQueryUtil.parseHumanReadableQueryString(query.get());
+        params.put("pvs", "georgweiss:ao7,ScNt:test2");
 
         params.put(Keys.FROM.getName(), Integer.toString(pagination.getCurrentPageIndex() * pageSizeProperty.get()));
         params.put(Keys.SIZE.getName(), Integer.toString(pageSizeProperty.get()));
