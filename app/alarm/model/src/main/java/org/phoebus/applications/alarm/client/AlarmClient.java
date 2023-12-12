@@ -166,7 +166,7 @@ public class AlarmClient
         {
             final String json = new String (JsonModelWriter.commandToBytes(cmd));
             final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, AlarmSystem.COMMAND_PREFIX + root.getPathName(), json);
-            producer.send(record);
+            producer.send(record).get();
         }
         catch (final Exception ex)
         {
@@ -182,7 +182,7 @@ public class AlarmClient
         {
             final String json = new String (JsonModelWriter.commandToBytes(cmd));
             final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, AlarmSystem.COMMAND_PREFIX + root.getPathName(), json);
-            producer.send(record);
+            producer.send(record).get();
         }
         catch (final Exception ex)
         {
@@ -518,7 +518,7 @@ public class AlarmClient
     {
         final String json = new String(JsonModelWriter.toJsonBytes(config));
         final ProducerRecord<String, String> record = new ProducerRecord<>(config_topic, AlarmSystem.CONFIG_PREFIX + path, json);
-        producer.send(record);
+        producer.send(record).get();
     }
 
     /** Remove a component (and sub-items) from alarm tree
@@ -542,10 +542,10 @@ public class AlarmClient
             // The id message must arrive before the tombstone.
             final String json = new String(JsonModelWriter.deleteMessageToBytes());
             final ProducerRecord<String, String> id = new ProducerRecord<>(config_topic, AlarmSystem.CONFIG_PREFIX + item.getPathName(), json);
-            producer.send(id);
+            producer.send(id).get();
 
             final ProducerRecord<String, String> tombstone = new ProducerRecord<>(config_topic, AlarmSystem.CONFIG_PREFIX + item.getPathName(), null);
-            producer.send(tombstone);
+            producer.send(tombstone).get();
         }
         catch (Exception ex)
         {
@@ -563,7 +563,7 @@ public class AlarmClient
             final String cmd = acknowledge ? "acknowledge" : "unacknowledge";
             final String json = new String (JsonModelWriter.commandToBytes(cmd));
             final ProducerRecord<String, String> record = new ProducerRecord<>(command_topic, AlarmSystem.COMMAND_PREFIX + item.getPathName(), json);
-            producer.send(record);
+            producer.send(record).get();
         }
         catch (final Exception ex)
         {
