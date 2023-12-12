@@ -18,6 +18,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 /**
  * A utility class for creating a search query for log entries based on time,
@@ -52,6 +53,7 @@ public class SearchUtil {
         boolean fuzzySearch = false;
         List<String> descriptionTerms = new ArrayList<>();
         List<String> nodeNameTerms = new ArrayList<>();
+        List<String> nodeNamePhraseTerms = new ArrayList<>();
         List<String> nodeTypeTerms = new ArrayList<>();
         List<String> uniqueIdTerms = new ArrayList<>();
         boolean temporalSearch = false;
@@ -73,7 +75,13 @@ public class SearchUtil {
                 case "name":
                     for (String value : parameter.getValue()) {
                         for (String pattern : value.split("[|,;]")) {
-                            nodeNameTerms.add(pattern.trim().toLowerCase());
+                            String term = pattern.trim().toLowerCase();
+                            if(term.startsWith("\"") && term.endsWith("\"")){
+                                nodeNamePhraseTerms.add(term.substring(1, term.length() - 1));
+                            }
+                            else{
+                                nodeNameTerms.add(term);
+                            }
                         }
                     }
                     break;
@@ -255,6 +263,19 @@ public class SearchUtil {
             }
             nodeNameQuery.queries(nodeNameQueries);
             boolQueryBuilder.must(nodeNameQuery.build()._toQuery());
+        }
+
+        if(!nodeNamePhraseTerms.isEmpty()){
+            DisMaxQuery.Builder nodeNamePhraseQueryBuilder = new DisMaxQuery.Builder();
+            List<NestedQuery> nestedQueries = new ArrayList<>();
+            nodeNamePhraseTerms.forEach(phraseSearchTerm -> {
+                NestedQuery innerNestedQuery;
+                MatchPhraseQuery matchPhraseQuery = MatchPhraseQuery.of(m -> m.field("node.name").query(phraseSearchTerm));
+                innerNestedQuery = NestedQuery.of(n -> n.path("node").query(matchPhraseQuery._toQuery()));
+                nestedQueries.add(innerNestedQuery);
+            });
+            nodeNamePhraseQueryBuilder.queries(nestedQueries.stream().map(QueryVariant::_toQuery).collect(Collectors.toList()));
+            boolQueryBuilder.must(nodeNamePhraseQueryBuilder.build()._toQuery());
         }
 
         // Add node type query. Fuzzy search not needed as node types are well-defined and limited in number.
