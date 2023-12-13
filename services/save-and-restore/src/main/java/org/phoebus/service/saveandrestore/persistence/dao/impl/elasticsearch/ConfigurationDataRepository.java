@@ -23,10 +23,9 @@ import co.elastic.clients.elasticsearch._types.Refresh;
 import co.elastic.clients.elasticsearch._types.Result;
 import co.elastic.clients.elasticsearch._types.query_dsl.MatchAllQuery;
 import co.elastic.clients.elasticsearch.core.*;
+import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
-import org.phoebus.applications.saveandrestore.model.search.SearchResult;
-import org.phoebus.service.saveandrestore.model.ESTreeNode;
 import org.phoebus.service.saveandrestore.search.SearchUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -104,7 +103,7 @@ public class ConfigurationDataRepository implements CrudRepository<Configuration
             if (!resp.found()) {
                 return Optional.empty();
             }
-            return Optional.of(resp.source());
+            return resp.source() != null ? Optional.of(resp.source()) : Optional.empty();
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to retrieve configuration with id: " + id, e);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to retrieve configuration with id: " + id);
@@ -124,7 +123,7 @@ public class ConfigurationDataRepository implements CrudRepository<Configuration
     }
 
     @Override
-    public Iterable<ConfigurationData>  findAll() {
+    public Iterable<ConfigurationData> findAll() {
         return null;
     }
 
@@ -135,14 +134,13 @@ public class ConfigurationDataRepository implements CrudRepository<Configuration
 
     @Override
     public long count() {
-        try{
+        try {
             CountRequest countRequest = CountRequest.of(c ->
                     c.index(ES_CONFIGURATION_INDEX));
             CountResponse countResponse = client.count(countRequest);
             return countResponse.count();
-        }
-        catch(Exception e){
-            logger.log(Level.SEVERE, "Failed to count ConfigurationData objects" , e);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to count ConfigurationData objects", e);
             throw new RuntimeException(e);
         }
     }
@@ -153,10 +151,9 @@ public class ConfigurationDataRepository implements CrudRepository<Configuration
             DeleteRequest deleteRequest = DeleteRequest.of(d ->
                     d.index(ES_CONFIGURATION_INDEX).id(s).refresh(Refresh.True));
             DeleteResponse deleteResponse = client.delete(deleteRequest);
-            if(deleteResponse.result().equals(Result.Deleted)){
+            if (deleteResponse.result().equals(Result.Deleted)) {
                 logger.log(Level.WARNING, "Configuration with id " + s + " deleted.");
-            }
-            else{
+            } else {
                 logger.log(Level.WARNING, "Configuration with id " + s + " NOT deleted.");
             }
         } catch (IOException e) {
@@ -193,17 +190,22 @@ public class ConfigurationDataRepository implements CrudRepository<Configuration
         }
     }
 
-    public List<ConfigurationData> searchOnPvName(MultiValueMap<String, String> searchParameters){
+    /**
+     * Performs a search on a list of PV names. An OR strategy is used, i.e. {@link ConfigurationData} document need
+     * only contain one of the listed PV names.
+     * @param searchParameters Search parameters provided by client.
+     * @return Potentially empty {@link List} of {@link ConfigurationData} objects contain any of the listed PV names.
+     */
+    public List<ConfigurationData> searchOnPvName(MultiValueMap<String, String> searchParameters) {
         Optional<Map.Entry<String, List<String>>> optional =
-                searchParameters.entrySet().stream().filter(e -> e.getKey().strip().toLowerCase().equals("pvs")).findFirst();
-        if(optional.isEmpty()){
+                searchParameters.entrySet().stream().filter(e -> e.getKey().strip().equalsIgnoreCase("pvs")).findFirst();
+        if (optional.isEmpty()) {
             return Collections.emptyList();
         }
         SearchRequest searchRequest = searchUtil.buildSearchRequestForPvs(optional.get().getValue());
         try {
             SearchResponse<ConfigurationData> searchResponse = client.search(searchRequest, ConfigurationData.class);
-            List<ConfigurationData> configurationDataList = searchResponse.hits().hits().stream().map(h -> h.source()).collect(Collectors.toList());
-            return configurationDataList;
+            return searchResponse.hits().hits().stream().map(Hit::source).collect(Collectors.toList());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

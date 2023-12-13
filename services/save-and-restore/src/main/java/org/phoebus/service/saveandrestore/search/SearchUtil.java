@@ -314,15 +314,15 @@ public class SearchUtil {
     /**
      * Builds a query on the configuration index to find {@link org.phoebus.applications.saveandrestore.model.ConfigurationData}
      * documents containing any of the PV names passed to this method.
-     * @param pvValues List of PV names. Query will user or-strategy.
+     * @param pvNames List of PV names. Query will user or-strategy.
      * @return A {@link SearchRequest} object, no limit on result size except maximum Elastic limit.
      */
-    public SearchRequest buildSearchRequestForPvs(List<String> pvValues) {
+    public SearchRequest buildSearchRequestForPvs(List<String> pvNames) {
         int searchResultSize = defaultSearchSize;
         Builder boolQueryBuilder = new Builder();
         DisMaxQuery.Builder pvQuery = new DisMaxQuery.Builder();
         List<Query> pvQueries = new ArrayList<>();
-        for (String value : pvValues) {
+        for (String value : pvNames) {
             for (String pattern : value.split("[|,;]")) {
                 pvQueries.add(WildcardQuery.of(w -> w.field("pvList.pvName")
                         .caseInsensitive(true)
