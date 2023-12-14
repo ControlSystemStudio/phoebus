@@ -27,3 +27,13 @@ anything useful. In such cases user should consider to change the tool tip prope
 
 An empty tool tip property will suppress rendering of a widget tool tip, even if the value for the tool tip text is
 set by a rule.
+
+File Property
+-------------
+
+Some widget use a File property to identify a resource, local or remote. If such a reference is a local file, then
+user is advised to use relative a path as an absolute
+path may not be portable between hosts, in particular not between Windows and Linux/Mac hosts.
+
+File paths may be specified using both forward slash (/) or backslash (\\) as path separator as both will work interchangeably
+between Windows and Linux/Mac.
