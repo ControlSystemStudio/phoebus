@@ -17,6 +17,7 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
+import javafx.application.Platform;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Priority;
@@ -28,12 +29,14 @@ import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.applications.alarm.ui.AlarmContextMenuHelper;
 import org.phoebus.applications.alarm.ui.AlarmUI;
 import org.phoebus.applications.alarm.ui.tree.ConfigureComponentAction;
+import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.Brightness;
 import org.phoebus.ui.javafx.ClearingTextField;
 import org.phoebus.ui.javafx.ImageCache;
@@ -289,7 +292,17 @@ public class AlarmTableUI extends BorderPane
     private ToolBar createToolbar()
     {
         setMaintenanceMode(false);
-        server_mode.setOnAction(event ->  client.setMode(! client.isMaintenanceMode()));
+        server_mode.setOnAction(event ->  {
+            JobManager.schedule(client.isMaintenanceMode() ? "Disable maintenance mode" : "Enable maintenance mode",
+                    monitor -> {
+                        try {
+                            client.setMode(! client.isMaintenanceMode());
+                        } catch (Exception e) {
+                            Platform.runLater(() -> ExceptionDetailsErrorDialog.openError(e.getMessage(), e));
+                        }
+                    });
+
+        });
 
         // Could 'bind',
         //   server_mode.disableProperty().bind(new SimpleBooleanProperty(!AlarmUI.mayModifyMode(client)));
@@ -299,7 +312,15 @@ public class AlarmTableUI extends BorderPane
             server_mode.setDisable(true);
 
         setDisableNotify(false);
-        server_notify.setOnAction(event ->  client.setNotify(! client.isDisableNotify()));
+        server_notify.setOnAction(event ->  {
+            JobManager.schedule(client.isDisableNotify() ? "Enable alarm notification" : "Disable alarm notification", monitor -> {
+                try {
+                    client.setNotify(! client.isDisableNotify());
+                } catch (Exception e) {
+                    Platform.runLater(() -> ExceptionDetailsErrorDialog.openError(e.getMessage(), e));
+                }
+            });
+        });
         if (!AlarmUI.mayDisableNotify(client))
             server_notify.setDisable(true);
 

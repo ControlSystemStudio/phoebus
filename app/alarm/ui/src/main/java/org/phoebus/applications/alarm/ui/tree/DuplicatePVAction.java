@@ -7,17 +7,22 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.tree;
 
+import javafx.application.Platform;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.model.AlarmTreePath;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.Node;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputDialog;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /** Action that adds duplicate of PV to alarm tree configuration
  *  @author Kay Kasemir
@@ -27,7 +32,7 @@ class DuplicatePVAction extends MenuItem
 {
     /** @param node Node to position dialog
      *  @param model Model where new component is added
-     *  @param parent Parent item in alarm tree
+     *  @param original Item subject to copy
      */
     public DuplicatePVAction(final Node node, final AlarmClient model, final AlarmClientLeaf original)
     {
@@ -59,7 +64,14 @@ class DuplicatePVAction extends MenuItem
 
             // Request adding new PV
             final String new_path = AlarmTreePath.makePath(original.getParent().getPathName(), new_name);
-            JobManager.schedule(getText(), monitor -> model.sendItemConfigurationUpdate(new_path, template));
+            JobManager.schedule(getText(), monitor -> {
+                try {
+                    model.sendItemConfigurationUpdate(new_path, template);
+                } catch (Exception e) {
+                    Logger.getLogger(DuplicatePVAction.class.getName()).log(Level.WARNING, "Failed to send item configuration", e);
+                    Platform.runLater(() -> ExceptionDetailsErrorDialog.openError(e.getMessage(), e));
+                }
+            });
         });
     }
 }
