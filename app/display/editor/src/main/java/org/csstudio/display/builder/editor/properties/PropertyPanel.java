@@ -23,6 +23,7 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.javafx.ClearingTextField;
+import org.phoebus.ui.javafx.PlatformInfo;
 
 import java.io.File;
 import java.net.URI;
@@ -41,8 +42,6 @@ public class PropertyPanel extends BorderPane
     private final DisplayEditor        editor;
     private final PropertyPanelSection section;
     private final TextField            searchField = new ClearingTextField();
-
-    private final Label filePathLabel = new Label();
 
     private File file;
 
@@ -66,12 +65,13 @@ public class PropertyPanel extends BorderPane
         toolsPane.setPadding(new Insets(6));
         toolsPane.getChildren().add(searchField);
 
-        Label filePathCategoryLabel = new Label("File Path");
+        Label filePathCategoryLabel = new Label(Messages.FilePath);
         filePathCategoryLabel.getStyleClass().add("property_category");
         filePathCategoryLabel.setMaxWidth(Double.MAX_VALUE);
 
         final HBox filePathPane = new HBox();
         filePathPane.getStyleClass().add("file_path_pane");
+        Label filePathLabel = new Label();
         filePathLabel.setMaxWidth(Double.MAX_VALUE);
         filePathLabel.getStyleClass().add("file_path");
         filePathLabel.textProperty().bind(filePathProperty);
@@ -81,14 +81,21 @@ public class PropertyPanel extends BorderPane
         Button openFileBrowser = new Button("...");
         openFileBrowser.setOnAction(e -> {
             try {
-                File parent = this.file.getParentFile();
-                ApplicationService.createInstance("file_browser", new URI("file:" + parent.getAbsolutePath()));
+                String absolutePath = this.file.getParentFile().getAbsolutePath();
+                String uriString;
+                if(PlatformInfo.isWindows){
+                    uriString = "file:/" + absolutePath.replace('\\', '/');
+                }
+                else {
+                    uriString = "file:" + absolutePath;
+                }
+                ApplicationService.createInstance("file_browser", new URI(uriString));
             } catch (Exception ex) {
                 Logger.getLogger(PropertyPanel.class.getName())
                         .log(Level.WARNING, "Unable to launch file browser app", ex);
             }
         });
-
+        openFileBrowser.setTooltip(new Tooltip(Messages.FileBrowserToolTip));
         filePathPane.getChildren().addAll(filePathLabel, openFileBrowser);
 
         final VBox topPane = new VBox();
