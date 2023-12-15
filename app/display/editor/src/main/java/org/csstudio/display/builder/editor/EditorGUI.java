@@ -22,6 +22,7 @@ import java.util.logging.Level;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import javafx.scene.control.*;
 import org.csstudio.display.builder.editor.actions.ActionDescription;
 import org.csstudio.display.builder.editor.app.CreateGroupAction;
 import org.csstudio.display.builder.editor.app.DisplayEditorInstance;
@@ -49,12 +50,6 @@ import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Control;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.SplitPane;
 import javafx.scene.control.SplitPane.Divider;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -507,8 +502,8 @@ public class EditorGUI
                         "saving the display in this state might lead to losing those widgets or some of their properties." +
                         "\nPlease check the log for details.", null);
             }
-
         });
+        property_panel.setFile(file);
     }
 
     /** Save model to file

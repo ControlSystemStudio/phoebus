@@ -8,27 +8,28 @@
 package org.csstudio.display.builder.editor.properties;
 
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-
+import javafx.beans.property.SimpleStringProperty;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import org.csstudio.display.builder.editor.DisplayEditor;
 import org.csstudio.display.builder.editor.Messages;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
+import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.javafx.ClearingTextField;
+import org.phoebus.ui.javafx.PlatformInfo;
 
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
+import java.io.File;
+import java.net.URI;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /** Property UI
  *
@@ -41,6 +42,10 @@ public class PropertyPanel extends BorderPane
     private final DisplayEditor        editor;
     private final PropertyPanelSection section;
     private final TextField            searchField = new ClearingTextField();
+
+    private File file;
+
+    private final SimpleStringProperty filePathProperty = new SimpleStringProperty();
 
     /** @param editor {@link DisplayEditor}
      */
@@ -60,12 +65,49 @@ public class PropertyPanel extends BorderPane
         toolsPane.setPadding(new Insets(6));
         toolsPane.getChildren().add(searchField);
 
+        Label filePathCategoryLabel = new Label(Messages.FilePath);
+        filePathCategoryLabel.getStyleClass().add("property_category");
+        filePathCategoryLabel.setMaxWidth(Double.MAX_VALUE);
+
+        final HBox filePathPane = new HBox();
+        filePathPane.getStyleClass().add("file_path_pane");
+        Label filePathLabel = new Label();
+        filePathLabel.setMaxWidth(Double.MAX_VALUE);
+        filePathLabel.getStyleClass().add("file_path");
+        filePathLabel.textProperty().bind(filePathProperty);
+        filePathLabel.setTextOverrun(OverrunStyle.CENTER_ELLIPSIS);
+        HBox.setHgrow(filePathLabel, Priority.ALWAYS);
+
+        Button openFileBrowser = new Button("...");
+        openFileBrowser.setOnAction(e -> {
+            try {
+                String absolutePath = this.file.getParentFile().getAbsolutePath();
+                String uriString;
+                if(PlatformInfo.isWindows){
+                    uriString = "file:/" + absolutePath.replace('\\', '/');
+                }
+                else {
+                    uriString = "file:" + absolutePath;
+                }
+                ApplicationService.createInstance("file_browser", new URI(uriString));
+            } catch (Exception ex) {
+                Logger.getLogger(PropertyPanel.class.getName())
+                        .log(Level.WARNING, "Unable to launch file browser app", ex);
+            }
+        });
+        openFileBrowser.setTooltip(new Tooltip(Messages.FileBrowserToolTip));
+        filePathPane.getChildren().addAll(filePathLabel, openFileBrowser);
+
+        final VBox topPane = new VBox();
+        topPane.setAlignment(Pos.CENTER_LEFT);
+        topPane.getChildren().addAll(toolsPane, filePathCategoryLabel, filePathPane);
+
         final ScrollPane scrollPane = new ScrollPane();
         scrollPane.setFitToWidth(true);
         scrollPane.setContent(section);
         scrollPane.setMinHeight(0);
 
-        setTop(toolsPane);
+        setTop(topPane);
         setCenter(scrollPane);
 
         // Track currently selected widgets
@@ -146,5 +188,15 @@ public class PropertyPanel extends BorderPane
         section.clear();
         section.setClassMode(model != null && model.isClassModel());
         section.fill(editor.getUndoableActionManager(), filtered, other);
+    }
+
+    /**
+     * Sets the absolute file path text
+     *
+     * @param file OPI file being edited
+     */
+    public void setFile(File file) {
+        this.file = file;
+        filePathProperty.set(file.getAbsolutePath());
     }
 }
