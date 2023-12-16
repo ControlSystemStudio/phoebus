@@ -118,6 +118,8 @@ public class AlarmSystem extends AlarmSystemConstants
     /** "Disable until.." shortcuts */
     @Preference public static String[] shelving_options;
 
+    @Preference public static int max_block_ms;
+
     /** Macros used in UI display/command/web links */
     public static MacroValueProvider macros;
 

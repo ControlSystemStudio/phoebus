@@ -7,9 +7,18 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui.tree;
 
-import java.time.LocalDateTime;
-import java.time.temporal.TemporalAmount;
-
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.stage.Modality;
+import javafx.util.Duration;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
@@ -20,37 +29,18 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.util.time.SecondsParser;
 import org.phoebus.util.time.TimeParser;
 
-import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Spinner;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.stage.Modality;
-import javafx.util.Duration;
+import java.time.LocalDateTime;
+import java.time.temporal.TemporalAmount;
 
 
-/** Dialog for editing {@link AlarmTreeItem}
+/**
+ * Dialog for editing {@link AlarmTreeItem}
  *
- *  <p>When pressing "OK", dialog sends updated
- *  configuration.
+ * <p>When pressing "OK", dialog sends updated
+ * configuration.
  */
 @SuppressWarnings("nls")
-class ItemConfigDialog extends Dialog<Boolean>
-{
+class ItemConfigDialog extends Dialog<Boolean> {
     private TextField description;
     private CheckBox enabled, latching, annunciating;
     private DateTimePicker enabled_date_picker;
@@ -60,8 +50,7 @@ class ItemConfigDialog extends Dialog<Boolean>
     private final TitleDetailTable guidance, displays, commands;
     private final TitleDetailDelayTable actions;
 
-    public ItemConfigDialog(final AlarmClient model, final AlarmTreeItem<?> item)
-    {
+    public ItemConfigDialog(final AlarmClient model, final AlarmTreeItem<?> item) {
         // Allow multiple instances
         initModality(Modality.NONE);
         setTitle("Configure " + item.getName());
@@ -87,8 +76,7 @@ class ItemConfigDialog extends Dialog<Boolean>
         path.setEditable(false);
         layout.add(path, 1, row++);
 
-        if (item instanceof AlarmClientLeaf)
-        {
+        if (item instanceof AlarmClientLeaf) {
             final AlarmClientLeaf leaf = (AlarmClientLeaf) item;
 
             layout.add(new Label("Description:"), 0, row);
@@ -126,7 +114,7 @@ class ItemConfigDialog extends Dialog<Boolean>
             enabled_date_picker.setDateTimeValue(leaf.getEnabledDate());
             enabled_date_picker.setPrefSize(280, 25);
 
-            relative_date = new ComboBox<String>();
+            relative_date = new ComboBox<>();
             relative_date.setTooltip(new Tooltip("Select a predefined duration for disabling the alarm"));
             relative_date.getItems().addAll(AlarmSystem.shelving_options);
             relative_date.setPrefSize(200, 25);
@@ -142,15 +130,14 @@ class ItemConfigDialog extends Dialog<Boolean>
             // setOnAction for relative date must be set to null as to not trigger event when setting value
             enabled_date_picker.setOnAction((ActionEvent e) ->
             {
-                if (enabled_date_picker.getDateTimeValue() != null)
-                {
+                if (enabled_date_picker.getDateTimeValue() != null) {
                     relative_date.setOnAction(null);
                     enabled.setSelected(false);
                     enabled_date_picker.getEditor().commitValue();
                     relative_date.getSelectionModel().clearSelection();
                     relative_date.setValue(null);
                     relative_date.setOnAction(relative_event_handler);
-                };
+                }
             });
 
             final HBox until_box = new HBox(10, enabled_date_picker, relative_date);
@@ -168,8 +155,7 @@ class ItemConfigDialog extends Dialog<Boolean>
                 final String detail;
                 if (seconds <= 0)
                     detail = "With the current delay of 0 seconds, alarms trigger immediately";
-                else
-                {
+                else {
                     final String hhmmss = SecondsParser.formatSeconds(seconds);
                     detail = "With the current delay of " + seconds + " seconds, alarms trigger after " + hhmmss + " hours:minutes:seconds";
                 }
@@ -247,7 +233,7 @@ class ItemConfigDialog extends Dialog<Boolean>
         // Scroll pane stops the content from resizing,
         // so tell content to use the widths of the scroll pane
         // minus 40 to provide space for the scroll bar, and suggest minimum width
-        scroll.widthProperty().addListener((p, old, width) -> layout.setPrefWidth(Math.max(width.doubleValue()-40, 450)));
+        scroll.widthProperty().addListener((p, old, width) -> layout.setPrefWidth(Math.max(width.doubleValue() - 40, 450)));
 
         getDialogPane().setContent(scroll);
         setResizable(true);
@@ -256,25 +242,22 @@ class ItemConfigDialog extends Dialog<Boolean>
 
         final Button ok = (Button) getDialogPane().lookupButton(ButtonType.OK);
         ok.addEventFilter(ActionEvent.ACTION, event ->
-        {
-             if (!validateAndStore(model, item))
-                 event.consume();
-        });
+                validateAndStore(model, item, event));
 
         setResultConverter(button -> button == ButtonType.OK);
     }
 
-    /** Send requested configuration
-     *  @param model {@link AlarmClient}
-     *  @param item Original item
-     *  @return <code>true</code> on success
+    /**
+     * Send requested configuration
+     *
+     * @param model {@link AlarmClient}
+     * @param item  Original item
+     * @param event Button click event, consumed if save action fails (e.g. Kafka not reachable)
      */
-    private boolean validateAndStore(final AlarmClient model, final AlarmTreeItem<?> item)
-    {
+    private void validateAndStore(final AlarmClient model, final AlarmTreeItem<?> item, ActionEvent event) {
         final AlarmTreeItem<?> config;
 
-        if (item instanceof AlarmClientLeaf)
-        {
+        if (item instanceof AlarmClientLeaf) {
             final AlarmClientLeaf pv = new AlarmClientLeaf(null, item.getName());
             pv.setDescription(description.getText().trim());
             pv.setEnabled(enabled.isSelected());
@@ -294,31 +277,25 @@ class ItemConfigDialog extends Dialog<Boolean>
             else
                 pv.setEnabled(true);
 
-            if (relative_enable_date != null)
-            {
+            if (relative_enable_date != null) {
                 final TemporalAmount amount = TimeParser.parseTemporalAmount(relative_enable_date);
                 final LocalDateTime update_date = LocalDateTime.now().plus(amount);
                 pv.setEnabledDate(update_date);
-            };
+            }
+            ;
             config = pv;
-        }
-        else
+        } else
             config = new AlarmClientNode(null, item.getName());
         config.setGuidance(guidance.getItems());
         config.setDisplays(displays.getItems());
         config.setCommands(commands.getItems());
         config.setActions(actions.getItems());
 
-        try
-        {
+        try {
             model.sendItemConfigurationUpdate(item.getPathName(), config);
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             ExceptionDetailsErrorDialog.openError("Error", "Cannot update item", ex);
-            return false;
+            event.consume();
         }
-
-        return true;
     }
 }
