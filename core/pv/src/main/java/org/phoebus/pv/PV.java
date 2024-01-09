@@ -10,7 +10,6 @@ package org.phoebus.pv;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -236,17 +235,17 @@ public class PV
 
     /** Issue a read request
      *
-     *  <p>{@link Future} allows waiting for
+     *  <p>{@link CompletableFuture} allows waiting for
      *  and obtaining the result, or its <code>get()</code>
      *  calls will provide an error.
      *
      *  <p>As a side effect, registered listeners will
      *  also receive the value obtained by this call.
      *
-     *  @return {@link Future} for obtaining the result or Exception
+     *  @return {@link CompletableFuture} for obtaining the result or Exception
      *  @exception Exception on error
      */
-    public Future<VType> asyncRead() throws Exception
+    public CompletableFuture<VType> asyncRead() throws Exception
     {
         // Default: Return last known value
         return CompletableFuture.completedFuture(last_value);
@@ -270,17 +269,17 @@ public class PV
 
     /** Write value with confirmation
      *
-     *  <p>{@link Future} can be used to await completion
+     *  <p>{@link CompletableFuture} can be used to await completion
      *  of the write.
      *  The <code>get()</code> will not return a useful value (null),
      *  but they will throw an error if the write failed.
      *
      *  @param new_value Value to write to the PV
-     *  @return {@link Future} for awaiting completion or exception
+     *  @return {@link CompletableFuture} for awaiting completion or exception
      *  @exception Exception on error
      *  @see #write(Object)
      */
-    public Future<?> asyncWrite(final Object new_value) throws Exception
+    public CompletableFuture<?> asyncWrite(final Object new_value) throws Exception
     {   // Default: Normal write, declare 'done' right away
         write(new_value);
         return CompletableFuture.completedFuture(null);
