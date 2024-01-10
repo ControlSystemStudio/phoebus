@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.phoebus</groupId>
         <artifactId>app</artifactId>
-        <version>4.7.3-SNAPSHOT</version>
+        <version>4.7.3</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -13,4 +13,8 @@
     <modules>
         <module>preference-manager</module>
     </modules>
+
+  <scm>
+    <tag>v4.7.3</tag>
+  </scm>
 </project>

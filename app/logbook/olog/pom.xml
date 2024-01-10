@@ -9,7 +9,11 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app-logbook</artifactId>
-    <version>4.7.3-SNAPSHOT</version>
+    <version>4.7.3</version>
   </parent>
   <artifactId>app-logbook-olog</artifactId>
+
+  <scm>
+    <tag>v4.7.3</tag>
+  </scm>
 </project>

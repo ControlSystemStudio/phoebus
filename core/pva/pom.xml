@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>core</artifactId>
-    <version>4.7.3-SNAPSHOT</version>
+    <version>4.7.3</version>
   </parent>
   <dependencies>
     <dependency>
@@ -64,4 +64,8 @@
       </build>
     </profile>
   </profiles>
+
+  <scm>
+    <tag>v4.7.3</tag>
+  </scm>
 </project>

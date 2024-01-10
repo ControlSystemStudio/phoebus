@@ -3,7 +3,7 @@
     <parent>
         <artifactId>app-display</artifactId>
         <groupId>org.phoebus</groupId>
-        <version>4.7.3-SNAPSHOT</version>
+        <version>4.7.3</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -13,22 +13,22 @@
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-framework</artifactId>
-            <version>4.7.3-SNAPSHOT</version>
+            <version>4.7.3</version>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-util</artifactId>
-            <version>4.7.3-SNAPSHOT</version>
+            <version>4.7.3</version>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-ui</artifactId>
-            <version>4.7.3-SNAPSHOT</version>
+            <version>4.7.3</version>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>app-display-model</artifactId>
-            <version>4.7.3-SNAPSHOT</version>
+            <version>4.7.3</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -43,4 +43,8 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+  <scm>
+    <tag>v4.7.3</tag>
+  </scm>
 </project>

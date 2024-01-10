@@ -3,14 +3,14 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app-logbook</artifactId>
-    <version>4.7.3-SNAPSHOT</version>
+    <version>4.7.3</version>
   </parent>
   <artifactId>app-logbook-inmemory</artifactId>
   <dependencies>
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>core-logbook</artifactId>
-      <version>4.7.3-SNAPSHOT</version>
+      <version>4.7.3</version>
     </dependency>
     <dependency>
         <groupId>com.google.guava</groupId>
@@ -18,4 +18,8 @@
         <version>${guava.version}</version>
     </dependency>
   </dependencies>
+
+  <scm>
+    <tag>v4.7.3</tag>
+  </scm>
 </project>
