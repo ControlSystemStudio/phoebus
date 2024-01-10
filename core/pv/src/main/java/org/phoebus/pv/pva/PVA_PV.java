@@ -8,6 +8,7 @@
 package org.phoebus.pv.pva;
 
 import java.util.BitSet;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -96,11 +97,11 @@ public class PVA_PV extends PV
         }
 
     @Override
-    public Future<VType> asyncRead() throws Exception
+    public CompletableFuture<VType> asyncRead() throws Exception
     {
         final Future<PVAStructure> data = channel.read(name_helper.getRequest());
         // Wrap into Future that converts PVAStructure into VType
-        return new Future<>()
+        return new CompletableFuture<>()
         {
             @Override
             public boolean cancel(final boolean mayInterruptIfRunning)
@@ -190,7 +191,7 @@ public class PVA_PV extends PV
     }
 
     @Override
-    public Future<?> asyncWrite(final Object new_value) throws Exception
+    public CompletableFuture<?> asyncWrite(final Object new_value) throws Exception
     {
         // Perform a put with completion,
         // i.e., process target and block until processing completes,

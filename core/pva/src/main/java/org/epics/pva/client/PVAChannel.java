@@ -275,7 +275,7 @@ public class PVAChannel extends SearchRequest.Channel implements AutoCloseable
     *  @throws Exception on error
     *  @return {@link Future} for awaiting completion and getting Exception in case of error
     */
-    public Future<Void> write(final boolean completion, final String request, final Object new_value) throws Exception
+    public CompletableFuture<Void> write(final boolean completion, final String request, final Object new_value) throws Exception
     {
         return new PutRequest(this, completion, request, new_value);
     }
