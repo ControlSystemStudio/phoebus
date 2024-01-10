@@ -3,15 +3,11 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>app</artifactId>
-    <version>4.7.3</version>
+    <version>4.7.4-SNAPSHOT</version>
   </parent>
   <artifactId>app-email</artifactId>
   <packaging>pom</packaging>
   <modules>
     <module>ui</module>
   </modules>
-
-  <scm>
-    <tag>v4.7.3</tag>
-  </scm>
 </project>
