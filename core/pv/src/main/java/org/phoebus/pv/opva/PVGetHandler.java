@@ -27,7 +27,7 @@ import org.epics.vtype.VType;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-class PVGetHandler extends PVRequester implements ChannelGetRequester, Future<VType>
+class PVGetHandler extends PVRequester implements ChannelGetRequester
 {
     final private PVA_PV pv;
 

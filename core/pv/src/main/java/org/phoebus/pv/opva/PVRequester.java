@@ -9,15 +9,17 @@ package org.phoebus.pv.opva;
 
 import static org.phoebus.pv.PV.logger;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 import org.epics.pvdata.pv.MessageType;
 import org.epics.pvdata.pv.Requester;
+import org.epics.vtype.VType;
 
 /** Base for PVAccess {@link Requester}
  *  @author Kay Kasemir
  */
-class PVRequester implements Requester
+class PVRequester extends CompletableFuture<VType> implements Requester
 {
     @Override
     public String getRequesterName()
