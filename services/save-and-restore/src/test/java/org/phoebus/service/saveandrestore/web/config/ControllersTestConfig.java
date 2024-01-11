@@ -26,17 +26,38 @@ import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.Ela
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.FilterRepository;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.SnapshotDataRepository;
 import org.phoebus.service.saveandrestore.search.SearchUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
+import org.springframework.util.Base64Utils;
 
 @SpringBootConfiguration
 @ComponentScan(basePackages = "org.phoebus.service.saveandrestore.web.controllers")
+@Import(WebSecurityConfig.class)
 @SuppressWarnings("unused")
 @Profile("!IT")
 public class ControllersTestConfig {
+
+    @Autowired
+    private String demoUser;
+
+    @Autowired
+    private String demoUserPassword;
+
+    @Autowired
+    private String demoAdmin;
+
+    @Autowired
+    private String demoAdminPassword;
+
+    @Autowired
+    private String demoReadOnly;
+
+    @Autowired
+    private String demoReadOnlyPassword;
 
     @Bean
     public NodeDAO nodeDAO() {
@@ -78,5 +99,20 @@ public class ControllersTestConfig {
     @Bean
     public SearchUtil searchUtil() {
         return new SearchUtil();
+    }
+
+    @Bean("userAuthorization")
+    public String userAuthorization() {
+        return "Basic " + Base64Utils.encodeToString((demoUser + ":" + demoUserPassword).getBytes());
+    }
+
+    @Bean("adminAuthorization")
+    public String adminAuthorization() {
+        return "Basic " + Base64Utils.encodeToString((demoAdmin + ":" + demoAdminPassword).getBytes());
+    }
+
+    @Bean("readOnlyAuthorization")
+    public String readOnlyAuthorization() {
+        return "Basic " + Base64Utils.encodeToString((demoReadOnly + ":" + demoReadOnlyPassword).getBytes());
     }
 }

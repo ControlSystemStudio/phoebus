@@ -37,6 +37,8 @@ public class SaveAndRestoreApplication implements AppResourceDescriptor {
     public static final String NAME = "saveandrestore";
     public static final String DISPLAY_NAME = "Save And Restore";
 
+    private AppInstance instance;
+
     /**
      * Custom MIME type definition for the purpose of drag-n-drop in the
      */
@@ -71,12 +73,18 @@ public class SaveAndRestoreApplication implements AppResourceDescriptor {
                         if(uri != null){
                             ((SaveAndRestoreInstance)tab.getApplication()).openResource(uri);
                         }
-                        return tab.getApplication();
+                        instance = tab.getApplication();
+                        return instance;
 					}
 				}
 			}
 		}
 
-		return new SaveAndRestoreInstance(this, uri);
+        instance = new SaveAndRestoreInstance(this, uri);
+		return instance;
+    }
+
+    public AppInstance getInstance(){
+        return instance;
     }
 }

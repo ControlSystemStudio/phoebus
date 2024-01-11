@@ -21,14 +21,11 @@ import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.security.Principal;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
@@ -44,54 +41,51 @@ public class StructureController extends BaseController {
     @Autowired
     private NodeDAO nodeDAO;
 
-    private Logger logger = Logger.getLogger(StructureController.class.getName());
-
-
     /**
      * Moves a list of source nodes to a new target (parent) node.
      *
-     * @param to       The unique id of the new parent, which must be a folder. If empty or if
-     *                 target node does not exist, {@link HttpStatus#BAD_REQUEST} is returned.
-     * @param userName Identity of the user performing the action on the client.
-     *                 If empty, {@link HttpStatus#BAD_REQUEST} is returned.
-     * @param nodes    List of source nodes to move. If empty, or if any of the listed source nodes does not exist,
-     *                 {@link HttpStatus#BAD_REQUEST} is returned.
+     * @param to        The unique id of the new parent, which must be a folder. If empty or if
+     *                  target node does not exist, {@link HttpStatus#BAD_REQUEST} is returned.
+     * @param nodes     List of source nodes to move. If empty, or if any of the listed source nodes does not exist,
+     *                  {@link HttpStatus#BAD_REQUEST} is returned.
+     * @param principal The {@link Principal} of the authenticated user.
      * @return The (updated) target node.
      */
     @SuppressWarnings("unused")
     @PostMapping(value = "/move", produces = JSON)
+    @PreAuthorize("@authorizationHelper.mayMoveOrCopy(#root)")
     public Node moveNodes(@RequestParam(value = "to") String to,
-                          @RequestParam(value = "username") String userName,
-                          @RequestBody List<String> nodes) {
-        if (to.isEmpty() || userName.isEmpty() || nodes.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username, target node and list of source nodes must all be non-empty.");
+                          @RequestBody List<String> nodes,
+                          Principal principal) {
+        if (to.isEmpty() || nodes.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Target node and list of source nodes must all be non-empty.");
         }
         Logger.getLogger(StructureController.class.getName()).info(Thread.currentThread().getName() + " " + (new Date()) + " move");
-        return nodeDAO.moveNodes(nodes, to, userName);
+        return nodeDAO.moveNodes(nodes, to, principal.getName());
     }
 
     /**
      * Copies a list of source nodes to a target (parent) node. Since the source nodes may contain sub-trees at
      * any depth, the copy operation needs to do a deep copy, which may take some time to complete.
      *
-     * @param to       The unique id of the target parent node, which must be a folder. If empty or if
-     *                 target node does not exist, {@link HttpStatus#BAD_REQUEST} is returned.
-     * @param userName Identity of the user performing the action on the client.
-     *                 If empty, {@link HttpStatus#BAD_REQUEST} is returned.
-     * @param nodes    List of source nodes to copy. If empty, or if any of the listed source nodes does not exist,
-     *                 {@link HttpStatus#BAD_REQUEST} is returned.
+     * @param to        The unique id of the target parent node, which must be a folder. If empty or if
+     *                  target node does not exist, {@link HttpStatus#BAD_REQUEST} is returned.
+     * @param nodes     List of source nodes to copy. If empty, or if any of the listed source nodes does not exist,
+     *                  {@link HttpStatus#BAD_REQUEST} is returned.
+     * @param principal The {@link Principal} of the authenticated user.
      * @return The (updated) target node.
      */
     @SuppressWarnings("unused")
     @PostMapping(value = "/copy", produces = JSON)
+    @PreAuthorize("@authorizationHelper.mayMoveOrCopy(#root)")
     public Node copyNodes(@RequestParam(value = "to") String to,
-                          @RequestParam(value = "username") String userName,
-                          @RequestBody List<String> nodes) {
-        if (to.isEmpty() || userName.isEmpty() || nodes.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username, target node and list of source nodes must all be non-empty.");
+                          @RequestBody List<String> nodes,
+                          Principal principal) {
+        if (to.isEmpty() || nodes.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Target node and list of source nodes must all be non-empty.");
         }
         Logger.getLogger(StructureController.class.getName()).info(Thread.currentThread().getName() + " " + (new Date()) + " move");
-        return nodeDAO.copyNodes(nodes, to, userName);
+        return nodeDAO.copyNodes(nodes, to, principal.getName());
     }
 
     /**

@@ -18,7 +18,7 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
-
+import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.ConfigurationData;
@@ -145,7 +145,7 @@ public class SaveAndRestoreService {
         Future<Configuration> future = executor.submit(() -> saveAndRestoreClient.updateConfiguration(configuration));
         Configuration updatedConfiguration = future.get();
         // Associated configuration Node may have a new name
-        notifyNodeChangeListeners(configuration.getConfigurationNode());
+        notifyNodeChangeListeners(updatedConfiguration.getConfigurationNode());
         return updatedConfiguration;
     }
 
@@ -235,7 +235,14 @@ public class SaveAndRestoreService {
             return snapshotItem;
         }).collect(Collectors.toList());
         snapshot.getSnapshotData().setSnapshotItems(beautifiedItems);
-        Future<Snapshot> future = executor.submit(() -> saveAndRestoreClient.saveSnapshot(configurationNode.getUniqueId(), snapshot));
+        Future<Snapshot> future = executor.submit(() -> {
+            if(snapshot.getSnapshotNode().getUniqueId() == null){
+                return saveAndRestoreClient.createSnapshot(configurationNode.getUniqueId(), snapshot);
+            }
+            else{
+                return saveAndRestoreClient.updateSnapshot(snapshot);
+            }
+        });
         Snapshot updatedSnapshot = future.get();
         // Notify listeners as the configuration node has a new child node.
         notifyNodeChangeListeners(configurationNode);
@@ -313,7 +320,7 @@ public class SaveAndRestoreService {
      */
     public List<Filter> getAllFilters() throws Exception {
         Future<List<Filter>> future =
-                executor.submit(() -> saveAndRestoreClient.getAllFilters());
+                executor.submit(saveAndRestoreClient::getAllFilters);
         return future.get();
     }
 
@@ -338,7 +345,7 @@ public class SaveAndRestoreService {
         Future<List<Node>> future =
                 executor.submit(() -> saveAndRestoreClient.addTag(tagData));
         List<Node> updatedNodes = future.get();
-        updatedNodes.forEach(n -> notifyNodeChangeListeners(n));
+        updatedNodes.forEach(this::notifyNodeChangeListeners);
         return updatedNodes;
     }
 
@@ -353,7 +360,7 @@ public class SaveAndRestoreService {
         Future<List<Node>> future =
                 executor.submit(() -> saveAndRestoreClient.deleteTag(tagData));
         List<Node> updatedNodes = future.get();
-        updatedNodes.forEach(n -> notifyNodeChangeListeners(n));
+        updatedNodes.forEach(this::notifyNodeChangeListeners);
         return updatedNodes;
     }
 
@@ -371,5 +378,18 @@ public class SaveAndRestoreService {
 
     private void notifyFilterDeleted(Filter filter) {
         filterChangeListeners.forEach(l -> l.filterRemoved(filter));
+    }
+
+    /**
+     * Authenticate user, needed for all non-GET endpoints if service requires it
+     * @param userName User's account name
+     * @param password User's password
+     * @return A {@link UserData} object
+     * @throws Exception if authentication fails
+     */
+    public UserData authenticate(String userName, String password) throws Exception{
+        Future<UserData> future =
+                executor.submit(() -> saveAndRestoreClient.authenticate(userName, password));
+        return future.get();
     }
 }

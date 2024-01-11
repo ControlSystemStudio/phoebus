@@ -273,7 +273,12 @@ public abstract class BaseSnapshotTableViewController {
     }
 
     protected void showSnapshotInTable(Snapshot snapshot){
-        snapshots.add(0, snapshot);
+        if(snapshots.isEmpty()){
+            snapshots.add(snapshot);
+        }
+        else{
+            snapshots.set(0, snapshot);
+        }
         AtomicInteger counter = new AtomicInteger(0);
         snapshot.getSnapshotData().getSnapshotItems().forEach(entry -> {
             TableEntry tableEntry = new TableEntry();

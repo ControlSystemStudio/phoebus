@@ -25,12 +25,16 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.sun.jersey.api.client.*;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
 import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.framework.preferences.PreferencesReader;
+import org.phoebus.security.store.SecureStore;
+import org.phoebus.security.tokens.AuthenticationScope;
+import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.IOException;
@@ -40,7 +44,6 @@ import java.util.logging.Logger;
 
 public class SaveAndRestoreJerseyClient implements org.phoebus.applications.saveandrestore.client.SaveAndRestoreClient {
 
-    private final Client client;
     private static final String CONTENT_TYPE_JSON = "application/json; charset=UTF-8";
     private final Logger logger = Logger.getLogger(SaveAndRestoreJerseyClient.class.getName());
 
@@ -49,39 +52,64 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     private static final int DEFAULT_READ_TIMEOUT = 5000; // ms
     private static final int DEFAULT_CONNECT_TIMEOUT = 3000; // ms
 
+    private int httpClientReadTimeout = DEFAULT_READ_TIMEOUT;
+    private int httpClientConnectTimeout = DEFAULT_CONNECT_TIMEOUT;
+
+    ObjectMapper mapper = new ObjectMapper();
+
+    private HTTPBasicAuthFilter httpBasicAuthFilter;
+
     public SaveAndRestoreJerseyClient() {
+
+        mapper.registerModule(new JavaTimeModule());
+        mapper.setSerializationInclusion(Include.NON_NULL);
 
         PreferencesReader preferencesReader = new PreferencesReader(SaveAndRestoreClient.class, "/save_and_restore_preferences.properties");
         this.jmasarServiceUrl = preferencesReader.get("jmasar.service.url");
 
-        int httpClientReadTimeout = DEFAULT_READ_TIMEOUT;
         String readTimeoutString = preferencesReader.get("httpClient.readTimeout");
         try {
             httpClientReadTimeout = Integer.parseInt(readTimeoutString);
-            logger.log(Level.INFO, "JMasar client using read timeout " + httpClientReadTimeout + " ms");
+            logger.log(Level.INFO, "Save&restore client using read timeout " + httpClientReadTimeout + " ms");
         } catch (NumberFormatException e) {
             logger.log(Level.INFO, "Property httpClient.readTimeout \"" + readTimeoutString + "\" is not a number, using default value " + DEFAULT_READ_TIMEOUT + " ms");
         }
 
-        int httpClientConnectTimeout = DEFAULT_CONNECT_TIMEOUT;
         String connectTimeoutString = preferencesReader.get("httpClient.connectTimeout");
         try {
             httpClientConnectTimeout = Integer.parseInt(connectTimeoutString);
-            logger.log(Level.INFO, "JMasar client using connect timeout " + httpClientConnectTimeout + " ms");
+            logger.log(Level.INFO, "Save&restore client using connect timeout " + httpClientConnectTimeout + " ms");
         } catch (NumberFormatException e) {
             logger.log(Level.INFO, "Property httpClient.connectTimeout \"" + connectTimeoutString + "\" is not a number, using default value " + DEFAULT_CONNECT_TIMEOUT + " ms");
         }
+    }
 
-
+    private Client getClient() {
         DefaultClientConfig defaultClientConfig = new DefaultClientConfig();
         defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_READ_TIMEOUT, httpClientReadTimeout);
         defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, httpClientConnectTimeout);
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        mapper.setSerializationInclusion(Include.NON_NULL);
+
         JacksonJsonProvider jacksonJsonProvider = new JacksonJsonProvider(mapper);
         defaultClientConfig.getSingletons().add(jacksonJsonProvider);
-        client = Client.create(defaultClientConfig);
+
+        Client client = Client.create(defaultClientConfig);
+
+        try {
+            SecureStore store = new SecureStore();
+            ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken(AuthenticationScope.SAVE_AND_RESTORE);
+            if (scopedAuthenticationToken != null) {
+                String username = scopedAuthenticationToken.getUsername();
+                String password = scopedAuthenticationToken.getPassword();
+                httpBasicAuthFilter = new HTTPBasicAuthFilter(username, password);
+                client.addFilter(httpBasicAuthFilter);
+            } else if (httpBasicAuthFilter != null) {
+                client.removeFilter(httpBasicAuthFilter);
+            }
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Unable to retrieve credentials from secure store", e);
+        }
+
+        return client;
     }
 
     @Override
@@ -100,11 +128,11 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     }
 
     @Override
-    public List<Node> getCompositeSnapshotReferencedNodes(String uniqueNodeId){
-        WebResource webResource = client.resource(jmasarServiceUrl + "/composite-snapshot/" + uniqueNodeId + "/nodes");
+    public List<Node> getCompositeSnapshotReferencedNodes(String uniqueNodeId) {
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/composite-snapshot/" + uniqueNodeId + "/nodes");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).get(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
@@ -114,16 +142,16 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
             throw new SaveAndRestoreClientException("Failed : HTTP error code : " + response.getStatus() + ", error message: " + message);
         }
 
-        return response.getEntity(new GenericType<List<Node>>() {
+        return response.getEntity(new GenericType<>() {
         });
     }
 
     @Override
-    public List<SnapshotItem> getCompositeSnapshotItems(String uniqueNodeId){
-        WebResource webResource = client.resource(jmasarServiceUrl + "/composite-snapshot/" + uniqueNodeId + "/items");
+    public List<SnapshotItem> getCompositeSnapshotItems(String uniqueNodeId) {
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/composite-snapshot/" + uniqueNodeId + "/items");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).get(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
@@ -133,7 +161,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
             throw new SaveAndRestoreClientException("Failed : HTTP error code : " + response.getStatus() + ", error message: " + message);
         }
 
-        return response.getEntity(new GenericType<List<SnapshotItem>>() {
+        return response.getEntity(new GenericType<>() {
         });
     }
 
@@ -145,29 +173,27 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     @Override
     public List<Node> getChildNodes(String uniqueNodeId) throws SaveAndRestoreClientException {
         ClientResponse response = getCall("/node/" + uniqueNodeId + "/children");
-        return response.getEntity(new GenericType<List<Node>>() {
+        return response.getEntity(new GenericType<>() {
         });
     }
 
     @Override
     public Node createNewNode(String parentNodeId, Node node) {
-        node.setUserName(getCurrentUsersName());
-        WebResource webResource = client.resource(jmasarServiceUrl + "/node").queryParam("parentNodeId", parentNodeId);
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/node")
+                .queryParam("parentNodeId", parentNodeId);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(node, CONTENT_TYPE_JSON)
                 .put(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.createNodeFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new SaveAndRestoreClientException(message);
         }
-
         return response.getEntity(Node.class);
-
     }
 
     @Override
@@ -177,22 +203,19 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
 
     @Override
     public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration) {
-        if (nodeToUpdate.getUserName() == null || nodeToUpdate.getUserName().isEmpty()) {
-            nodeToUpdate.setUserName(getCurrentUsersName());
-        }
-        WebResource webResource = client.resource(jmasarServiceUrl + "/node")
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/node")
                 .queryParam("customTimeForMigration", customTimeForMigration ? "true" : "false");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(nodeToUpdate, CONTENT_TYPE_JSON)
                 .post(ClientResponse.class);
 
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.updateNodeFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new SaveAndRestoreClientException(message);
         }
@@ -201,16 +224,15 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     }
 
     private <T> T getCall(String relativeUrl, Class<T> clazz) {
-
         ClientResponse response = getCall(relativeUrl);
         return response.getEntity(clazz);
     }
 
     private ClientResponse getCall(String relativeUrl) {
-        WebResource webResource = client.resource(jmasarServiceUrl + relativeUrl);
+        WebResource webResource = getClient().resource(jmasarServiceUrl + relativeUrl);
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).get(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
@@ -224,55 +246,47 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     }
 
     @Override
-    public void deleteNode(String uniqueNodeId) {
-        WebResource webResource = client.resource(jmasarServiceUrl + "/node/" + uniqueNodeId);
-        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).delete(ClientResponse.class);
-        if (response.getStatus() != 200) {
+    public void deleteNodes(List<String> nodeIds) {
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/node");
+        ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
+                .entity(nodeIds, CONTENT_TYPE_JSON)
+                .delete(ClientResponse.class);
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = response.getEntity(String.class);
             throw new SaveAndRestoreClientException("Failed : HTTP error code : " + response.getStatus() + ", error message: " + message);
         }
     }
 
     @Override
-    public void deleteNodes(List<String> nodeIds) {
-        nodeIds.forEach(this::deleteNode);
-    }
-
-    private String getCurrentUsersName() {
-        return System.getProperty("user.name");
-    }
-
-    @Override
     public List<Tag> getAllTags() {
         ClientResponse response = getCall("/tags");
-        return response.getEntity(new GenericType<List<Tag>>() {
+        return response.getEntity(new GenericType<>() {
         });
     }
 
     @Override
     public List<Node> getAllSnapshots() {
         ClientResponse response = getCall("/snapshots");
-        return response.getEntity(new GenericType<List<Node>>() {
+        return response.getEntity(new GenericType<>() {
         });
     }
 
     @Override
     public Node moveNodes(List<String> sourceNodeIds, String targetNodeId) {
         WebResource webResource =
-                client.resource(jmasarServiceUrl + "/move")
-                        .queryParam("to", targetNodeId)
-                        .queryParam("username", getCurrentUsersName());
+                getClient().resource(jmasarServiceUrl + "/move")
+                        .queryParam("to", targetNodeId);
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(sourceNodeIds, CONTENT_TYPE_JSON)
                 .post(ClientResponse.class);
 
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.copyOrMoveNotAllowedBody;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new SaveAndRestoreClientException(message);
         }
@@ -282,20 +296,19 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     @Override
     public Node copyNodes(List<String> sourceNodeIds, String targetNodeId) {
         WebResource webResource =
-                client.resource(jmasarServiceUrl + "/copy")
-                        .queryParam("to", targetNodeId)
-                        .queryParam("username", getCurrentUsersName());
+                getClient().resource(jmasarServiceUrl + "/copy")
+                        .queryParam("to", targetNodeId);
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(sourceNodeIds, CONTENT_TYPE_JSON)
                 .post(ClientResponse.class);
 
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.copyOrMoveNotAllowedBody;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new SaveAndRestoreClientException(message);
         }
@@ -305,10 +318,10 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     @Override
     public String getFullPath(String uniqueNodeId) {
         WebResource webResource =
-                client.resource(jmasarServiceUrl + "/path/" + uniqueNodeId);
+                getClient().resource(jmasarServiceUrl + "/path/" + uniqueNodeId);
         ClientResponse response = webResource.get(ClientResponse.class);
 
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             return null;
         }
         return response.getEntity(String.class);
@@ -327,19 +340,18 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
 
     @Override
     public Configuration createConfiguration(String parentNodeId, Configuration configuration) {
-        configuration.getConfigurationNode().setUserName(getCurrentUsersName());
         WebResource webResource =
-                client.resource(jmasarServiceUrl + "/config")
+                getClient().resource(jmasarServiceUrl + "/config")
                         .queryParam("parentNodeId", parentNodeId);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(configuration, CONTENT_TYPE_JSON)
                 .put(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.createConfigurationFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new SaveAndRestoreClientException(message);
         }
@@ -348,17 +360,17 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
 
     @Override
     public Configuration updateConfiguration(Configuration configuration) {
-        WebResource webResource = client.resource(jmasarServiceUrl + "/config");
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/config");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(configuration, CONTENT_TYPE_JSON)
                 .post(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.updateConfigurationFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new RuntimeException(message);
         }
@@ -372,10 +384,9 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     }
 
     @Override
-    public Snapshot saveSnapshot(String parentNodeId, Snapshot snapshot) {
-        snapshot.getSnapshotNode().setUserName(getCurrentUsersName());
+    public Snapshot createSnapshot(String parentNodeId, Snapshot snapshot) {
         WebResource webResource =
-                client.resource(jmasarServiceUrl + "/snapshot")
+                getClient().resource(jmasarServiceUrl + "/snapshot")
                         .queryParam("parentNodeId", parentNodeId);
         ClientResponse response;
         try {
@@ -384,15 +395,13 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
                     .put(ClientResponse.class);
         } catch (UniformInterfaceException e) {
             throw new RuntimeException(e);
-        } catch (ClientHandlerException e) {
-            throw new RuntimeException(e);
         }
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.searchFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new SaveAndRestoreClientException(message);
         }
@@ -400,20 +409,44 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     }
 
     @Override
-    public CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot){
-        compositeSnapshot.getCompositeSnapshotNode().setUserName(getCurrentUsersName());
+    public Snapshot updateSnapshot(Snapshot snapshot) {
         WebResource webResource =
-                client.resource(jmasarServiceUrl + "/composite-snapshot")
+                getClient().resource(jmasarServiceUrl + "/snapshot");
+        ClientResponse response;
+        try {
+            response = webResource.accept(CONTENT_TYPE_JSON)
+                    .entity(snapshot, CONTENT_TYPE_JSON)
+                    .post(ClientResponse.class);
+        } catch (UniformInterfaceException e) {
+            throw new RuntimeException(e);
+        }
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
+            String message = Messages.searchFailed;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Unable to parse response", e);
+            }
+            throw new SaveAndRestoreClientException(message);
+        }
+        return response.getEntity(Snapshot.class);
+    }
+
+
+    @Override
+    public CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot) {
+        WebResource webResource =
+                getClient().resource(jmasarServiceUrl + "/composite-snapshot")
                         .queryParam("parentNodeId", parentNodeId);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(compositeSnapshot, CONTENT_TYPE_JSON)
                 .put(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.createConfigurationFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new SaveAndRestoreClientException(message);
         }
@@ -421,38 +454,38 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     }
 
     @Override
-    public List<String> checkCompositeSnapshotConsistency(List<String> snapshotNodeIds){
+    public List<String> checkCompositeSnapshotConsistency(List<String> snapshotNodeIds) {
         WebResource webResource =
-                client.resource(jmasarServiceUrl + "/composite-snapshot-consistency-check");
+                getClient().resource(jmasarServiceUrl + "/composite-snapshot-consistency-check");
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(snapshotNodeIds, CONTENT_TYPE_JSON)
                 .post(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.compositeSnapshotConsistencyCheckFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new SaveAndRestoreClientException(message);
         }
-        return response.getEntity(new GenericType<List<String>>() {
+        return response.getEntity(new GenericType<>() {
         });
     }
 
     @Override
-    public CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot){
-        WebResource webResource = client.resource(jmasarServiceUrl + "/composite-snapshot");
+    public CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot) {
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/composite-snapshot");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(compositeSnapshot, CONTENT_TYPE_JSON)
                 .post(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.updateConfigurationFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new RuntimeException(message);
         }
@@ -460,17 +493,17 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     }
 
     @Override
-    public SearchResult search(MultivaluedMap<String, String> searchParams){
-        WebResource webResource = client.resource(jmasarServiceUrl + "/search")
+    public SearchResult search(MultivaluedMap<String, String> searchParams) {
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/search")
                 .queryParams(searchParams);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .get(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.searchFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new RuntimeException(message);
         }
@@ -478,19 +511,17 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     }
 
     @Override
-    public Filter saveFilter(Filter filter){
-        filter.setUser(getCurrentUsersName());
-        WebResource webResource = client.resource(jmasarServiceUrl + "/filter");
-
+    public Filter saveFilter(Filter filter) {
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/filter");
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(filter, CONTENT_TYPE_JSON)
                 .put(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.saveFilterFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new RuntimeException(message);
         }
@@ -498,49 +529,52 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     }
 
     @Override
-    public List<Filter> getAllFilters(){
-        WebResource webResource = client.resource(jmasarServiceUrl + "/filters");
+    public List<Filter> getAllFilters() {
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/filters");
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .get(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.searchFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new RuntimeException(message);
         }
-        return response.getEntity(new GenericType<List<Filter>>(){});
+        return response.getEntity(new GenericType<>() {
+        });
     }
 
     @Override
-    public void deleteFilter(String name){
+    public void deleteFilter(String name) {
         // Filter name may contain space chars, need to URL encode these.
         String filterName = name.replace(" ", "%20");
-        WebResource  webResource = client.resource(jmasarServiceUrl + "/filter/" + filterName);
+        WebResource webResource = getClient().resource(jmasarServiceUrl + "/filter/" + filterName);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .delete(ClientResponse.class);
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.deleteFilterFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new RuntimeException(message);
         }
     }
 
     /**
-     * Adds a tag to a list of unique node ids, see {@link TagData}
+     * Adds a tag to a list of unique node ids, see {@link TagData}.
+     *
      * @param tagData see {@link TagData}
      * @return A list of updated {@link Node}s. This may contain fewer elements than the list of unique node ids
      * passed in the <code>tagData</code> parameter.
      */
-    public List<Node> addTag(TagData tagData){
+    public List<Node> addTag(TagData tagData) {
+
         WebResource webResource =
-                client.resource(jmasarServiceUrl + "/tags");
+                getClient().resource(jmasarServiceUrl + "/tags");
         ClientResponse response;
         try {
             response = webResource.accept(CONTENT_TYPE_JSON)
@@ -548,31 +582,30 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
                     .post(ClientResponse.class);
         } catch (UniformInterfaceException e) {
             throw new RuntimeException(e);
-        } catch (ClientHandlerException e) {
-            throw new RuntimeException(e);
         }
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.tagAddFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new SaveAndRestoreClientException(message);
         }
-        return response.getEntity(new GenericType<List<Node>>() {
+        return response.getEntity(new GenericType<>() {
         });
     }
 
     /**
      * Deletes a tag from a list of unique node ids, see {@link TagData}
+     *
      * @param tagData see {@link TagData}
      * @return A list of updated {@link Node}s. This may contain fewer elements than the list of unique node ids
      * passed in the <code>tagData</code> parameter.
      */
-    public List<Node> deleteTag(TagData tagData){
+    public List<Node> deleteTag(TagData tagData) {
         WebResource webResource =
-                client.resource(jmasarServiceUrl + "/tags");
+                getClient().resource(jmasarServiceUrl + "/tags");
         ClientResponse response;
         try {
             response = webResource.accept(CONTENT_TYPE_JSON)
@@ -580,19 +613,43 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
                     .delete(ClientResponse.class);
         } catch (UniformInterfaceException e) {
             throw new RuntimeException(e);
-        } catch (ClientHandlerException e) {
-            throw new RuntimeException(e);
         }
-        if (response.getStatus() != 200) {
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
             String message = Messages.tagAddFailed;
             try {
                 message = new String(response.getEntityInputStream().readAllBytes());
             } catch (IOException e) {
-                // Ignore
+                logger.log(Level.WARNING, "Unable to parse response", e);
             }
             throw new SaveAndRestoreClientException(message);
         }
-        return response.getEntity(new GenericType<List<Node>>() {
+        return response.getEntity(new GenericType<>() {
+        });
+    }
+
+    @Override
+    public UserData authenticate(String userName, String password) {
+        WebResource webResource =
+                getClient().resource(jmasarServiceUrl + "/login")
+                        .queryParam("username", userName)
+                        .queryParam("password", password);
+        ClientResponse response;
+        try {
+            response = webResource.accept(CONTENT_TYPE_JSON)
+                    .post(ClientResponse.class);
+        } catch (UniformInterfaceException e) {
+            throw new RuntimeException(e);
+        }
+        if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
+            String message = Messages.authenticationFailed;
+            try {
+                message = new String(response.getEntityInputStream().readAllBytes());
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Unable to parse response", e);
+            }
+            throw new SaveAndRestoreClientException(message);
+        }
+        return response.getEntity(new GenericType<>() {
         });
     }
 }

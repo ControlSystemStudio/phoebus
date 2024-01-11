@@ -42,7 +42,7 @@
             </tooltip>
         </ToggleButton>
     </ToolBar>
-    <GridPane hgap="5.0">
+    <GridPane fx:id="controlsPane" hgap="5.0">
         <columnConstraints>
             <ColumnConstraints />
             <ColumnConstraints />
@@ -50,6 +50,7 @@
             <ColumnConstraints />
             <ColumnConstraints maxWidth="125.0" minWidth="120.0" prefWidth="125.0" />
             <ColumnConstraints maxWidth="173.0" minWidth="154.0" prefWidth="173.0" />
+
         </columnConstraints>
         <rowConstraints>
             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
@@ -70,7 +71,6 @@
                 <Insets />
             </GridPane.margin>
         </TextField>
-
         <Label text="%createdDate" GridPane.halignment="RIGHT" GridPane.rowIndex="1" GridPane.valignment="CENTER">
             <GridPane.margin>
                 <Insets left="8.0" />

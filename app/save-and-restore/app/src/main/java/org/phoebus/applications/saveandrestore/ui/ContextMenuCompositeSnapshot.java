@@ -18,29 +18,35 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
+import javafx.beans.binding.Bindings;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
-import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
 import org.phoebus.ui.javafx.ImageCache;
 
+/**
+ * Context menu for {@link org.phoebus.applications.saveandrestore.model.Node}s of type
+ * {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}.
+ */
 public class ContextMenuCompositeSnapshot extends ContextMenuBase {
 
-    public ContextMenuCompositeSnapshot(SaveAndRestoreController saveAndRestoreController, TreeView<Node> treeView) {
-        super(saveAndRestoreController, treeView);
+    public ContextMenuCompositeSnapshot(SaveAndRestoreController saveAndRestoreController) {
+        super(saveAndRestoreController);
 
         Image snapshotTagsWithCommentIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/save-and-restore/snapshot-tags.png");
 
         MenuItem editCompositeSnapshotMenuItem = new MenuItem(Messages.Edit, new ImageView(ImageRepository.EDIT_CONFIGURATION));
-        editCompositeSnapshotMenuItem.disableProperty().bind(multipleSelection);
+        editCompositeSnapshotMenuItem.disableProperty().bind(multipleNodesSelectedProperty);
         editCompositeSnapshotMenuItem.setOnAction(ae ->
                 saveAndRestoreController.editCompositeSnapshot());
+        editCompositeSnapshotMenuItem.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                userIsAuthenticatedProperty.not().get() || multipleNodesSelectedProperty.get(),
+                userIsAuthenticatedProperty, multipleNodesSelectedProperty));
 
         ImageView snapshotTagsWithCommentIconImage = new ImageView(snapshotTagsWithCommentIcon);
         snapshotTagsWithCommentIconImage.setFitHeight(22);
@@ -48,6 +54,9 @@ public class ContextMenuCompositeSnapshot extends ContextMenuBase {
 
         Menu tagWithComment = new Menu(Messages.contextMenuTagsWithComment, snapshotTagsWithCommentIconImage);
         tagWithComment.setOnShowing(event -> saveAndRestoreController.tagWithComment(tagWithComment));
+        tagWithComment.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                        multipleNodesSelectedProperty.get() || userIsAuthenticatedProperty.not().get(),
+                multipleNodesSelectedProperty, userIsAuthenticatedProperty));
 
         CustomMenuItem addTagWithCommentMenuItem = TagWidget.AddTagWithCommentMenuItem();
         addTagWithCommentMenuItem.setOnAction(action -> saveAndRestoreController.addTagToSnapshots());
@@ -57,15 +66,26 @@ public class ContextMenuCompositeSnapshot extends ContextMenuBase {
         Image copyIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/copy.png");
         MenuItem copyMenuItem = new MenuItem(Messages.copy, new ImageView(copyIcon));
         copyMenuItem.setOnAction(action -> saveAndRestoreController.copySelectionToClipboard());
-
-        setOnShowing(event -> {
-            copyMenuItem.setDisable(!saveAndRestoreController.mayCopy());
-        });
+        copyMenuItem.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                        userIsAuthenticatedProperty.not().get() || mayCopyProperty.not().get(),
+                userIsAuthenticatedProperty, mayCopyProperty));
 
         getItems().addAll(editCompositeSnapshotMenuItem,
                 copyMenuItem,
                 deleteNodesMenuItem,
                 copyUniqueIdToClipboardMenuItem,
                 tagWithComment);
+    }
+
+    /**
+     * Execute common checks (see {@link ContextMenuBase#runChecks()}) and:
+     * <ul>
+     *     <li>If copy operation is possible on selected {@link org.phoebus.applications.saveandrestore.model.Node}s</li>
+     * </ul>
+     */
+    @Override
+    public void runChecks() {
+        super.runChecks();
+        mayCopyProperty.set(saveAndRestoreController.mayCopy());
     }
 }
