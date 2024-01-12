@@ -63,13 +63,19 @@ public interface NodeDAO {
     List<Node> getNodes(List<String> uniqueNodeIds);
 
     /**
-     * Deletes a {@link Node}, folder or configuration. If the node is a folder, the
-     * entire sub-tree of the folder is deleted, including the snapshots associated
-     * with configurations in the sub-tree.
+     * This is deprecated, use {@link #deleteNodes} instead.
      *
      * @param nodeId The unique id of the node to delete.
      */
+    @Deprecated
     void deleteNode(String nodeId);
+
+    /**
+     * Checks that each of the node ids passed to this method exist, and that none of them
+     * is the root node. If check passes all nodes are deleted.
+     * @param nodeIds List of (existing) node ids.
+     */
+    void deleteNodes(List<String> nodeIds);
 
     /**
      * Creates a new node in the tree.
@@ -128,7 +134,16 @@ public interface NodeDAO {
      * @param snapshot The {@link Snapshot} data.
      * @return The persisted {@link Snapshot} data.
      */
-    Snapshot saveSnapshot(String parentNodeId, Snapshot snapshot);
+    Snapshot createSnapshot(String parentNodeId, Snapshot snapshot);
+
+    /**
+     * Updates a {@link Snapshot} with respect to name, description/comment. No other properties of the
+     * node can be modified, but last updated date will be set accordingly.
+     *
+     * @param snapshot The {@link Snapshot} subject to update.
+     * @return The {@link Snapshot} object as read from the persistence implementation.
+     */
+    Snapshot updateSnapshot(Snapshot snapshot);
 
     /**
      * Updates a {@link Node} with respect to name, description/comment and tags. No other properties of the

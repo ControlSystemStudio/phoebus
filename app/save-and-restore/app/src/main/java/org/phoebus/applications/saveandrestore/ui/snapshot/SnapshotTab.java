@@ -47,8 +47,6 @@ public class SnapshotTab extends SaveAndRestoreTab {
 
     public SaveAndRestoreService saveAndRestoreService;
 
-    private SnapshotController snapshotController;
-
     private final SimpleObjectProperty<Image> tabGraphicImageProperty = new SimpleObjectProperty<>();
 
 
@@ -84,7 +82,7 @@ public class SnapshotTab extends SaveAndRestoreTab {
 
         try {
             setContent(loader.load());
-            snapshotController = loader.getController();
+            controller = loader.getController();
         } catch (IOException e) {
             Logger.getLogger(SnapshotTab.class.getName())
                     .log(Level.SEVERE, "Failed to load fxml", e);
@@ -100,7 +98,7 @@ public class SnapshotTab extends SaveAndRestoreTab {
         setTabImage(node);
 
         setOnCloseRequest(event -> {
-            if (snapshotController != null && !snapshotController.handleSnapshotTabClosed()) {
+            if (controller != null && !((SnapshotController) controller).handleSnapshotTabClosed()) {
                 event.consume();
             } else {
                 SaveAndRestoreService.getInstance().removeNodeChangeListener(this);
@@ -116,15 +114,11 @@ public class SnapshotTab extends SaveAndRestoreTab {
     }
 
     private void setTabImage(Node node) {
-        if (node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)) {
-            tabGraphicImageProperty.set(ImageRepository.COMPOSITE_SNAPSHOT);
+        boolean golden = node.getTags() != null && node.getTags().stream().anyMatch(t -> t.getName().equals(Tag.GOLDEN));
+        if (golden) {
+            tabGraphicImageProperty.set(ImageRepository.GOLDEN_SNAPSHOT);
         } else {
-            boolean golden = node.getTags() != null && node.getTags().stream().anyMatch(t -> t.getName().equals(Tag.GOLDEN));
-            if (golden) {
-                tabGraphicImageProperty.set(ImageRepository.GOLDEN_SNAPSHOT);
-            } else {
-                tabGraphicImageProperty.set(ImageRepository.SNAPSHOT);
-            }
+            tabGraphicImageProperty.set(ImageRepository.SNAPSHOT);
         }
     }
 
@@ -136,7 +130,7 @@ public class SnapshotTab extends SaveAndRestoreTab {
      */
     public void newSnapshot(org.phoebus.applications.saveandrestore.model.Node configurationNode) {
         setId(null);
-        snapshotController.newSnapshot(configurationNode);
+        ((SnapshotController) controller).newSnapshot(configurationNode);
     }
 
     /**
@@ -147,28 +141,29 @@ public class SnapshotTab extends SaveAndRestoreTab {
     public void loadSnapshot(Node snapshotNode) {
         updateTabTitle(snapshotNode.getName());
         setId(snapshotNode.getUniqueId());
-        snapshotController.loadSnapshot(snapshotNode);
+        ((SnapshotController) controller).loadSnapshot(snapshotNode);
     }
 
     public void addSnapshot(org.phoebus.applications.saveandrestore.model.Node node) {
-        snapshotController.addSnapshot(node);
+        ((SnapshotController) controller).addSnapshot(node);
     }
 
     @Override
     public void nodeChanged(Node node) {
         if (node.getUniqueId().equals(getId())) {
             Platform.runLater(() -> {
-                snapshotController.setSnapshotNameProperty(node.getName());
+                ((SnapshotController) controller).setSnapshotNameProperty(node.getName());
                 setTabImage(node);
             });
         }
     }
 
     public Node getSnapshotNode() {
-        return snapshotController.getSnapshot().getSnapshotNode();
+        return ((SnapshotController) controller).getSnapshot().getSnapshotNode();
     }
 
     public Node getConfigNode() {
-        return snapshotController.getConfigurationNode();
+        return ((SnapshotController) controller).getConfigurationNode();
     }
+
 }

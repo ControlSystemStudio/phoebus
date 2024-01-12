@@ -98,6 +98,7 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
      * <p>If not, we don't have to disable the button if the PV is readonly and/or disconnected
      */
     private volatile boolean is_writePV = false;
+    private volatile boolean is_openDisplay = false;
 
     /** Optional modifier of the open display 'target */
     private Optional<OpenDisplayActionInfo.Target> target_modifier = Optional.empty();
@@ -139,7 +140,8 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
         }
 
         // 'control' ('command' on Mac OS X)
-        if (event.isShortcutDown())
+        boolean middle_click = event.isMiddleButtonDown() && is_openDisplay && !is_writePV;
+        if (event.isShortcutDown() || middle_click)
             target_modifier = Optional.of(OpenDisplayActionInfo.Target.TAB);
         else if (event.isShiftDown())
             target_modifier = Optional.of(OpenDisplayActionInfo.Target.WINDOW);
@@ -172,6 +174,8 @@ public class ActionButtonRepresentation extends RegionBaseRepresentation<Pane, A
                 is_writePV = true;
             else
                 has_non_writePVAction = true;
+            if (action instanceof OpenDisplayActionInfo)
+                is_openDisplay = true;
         }
 
         if (actions.isExecutedAsOne()  ||  actions.getActions().size() < 2)

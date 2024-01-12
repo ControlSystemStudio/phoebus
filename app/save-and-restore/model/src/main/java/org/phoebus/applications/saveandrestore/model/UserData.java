@@ -14,22 +14,43 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
  */
-package org.phoebus.applications.saveandrestore.ui.configuration;
 
-import org.phoebus.applications.saveandrestore.model.Node;
+package org.phoebus.applications.saveandrestore.model;
+
+import java.util.List;
 
 /**
- * Abstract base class for {@link Node} selection dialog controller
- *
- * @author <a href="mailto:changj@frib.msu.edu">Genie Jhang</a>
+ * Simple pojo used to convey username and list of roles to a client upon
+ * login or explicit request.
  */
+public class UserData {
 
-public abstract class BaseConfigurationSelectionController implements ISelectedNodeProvider {
-    protected boolean isDisabledConfigurationSelection;
+    private String userName;
+    private List<String> roles;
 
-    protected void disableConfigurationSelection() {
-        isDisabledConfigurationSelection = true;
+    public UserData(){
+
+    }
+
+    public UserData(String userName, List<String> roles){
+        this.userName = userName;
+        this.roles = roles;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public List<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
     }
 }

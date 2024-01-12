@@ -30,33 +30,10 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
+import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.MultipleSelectionModel;
-import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.SplitPane;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TextInputDialog;
-import javafx.scene.control.Tooltip;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.TransferMode;
+import javafx.scene.input.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.util.Callback;
@@ -80,6 +57,7 @@ import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
+import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
@@ -91,15 +69,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.ResourceBundle;
-import java.util.Stack;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -107,7 +77,8 @@ import java.util.stream.Collectors;
 /**
  * Main controller for the save and restore UI.
  */
-public class SaveAndRestoreController implements Initializable, NodeChangedListener, NodeAddedListener, FilterChangeListener {
+public class SaveAndRestoreController extends SaveAndRestoreBaseController
+        implements Initializable, NodeChangedListener, NodeAddedListener, FilterChangeListener {
 
     @FXML
     protected TreeView<Node> treeView;
@@ -133,12 +104,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     protected SaveAndRestoreService saveAndRestoreService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-
-    protected ContextMenu folderContextMenu;
-    protected ContextMenu configurationContextMenu;
-    protected ContextMenu snapshotContextMenu;
-    protected ContextMenu rootFolderContextMenu;
-    protected ContextMenu compositeSnapshotContextMenu;
 
     protected MultipleSelectionModel<TreeItem<Node>> browserSelectionModel;
 
@@ -174,6 +139,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         this.uri = uri;
     }
 
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
@@ -194,18 +160,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         filtersComboBox.disableProperty().bind(filterEnabledProperty.not());
         filterEnabledProperty.addListener((observable, oldValue, newValue) -> filterEnabledChanged(newValue));
 
-        folderContextMenu = new ContextMenuFolder(this, treeView);
-        configurationContextMenu = new ContextMenuConfiguration(this, treeView);
-
-        rootFolderContextMenu = new ContextMenu();
-        MenuItem newRootFolderMenuItem = new MenuItem(Messages.contextMenuNewFolder, new ImageView(ImageRepository.FOLDER));
-        newRootFolderMenuItem.setOnAction(ae -> createNewFolder());
-        rootFolderContextMenu.getItems().add(newRootFolderMenuItem);
-
-        snapshotContextMenu = new ContextMenuSnapshot(this, treeView);
-
-        compositeSnapshotContextMenu = new ContextMenuCompositeSnapshot(this, treeView);
-
         treeView.setEditable(true);
 
         treeView.setOnMouseClicked(me -> {
@@ -224,9 +178,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         saveAndRestoreService.addNodeAddedListener(this);
         saveAndRestoreService.addFilterChangeListener(this);
 
-        treeView.setCellFactory(p -> new BrowserTreeCell(folderContextMenu,
-                configurationContextMenu, snapshotContextMenu, rootFolderContextMenu, compositeSnapshotContextMenu,
-                this));
+        treeView.setCellFactory(p -> new BrowserTreeCell(this));
 
         progressIndicator.visibleProperty().bind(disabledUi);
         disabledUi.addListener((observable, oldValue, newValue) -> treeView.setDisable(newValue));
@@ -281,6 +233,12 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         // considered in paste actions.
         Clipboard.getSystemClipboard().clear();
 
+        userIdentity.addListener((a, b, c) -> {
+            String name = c == null ? "Root folder" :
+                    "Root folder (" + userIdentity.get() + ")";
+            treeView.getRoot().setValue(Node.builder().uniqueId(Node.ROOT_FOLDER_UNIQUE_ID).name(name).build());
+        });
+
         loadTreeData();
     }
 
@@ -303,7 +261,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                     HashMap<String, List<TreeItem<Node>>> childNodesMap = new HashMap<>();
                     savedTreeViewStructure.forEach(s -> {
                         List<Node> childNodes = saveAndRestoreService.getChildNodes(Node.builder().uniqueId(s).build());
-                        if (childNodes != null) { // This may be the case if the tree structure was modified outside of the UI
+                        if (childNodes != null) { // This may be the case if the tree structure was modified externally
                             List<TreeItem<Node>> childItems = childNodes.stream().map(n -> createTreeItem(n)).sorted(treeNodeComparator).collect(Collectors.toList());
                             childNodesMap.put(s, childItems);
                         }
@@ -571,18 +529,16 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
 
                 @Override
                 public void failed() {
-                    expandTreeNode(parentTreeItem.getParent());
+                    if (parentTreeItem.getParent() != null) { // Parent is null for root folder
+                        expandTreeNode(parentTreeItem.getParent());
+                    }
                     ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
-                            Messages.errorCreateFolderFailed, null);
+                            Messages.errorCreateFolderFailed, new Exception(getException()));
                 }
             };
 
             new Thread(task).start();
         }
-    }
-
-    public void nodeDoubleClicked() {
-        nodeDoubleClicked(treeView.getSelectionModel().getSelectedItem().getValue());
     }
 
     /**
@@ -606,7 +562,9 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 ((SnapshotTab) tab).loadSnapshot(node);
                 break;
             case COMPOSITE_SNAPSHOT:
-                openCompositeSnapshotForRestore();
+                TreeItem<Node> treeItem = browserSelectionModel.getSelectedItems().get(0);
+                tab = new SnapshotTab(treeItem.getValue(), saveAndRestoreService);
+                ((SnapshotTab) tab).loadSnapshot(treeItem.getValue());
                 return;
             case FOLDER:
             default:
@@ -799,12 +757,12 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
         nodeSubjectToUpdate.setValue(node);
         // Folder and configuration node changes may include structure changes, so expand to force update.
-        if (nodeSubjectToUpdate.getValue().getNodeType().equals(NodeType.FOLDER) ||
-                nodeSubjectToUpdate.getValue().getNodeType().equals(NodeType.CONFIGURATION)) {
-            if (nodeSubjectToUpdate.getParent() != null) { // null means root folder as it has no parent
-                nodeSubjectToUpdate.getParent().getChildren().sort(treeNodeComparator);
-            }
-            expandTreeNode(nodeSubjectToUpdate);
+        if(nodeSubjectToUpdate.isExpanded() && (nodeSubjectToUpdate.getValue().getNodeType().equals(NodeType.FOLDER) ||
+                    nodeSubjectToUpdate.getValue().getNodeType().equals(NodeType.CONFIGURATION))){
+                if (nodeSubjectToUpdate.getParent() != null) { // null means root folder as it has no parent
+                    nodeSubjectToUpdate.getParent().getChildren().sort(treeNodeComparator);
+                }
+                expandTreeNode(nodeSubjectToUpdate);
         }
     }
 
@@ -1062,32 +1020,28 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      * </ul>
      *
      * @param menuItem The {@link MenuItem} subject to configuration.
+     * @return <code>false</code> if the menu item should be disabled.
      */
-    public void configureGoldenItem(MenuItem menuItem) {
+    public boolean configureGoldenItem(MenuItem menuItem) {
         List<Node> selectedNodes =
                 browserSelectionModel.getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
-        TagUtil.configureGoldenItem(selectedNodes, menuItem);
+        return TagUtil.configureGoldenItem(selectedNodes, menuItem);
     }
 
 
     /**
-     * Performs check of multiple selection to determine if it fulfills the criteria:
-     * <ul>
-     *     <li>All selected nodes must be of same type.</li>
-     *     <li>All selected nodes must have same parent node.</li>
-     * </ul>
+     * Performs check of selection to determine if all selected nodes are of same type.
      *
      * @return <code>true</code> if criteria are met, otherwise <code>false</code>
      */
-    protected boolean checkMultipleSelection() {
+    public boolean selectedNodesOfSameType() {
         ObservableList<TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
         if (selectedItems.size() < 2) {
             return true;
         }
-        TreeItem<Node> parent = selectedItems.get(0).getParent();
         NodeType nodeType = selectedItems.get(0).getValue().getNodeType();
-        for(int i = 1; i < selectedItems.size(); i++){
-            if(!selectedItems.get(i).getParent().equals(parent) || !selectedItems.get(i).getValue().getNodeType().equals(nodeType)){
+        for (int i = 1; i < selectedItems.size(); i++) {
+            if (!selectedItems.get(i).getValue().getNodeType().equals(nodeType)) {
                 return false;
             }
         }
@@ -1279,15 +1233,6 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         return null;
     }
 
-    protected void openCompositeSnapshotForRestore() {
-        TreeItem<Node> treeItem = browserSelectionModel.getSelectedItems().get(0);
-        SnapshotTab tab = new SnapshotTab(treeItem.getValue(), saveAndRestoreService);
-        tab.loadSnapshot(treeItem.getValue());
-
-        tabPane.getTabs().add(tab);
-        tabPane.getSelectionModel().select(tab);
-    }
-
     @Override
     public void filterAddedOrUpdated(Filter filter) {
         if (!filtersList.contains(filter)) {
@@ -1317,7 +1262,7 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
         }
     }
 
-    public void copySelectionToClipboard(){
+    public void copySelectionToClipboard() {
         List<TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
         List<Node> selectedNodes = selectedItems.stream().map(TreeItem::getValue).collect(Collectors.toList());
         ClipboardContent clipboardContent = new ClipboardContent();
@@ -1332,15 +1277,19 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
      *     <li>All selected nodes must be of same type.</li>
      *     <li>All selected nodes must have same parent.</li>
      * </ul>
+     *
      * @return <code>true</code> if selection may be copied to clipboard, otherwise <code>false</code>.
      */
-    public boolean mayCopy(){
+    public boolean mayCopy() {
+        if (userIdentity.isNull().get()) {
+            return false;
+        }
         List<Node> selectedNodes = browserSelectionModel.getSelectedItems().stream().map(TreeItem::getValue).collect(Collectors.toList());
-        if(selectedNodes.size() == 1){
+        if (selectedNodes.size() == 1) {
             return true;
         }
         NodeType nodeTypeOfFirst = selectedNodes.get(0).getNodeType();
-        if(selectedNodes.stream().filter(n -> !n.getNodeType().equals(nodeTypeOfFirst)).findFirst().isPresent()){
+        if (selectedNodes.stream().filter(n -> !n.getNodeType().equals(nodeTypeOfFirst)).findFirst().isPresent()) {
             return false;
         }
         TreeItem<Node> parentOfFirst = browserSelectionModel.getSelectedItems().get(0).getParent();
@@ -1350,44 +1299,43 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
     /**
      * Checks if the clipboard content may be pasted onto a target node:
      * <ul>
-     *     <li>Clipboard c  ontent must be of {@link SaveAndRestoreApplication#NODE_SELECTION_FORMAT}.</li>
+     *     <li>Clipboard content must be of {@link SaveAndRestoreApplication#NODE_SELECTION_FORMAT}.</li>
      *     <li>Selected node for paste (target) must be single node.</li>
      *     <li>Configurations and composite snapshots may be pasted only onto folder.</li>
      *     <li>Snapshot may be pasted only onto configuration.</li>
      * </ul>
-     * @return  <code>true</code> if selection may be pasted, otherwise <code>false</code>.
+     *
+     * @return <code>true</code> if selection may be pasted, otherwise <code>false</code>.
      */
-    public boolean mayPaste(){
+    public boolean mayPaste() {
+        if (userIdentity.isNull().get()) {
+            return false;
+        }
         Object clipBoardContent = Clipboard.getSystemClipboard().getContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT);
-        if(clipBoardContent == null ||  browserSelectionModel.getSelectedItems().size() != 1){
+        if (clipBoardContent == null || browserSelectionModel.getSelectedItems().size() != 1) {
             return false;
         }
         // Check is made if target node is of supported type for the clipboard content.
-        List<Node> selectedNodes = (List<Node>)clipBoardContent;
+        List<Node> selectedNodes = (List<Node>) clipBoardContent;
         NodeType nodeTypeOfFirst = selectedNodes.get(0).getNodeType();
         NodeType nodeTypeOfTarget = browserSelectionModel.getSelectedItem().getValue().getNodeType();
-        if((nodeTypeOfFirst.equals(NodeType.COMPOSITE_SNAPSHOT) ||
-                nodeTypeOfFirst.equals(NodeType.CONFIGURATION)) && !nodeTypeOfTarget.equals(NodeType.FOLDER)){
+        if ((nodeTypeOfFirst.equals(NodeType.COMPOSITE_SNAPSHOT) ||
+                nodeTypeOfFirst.equals(NodeType.CONFIGURATION)) && !nodeTypeOfTarget.equals(NodeType.FOLDER)) {
             return false;
-        }
-        else if(nodeTypeOfFirst.equals(NodeType.SNAPSHOT) && !nodeTypeOfTarget.equals(NodeType.CONFIGURATION)){
+        } else if (nodeTypeOfFirst.equals(NodeType.SNAPSHOT) && !nodeTypeOfTarget.equals(NodeType.CONFIGURATION)) {
             return false;
         }
         return true;
     }
 
-    public List<TreeItem<Node>> getSelectedItems(){
-        return treeView.getSelectionModel().getSelectedItems();
-    }
-
-    public void pasteFromClipboard(){
+    public void pasteFromClipboard() {
         disabledUi.set(true);
         Object selectedNodes = Clipboard.getSystemClipboard().getContent(SaveAndRestoreApplication.NODE_SELECTION_FORMAT);
-        if(selectedNodes == null || browserSelectionModel.getSelectedItems().size() != 1){
+        if (selectedNodes == null || browserSelectionModel.getSelectedItems().size() != 1) {
             return;
         }
         List<String> selectedNodeIds =
-                ((List<Node>)selectedNodes).stream().map(Node::getUniqueId).collect(Collectors.toList());
+                ((List<Node>) selectedNodes).stream().map(Node::getUniqueId).collect(Collectors.toList());
         JobManager.schedule("copy nodes", monitor -> {
             try {
                 saveAndRestoreService.copyNodes(selectedNodeIds, browserSelectionModel.getSelectedItem().getValue().getUniqueId());
@@ -1402,6 +1350,76 @@ public class SaveAndRestoreController implements Initializable, NodeChangedListe
                 expandTreeNode(browserSelectionModel.getSelectedItem());
                 treeView.refresh();
             });
+        });
+    }
+
+    /**
+     * Used to determine if nodes selected in the tree view have the same parent node. Most menu items
+     * do not make sense unless the selected nodes have same the parent node.
+     *
+     * @return <code>true</code> if all selected nodes have the same parent node, <code>false</code> otherwise.
+     */
+    public boolean hasSameParent() {
+        ObservableList<TreeItem<Node>> selectedItems = browserSelectionModel.getSelectedItems();
+        if (selectedItems.size() == 1) {
+            return true;
+        }
+        Node parentNodeOfFirst = selectedItems.get(0).getParent().getValue();
+        for (int i = 1; i < selectedItems.size(); i++) {
+            TreeItem<Node> treeItem = selectedItems.get(i);
+            if (!treeItem.getParent().getValue().getUniqueId().equals(parentNodeOfFirst.getUniqueId())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * @return <code>true</code> selection contains multiple {@link Node}s, otherwise <code>false</code>.
+     */
+    public boolean multipleNodesSelected() {
+        return browserSelectionModel.getSelectedItems().size() > 1;
+    }
+
+    /**
+     * Checks if selection is not allowed, i.e. not all selected nodes are snapshot nodes.
+     *
+     * @return <code>false</code> if any of the selected nodes is of type {@link NodeType#FOLDER} or
+     * {@link NodeType#CONFIGURATION}. Since these {@link NodeType}s cannot be tagged.
+     */
+    public boolean checkTaggable() {
+        return browserSelectionModel.getSelectedItems().stream().filter(i -> i.getValue().getNodeType().equals(NodeType.FOLDER) ||
+                i.getValue().getNodeType().equals(NodeType.CONFIGURATION)).findFirst().isEmpty();
+    }
+
+    /**
+     * Determines if comparing snapshots is possible, which is the case if all of the following holds true:
+     * <ul>
+     *     <li>The active tab must be a {@link org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab}</li>
+     *     <li>The active {@link org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab} must not show an unsaved snapshot.</li>
+     *     <li>The snapshot selected from the tree view must have same parent as the one shown in the active {@link org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab}</li>
+     *     <li>The snapshot selected from the tree view must not be the same as as the one shown in the active {@link org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotTab}</li>
+     * </ul>
+     *
+     * @return <code>true</code> if selection can be added to snapshot view for comparison.
+     */
+    public boolean compareSnapshotsPossible() {
+        Node[] configAndSnapshotNode = getConfigAndSnapshotForActiveSnapshotTab();
+        if (configAndSnapshotNode == null) {
+            return false;
+        }
+        TreeItem<Node> selectedItem = treeView.getSelectionModel().getSelectedItem();
+        TreeItem<Node> parentItem = selectedItem.getParent();
+        return configAndSnapshotNode[1].getUniqueId() != null &&
+                parentItem.getValue().getUniqueId().equals(configAndSnapshotNode[0].getUniqueId()) &&
+                !selectedItem.getValue().getUniqueId().equals(configAndSnapshotNode[1].getUniqueId());
+    }
+
+    @Override
+    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens) {
+        super.secureStoreChanged(validTokens);
+        tabPane.getTabs().forEach(t -> {
+            ((SaveAndRestoreTab) t).secureStoreChanged(validTokens);
         });
     }
 }

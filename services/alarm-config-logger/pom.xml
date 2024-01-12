@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.phoebus</groupId>
     <artifactId>services</artifactId>
-    <version>4.7.3-SNAPSHOT</version>
+    <version>4.7.4-SNAPSHOT</version>
   </parent>
   <properties>
     <spring.boot-version>2.7.3</spring.boot-version>
@@ -44,7 +44,7 @@
     <dependency>
       <groupId>org.phoebus</groupId>
       <artifactId>app-alarm-model</artifactId>
-      <version>4.7.3-SNAPSHOT</version>
+      <version>4.7.4-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.kafka</groupId>
@@ -59,7 +59,22 @@
     <dependency>
       <groupId>org.eclipse.jgit</groupId>
       <artifactId>org.eclipse.jgit</artifactId>
-      <version>5.0.3.201809091024-r</version>
+      <version>6.6.0.202305301015-r</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jgit</groupId>
+      <artifactId>org.eclipse.jgit.archive</artifactId>
+      <version>6.6.0.202305301015-r</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jgit</groupId>
+      <artifactId>org.eclipse.jgit.ssh.jsch</artifactId>
+      <version>6.6.0.202305301015-r</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jgit</groupId>
+      <artifactId>org.eclipse.jgit.ssh.apache</artifactId>
+      <version>6.6.0.202305301015-r</version>
     </dependency>
     <!--JUL bindings for sfl4j-->
     <dependency> 

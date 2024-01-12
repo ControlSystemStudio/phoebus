@@ -34,7 +34,9 @@ import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -53,16 +55,29 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = ControllersTestConfig.class)
-@WebMvcTest(NodeController.class)
+@WebMvcTest(CompositeSnapshotController.class)
+@TestPropertySource(locations = "classpath:test_application.properties")
 public class CompositeSnapshotControllerTest {
+
+    @Autowired
+    private String userAuthorization;
+
+    @Autowired
+    private String adminAuthorization;
+
+    @Autowired
+    private String readOnlyAuthorization;
 
     @Autowired
     private NodeDAO nodeDAO;
 
     @Autowired
+    private String demoUser;
+
+    @Autowired
     private MockMvc mockMvc;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static CompositeSnapshot compositeSnapshot;
 
@@ -81,8 +96,12 @@ public class CompositeSnapshotControllerTest {
 
         when(nodeDAO.createCompositeSnapshot(Mockito.any(String.class), Mockito.any(CompositeSnapshot.class))).thenReturn(compositeSnapshot);
 
-        MockHttpServletRequestBuilder request = put("/composite-snapshot?parentNodeId=id").contentType(JSON)
-                .content(objectMapper.writeValueAsString(compositeSnapshot));
+        String compositeSnapshotString = objectMapper.writeValueAsString(compositeSnapshot);
+
+        MockHttpServletRequestBuilder request = put("/composite-snapshot?parentNodeId=id")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .contentType(JSON)
+                .content(compositeSnapshotString);
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
                 .andReturn();
@@ -90,17 +109,59 @@ public class CompositeSnapshotControllerTest {
         String s = result.getResponse().getContentAsString();
         // Make sure response contains expected data
         objectMapper.readValue(s, CompositeSnapshot.class);
+
+        request = put("/composite-snapshot?parentNodeId=id")
+                .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
+                .contentType(JSON)
+                .content(compositeSnapshotString);
+
+        mockMvc.perform(request).andExpect(status().isOk());
+
+        request = put("/composite-snapshot?parentNodeId=id")
+                .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
+                .contentType(JSON)
+                .content(compositeSnapshotString);
+
+        mockMvc.perform(request).andExpect(status().isForbidden());
+
+        request = put("/composite-snapshot?parentNodeId=id")
+                .contentType(JSON)
+                .content(compositeSnapshotString);
+
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
 
         reset(nodeDAO);
     }
 
     @Test
+    public void testCreateCompositeSnapshotWrongNodeType() throws Exception{
+        Node node = Node.builder().uniqueId("c").nodeType(NodeType.SNAPSHOT).build();
+        CompositeSnapshot compositeSnapshot1 = new CompositeSnapshot();
+        compositeSnapshot1.setCompositeSnapshotNode(node);
+
+        MockHttpServletRequestBuilder request = put("/composite-snapshot")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .contentType(JSON)
+                .content(objectMapper.writeValueAsString(compositeSnapshot1));
+        mockMvc.perform(request).andExpect(status().isBadRequest());
+    }
+
+    @Test
     public void testUpdateCompositeSnapshot() throws Exception {
 
-        when(nodeDAO.updateCompositeSnapshot(Mockito.any(CompositeSnapshot.class))).thenReturn(compositeSnapshot);
+        Node node = Node.builder().uniqueId("c").nodeType(NodeType.COMPOSITE_SNAPSHOT).userName(demoUser).build();
+        CompositeSnapshot compositeSnapshot1 = new CompositeSnapshot();
+        compositeSnapshot1.setCompositeSnapshotNode(node);
 
-        MockHttpServletRequestBuilder request = post("/composite-snapshot").contentType(JSON)
-                .content(objectMapper.writeValueAsString(compositeSnapshot));
+        String compositeSnapshotString = objectMapper.writeValueAsString(compositeSnapshot1);
+
+        when(nodeDAO.updateCompositeSnapshot(compositeSnapshot1)).thenReturn(compositeSnapshot1);
+        when(nodeDAO.getNode("c")).thenReturn(node);
+
+        MockHttpServletRequestBuilder request = post("/composite-snapshot")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .contentType(JSON)
+                .content(compositeSnapshotString);
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
                 .andReturn();
@@ -109,7 +170,53 @@ public class CompositeSnapshotControllerTest {
         // Make sure response contains expected data
         objectMapper.readValue(s, CompositeSnapshot.class);
 
+        when(nodeDAO.getNode("c")).thenReturn(Node.builder().nodeType(NodeType.COMPOSITE_SNAPSHOT).uniqueId("c").userName("notUser").build());
+
+        request = post("/composite-snapshot")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .contentType(JSON)
+                .content(compositeSnapshotString);
+
+        mockMvc.perform(request).andExpect(status().isForbidden());
+
+        request = post("/composite-snapshot")
+                .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
+                .contentType(JSON)
+                .content(compositeSnapshotString);
+
+        mockMvc.perform(request).andExpect(status().isForbidden());
+
+        request = post("/composite-snapshot")
+                .contentType(JSON)
+                .content(compositeSnapshotString);
+
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
+
+        when(nodeDAO.getNode("c")).thenReturn(Node.builder().nodeType(NodeType.COMPOSITE_SNAPSHOT).uniqueId("c").userName("notUser").build());
+
+        request = post("/composite-snapshot")
+                .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
+                .contentType(JSON)
+                .content(compositeSnapshotString);
+
+        mockMvc.perform(request).andExpect(status().isOk());
+
         reset(nodeDAO);
+    }
+
+    @Test
+    public void testUpdateCompositeSnapshotWrongNodeType() throws Exception{
+        Node node = Node.builder().uniqueId("c").userName(demoUser).nodeType(NodeType.SNAPSHOT).build();
+        CompositeSnapshot compositeSnapshot1 = new CompositeSnapshot();
+        compositeSnapshot1.setCompositeSnapshotNode(node);
+
+        when(nodeDAO.getNode("c")).thenReturn(node);
+
+        MockHttpServletRequestBuilder request = post("/composite-snapshot")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .contentType(JSON)
+                .content(objectMapper.writeValueAsString(compositeSnapshot1));
+        mockMvc.perform(request).andExpect(status().isBadRequest());
     }
 
     @Test
@@ -178,7 +285,9 @@ public class CompositeSnapshotControllerTest {
 
         when(nodeDAO.checkForPVNameDuplicates(Mockito.any(List.class))).thenReturn(List.of("ref"));
 
-        MockHttpServletRequestBuilder request = post("/composite-snapshot-consistency-check").contentType(JSON)
+        MockHttpServletRequestBuilder request = post("/composite-snapshot-consistency-check")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .contentType(JSON)
                 .content(objectMapper.writeValueAsString(List.of("id")));
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
@@ -188,6 +297,26 @@ public class CompositeSnapshotControllerTest {
         // Make sure response contains expected data
         objectMapper.readValue(s, new TypeReference<List<String>>() {
         });
+
+        request = post("/composite-snapshot-consistency-check")
+                .contentType(JSON)
+                .content(objectMapper.writeValueAsString(List.of("id")));
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
+
+
+        request = post("/composite-snapshot-consistency-check")
+                .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
+                .contentType(JSON)
+                .content(objectMapper.writeValueAsString(List.of("id")));
+
+        mockMvc.perform(request).andExpect(status().isOk());
+
+        request = post("/composite-snapshot-consistency-check")
+                .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
+                .contentType(JSON)
+                .content(objectMapper.writeValueAsString(List.of("id")));
+
+        mockMvc.perform(request).andExpect(status().isOk());
 
         reset(nodeDAO);
     }

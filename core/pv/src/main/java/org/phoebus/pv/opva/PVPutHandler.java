@@ -25,6 +25,7 @@ import org.epics.pvdata.pv.PVStructure;
 import org.epics.pvdata.pv.Status;
 import org.epics.pvdata.pv.Structure;
 import org.phoebus.pv.PV;
+import org.epics.vtype.VType;
 
 /** A {@link ChannelPutRequester} for writing a value to a {@link PVA_PV},
  *  indicating completion via a {@link Future}
@@ -32,7 +33,7 @@ import org.phoebus.pv.PV;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-class PVPutHandler extends PVRequester implements ChannelPutRequester, Future<Object>
+class PVPutHandler extends PVRequester implements ChannelPutRequester
 {
     final private PV pv;
     final private Object new_value;
@@ -136,7 +137,7 @@ class PVPutHandler extends PVRequester implements ChannelPutRequester, Future<Ob
 
     // Future
     @Override
-    public Object get() throws InterruptedException, ExecutionException
+    public VType get() throws InterruptedException, ExecutionException
     {
         updates.await();
         if (error != null)
@@ -146,7 +147,7 @@ class PVPutHandler extends PVRequester implements ChannelPutRequester, Future<Ob
 
     // Future
     @Override
-    public Object get(final long timeout, final TimeUnit unit) throws InterruptedException,
+    public VType get(final long timeout, final TimeUnit unit) throws InterruptedException,
             ExecutionException, TimeoutException
     {
         if (! updates.await(timeout, unit))

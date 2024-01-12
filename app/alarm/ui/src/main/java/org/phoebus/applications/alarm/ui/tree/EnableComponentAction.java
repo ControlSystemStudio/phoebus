@@ -15,8 +15,10 @@ import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
 import org.phoebus.applications.alarm.model.AlarmTreeItem;
 import org.phoebus.applications.alarm.ui.AlarmUI;
+import org.phoebus.applications.alarm.ui.Messages;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.Node;
@@ -84,7 +86,14 @@ class EnableComponentAction extends MenuItem
                 {
                     final AlarmClientLeaf copy = pv.createDetachedCopy();
                     if (copy.setEnabled(doEnable()))
-                        model.sendItemConfigurationUpdate(pv.getPathName(), copy);
+                        try {
+                            model.sendItemConfigurationUpdate(pv.getPathName(), copy);
+                        } catch (Exception e) {
+                            ExceptionDetailsErrorDialog.openError(Messages.error,
+                                    copy.isEnabled() ? Messages.enableAlarmFailed : Messages.disableAlarmFailed,
+                                    e);
+                            throw e;
+                        }
                 }
             });
         });

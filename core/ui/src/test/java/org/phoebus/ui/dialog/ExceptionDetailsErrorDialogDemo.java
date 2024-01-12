@@ -20,7 +20,8 @@ public class ExceptionDetailsErrorDialogDemo extends ApplicationWrapper
     @Override
     public void start(final Stage stage)
     {
-        ExceptionDetailsErrorDialog.openError("Test", "This is a test\nAnother line", new Exception("This is a test"));
+        Exception ex = new Exception("This is a test");
+        ExceptionDetailsErrorDialog.openError("Test", "This is a test\nAnother line", ex);
     }
 
     public static void main(String[] args)

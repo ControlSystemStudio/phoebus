@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>org.phoebus</groupId>
 		<artifactId>services</artifactId>
-		<version>4.7.3-SNAPSHOT</version>
+		<version>4.7.4-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.phoebus</groupId>
 	<artifactId>service-save-and-restore</artifactId>
-	<version>4.7.3-SNAPSHOT</version>
+	<version>4.7.4-SNAPSHOT</version>
 
 	<properties>
 		<spring.boot.version>2.7.3</spring.boot.version>
@@ -55,13 +55,13 @@
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>save-and-restore-model</artifactId>
-			<version>4.7.3-SNAPSHOT</version>
+			<version>4.7.4-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.phoebus</groupId>
 			<artifactId>core-util</artifactId>
-			<version>4.7.3-SNAPSHOT</version>
+			<version>4.7.4-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
@@ -75,6 +75,28 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.ldap</groupId>
+			<artifactId>spring-ldap-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-ldap</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.unboundid</groupId>
+			<artifactId>unboundid-ldapsdk</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-test</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>jakarta.json</groupId>
 			<artifactId>jakarta.json-api</artifactId>
 			<version>2.0.1</version>
@@ -83,7 +105,6 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-logging</artifactId>
-			<version>${spring.boot.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.apache.logging.log4j</groupId>

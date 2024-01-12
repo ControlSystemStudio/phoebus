@@ -125,7 +125,7 @@ public class DisplayEditorInstance implements AppInstance
     }
 
     /** @return Current 'dirty' state */
-    boolean isDirty()
+    public boolean isDirty()
     {
         return dock_item.isDirty();
     }
@@ -379,7 +379,7 @@ public class DisplayEditorInstance implements AppInstance
         model_name_listener.propertyChanged(model.propName(), null, null);
     }
 
-    void reloadDisplay()
+    public void reloadDisplay()
     {
         loadDisplay(dock_item.getInput());
     }
@@ -409,7 +409,7 @@ public class DisplayEditorInstance implements AppInstance
         });
     }
 
-    void doSave(final JobMonitor monitor) throws Exception
+    public void doSave(final JobMonitor monitor) throws Exception
     {
         save_job = monitor;
 

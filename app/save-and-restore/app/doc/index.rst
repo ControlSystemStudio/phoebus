@@ -11,6 +11,9 @@ The application uses the save-and-restore service deployed on the network such t
 HTTP(s). The URL of the service is specified in the save-and-restore.properties file, or in the settings file
 pointed to on the command line.
 
+Actions that create, modify or delete data are protected by the service. User must sign in through the
+Crendentials Manager application. See also below.
+
 Nodes and node types
 --------------------
 
@@ -392,7 +395,25 @@ The items of this context menu offers actions associated with a PV, which is sim
 other applications. However, user should be aware that the "Data Browser" item will launch the Data Browser app for
 the selected PV *around the point in time defined by the PV timestamp*.
 
+Authentication and Authorization
+--------------------------------
 
+Authorization uses a role-based approach like so:
 
+* Unauthenticated users may read data, i.e. browse the tree and view configurations, snapshots, search and view filters.
+* Role "user":
+    * Create and save configurations
+    * Create and save snapshots
+    * Create and save composite snapshots
+    * Create and save filters
+    * Update and delete objects if user name matches object's user id and:
+        * Object is a snapshot and not referenced in a composite snapshot node
+        * Object is a composite snapshot node
+        * Object is configuration or folder node with no child nodes
+        * Object is a filter
+* Role "superuser": +perform restore operation
+* Role "admin": no restrictions
+
+Roles are defined and managed on the service. Role (group) membership is managed in Active Directory or LDAP.
 
 

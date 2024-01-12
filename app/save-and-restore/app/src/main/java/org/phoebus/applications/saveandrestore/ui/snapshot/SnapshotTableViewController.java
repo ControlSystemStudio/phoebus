@@ -160,6 +160,8 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
     }
 
     public void takeSnapshot(Consumer<Snapshot> consumer) {
+        // Clear snapshots array
+        snapshots.clear();
         List<SnapshotItem> entries = new ArrayList<>();
         readAll(list ->
                 Platform.runLater(() -> {
