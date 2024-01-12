@@ -18,20 +18,15 @@
 package org.phoebus.applications.saveandrestore.ui;
 
 import org.epics.pva.data.*;
-import org.epics.pva.data.nt.PVAAlarm;
 import org.epics.pva.data.nt.PVATable;
-import org.epics.pva.data.nt.PVATimeStamp;
-import org.epics.pvdata.pv.PVULongArray;
 import org.epics.util.array.*;
 import org.epics.util.number.*;
 import org.epics.util.text.NumberFormats;
 import org.epics.vtype.*;
 import org.phoebus.core.vtypes.VTypeHelper;
-import org.phoebus.pv.pva.PVAStructureHelper;
 
 import java.math.BigInteger;
 import java.text.NumberFormat;
-import java.time.Instant;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -107,7 +102,7 @@ public final class Utilities {
     /**
      * The character code for the greek delta letter
      */
-    public static final char DELTA_CHAR = '\u0394';
+    public static final char DELTA_CHAR = 'Δ';
 
     private static final char COMMA = ',';
     // All formats use thread locals, to avoid problems if any of the static methods are invoked concurrently
@@ -152,7 +147,7 @@ public final class Utilities {
         Time time = Time.now();
         if (type instanceof VNumberArray) {
             ListNumber list = null;
-            String[] elements = data.split("\\,");
+            String[] elements = data.split(",");
             if (((VNumberArray) type).getData().size() != elements.length) {
                 throw new IllegalArgumentException("The number of array elements is different from the original.");
             }
@@ -220,12 +215,12 @@ public final class Utilities {
 
             return VNumberArray.of(list, alarm, time, Display.none());
         } else if (type instanceof VStringArray) {
-            String[] elements = data.split("\\,");
+            String[] elements = data.split(",");
             List<String> list = Arrays.stream(elements).map(String::trim).collect(Collectors.toList());
             list = list.stream().map(s -> s.substring(1, s.length() - 1)).collect(Collectors.toList());
             return VStringArray.of(list, alarm, time);
         } else if (type instanceof VBooleanArray) {
-            String[] elements = data.split("\\,");
+            String[] elements = data.split(",");
             List<String> list = Arrays.stream(elements).map(String::trim).collect(Collectors.toList());
             boolean[] booleans = new boolean[list.size()];
             for (int i = 0; i < list.size(); i++) {
@@ -327,16 +322,14 @@ public final class Utilities {
             return ((VString) type).getValue();
         } else if (type instanceof VBoolean) {
             return ((VBoolean) type).getValue();
-        }
-        else if(type instanceof VTable) {
-            VTable vTable = (VTable)type;
+        } else if (type instanceof VTable) {
+            VTable vTable = (VTable) type;
             int columnCount = vTable.getColumnCount();
             List dataArrays = new ArrayList();
-            for(int i = 0; i < columnCount; i++){
+            for (int i = 0; i < columnCount; i++) {
                 dataArrays.add(toPVArrayType("Col " + i, vTable.getColumnData(i)));
             }
-            PVAStructure table = new PVAStructure(PVATable.STRUCT_NAME,"", dataArrays);
-            return table;
+            return new PVAStructure(PVATable.STRUCT_NAME, "", dataArrays);
         }
         return null;
     }
@@ -370,16 +363,16 @@ public final class Utilities {
             int size = Math.min(arrayLimit, list.size());
             StringBuilder sb = new StringBuilder(size * 15 + 2);
             sb.append('[');
-            Pattern pattern = Pattern.compile("\\,");
+            Pattern pattern = Pattern.compile(",");
             NumberFormat formatter = ((SimpleValueFormat) FORMAT.get()).getNumberFormat();
             if (type instanceof VDoubleArray) {
                 for (int i = 0; i < size; i++) {
-                    sb.append(pattern.matcher(formatter.format(list.getDouble(i))).replaceAll("\\.")).append(COMMA)
+                    sb.append(pattern.matcher(formatter.format(list.getDouble(i))).replaceAll(".")).append(COMMA)
                             .append(' ');
                 }
             } else if (type instanceof VFloatArray) {
                 for (int i = 0; i < size; i++) {
-                    sb.append(pattern.matcher(formatter.format(list.getFloat(i))).replaceAll("\\.")).append(COMMA)
+                    sb.append(pattern.matcher(formatter.format(list.getFloat(i))).replaceAll(".")).append(COMMA)
                             .append(' ');
                 }
             } else if (type instanceof VULongArray) {
@@ -468,8 +461,7 @@ public final class Utilities {
             return ((VString) type).getValue();
         } else if (type instanceof VBoolean) {
             return String.valueOf(((VBoolean) type).getValue());
-        }
-        else if(type instanceof VTable){
+        } else if (type instanceof VTable) {
             return "[VTable]";
         }
         // no support for MultiScalars (VMultiDouble, VMultiInt, VMultiString, VMultiEnum), VStatistics and
@@ -906,12 +898,10 @@ public final class Utilities {
         } else if (value instanceof VBooleanArray && baseValue instanceof VBooleanArray) {
             boolean equal = areValuesEqual(value, baseValue, Optional.empty());
             return new VTypeComparison(equal ? "---" : "NOT EQUAL", equal ? 0 : 1, equal);
-        }
-        else if (value instanceof VTable && baseValue instanceof VTable) {
+        } else if (value instanceof VTable && baseValue instanceof VTable) {
             boolean equal = areValuesEqual(value, baseValue, Optional.empty());
             return new VTypeComparison(equal ? "---" : "NOT EQUAL", equal ? 0 : 1, equal);
-        }
-        else {
+        } else {
             String str = valueToString(value);
             boolean valuesEqual = areValuesEqual(value, baseValue, Optional.empty());
             return new VTypeComparison(str, valuesEqual ? 0 : 1, valuesEqual);
@@ -1140,22 +1130,21 @@ public final class Utilities {
                 }
             }
             return true;
-        }
-        else if(v1 instanceof VTable && v2 instanceof VTable){
-            VTable vTable1 = (VTable)v1;
-            VTable vTable2 = (VTable)v2;
-            if(vTable1.getColumnCount() != vTable2.getColumnCount() ||
-                    vTable1.getRowCount() != vTable2.getRowCount()){
+        } else if (v1 instanceof VTable && v2 instanceof VTable) {
+            VTable vTable1 = (VTable) v1;
+            VTable vTable2 = (VTable) v2;
+            if (vTable1.getColumnCount() != vTable2.getColumnCount() ||
+                    vTable1.getRowCount() != vTable2.getRowCount()) {
                 return false;
             }
-            for(int i = 0; i < vTable1.getColumnCount(); i++){
-                if(!vTable1.getColumnType(i).equals(vTable2.getColumnType(i))){
+            for (int i = 0; i < vTable1.getColumnCount(); i++) {
+                if (!vTable1.getColumnType(i).equals(vTable2.getColumnType(i))) {
                     return false;
                 }
-                if(!vTable1.getColumnName(i).equals(vTable2.getColumnName(i))){
+                if (!vTable1.getColumnName(i).equals(vTable2.getColumnName(i))) {
                     return false;
                 }
-                if(!areVTypeArraysEqual(vTable1.getColumnType(i), vTable1.getColumnData(i), vTable2.getColumnData(i))){
+                if (!areVTypeArraysEqual(vTable1.getColumnType(i), vTable1.getColumnData(i), vTable2.getColumnData(i))) {
                     return false;
                 }
             }
@@ -1167,14 +1156,15 @@ public final class Utilities {
     }
 
     /**
-     * Compares objects based on the
-     * @param clazz
-     * @param a1
-     * @param a2
-     * @return
+     * Compares array objects
+     *
+     * @param clazz Class of the input data objects
+     * @param a1 First object
+     * @param a2 Second object
+     * @return <code>true</code> if all elements in arrays are equal.
      */
-    public static boolean areVTypeArraysEqual(Class clazz, Object a1, Object a2){
-        switch(clazz.getName()){
+    public static boolean areVTypeArraysEqual(Class clazz, Object a1, Object a2) {
+        switch (clazz.getName()) {
             case "int":
             case "long":
             case "double":
@@ -1364,12 +1354,11 @@ public final class Utilities {
     }
 
     /**
-     *
-     * @param name
-     * @param object
-     * @return
+     * @param name Data item name
+     * @param object The object subject to conversion
+     * @return Converted object
      */
-    protected static Object toPVArrayType(String name, Object object) {
+    public static Object toPVArrayType(String name, Object object) {
         if (object instanceof ListBoolean) {
             ListBoolean listBoolean = (ListBoolean) object;
             boolean[] booleans = new boolean[listBoolean.size()];
@@ -1377,8 +1366,7 @@ public final class Utilities {
                 booleans[i] = listBoolean.getBoolean(i);
             }
             return new PVABoolArray(name, booleans);
-        }
-        else if (object instanceof ListNumber) {
+        } else if (object instanceof ListNumber) {
             ListNumber listNumber = (ListNumber) object;
             if (object instanceof ArrayByte || object instanceof ArrayUByte) {
                 byte[] bytes = new byte[listNumber.size()];
@@ -1393,12 +1381,6 @@ public final class Utilities {
                 }
                 return new PVAShortArray(name, object instanceof ArrayUShort, shorts);
             } else if (object instanceof ArrayInteger || object instanceof ArrayUInteger) {
-                int[] ints = new int[listNumber.size()];
-                for (int i = 0; i < listNumber.size(); i++) {
-                    ints[i] = listNumber.getInt(i);
-                }
-                return new PVAIntArray(name, object instanceof ArrayUInteger, ints);
-            } else if (object instanceof ArrayUInteger) {
                 int[] ints = new int[listNumber.size()];
                 for (int i = 0; i < listNumber.size(); i++) {
                     ints[i] = listNumber.getInt(i);
@@ -1422,12 +1404,10 @@ public final class Utilities {
                     doubles[i] = listNumber.getDouble(i);
                 }
                 return new PVADoubleArray(name, doubles);
-            }
-            else {
+            } else {
                 throw new IllegalArgumentException("Conversion of type " + object.getClass().getCanonicalName() + " not supported");
             }
-        }
-        else { // Assume this always is for string arrays
+        } else { // Assume this always is for string arrays
             Collection<String> list = (Collection<String>) object;
             String[] strings = new String[list.size()];
             strings = list.toArray(strings);
