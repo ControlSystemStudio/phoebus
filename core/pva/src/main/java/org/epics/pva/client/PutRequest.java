@@ -112,7 +112,6 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
             final int pos = buffer.position();
             buffer.putInt(channel.getSID());
             buffer.putInt(request_id);
-            //buffer.put((byte)0x04);
             buffer.put(PVAHeader.CMD_SUB_DESTROY);
 
             // Locate the field to write
@@ -236,11 +235,8 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
             // Indicate completion now that server confirmed PUT
             complete(null);
         }
-        /*
         else
             fail(new Exception("Cannot decode Put " + subcmd + " Reply #" + request_id));
-
-         */
     }
 
     /** Handle failure by both notifying whoever waits for this request to complete
