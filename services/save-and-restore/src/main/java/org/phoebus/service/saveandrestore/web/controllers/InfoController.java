@@ -19,6 +19,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.phoebus.applications.saveandrestore.model.Node.ROOT_FOLDER_UNIQUE_ID;
+
 /**
  * Controller implementing endpoints to retrieve service info
  */
@@ -65,6 +67,8 @@ public class InfoController extends BaseController {
             elasticInfo.put("status", "Failed to connect to elastic " + e.getLocalizedMessage());
         }
         saveRestoreServiceInfo.put("elastic", elasticInfo);
+
+        saveRestoreServiceInfo.put("rootNodeID", ROOT_FOLDER_UNIQUE_ID);
 
          try {
             return objectMapper.writeValueAsString(saveRestoreServiceInfo);
