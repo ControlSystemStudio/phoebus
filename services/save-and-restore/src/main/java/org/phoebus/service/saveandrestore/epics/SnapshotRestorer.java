@@ -1,8 +1,9 @@
 package org.phoebus.service.saveandrestore.epics;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -26,81 +27,92 @@ import org.epics.vtype.VUByteArray;
 import org.epics.vtype.VUIntArray;
 import org.epics.vtype.VULongArray;
 import org.epics.vtype.VUShortArray;
+
+import org.phoebus.framework.preferences.PropertyPreferenceLoader;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.core.vtypes.VTypeHelper;
-import org.phoebus.service.saveandrestore.epics.RestoreResult;
+import org.phoebus.pv.PV;
+import org.phoebus.pv.PVPool;
+
 public class SnapshotRestorer {
 
-   PVAClient pva;
-   private final Logger LOG = Logger.getLogger(SnapshotRestorer.class.getName());
-   private long timeoutMillis = 5000;
+    PVAClient pva;
+    private final Logger LOG = Logger.getLogger(SnapshotRestorer.class.getName());
 
-   public SnapshotRestorer() throws Exception {
-      pva = new PVAClient();
-   }
-
-   /** Restore PV values from a list of snapshot items
-    *
-    *  <p> Writes concurrently (with timeout) the pv value to the non null set PVs in the snapshot items.
-           Uses synchonized to ensure only one frontend can write at a time.
-           Returns a list of the snapshot items you have set, with an error message if an
-           error occurred.
-    *
-    *  @param snapshotItems {@link SnapshotItem}
-    */
-   public synchronized List<RestoreResult> restorePVValues(List<SnapshotItem> snapshotItems) {
-
-      var futures = snapshotItems.stream().filter(
-            (snapshot_item) -> snapshot_item.getConfigPv().getPvName() != null)
-            .map((snapshotItem) -> {
-               var pvName = snapshotItem.getConfigPv().getPvName();
-               var pvValue = snapshotItem.getValue();
-               var channel = pva.getChannel(pvName);
-               CompletableFuture<Boolean> connected = channel.connect().completeOnTimeout(false, timeoutMillis, TimeUnit.MILLISECONDS);
-               CompletableFuture<RestoreResult> writeFuture = connected.thenComposeAsync(
-                     (isConnected) -> {
-                        String error;
-                        try {
-                           if (isConnected) {
-                              Object rawValue = vTypeToObject(pvValue);
-                              channel.write(true, "value", rawValue).get(timeoutMillis, TimeUnit.MILLISECONDS);
-                              error = null;
-                           } else {
-                              LOG.warning(String.format("Tried to set %s but the channel is disconnnected", pvName));
-                              error = "PV disconnected";
-                           }
-                        } catch (Exception e) {
-                           error = e.getMessage();
-                           LOG.warning(String.format("Error setting PV %s", error));
-                        } finally {
-                           channel.close();
-                        }
-
-                        var restoreResult = new RestoreResult();
-                        restoreResult.setSnapshotItem(snapshotItem);
-                        restoreResult.setErrorMsg(error);
-                        return CompletableFuture.completedFuture(restoreResult);
-                     });
-               return writeFuture;
-            })
-            .collect(Collectors.toList());
-
-      CompletableFuture<Void> all_done = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-
-      // Wait on the futures concurrently
-      all_done.join();
-
-      // Joins should not block as all the futures should be completed.
-      return futures.stream().map(
-         (future) -> future.join()
-      ).collect(Collectors.toList());
-   }
+    public SnapshotRestorer() throws Exception {
+        pva = new PVAClient();
+        final File site_settings = new File("settings.ini");
+        if (site_settings.canRead()) {
+            LOG.config("Loading settings from " + site_settings);
+            PropertyPreferenceLoader.load(new FileInputStream(site_settings));
+        }
+    }
 
     /**
-    * Convert a vType to its Object representation
-    *  @param type {@link VType}
-   */
-   private Object vTypeToObject(VType type) {
+     * Restore PV values from a list of snapshot items
+     *
+     * <p>
+     * Writes concurrently the pv value to the non null set PVs in
+     * the snapshot items.
+     * Uses synchonized to ensure only one frontend can write at a time.
+     * Returns a list of the snapshot items you have set, with an error message if
+     * an error occurred.
+     *
+     * @param snapshotItems {@link SnapshotItem}
+     */
+    public synchronized List<RestoreResult> restorePVValues(List<SnapshotItem> snapshotItems) {
+
+        var futures = snapshotItems.stream().filter(
+                (snapshot_item) -> snapshot_item.getConfigPv().getPvName() != null)
+                .map((snapshotItem) -> {
+                    var pvName = snapshotItem.getConfigPv().getPvName();
+                    var pvValue = snapshotItem.getValue();
+                    Object rawValue = vTypeToObject(pvValue);
+                    PV pv;
+                    CompletableFuture<?> future;
+                    try {
+                        pv = PVPool.getPV(pvName);
+                        future = pv.asyncWrite(rawValue);
+                    } catch (Exception e) {
+                        var restoreResult = new RestoreResult();
+                        var errorMsg = e.getMessage();
+                        restoreResult.setSnapshotItem(snapshotItem);
+                        restoreResult.setErrorMsg(errorMsg);
+                        LOG.warning(String.format("Error writing to channel %s %s", pvName, errorMsg));
+                        return CompletableFuture.completedFuture(restoreResult);
+                    }
+                    return future.handle((result, ex) -> {
+                        String errorMsg;
+                        if (ex != null) {
+                            errorMsg = ex.getMessage();
+                            LOG.warning(String.format("Error writing to channel %s %s", pvName, errorMsg));
+                        } else {
+                            errorMsg = null;
+                        }
+                        var restoreResult = new RestoreResult();
+                        restoreResult.setSnapshotItem(snapshotItem);
+                        restoreResult.setErrorMsg(errorMsg);
+                        return restoreResult;
+                    });
+                })
+                .collect(Collectors.toList());
+
+        CompletableFuture<Void> all_done = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+
+        // Wait on the futures concurrently
+        all_done.join();
+
+        // Joins should not block as all the futures should be completed.
+        return futures.stream().map(
+                (future) -> future.join()).collect(Collectors.toList());
+    }
+
+    /**
+     * Convert a vType to its Object representation
+     * 
+     * @param type {@link VType}
+     */
+    private Object vTypeToObject(VType type) {
         if (type == null) {
             return null;
         }
@@ -136,5 +148,5 @@ public class SnapshotRestorer {
             return ((VBoolean) type).getValue();
         }
         return null;
-   }
+    }
 }
