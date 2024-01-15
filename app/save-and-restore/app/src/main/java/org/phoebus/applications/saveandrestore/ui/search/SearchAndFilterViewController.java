@@ -65,7 +65,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class SearchAndFilterViewController implements Initializable, FilterChangeListener {
+public class SearchAndFilterViewController extends SaveAndRestoreBaseController implements Initializable, FilterChangeListener {
 
     private final SaveAndRestoreController saveAndRestoreController;
 
@@ -339,8 +339,12 @@ public class SearchAndFilterViewController implements Initializable, FilterChang
         queryLabel.textProperty().bind(query);
 
         filterNameTextField.textProperty().bindBidirectional(filterNameProperty);
+        filterNameTextField.disableProperty().bind(saveAndRestoreController.getUserIdentity().isNull());
         saveFilterButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
-                filterNameProperty.get() == null || filterNameProperty.get().isEmpty(), filterNameProperty));
+                filterNameProperty.get() == null ||
+                        filterNameProperty.get().isEmpty() ||
+                        saveAndRestoreController.getUserIdentity().isNull().get(),
+                filterNameProperty, saveAndRestoreController.getUserIdentity()));
 
         resultTableView.setRowFactory(tableView -> new TableRow<>() {
             @Override
@@ -676,6 +680,8 @@ public class SearchAndFilterViewController implements Initializable, FilterChang
         @Override
         protected void updateItem(final Filter filter, final boolean empty) {
             super.updateItem(filter, empty);
+            // If user clicks on the delete column cell, consume the mouse event to prevent the filter from being loaded.
+            setOnMouseClicked(event -> event.consume());
             if (empty) {
                 setGraphic(null);
             } else {
@@ -685,13 +691,13 @@ public class SearchAndFilterViewController implements Initializable, FilterChang
                 button.setOnAction(event -> {
                     try {
                         saveAndRestoreService.deleteFilter(filter);
-                        //loadFilters();
                         clearFilter(filter);
                     } catch (Exception e) {
                         LOGGER.log(Level.SEVERE, "Failed to delete filter", e);
                         ExceptionDetailsErrorDialog.openError(Messages.errorGeneric, Messages.faildDeleteFilter, e);
                     }
                 });
+                button.disableProperty().bind(saveAndRestoreController.getUserIdentity().isNull());
                 setGraphic(button);
             }
         }

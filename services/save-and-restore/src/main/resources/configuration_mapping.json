@@ -5,18 +5,7 @@
         "type" : "keyword"
       },
       "pvList": {
-        "type" : "nested",
-        "properties": {
-          "pvName": {
-            "type": "keyword"
-          },
-          "readbackPvName": {
-            "type": "keyword"
-          },
-          "readOnly": {
-            "type": "boolean"
-          }
-        }
+        "type" : "flattened"
       }
     }
   }

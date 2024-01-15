@@ -60,7 +60,8 @@ public class CredentialsManagementApp implements AppDescriptor {
     @Override
     public AppInstance create() {
         List<ServiceAuthenticationProvider> authenticationProviders =
-                ServiceLoader.load(ServiceAuthenticationProvider.class).stream().map(Provider::get).collect(Collectors.toList());
+                ServiceLoader.load(ServiceAuthenticationProvider.class).stream().map(Provider::get)
+                        .collect(Collectors.toList());
         try {
             SecureStore secureStore = new SecureStore();
             new CredentialsManagementStage(authenticationProviders, secureStore).show();

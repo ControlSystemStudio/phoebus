@@ -24,7 +24,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.phoebus.applications.saveandrestore.model.Configuration;
 import org.phoebus.applications.saveandrestore.model.Node;
@@ -35,7 +34,9 @@ import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -49,24 +50,21 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.phoebus.service.saveandrestore.web.controllers.BaseController.JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = ControllersTestConfig.class)
-@WebMvcTest(NodeController.class)
 /**
  * Main purpose of the tests in this class is to verify that REST end points are
  * maintained, i.e. that URLs are not changed and that they return the correct
  * data.
  *
  * @author Georg Weiss, European Spallation Source
- *
  */
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = ControllersTestConfig.class)
+@TestPropertySource(locations = "classpath:test_application.properties")
+@WebMvcTest(NodeController.class)
 public class NodeControllerTest {
 
     @Autowired
@@ -79,9 +77,22 @@ public class NodeControllerTest {
 
     private static Node config1;
 
-    private static Node snapshot;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private String demoUser;
+
+    @Autowired
+    private String demoAdmin;
+
+    @Autowired
+    private String userAuthorization;
+
+    @Autowired
+    private String adminAuthorization;
+
+    @Autowired
+    private String readOnlyAuthorization;
 
     @BeforeAll
     public static void setUp() {
@@ -90,10 +101,6 @@ public class NodeControllerTest {
                 .userName("myusername").build();
 
         folderFromClient = Node.builder().name("SomeFolder").userName("myusername").uniqueId("11").build();
-
-        snapshot = Node.builder().nodeType(NodeType.SNAPSHOT).nodeType(NodeType.SNAPSHOT).name("name")
-                .build();
-
     }
 
     @Test
@@ -101,8 +108,12 @@ public class NodeControllerTest {
 
         when(nodeDAO.createNode(Mockito.any(String.class), Mockito.any(Node.class))).thenReturn(folderFromClient);
 
-        MockHttpServletRequestBuilder request = put("/node?parentNodeId=a").contentType(JSON)
-                .content(objectMapper.writeValueAsString(folderFromClient));
+        String content = objectMapper.writeValueAsString(folderFromClient);
+
+        MockHttpServletRequestBuilder request = put("/node?parentNodeId=a")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .contentType(JSON)
+                .content(content);
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
                 .andReturn();
@@ -110,17 +121,23 @@ public class NodeControllerTest {
         String s = result.getResponse().getContentAsString();
         // Make sure response contains expected data
         objectMapper.readValue(s, Node.class);
-    }
 
-    @Test
-    public void testCreateFolderNoUsername() throws Exception {
+        request = put("/node?parentNodeId=a")
+                .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
+                .contentType(JSON)
+                .content(content);
+        mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON));
 
-        Node folder = Node.builder().name("SomeFolder").uniqueId("11").build();
+        request = put("/node?parentNodeId=a")
+                .contentType(JSON)
+                .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
+                .content(content);
+        mockMvc.perform(request).andExpect(status().isForbidden());
 
-        MockHttpServletRequestBuilder request = put("/node?parentNodeId=p").contentType(JSON)
-                .content(objectMapper.writeValueAsString(folder));
-
-        mockMvc.perform(request).andExpect(status().isBadRequest());
+        request = put("/node?parentNodeId=a")
+                .contentType(JSON)
+                .content(content);
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -129,7 +146,9 @@ public class NodeControllerTest {
         when(nodeDAO.createNode(Mockito.anyString(), Mockito.any(Node.class)))
                 .thenThrow(new IllegalArgumentException("Parent folder does not exist"));
 
-        MockHttpServletRequestBuilder request = put("/node?parentNodeId=p").contentType(JSON)
+        MockHttpServletRequestBuilder request = put("/node?parentNodeId=p")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .contentType(JSON)
                 .content(objectMapper.writeValueAsString(folderFromClient));
 
         mockMvc.perform(request).andExpect(status().isBadRequest());
@@ -146,13 +165,12 @@ public class NodeControllerTest {
         Configuration configuration = new Configuration();
         configuration.setConfigurationNode(config);
 
-        when(nodeDAO.createConfiguration(Mockito.any(String.class), Mockito.any(Configuration.class))).thenAnswer(new Answer<Configuration>() {
-            public Configuration answer(InvocationOnMock invocation) {
-                return configuration;
-            }
-        });
+        when(nodeDAO.createConfiguration(Mockito.any(String.class), Mockito.any(Configuration.class))).thenAnswer((Answer<Configuration>) invocation -> configuration);
 
-        MockHttpServletRequestBuilder request = put("/config?parentNodeId=p").contentType(JSON).content(objectMapper.writeValueAsString(configuration));
+        MockHttpServletRequestBuilder request = put("/config?parentNodeId=p")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .contentType(JSON)
+                .content(objectMapper.writeValueAsString(configuration));
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
                 .andReturn();
@@ -162,30 +180,78 @@ public class NodeControllerTest {
     }
 
     @Test
+    public void testUpdateConfig() throws Exception {
+        reset(nodeDAO);
+
+        Node config = Node.builder().nodeType(NodeType.CONFIGURATION).name("config").uniqueId("hhh")
+                .userName("user").build();
+
+        Configuration configuration = new Configuration();
+        configuration.setConfigurationNode(config);
+
+        String confurationAsString = objectMapper.writeValueAsString(configuration);
+
+        Configuration updatedConfiguration = new Configuration();
+        updatedConfiguration.setConfigurationNode(Node.builder().nodeType(NodeType.CONFIGURATION).name("config").uniqueId("hhh")
+                .userName(demoAdmin).build());
+
+        when(nodeDAO.updateConfiguration(updatedConfiguration)).thenReturn(updatedConfiguration);
+
+        MockHttpServletRequestBuilder request = post("/config")
+                .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
+                .contentType(JSON)
+                .content(confurationAsString);
+
+        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
+                .andReturn();
+
+        // Make sure response contains expected data
+        objectMapper.readValue(result.getResponse().getContentAsString(), Configuration.class);
+
+        when(nodeDAO.getNode("hhh")).thenReturn(Node.builder().nodeType(NodeType.CONFIGURATION).userName("notUser").build());
+
+        request = post("/config")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .contentType(JSON)
+                .content(confurationAsString);
+
+        mockMvc.perform(request).andExpect(status().isForbidden());
+
+        request = post("/config")
+                .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
+                .contentType(JSON)
+                .content(confurationAsString);
+
+        mockMvc.perform(request).andExpect(status().isOk());
+
+        when(nodeDAO.getNode("hhh")).thenReturn(Node.builder().nodeType(NodeType.CONFIGURATION).userName("notUser").build());
+
+        request = post("/config")
+                .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
+                .contentType(JSON)
+                .content(confurationAsString);
+
+        mockMvc.perform(request).andExpect(status().isForbidden());
+    }
+
+    @Test
     public void testCreateNodeBadRequests() throws Exception {
         reset(nodeDAO);
 
-        Node config = Node.builder().nodeType(NodeType.FOLDER).name("config").uniqueId("hhh")
-                .build();
-        MockHttpServletRequestBuilder request = put("/node?parentNodeId=p").contentType(JSON).content(objectMapper.writeValueAsString(config));
-        mockMvc.perform(request).andExpect(status().isBadRequest());
-
-        config = Node.builder().nodeType(NodeType.FOLDER).name("config").uniqueId("hhh")
-                .userName("").build();
-
-        request = put("/node?parentNodeId=p").contentType(JSON).content(objectMapper.writeValueAsString(config));
-        mockMvc.perform(request).andExpect(status().isBadRequest());
-
-        config = Node.builder().nodeType(NodeType.FOLDER).uniqueId("hhh")
+        Node config = Node.builder().nodeType(NodeType.FOLDER).uniqueId("hhh")
                 .userName("valid").build();
 
-        request = put("/node?parentNodeId=p").contentType(JSON).content(objectMapper.writeValueAsString(config));
+        MockHttpServletRequestBuilder request = put("/node?parentNodeId=p").contentType(JSON)
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .content(objectMapper.writeValueAsString(config));
         mockMvc.perform(request).andExpect(status().isBadRequest());
 
         config = Node.builder().nodeType(NodeType.FOLDER).name("").uniqueId("hhh")
                 .userName("valid").build();
 
-        request = put("/node?parentNodeId=p").contentType(JSON).content(objectMapper.writeValueAsString(config));
+        request = put("/node?parentNodeId=p")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .contentType(JSON).content(objectMapper.writeValueAsString(config));
         mockMvc.perform(request).andExpect(status().isBadRequest());
     }
 
@@ -193,11 +259,7 @@ public class NodeControllerTest {
     public void testGetChildNodes() throws Exception {
         reset(nodeDAO);
 
-        when(nodeDAO.getChildNodes("p")).thenAnswer(new Answer<List<Node>>() {
-            public List<Node> answer(InvocationOnMock invocation) throws Throwable {
-                return Arrays.asList(config1);
-            }
-        });
+        when(nodeDAO.getChildNodes("p")).thenAnswer((Answer<List<Node>>) invocation -> Collections.singletonList(config1));
 
         MockHttpServletRequestBuilder request = get("/node/p/children").contentType(JSON);
 
@@ -205,7 +267,7 @@ public class NodeControllerTest {
                 .andReturn();
 
         // Make sure response contains expected data
-        List<Node> childNodes = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<List<Node>>() {
+        List<Node> childNodes = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
         });
 
         assertEquals(1, childNodes.size());
@@ -242,15 +304,104 @@ public class NodeControllerTest {
     }
 
     @Test
-    public void testDeleteFolder() throws Exception {
-        MockHttpServletRequestBuilder request = delete("/node/a");
+    public void testDeleteSnapshot() throws Exception {
+
+        when(nodeDAO.getNode("a")).thenReturn(Node.builder()
+                .nodeType(NodeType.SNAPSHOT)
+                .uniqueId("a").userName(demoUser).build());
+
+        MockHttpServletRequestBuilder request =
+                delete("/node")
+                        .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
+                        .header(HttpHeaders.AUTHORIZATION, userAuthorization);
 
         mockMvc.perform(request).andExpect(status().isOk());
     }
 
     @Test
-    public void testDeleteNode() throws Exception {
-        MockHttpServletRequestBuilder request = delete("/node/s");
+    public void testDeleteFolder() throws Exception {
+
+        MockHttpServletRequestBuilder request =
+                post("/node");
+
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
+
+        when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").userName(demoUser).build());
+
+        request =
+                delete("/node")
+                        .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
+                        .header(HttpHeaders.AUTHORIZATION, userAuthorization);
+        mockMvc.perform(request).andExpect(status().isOk());
+
+        when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").userName("notDemoUser").build());
+
+        request =
+                delete("/node")
+                        .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
+                        .header(HttpHeaders.AUTHORIZATION, userAuthorization);
+        mockMvc.perform(request).andExpect(status().isForbidden());
+
+        when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").userName(demoUser).build());
+
+        request =
+                delete("/node")
+                        .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
+                        .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization);
+        mockMvc.perform(request).andExpect(status().isForbidden());
+
+        when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.CONFIGURATION).userName(demoUser).build());
+        when(nodeDAO.getChildNodes("a")).thenReturn(Collections.emptyList());
+
+        request =
+                delete("/node")
+                        .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
+                        .header(HttpHeaders.AUTHORIZATION, userAuthorization);
+        mockMvc.perform(request).andExpect(status().isOk());
+
+        when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.FOLDER).userName(demoUser).build());
+        when(nodeDAO.getChildNodes("a")).thenReturn(Collections.emptyList());
+
+        request =
+                delete("/node")
+                        .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
+                        .header(HttpHeaders.AUTHORIZATION, userAuthorization);
+        mockMvc.perform(request).andExpect(status().isOk());
+
+        when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.CONFIGURATION).userName(demoUser).build());
+        when(nodeDAO.getChildNodes("a")).thenReturn(List.of(Node.builder().build()));
+
+        request =
+                delete("/node")
+                        .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
+                        .header(HttpHeaders.AUTHORIZATION, userAuthorization);
+        mockMvc.perform(request).andExpect(status().isForbidden());
+
+        when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.FOLDER).userName(demoUser).build());
+        when(nodeDAO.getChildNodes("a")).thenReturn(List.of(Node.builder().build()));
+
+        request =
+                delete("/node")
+                        .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
+                        .header(HttpHeaders.AUTHORIZATION, userAuthorization);
+        mockMvc.perform(request).andExpect(status().isForbidden());
+
+        when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.CONFIGURATION).userName(demoUser).build());
+        when(nodeDAO.getChildNodes("a")).thenReturn(List.of(Node.builder().build()));
+
+        request =
+                delete("/node")
+                        .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
+                        .header(HttpHeaders.AUTHORIZATION, adminAuthorization);
+        mockMvc.perform(request).andExpect(status().isOk());
+
+        when(nodeDAO.getNode("a")).thenReturn(Node.builder().uniqueId("a").nodeType(NodeType.FOLDER).userName(demoUser).build());
+        when(nodeDAO.getChildNodes("a")).thenReturn(List.of(Node.builder().build()));
+
+        request =
+                delete("/node")
+                        .contentType(JSON).content(objectMapper.writeValueAsString(List.of("a")))
+                        .header(HttpHeaders.AUTHORIZATION, adminAuthorization);
         mockMvc.perform(request).andExpect(status().isOk());
     }
 
@@ -315,63 +466,6 @@ public class NodeControllerTest {
     }
 
     @Test
-    public void testMoveNode() throws Exception {
-        when(nodeDAO.moveNodes(Arrays.asList("a"), "b", "username")).thenReturn(Node.builder().uniqueId("2").uniqueId("a").build());
-
-        MockHttpServletRequestBuilder request = post("/move")
-                .contentType(JSON)
-                .content(objectMapper.writeValueAsString(Arrays.asList("a")))
-                .param("to", "b")
-                .param("username", "username");
-
-        MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))
-                .andReturn();
-
-        // Make sure response contains expected data
-        objectMapper.readValue(result.getResponse().getContentAsString(), Node.class);
-    }
-
-    @Test
-    public void testMoveNodeUsernameEmpty() throws Exception {
-        MockHttpServletRequestBuilder request = post("/move")
-                .contentType(JSON)
-                .content(objectMapper.writeValueAsString(Arrays.asList("a")))
-                .param("to", "b")
-                .param("username", "");
-
-        mockMvc.perform(request).andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void testMoveNodeTargetIdEmpty() throws Exception {
-        MockHttpServletRequestBuilder request = post("/move")
-                .contentType(JSON)
-                .content(objectMapper.writeValueAsString(Arrays.asList("a")))
-                .param("to", "")
-                .param("username", "user");
-
-        mockMvc.perform(request).andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void testMoveNodeSourceNodeListEmpty() throws Exception {
-        MockHttpServletRequestBuilder request = post("/move")
-                .contentType(JSON)
-                .content(objectMapper.writeValueAsString(Collections.emptyList()))
-                .param("to", "targetId")
-                .param("username", "user");
-
-        mockMvc.perform(request).andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void testMoveNodeNoUsername() throws Exception {
-        MockHttpServletRequestBuilder request = post("/move").param("to", "b");
-
-        mockMvc.perform(request).andExpect(status().isBadRequest());
-    }
-
-    @Test
     public void testGetFolderIllegalArgument() throws Exception {
         when(nodeDAO.getNode("a")).thenThrow(IllegalArgumentException.class);
 
@@ -384,11 +478,15 @@ public class NodeControllerTest {
     @Test
     public void testUpdateNode() throws Exception {
 
-        Node node = Node.builder().name("foo").uniqueId("a").build();
+        reset(nodeDAO);
 
+        Node node = Node.builder().name("foo").uniqueId("a").userName(demoUser).build();
+
+        when(nodeDAO.getNode("a")).thenReturn(node);
         when(nodeDAO.updateNode(Mockito.any(Node.class), Mockito.anyBoolean())).thenReturn(node);
 
         MockHttpServletRequestBuilder request = post("/node")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
                 .param("customTimeForMigration", "false")
                 .contentType(JSON)
                 .content(objectMapper.writeValueAsString(node));
@@ -399,6 +497,44 @@ public class NodeControllerTest {
         // Make sure response contains expected data
         objectMapper.readValue(result.getResponse().getContentAsString(), Node.class);
 
+        node = Node.builder().name("foo").uniqueId("a").userName("notDemoUser").build();
+
+        when(nodeDAO.getNode("a")).thenReturn(node);
+        when(nodeDAO.updateNode(Mockito.any(Node.class), Mockito.anyBoolean())).thenReturn(node);
+
+        request = post("/node")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .param("customTimeForMigration", "false")
+                .contentType(JSON)
+                .content(objectMapper.writeValueAsString(node));
+        mockMvc.perform(request).andExpect(status().isForbidden());
+
+        request = post("/node")
+                .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
+                .param("customTimeForMigration", "false")
+                .contentType(JSON)
+                .content(objectMapper.writeValueAsString(node));
+        mockMvc.perform(request).andExpect(status().isOk());
+
+
+        request = post("/node")
+                .param("customTimeForMigration", "false")
+                .contentType(JSON)
+                .content(objectMapper.writeValueAsString(node));
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
+
+        request = post("/node")
+                .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
+                .param("customTimeForMigration", "false")
+                .contentType(JSON)
+                .content(objectMapper.writeValueAsString(node));
+        mockMvc.perform(request).andExpect(status().isForbidden());
+
+        request = post("/node")
+                .param("customTimeForMigration", "false")
+                .contentType(JSON)
+                .content(objectMapper.writeValueAsString(node));
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -411,11 +547,11 @@ public class NodeControllerTest {
         mockMvc.perform(request).andExpect(status().isBadRequest());
 
         Node node = Node.builder().name("name").uniqueId("uniqueId").build();
-        when(nodeDAO.getFromPath("/a/b/c")).thenReturn(Arrays.asList(node));
+        when(nodeDAO.getFromPath("/a/b/c")).thenReturn(Collections.singletonList(node));
         request = get("/path?path=/a/b/c");
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andReturn();
 
-        List<Node> nodes = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<List<Node>>() {
+        List<Node> nodes = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
         });
 
         assertEquals(1, nodes.size());
@@ -447,7 +583,10 @@ public class NodeControllerTest {
         tag2.setName("goLDeN");
         compositeSnapshot.setTags(Arrays.asList(tag1, tag2));
 
-        MockHttpServletRequestBuilder request = put("/node?parentNodeId=p").contentType(JSON).content(objectMapper.writeValueAsString(compositeSnapshot));
+        MockHttpServletRequestBuilder request = put("/node?parentNodeId=p")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .contentType(JSON)
+                .content(objectMapper.writeValueAsString(compositeSnapshot));
 
         mockMvc.perform(request).andExpect(status().isBadRequest());
     }
@@ -456,7 +595,7 @@ public class NodeControllerTest {
     public void testUpdateNodeWithInvalidTags() throws Exception {
 
         Node compositeSnapshot = Node.builder().nodeType(NodeType.COMPOSITE_SNAPSHOT).name("composite snapshot").uniqueId("hhh")
-                .userName("user").build();
+                .userName(demoUser).build();
         Tag tag1 = new Tag();
         tag1.setName("a");
 
@@ -464,7 +603,12 @@ public class NodeControllerTest {
         tag2.setName("goLDeN");
         compositeSnapshot.setTags(Arrays.asList(tag1, tag2));
 
-        MockHttpServletRequestBuilder request = post("/node").contentType(JSON).content(objectMapper.writeValueAsString(compositeSnapshot));
+        when(nodeDAO.getNode("hhh")).thenReturn(compositeSnapshot);
+
+        MockHttpServletRequestBuilder request = post("/node")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .contentType(JSON)
+                .content(objectMapper.writeValueAsString(compositeSnapshot));
 
         mockMvc.perform(request).andExpect(status().isBadRequest());
     }
@@ -483,7 +627,10 @@ public class NodeControllerTest {
 
         when(nodeDAO.createNode(Mockito.any(String.class), Mockito.any(Node.class))).thenReturn(compositeSnapshot);
 
-        MockHttpServletRequestBuilder request = put("/node?parentNodeId=p").contentType(JSON).content(objectMapper.writeValueAsString(compositeSnapshot));
+        MockHttpServletRequestBuilder request = put("/node?parentNodeId=p")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .contentType(JSON)
+                .content(objectMapper.writeValueAsString(compositeSnapshot));
 
         mockMvc.perform(request).andExpect(status().isOk());
 
@@ -504,7 +651,10 @@ public class NodeControllerTest {
 
         when(nodeDAO.createNode(Mockito.any(String.class), Mockito.any(Node.class))).thenReturn(compositeSnapshot);
 
-        MockHttpServletRequestBuilder request = put("/node?parentNodeId=p").contentType(JSON).content(objectMapper.writeValueAsString(compositeSnapshot));
+        MockHttpServletRequestBuilder request = put("/node?parentNodeId=p")
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .contentType(JSON)
+                .content(objectMapper.writeValueAsString(compositeSnapshot));
 
         mockMvc.perform(request).andExpect(status().isOk());
 

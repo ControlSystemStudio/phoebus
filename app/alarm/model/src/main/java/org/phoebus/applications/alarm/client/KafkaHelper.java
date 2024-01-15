@@ -31,6 +31,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
+import org.phoebus.applications.alarm.AlarmSystem;
 
 /** Alarm client model
  *
@@ -117,13 +118,12 @@ public class KafkaHelper
         kafka_props.put("bootstrap.servers", kafka_servers);
         // Collect messages for 20ms until sending them out as a batch
         kafka_props.put("linger.ms", 20);
+        kafka_props.put("max.block.ms", AlarmSystem.max_block_ms == 0 ? 10000 : AlarmSystem.max_block_ms);
 
         // Write String key, value
         final Serializer<String> serializer = new StringSerializer();
 
-        final Producer<String, String> producer = new KafkaProducer<>(kafka_props, serializer, serializer);
-
-        return producer;
+        return new KafkaProducer<>(kafka_props, serializer, serializer);
     }
 
     /**
@@ -162,7 +162,7 @@ public class KafkaHelper
         logger.fine("loading file from path: " + filePath);
         Properties properties = new Properties();
         if(filePath != null && !filePath.isBlank()){
-            try(FileInputStream file = new FileInputStream(filePath);){
+            try(FileInputStream file = new FileInputStream(filePath)){
                 properties.load(file);
             } catch(IOException e) {
                 logger.log(Level.SEVERE, "failed to load kafka properties", e);

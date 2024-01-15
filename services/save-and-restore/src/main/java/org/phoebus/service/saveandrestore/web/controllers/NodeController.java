@@ -23,16 +23,14 @@ import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.expression.SecurityExpressionRoot;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -47,7 +45,7 @@ public class NodeController extends BaseController {
     @Autowired
     private NodeDAO nodeDAO;
 
-    private Logger logger = Logger.getLogger(NodeController.class.getName());
+    private final Logger logger = Logger.getLogger(NodeController.class.getName());
 
     /**
      * Create a new folder in the tree structure.
@@ -60,22 +58,24 @@ public class NodeController extends BaseController {
      * </ul>
      *
      * @param parentsUniqueId The unique id of the parent node for the new node.
-     * @param node            A {@link Node} object. The {@link Node#getName()} and {@link Node#getUserName()} ()} fields must be
+     * @param node            A {@link Node} object. The {@link Node#getName()} field must be
      *                        non-null and non-empty.
+     * @param principal       Authenticated user's {@link java.security.Principal}
      * @return The new folder in the tree.
      */
     @SuppressWarnings("unused")
     @PutMapping(value = "/node", produces = JSON)
-    public Node createNode(@RequestParam(name = "parentNodeId") String parentsUniqueId, @RequestBody final Node node) {
-        if (node.getUserName() == null || node.getUserName().isEmpty()) {
-            throw new IllegalArgumentException("User name must be non-null and of non-zero length");
-        }
+    @PreAuthorize("@authorizationHelper.mayCreate(#root)")
+    public Node createNode(@RequestParam(name = "parentNodeId") String parentsUniqueId,
+                           @RequestBody final Node node,
+                           Principal principal) {
         if (node.getName() == null || node.getName().isEmpty()) {
             throw new IllegalArgumentException("Node name must be non-null and of non-zero length");
         }
-        if(!areTagsValid(node)){
+        if (!areTagsValid(node)) {
             throw new IllegalArgumentException("Node may not contain golden tag");
         }
+        node.setUserName(principal.getName());
         return nodeDAO.createNode(parentsUniqueId, node);
     }
 
@@ -132,17 +132,56 @@ public class NodeController extends BaseController {
      * </p>
      *
      * @param uniqueNodeId The non-zero id of the node to delete
+     * @param authentication {@link Authentication} of authenticated user.
      */
+    /*
     @SuppressWarnings("unused")
     @DeleteMapping(value = "/node/{uniqueNodeId}", produces = JSON)
-    public void deleteNode(@PathVariable final String uniqueNodeId) {
+    @PreAuthorize("hasRole(this.roleAdmin) or @authorizationHelper.mayDelete(#uniqueNodeId, #authentication)")
+    @Deprecated
+    public void deleteNode(@PathVariable final String uniqueNodeId, Authentication authentication) {
         logger.info("Deleting node with unique id " + uniqueNodeId);
         nodeDAO.deleteNode(uniqueNodeId);
+    }
+
+     */
+
+    /**
+     * Deletes all {@link Node}s contained in the provided list.
+     * <br>
+     * Checks are made to make sure user may delete
+     * the {@link Node}s, see {@link AuthorizationHelper}. If the checks fail on any of the {@link Node} ids,
+     * checks are aborted and client will receive an HTTP 403 response.
+     * <br>
+     * Note that the {@link PreAuthorize} annotations calls a helper method in {@link AuthorizationHelper}, using
+     * the list of {@link Node} ids and a Spring injected object - <code>root</code> - used to check
+     * authorities of the user.
+     * <br>
+     * Note also that an unauthenticated user (e.g. no basic authentication header in client's request) will
+     * receive a HTTP 401 response, i.e. the {@link PreAuthorize} check is not invoked.
+     * @param nodeIds
+     */
+    @SuppressWarnings("unused")
+    @DeleteMapping(value = "/node", produces = JSON)
+    @PreAuthorize("@authorizationHelper.mayDelete(#nodeIds, #root)")
+    public void deleteNodes(@RequestBody List<String> nodeIds) {
+        nodeDAO.deleteNodes(nodeIds);
     }
 
     /**
      * Updates a {@link Node}. The purpose is to support modification of name or comment/description, or both. Modification of
      * node type is not supported.
+     *
+     * <br>
+     * Checks are made to make sure user may update
+     * the {@link Node}, see {@link AuthorizationHelper}. If the checks fail client will receive an HTTP 403 response.
+     * <br>
+     * Note that the {@link PreAuthorize} annotations calls a helper method in {@link AuthorizationHelper}, using
+     * the of {@link Node} id and a Spring injected object - <code>root</code> - used to check
+     * authorities of the user.
+     * <br>
+     * Note also that an unauthenticated user (e.g. no basic authentication header in client's request) will
+     * receive a HTTP 401 response, i.e. the {@link PreAuthorize} check is not invoked.
      *
      * <p>
      * A {@link HttpStatus#BAD_REQUEST} is returned if a node of the same name and type already exists in the parent folder,
@@ -150,32 +189,36 @@ public class NodeController extends BaseController {
      * </p>
      *
      * @param customTimeForMigration Self-explanatory
-     * @param nodeToUpdate           {@link Node} object containing updated data. Only name, description and properties may be changed. The user name
-     *                               should be set by the client in an automated fashion and will be updated by the persistence layer.
+     * @param nodeToUpdate           {@link Node} object containing updated data. Only name, description and properties may be changed.
+     * @param principal              Authenticated user's {@link java.security.Principal}
      * @return A {@link Node} object representing the updated node.
      */
     @SuppressWarnings("unused")
     @PostMapping(value = "/node", produces = JSON)
+    @PreAuthorize("@authorizationHelper.mayUpdate(#nodeToUpdate, #root)")
     public Node updateNode(@RequestParam(value = "customTimeForMigration", required = false, defaultValue = "false") String customTimeForMigration,
-                           @RequestBody Node nodeToUpdate) {
-        if(!areTagsValid(nodeToUpdate)){
+                           @RequestBody Node nodeToUpdate,
+                           Principal principal) {
+        if (!areTagsValid(nodeToUpdate)) {
             throw new IllegalArgumentException("Node may not contain golden tag");
         }
+        nodeToUpdate.setUserName(principal.getName());
         return nodeDAO.updateNode(nodeToUpdate, Boolean.valueOf(customTimeForMigration));
     }
 
     /**
      * Checks if a {@link Node} has a tag named "golden". If so, it must be of type {@link NodeType#SNAPSHOT}.
+     *
      * @param node A {@link Node} with potentially null or empty list of tags.
      * @return <code>true</code> if the {@link Node} in question has a valid list of tags, otherwise <code>false</code>.
      */
-    private boolean areTagsValid(Node node){
-        if(node.getTags() == null || node.getTags().isEmpty()){
+    private boolean areTagsValid(Node node) {
+        if (node.getTags() == null || node.getTags().isEmpty()) {
             return true;
         }
 
-        if(!node.getNodeType().equals(NodeType.SNAPSHOT) &&
-                node.getTags().stream().filter(t -> t.getName().equalsIgnoreCase(Tag.GOLDEN)).findFirst().isPresent()){
+        if (!node.getNodeType().equals(NodeType.SNAPSHOT) &&
+                node.getTags().stream().anyMatch(t -> t.getName().equalsIgnoreCase(Tag.GOLDEN))) {
             return false;
         }
 

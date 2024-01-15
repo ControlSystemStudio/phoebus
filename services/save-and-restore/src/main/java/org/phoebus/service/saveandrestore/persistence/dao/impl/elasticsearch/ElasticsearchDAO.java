@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.lang.annotation.Inherited;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -124,15 +125,31 @@ public class ElasticsearchDAO implements NodeDAO {
         return nodes;
     }
 
+    /**
+     *  {@inheritDoc}
+     */
     @Override
+    @Deprecated
     public void deleteNode(String nodeId) {
-        Node nodeToDelete = getNode(nodeId);
-        if (nodeToDelete == null) {
-            throw new NodeNotFoundException("Cannot delete non-existing node");
-        } else if (nodeToDelete.getUniqueId().equals(ROOT_FOLDER_UNIQUE_ID)) {
-            throw new IllegalArgumentException("Root node cannot be deleted");
+        deleteNodes(List.of(nodeId));
+    }
+
+    /**
+     *  {@inheritDoc}
+     */
+    @Override
+    public void deleteNodes(List<String> nodeIds){
+        List<Node> nodes = new ArrayList<>();
+        for(String nodeId : nodeIds){
+            Node nodeToDelete = getNode(nodeId);
+            if (nodeToDelete == null) {
+                throw new NodeNotFoundException("Cannot delete non-existing node");
+            } else if (nodeToDelete.getUniqueId().equals(ROOT_FOLDER_UNIQUE_ID)) {
+                throw new IllegalArgumentException("Root node cannot be deleted");
+            }
+            nodes.add(nodeToDelete);
         }
-        deleteNode(nodeToDelete);
+        nodes.forEach(this::deleteNode);
     }
 
     @Override
@@ -680,9 +697,10 @@ public class ElasticsearchDAO implements NodeDAO {
 
         Node existingConfigurationNode = getNode(configuration.getConfigurationNode().getUniqueId());
 
-        // Set name and description, even if unchanged.
+        // Set name, description and user even if unchanged.
         existingConfigurationNode.setName(configuration.getConfigurationNode().getName());
         existingConfigurationNode.setDescription(configuration.getConfigurationNode().getDescription());
+        existingConfigurationNode.setUserName(configuration.getConfigurationNode().getUserName());
         // Update last modified date
         existingConfigurationNode.setLastModified(new Date());
         existingConfigurationNode = updateNode(existingConfigurationNode, false);
@@ -705,7 +723,7 @@ public class ElasticsearchDAO implements NodeDAO {
     }
 
     @Override
-    public Snapshot saveSnapshot(String parentNodeId, Snapshot snapshot) {
+    public Snapshot createSnapshot(String parentNodeId, Snapshot snapshot) {
 
         SnapshotData sanitizedSnapshotData = removeDuplicateSnapshotItems(snapshot.getSnapshotData());
         snapshot.setSnapshotData(sanitizedSnapshotData);
@@ -725,6 +743,27 @@ public class ElasticsearchDAO implements NodeDAO {
         Snapshot newSnapshot = new Snapshot();
         newSnapshot.setSnapshotData(newSnapshotData);
         newSnapshot.setSnapshotNode(newSnapshotNode);
+
+        return newSnapshot;
+    }
+
+    @Override
+    public Snapshot updateSnapshot(Snapshot snapshot) {
+
+        SnapshotData sanitizedSnapshotData = removeDuplicateSnapshotItems(snapshot.getSnapshotData());
+        snapshot.setSnapshotData(sanitizedSnapshotData);
+
+        snapshot.getSnapshotNode().setNodeType(NodeType.SNAPSHOT); // Force node type
+        SnapshotData newSnapshotData;
+        try {
+            newSnapshotData = snapshotDataRepository.save(snapshot.getSnapshotData());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        Snapshot newSnapshot = new Snapshot();
+        newSnapshot.setSnapshotData(newSnapshotData);
+        newSnapshot.setSnapshotNode(snapshot.getSnapshotNode());
 
         return newSnapshot;
     }

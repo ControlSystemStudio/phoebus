@@ -41,7 +41,7 @@ public abstract class ChannelFinderController {
         }
         channelSearchJob = ChannelSearchJob.submit(this.client, searchString,
                 channels -> Platform.runLater(() -> setChannels(channels)),
-                (url, ex) -> ExceptionDetailsErrorDialog.openError("ChannelFinder Query Error", ex.getMessage(), ex));
+                (url, ex) -> ExceptionDetailsErrorDialog.openError("ChannelFinder Query Error", ex));
 
     }
 

@@ -13,6 +13,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.util.Locale;
 import java.util.logging.Level;
 
 import org.csstudio.display.builder.model.DisplayModel;
@@ -57,7 +58,7 @@ public class DisplayInfo
         // Get basic file or http 'path' from path
         final String path;
         if (uri.getScheme() == null  ||  uri.getScheme().equals("file"))
-            path = uri.getRawPath();
+            path = uri.getPath();
         else
         {
             final StringBuilder buf = new StringBuilder();
@@ -112,7 +113,26 @@ public class DisplayInfo
      */
     public static DisplayInfo forModel(final DisplayModel model)
     {
-        return new DisplayInfo(model.getUserData(DisplayModel.USER_DATA_INPUT_FILE),
+        String path;
+        {
+            String userDataInputFile = model.getUserData(DisplayModel.USER_DATA_INPUT_FILE);
+            String userDataInputFile_lowerCase = userDataInputFile.toLowerCase(Locale.ROOT);
+            if (   !userDataInputFile_lowerCase.startsWith("/")
+                && !userDataInputFile_lowerCase.startsWith("examples:")
+                && !userDataInputFile_lowerCase.startsWith("file:")
+                && !userDataInputFile_lowerCase.startsWith("http:")
+                && !userDataInputFile_lowerCase.startsWith("https:")
+                && !userDataInputFile_lowerCase.startsWith("ftp:")
+                && !userDataInputFile_lowerCase.startsWith("jar:")) {
+                // Add leading '/' and replace occurrences of '\' by '/' in the file path on Windows:
+                path = "/" + userDataInputFile.replace('\\', '/');
+            }
+            else {
+                path = userDataInputFile;
+            }
+        }
+
+        return new DisplayInfo(path,
                 model.getDisplayName(),
                 model.propMacros().getValue(),
                 false);

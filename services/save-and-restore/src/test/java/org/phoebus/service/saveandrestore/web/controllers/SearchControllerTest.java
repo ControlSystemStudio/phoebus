@@ -34,12 +34,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -54,7 +54,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = ControllersTestConfig.class)
-@WebMvcTest(NodeController.class)
+@WebMvcTest(SearchController.class)
+@TestPropertySource(locations = "classpath:test_application.properties")
 public class SearchControllerTest {
 
     @Autowired
@@ -73,7 +74,7 @@ public class SearchControllerTest {
     public String ES_CONFIGURATION_INDEX;
 
     @Test
-    public void testSearch() throws Exception{
+    public void testSearch() throws Exception {
         SearchResult searchResult = new SearchResult();
         searchResult.setHitCount(1);
         searchResult.setNodes(List.of(Node.builder().name("node").build()));

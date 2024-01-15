@@ -39,9 +39,14 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.RemoteRemoveCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.internal.transport.sshd.CachingKeyPairProvider;
 import org.eclipse.jgit.lib.RepositoryCache;
+import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.transport.sshd.JGitKeyCache;
+import org.eclipse.jgit.transport.sshd.SshdSessionFactory;
+import org.eclipse.jgit.transport.sshd.SshdSessionFactoryBuilder;
 import org.eclipse.jgit.util.FS;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.model.xml.XmlModelWriter;
@@ -66,6 +71,9 @@ public class AlarmConfigLogger implements Runnable {
 
     // The alarm tree model which holds the current state of the alarm server
     private final AlarmClient model;
+
+    private SshdSessionFactory sshdSessionFactory;
+    private UsernamePasswordCredentialsProvider usernamePasswordCredentialsProvider;
 
     public AlarmConfigLogger(String topic, String location, String remoteLocation) {
         super();
@@ -105,6 +113,30 @@ public class AlarmConfigLogger implements Runnable {
             } catch (IllegalStateException | GitAPIException e) {
                 logger.log(Level.WARNING, "Failed to initiate the git repo", e);
             }
+        }
+        // Set up the ssh keys if used
+        if(props.containsKey("use_ssh_keys") && Boolean.parseBoolean(props.getProperty("use_ssh_keys"))) {
+			try {
+				File sshDir = new File(FS.DETECTED.userHome(), ".ssh");
+				JGitKeyCache cache = new JGitKeyCache();
+				SshdSessionFactoryBuilder builder = new SshdSessionFactoryBuilder();
+				if(props.containsKey("private_key")) {
+					File key = new File(props.getProperty("private_key"));
+					builder.setDefaultKeysProvider(file -> new CachingKeyPairProvider(List.of(key.getAbsoluteFile().toPath()), cache));
+				}
+				builder.setHomeDirectory(FS.DETECTED.userHome());
+				builder.setSshDirectory(sshDir);
+				sshdSessionFactory = builder.build(cache);
+			} catch (NullPointerException  e) {
+					logger.log(Level.WARNING, "Failed to open .ssh/private_key", e);
+			}
+
+        }
+        // Setup basic username/password auth
+        if (props.containsKey("username") && props.containsKey("password")) {
+            usernamePasswordCredentialsProvider = new UsernamePasswordCredentialsProvider(
+                    props.getProperty("username"),
+                    props.getProperty("password"));
         }
         // Check if it is configured with the appropriate remotes
         if (remoteLocation != null && !remoteLocation.isEmpty()) {
@@ -199,14 +231,14 @@ public class AlarmConfigLogger implements Runnable {
     /**
      * Process a single alarm configuration event
      *
-     * @param path
+     * @param rawPath
      * @param alarm_config
      * @param commit
      */
     private synchronized void processAlarmConfigMessages(String rawPath, String alarm_config, boolean commit) {
         try {
-	    if (rawPath.contains("config:/")) {
-		String path = (rawPath.split("config:/"))[1];
+            if (rawPath.contains("config:/")) {
+                String path = (rawPath.split("config:/"))[1];
                 logger.log(Level.INFO, "processing message:" + path + ":" + alarm_config);
                 if (alarm_config != null) {
                     path = path.replaceAll("[:|?*]", "_");
@@ -223,17 +255,17 @@ public class AlarmConfigLogger implements Runnable {
                 } else {
                     path = path.replaceAll("[:|?*]", "_");
                     Path directory = Paths.get(root.getParent(), path);
-                    if(directory.toFile().exists()) {
+                    if (directory.toFile().exists()) {
                         Files.walk(directory).map(Path::toFile).forEach(File::delete);
                         directory.toFile().delete();
                     }
                 }
                 writeAlarmModel();
-                if(commit) {
-                // Commit the initialized git repo
+                if (commit) {
+                    // Commit the initialized git repo
                     try (Git git = Git.open(root)) {
                         git.add().addFilepattern(".").call();
-                        git.commit().setAll(true).setMessage("Alarm config update "+path).call();
+                        git.commit().setAll(true).setMessage("Alarm config update " + path).call();
 
                         // Check if it is configured with the appropriate remotes
                         if (remoteLocation != null && !remoteLocation.isEmpty()) {
@@ -241,17 +273,20 @@ public class AlarmConfigLogger implements Runnable {
                             PushCommand pushCommand = git.push();
                             pushCommand.setRemote(REMOTE_NAME);
                             pushCommand.setForce(true);
-                            pushCommand.setCredentialsProvider(
-                                new UsernamePasswordCredentialsProvider(
-                                        props.getProperty("username"),
-                                        props.getProperty("password"))
-                                );
+                            if (Boolean.parseBoolean(props.getProperty("use_ssh_keys"))) {
+                                pushCommand.setTransportConfigCallback(transport -> {
+                                    SshTransport sshTransport = (SshTransport) transport;
+                                    sshTransport.setSshSessionFactory(sshdSessionFactory);
+                                });
+                            } else if (usernamePasswordCredentialsProvider != null) {
+                                pushCommand.setCredentialsProvider(usernamePasswordCredentialsProvider);
+                            }
                             pushCommand.call();
                         }
                     } catch (GitAPIException | IOException e) {
                         logger.log(Level.WARNING, "Failed to commit the configuration changes", e);
                     }
-		}
+                }
             }
         } catch (final Exception ex) {
             logger.log(Level.WARNING, "Alarm state check error for path " + rawPath + ", config " + alarm_config, ex);

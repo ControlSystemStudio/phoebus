@@ -31,6 +31,8 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.stage.Stage;
 import javafx.util.Callback;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.security.authorization.ServiceAuthenticationProvider;
@@ -74,6 +76,8 @@ public class CredentialsManagementController {
     private final SecureStore secureStore;
     private static final Logger LOGGER = Logger.getLogger(CredentialsManagementController.class.getName());
     private final List<ServiceAuthenticationProvider> authenticationProviders;
+
+    private Stage stage;
 
     public CredentialsManagementController(List<ServiceAuthenticationProvider> authenticationProviders, SecureStore secureStore) {
         this.authenticationProviders = authenticationProviders;
@@ -139,6 +143,11 @@ public class CredentialsManagementController {
         }
     }
 
+    /**
+     * Attempts to sign in user based on provided credentials. If sign-in succeeds, this method will close the
+     * associated UI.
+     * @param serviceItem The {@link ServiceItem} defining the scope, and implicitly the authentication service.
+     */
     private void login(ServiceItem serviceItem){
         try {
             serviceItem.getServiceAuthenticationProvider().authenticate(serviceItem.getUsername(), serviceItem.getPassword());
@@ -146,11 +155,10 @@ public class CredentialsManagementController {
                 secureStore.setScopedAuthentication(new ScopedAuthenticationToken(serviceItem.getAuthenticationScope(),
                         serviceItem.getUsername(),
                         serviceItem.getPassword()));
+                stage.close();
             } catch (Exception exception) {
                 LOGGER.log(Level.WARNING, "Failed to store credentials", exception);
             }
-            updateTable();
-
         } catch (Exception exception) {
             LOGGER.log(Level.WARNING, "Failed to login to service", exception);
             ExceptionDetailsErrorDialog.openError(parent, "Login Failure", "Failed to login to service", exception);
@@ -252,7 +260,7 @@ public class CredentialsManagementController {
             return loginAction;
         }
     }
-    private static class UsernameTableCell extends TableCell<ServiceItem, String>{
+    private class UsernameTableCell extends TableCell<ServiceItem, String>{
         private final TextField textField = new TextField();
 
         public UsernameTableCell(){
@@ -279,7 +287,7 @@ public class CredentialsManagementController {
         }
     }
 
-    private static class PasswordTableCell extends TableCell<ServiceItem, String>{
+    private class PasswordTableCell extends TableCell<ServiceItem, String>{
         private final PasswordField passwordField = new PasswordField();
 
         public PasswordTableCell(){
@@ -301,8 +309,17 @@ public class CredentialsManagementController {
                     // Disable field if user is logged in.
                     passwordField.disableProperty().set(!getTableRow().getItem().loginAction);
                 }
+                passwordField.setOnKeyPressed(keyEvent -> {
+                    if (keyEvent.getCode() == KeyCode.ENTER) {
+                        CredentialsManagementController.this.login(getTableRow().getItem());
+                    }
+                });
                 setGraphic(passwordField);
             }
         }
+    }
+
+    public void setStage(Stage stage){
+        this.stage = stage;
     }
 }

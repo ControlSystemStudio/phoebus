@@ -9,6 +9,7 @@ package org.csstudio.display.builder.editor;
 
 import static org.csstudio.display.builder.editor.Plugin.logger;
 
+import java.net.URI;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,6 +21,7 @@ import java.util.logging.Level;
 import java.util.prefs.Preferences;
 
 import org.csstudio.display.builder.editor.actions.ActionDescription;
+import org.csstudio.display.builder.editor.app.DisplayEditorApplication;
 import org.csstudio.display.builder.editor.app.DisplayEditorInstance;
 import org.csstudio.display.builder.editor.palette.Palette;
 import org.csstudio.display.builder.editor.poly.PointsBinding;
@@ -34,10 +36,7 @@ import org.csstudio.display.builder.editor.util.ParentHandler;
 import org.csstudio.display.builder.editor.util.Rubberband;
 import org.csstudio.display.builder.editor.util.WidgetNaming;
 import org.csstudio.display.builder.editor.util.WidgetTransfer;
-import org.csstudio.display.builder.model.ChildrenProperty;
-import org.csstudio.display.builder.model.DisplayModel;
-import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.WidgetDescriptor;
+import org.csstudio.display.builder.model.*;
 import org.csstudio.display.builder.model.persist.ModelReader;
 import org.csstudio.display.builder.model.persist.ModelWriter;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
@@ -46,7 +45,11 @@ import org.csstudio.display.builder.model.widgets.TabsWidget;
 import org.csstudio.display.builder.model.widgets.TabsWidget.TabItemProperty;
 import org.csstudio.display.builder.representation.ToolkitListener;
 import org.csstudio.display.builder.representation.javafx.JFXRepresentation;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.preferences.PhoebusPreferenceService;
+import org.phoebus.framework.util.ResourceParser;
+import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.undo.UndoButtons;
 import org.phoebus.ui.undo.UndoableActionManager;
@@ -70,6 +73,8 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
@@ -159,6 +164,7 @@ public class DisplayEditor
     private ToggleButton snap;
     private ToggleButton coords;
     private ToggleButton crosshair;
+    private DisplayEditorInstance instance;
 
     /** Snap and info options */
     public static final String
@@ -364,6 +370,52 @@ public class DisplayEditor
         button.selectedProperty()
               .addListener((observable, old_value, enabled) -> action.run(this, enabled) );
         return button;
+    }
+
+    public void reloadDisplay (final EditorGUI editor_gui)
+    {
+        DisplayEditorApplication application = new DisplayEditorApplication();
+        URI file = editor_gui.getFile().toURI();
+        instance = application.create(file);
+        // Warn if editor is dirty
+        if (instance.isDirty())
+        {
+            final Alert prompt = new Alert(Alert.AlertType.CONFIRMATION);
+            prompt.setTitle(Messages.ReloadDisplay);
+            prompt.setHeaderText(Messages.ReloadWarning);
+            DialogHelper.positionDialog(prompt, editor_gui.getParentNode(), -200, -200);
+            if (prompt.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK)
+                return;
+        }
+        instance.reloadDisplay();
+    }
+
+    public void runDisplay (final EditorGUI editor_gui)
+    {
+        JobManager.schedule(Messages.Run, monitor ->
+        {
+            // Save if there's something to save
+            if (editor_gui.getDisplayEditor().getUndoableActionManager().canUndo()) {
+                DisplayEditorApplication application = new DisplayEditorApplication();
+                URI file = editor_gui.getFile().toURI();
+                Runnable runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        instance = application.create(file);
+                        try {
+                            instance.doSave(monitor);
+                        } catch (Exception e) {
+                            ModelPlugin.logger.log(Level.SEVERE, "Cannot save editor instance", e);
+                        }
+
+                    }
+                };
+                Platform.runLater(runnable);
+            }
+
+            // Open in runtime, on UI thread
+            Platform.runLater(() -> ApplicationService.createInstance("display_runtime", ResourceParser.getURI(editor_gui.getFile())));
+        });
     }
 
     /** @return ToolBar */

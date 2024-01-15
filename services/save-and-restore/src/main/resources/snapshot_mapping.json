@@ -5,23 +5,7 @@
         "type" : "keyword"
       },
       "snapshotItems" : {
-        "type" : "nested",
-        "properties": {
-          "configPv": {
-            "properties": {
-              "pvName" : {
-                "type": "keyword"
-              },
-              "readOnly": {
-                "type" : "boolean"
-              }
-            }
-          },
-          "value": {
-            "enabled": false,
-            "type": "object"
-          }
-        }
+        "type" : "flattened"
       }
     }
   }

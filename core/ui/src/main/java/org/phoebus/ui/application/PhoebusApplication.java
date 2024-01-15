@@ -794,9 +794,15 @@ public class PhoebusApplication extends Application {
         home_display_button.setTooltip(new Tooltip(Messages.HomeTT));
         toolBar.getItems().add(home_display_button);
 
-        final TopResources homeResource = TopResources.parse(Preferences.home_display);
 
-        home_display_button.setOnAction(event -> openResource(homeResource.getResource(0), false));
+        if (!Preferences.home_display.isEmpty()) {
+            final TopResources homeResource = TopResources.parse(Preferences.home_display);
+            home_display_button.setOnAction(event -> openResource(homeResource.getResource(0), false));
+        }
+        else {
+            Welcome welcome = new Welcome();
+            home_display_button.setOnAction(event -> welcome.create());
+        }
 
         top_resources_button = new MenuButton(null, ImageCache.getImageView(getClass(), "/icons/fldr_obj.png"));
         top_resources_button.setTooltip(new Tooltip(Messages.TopResources));

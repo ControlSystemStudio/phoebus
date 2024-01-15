@@ -17,22 +17,16 @@
  */
 package org.phoebus.service.saveandrestore.web.controllers;
 
-import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
-import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
-import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @SuppressWarnings("unused")
@@ -53,8 +47,25 @@ public class SnapshotController extends BaseController {
     }
 
     @PutMapping(value = "/snapshot", produces = JSON)
-    public Snapshot saveSnapshot(@RequestParam(value = "parentNodeId") String parentNodeId,
-                                 @RequestBody Snapshot snapshot) {
-        return nodeDAO.saveSnapshot(parentNodeId, snapshot);
+    @PreAuthorize("@authorizationHelper.mayCreate(#root)")
+    public Snapshot createSnapshot(@RequestParam(value = "parentNodeId") String parentNodeId,
+                                 @RequestBody Snapshot snapshot,
+                                 Principal principal) {
+        if(!snapshot.getSnapshotNode().getNodeType().equals(NodeType.SNAPSHOT)){
+            throw new IllegalArgumentException("Snapshot node of wrong type");
+        }
+        snapshot.getSnapshotNode().setUserName(principal.getName());
+        return nodeDAO.createSnapshot(parentNodeId, snapshot);
+    }
+
+    @PostMapping(value = "/snapshot", produces = JSON)
+    @PreAuthorize("@authorizationHelper.mayUpdate(#snapshot, #root)")
+    public Snapshot updateSnapshot(@RequestBody Snapshot snapshot,
+                                   Principal principal) {
+        if(!snapshot.getSnapshotNode().getNodeType().equals(NodeType.SNAPSHOT)){
+            throw new IllegalArgumentException("Snapshot node of wrong type");
+        }
+        snapshot.getSnapshotNode().setUserName(principal.getName());
+        return nodeDAO.updateSnapshot(snapshot);
     }
 }

@@ -22,12 +22,7 @@ package org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.phoebus.applications.saveandrestore.model.ConfigPv;
-import org.phoebus.applications.saveandrestore.model.ConfigurationData;
-import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.SnapshotData;
-import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.service.saveandrestore.model.ESTreeNode;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchDAO.NodeNameComparator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +31,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 
@@ -45,17 +41,14 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @EnableConfigurationProperties
 @ContextHierarchy({@ContextConfiguration(classes = {ElasticTestConfig.class})})
 @TestExecutionListeners({DependencyInjectionTestExecutionListener.class})
+@TestPropertySource(locations = "classpath:test_application.properties")
 @Profile("IT")
 public class ElasticsearchDAOTest {
 
@@ -182,7 +175,7 @@ public class ElasticsearchDAOTest {
         ConfigPv configPvb = ConfigPv.builder().pvName("b").build();
         ConfigPv configPvc = ConfigPv.builder().pvName("c").build();
         ConfigPv configPvd = ConfigPv.builder().pvName("d").build();
-        ConfigPv configPve= ConfigPv.builder().pvName("e").build();
+        ConfigPv configPve = ConfigPv.builder().pvName("e").build();
 
         SnapshotData snapshotData = new SnapshotData();
         snapshotData.setSnapshotItems(Arrays.asList(SnapshotItem.builder().configPv(configPva).build(),
@@ -226,7 +219,7 @@ public class ElasticsearchDAOTest {
     }
 
     @Test
-    public void testDetermineNewNodeName(){
+    public void testDetermineNewNodeName() {
         Node n1 = Node.builder().uniqueId("abc").name("abc").build();
         Node n2 = Node.builder().uniqueId("def").name("def").build();
         Node n3 = Node.builder().uniqueId("ABC copy").name("ABC copy").build();
@@ -356,7 +349,7 @@ public class ElasticsearchDAOTest {
     }
 
     @Test
-    public void nodeNameComparatorTest(){
+    public void nodeNameComparatorTest() {
         List<String> sorted = Arrays.asList("abc", "abc copy").stream().sorted(new NodeNameComparator()).collect(Collectors.toList());
         assertEquals("abc", sorted.get(0));
         sorted = Arrays.asList("abc copy", "abc").stream().sorted(new NodeNameComparator()).collect(Collectors.toList());

@@ -127,7 +127,10 @@ public class StructureTest
         // But _elements_ of the structure need names to address them
         try
         {
+            // This is OK, i.e. element names may be empty
             new PVAStructure("", "", new PVADouble(""));
+            // But this must fail, element names must be non-null
+            new PVAStructure("", "", new PVADouble(null));
             fail("Structure elements must be named");
         }
         catch (Exception ex)

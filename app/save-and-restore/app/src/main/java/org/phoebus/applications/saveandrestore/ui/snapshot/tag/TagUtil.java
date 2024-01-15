@@ -44,7 +44,9 @@ import org.phoebus.applications.saveandrestore.ui.TagProposalProvider;
 import org.phoebus.applications.saveandrestore.ui.snapshot.SnapshotNewTagDialog;
 import org.phoebus.framework.autocomplete.ProposalService;
 import org.phoebus.ui.autocomplete.AutocompleteMenu;
+import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -96,7 +98,7 @@ public class TagUtil {
                                       Consumer<List<org.phoebus.applications.saveandrestore.model.Node>> callback) {
         AtomicInteger nonSnapshotCount = new AtomicInteger(0);
         selectedNodes.forEach(n -> {
-            if (!n.getNodeType().equals(NodeType.SNAPSHOT)) {
+            if (!n.getNodeType().equals(NodeType.SNAPSHOT) && !n.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)) {
                 nonSnapshotCount.incrementAndGet();
             }
         });
@@ -132,6 +134,9 @@ public class TagUtil {
                                 List<org.phoebus.applications.saveandrestore.model.Node> updatedNodes = SaveAndRestoreService.getInstance().deleteTag(tagData);
                                 callback.accept(updatedNodes);
                             } catch (Exception e) {
+                                ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
+                                        Messages.errorDeleteTagFailed,
+                                        e);
                                 Logger.getLogger(TagUtil.class.getName()).log(Level.WARNING, "Failed to remove tag from node", e);
                             }
                         }
@@ -168,6 +173,9 @@ public class TagUtil {
                 tagData.setUniqueNodeIds(selectedNodeIds);
                 updatedNodes.addAll(SaveAndRestoreService.getInstance().addTag(tagData));
             } catch (Exception e) {
+                ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
+                        Messages.errorAddTagFailed,
+                        e);
                 Logger.getLogger(TagUtil.class.getName()).log(Level.WARNING, "Failed to add tag to node");
             }
         });
@@ -188,23 +196,22 @@ public class TagUtil {
      *
      * @param selectedNodes List of {@link org.phoebus.applications.saveandrestore.model.Node}s selected by user.
      * @param menuItem      The {@link javafx.scene.control.MenuItem} subject to configuration.
+     * @return <code>false</code> if the menu item should be disabled.
      */
-    public static void configureGoldenItem(List<org.phoebus.applications.saveandrestore.model.Node> selectedNodes, MenuItem menuItem) {
+    public static boolean configureGoldenItem(List<org.phoebus.applications.saveandrestore.model.Node> selectedNodes, MenuItem menuItem) {
         AtomicInteger goldenTagCount = new AtomicInteger(0);
         AtomicInteger nonSnapshotCount = new AtomicInteger(0);
         selectedNodes.forEach(node -> {
             if (node.hasTag(Tag.GOLDEN)) {
                 goldenTagCount.incrementAndGet();
-            } else if (!node.getNodeType().equals(NodeType.SNAPSHOT) && !node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)) {
+            } else if (!node.getNodeType().equals(NodeType.SNAPSHOT)) {
                 nonSnapshotCount.incrementAndGet();
             }
         });
         if (nonSnapshotCount.get() > 0) {
-            menuItem.disableProperty().set(true);
-            return;
+            return false;
         }
         if (goldenTagCount.get() == selectedNodes.size()) {
-            menuItem.disableProperty().set(false);
             menuItem.setText(Messages.contextMenuRemoveGoldenTag);
             menuItem.setGraphic(new ImageView(ImageRepository.SNAPSHOT));
             menuItem.setOnAction(event -> {
@@ -214,11 +221,14 @@ public class TagUtil {
                 try {
                     SaveAndRestoreService.getInstance().deleteTag(tagData);
                 } catch (Exception e) {
+                    ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
+                            Messages.errorDeleteTagFailed,
+                            e);
                     Logger.getLogger(TagUtil.class.getName()).log(Level.SEVERE, "Failed to delete tag");
                 }
             });
+            return true;
         } else if (goldenTagCount.get() == 0) {
-            menuItem.disableProperty().set(false);
             menuItem.setText(Messages.contextMenuTagAsGolden);
             menuItem.setGraphic(new ImageView(ImageRepository.GOLDEN_SNAPSHOT));
             menuItem.setOnAction(event -> {
@@ -228,11 +238,15 @@ public class TagUtil {
                 try {
                     SaveAndRestoreService.getInstance().addTag(tagData);
                 } catch (Exception e) {
+                    ExceptionDetailsErrorDialog.openError(Messages.errorGeneric,
+                            Messages.errorAddTagFailed,
+                            e);
                     Logger.getLogger(TagUtil.class.getName()).log(Level.SEVERE, "Failed to add tag");
                 }
             });
+            return true;
         } else {
-            menuItem.disableProperty().set(true);
+            return false;
         }
     }
 }

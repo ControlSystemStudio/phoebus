@@ -12,6 +12,7 @@ import org.csstudio.trends.databrowser3.model.Model;
 import org.csstudio.trends.databrowser3.model.ModelItem;
 import org.csstudio.trends.databrowser3.persistence.XMLPersistence;
 import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
+import org.phoebus.util.time.TimeInterval;
 import org.phoebus.util.time.TimeRelativeInterval;
 
 import javafx.scene.image.Image;
@@ -51,6 +52,13 @@ public class DatabrowserSelection {
     public TimeRelativeInterval getPlotTime()
     {
         return model.getTimerange();
+    }
+
+    public void makeTimeRangeAbsolute()
+    {
+        TimeInterval absoluteInterval = model.getTimerange().toAbsoluteInterval();
+        TimeRelativeInterval absoluteTimeInterval = TimeRelativeInterval.of(absoluteInterval.getStart(), absoluteInterval.getEnd());
+        model.setTimerange(absoluteTimeInterval);
     }
 
     /**

@@ -23,7 +23,16 @@ import org.phoebus.security.tokens.ScopedAuthenticationToken;
 
 import java.util.List;
 
+/**
+ * Interface used to listen to changes in authentication status. Implementations can register over SPI
+ * to get notified when user logs in or logs out from an {@link org.phoebus.security.tokens.AuthenticationScope}.
+ */
 public interface SecureStoreChangeHandler {
 
+    /**
+     * Callback method implemented by listeners.
+     * @param validTokens A list of valid {@link ScopedAuthenticationToken}s, i.e. a list of tokens associated
+     *                    with scopes where is authenticated.
+     */
     void secureStoreChanged(List<ScopedAuthenticationToken> validTokens);
 }

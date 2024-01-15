@@ -95,8 +95,6 @@ public interface SaveAndRestoreClient {
      */
     Node updateNode(Node nodeToUpdate, boolean customTimeForMigration);
 
-    void deleteNode(String uniqueNodeId);
-
     /**
      * Deletes a list of {@link Node}s
      *
@@ -138,6 +136,14 @@ public interface SaveAndRestoreClient {
 
     ConfigurationData getConfigurationData(String nodeId);
 
+    /**
+     * Creates a new {@link Node} of type {@link NodeType#CONFIGURATION} in the remote
+     * service.
+     * @param parentNodeId Non-null and non-empty unique id of an existing parent {@link Node},
+     *                     which must be of type {@link NodeType#FOLDER}.
+     * @param configuration {@link ConfigurationData} object
+     * @return A representation of the persisted {@link Configuration}.
+     */
     Configuration createConfiguration(String parentNodeId, Configuration configuration);
 
     Configuration updateConfiguration(Configuration configuration);
@@ -145,7 +151,9 @@ public interface SaveAndRestoreClient {
 
     SnapshotData getSnapshotData(String uniqueId);
 
-    Snapshot saveSnapshot(String parentNodeId, Snapshot snapshot);
+    Snapshot createSnapshot(String parentNodeId, Snapshot snapshot);
+
+    Snapshot updateSnapshot(Snapshot snapshot);
 
     /**
      * Creates a new {@link CompositeSnapshot}.
@@ -214,4 +222,13 @@ public interface SaveAndRestoreClient {
      * passed in the <code>tagData</code> parameter.
      */
     List<Node> deleteTag(TagData tagData);
+
+    /**
+     * For the purpose of login and authentication in the service.
+     * @param userName User's account name
+     * @param password User's password
+     * @return A {@link UserData} object if login is successful, otherwise implementation should throw
+     * an exception.
+     */
+    UserData authenticate(String userName, String password);
 }
