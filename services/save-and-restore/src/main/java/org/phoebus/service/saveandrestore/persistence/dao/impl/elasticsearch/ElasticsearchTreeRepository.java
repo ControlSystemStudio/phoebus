@@ -351,22 +351,4 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
             throw new RuntimeException(e);
         }
     }
-
-    public List<ESTreeNode> getByNodeName(String nodeName) {
-        BoolQuery.Builder boolQueryBuilder = new Builder();
-        NestedQuery innerNestedQuery;
-        MatchQuery matchQuery = MatchQuery.of(m -> m.field("node.name").query(nodeName));
-        innerNestedQuery = NestedQuery.of(n1 -> n1.path("node").query(matchQuery._toQuery()));
-        boolQueryBuilder.must(innerNestedQuery._toQuery());
-        SearchRequest searchRequest = SearchRequest.of(s -> s.index(ES_TREE_INDEX)
-                .query(boolQueryBuilder.build()._toQuery())
-                .timeout("60s")
-                .size(1000));
-        try {
-            SearchResponse<ESTreeNode> esTreeNodeSearchResponse = client.search(searchRequest, ESTreeNode.class);
-            return esTreeNodeSearchResponse.hits().hits().stream().map(Hit::source).collect(Collectors.toList());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }

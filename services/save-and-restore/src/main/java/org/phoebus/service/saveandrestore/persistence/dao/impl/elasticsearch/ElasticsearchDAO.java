@@ -1079,7 +1079,26 @@ public class ElasticsearchDAO implements NodeDAO {
 
     @Override
     public SearchResult search(MultiValueMap<String, String> searchParameters) {
-        return elasticsearchTreeRepository.search(searchParameters);
+        return searchInternal(searchParameters);
+    }
+
+    private SearchResult searchInternal(MultiValueMap<String, String> searchParameters){
+        // Did client specify search on pv name(s)?
+        if(searchParameters.keySet().stream().anyMatch(k -> k.strip().toLowerCase().contains("pvs"))){
+            List<ConfigurationData> configurationDataList = configurationDataRepository.searchOnPvName(searchParameters);
+            if(configurationDataList.isEmpty()){
+                // No matching configurations found, return empty SearchResult
+                return new SearchResult(0, Collections.emptyList());
+            }
+            List<String> uniqueIds = configurationDataList.stream().map(ConfigurationData::getUniqueId).collect(Collectors.toList());
+            MultiValueMap<String, String> augmented = new LinkedMultiValueMap<>();
+            augmented.putAll(searchParameters);
+            augmented.put("uniqueid", uniqueIds);
+            return elasticsearchTreeRepository.search(augmented);
+        }
+        else{
+            return elasticsearchTreeRepository.search(searchParameters);
+        }
     }
 
     /**
