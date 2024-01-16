@@ -313,7 +313,7 @@ public class SearchUtil {
 
     /**
      * Builds a query on the configuration index to find {@link org.phoebus.applications.saveandrestore.model.ConfigurationData}
-     * documents containing any of the PV names passed to this method.
+     * documents containing any of the PV names passed to this method. Both setpoint and readback PV names are considered.
      * @param pvNames List of PV names. Query will user or-strategy.
      * @return A {@link SearchRequest} object, no limit on result size except maximum Elastic limit.
      */
@@ -324,14 +324,12 @@ public class SearchUtil {
         List<Query> pvQueries = new ArrayList<>();
         for (String value : pvNames) {
             for (String pattern : value.split("[|,;]")) {
-                pvQueries.add(WildcardQuery.of(w -> w.field("pvList.pvName")
-                        .caseInsensitive(true)
-                        .value(pattern.trim()))._toQuery());
+                pvQueries.add(TermQuery.of(t -> t.field("pvList.pvName").value(pattern.trim()))._toQuery());
+                pvQueries.add(TermQuery.of(t -> t.field("pvList.readbackPvName").value(pattern.trim()))._toQuery());
             }
         }
         Query pvsQuery = pvQuery.queries(pvQueries).build()._toQuery();
-        NestedQuery nestedPvsQuery = NestedQuery.of(n -> n.path("pvList").query(pvsQuery).scoreMode(ChildScoreMode.None));
-        boolQueryBuilder.must(nestedPvsQuery._toQuery());
+        boolQueryBuilder.must(pvsQuery);
 
         return SearchRequest.of(s -> s.index(ES_CONFIGURATION_INDEX)
                 .query(boolQueryBuilder.build()._toQuery())

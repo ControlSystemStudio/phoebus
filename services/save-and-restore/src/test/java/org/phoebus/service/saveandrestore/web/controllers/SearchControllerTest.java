@@ -100,10 +100,7 @@ public class SearchControllerTest {
 
         SearchRequest searchRequest = searchUtil.buildSearchRequestForPvs(List.of("abc"));
         assertEquals(ES_CONFIGURATION_INDEX, searchRequest.index().get(0));
-        assertEquals("pvList", searchRequest.query().bool().must().get(0).nested().path());
-        assertEquals("pvList.pvName", searchRequest.query().bool().must().get(0).nested().query().disMax()
-                .queries().get(0).wildcard().field());
-        assertEquals("abc", searchRequest.query().bool().must().get(0).nested().query().disMax()
-                .queries().get(0).wildcard().value());
+        assertEquals("pvList.pvName", searchRequest.query().bool().must().get(0).disMax().queries().get(0).term().field());
+        assertEquals("abc", searchRequest.query().bool().must().get(0).disMax().queries().get(0).term().value().stringValue());
     }
 }

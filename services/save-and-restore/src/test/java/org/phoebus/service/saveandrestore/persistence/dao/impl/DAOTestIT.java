@@ -22,30 +22,13 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.indices.DeleteIndexRequest;
 import co.elastic.clients.elasticsearch.indices.ExistsRequest;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
-import org.epics.vtype.Alarm;
-import org.epics.vtype.AlarmSeverity;
-import org.epics.vtype.AlarmStatus;
-import org.epics.vtype.Display;
-import org.epics.vtype.Time;
-import org.epics.vtype.VDouble;
-import org.epics.vtype.VInt;
+import org.epics.vtype.*;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
-import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
-import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
-import org.phoebus.applications.saveandrestore.model.ConfigPv;
-import org.phoebus.applications.saveandrestore.model.Configuration;
-import org.phoebus.applications.saveandrestore.model.ConfigurationData;
-import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.NodeType;
-import org.phoebus.applications.saveandrestore.model.Snapshot;
-import org.phoebus.applications.saveandrestore.model.SnapshotData;
-import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.applications.saveandrestore.model.Tag;
-import org.phoebus.applications.saveandrestore.model.TagData;
+import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.service.saveandrestore.NodeNotFoundException;
@@ -61,24 +44,11 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Integration test to be executed against a running Elasticsearch 8.x instance.
@@ -520,7 +490,7 @@ public class DAOTestIT {
     }
 
     @Test
-    public void testUpdateSnapshot(){
+    public void testUpdateSnapshot() {
         Node rootNode = nodeDAO.getRootNode();
         Node folderNode =
                 Node.builder().name("folder").build();
@@ -1221,7 +1191,7 @@ public class DAOTestIT {
         Node topLevelFolderNode2 =
                 nodeDAO.createNode(rootNode.getUniqueId(), Node.builder().name("top level folder 2").build());
 
-        configNode2 = nodeDAO.createNode(topLevelFolderNode2.getUniqueId(), configNode2);
+        nodeDAO.createNode(topLevelFolderNode2.getUniqueId(), configNode2);
 
         Node _configNode = configNode;
 
@@ -2289,7 +2259,7 @@ public class DAOTestIT {
     }
 
     @Test
-    public void testSearchForPvs() throws Exception{
+    public void testSearchForPvs()  {
         Node rootNode = nodeDAO.getRootNode();
         Node folderNode =
                 Node.builder().name("folder").build();
@@ -2310,7 +2280,7 @@ public class DAOTestIT {
         configuration2.setConfigurationNode(config2);
         ConfigurationData configurationData2 = new ConfigurationData();
         configurationData2.setPvList(Arrays.asList(ConfigPv.builder().pvName("pv12").build(),
-                ConfigPv.builder().pvName("pv22").build()));
+                ConfigPv.builder().pvName("pv22").readbackPvName("readbackpv22").build()));
         configuration2.setConfigurationData(configurationData2);
 
         configuration2 = nodeDAO.createConfiguration(folderNode.getUniqueId(), configuration2);
@@ -2333,6 +2303,14 @@ public class DAOTestIT {
         searchParameters.put("pvs", List.of("pv1", "pv2"));
         searchResult = nodeDAO.search(searchParameters);
         assertEquals(1, searchResult.getHitCount());
+
+        searchParameters.put("pvs", List.of("readbackpv22"));
+        searchResult = nodeDAO.search(searchParameters);
+        assertEquals(1, searchResult.getHitCount());
+
+        searchParameters.put("pvs", List.of("invalid"));
+        searchResult = nodeDAO.search(searchParameters);
+        assertEquals(0, searchResult.getHitCount());
 
         searchParameters.clear();
         searchResult = nodeDAO.search(searchParameters);

@@ -24,6 +24,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -271,7 +272,9 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         });
 
         pvsTextField.textProperty().bindBidirectional(pvNamesProperty);
-        pvsTextField.setOnKeyPressed(e -> {
+        // NOTE: setOnKeyPressed will not work here as that is supposed to trigger the PV autocompletion
+        // mechanism, which will consume the event.
+        pvsTextField.setOnKeyReleased(e -> {
             if (e.getCode() == KeyCode.ENTER) {
                 updateParametersAndSearch();
             }
@@ -681,7 +684,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
         protected void updateItem(final Filter filter, final boolean empty) {
             super.updateItem(filter, empty);
             // If user clicks on the delete column cell, consume the mouse event to prevent the filter from being loaded.
-            setOnMouseClicked(event -> event.consume());
+            setOnMouseClicked(Event::consume);
             if (empty) {
                 setGraphic(null);
             } else {
