@@ -10,6 +10,7 @@ package org.csstudio.display.builder.runtime;
 import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 
@@ -49,6 +50,8 @@ public class ActionUtil
             RuntimeUtil.getExecutor().execute(() -> openDisplay(source_widget, (OpenDisplayActionInfo) action));
         else if (action instanceof WritePVActionInfo)
             RuntimeUtil.getExecutor().execute(() -> writePV(source_widget, (WritePVActionInfo) action));
+        else if (action instanceof CallPVActionInfo)
+            RuntimeUtil.getExecutor().execute(() -> callPV(source_widget, (CallPVActionInfo) action));
         else if (action instanceof ExecuteScriptActionInfo)
             RuntimeUtil.getExecutor().execute(() -> executeScript(source_widget, (ExecuteScriptActionInfo) action));
         else if (action instanceof ExecuteCommandActionInfo)
@@ -244,6 +247,55 @@ public class ActionUtil
             logger.log(Level.WARNING, message, ex);
             ScriptUtil.showErrorDialog(source_widget, message + ".\n\nSee log for details.");
         }
+    }
+
+    private static void callPV(Widget source_widget, CallPVActionInfo action) {
+        final WidgetRuntime<Widget> runtime = RuntimeUtil.getRuntime(source_widget);
+        // System.out.println(action.getDescription() + ": Set " + action.getPV() + " = " + action.getValue());
+        final MacroValueProvider macros = source_widget.getMacrosOrProperties();
+        String pv_name = action.getPV();
+        try
+        {
+            pv_name = MacroHandler.replace(macros, pv_name);
+        }
+        catch (Exception ignore)
+        {
+            // NOP
+        }
+        HashMap<String, String> args = action.getArgs();
+        HashMap<String, String> result_args = new HashMap<>();
+        for (HashMap.Entry<String, String> entry : args.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            try
+            {
+                key = MacroHandler.replace(macros, key);
+            }
+            catch (Exception ignore)
+            {
+                // NOP
+            }
+            try
+            {
+                value = MacroHandler.replace(macros, value);
+            }
+            catch (Exception ignore)
+            {
+                // NOP
+            }
+            result_args.put(key, value);
+        }
+        try
+        {
+            runtime.callPV(pv_name, result_args);
+        }
+        catch (final Exception ex)
+        {
+            final String message = "Cannot call '" + pv_name;
+            logger.log(Level.WARNING, message, ex);
+            ScriptUtil.showErrorDialog(source_widget, message + ".\n\nSee log for details.");
+        }
+
     }
 
     /** Execute script

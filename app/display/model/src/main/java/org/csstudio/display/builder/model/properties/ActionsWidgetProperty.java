@@ -46,6 +46,7 @@ public class ActionsWidgetProperty extends WidgetProperty<ActionInfos>
     private static final String EXECUTE_COMMAND = "command";
     private static final String OPEN_FILE = "open_file";
     private static final String OPEN_WEBPAGE = "open_webpage";
+    private static final String CALL_PV = "call_pv";
 
     /** Constructor
      *  @param descriptor Property descriptor
@@ -139,6 +140,14 @@ public class ActionsWidgetProperty extends WidgetProperty<ActionInfos>
                 writer.writeEndElement();
                 writer.writeStartElement(XMLTags.VALUE);
                 writer.writeCharacters(action.getValue());
+                writer.writeEndElement();
+            }
+            else if (info instanceof CallPVActionInfo)
+            {
+                final CallPVActionInfo action = (CallPVActionInfo) info;
+                writer.writeAttribute(XMLTags.TYPE, CALL_PV);
+                writer.writeStartElement(XMLTags.PV_NAME);
+                writer.writeCharacters(action.getPV());
                 writer.writeEndElement();
             }
             else if (info instanceof ExecuteScriptActionInfo)
@@ -279,6 +288,17 @@ public class ActionsWidgetProperty extends WidgetProperty<ActionInfos>
                 if (description.isEmpty())
                     description = Messages.ActionWritePV;
                 actions.add(new WritePVActionInfo(description, pv_name, value));
+            }
+            else if (CALL_PV.equals(type)) {
+                final String pv_name = XMLUtil.getChildString(action_xml, XMLTags.PV_NAME).orElse("");
+                if (pv_name.isEmpty())
+                    logger.log(Level.WARNING, "Ignoring <action type='" + CALL_PV + "'> with empty <pv_name> on " + getWidget());
+
+                final String value = XMLUtil.getChildString(action_xml, XMLTags.VALUE).orElse("");
+                if (description.isEmpty())
+                    description = "Call PV";
+                actions.add(new CallPVActionInfo(description, pv_name, new HashMap<>()));
+
             }
             else if (EXECUTE_SCRIPT.equals(type))
             {

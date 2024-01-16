@@ -504,5 +504,9 @@ public class WidgetRuntime<MW extends Widget>
         // Prepare for another start()
         started = new CountDownLatch(1);
     }
+
+    public void callPV(String pv_name, HashMap<String, String> args) {
+        logger.log(Level.WARNING, "Not implemented!");
+    }
 }
 

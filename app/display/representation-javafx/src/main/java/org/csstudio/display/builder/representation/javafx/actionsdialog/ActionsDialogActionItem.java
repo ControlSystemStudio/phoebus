@@ -80,6 +80,17 @@ public class ActionsDialogActionItem {
                         return null;
                     });
                     break;
+                case CALL_PV:
+                    fxmlLoader.setLocation(this.getClass().getResource("CallPVActionDetails.fxml"));
+                    fxmlLoader.setControllerFactory(clazz -> {
+                        try {
+                            return clazz.getConstructor(ActionInfo.class).newInstance(actionInfo);
+                        } catch (Exception e) {
+                            Logger.getLogger(ActionsDialogActionItem.class.getName()).log(Level.SEVERE, "Failed to construct CallPVActionDetailsController", e);
+                        }
+                        return null;
+                    });
+                    break;
                 case EXECUTE_SCRIPT:
                     fxmlLoader.setLocation(this.getClass().getResource("ExecuteScriptActionDetails.fxml"));
                     fxmlLoader.setControllerFactory(clazz -> {

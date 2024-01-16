@@ -9,6 +9,7 @@ package org.csstudio.display.builder.model.properties;
 
 import java.net.URL;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Objects;
 
 import org.csstudio.display.builder.model.Messages;
@@ -36,7 +37,10 @@ public abstract class ActionInfo
         /** Open a file with its associated tool */
         OPEN_FILE(Messages.ActionOpenFile, "/icons/open_file.png"),
         /** Open a wen page in system browser */
-        OPEN_WEBPAGE(Messages.ActionOpenWebPage, "/icons/web_browser.png");
+        OPEN_WEBPAGE(Messages.ActionOpenWebPage, "/icons/web_browser.png"),
+        /** Make an RPC call over PVA */
+        CALL_PV("Call PV", "/icons/call_pv.png");
+//        CALL_PV(Messages.ActionCallPV, "/icos/call_pv.png");
 
         private final String name, icon_path;
 
@@ -83,6 +87,9 @@ public abstract class ActionInfo
             return new OpenFileActionInfo(type.toString(), "");
         case OPEN_WEBPAGE:
             return new OpenWebpageActionInfo(type.toString(), "");
+        case CALL_PV:
+            return new CallPVActionInfo(type.toString(), "$(pv_name)", new HashMap<>());
+
         default:
             throw new IllegalStateException("Unknown type " + type);
         }
