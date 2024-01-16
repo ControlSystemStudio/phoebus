@@ -324,8 +324,7 @@ public class SearchUtil {
         List<Query> pvQueries = new ArrayList<>();
         for (String value : pvNames) {
             for (String pattern : value.split("[|,;]")) {
-                pvQueries.add(TermQuery.of(t -> t.field("pvList.pvName").value(pattern.trim()))._toQuery());
-                pvQueries.add(TermQuery.of(t -> t.field("pvList.readbackPvName").value(pattern.trim()))._toQuery());
+                pvQueries.add(MatchQuery.of(m -> m.field("pvList").query(pattern.trim()))._toQuery());
             }
         }
         Query pvsQuery = pvQuery.queries(pvQueries).build()._toQuery();
