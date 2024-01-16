@@ -247,7 +247,7 @@ public class PVAStructureHelper
                 // Convert to boxed Integer to add to List
                 values.add(range(0, data.length).mapToObj(i -> data[i]).collect(toList()));
             }
-            else 
+            else
             {
             	throw new IllegalArgumentException("Could not decode table column of type: " + column.getClass());
             }

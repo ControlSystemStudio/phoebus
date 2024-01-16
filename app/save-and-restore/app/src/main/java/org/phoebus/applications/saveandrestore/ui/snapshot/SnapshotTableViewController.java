@@ -371,7 +371,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
             }
 
             try {
-                countDownLatch.await();
+                countDownLatch.await(10, TimeUnit.MINUTES);
             } catch (InterruptedException e) {
                 LOGGER.log(Level.INFO, "Encountered InterruptedException", e);
             }
