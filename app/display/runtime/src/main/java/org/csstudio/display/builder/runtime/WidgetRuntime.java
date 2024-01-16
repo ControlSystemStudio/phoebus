@@ -40,6 +40,9 @@ import org.csstudio.display.builder.runtime.pv.RuntimePV;
 import org.csstudio.display.builder.runtime.script.internal.RuntimeScriptHandler;
 import org.csstudio.display.builder.runtime.script.internal.Script;
 import org.csstudio.display.builder.runtime.script.internal.ScriptSupport;
+import org.epics.pva.client.PVAChannel;
+import org.epics.pva.client.PVAClient;
+import org.epics.pva.data.PVAStructure;
 import org.epics.vtype.VType;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.MacroValueProvider;
@@ -440,6 +443,18 @@ public class WidgetRuntime<MW extends Widget>
         throw new Exception("Unknown PV '" + pv_name + "' (expanded: '" + name_to_check + "')");
     }
 
+    public void callPV(String pv_name, HashMap<String, String> args) throws Exception {
+        final String expanded = MacroHandler.replace(widget.getMacrosOrProperties(), pv_name);
+        awaitStartup();
+        try (PVAClient client = new PVAClient()) {
+            PVAStructure request = new PVAStructure("", "");
+            PVAChannel channel = client.getChannel(pv_name);
+            channel.connect().get(10, TimeUnit.SECONDS);
+            channel.invoke(request).get(10, TimeUnit.SECONDS);
+            channel.close();
+        }
+    }
+
     /** Execute script
      *  @param action_info Which script-based action to execute
      *  @throws NullPointerException if action_info is not valid, runtime not initialized
@@ -503,10 +518,6 @@ public class WidgetRuntime<MW extends Widget>
 
         // Prepare for another start()
         started = new CountDownLatch(1);
-    }
-
-    public void callPV(String pv_name, HashMap<String, String> args) {
-        logger.log(Level.WARNING, "Not implemented!");
     }
 }
 
