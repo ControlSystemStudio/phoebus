@@ -178,7 +178,7 @@ public class DataBrowserInstance implements AppInstance
         dock_item.select();
     }
 
-    void loadResource(final URI input)
+    public void loadResource(final URI input)
     {
         // Set input ASAP so that other requests to open this
         // resource will find this instance and not start

@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.scene.control.*;
 import javafx.stage.Window;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.application.Messages;
@@ -36,13 +37,6 @@ import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
@@ -192,7 +186,7 @@ public class DockPane extends TabPane
      *  @param tabs
      */
     // Only accessible within this package (DockStage)
-    DockPane(final DockItem... tabs)
+    public DockPane(final DockItem... tabs)
     {
         super(tabs);
 
@@ -295,11 +289,11 @@ public class DockPane extends TabPane
     }
 
     /** @param dock_parent {@link BorderPane}, {@link SplitDock} or <code>null</code> */
-    void setDockParent(final Parent dock_parent)
+    public void setDockParent(final Parent dock_parent)
     {
         if (dock_parent == null ||
             dock_parent instanceof BorderPane  ||
-            dock_parent instanceof SplitDock)
+            dock_parent instanceof SplitPane)
             this.dock_parent = dock_parent;
         else
             throw new IllegalArgumentException("Expect BorderPane or SplitDock, got " + dock_parent);
@@ -625,7 +619,22 @@ public class DockPane extends TabPane
     public SplitDock split(final boolean horizontally)
     {
         final SplitDock split;
-        if (dock_parent instanceof BorderPane)
+
+        if (dock_parent instanceof SplitDock)
+        {
+            final SplitDock parent = (SplitDock) dock_parent;
+            // Remove this dock pane from parent
+            final boolean first = parent.removeItem(this);
+            // Place in split alongside a new dock pane
+            final DockPane new_pane = new DockPane();
+            dockPaneEmptyListeners.stream().forEach(new_pane::addDockPaneEmptyListener);
+            split = new SplitDock(parent, horizontally, this, new_pane);
+            setDockParent(split);
+            new_pane.setDockParent(split);
+            // Place that new split in the border pane
+            parent.addItem(first, split);
+        }
+        else if (dock_parent instanceof BorderPane)
         {
             final BorderPane parent = (BorderPane) dock_parent;
             // Remove this dock pane from BorderPane
@@ -639,11 +648,12 @@ public class DockPane extends TabPane
             // Place that new split in the border pane
             parent.setCenter(split);
         }
-        else if (dock_parent instanceof SplitDock)
+        else if (dock_parent instanceof SplitPane)
         {
-            final SplitDock parent = (SplitDock) dock_parent;
-            // Remove this dock pane from parent
-            final boolean first = parent.removeItem(this);
+            final SplitPane parent = (SplitPane) dock_parent;
+            // Remove this dock pane from BorderPane
+            double dividerPosition = parent.getDividerPositions()[0];
+            parent.getItems().remove(this);
             // Place in split alongside a new dock pane
             final DockPane new_pane = new DockPane();
             dockPaneEmptyListeners.stream().forEach(new_pane::addDockPaneEmptyListener);
@@ -651,7 +661,8 @@ public class DockPane extends TabPane
             setDockParent(split);
             new_pane.setDockParent(split);
             // Place that new split in the border pane
-            parent.addItem(first, split);
+            parent.getItems().add(split);
+            parent.setDividerPosition(0, dividerPosition);
         }
         else
             throw new IllegalStateException("Cannot split, dock_parent is " + dock_parent);
