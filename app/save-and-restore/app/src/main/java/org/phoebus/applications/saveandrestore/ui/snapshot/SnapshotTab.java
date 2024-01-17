@@ -42,6 +42,10 @@ import java.util.logging.Logger;
  * {@link Tab} subclass showing a view for the purpose of creating or restoring a snapshot.
  * These two use cases/views are split in terms of fxml files and controller classes in order to facilitate development
  * and maintenance.
+ *
+ * <p>
+ *     Note that this class is used also to show the snapshot view for {@link Node}s of type {@link NodeType#COMPOSITE_SNAPSHOT}.
+ * </p>
  */
 public class SnapshotTab extends SaveAndRestoreTab {
 
