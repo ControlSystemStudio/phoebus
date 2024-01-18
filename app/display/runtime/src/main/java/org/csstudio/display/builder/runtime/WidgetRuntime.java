@@ -217,6 +217,21 @@ public class WidgetRuntime<MW extends Widget>
             final List<RuntimePV> action_pvs = new ArrayList<>();
             for (final ActionInfo action : actions)
             {
+                if (action instanceof CallPVActionInfo)
+                {
+                    final String return_pv = ((CallPVActionInfo) action).getReturnPV();
+                    try
+                    {
+                        final String expanded = MacroHandler.replace(widget.getMacrosOrProperties(), return_pv);
+                        final RuntimePV pv = PVFactory.getPV(expanded);
+                        action_pvs.add(pv);
+                        addPV(pv, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.log(Level.WARNING, widget + " cannot start action to write PV '" + return_pv + "'", ex);
+                    }
+                }
                 if (action instanceof WritePVActionInfo)
                 {
                     final String pv_name = ((WritePVActionInfo) action).getPV();
@@ -443,14 +458,15 @@ public class WidgetRuntime<MW extends Widget>
         throw new Exception("Unknown PV '" + pv_name + "' (expanded: '" + name_to_check + "')");
     }
 
-    public void callPV(String pv_name, HashMap<String, String> args) throws Exception {
+    public void callPV(final String pv_name, final HashMap<String, String> args, final String return_pv) throws Exception {
         final String expanded = MacroHandler.replace(widget.getMacrosOrProperties(), pv_name);
         awaitStartup();
         try (PVAClient client = new PVAClient()) {
             PVAStructure request = new PVAStructure("", "");
             PVAChannel channel = client.getChannel(pv_name);
             channel.connect().get(10, TimeUnit.SECONDS);
-            channel.invoke(request).get(10, TimeUnit.SECONDS);
+            PVAStructure res = channel.invoke(request).get(10, TimeUnit.SECONDS);
+            writePV(return_pv, res);
             channel.close();
         }
     }

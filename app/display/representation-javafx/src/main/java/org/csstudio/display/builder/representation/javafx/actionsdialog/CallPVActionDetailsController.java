@@ -13,13 +13,17 @@ import java.util.HashMap;
 
 public class CallPVActionDetailsController implements ActionDetailsController {
     private final CallPVActionInfo actionInfo;
+
+    @FXML
+    private TextField returnPV;
     @FXML
     private TextField description;
     @FXML
     private TextField pvName;
 
-    private StringProperty descriptionProperty = new SimpleStringProperty();
-    private StringProperty pvNameProperty = new SimpleStringProperty();
+    private final StringProperty descriptionProperty = new SimpleStringProperty();
+    private final StringProperty pvNameProperty = new SimpleStringProperty();
+    private final StringProperty returnPVProperty = new SimpleStringProperty();
 
     public CallPVActionDetailsController(ActionInfo actionInfo) {
         this.actionInfo = (CallPVActionInfo) actionInfo;
@@ -29,9 +33,11 @@ public class CallPVActionDetailsController implements ActionDetailsController {
     public void initialize(){
         descriptionProperty.setValue(actionInfo.getDescription());
         pvNameProperty.setValue(actionInfo.getPV());
+        returnPVProperty.setValue(actionInfo.getReturnPV());
 
         description.textProperty().bindBidirectional(descriptionProperty);
         pvName.textProperty().bindBidirectional(pvNameProperty);
+        returnPV.textProperty().bindBidirectional(returnPVProperty);
 
         PVAutocompleteMenu.INSTANCE.attachField(pvName);
     }
@@ -42,7 +48,8 @@ public class CallPVActionDetailsController implements ActionDetailsController {
         return new CallPVActionInfo(
                 this.descriptionProperty.get(),
                 this.pvNameProperty.get(),
-                new HashMap<>()
+                new HashMap<>(),
+                this.returnPVProperty.get()
         );
     }
 }

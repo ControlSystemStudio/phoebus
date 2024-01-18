@@ -149,6 +149,9 @@ public class ActionsWidgetProperty extends WidgetProperty<ActionInfos>
                 writer.writeStartElement(XMLTags.PV_NAME);
                 writer.writeCharacters(action.getPV());
                 writer.writeEndElement();
+                writer.writeStartElement(XMLTags.RETURN_PV);
+                writer.writeCharacters(action.getReturnPV());
+                writer.writeEndElement();
             }
             else if (info instanceof ExecuteScriptActionInfo)
             {
@@ -294,10 +297,9 @@ public class ActionsWidgetProperty extends WidgetProperty<ActionInfos>
                 if (pv_name.isEmpty())
                     logger.log(Level.WARNING, "Ignoring <action type='" + CALL_PV + "'> with empty <pv_name> on " + getWidget());
 
-                final String value = XMLUtil.getChildString(action_xml, XMLTags.VALUE).orElse("");
-                if (description.isEmpty())
-                    description = "Call PV";
-                actions.add(new CallPVActionInfo(description, pv_name, new HashMap<>()));
+                final String value = XMLUtil.getChildString(action_xml, XMLTags.VALUE).orElse("Call PV");
+                final String return_pv = XMLUtil.getChildString(action_xml, XMLTags.RETURN_PV).orElse("loc://return_pv");
+                actions.add(new CallPVActionInfo(description, pv_name, new HashMap<>(), return_pv));
 
             }
             else if (EXECUTE_SCRIPT.equals(type))

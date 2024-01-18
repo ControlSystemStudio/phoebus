@@ -262,6 +262,16 @@ public class ActionUtil
         {
             // NOP
         }
+        String return_pv = action.getReturnPV();
+        try
+        {
+            return_pv = MacroHandler.replace(macros,return_pv);
+        }
+        catch (Exception ignore)
+        {
+            // NOP
+        }
+
         HashMap<String, String> args = action.getArgs();
         HashMap<String, String> result_args = new HashMap<>();
         for (HashMap.Entry<String, String> entry : args.entrySet()) {
@@ -287,7 +297,7 @@ public class ActionUtil
         }
         try
         {
-            runtime.callPV(pv_name, result_args);
+            runtime.callPV(pv_name, result_args, return_pv);
         }
         catch (final Exception ex)
         {

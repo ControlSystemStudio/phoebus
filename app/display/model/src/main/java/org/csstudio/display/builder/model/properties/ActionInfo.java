@@ -88,7 +88,7 @@ public abstract class ActionInfo
         case OPEN_WEBPAGE:
             return new OpenWebpageActionInfo(type.toString(), "");
         case CALL_PV:
-            return new CallPVActionInfo(type.toString(), "$(pv_name)", new HashMap<>());
+            return new CallPVActionInfo(type.toString(), "$(pv_name)", new HashMap<>(), "loc://return_pv");
 
         default:
             throw new IllegalStateException("Unknown type " + type);
