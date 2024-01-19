@@ -224,7 +224,7 @@ public class AttachmentsViewController {
             this.attachments.setAll(attachments);
             attachmentListView.setItems(this.attachments);
             // Update UI
-            if (this.attachments.size() > 0) {
+            if (!this.attachments.isEmpty()) {
                 attachmentListView.getSelectionModel().select(this.attachments.get(0));
             }
         });
@@ -266,19 +266,24 @@ public class AttachmentsViewController {
      */
     private void showImagePreview(Attachment attachment) {
         if (attachment.getFile() != null) {
-            try {
-                BufferedImage bufferedImage = ImageIO.read(attachment.getFile());
-                // BufferedImage may be null due to lazy loading strategy.
-                if (bufferedImage == null) {
-                    return;
+            // Load image data off UI thread...
+            JobManager.schedule("Show image attachment", monitor -> {
+                try {
+                    BufferedImage bufferedImage = ImageIO.read(attachment.getFile());
+                    // BufferedImage may be null due to lazy loading strategy.
+                    if (bufferedImage == null) {
+                        return;
+                    }
+                    Platform.runLater(() -> {
+                        Image image = SwingFXUtils.toFXImage(bufferedImage, null);
+                        imagePreview.visibleProperty().setValue(true);
+                        imagePreview.setImage(image);
+                   });
+                } catch (IOException ex) {
+                    Logger.getLogger(AttachmentsEditorController.class.getName())
+                            .log(Level.SEVERE, "Unable to load image file " + attachment.getFile().getAbsolutePath(), ex);
                 }
-                Image image = SwingFXUtils.toFXImage(bufferedImage, null);
-                imagePreview.visibleProperty().setValue(true);
-                imagePreview.setImage(image);
-            } catch (IOException ex) {
-                Logger.getLogger(AttachmentsEditorController.class.getName())
-                        .log(Level.SEVERE, "Unable to load image file " + attachment.getFile().getAbsolutePath(), ex);
-            }
+            });
         }
     }
 
@@ -292,7 +297,7 @@ public class AttachmentsViewController {
         dialog.setInitialDirectory(new File(System.getProperty("user.home")));
         File targetFolder = dialog.showDialog(splitPane.getScene().getWindow());
         JobManager.schedule("Save attachments job", (monitor) ->
-                selectedAttachments.stream().forEach(a -> copyAttachment(targetFolder, a)));
+                selectedAttachments.forEach(a -> copyAttachment(targetFolder, a)));
     }
 
     private void copyAttachment(File targetFolder, Attachment attachment) {
@@ -309,10 +314,6 @@ public class AttachmentsViewController {
 
     public void addListSelectionChangeListener(ListChangeListener<Attachment> changeListener) {
         listSelectionChangeListeners.add(changeListener);
-    }
-
-    public void removeListSelectionChangeListener(ListChangeListener<Attachment> changeListener) {
-        listSelectionChangeListeners.remove(changeListener);
     }
 
     public void removeAttachments(List<Attachment> attachmentsToRemove) {
