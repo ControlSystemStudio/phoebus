@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 European Spallation Source ERIC.
+ * Copyright (C) 2024 European Spallation Source ERIC.
  * <p>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -117,12 +117,22 @@ public class SnapshotTab extends SaveAndRestoreTab {
         Platform.runLater(() -> textProperty().set(name));
     }
 
+    /**
+     * Set tab image based on node type, and optionally golden tag
+     * @param node A snapshot {@link Node}
+     */
     private void setTabImage(Node node) {
-        boolean golden = node.getTags() != null && node.getTags().stream().anyMatch(t -> t.getName().equals(Tag.GOLDEN));
-        if (golden) {
-            tabGraphicImageProperty.set(ImageRepository.GOLDEN_SNAPSHOT);
-        } else {
-            tabGraphicImageProperty.set(ImageRepository.SNAPSHOT);
+        if(node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)){
+            tabGraphicImageProperty.set(ImageRepository.COMPOSITE_SNAPSHOT);
+        }
+        else{
+            boolean golden = node.getTags() != null && node.getTags().stream().anyMatch(t -> t.getName().equals(Tag.GOLDEN));
+            if (golden) {
+                tabGraphicImageProperty.set(ImageRepository.GOLDEN_SNAPSHOT);
+            }
+            else {
+                tabGraphicImageProperty.set(ImageRepository.SNAPSHOT);
+            }
         }
     }
 
