@@ -9,13 +9,7 @@ package org.csstudio.display.builder.model.properties;
 
 import static org.csstudio.display.builder.model.ModelPlugin.logger;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Level;
 
 import javax.xml.stream.XMLStreamWriter;
@@ -153,6 +147,17 @@ public class ActionsWidgetProperty extends WidgetProperty<ActionInfos>
                 writer.writeStartElement(XMLTags.RETURN_PV);
                 writer.writeCharacters(action.getReturnPV());
                 writer.writeEndElement();
+                for (Map.Entry<String, String> parameter: action.getArgs().entrySet()) {
+                    writer.writeStartElement("argument");
+                    writer.writeStartElement("name");
+                    writer.writeCharacters(parameter.getKey());
+                    writer.writeEndElement();
+
+                    writer.writeStartElement("value");
+                    writer.writeCharacters(parameter.getValue());
+                    writer.writeEndElement();
+                    writer.writeEndElement();
+                }
             }
             else if (info instanceof ExecuteScriptActionInfo)
             {
@@ -298,9 +303,22 @@ public class ActionsWidgetProperty extends WidgetProperty<ActionInfos>
                 if (pv_name.isEmpty())
                     logger.log(Level.WARNING, "Ignoring <action type='" + CALL_PV + "'> with empty <pv_name> on " + getWidget());
 
-                final String value = XMLUtil.getChildString(action_xml, XMLTags.VALUE).orElse("Call PV");
                 final String return_pv = XMLUtil.getChildString(action_xml, XMLTags.RETURN_PV).orElse("loc://return_pv");
-                actions.add(new CallPVActionInfo(description, pv_name, new HashMap<>(), return_pv));
+                final HashMap<String, String> args = new HashMap<>();
+
+                for (Element argument: XMLUtil.getChildElements(action_xml, "argument")) {
+                    String name = XMLUtil.getChildString(argument, "name").orElse("");
+                    String value = XMLUtil.getChildString(argument, "value").orElse("");
+
+                    if (name.isEmpty() || value.isEmpty()) {
+                        logger.log(Level.WARNING, "Ignoring <argument> with empty <name> or <value> on " + getWidget());
+                        continue;
+                    }
+
+                    args.put(name, value);
+                }
+
+                actions.add(new CallPVActionInfo(description, pv_name, args, return_pv));
 
             }
             else if (EXECUTE_SCRIPT.equals(type))

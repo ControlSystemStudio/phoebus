@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javafx.util.Pair;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -43,7 +44,9 @@ import org.csstudio.display.builder.runtime.script.internal.Script;
 import org.csstudio.display.builder.runtime.script.internal.ScriptSupport;
 import org.epics.pva.client.PVAChannel;
 import org.epics.pva.client.PVAClient;
-import org.epics.pva.data.PVAStructure;
+import org.epics.pva.data.*;
+import org.epics.vtype.VDouble;
+import org.epics.vtype.VNumber;
 import org.epics.vtype.VType;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.MacroValueProvider;
@@ -220,13 +223,20 @@ public class WidgetRuntime<MW extends Widget>
             {
                 if (action instanceof CallPVActionInfo)
                 {
-                    final String return_pv = ((CallPVActionInfo) action).getReturnPV();
+                    final CallPVActionInfo callPVActionInfo = (CallPVActionInfo) action;
+                    final String return_pv = callPVActionInfo.getReturnPV();
                     try
                     {
                         final String expanded = MacroHandler.replace(widget.getMacrosOrProperties(), return_pv);
                         final RuntimePV pv = PVFactory.getPV(expanded);
                         action_pvs.add(pv);
                         addPV(pv, true);
+
+                        for (Map.Entry<String, String> arg:callPVActionInfo.getArgs().entrySet()) {
+                            final String expandedValue = MacroHandler.replace(widget.getMacrosOrProperties(), arg.getValue());
+                            final RuntimePV argPV = PVFactory.getPV(expandedValue);
+                            addPV(argPV, false);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -419,13 +429,7 @@ public class WidgetRuntime<MW extends Widget>
         }
     }
 
-    /** Write a value to a PV
-     *  @param pv_name Name of PV to write, may contain macros
-     *  @param value Value to write
-     *  @throws Exception on error
-     */
-    public void writePV(final String pv_name, final Object value) throws Exception
-    {
+    public RuntimePV getWritablePV(final String pv_name) throws Exception {
         final String expanded = MacroHandler.replace(widget.getMacrosOrProperties(), pv_name);
         String name_to_check = expanded;
         // For local PV,
@@ -441,29 +445,58 @@ public class WidgetRuntime<MW extends Widget>
                 name_to_check = name_to_check.substring(0, sep);
         }
         awaitStartup();
-        final List<RuntimePV> safe_pvs = writable_pvs;
+        List<RuntimePV> safe_pvs = writable_pvs;
         if (safe_pvs != null)
             for (final RuntimePV pv : safe_pvs)
                 if (pv.getName().equals(name_to_check))
                 {
-                    try
-                    {
-                        pv.write(value);
-                    }
-                    catch (final Exception ex)
-                    {
-                        throw new Exception("Failed to write " + value + " to PV " + name_to_check, ex);
-                    }
-                    return;
+                    return pv;
                 }
         throw new Exception("Unknown PV '" + pv_name + "' (expanded: '" + name_to_check + "')");
+    }
+
+    /** Write a value to a PV
+     *  @param pv_name Name of PV to write, may contain macros
+     *  @param value Value to write
+     *  @throws Exception on error
+     */
+    public void writePV(final String pv_name, final Object value) throws Exception
+    {
+        RuntimePV pv = getWritablePV(pv_name);
+        try {
+            pv.write(value);
+        } catch (final Exception ex) {
+            throw new Exception("Failed to write " + value + " to PV " + pv_name, ex);
+        }
     }
 
     public void callPV(final String pv_name, final HashMap<String, String> args, final String return_pv) throws Exception {
         final String expanded = MacroHandler.replace(widget.getMacrosOrProperties(), pv_name);
         awaitStartup();
         try (PVAClient client = new PVAClient()) {
-            PVAStructure request = new PVAStructure("", "");
+            List<PVAData> params = new ArrayList<>();
+            HashMap<String, RuntimePV> pvs = new HashMap<>();
+            getPVs().forEach(x -> pvs.put(x.getName(), x));
+            for (Map.Entry<String, String> a: args.entrySet()) {
+                String pvName = MacroHandler.replace(widget.getMacrosOrProperties(), a.getValue());
+                RuntimePV pv = pvs.get(pvName);
+                VType value = pv.read();
+
+                String argName = MacroHandler.replace(widget.getMacrosOrProperties(), a.getKey());
+
+                PVAData param;
+                // TODO: is there a generic way to convert a VType to PVAData?
+                if (value instanceof VDouble) {
+                    param = new PVADouble(argName, ((VDouble) value).getValue());
+                } else {
+                    param = new PVAString(argName, value.toString());
+                }
+
+                params.add(param);
+            }
+
+            PVAStructure query = new PVAStructure("query", "", params);
+            PVAStructure request = new PVAStructure("", "", query);
             PVAChannel channel = client.getChannel(pv_name);
             channel.connect().get(10, TimeUnit.SECONDS);
             PVAStructure res = channel.invoke(request).get(10, TimeUnit.SECONDS);

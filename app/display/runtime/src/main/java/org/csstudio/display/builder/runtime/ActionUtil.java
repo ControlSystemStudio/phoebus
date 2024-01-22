@@ -275,6 +275,7 @@ public class ActionUtil
 
         HashMap<String, String> args = action.getArgs();
         HashMap<String, String> result_args = new HashMap<>();
+
         for (HashMap.Entry<String, String> entry : args.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();

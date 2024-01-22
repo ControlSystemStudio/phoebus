@@ -91,9 +91,12 @@ public class CallPVActionDetailsController implements ActionDetailsController {
     public ActionInfo getActionInfo() {
         HashMap<String, String> parameters = new HashMap<>();
 
+
         for (Pair<String, String> pair: parameterList) {
             parameters.put(pair.getKey(), pair.getValue());
         }
+
+        System.out.println(parameters);
 
         return new CallPVActionInfo(
                 this.descriptionProperty.get(),
