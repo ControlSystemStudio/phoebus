@@ -1,27 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<!--
-  ~ Copyright (C) 2020 European Spallation Source ERIC.
-  ~
-  ~  This program is free software; you can redistribute it and/or
-  ~  modify it under the terms of the GNU General Public License
-  ~  as published by the Free Software Foundation; either version 2
-  ~  of the License, or (at your option) any later version.
-  ~
-  ~  This program is distributed in the hope that it will be useful,
-  ~  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~  GNU General Public License for more details.
-  ~
-  ~  You should have received a copy of the GNU General Public License
-  ~  along with this program; if not, write to the Free Software
-  ~  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-  -->
-
-<GridPane hgap="10.0" vgap="10.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.csstudio.display.builder.representation.javafx.actionsdialog.CallPVActionDetailsController">
+<GridPane hgap="10.0" vgap="10.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.csstudio.display.builder.representation.javafx.actionsdialog.CallPVActionDetailsController">
     <children>
         <Label text="%ActionsDialog_Description" />
         <TextField fx:id="description" text="Call PV" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" />
@@ -29,5 +12,31 @@
         <TextField fx:id="pvName" text="PV Name" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
         <Label text="%ActionsDialog_ReturnPV" GridPane.rowIndex="2" />
         <TextField fx:id="returnPV" text="Return PV" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" />
+      <TableView prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
+        <columns>
+          <TableColumn prefWidth="75.0" text="Parameter" />
+          <TableColumn prefWidth="75.0" text="Value" />
+        </columns>
+      </TableView>
+      <VBox prefHeight="200.0" prefWidth="100.0" spacing="10.0" GridPane.rowIndex="3">
+         <children>
+            <Label text="%ActionsDialog_Parameters" />
+            <Button mnemonicParsing="false" text="%ActionsDialog_AddParameter" />
+            <Button mnemonicParsing="false" text="%ActionsDialog_RemoveParameter" />
+         </children>
+         <GridPane.margin>
+            <Insets />
+         </GridPane.margin>
+      </VBox>
     </children>
+   <columnConstraints>
+      <ColumnConstraints />
+      <ColumnConstraints />
+   </columnConstraints>
+   <rowConstraints>
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints minHeight="10.0" prefHeight="200.0" />
+   </rowConstraints>
 </GridPane>
