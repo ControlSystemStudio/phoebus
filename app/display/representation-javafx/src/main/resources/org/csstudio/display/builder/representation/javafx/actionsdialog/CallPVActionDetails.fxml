@@ -12,17 +12,12 @@
         <TextField fx:id="pvName" text="PV Name" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
         <Label text="%ActionsDialog_ReturnPV" GridPane.rowIndex="2" />
         <TextField fx:id="returnPV" text="Return PV" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" />
-      <TableView prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
-        <columns>
-          <TableColumn prefWidth="75.0" text="Parameter" />
-          <TableColumn prefWidth="75.0" text="Value" />
-        </columns>
-      </TableView>
+      <TableView fx:id="parameterTable" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
       <VBox prefHeight="200.0" prefWidth="100.0" spacing="10.0" GridPane.rowIndex="3">
          <children>
             <Label text="%ActionsDialog_Parameters" />
-            <Button mnemonicParsing="false" text="%ActionsDialog_AddParameter" />
-            <Button mnemonicParsing="false" text="%ActionsDialog_RemoveParameter" />
+            <Button fx:id="addParameter" mnemonicParsing="false" text="%ActionsDialog_AddParameter" />
+            <Button fx:id="removeParameter" mnemonicParsing="false" text="%ActionsDialog_RemoveParameter" />
          </children>
          <GridPane.margin>
             <Insets />
