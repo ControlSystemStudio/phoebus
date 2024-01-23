@@ -19,12 +19,10 @@
 
 package org.phoebus.service.saveandrestore.web.controllers;
 
-import org.phoebus.applications.saveandrestore.model.CompositeSnapshot;
-import org.phoebus.applications.saveandrestore.model.CompositeSnapshotData;
-import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.SnapshotItem;
+import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
 import java.util.List;
 
 @SuppressWarnings("unused")
@@ -43,16 +42,27 @@ public class CompositeSnapshotController extends BaseController {
     private NodeDAO nodeDAO;
 
     @PutMapping(value = "/composite-snapshot", produces = JSON)
+    @PreAuthorize("@authorizationHelper.mayCreate(#root)")
     public CompositeSnapshot createCompositeSnapshot(@RequestParam(value = "parentNodeId") String parentNodeId,
-                                                     @RequestBody CompositeSnapshot compositeSnapshot) {
+                                                     @RequestBody CompositeSnapshot compositeSnapshot,
+                                                     Principal principal) {
+        if(!compositeSnapshot.getCompositeSnapshotNode().getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)){
+            throw new IllegalArgumentException("Composite snapshot node of wrong type");
+        }
+        compositeSnapshot.getCompositeSnapshotNode().setUserName(principal.getName());
         return nodeDAO.createCompositeSnapshot(parentNodeId, compositeSnapshot);
     }
 
     @PostMapping(value = "/composite-snapshot", produces = JSON)
-    public CompositeSnapshot updateCompositeSnapshot(@RequestBody CompositeSnapshot compositeSnapshot) {
+    @PreAuthorize("@authorizationHelper.mayUpdate(#compositeSnapshot, #root)")
+    public CompositeSnapshot updateCompositeSnapshot(@RequestBody CompositeSnapshot compositeSnapshot,
+                                                     Principal principal) {
+        if(!compositeSnapshot.getCompositeSnapshotNode().getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)){
+            throw new IllegalArgumentException("Composite snapshot node of wrong type");
+        }
+        compositeSnapshot.getCompositeSnapshotNode().setUserName(principal.getName());
         return nodeDAO.updateCompositeSnapshot(compositeSnapshot);
     }
-
 
     @GetMapping(value = "/composite-snapshot/{uniqueId}", produces = JSON)
     public CompositeSnapshotData getCompositeSnapshotData(@PathVariable String uniqueId) {

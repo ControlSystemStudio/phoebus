@@ -7,6 +7,7 @@
  ******************************************************************************/
 package org.epics.pva.server;
 
+import java.util.BitSet;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.LogManager;
 
@@ -37,7 +38,7 @@ public class TableDemo
             final PVAStringArray labels = new PVAStringArray("labels", "sec", "nano", "M1X", "M1Y");
             final PVAIntArray sec = new PVAIntArray("secondsPastEpoch", true, 1, 2);
             final PVAIntArray nano = new PVAIntArray("nanoseconds", true, 3, 4);
-            final PVADoubleArray m1x = new PVADoubleArray("m1x", 3.13, 3.15);
+            final PVADoubleArray m1x = new PVADoubleArray("m1x", 2.13, 3.15);
             final PVADoubleArray m1y = new PVADoubleArray("m1y", 31.15, 32.14);
             final PVAStructure data = new PVAStructure("demo", "epics:nt/NTTable:1.0",
                                                        labels,
@@ -49,7 +50,12 @@ public class TableDemo
                                                        time);
 
             // Create PVs
-            final ServerPV pv1 = server.createPV("demo", data);
+            final ServerPV pv1 = server.createPV("demo", data, new WriteEventHandler() {
+                @Override
+                public void handleWrite(ServerPV pv, BitSet changes, PVAStructure written) throws Exception {
+                    System.out.println();
+                }
+            });
 
             TimeUnit.DAYS.sleep(1);
         }

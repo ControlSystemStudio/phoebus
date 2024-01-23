@@ -188,7 +188,7 @@ public class MigrateRdbToElastic {
             snapshotData.setUniqueId(legacySnapshotNode.getUniqueId());
             snapshot.setSnapshotData(snapshotData);
             snapshotCount++;
-            elasticsearchDAO.saveSnapshot(newConfigurationNode.getUniqueId(), snapshot);
+            elasticsearchDAO.createSnapshot(newConfigurationNode.getUniqueId(), snapshot);
         }
     }
 }

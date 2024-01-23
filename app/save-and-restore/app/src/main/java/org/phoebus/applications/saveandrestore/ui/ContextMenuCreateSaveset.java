@@ -35,6 +35,9 @@ import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationFro
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.framework.selection.Selection;
+import org.phoebus.security.store.SecureStore;
+import org.phoebus.security.tokens.AuthenticationScope;
+import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
@@ -81,9 +84,29 @@ public class ContextMenuCreateSaveset implements ContextMenuEntry
         return supportedTypes;
     }
 
+    /**
+     * @return <code>true</code> only if user has been authenticated by the save-n-restore service.
+     */
+    @Override
+    public boolean isEnabled(){
+        try {
+            SecureStore secureStore = new SecureStore();
+            ScopedAuthenticationToken token =
+                    secureStore.getScopedAuthenticationToken(AuthenticationScope.SAVE_AND_RESTORE);
+            return token != null;
+        } catch (Exception e) {
+            Logger.getLogger(ContextMenuCreateSaveset.class.getName()).log(Level.WARNING, "Unable to retrieve authentication token for " +
+                    AuthenticationScope.SAVE_AND_RESTORE.getName() + " scope", e);
+            return false;
+        }
+    }
+
     @Override
     public void call(final Selection selection)
     {
+
+
+
         saveAndRestoreService = SaveAndRestoreService.getInstance();
 
         checkRootNode();

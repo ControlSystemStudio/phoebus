@@ -39,6 +39,7 @@ import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -49,7 +50,7 @@ import java.util.ServiceLoader;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class SnapshotControlsViewController {
+public class SnapshotControlsViewController extends SaveAndRestoreBaseController {
 
     private SnapshotController snapshotController;
 
@@ -138,13 +139,16 @@ public class SnapshotControlsViewController {
     public void initialize() {
 
         snapshotName.textProperty().bindBidirectional(snapshotNameProperty);
+        snapshotName.disableProperty().bind(userIdentity.isNull());
         snapshotComment.textProperty().bindBidirectional(snapshotCommentProperty);
+        snapshotComment.disableProperty().bind(userIdentity.isNull());
         createdBy.textProperty().bind(createdByTextProperty);
         createdDate.textProperty().bind(createdDateTextProperty);
         snapshotLastModifiedLabel.textProperty().bind(lastModifiedDateTextProperty);
 
-        takeSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() -> snapshotNodeProperty.isNotNull().get() &&
-                !snapshotNodeProperty.get().getNodeType().equals(NodeType.SNAPSHOT), snapshotNodeProperty));
+        takeSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                (snapshotNodeProperty.isNotNull().get() && !snapshotNodeProperty.get().getNodeType().equals(NodeType.SNAPSHOT)) ||
+                        userIdentity.isNull().get(), snapshotNodeProperty, userIdentity));
 
         snapshotNameProperty.addListener(((observableValue, oldValue, newValue) ->
                 snapshotDataDirty.set(newValue != null && (snapshotNodeProperty.isNull().get() || snapshotNodeProperty.isNotNull().get() && !newValue.equals(snapshotNodeProperty.get().getName())))));
@@ -154,20 +158,25 @@ public class SnapshotControlsViewController {
         saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
                         snapshotDataDirty.not().get() ||
                                 snapshotNameProperty.isEmpty().get() ||
-                                snapshotCommentProperty.isEmpty().get(),
-                snapshotDataDirty, snapshotNameProperty, snapshotCommentProperty));
+                                snapshotCommentProperty.isEmpty().get() ||
+                                userIdentity.isNull().get(),
+                snapshotDataDirty, snapshotNameProperty, snapshotCommentProperty, userIdentity));
 
         saveSnapshotAndCreateLogEntryButton.disableProperty().bind(Bindings.createBooleanBinding(() -> (
                         snapshotDataDirty.not().get()) ||
                         snapshotNameProperty.isEmpty().get() ||
-                        snapshotCommentProperty.isEmpty().get(),
-                snapshotDataDirty, snapshotNameProperty, snapshotCommentProperty));
+                        snapshotCommentProperty.isEmpty().get() ||
+                        userIdentity.isNull().get(),
+                snapshotDataDirty, snapshotNameProperty, snapshotCommentProperty, userIdentity));
 
         // Do not show the create log entry button if no event receivers have been registered
         saveSnapshotAndCreateLogEntryButton.visibleProperty().set(ServiceLoader.load(SaveAndRestoreEventReceiver.class).iterator().hasNext());
 
-        restoreButton.disableProperty().bind(snapshotRestorableProperty.not());
-        restoreAndLogButton.disableProperty().bind(snapshotRestorableProperty.not());
+        restoreButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                snapshotRestorableProperty.not().get() ||
+                        userIdentity.isNull().get(), snapshotRestorableProperty, userIdentity));
+        restoreAndLogButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                snapshotRestorableProperty.not().get() || userIdentity.isNull().get(), snapshotRestorableProperty, userIdentity));
 
         SpinnerValueFactory<Double> thresholdSpinnerValueFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, 999.0, 0.0, 0.01);
         thresholdSpinnerValueFactory.setConverter(new DoubleStringConverter());
@@ -264,6 +273,8 @@ public class SnapshotControlsViewController {
                 });
             }
         });
+
+
     }
 
     public SimpleStringProperty getSnapshotNameProperty() {
@@ -295,11 +306,6 @@ public class SnapshotControlsViewController {
         return snapshotRestorableProperty;
     }
 
-    public void setNameAndCommentDisabled(boolean disabled) {
-        snapshotName.disableProperty().set(disabled);
-        snapshotComment.disableProperty().set(disabled);
-    }
-
     public void setSnapshotNode(Node node) {
         snapshotNodeProperty.set(node);
     }
@@ -326,7 +332,7 @@ public class SnapshotControlsViewController {
         filterToolbar.disableProperty().set(disabled);
     }
 
-    public void setSnapshotRestorableProperty(boolean restorable){
+    public void setSnapshotRestorableProperty(boolean restorable) {
         snapshotRestorableProperty.set(restorable);
     }
 }

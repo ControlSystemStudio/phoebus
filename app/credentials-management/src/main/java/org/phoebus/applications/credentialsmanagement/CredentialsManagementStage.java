@@ -50,6 +50,7 @@ public class CredentialsManagementStage extends Stage {
                 CredentialsManagementController controller =
                         (CredentialsManagementController) clazz.getConstructor(List.class, SecureStore.class)
                                 .newInstance(authenticationProviders, secureStore);
+                controller.setStage(this);
                 return controller;
 
             } catch (Exception e) {

@@ -40,7 +40,8 @@ public class SearchQueryUtil {
         ENDTIME("end"),
         FROM("from"),
         SIZE("size"),
-        GOLDEN("golden");
+        GOLDEN("golden"),
+        PVS("pvs");
 
         private final String name;
 
@@ -68,6 +69,7 @@ public class SearchQueryUtil {
             lookupTable.put("user", Keys.USER);
             lookupTable.put("type", Keys.TYPE);
             lookupTable.put("golden", Keys.GOLDEN);
+            lookupTable.put("pvs", Keys.PVS);
         }
 
         public static Keys findKey(String keyName) {

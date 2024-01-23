@@ -22,7 +22,6 @@ package org.phoebus.service.saveandrestore.web.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.TagData;
@@ -30,7 +29,9 @@ import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -38,17 +39,16 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 import java.util.List;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 import static org.phoebus.service.saveandrestore.web.controllers.BaseController.JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-
-import static org.springframework.test.web.servlet.MockMvc.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = ControllersTestConfig.class)
-@WebMvcTest(NodeController.class)
+@WebMvcTest(TagController.class)
+@TestPropertySource(locations = "classpath:test_application.properties")
 public class TagControllerTest {
 
     @Autowired
@@ -57,10 +57,22 @@ public class TagControllerTest {
     @Autowired
     private NodeDAO nodeDAO;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private String userAuthorization;
+
+    @Autowired
+    private String adminAuthorization;
+
+    @Autowired
+    private String readOnlyAuthorization;
+
+    @Autowired
+    private String demoUser;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    public void testGetAllTags() throws Exception{
+    public void testGetAllTags() throws Exception {
         Tag tag = new Tag();
         tag.setName("tag");
         List<Tag> tags = List.of(tag);
@@ -76,18 +88,21 @@ public class TagControllerTest {
     }
 
     @Test
-    public void testAddTag() throws Exception{
+    public void testAddTag() throws Exception {
         Tag tag = new Tag();
         tag.setName("tag");
 
-        Node node = Node.builder().name("name").uniqueId("uniqueId").tags(List.of(tag)).build();
+        Node node = Node.builder().name("name").uniqueId("uniqueId").userName(demoUser).tags(List.of(tag)).build();
 
         TagData tagData = new TagData();
         tagData.setTag(tag);
         tagData.setUniqueNodeIds(List.of("uniqueId"));
+
+        when(nodeDAO.getNode("uniqueId")).thenReturn(node);
         when(nodeDAO.addTag(tagData)).thenReturn(List.of(node));
 
         MockHttpServletRequestBuilder request = post("/tags").contentType(JSON)
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
                 .content(objectMapper.writeValueAsString(tagData));
         MvcResult result = mockMvc.perform(request)
                 .andExpect(status().isOk()).andExpect(content().contentType(JSON))
@@ -99,11 +114,46 @@ public class TagControllerTest {
     }
 
     @Test
-    public void testAddTagBadData() throws Exception{
+    public void testGoldenTag() throws Exception {
+        Tag tag = new Tag();
+        tag.setName(Tag.GOLDEN);
+        tag.setUserName(demoUser);
+
+        TagData tagData = new TagData();
+        tagData.setTag(tag);
+        tagData.setUniqueNodeIds(List.of("uniqueId"));
+
+        MockHttpServletRequestBuilder request = post("/tags").contentType(JSON)
+                .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
+                .content(objectMapper.writeValueAsString(tagData));
+
+        mockMvc.perform(request).andExpect(status().isOk());
+
+        request = post("/tags").contentType(JSON)
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .content(objectMapper.writeValueAsString(tagData));
+
+        mockMvc.perform(request).andExpect(status().isForbidden());
+
+        request = post("/tags").contentType(JSON)
+                .header(HttpHeaders.AUTHORIZATION, readOnlyAuthorization)
+                .content(objectMapper.writeValueAsString(tagData));
+
+        mockMvc.perform(request).andExpect(status().isForbidden());
+
+    }
+
+    @Test
+    public void testAddTagBadData() throws Exception {
 
         TagData tagData = new TagData();
         tagData.setUniqueNodeIds(List.of("uniqueId"));
+
+        Node node = Node.builder().name("name").uniqueId("uniqueId").userName(demoUser).build();
+        when(nodeDAO.getNode("uniqueId")).thenReturn(node);
+
         MockHttpServletRequestBuilder request = post("/tags").contentType(JSON)
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
                 .content(objectMapper.writeValueAsString(tagData));
         mockMvc.perform(request)
                 .andExpect(status().isBadRequest());
@@ -112,6 +162,7 @@ public class TagControllerTest {
         tag.setName(null);
         tagData.setTag(tag);
         request = post("/tags").contentType(JSON)
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
                 .content(objectMapper.writeValueAsString(tagData));
         mockMvc.perform(request)
                 .andExpect(status().isBadRequest());
@@ -119,6 +170,7 @@ public class TagControllerTest {
         tag.setName("");
         tagData.setTag(tag);
         request = post("/tags").contentType(JSON)
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
                 .content(objectMapper.writeValueAsString(tagData));
         mockMvc.perform(request)
                 .andExpect(status().isBadRequest());
@@ -127,13 +179,40 @@ public class TagControllerTest {
         tagData.setTag(tag);
         tagData.setUniqueNodeIds(null);
         request = post("/tags").contentType(JSON)
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
                 .content(objectMapper.writeValueAsString(tagData));
         mockMvc.perform(request)
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    public void testDeleteTag() throws Exception{
+    public void testDeleteTag() throws Exception {
+        Tag tag = new Tag();
+        tag.setName("tag");
+        tag.setUserName(demoUser);
+
+        TagData tagData = new TagData();
+        tagData.setTag(tag);
+        tagData.setUniqueNodeIds(List.of("uniqueId"));
+
+        Node node = Node.builder().name("name").uniqueId("uniqueId").userName("otherUser").tags(List.of(tag)).build();
+
+        when(nodeDAO.getNode("uniqueId")).thenReturn(node);
+
+        MockHttpServletRequestBuilder request = delete("/tags").contentType(JSON)
+                .header(HttpHeaders.AUTHORIZATION, userAuthorization)
+                .content(objectMapper.writeValueAsString(tagData));
+
+        mockMvc.perform(request)
+                .andExpect(status().isForbidden());
+
+        request = delete("/tags").contentType(JSON)
+                .header(HttpHeaders.AUTHORIZATION, adminAuthorization)
+                .content(objectMapper.writeValueAsString(tagData));
+
+        mockMvc.perform(request)
+                .andExpect(status().isOk()
+                );
 
     }
 }

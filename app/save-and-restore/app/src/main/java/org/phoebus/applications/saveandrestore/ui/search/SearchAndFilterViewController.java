@@ -21,35 +21,15 @@ package org.phoebus.applications.saveandrestore.ui.search;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.Property;
-import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
+import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.Pagination;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
@@ -66,15 +46,11 @@ import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil;
 import org.phoebus.applications.saveandrestore.model.search.SearchQueryUtil.Keys;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
-import org.phoebus.applications.saveandrestore.ui.FilterChangeListener;
-import org.phoebus.applications.saveandrestore.ui.HelpViewer;
-import org.phoebus.applications.saveandrestore.ui.ImageRepository;
-import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
-import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
+import org.phoebus.applications.saveandrestore.ui.*;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagUtil;
 import org.phoebus.applications.saveandrestore.ui.snapshot.tag.TagWidget;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.dialog.ListSelectionPopOver;
 import org.phoebus.ui.javafx.ImageCache;
@@ -84,21 +60,13 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import java.net.URL;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.ResourceBundle;
-import java.util.Stack;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class SearchAndFilterViewController implements Initializable, FilterChangeListener {
+public class SearchAndFilterViewController extends SaveAndRestoreBaseController implements Initializable, FilterChangeListener {
 
     private final SaveAndRestoreController saveAndRestoreController;
 
@@ -166,21 +134,6 @@ public class SearchAndFilterViewController implements Initializable, FilterChang
     private CheckBox goldenOnlyCheckbox;
 
     @FXML
-    private ImageView goldenImageView;
-
-    @FXML
-    private ImageView folderImageView;
-
-    @FXML
-    private ImageView configurationImageView;
-
-    @FXML
-    private ImageView snapshotImageView;
-
-    @FXML
-    private ImageView compositeSnapshotImageView;
-
-    @FXML
     private Label queryLabel;
 
     @FXML
@@ -207,6 +160,9 @@ public class SearchAndFilterViewController implements Initializable, FilterChang
     @FXML
     private TableColumn<Filter, Filter> deleteColumn;
 
+    @FXML
+    private TextField pvsTextField;
+
     private final SimpleStringProperty filterNameProperty = new SimpleStringProperty();
 
     private final SaveAndRestoreService saveAndRestoreService;
@@ -217,6 +173,8 @@ public class SearchAndFilterViewController implements Initializable, FilterChang
     private final SimpleIntegerProperty pageCountProperty = new SimpleIntegerProperty(0);
     private final SimpleIntegerProperty pageSizeProperty =
             new SimpleIntegerProperty(Preferences.search_result_page_size);
+
+    private final SimpleStringProperty pvNamesProperty = new SimpleStringProperty();
 
     private final ObservableList<Node> tableEntries = FXCollections.observableArrayList();
 
@@ -263,28 +221,24 @@ public class SearchAndFilterViewController implements Initializable, FilterChang
             }
         });
         nodeTypeFolderCheckBox.selectedProperty().bindBidirectional(nodeTypeFolderProperty);
-        folderImageView.imageProperty().set(ImageRepository.FOLDER);
         nodeTypeFolderCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null && !newValue.equals(oldValue)) {
                 updateParametersAndSearch();
             }
         });
         nodeTypeConfigurationCheckBox.selectedProperty().bindBidirectional(nodeTypeConfigurationProperty);
-        configurationImageView.imageProperty().set(ImageRepository.CONFIGURATION);
         nodeTypeConfigurationCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null && !newValue.equals(oldValue)) {
                 updateParametersAndSearch();
             }
         });
         nodeTypeSnapshotCheckBox.selectedProperty().bindBidirectional(nodeTypeSnapshotProperty);
-        snapshotImageView.imageProperty().set(ImageRepository.SNAPSHOT);
         nodeTypeSnapshotCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null && !newValue.equals(oldValue)) {
                 updateParametersAndSearch();
             }
         });
         nodeTypeCompositeSnapshotCheckBox.selectedProperty().bindBidirectional(nodeTypeCompositeSnapshotProperty);
-        compositeSnapshotImageView.imageProperty().set(ImageRepository.COMPOSITE_SNAPSHOT);
         nodeTypeCompositeSnapshotCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null && !newValue.equals(oldValue)) {
                 updateParametersAndSearch();
@@ -297,8 +251,6 @@ public class SearchAndFilterViewController implements Initializable, FilterChang
                 updateParametersAndSearch();
             }
         });
-
-        goldenImageView.imageProperty().set(ImageRepository.GOLDEN_SNAPSHOT);
 
         descTextField.textProperty().bindBidirectional(descProperty);
         descTextField.setOnKeyPressed(e -> {
@@ -318,6 +270,17 @@ public class SearchAndFilterViewController implements Initializable, FilterChang
                 updateParametersAndSearch();
             }
         });
+
+        pvsTextField.textProperty().bindBidirectional(pvNamesProperty);
+        // NOTE: setOnKeyPressed will not work here as that is supposed to trigger the PV autocompletion
+        // mechanism, which will consume the event.
+        pvsTextField.setOnKeyReleased(e -> {
+            if (e.getCode() == KeyCode.ENTER) {
+                updateParametersAndSearch();
+            }
+        });
+
+        PVAutocompleteMenu.INSTANCE.attachField(pvsTextField);
 
         startTime.textProperty().bindBidirectional(startTimeProperty);
         startTime.setOnKeyPressed(e -> {
@@ -379,8 +342,12 @@ public class SearchAndFilterViewController implements Initializable, FilterChang
         queryLabel.textProperty().bind(query);
 
         filterNameTextField.textProperty().bindBidirectional(filterNameProperty);
+        filterNameTextField.disableProperty().bind(saveAndRestoreController.getUserIdentity().isNull());
         saveFilterButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
-                filterNameProperty.get() == null || filterNameProperty.get().isEmpty(), filterNameProperty));
+                filterNameProperty.get() == null ||
+                        filterNameProperty.get().isEmpty() ||
+                        saveAndRestoreController.getUserIdentity().isNull().get(),
+                filterNameProperty, saveAndRestoreController.getUserIdentity()));
 
         resultTableView.setRowFactory(tableView -> new TableRow<>() {
             @Override
@@ -458,7 +425,7 @@ public class SearchAndFilterViewController implements Initializable, FilterChang
         // This is to accept numerical input only, and at most 3 digits (maximizing search to 999 hits).
         pageSizeTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (DIGIT_PATTERN.matcher(newValue).matches()) {
-                if ("".equals(newValue)) {
+                if (newValue.isEmpty()) {
                     pageSizeProperty.set(Preferences.search_result_page_size);
                 } else if (newValue.length() > 3) {
                     pageSizeTextField.setText(oldValue);
@@ -487,15 +454,13 @@ public class SearchAndFilterViewController implements Initializable, FilterChang
         resultTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         resultTableView.setOnDragDetected(e -> {
             List<Node> selectedNodes = resultTableView.getSelectionModel().getSelectedItems();
-            if(selectedNodes.stream().filter(n ->
+            if (selectedNodes.stream().anyMatch(n ->
                     !n.getNodeType().equals(NodeType.SNAPSHOT) &&
-                            !n.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)).findFirst().isPresent())
-            {
+                            !n.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT))) {
                 return;
             }
             final ClipboardContent content = new ClipboardContent();
-            final List<Node> nodes = new ArrayList<>();
-            resultTableView.getSelectionModel().getSelectedItems().forEach(i -> nodes.add(i));
+            final List<Node> nodes = new ArrayList<>(resultTableView.getSelectionModel().getSelectedItems());
             content.put(SaveAndRestoreApplication.NODE_SELECTION_FORMAT, nodes);
             final Dragboard db = resultTableView.startDragAndDrop(TransferMode.LINK);
             db.setContent(content);
@@ -592,14 +557,7 @@ public class SearchAndFilterViewController implements Initializable, FilterChang
                         hitCountProperty.set(searchResult.getHitCount());
                     });
                 } else {
-                    Platform.runLater(() -> {
-                        Alert alert = new Alert(AlertType.INFORMATION);
-                        alert.setTitle(Messages.searchNoResultsTitle);
-                        alert.setHeaderText(Messages.searchNoResult);
-                        DialogHelper.positionDialog(alert, resultTableView, -300, -200);
-                        alert.show();
-                        tableEntries.clear();
-                    });
+                    Platform.runLater(tableEntries::clear);
                 }
             } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError(
@@ -669,6 +627,9 @@ public class SearchAndFilterViewController implements Initializable, FilterChang
         if (tagsProperty.get() != null && !tagsProperty.get().isEmpty()) {
             map.put(Keys.TAGS.getName(), tagsProperty.get());
         }
+        if (pvNamesProperty.get() != null && !pvNamesProperty.get().isEmpty()) {
+            map.put(Keys.PVS.getName(), pvNamesProperty.get());
+        }
         List<String> types = new ArrayList<>();
         if (nodeTypeFolderProperty.get()) {
             types.add(NodeType.FOLDER.name().toLowerCase());
@@ -722,6 +683,8 @@ public class SearchAndFilterViewController implements Initializable, FilterChang
         @Override
         protected void updateItem(final Filter filter, final boolean empty) {
             super.updateItem(filter, empty);
+            // If user clicks on the delete column cell, consume the mouse event to prevent the filter from being loaded.
+            setOnMouseClicked(Event::consume);
             if (empty) {
                 setGraphic(null);
             } else {
@@ -731,13 +694,13 @@ public class SearchAndFilterViewController implements Initializable, FilterChang
                 button.setOnAction(event -> {
                     try {
                         saveAndRestoreService.deleteFilter(filter);
-                        //loadFilters();
                         clearFilter(filter);
                     } catch (Exception e) {
                         LOGGER.log(Level.SEVERE, "Failed to delete filter", e);
                         ExceptionDetailsErrorDialog.openError(Messages.errorGeneric, Messages.faildDeleteFilter, e);
                     }
                 });
+                button.disableProperty().bind(saveAndRestoreController.getUserIdentity().isNull());
                 setGraphic(button);
             }
         }

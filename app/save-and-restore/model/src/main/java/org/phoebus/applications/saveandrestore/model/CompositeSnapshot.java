@@ -45,6 +45,19 @@ public class CompositeSnapshot {
         this.compositeSnapshotData = compositeSnapshotData;
     }
 
+    @Override
+    public boolean equals(Object other){
+        if(!(other instanceof CompositeSnapshot)){
+            return false;
+        }
+        return compositeSnapshotNode.equals(((CompositeSnapshot) other).getCompositeSnapshotNode());
+    }
+
+    @Override
+    public int hashCode(){
+        return compositeSnapshotNode.hashCode();
+    }
+
     public static CompositeSnapshot.Builder builder(){
         return new CompositeSnapshot.Builder();
     }

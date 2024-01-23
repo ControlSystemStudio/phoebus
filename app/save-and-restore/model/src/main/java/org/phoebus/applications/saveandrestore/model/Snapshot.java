@@ -43,4 +43,17 @@ public class Snapshot {
     public void setSnapshotData(SnapshotData snapshotData) {
         this.snapshotData = snapshotData;
     }
+
+    @Override
+    public boolean equals(Object other){
+        if(!(other instanceof Snapshot)){
+            return false;
+        }
+        return snapshotNode.equals(((Snapshot) other).getSnapshotNode());
+    }
+
+    @Override
+    public int hashCode(){
+        return snapshotNode.hashCode();
+    }
 }

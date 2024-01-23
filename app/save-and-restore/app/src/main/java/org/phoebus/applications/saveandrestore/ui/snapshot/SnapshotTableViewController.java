@@ -160,6 +160,8 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
     }
 
     public void takeSnapshot(Consumer<Snapshot> consumer) {
+        // Clear snapshots array
+        snapshots.clear();
         List<SnapshotItem> entries = new ArrayList<>();
         readAll(list ->
                 Platform.runLater(() -> {
@@ -369,7 +371,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
             }
 
             try {
-                countDownLatch.await();
+                countDownLatch.await(10, TimeUnit.MINUTES);
             } catch (InterruptedException e) {
                 LOGGER.log(Level.INFO, "Encountered InterruptedException", e);
             }

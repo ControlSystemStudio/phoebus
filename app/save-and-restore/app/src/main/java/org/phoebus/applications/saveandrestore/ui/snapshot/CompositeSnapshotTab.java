@@ -22,12 +22,12 @@ package org.phoebus.applications.saveandrestore.ui.snapshot;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.Tab;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.applications.saveandrestore.ui.ImageRepository;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreTab;
 import org.phoebus.framework.nls.NLS;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
@@ -40,10 +40,13 @@ import java.util.logging.Logger;
 /**
  * Tab for creating or editing composite snapshots,
  * i.e. for node type {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}.
+ *
+ * <p>
+ *     Note that this class is only for editing of {@link Node}s of type {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}.
+ *     {@link SnapshotTab} is used to show actual snapshot data.
+ * </p>
  */
-public class CompositeSnapshotTab extends Tab {
-
-    private CompositeSnapshotController compositeSnapshotController;
+public class CompositeSnapshotTab extends SaveAndRestoreTab {
 
     private final SimpleStringProperty tabTitleProperty = new SimpleStringProperty(Messages.contextMenuNewCompositeSnapshot);
 
@@ -82,14 +85,14 @@ public class CompositeSnapshotTab extends Tab {
             return;
         }
 
-        compositeSnapshotController = loader.getController();
+        controller = loader.getController();
 
         setContent(rootNode);
         setGraphic(new ImageView(ImageRepository.COMPOSITE_SNAPSHOT));
         textProperty().bind(tabTitleProperty);
 
         setOnCloseRequest(event -> {
-            if (!compositeSnapshotController.handleCompositeSnapshotTabClosed()) {
+            if (!((CompositeSnapshotController) controller).handleCompositeSnapshotTabClosed()) {
                 event.consume();
             }
         });
@@ -108,7 +111,7 @@ public class CompositeSnapshotTab extends Tab {
 
     public void configureForNewCompositeSnapshot(Node parentNode, List<Node> snapshotNodes) {
         tabTitleProperty.set(Messages.contextMenuNewCompositeSnapshot);
-        compositeSnapshotController.newCompositeSnapshot(parentNode, snapshotNodes);
+        ((CompositeSnapshotController) controller).newCompositeSnapshot(parentNode, snapshotNodes);
     }
 
     /**
@@ -121,7 +124,7 @@ public class CompositeSnapshotTab extends Tab {
     public void editCompositeSnapshot(Node compositeSnapshotNode, List<Node> snapshotNodes) {
         setId("edit_" + compositeSnapshotNode.getUniqueId());
         setNodeName(compositeSnapshotNode.getName());
-        compositeSnapshotController.loadCompositeSnapshot(compositeSnapshotNode, snapshotNodes);
+        ((CompositeSnapshotController) controller).loadCompositeSnapshot(compositeSnapshotNode, snapshotNodes);
     }
 
     /**
@@ -131,6 +134,11 @@ public class CompositeSnapshotTab extends Tab {
      *                      the composite snapshot.
      */
     public void addToCompositeSnapshot(List<Node> snapshotNodes) {
-        compositeSnapshotController.addToCompositeSnapshot(snapshotNodes);
+        ((CompositeSnapshotController) controller).addToCompositeSnapshot(snapshotNodes);
+    }
+
+    @Override
+    public void nodeChanged(Node node) {
+
     }
 }

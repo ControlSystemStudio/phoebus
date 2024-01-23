@@ -41,6 +41,19 @@ public class Configuration {
         this.configurationData = configurationData;
     }
 
+    @Override
+    public boolean equals(Object other){
+        if(!(other instanceof Configuration)){
+            return false;
+        }
+        return configurationNode.equals(((Configuration) other).getConfigurationNode());
+    }
+
+    @Override
+    public int hashCode(){
+        return configurationNode.hashCode();
+    }
+
     public static Builder builder(){
         return new Builder();
     }

@@ -30,9 +30,11 @@ import org.epics.vtype.*;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.applications.saveandrestore.ui.VNoData;
 import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
@@ -46,7 +48,7 @@ import java.util.regex.Pattern;
  * Once the snapshot has been saved, this controller calls the {@link SnapshotTab} API to load
  * the view associated with restore actions.
  */
-public class SnapshotController {
+public class SnapshotController extends SaveAndRestoreBaseController {
 
 
     @FXML
@@ -85,6 +87,7 @@ public class SnapshotController {
 
     @FXML
     public void initialize() {
+
         // Locate registered SaveAndRestoreEventReceivers
         eventReceivers = ServiceLoader.load(SaveAndRestoreEventReceiver.class);
         progressIndicator.visibleProperty().bind(disabledUi);
@@ -125,7 +128,6 @@ public class SnapshotController {
             snapshotData.setSnapshotItems(configurationToSnapshotItems(configPvs));
             snapshot.setSnapshotData(snapshotData);
             snapshotProperty.set(snapshot);
-            //List<TableEntry> tableEntries = snapshotTableViewController.createTableEntries(snapshot);
             Platform.runLater(() -> snapshotTableViewController.showSnapshotInTable(snapshot));
         });
     }
@@ -134,6 +136,7 @@ public class SnapshotController {
     @SuppressWarnings("unused")
     public void takeSnapshot() {
         disabledUi.set(true);
+        snapshotTab.setText(Messages.unnamedSnapshot);
         snapshotTableViewController.takeSnapshot(snapshot -> {
             disabledUi.set(false);
             snapshotProperty.set(snapshot);
@@ -148,13 +151,22 @@ public class SnapshotController {
             List<SnapshotItem> snapshotItems = snapshotProperty.get().getSnapshotData().getSnapshotItems();
             SnapshotData snapshotData = new SnapshotData();
             snapshotData.setSnapshotItems(snapshotItems);
-            Snapshot snapshot = new Snapshot();
+            Snapshot snapshot = snapshotProperty.get();
+            // Creating new or updating existing (e.g. name change)?
+            if (snapshot == null) {
+                snapshot = new Snapshot();
+                snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT)
+                        .name(snapshotControlsViewController.getSnapshotNameProperty().get())
+                        .description(snapshotControlsViewController.getSnapshotCommentProperty().get()).build());
+            } else {
+                snapshot.getSnapshotNode().setName(snapshotControlsViewController.getSnapshotNameProperty().get());
+                snapshot.getSnapshotNode().setDescription(snapshotControlsViewController.getSnapshotCommentProperty().get());
+            }
             snapshot.setSnapshotData(snapshotData);
-            snapshot.setSnapshotNode(Node.builder().nodeType(NodeType.SNAPSHOT)
-                    .name(snapshotControlsViewController.getSnapshotNameProperty().get())
-                    .description(snapshotControlsViewController.getSnapshotCommentProperty().get()).build());
+
             try {
                 snapshot = SaveAndRestoreService.getInstance().saveSnapshot(configurationNode, snapshot);
+                snapshotProperty.set(snapshot);
                 Node _snapshotNode = snapshot.getSnapshotNode();
                 javafx.scene.Node jfxNode = (javafx.scene.Node) actionEvent.getSource();
                 String userData = (String) jfxNode.getUserData();
@@ -334,12 +346,7 @@ public class SnapshotController {
         snapshotControlsViewController.setSnapshotRestorableProperty(true);
         snapshotTableViewController.setSelectionColumnVisible(true);
 
-        if (snapshotNode.getNodeType().equals(NodeType.SNAPSHOT)) {
-            loadSnapshotInternal(snapshotNode);
-        } else {
-            snapshotControlsViewController.setNameAndCommentDisabled(true);
-            loadSnapshotInternal(snapshotNode);
-        }
+        loadSnapshotInternal(snapshotNode);
     }
 
     public void restore(ActionEvent actionEvent) {
@@ -358,7 +365,7 @@ public class SnapshotController {
             Snapshot snapshot = getSnapshotFromService(snapshotNode);
             snapshotTableViewController.addSnapshot(snapshot);
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.getLogger(SnapshotController.class.getName()).log(Level.WARNING, "Failed to add snapshot", e);
         } finally {
             disabledUi.set(false);
         }
@@ -384,5 +391,10 @@ public class SnapshotController {
         snapshot.setSnapshotNode(snapshotNode);
         snapshot.setSnapshotData(snapshotData);
         return snapshot;
+    }
+
+    @Override
+    public void secureStoreChanged(List<ScopedAuthenticationToken> validTokens) {
+        snapshotControlsViewController.secureStoreChanged(validTokens);
     }
 }

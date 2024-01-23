@@ -723,11 +723,47 @@ Body:
       }
     ]
 
-Migration
----------
+Authentication and Authorization
+================================
 
-Commit ``48e17a380b660d59b79cec4d2bd908c0d78eeeae`` of the service code base is about changing the persistence
-component from a RDB engine to Elasticsearch. Sites using save-and-restore with an RDB engine may migrate
+All non-GET endpoints are subject to authentication, i.e. clients must send a basic authentication header. The
+service can be configured to delegate authentication to Active Directory or remote or local LDAP. For demo and test
+purposes hard coded credentials are found in the ``WebSecurityConfig`` class. See the file ``application.properties``
+for information on how to select authentication method.
+
+Two roles are defined, "sar-user" and "sar-admin". The actual name of these roles can be customizable in ``application.properties``,
+and must match role/group names in LDAP or Active Directory.
+
+Authorization uses a role-based approach like so:
+
+* Unauthenticated users may read data, i.e. access GET endpoints.
+* Save-and-restore role "sar-user":
+    * Create and update configurations
+    * Create and update snapshots
+    * Create and update composite snapshots
+    * Create and update filters
+    * Create and update tags, except GOLDEN tag
+    * Update and delete objects if user name matches object's user id and:
+        * Object is a snapshot node and not referenced in a composite snapshot node
+        * Object is a composite snapshot node
+        * Object is configuration or folder node with no child nodes
+        * Object is a filter
+        * Object is a tag
+* Save-and-restore role "sar-admin": no restrictions
+
+
+Enabled authentication, disabled authorization
+----------------------------------------------
+
+The application property ``authorization.permitall`` (default ``true``) can be used to bypass all authorization. In
+this case authentication is still required for protected endpoints, but user need not be associated with
+a save-and-restore role/group.
+
+Migration
+=========
+
+From commit ``48e17a380b660d59b79cec4d2bd908c0d78eeeae`` of the service code base the persistence
+layer is moved from RDB engine to Elasticsearch. Sites using save-and-restore with an RDB engine may migrate
 data using the below procedure.
 
 Terminology: "source host" is the host running the legacy service instance using a RDB engine,

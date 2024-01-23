@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 European Spallation Source ERIC.
+ * Copyright (C) 2024 European Spallation Source ERIC.
  * <p>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -42,12 +42,14 @@ import java.util.logging.Logger;
  * {@link Tab} subclass showing a view for the purpose of creating or restoring a snapshot.
  * These two use cases/views are split in terms of fxml files and controller classes in order to facilitate development
  * and maintenance.
+ *
+ * <p>
+ *     Note that this class is used also to show the snapshot view for {@link Node}s of type {@link NodeType#COMPOSITE_SNAPSHOT}.
+ * </p>
  */
 public class SnapshotTab extends SaveAndRestoreTab {
 
     public SaveAndRestoreService saveAndRestoreService;
-
-    private SnapshotController snapshotController;
 
     private final SimpleObjectProperty<Image> tabGraphicImageProperty = new SimpleObjectProperty<>();
 
@@ -84,7 +86,7 @@ public class SnapshotTab extends SaveAndRestoreTab {
 
         try {
             setContent(loader.load());
-            snapshotController = loader.getController();
+            controller = loader.getController();
         } catch (IOException e) {
             Logger.getLogger(SnapshotTab.class.getName())
                     .log(Level.SEVERE, "Failed to load fxml", e);
@@ -100,7 +102,7 @@ public class SnapshotTab extends SaveAndRestoreTab {
         setTabImage(node);
 
         setOnCloseRequest(event -> {
-            if (snapshotController != null && !snapshotController.handleSnapshotTabClosed()) {
+            if (controller != null && !((SnapshotController) controller).handleSnapshotTabClosed()) {
                 event.consume();
             } else {
                 SaveAndRestoreService.getInstance().removeNodeChangeListener(this);
@@ -115,14 +117,20 @@ public class SnapshotTab extends SaveAndRestoreTab {
         Platform.runLater(() -> textProperty().set(name));
     }
 
+    /**
+     * Set tab image based on node type, and optionally golden tag
+     * @param node A snapshot {@link Node}
+     */
     private void setTabImage(Node node) {
-        if (node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)) {
+        if(node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT)){
             tabGraphicImageProperty.set(ImageRepository.COMPOSITE_SNAPSHOT);
-        } else {
+        }
+        else{
             boolean golden = node.getTags() != null && node.getTags().stream().anyMatch(t -> t.getName().equals(Tag.GOLDEN));
             if (golden) {
                 tabGraphicImageProperty.set(ImageRepository.GOLDEN_SNAPSHOT);
-            } else {
+            }
+            else {
                 tabGraphicImageProperty.set(ImageRepository.SNAPSHOT);
             }
         }
@@ -136,7 +144,7 @@ public class SnapshotTab extends SaveAndRestoreTab {
      */
     public void newSnapshot(org.phoebus.applications.saveandrestore.model.Node configurationNode) {
         setId(null);
-        snapshotController.newSnapshot(configurationNode);
+        ((SnapshotController) controller).newSnapshot(configurationNode);
     }
 
     /**
@@ -147,28 +155,29 @@ public class SnapshotTab extends SaveAndRestoreTab {
     public void loadSnapshot(Node snapshotNode) {
         updateTabTitle(snapshotNode.getName());
         setId(snapshotNode.getUniqueId());
-        snapshotController.loadSnapshot(snapshotNode);
+        ((SnapshotController) controller).loadSnapshot(snapshotNode);
     }
 
     public void addSnapshot(org.phoebus.applications.saveandrestore.model.Node node) {
-        snapshotController.addSnapshot(node);
+        ((SnapshotController) controller).addSnapshot(node);
     }
 
     @Override
     public void nodeChanged(Node node) {
         if (node.getUniqueId().equals(getId())) {
             Platform.runLater(() -> {
-                snapshotController.setSnapshotNameProperty(node.getName());
+                ((SnapshotController) controller).setSnapshotNameProperty(node.getName());
                 setTabImage(node);
             });
         }
     }
 
     public Node getSnapshotNode() {
-        return snapshotController.getSnapshot().getSnapshotNode();
+        return ((SnapshotController) controller).getSnapshot().getSnapshotNode();
     }
 
     public Node getConfigNode() {
-        return snapshotController.getConfigurationNode();
+        return ((SnapshotController) controller).getConfigurationNode();
     }
+
 }

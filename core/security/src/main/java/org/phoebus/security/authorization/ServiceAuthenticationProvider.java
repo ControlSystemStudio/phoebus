@@ -35,7 +35,7 @@ public interface ServiceAuthenticationProvider {
 
     /**
      * Signs out user from the service.
-     * @param token User name or other type of token (e.g. session cookie).
+     * @param token Username or other type of token (e.g. session cookie).
      */
     void logout(String token);
 
@@ -46,9 +46,10 @@ public interface ServiceAuthenticationProvider {
      * {@link org.phoebus.security.store.SecureStore}. Such keys are stored in
      * <b>lower</b> case in the key store that backs {@link org.phoebus.security.store.SecureStore}, and
      * is a behavior defined by the encryption scheme implementation.
-     * Consequently an identity like "UPPER" will be persisted as "upper", i.e. case insensitivity
+     * Consequently, an identity like "UPPER" will be persisted as "upper", i.e. case insensitivity
      * must be considered when defining an identity.
      * @return Service name
      */
     AuthenticationScope getAuthenticationScope();
+
 }

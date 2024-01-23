@@ -19,10 +19,12 @@ package org.phoebus.applications.saveandrestore;
 
 import org.phoebus.framework.nls.NLS;
 
+@SuppressWarnings("unused")
 public class Messages {
 
     public static String alertContinue;
     public static String alertAddingPVsToConfiguration;
+    public static String authenticationFailed;
     public static String baseSetpoint;
     public static String buttonSearch;
     public static String cannotCompareHeader;
@@ -69,9 +71,11 @@ public class Messages {
     public static String duplicatePVNamesFoundInSelection;
     public static String editFilter;
     public static String errorActionFailed;
+    public static String errorAddTagFailed;
     public static String errorCreateFolderFailed;
     public static String errorCreateConfigurationFailed;
     public static String errorDeleteNodeFailed;
+    public static String errorDeleteTagFailed;
     public static String errorGeneric;
     public static String errorUnableToRetrieveData;
     public static String exportConfigurationLabel;
@@ -126,9 +130,6 @@ public class Messages {
     public static String searchEntryToolTip;
     public static String searchErrorBody;
     public static String searchFailed;
-    public static String searchNoResultsTitle;
-    public static String searchNoResult;
-
     public static String setpoint;
     public static String setpointPVWhen;
     public static String severity;

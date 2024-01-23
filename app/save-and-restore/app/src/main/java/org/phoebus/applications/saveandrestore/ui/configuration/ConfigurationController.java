@@ -28,33 +28,17 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
 import javafx.util.Callback;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
-import org.phoebus.applications.saveandrestore.model.ConfigPv;
-import org.phoebus.applications.saveandrestore.model.Configuration;
-import org.phoebus.applications.saveandrestore.model.ConfigurationData;
-import org.phoebus.applications.saveandrestore.model.Node;
-import org.phoebus.applications.saveandrestore.model.NodeType;
+import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
-import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreController;
+import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
@@ -73,7 +57,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class ConfigurationController implements NodeChangedListener {
+public class ConfigurationController extends SaveAndRestoreBaseController implements NodeChangedListener {
 
     @FXML
     private BorderPane root;
@@ -120,6 +104,9 @@ public class ConfigurationController implements NodeChangedListener {
     @FXML
     private Label createdByField;
 
+    @FXML
+    private Pane addPVsPane;
+
     private SaveAndRestoreService saveAndRestoreService;
 
     private static final Executor UI_EXECUTOR = Platform::runLater;
@@ -156,15 +143,16 @@ public class ConfigurationController implements NodeChangedListener {
         ContextMenu pvNameContextMenu = new ContextMenu();
 
         MenuItem deleteMenuItem = new MenuItem(Messages.menuItemDeleteSelectedPVs,
-                new ImageView(ImageCache.getImage(SaveAndRestoreController.class, "/icons/delete.png")));
+                new ImageView(ImageCache.getImage(ConfigurationController.class, "/icons/delete.png")));
         deleteMenuItem.setOnAction(ae -> {
             configurationEntries.removeAll(pvTable.getSelectionModel().getSelectedItems());
             configurationTab.annotateDirty(true);
             pvTable.refresh();
         });
 
-        deleteMenuItem.disableProperty().bind(Bindings.createBooleanBinding(() -> pvTable.getSelectionModel().getSelectedItems().isEmpty(),
-                pvTable.getSelectionModel().getSelectedItems()));
+        deleteMenuItem.disableProperty().bind(Bindings.createBooleanBinding(() -> pvTable.getSelectionModel().getSelectedItems().isEmpty()
+                        || userIdentity.isNull().get(),
+                pvTable.getSelectionModel().getSelectedItems(), userIdentity));
 
         pvNameColumn.setEditable(true);
         pvNameColumn.setCellValueFactory(new PropertyValueFactory<>("pvName"));
@@ -213,7 +201,9 @@ public class ConfigurationController implements NodeChangedListener {
         pvNameField.textProperty().bindBidirectional(pvNameProperty);
         readbackPvNameField.textProperty().bindBidirectional(readbackPvNameProperty);
         configurationNameField.textProperty().bindBidirectional(configurationNameProperty);
+        configurationNameField.disableProperty().bind(userIdentity.isNull());
         descriptionTextArea.textProperty().bindBidirectional(configurationDescriptionProperty);
+        descriptionTextArea.disableProperty().bind(userIdentity.isNull());
 
         configurationEntries.addListener((ListChangeListener<ConfigPv>) change -> {
             while (change.next()) {
@@ -225,13 +215,13 @@ public class ConfigurationController implements NodeChangedListener {
         });
 
         configurationNameProperty.addListener((observableValue, oldValue, newValue) -> dirty.set(!newValue.equals(configurationNode.getName())));
-
         configurationDescriptionProperty.addListener((observable, oldValue, newValue) -> dirty.set(!newValue.equals(configurationNode.get().getDescription())));
 
         saveButton.disableProperty().bind(Bindings.createBooleanBinding(() -> dirty.not().get() ||
                         configurationDescriptionProperty.isEmpty().get() ||
-                        configurationNameProperty.isEmpty().get(),
-                dirty, configurationDescriptionProperty, configurationNameProperty));
+                        configurationNameProperty.isEmpty().get() ||
+                        userIdentity.isNull().get(),
+                dirty, configurationDescriptionProperty, configurationNameProperty, userIdentity));
 
         addPvButton.disableProperty().bind(pvNameField.textProperty().isEmpty());
 
@@ -252,6 +242,8 @@ public class ConfigurationController implements NodeChangedListener {
                 configurationDescriptionProperty.set(configurationNode.get().getDescription());
             }
         });
+
+        addPVsPane.disableProperty().bind(userIdentity.isNull());
 
         SaveAndRestoreService.getInstance().addNodeChangeListener(this);
     }

@@ -135,7 +135,8 @@ public class LogEntryDisplayController {
      * @param logEntry A log entry that has been updated by user and saved by service.
      */
     public void updateLogEntry(LogEntry logEntry){
-        if(logEntryProperty.get().getId() == logEntry.getId()){
+        // Log entry display may be "empty", i.e. logEntryProperty not set yet
+        if(!logEntryProperty.isNull().get() && logEntryProperty.get().getId() == logEntry.getId()){
             setLogEntry(logEntry);
         }
     }

@@ -18,36 +18,36 @@
 
 package org.phoebus.applications.saveandrestore.ui;
 
+import javafx.beans.binding.Bindings;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.Messages;
-import org.phoebus.applications.saveandrestore.model.Node;
 import org.phoebus.ui.javafx.ImageCache;
 
-public class ContextMenuConfiguration extends ContextMenuBase{
+/**
+ * Context menu for {@link org.phoebus.applications.saveandrestore.model.Node}s of type
+ * {@link org.phoebus.applications.saveandrestore.model.NodeType#CONFIGURATION}.
+ */
+public class ContextMenuConfiguration extends ContextMenuBase {
 
-    public ContextMenuConfiguration(SaveAndRestoreController saveAndRestoreController,
-                                    TreeView<Node> treeView) {
-        super(saveAndRestoreController, treeView);
+    public ContextMenuConfiguration(SaveAndRestoreController saveAndRestoreController) {
+        super(saveAndRestoreController);
 
         Image csvExportIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/csv_export.png");
 
         MenuItem openConfigurationMenuItem = new MenuItem(Messages.contextMenuCreateSnapshot, new ImageView(ImageRepository.CONFIGURATION));
-        openConfigurationMenuItem.disableProperty().bind(multipleSelection);
+        openConfigurationMenuItem.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                        multipleNodesSelectedProperty.get() || userIsAuthenticatedProperty.not().get(),
+                multipleNodesSelectedProperty, userIsAuthenticatedProperty));
         openConfigurationMenuItem.setOnAction(ae -> saveAndRestoreController.openConfigurationForSnapshot());
-
-        MenuItem editConfigurationMenuItem = new MenuItem(Messages.Edit, new ImageView(ImageRepository.EDIT_CONFIGURATION));
-        editConfigurationMenuItem.disableProperty().bind(multipleSelection);
-        editConfigurationMenuItem.setOnAction(ae -> saveAndRestoreController.nodeDoubleClicked());
 
         ImageView exportConfigurationIconImageView = new ImageView(csvExportIcon);
         exportConfigurationIconImageView.setFitWidth(18);
         exportConfigurationIconImageView.setFitHeight(18);
 
         MenuItem exportConfigurationMenuItem = new MenuItem(Messages.exportConfigurationLabel, exportConfigurationIconImageView);
-        exportConfigurationMenuItem.disableProperty().bind(multipleSelection);
+        exportConfigurationMenuItem.disableProperty().bind(multipleNodesSelectedProperty);
         exportConfigurationMenuItem.setOnAction(ae -> saveAndRestoreController.exportConfiguration());
 
         ImageView importSnapshotIconImageView = new ImageView(csvImportIcon);
@@ -55,29 +55,41 @@ public class ContextMenuConfiguration extends ContextMenuBase{
         importSnapshotIconImageView.setFitHeight(18);
 
         MenuItem importSnapshotMenuItem = new MenuItem(Messages.importSnapshotLabel, importSnapshotIconImageView);
-        importSnapshotMenuItem.disableProperty().bind(multipleSelection);
+        importSnapshotMenuItem.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                        multipleNodesSelectedProperty.get() || userIsAuthenticatedProperty.not().get(),
+                multipleNodesSelectedProperty, userIsAuthenticatedProperty));
         importSnapshotMenuItem.setOnAction(ae -> saveAndRestoreController.importSnapshot());
 
         Image copyIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/copy.png");
         MenuItem copyMenuItem = new MenuItem(Messages.copy, new ImageView(copyIcon));
         copyMenuItem.setOnAction(action -> saveAndRestoreController.copySelectionToClipboard());
+        copyMenuItem.disableProperty().bind(mayCopyProperty.not());
 
         Image pasteIcon = ImageCache.getImage(SaveAndRestoreController.class, "/icons/paste.png");
         MenuItem pasteMenuItem = new MenuItem(Messages.paste, new ImageView(pasteIcon));
         pasteMenuItem.setOnAction(ae -> saveAndRestoreController.pasteFromClipboard());
-
-        setOnShowing(event -> {
-            pasteMenuItem.setDisable(!saveAndRestoreController.mayPaste());
-            copyMenuItem.setDisable(!saveAndRestoreController.mayCopy());
-        });
+        pasteMenuItem.disableProperty().bind(mayPasteProperty.not());
 
         getItems().addAll(openConfigurationMenuItem,
-                editConfigurationMenuItem,
                 copyMenuItem,
                 pasteMenuItem,
                 deleteNodesMenuItem,
                 copyUniqueIdToClipboardMenuItem,
                 exportConfigurationMenuItem,
                 importSnapshotMenuItem);
+    }
+
+    /**
+     * Execute common checks (see {@link ContextMenuBase#runChecks()}) and:
+     * <ul>
+     *     <li>If copy operation is possible on selected {@link org.phoebus.applications.saveandrestore.model.Node}s</li>
+     *     <li>If paste operation is possible on selected {@link org.phoebus.applications.saveandrestore.model.Node}s</li>
+     * </ul>
+     */
+    @Override
+    protected void runChecks() {
+        super.runChecks();
+        mayPasteProperty.set(saveAndRestoreController.mayPaste());
+        mayCopyProperty.set(saveAndRestoreController.mayCopy());
     }
 }
