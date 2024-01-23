@@ -24,7 +24,7 @@ import org.epics.util.stats.Range;
 import org.epics.vtype.*;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
-import org.phoebus.applications.saveandrestore.ui.VDisconnectedData;
+import org.phoebus.core.vtypes.VDisconnectedData;
 
 import java.io.BufferedReader;
 import java.io.IOException;

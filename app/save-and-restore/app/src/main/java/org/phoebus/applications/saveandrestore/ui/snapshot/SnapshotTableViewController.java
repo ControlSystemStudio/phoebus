@@ -34,6 +34,8 @@ import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.SafeMultiply;
 import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.applications.saveandrestore.ui.*;
+import org.phoebus.core.vtypes.VTypeHelper;
+import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -358,7 +360,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
                     final SaveAndRestorePV pv = pvs.get(getPVKey(e.pvNameProperty().get(), e.readOnlyProperty().get()));
                     if (entry.getValue() != null) {
                         try {
-                            pv.getPv().write(Utilities.toRawValue(entry.getValue()));
+                            pv.getPv().write(VTypeHelper.toObject(entry.getValue()));
                         } catch (Exception writeException) {
                             restoreFailedPVNames.add(entry.getConfigPv().getPvName());
                         } finally {

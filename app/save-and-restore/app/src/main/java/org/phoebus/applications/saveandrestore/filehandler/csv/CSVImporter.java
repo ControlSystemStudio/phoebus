@@ -80,7 +80,7 @@ import org.phoebus.applications.saveandrestore.model.Snapshot;
 import org.phoebus.applications.saveandrestore.model.SnapshotData;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
-import org.phoebus.applications.saveandrestore.ui.VDisconnectedData;
+import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.configuration.ConfigurationFromSelectionController;
 import org.phoebus.framework.nls.NLS;
 

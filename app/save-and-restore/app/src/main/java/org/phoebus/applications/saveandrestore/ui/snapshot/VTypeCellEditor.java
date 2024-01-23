@@ -26,6 +26,7 @@ import javafx.scene.image.ImageView;
 import javafx.util.StringConverter;
 import org.epics.vtype.*;
 import org.phoebus.applications.saveandrestore.ui.*;
+import org.phoebus.core.vtypes.VDisconnectedData;
 
 import java.util.ArrayList;
 import java.util.List;

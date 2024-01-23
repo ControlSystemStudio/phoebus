@@ -22,33 +22,8 @@ import org.epics.util.array.ListUByte;
 import org.epics.util.array.ListUInteger;
 import org.epics.util.array.ListULong;
 import org.epics.util.array.ListUShort;
-import org.epics.vtype.Alarm;
-import org.epics.vtype.Array;
-import org.epics.vtype.Display;
-import org.epics.vtype.EnumDisplay;
-import org.epics.vtype.Time;
-import org.epics.vtype.VBoolean;
-import org.epics.vtype.VBooleanArray;
-import org.epics.vtype.VByteArray;
-import org.epics.vtype.VDouble;
-import org.epics.vtype.VDoubleArray;
-import org.epics.vtype.VEnum;
-import org.epics.vtype.VEnumArray;
-import org.epics.vtype.VFloatArray;
-import org.epics.vtype.VInt;
-import org.epics.vtype.VIntArray;
-import org.epics.vtype.VLongArray;
-import org.epics.vtype.VNumber;
-import org.epics.vtype.VNumberArray;
-import org.epics.vtype.VShortArray;
-import org.epics.vtype.VStatistics;
-import org.epics.vtype.VString;
-import org.epics.vtype.VStringArray;
-import org.epics.vtype.VTable;
-import org.epics.vtype.VType;
-import org.epics.vtype.VUIntArray;
-import org.epics.vtype.VULongArray;
-import org.epics.vtype.VUShortArray;
+
+import org.epics.vtype.*;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -564,4 +539,85 @@ public class VTypeHelperTest {
 
         assertTrue(VTypeHelper.toBooleans(VDouble.of(7.0, alarm, time, display)).length == 0);
     }
+
+    @Test
+    public void testToObject() {
+        Alarm alarm = Alarm.none();
+        Display display = Display.none();
+        Time time = Time.now();
+
+        assertNull(VTypeHelper.toObject(null));
+
+        VType val = VDouble.of(5d, alarm, time, display);
+        Object d = VTypeHelper.toObject(val);
+        assertTrue(d instanceof Double);
+        assertEquals(5.0, d);
+
+        val = VFloat.of(5f, alarm, time, display);
+        d = VTypeHelper.toObject(val);
+        assertTrue(d instanceof Float);
+        assertEquals(5.0f, d);
+
+        val = VLong.of(5L, alarm, time, display);
+        d = VTypeHelper.toObject(val);
+        assertTrue(d instanceof Long);
+        assertEquals(5L, d);
+
+        val = VInt.of(5, alarm, time, display);
+        d = VTypeHelper.toObject(val);
+        assertTrue(d instanceof Integer);
+        assertEquals(5, d);
+
+        val = VShort.of((short) 5, alarm, time, display);
+        d = VTypeHelper.toObject(val);
+        assertTrue(d instanceof Short);
+        assertEquals((short) 5, d);
+
+        val = VByte.of((byte) 5, alarm, time, display);
+        d = VTypeHelper.toObject(val);
+        assertTrue(d instanceof Byte);
+        assertEquals((byte) 5, d);
+
+        val = VEnum.of(1, EnumDisplay.of("first", "second", "third"), alarm, time);
+        d = VTypeHelper.toObject(val);
+        assertTrue(d instanceof Integer);
+        assertEquals(1, d);
+
+        val = VString.of("third", alarm, time);
+        d = VTypeHelper.toObject(val);
+        assertTrue(d instanceof String);
+        assertEquals("third", d);
+
+        ArrayDouble arrayDouble = ArrayDouble.of(1, 2, 3, 4, 5);
+        val = VDoubleArray.of(arrayDouble, alarm, time, display);
+        d = VTypeHelper.toObject(val);
+        assertTrue(d instanceof double[]);
+        for (int i = 0; i < ((double[]) d).length; i++) {
+            assertEquals(arrayDouble.getDouble(i), ((double[]) d)[i], 0);
+        }
+
+        val = VStringArray.of(Arrays.asList("a", "b", "c"), alarm, time);
+        d = VTypeHelper.toObject(val);
+        assertTrue(d instanceof String[]);
+
+        val = VBooleanArray.of(ArrayBoolean.of(true, false, true), alarm, time);
+        d = VTypeHelper.toObject(val);
+        assertTrue(d instanceof boolean[]);
+        assertTrue(((boolean[]) d)[0]);
+        assertFalse(((boolean[]) d)[1]);
+
+        val = VEnumArray.of(ArrayInteger.of(0, 1, 2, 3, 4), EnumDisplay.of("a", "b", "c", "d", "e"), alarm, time);
+        d = VTypeHelper.toObject(val);
+        assertTrue(d instanceof String[]);
+        assertEquals("a", ((String[]) d)[0]);
+        assertEquals("e", ((String[]) d)[4]);
+
+        val = VBoolean.of(true, alarm, time);
+        d = VTypeHelper.toObject(val);
+        assertTrue(d instanceof Boolean);
+        assertTrue(((Boolean) d));
+
+        assertNull(VTypeHelper.toObject(VDisconnectedData.INSTANCE));
+    }
+
 }

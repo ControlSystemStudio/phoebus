@@ -23,7 +23,7 @@ import org.epics.util.array.*;
 import org.epics.util.number.*;
 import org.epics.util.text.NumberFormats;
 import org.epics.vtype.*;
-import org.phoebus.core.vtypes.VTypeHelper;
+import org.phoebus.core.vtypes.VDisconnectedData;
 
 import java.math.BigInteger;
 import java.text.NumberFormat;
@@ -282,60 +282,7 @@ public final class Utilities {
     }
 
     /**
-     * Extracts the raw value from the given data object. The raw value is either one of the primitive wrappers or some
-     * list type if the value is an {@link Array}.
-     *
-     * @param type the value to extract the raw data from
-     * @return the raw data
-     */
-    public static Object toRawValue(VType type) {
-        if (type == null) {
-            return null;
-        }
-        if (type instanceof VNumberArray) {
-            if (type instanceof VIntArray || type instanceof VUIntArray) {
-                return VTypeHelper.toIntegers(type);
-            } else if (type instanceof VDoubleArray) {
-                return VTypeHelper.toDoubles(type);
-            } else if (type instanceof VFloatArray) {
-                return VTypeHelper.toFloats(type);
-            } else if (type instanceof VLongArray || type instanceof VULongArray) {
-                return VTypeHelper.toLongs(type);
-            } else if (type instanceof VShortArray || type instanceof VUShortArray) {
-                return VTypeHelper.toShorts(type);
-            } else if (type instanceof VByteArray || type instanceof VUByteArray) {
-                return VTypeHelper.toBytes(type);
-            }
-        } else if (type instanceof VEnumArray) {
-            List<String> data = ((VEnumArray) type).getData();
-            return data.toArray(new String[data.size()]);
-        } else if (type instanceof VStringArray) {
-            List<String> data = ((VStringArray) type).getData();
-            return data.toArray(new String[data.size()]);
-        } else if (type instanceof VBooleanArray) {
-            return VTypeHelper.toBooleans(type);
-        } else if (type instanceof VNumber) {
-            return ((VNumber) type).getValue();
-        } else if (type instanceof VEnum) {
-            return ((VEnum) type).getIndex();
-        } else if (type instanceof VString) {
-            return ((VString) type).getValue();
-        } else if (type instanceof VBoolean) {
-            return ((VBoolean) type).getValue();
-        } else if (type instanceof VTable) {
-            VTable vTable = (VTable) type;
-            int columnCount = vTable.getColumnCount();
-            List dataArrays = new ArrayList();
-            for (int i = 0; i < columnCount; i++) {
-                dataArrays.add(toPVArrayType("Col " + i, vTable.getColumnData(i)));
-            }
-            return new PVAStructure(PVATable.STRUCT_NAME, "", dataArrays);
-        }
-        return null;
-    }
-
-    /**
-     * Transforms the value of the given {@link VType} to a human-readable string. This method uses formatting to format
+     * Transforms the value of the given {@link VType} to a human readable string. This method uses formatting to format
      * all values, which may result in the arrays being truncated.
      *
      * @param type the data to transform
