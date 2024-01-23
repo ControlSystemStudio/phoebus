@@ -17,6 +17,7 @@ import org.csstudio.display.builder.model.properties.CallPVActionInfo;
 import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class CallPVActionDetailsController implements ActionDetailsController {
     private final CallPVActionInfo actionInfo;
@@ -83,6 +84,10 @@ public class CallPVActionDetailsController implements ActionDetailsController {
             parameterTable.getItems().remove(selectedItem);
         });
 
+        for (Map.Entry<String, String> arg: actionInfo.getArgs().entrySet()) {
+            parameterList.add(new Pair<>(arg.getKey(), arg.getValue()));
+        }
+
         PVAutocompleteMenu.INSTANCE.attachField(pvName);
     }
 
@@ -95,8 +100,6 @@ public class CallPVActionDetailsController implements ActionDetailsController {
         for (Pair<String, String> pair: parameterList) {
             parameters.put(pair.getKey(), pair.getValue());
         }
-
-        System.out.println(parameters);
 
         return new CallPVActionInfo(
                 this.descriptionProperty.get(),
