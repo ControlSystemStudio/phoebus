@@ -226,7 +226,10 @@ public class DisplayInfo
 
         // In path, keep ':' and '/', but replace spaces
         // Windows platform tweak replace \ with /
-        buf.append(path.replace(" ", "%20").replace('\\', '/'));
+        buf.append(path.replace(" ", "%20")
+                       .replace('\\', '/')
+                       .replace("[", "%5B")
+                       .replace("]", "%5D"));
 
         // Add macros as path parameters
         boolean first = true;
