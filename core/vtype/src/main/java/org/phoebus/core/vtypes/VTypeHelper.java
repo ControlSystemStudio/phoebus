@@ -8,6 +8,7 @@
 package org.phoebus.core.vtypes;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.epics.util.array.ListBoolean;
@@ -533,7 +534,8 @@ public class VTypeHelper {
                 return VTypeHelper.toBytes(type);
             }
         } else if (type instanceof VEnumArray) {
-            List<String> data = ((VEnumArray) type).getData();
+            var indexes = ((VEnumArray) type).getIndexes();
+            List<Integer> data = indexes.toArray(new ArrayList<Integer>());
             return data.toArray(new String[data.size()]);
         } else if (type instanceof VStringArray) {
             List<String> data = ((VStringArray) type).getData();
