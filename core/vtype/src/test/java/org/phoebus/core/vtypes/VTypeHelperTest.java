@@ -608,9 +608,9 @@ public class VTypeHelperTest {
 
         val = VEnumArray.of(ArrayInteger.of(0, 1, 2, 3, 4), EnumDisplay.of("a", "b", "c", "d", "e"), alarm, time);
         d = VTypeHelper.toObject(val);
-        assertTrue(d instanceof String[]);
-        assertEquals("a", ((String[]) d)[0]);
-        assertEquals("e", ((String[]) d)[4]);
+        assertTrue(d instanceof int[]);
+        assertEquals(0, ((int[]) d)[0]);
+        assertEquals(4, ((int[]) d)[4]);
 
         val = VBoolean.of(true, alarm, time);
         d = VTypeHelper.toObject(val);

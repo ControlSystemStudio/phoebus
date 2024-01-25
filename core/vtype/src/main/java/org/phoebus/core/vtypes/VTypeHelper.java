@@ -535,8 +535,8 @@ public class VTypeHelper {
             }
         } else if (type instanceof VEnumArray) {
             var indexes = ((VEnumArray) type).getIndexes();
-            List<Integer> data = indexes.toArray(new ArrayList<Integer>());
-            return data.toArray(new String[data.size()]);
+            var array = new int[indexes.size()];
+            return indexes.toArray(array);
         } else if (type instanceof VStringArray) {
             List<String> data = ((VStringArray) type).getData();
             return data.toArray(new String[data.size()]);
