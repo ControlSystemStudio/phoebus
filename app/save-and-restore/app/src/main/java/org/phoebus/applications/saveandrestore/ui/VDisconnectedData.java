@@ -17,6 +17,8 @@
  */
 package org.phoebus.applications.saveandrestore.ui;
 
+import org.epics.vtype.Alarm;
+import org.epics.vtype.AlarmProvider;
 import org.epics.vtype.VType;
 
 /**
@@ -26,7 +28,7 @@ import org.epics.vtype.VType;
  * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
  *
  */
-public final class VDisconnectedData extends VType{
+public final class VDisconnectedData extends VType implements AlarmProvider {
 
     private static final long serialVersionUID = -2399970529728581034L;
 
@@ -47,6 +49,11 @@ public final class VDisconnectedData extends VType{
     @Override
     public String toString() {
         return TO_STRING;
+    }
+
+    @Override
+    public Alarm getAlarm() {
+        return Alarm.disconnected();
     }
 
 
