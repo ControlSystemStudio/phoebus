@@ -22,6 +22,7 @@ import org.epics.pva.data.*;
 import org.epics.util.array.*;
 import org.epics.vtype.*;
 import org.junit.jupiter.api.Test;
+import org.phoebus.core.vtypes.VDisconnectedData;
 
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -302,112 +303,6 @@ public class UtilitiesTest {
         result = Utilities.valueFromString("string", val);
         assertTrue(result instanceof VString);
         assertEquals("string", ((VString) result).getValue());
-    }
-
-    /**
-     * Tests {@link Utilities#toRawValue(VType)}.
-     */
-    @Test
-    public void testToRawValue() {
-        Alarm alarm = Alarm.none();
-        Display display = Display.none();
-        Time time = Time.now();
-
-        assertNull(Utilities.toRawValue(null));
-
-        VType val = VDouble.of(5d, alarm, time, display);
-        Object d = Utilities.toRawValue(val);
-        assertTrue(d instanceof Double);
-        assertEquals(5.0, d);
-
-        val = VFloat.of(5f, alarm, time, display);
-        d = Utilities.toRawValue(val);
-        assertTrue(d instanceof Float);
-        assertEquals(5.0f, d);
-
-        val = VLong.of(5L, alarm, time, display);
-        d = Utilities.toRawValue(val);
-        assertTrue(d instanceof Long);
-        assertEquals(5L, d);
-
-        val = VInt.of(5, alarm, time, display);
-        d = Utilities.toRawValue(val);
-        assertTrue(d instanceof Integer);
-        assertEquals(5, d);
-
-        val = VShort.of((short) 5, alarm, time, display);
-        d = Utilities.toRawValue(val);
-        assertTrue(d instanceof Short);
-        assertEquals((short) 5, d);
-
-        val = VByte.of((byte) 5, alarm, time, display);
-        d = Utilities.toRawValue(val);
-        assertTrue(d instanceof Byte);
-        assertEquals((byte) 5, d);
-
-        val = VEnum.of(1, EnumDisplay.of("first", "second", "third"), alarm, time);
-        d = Utilities.toRawValue(val);
-        assertTrue(d instanceof Integer);
-        assertEquals(1, d);
-
-        val = VString.of("third", alarm, time);
-        d = Utilities.toRawValue(val);
-        assertTrue(d instanceof String);
-        assertEquals("third", d);
-
-        ArrayDouble arrayDouble = ArrayDouble.of(1, 2, 3, 4, 5);
-        val = VDoubleArray.of(arrayDouble, alarm, time, display);
-        d = Utilities.toRawValue(val);
-        assertTrue(d instanceof double[]);
-        for (int i = 0; i < ((double[]) d).length; i++) {
-            assertEquals(arrayDouble.getDouble(i), ((double[]) d)[i], 0);
-        }
-
-        val = VStringArray.of(Arrays.asList("a", "b", "c"), alarm, time);
-        d = Utilities.toRawValue(val);
-        assertTrue(d instanceof String[]);
-
-        val = VBooleanArray.of(ArrayBoolean.of(true, false, true), alarm, time);
-        d = Utilities.toRawValue(val);
-        assertTrue(d instanceof boolean[]);
-        assertTrue(((boolean[]) d)[0]);
-        assertFalse(((boolean[]) d)[1]);
-
-        val = VEnumArray.of(ArrayInteger.of(0, 1, 2, 3, 4), EnumDisplay.of("a", "b", "c", "d", "e"), alarm, time);
-        d = Utilities.toRawValue(val);
-        assertTrue(d instanceof String[]);
-        assertEquals("a", ((String[]) d)[0]);
-        assertEquals("e", ((String[]) d)[4]);
-
-        val = VBoolean.of(true, alarm, time);
-        d = Utilities.toRawValue(val);
-        assertTrue(d instanceof Boolean);
-        assertTrue(((Boolean) d));
-
-        assertNull(Utilities.toRawValue(VDisconnectedData.INSTANCE));
-
-        List<Class<?>> types = Arrays.asList(Integer.TYPE, Integer.TYPE, Integer.TYPE);
-        List<Object> values = Arrays.asList(ArrayInteger.of(-1, 2, 3), ArrayInteger.of(1, 2, 3), ArrayUInteger.of(11, 22, 33));
-        List<String> names = Arrays.asList("a", "b", "c");
-        VTable vTable = VTable.of(types, names, values);
-
-        d = Utilities.toRawValue(vTable);
-        assertInstanceOf(PVAStructure.class, d);
-        PVAStructure pvaStructure = (PVAStructure) d;
-        assertEquals(3, pvaStructure.get().size());
-        assertInstanceOf(PVAIntArray.class, pvaStructure.get().get(0));
-        assertInstanceOf(PVAIntArray.class, pvaStructure.get().get(1));
-        assertInstanceOf(PVAIntArray.class, pvaStructure.get().get(2));
-
-        PVAIntArray pvaIntArray = (PVAIntArray) pvaStructure.get().get(0);
-        assertEquals(3, pvaIntArray.get().length);
-        assertArrayEquals(new int[]{-1, 2, 3}, pvaIntArray.get());
-        pvaIntArray = (PVAIntArray) pvaStructure.get().get(1);
-        assertArrayEquals(new int[]{1, 2, 3}, pvaIntArray.get());
-        assertEquals(3, pvaIntArray.get().length);
-        pvaIntArray = (PVAIntArray) pvaStructure.get().get(2);
-        assertArrayEquals(new int[]{11, 22, 33}, pvaIntArray.get());
-        assertEquals(3, pvaIntArray.get().length);
     }
 
 

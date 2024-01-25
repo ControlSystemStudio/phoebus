@@ -16,6 +16,7 @@ import org.epics.pva.data.nt.PVAAlarm;
 import org.epics.vtype.*;
 import org.phoebus.applications.saveandrestore.model.ConfigPv;
 import org.phoebus.applications.saveandrestore.ui.*;
+import org.phoebus.core.vtypes.VDisconnectedData;
 
 import java.time.Instant;
 import java.util.ArrayList;

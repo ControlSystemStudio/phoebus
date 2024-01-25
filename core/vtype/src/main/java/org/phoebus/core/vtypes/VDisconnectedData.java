@@ -15,10 +15,8 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.phoebus.applications.saveandrestore.ui;
+package org.phoebus.core.vtypes;
 
-import org.epics.vtype.Alarm;
-import org.epics.vtype.AlarmProvider;
 import org.epics.vtype.VType;
 
 /**
@@ -28,7 +26,7 @@ import org.epics.vtype.VType;
  * @author <a href="mailto:jaka.bobnar@cosylab.com">Jaka Bobnar</a>
  *
  */
-public final class VDisconnectedData extends VType implements AlarmProvider {
+public final class VDisconnectedData extends VType {
 
     private static final long serialVersionUID = -2399970529728581034L;
 
@@ -49,11 +47,6 @@ public final class VDisconnectedData extends VType implements AlarmProvider {
     @Override
     public String toString() {
         return TO_STRING;
-    }
-
-    @Override
-    public Alarm getAlarm() {
-        return Alarm.disconnected();
     }
 
 

@@ -8,6 +8,7 @@
 package org.phoebus.core.vtypes;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.epics.util.array.ListBoolean;
@@ -505,5 +506,51 @@ public class VTypeHelper {
             return Boolean.parseBoolean(((VString) vtype).getValue());
         }
         return false;
+    }
+
+    /**
+     * Extracts the raw value from the given data object. The raw value is either one of the primitive wrappers or some
+     * kind of a list type if the value is an {@link Array}.
+     *
+     * @param type the value to extract the raw data from
+     * @return the raw data
+     */
+    public static Object toObject(VType type) {
+        if (type == null) {
+            return null;
+        }
+        if (type instanceof VNumberArray) {
+            if (type instanceof VIntArray || type instanceof VUIntArray) {
+                return VTypeHelper.toIntegers(type);
+            } else if (type instanceof VDoubleArray) {
+                return VTypeHelper.toDoubles(type);
+            } else if (type instanceof VFloatArray) {
+                return VTypeHelper.toFloats(type);
+            } else if (type instanceof VLongArray || type instanceof VULongArray) {
+                return VTypeHelper.toLongs(type);
+            } else if (type instanceof VShortArray || type instanceof VUShortArray) {
+                return VTypeHelper.toShorts(type);
+            } else if (type instanceof VByteArray || type instanceof VUByteArray) {
+                return VTypeHelper.toBytes(type);
+            }
+        } else if (type instanceof VEnumArray) {
+            var indexes = ((VEnumArray) type).getIndexes();
+            var array = new int[indexes.size()];
+            return indexes.toArray(array);
+        } else if (type instanceof VStringArray) {
+            List<String> data = ((VStringArray) type).getData();
+            return data.toArray(new String[data.size()]);
+        } else if (type instanceof VBooleanArray) {
+            return VTypeHelper.toBooleans(type);
+        } else if (type instanceof VNumber) {
+            return ((VNumber) type).getValue();
+        } else if (type instanceof VEnum) {
+            return ((VEnum) type).getIndex();
+        } else if (type instanceof VString) {
+            return ((VString) type).getValue();
+        } else if (type instanceof VBoolean) {
+            return ((VBoolean) type).getValue();
+        }
+        return null;
     }
 }

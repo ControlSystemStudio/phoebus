@@ -23,7 +23,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.phoebus.applications.saveandrestore.ui.Utilities;
-import org.phoebus.applications.saveandrestore.ui.VDisconnectedData;
+import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.VNoData;
 import org.phoebus.applications.saveandrestore.ui.VTypePair;
 
