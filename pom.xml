@@ -86,6 +86,7 @@
     <log4j-to-slf4j.version>2.17.1</log4j-to-slf4j.version>
     <derby.version>10.16.1.1</derby.version>
     <jython.version>2.7.3</jython.version>
+    <jgit.version>6.7.0.202309050840-r</jgit.version>
   </properties>
   <build>
     <plugins>

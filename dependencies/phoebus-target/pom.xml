@@ -501,22 +501,22 @@
     <dependency>
       <groupId>org.eclipse.jgit</groupId>
       <artifactId>org.eclipse.jgit</artifactId>
-      <version>6.6.0.202305301015-r</version>
+      <version>${jgit.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jgit</groupId>
       <artifactId>org.eclipse.jgit.archive</artifactId>
-      <version>6.6.0.202305301015-r</version>
+      <version>${jgit.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jgit</groupId>
       <artifactId>org.eclipse.jgit.ssh.jsch</artifactId>
-      <version>6.6.0.202305301015-r</version>
+      <version>${jgit.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jgit</groupId>
       <artifactId>org.eclipse.jgit.ssh.apache</artifactId>
-      <version>6.6.0.202305301015-r</version>
+      <version>${jgit.version}</version>
     </dependency>
     <!-- Spring Boot -->
     <dependency>
@@ -580,6 +580,14 @@
       <artifactId>javax.json-api</artifactId>
       <version>1.1.4</version>
     </dependency>
+
+    <!-- https://mvnrepository.com/artifact/org.apache.activemq/activemq-client -->
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-client</artifactId>
+      <version>5.18.2</version>
+    </dependency>
+
   </dependencies>
 
   <build>
