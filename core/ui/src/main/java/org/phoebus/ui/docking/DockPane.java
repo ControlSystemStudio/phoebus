@@ -22,11 +22,16 @@ import java.util.stream.Collectors;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.scene.control.*;
-import javafx.stage.Window;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.application.Messages;
-import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.Styles;
@@ -186,7 +191,7 @@ public class DockPane extends TabPane
      *  @param tabs
      */
     // Only accessible within this package (DockStage)
-    public DockPane(final DockItem... tabs)
+    DockPane(final DockItem... tabs)
     {
         super(tabs);
 

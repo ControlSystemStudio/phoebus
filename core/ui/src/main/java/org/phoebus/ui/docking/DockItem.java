@@ -358,10 +358,6 @@ public class DockItem extends Tab
         return (INST) getProperties().get(KEY_APPLICATION);
     }
 
-    public <INST extends AppInstance> void setKeyApplication(INST applicationInstance) {
-        getProperties().put(KEY_APPLICATION, applicationInstance);
-    }
-
     /** Label of this item */
     public String getLabel()
     {

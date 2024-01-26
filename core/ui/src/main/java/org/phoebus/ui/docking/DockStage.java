@@ -22,6 +22,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import javafx.scene.input.MouseEvent;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Border;
 import org.phoebus.framework.jobs.JobManager;
@@ -133,6 +134,15 @@ public class DockStage
      */
     public static DockPane configureStage(final Stage stage, final Geometry geometry, final DockItem... tabs)
     {
+        stage.addEventFilter(MouseEvent.MOUSE_MOVED, mouseEvent -> {
+            // Filtering MOUSE_MOVED events from unfocused windows prevents tooltips
+            // from displaying in unfocused windows. This, in turn, prevents unfocused
+            // windows from receiving the focus as a consequence on Windows and Mac OS.
+            if (!stage.focusedProperty().get()) {
+                mouseEvent.consume();
+            }
+        });
+
         stage.getProperties().put(KEY_ID, createID("DockStage"));
 
         final DockPane pane = new DockPane(tabs);
@@ -158,13 +168,6 @@ public class DockStage
         });
 
         final Scene scene = new Scene(layout, geometry.width, geometry.height);
-
-        scene.addEventHandler(KeyEvent.KEY_PRESSED, keyEvent -> {
-            if (keyEvent.isAltDown()) {
-                keyEvent.consume();
-            }
-        });
-
         stage.setScene(scene);
         stage.setTitle(Messages.FixedTitle);
         // Set position

@@ -249,15 +249,4 @@ public class SplitDock extends SplitPane
     {
         return "SplitDock for " + getItems();
     }
-
-    /** @param dock_parent {@link BorderPane}, {@link SplitDock} or <code>null</code> */
-    public void setDockParent(final Parent dock_parent)
-    {
-        if (dock_parent == null ||
-                dock_parent instanceof BorderPane  ||
-                dock_parent instanceof SplitPane)
-            this.dock_parent = dock_parent;
-        else
-            throw new IllegalArgumentException("Expect BorderPane or SplitDock, got " + dock_parent);
-    }
 }
