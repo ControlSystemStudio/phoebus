@@ -130,12 +130,12 @@ public class DisplayModel extends Widget
     /** 'grid_step_x' property */
     public static final WidgetPropertyDescriptor<Integer> propGridStepX =
         newIntegerPropertyDescriptor(WidgetPropertyCategory.MISC, "grid_step_x", Messages.WidgetProperties_GridStepX,
-                                     4, Integer.MAX_VALUE);
+                                     1, Integer.MAX_VALUE);
 
     /** 'grid_step_y' property */
     public static final WidgetPropertyDescriptor<Integer> propGridStepY =
         newIntegerPropertyDescriptor(WidgetPropertyCategory.MISC, "grid_step_y", Messages.WidgetProperties_GridStepY,
-                                     4, Integer.MAX_VALUE);
+                                     1, Integer.MAX_VALUE);
 
     private volatile WidgetProperty<Macros> macros;
     private volatile WidgetProperty<WidgetColor> background;
