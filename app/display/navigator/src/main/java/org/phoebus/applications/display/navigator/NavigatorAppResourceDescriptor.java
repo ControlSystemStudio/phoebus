@@ -44,7 +44,7 @@ public class NavigatorAppResourceDescriptor implements AppResourceDescriptor {
 
     @Override
     public void stop() {
-        if (instance != null && instance.controller.unsavedChanges) {
+        if (instance != null && instance.controller != null && instance.controller.unsavedChanges) {
             ButtonType saveAndExit = new ButtonType("Save & Exit");
             ButtonType discardAndExit = new ButtonType("Discard & Exit");
 

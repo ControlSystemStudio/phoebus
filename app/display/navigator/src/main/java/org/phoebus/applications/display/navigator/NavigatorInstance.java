@@ -35,9 +35,6 @@ public class NavigatorInstance implements AppInstance {
         if (running) {
             return;
         }
-        else {
-            running = true;
-        }
 
         try {
             FXMLLoader loader = new FXMLLoader();
@@ -45,6 +42,7 @@ public class NavigatorInstance implements AppInstance {
             loader.setLocation(location);
             loader.load();
             controller = loader.getController();
+            running = true;
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Unable to initialize Navigator UI.");
             throw new RuntimeException(e);

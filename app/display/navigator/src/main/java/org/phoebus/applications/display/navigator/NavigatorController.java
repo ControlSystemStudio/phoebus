@@ -157,15 +157,15 @@ public class NavigatorController implements Initializable {
             Tooltip.install(navigatorMenuButton, new Tooltip(Messages.NavigatorMenu));
         }
 
-        try {
-            rebuildNavigatorSelector();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
         navigatorLabel.textProperty().addListener((property, oldValue, newValue) -> {
             navigatorLabel.setTooltip(new Tooltip(newValue));
         });
+
+        try {
+            rebuildNavigatorSelector();
+        } catch (Exception e) {
+            return; // Building the navigator was unsuccessful.
+        }
 
         String initialNavigatorRelativePath = Preferences.initial_navigator;
 
@@ -1490,7 +1490,7 @@ public class NavigatorController implements Initializable {
     TreeItem<NavigatorSelectionTreeNode> buildNavigatorSelectionTree(File locationOfNavigators) throws Exception {
 
         if (!locationOfNavigators.exists()) {
-            String errorMessage = "The specified option org.phoebus.applications.display.navigator/navigator_root=" + NAVIGATOR_ROOT + " is doesn't exist!";
+            String errorMessage = "The specified location org.phoebus.applications.display.navigator/navigator_root=" + NAVIGATOR_ROOT + " doesn't exist!";
             LOGGER.log(Level.SEVERE, errorMessage);
             throw new Exception(errorMessage);
         }
