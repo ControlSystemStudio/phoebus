@@ -17,8 +17,12 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.TextInputDialog;
+import org.phoebus.framework.autocomplete.Proposal;
+import org.phoebus.framework.autocomplete.ProposalProvider;
+import org.phoebus.framework.autocomplete.ProposalService;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.workbench.Locations;
+import org.phoebus.ui.autocomplete.AutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockItemWithInput;
@@ -88,6 +92,29 @@ public class SaveLayoutHelper
         prompt.setTitle(titleText);
         prompt.setHeaderText(Messages.SaveDlgHdr);
         positionDialog(prompt, stagesToSave.get(0));
+
+        {
+            ProposalProvider proposalProvider = new ProposalProvider() {
+                @Override
+                public String getName() {
+                    return "Existing Layouts";
+                }
+
+                @Override
+                public List<Proposal> lookup(String text) {
+                    List<Proposal> listOfProposals = new LinkedList<>();
+                    for (String layout : PhoebusApplication.INSTANCE.getListOfLayouts()) {
+                        if (layout.startsWith(text)) {
+                            listOfProposals.add(new Proposal(layout));
+                        }
+                    }
+                    return listOfProposals;
+                }
+            };
+            ProposalService proposalService = new ProposalService(proposalProvider);
+            AutocompleteMenu autocompleteMenu = new AutocompleteMenu(proposalService);
+            autocompleteMenu.attachField(prompt.getEditor());
+        }
 
         while (true)
         {
