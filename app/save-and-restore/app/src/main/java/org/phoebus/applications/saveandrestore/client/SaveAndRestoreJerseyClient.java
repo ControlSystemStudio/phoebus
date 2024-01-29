@@ -64,7 +64,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
         mapper.registerModule(new JavaTimeModule());
         mapper.setSerializationInclusion(Include.NON_NULL);
 
-        PreferencesReader preferencesReader = new PreferencesReader(SaveAndRestoreClient.class, "/save_and_restore_preferences.properties");
+        PreferencesReader preferencesReader = new PreferencesReader(SaveAndRestoreClient.class, "/save_and_restore_client_preferences.properties");
         this.jmasarServiceUrl = preferencesReader.get("jmasar.service.url");
 
         String readTimeoutString = preferencesReader.get("httpClient.readTimeout");
