@@ -21,7 +21,7 @@ File ../../app/alarm/model/src/main/resources/alarm_preferences.properties::
    # Kafka Server host:port
    server=localhost:9092
    
-   # A file to configure the properites of kafka clients
+   # A file to configure the properties of kafka clients
    kafka_properties=
    
    # Name of alarm tree root.
@@ -156,6 +156,9 @@ File ../../app/alarm/model/src/main/resources/alarm_preferences.properties::
    #
    # Format: M1=Value1, M2=Value2
    macros=TOP=/home/controls/displays,WEBROOT=http://localhost/controls/displays
+   
+   # Max time in ms a producer call will block.
+   max_block_ms=10000
 
 
 alarm.logging.ui
@@ -1439,6 +1442,16 @@ File ../../app/save-and-restore/app/src/main/resources/save_and_restore_preferen
    
    # If declared add a date automatically in the name of the snapshot "Take Snapshot"
    #default_snapshot_name_date_format=yyyy-MM-dd HH:mm:ss
+
+
+saveandrestore.client
+---------------------
+
+File ../../app/save-and-restore/app/src/main/resources/save_and_restore_client_preferences.properties::
+
+   # ------------------------------------------------------
+   # Package org.phoebus.applications.saveandrestore.client
+   # ------------------------------------------------------
    
    # The URL to the save-and-restore service
    jmasar.service.url=http://localhost:8080/save-restore
