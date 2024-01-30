@@ -1,5 +1,6 @@
 package org.phoebus.applications.probe;
 
+import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.ui.spi.ContextMenuEntry;
 
 public class ContextMenuCopySubMenu implements ContextMenuEntry {
@@ -10,6 +11,6 @@ public class ContextMenuCopySubMenu implements ContextMenuEntry {
 
     @Override
     public Class<?> getSupportedType() {
-        return null;
+        return ProcessVariable.class;
     }
 }
