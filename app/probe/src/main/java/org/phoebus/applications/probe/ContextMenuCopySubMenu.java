@@ -5,7 +5,7 @@ import org.phoebus.ui.spi.ContextMenuEntry;
 public class ContextMenuCopySubMenu implements ContextMenuEntry {
     @Override
     public String getName() {
-        return null;
+        return Messages.CopySubMenu;
     }
 
     @Override
