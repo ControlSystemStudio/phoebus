@@ -1,3 +1,2 @@
-org.phoebus.applications.probe.ContextMenuPvToClipboard
-org.phoebus.applications.probe.ContextMenuPvAndValueToClipboard
+org.phoebus.applications.probe.ContextMenuCopySubMenu
 org.phoebus.applications.probe.ContextLaunchProbe
