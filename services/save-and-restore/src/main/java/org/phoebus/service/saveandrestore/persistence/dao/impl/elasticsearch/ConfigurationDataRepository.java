@@ -45,15 +45,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+/**
+ * Repository for {@link ConfigurationData}.
+ */
 @Repository
 public class ConfigurationDataRepository implements CrudRepository<ConfigurationData, String> {
 
     @Value("${elasticsearch.configuration_node.index:saveandrestore_configuration}")
-    public String ES_CONFIGURATION_INDEX;
+    private String ES_CONFIGURATION_INDEX;
 
     @Autowired
     @Qualifier("client")
-    ElasticsearchClient client;
+    private ElasticsearchClient client;
 
     @Autowired
     private SearchUtil searchUtil;

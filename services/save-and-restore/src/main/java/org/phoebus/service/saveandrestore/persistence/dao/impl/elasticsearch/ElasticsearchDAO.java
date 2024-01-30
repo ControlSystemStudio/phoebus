@@ -60,6 +60,9 @@ import java.util.stream.Collectors;
 
 import static org.phoebus.applications.saveandrestore.model.Node.ROOT_FOLDER_UNIQUE_ID;
 
+/**
+ * Data Access Object interfacing Elasticsearch as defined by {@link NodeDAO} interface.
+ */
 public class ElasticsearchDAO implements NodeDAO {
 
     @SuppressWarnings("unused")
@@ -805,6 +808,12 @@ public class ElasticsearchDAO implements NodeDAO {
         return null;
     }
 
+    /**
+     * Checks if a {@link Node} is present in a subtree. This is called recursively.
+     * @param startNode {@link Node} id from which the search will start.
+     * @param nodeToLookFor Self-explanatory.
+     * @return <code>true</code> if the #nodeToLookFor is found in the subtree, otherwise <code>false</code>.
+     */
     public boolean isContainedInSubtree(String startNode, String nodeToLookFor) {
         Optional<ESTreeNode> esStartNode = elasticsearchTreeRepository.findById(startNode);
         if (esStartNode.isEmpty()) {
@@ -1255,6 +1264,9 @@ public class ElasticsearchDAO implements NodeDAO {
         }
     }
 
+    /**
+     * Compares {@link Node} names for the purpose of ordering.
+     */
     public static class NodeNameComparator implements Comparator<String>{
 
         @Override
