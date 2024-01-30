@@ -29,6 +29,9 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Controller class for {@link Filter} endpoints.
+ */
 @RestController
 public class FilterController extends BaseController {
 
@@ -52,12 +55,21 @@ public class FilterController extends BaseController {
         return nodeDAO.saveFilter(filter);
     }
 
+    /**
+     *
+     * @return A {@link List} of all persisted {@link Filter} objects. Empty if none are found.
+     */
     @SuppressWarnings("unused")
     @GetMapping(value = "/filters", produces = JSON)
     public List<Filter> getAllFilters() {
         return nodeDAO.getAllFilters();
     }
 
+    /**
+     * Deletes a {@link Filter}
+     * @param name Unique name of the {@link Filter}
+     * @param principal User {@link Principal} as injected by Spring.
+     */
     @SuppressWarnings("unused")
     @DeleteMapping(value = "/filter/{name}")
     @PreAuthorize("@authorizationHelper.maySaveOrDeleteFilter(#name, #root)")

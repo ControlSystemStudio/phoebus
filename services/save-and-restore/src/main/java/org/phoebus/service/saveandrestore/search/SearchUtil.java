@@ -30,13 +30,14 @@ import java.util.stream.Collectors;
 public class SearchUtil {
 
     final private static String MILLI_PATTERN = "yyyy-MM-dd HH:mm:ss.SSS";
-    final public static DateTimeFormatter MILLI_FORMAT = DateTimeFormatter.ofPattern(MILLI_PATTERN).withZone(ZoneId.systemDefault());
+    final private static DateTimeFormatter MILLI_FORMAT = DateTimeFormatter.ofPattern(MILLI_PATTERN).withZone(ZoneId.systemDefault());
 
     @SuppressWarnings("unused")
     @Value("${elasticsearch.tree_node.index:saveandrestore_tree}")
-    public String ES_TREE_INDEX;
+    private String ES_TREE_INDEX;
+    @SuppressWarnings("unused")
     @Value("${elasticsearch.configuration_node.index:saveandrestore_configuration}")
-    public String ES_CONFIGURATION_INDEX;
+    private String ES_CONFIGURATION_INDEX;
     @SuppressWarnings("unused")
     @Value("${elasticsearch.result.size.search.default:100}")
     private int defaultSearchSize;

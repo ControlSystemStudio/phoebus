@@ -87,6 +87,11 @@ public interface NodeDAO {
     Node createNode(String parentNodeId, Node node);
 
 
+    /**
+     *
+     * @param uniqueNodeId Valid {@link Node} id.
+     * @return The parent {@link Node}
+     */
     Node getParentNode(String uniqueNodeId);
 
     /**

@@ -35,6 +35,9 @@ import java.time.Instant;
 import java.time.temporal.TemporalAmount;
 import java.time.temporal.UnsupportedTemporalTypeException;
 
+/**
+ * Controller class for search endpoints.
+ */
 @RestController
 public class SearchController extends BaseController {
 
@@ -43,6 +46,11 @@ public class SearchController extends BaseController {
     @Autowired
     private NodeDAO nodeDAO;
 
+    /**
+     * Invokes Elasticsearch search.
+     * @param allRequestParams {@link MultiValueMap} of search parameters.
+     * @return A {@link SearchResult} containing potentially empty list of {@link org.phoebus.applications.saveandrestore.model.Node}s.
+     */
     @SuppressWarnings("unused")
     @GetMapping("/search")
     public SearchResult search(@RequestParam MultiValueMap<String, String> allRequestParams) {

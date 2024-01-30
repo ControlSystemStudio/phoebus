@@ -28,8 +28,16 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * {@link RestControllerAdvice} to log client requests that cannot be read for any reason.
+ */
 @RestControllerAdvice
 public class ControllersConfig {
+
+    /**
+     * @param e {@link HttpMessageNotReadableException} triggering this method.
+     */
+    @SuppressWarnings("unused")
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public void handle(HttpMessageNotReadableException e) {

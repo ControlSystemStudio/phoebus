@@ -38,6 +38,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Controller class for user authentication endpoints.
+ */
 @SuppressWarnings("unused")
 @RestController
 public class AuthenticationController extends BaseController {
