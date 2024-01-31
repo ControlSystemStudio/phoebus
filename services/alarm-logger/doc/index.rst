@@ -38,13 +38,13 @@ Automatic purge of Elasticsearch indices
 ****************************************
 
 To avoid issues related to a high number of Elasticsearch indices, automatic purge can be enabled in order to delete
-indices considered obsolete. This is done by setting the preference ``retention_period_days`` to a number larger
-or equal to 100. The default value is 0, i.e. automatic purge is disabled by default.
+indices considered obsolete. This is done by setting the preferences ``date_span_units`` and ``retain_indices_count`` such
+that they evaluate to a number larger or equal to 100. The default ``retain_indices_count`` is 0, i.e. automatic purge is disabled by default.
 
 The automatic purge is run using a cron expression defined in preference ``purge_cron_expr``, default is
 ``0 0 0 * * SUN``, i.e. midnight each Sunday. See the SpringDocumentation_ on how to define the cron expression.
 
 An Elasticsearch index is considered eligible for deletion if the last inserted message date is before current time
-minus ``retention_period_days``.
+minus the number of days computed from ``date_span_units`` and ``retain_indices_count``.
 
 .. _SpringDocumentation: https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/scheduling/support/CronExpression.html

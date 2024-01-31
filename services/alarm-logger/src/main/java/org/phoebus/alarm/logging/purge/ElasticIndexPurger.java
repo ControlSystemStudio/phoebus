@@ -32,6 +32,7 @@ import co.elastic.clients.elasticsearch.indices.DeleteIndexRequest;
 import co.elastic.clients.elasticsearch.indices.DeleteIndexResponse;
 import org.phoebus.alarm.logging.ElasticClientHelper;
 import org.phoebus.alarm.logging.rest.AlarmLogMessage;
+import org.phoebus.alarm.logging.rest.AlarmLogSearchUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -46,8 +47,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Utility class purging Elasticsearch from indices considered obsolete based on the retention_period_time
- * application property. Any value below 100 (days) suppresses instantiation of this {@link Component}.
+ * Utility class purging Elasticsearch from indices considered obsolete based on the date_span_units and retain_indices_count
+ * application properties. If these result in a value below 100 (days), this {@link Component} will not be instantiated.
  * To determine last updated date of an index, each Elasticsearch index considered related to alarms is queried for last
  * inserted document. The message_time field of that document is compared to the retention period to determine
  * if the index should be deleted.
@@ -55,7 +56,7 @@ import java.util.logging.Logger;
  */
 @Component
 // Enable only of retention period is >= 100 days
-@ConditionalOnExpression("#{T(java.lang.Integer).parseInt('${retention_period_days}') >= 100}")
+@ConditionalOnExpression("#{T(org.phoebus.alarm.logging.purge.ElasticIndexPurger.EnableCondition).getRetentionDays('${date_span_units}', '${retain_indices_count}') >= 100}")
 public class ElasticIndexPurger {
 
     private static final Logger logger = Logger.getLogger(ElasticIndexPurger.class.getName());
@@ -111,6 +112,33 @@ public class ElasticIndexPurger {
             }
         } catch (IOException e) {
             logger.log(Level.WARNING, "Elastic query failed", e);
+        }
+    }
+
+    /**
+     * Helper class used to determine whether this service should be enabled or not
+     */
+    public static class EnableCondition {
+
+        /**
+         *
+         * @param dateSpanUnits Any of the values Y, M, W, D
+         * @param retainIndicesCountString String value of the retain_indices_count preference
+         * @return A number computed from input. In case input arguments are invalid (e.g. non-numerical value
+         * for retain_indices_coun), then 0 is returned to indicate that this {@link Component} should not be enabled.
+         */
+        @SuppressWarnings("unused")
+        public static int getRetentionDays(String dateSpanUnits, String retainIndicesCountString) {
+            int days = AlarmLogSearchUtil.getDateSpanInDays(dateSpanUnits);
+            if (days == -1) {
+                return 0;
+            }
+            try {
+                int retainIndicesCount = Integer.parseInt(retainIndicesCountString);
+                return days * retainIndicesCount;
+            } catch (NumberFormatException e) {
+                return 0;
+            }
         }
     }
 }
