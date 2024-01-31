@@ -1,7 +1,6 @@
 package org.phoebus.service.saveandrestore.web.controllers;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import org.junit.jupiter.api.Assertions;
 
 import java.util.Arrays;
 
@@ -32,7 +31,7 @@ public class SnapshotRestorerTest {
         snapshotRestorer.restorePVValues(
                 Arrays.asList(testSnapshotItem));
         var pvValue = pv.asyncRead().get();
-        assertEquals(VTypeHelper.toObject(pvValue), 1.0);
+        Assertions.assertEquals(VTypeHelper.toObject(pvValue), 1.0);
     }
 
     @Test
@@ -46,6 +45,6 @@ public class SnapshotRestorerTest {
         testSnapshotItem.setValue(VFloat.of(1.0, Alarm.noValue(), Time.now(), Display.none()));
         var result = snapshotRestorer.restorePVValues(
                 Arrays.asList(testSnapshotItem));
-        assertNotNull(result.get(0).getErrorMsg());
+        Assertions.assertNotNull(result.get(0).getErrorMsg());
     }
 }
