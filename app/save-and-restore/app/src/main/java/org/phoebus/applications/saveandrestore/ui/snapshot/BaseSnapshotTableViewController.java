@@ -288,6 +288,7 @@ public abstract class BaseSnapshotTableViewController {
             tableEntry.setConfigPv(entry.getConfigPv());
             tableEntry.setSnapshotValue(entry.getValue(), 0);
             tableEntry.setStoredReadbackValue(entry.getReadbackValue(), 0);
+            tableEntry.setReadbackValue(entry.getReadbackValue());
             String key = getPVKey(name, entry.getConfigPv().isReadOnly());
             tableEntry.readbackNameProperty().set(entry.getConfigPv().getReadbackPvName());
             tableEntry.readOnlyProperty().set(entry.getConfigPv().isReadOnly());
