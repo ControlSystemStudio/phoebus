@@ -27,11 +27,11 @@ import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import org.phoebus.applications.saveandrestore.Messages;
+import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreClientException;
 import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.applications.saveandrestore.model.search.Filter;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
-import org.phoebus.framework.preferences.PreferencesReader;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
@@ -47,13 +47,8 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     private static final String CONTENT_TYPE_JSON = "application/json; charset=UTF-8";
     private final Logger logger = Logger.getLogger(SaveAndRestoreJerseyClient.class.getName());
 
-    private final String jmasarServiceUrl;
-
     private static final int DEFAULT_READ_TIMEOUT = 5000; // ms
-    private static final int DEFAULT_CONNECT_TIMEOUT = 3000; // ms
-
-    private int httpClientReadTimeout = DEFAULT_READ_TIMEOUT;
-    private int httpClientConnectTimeout = DEFAULT_CONNECT_TIMEOUT;
+    private static final int DEFAULT_CONNECT_TIMEOUT = 5000; // ms
 
     ObjectMapper mapper = new ObjectMapper();
 
@@ -63,28 +58,15 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
 
         mapper.registerModule(new JavaTimeModule());
         mapper.setSerializationInclusion(Include.NON_NULL);
-
-        PreferencesReader preferencesReader = new PreferencesReader(SaveAndRestoreClient.class, "/save_and_restore_client_preferences.properties");
-        this.jmasarServiceUrl = preferencesReader.get("jmasar.service.url");
-
-        String readTimeoutString = preferencesReader.get("httpClient.readTimeout");
-        try {
-            httpClientReadTimeout = Integer.parseInt(readTimeoutString);
-            logger.log(Level.INFO, "Save&restore client using read timeout " + httpClientReadTimeout + " ms");
-        } catch (NumberFormatException e) {
-            logger.log(Level.INFO, "Property httpClient.readTimeout \"" + readTimeoutString + "\" is not a number, using default value " + DEFAULT_READ_TIMEOUT + " ms");
-        }
-
-        String connectTimeoutString = preferencesReader.get("httpClient.connectTimeout");
-        try {
-            httpClientConnectTimeout = Integer.parseInt(connectTimeoutString);
-            logger.log(Level.INFO, "Save&restore client using connect timeout " + httpClientConnectTimeout + " ms");
-        } catch (NumberFormatException e) {
-            logger.log(Level.INFO, "Property httpClient.connectTimeout \"" + connectTimeoutString + "\" is not a number, using default value " + DEFAULT_CONNECT_TIMEOUT + " ms");
-        }
     }
 
     private Client getClient() {
+        int httpClientReadTimeout = Preferences.httpClientReadTimeout > 0 ? Preferences.httpClientReadTimeout : DEFAULT_READ_TIMEOUT;
+        logger.log(Level.INFO, "Save&restore client using read timeout " + httpClientReadTimeout + " ms");
+
+        int httpClientConnectTimeout = Preferences.httpClientConnectTimeout > 0 ? Preferences.httpClientConnectTimeout : DEFAULT_CONNECT_TIMEOUT;
+        logger.log(Level.INFO, "Save&restore client using connect timeout " + httpClientConnectTimeout + " ms");
+
         DefaultClientConfig defaultClientConfig = new DefaultClientConfig();
         defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_READ_TIMEOUT, httpClientReadTimeout);
         defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, httpClientConnectTimeout);
@@ -114,7 +96,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
 
     @Override
     public String getServiceUrl() {
-        return jmasarServiceUrl;
+        return Preferences.jmasarServiceUrl;
     }
 
     @Override
@@ -129,7 +111,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
 
     @Override
     public List<Node> getCompositeSnapshotReferencedNodes(String uniqueNodeId) {
-        WebResource webResource = getClient().resource(jmasarServiceUrl + "/composite-snapshot/" + uniqueNodeId + "/nodes");
+        WebResource webResource = getClient().resource(Preferences.jmasarServiceUrl + "/composite-snapshot/" + uniqueNodeId + "/nodes");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).get(ClientResponse.class);
         if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
@@ -148,7 +130,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
 
     @Override
     public List<SnapshotItem> getCompositeSnapshotItems(String uniqueNodeId) {
-        WebResource webResource = getClient().resource(jmasarServiceUrl + "/composite-snapshot/" + uniqueNodeId + "/items");
+        WebResource webResource = getClient().resource(Preferences.jmasarServiceUrl + "/composite-snapshot/" + uniqueNodeId + "/items");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).get(ClientResponse.class);
         if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
@@ -179,7 +161,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
 
     @Override
     public Node createNewNode(String parentNodeId, Node node) {
-        WebResource webResource = getClient().resource(jmasarServiceUrl + "/node")
+        WebResource webResource = getClient().resource(Preferences.jmasarServiceUrl + "/node")
                 .queryParam("parentNodeId", parentNodeId);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(node, CONTENT_TYPE_JSON)
@@ -203,7 +185,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
 
     @Override
     public Node updateNode(Node nodeToUpdate, boolean customTimeForMigration) {
-        WebResource webResource = getClient().resource(jmasarServiceUrl + "/node")
+        WebResource webResource = getClient().resource(Preferences.jmasarServiceUrl + "/node")
                 .queryParam("customTimeForMigration", customTimeForMigration ? "true" : "false");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
@@ -229,7 +211,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     }
 
     private ClientResponse getCall(String relativeUrl) {
-        WebResource webResource = getClient().resource(jmasarServiceUrl + relativeUrl);
+        WebResource webResource = getClient().resource(Preferences.jmasarServiceUrl + relativeUrl);
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON).get(ClientResponse.class);
         if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
@@ -247,7 +229,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
 
     @Override
     public void deleteNodes(List<String> nodeIds) {
-        WebResource webResource = getClient().resource(jmasarServiceUrl + "/node");
+        WebResource webResource = getClient().resource(Preferences.jmasarServiceUrl + "/node");
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(nodeIds, CONTENT_TYPE_JSON)
                 .delete(ClientResponse.class);
@@ -274,7 +256,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     @Override
     public Node moveNodes(List<String> sourceNodeIds, String targetNodeId) {
         WebResource webResource =
-                getClient().resource(jmasarServiceUrl + "/move")
+                getClient().resource(Preferences.jmasarServiceUrl + "/move")
                         .queryParam("to", targetNodeId);
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
@@ -296,7 +278,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     @Override
     public Node copyNodes(List<String> sourceNodeIds, String targetNodeId) {
         WebResource webResource =
-                getClient().resource(jmasarServiceUrl + "/copy")
+                getClient().resource(Preferences.jmasarServiceUrl + "/copy")
                         .queryParam("to", targetNodeId);
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
@@ -318,7 +300,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     @Override
     public String getFullPath(String uniqueNodeId) {
         WebResource webResource =
-                getClient().resource(jmasarServiceUrl + "/path/" + uniqueNodeId);
+                getClient().resource(Preferences.jmasarServiceUrl + "/path/" + uniqueNodeId);
         ClientResponse response = webResource.get(ClientResponse.class);
 
         if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
@@ -341,7 +323,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     @Override
     public Configuration createConfiguration(String parentNodeId, Configuration configuration) {
         WebResource webResource =
-                getClient().resource(jmasarServiceUrl + "/config")
+                getClient().resource(Preferences.jmasarServiceUrl + "/config")
                         .queryParam("parentNodeId", parentNodeId);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(configuration, CONTENT_TYPE_JSON)
@@ -360,7 +342,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
 
     @Override
     public Configuration updateConfiguration(Configuration configuration) {
-        WebResource webResource = getClient().resource(jmasarServiceUrl + "/config");
+        WebResource webResource = getClient().resource(Preferences.jmasarServiceUrl + "/config");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(configuration, CONTENT_TYPE_JSON)
@@ -386,7 +368,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     @Override
     public Snapshot createSnapshot(String parentNodeId, Snapshot snapshot) {
         WebResource webResource =
-                getClient().resource(jmasarServiceUrl + "/snapshot")
+                getClient().resource(Preferences.jmasarServiceUrl + "/snapshot")
                         .queryParam("parentNodeId", parentNodeId);
         ClientResponse response;
         try {
@@ -411,7 +393,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     @Override
     public Snapshot updateSnapshot(Snapshot snapshot) {
         WebResource webResource =
-                getClient().resource(jmasarServiceUrl + "/snapshot");
+                getClient().resource(Preferences.jmasarServiceUrl + "/snapshot");
         ClientResponse response;
         try {
             response = webResource.accept(CONTENT_TYPE_JSON)
@@ -436,7 +418,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     @Override
     public CompositeSnapshot createCompositeSnapshot(String parentNodeId, CompositeSnapshot compositeSnapshot) {
         WebResource webResource =
-                getClient().resource(jmasarServiceUrl + "/composite-snapshot")
+                getClient().resource(Preferences.jmasarServiceUrl + "/composite-snapshot")
                         .queryParam("parentNodeId", parentNodeId);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(compositeSnapshot, CONTENT_TYPE_JSON)
@@ -456,7 +438,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     @Override
     public List<String> checkCompositeSnapshotConsistency(List<String> snapshotNodeIds) {
         WebResource webResource =
-                getClient().resource(jmasarServiceUrl + "/composite-snapshot-consistency-check");
+                getClient().resource(Preferences.jmasarServiceUrl + "/composite-snapshot-consistency-check");
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(snapshotNodeIds, CONTENT_TYPE_JSON)
                 .post(ClientResponse.class);
@@ -475,7 +457,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
 
     @Override
     public CompositeSnapshot updateCompositeSnapshot(CompositeSnapshot compositeSnapshot) {
-        WebResource webResource = getClient().resource(jmasarServiceUrl + "/composite-snapshot");
+        WebResource webResource = getClient().resource(Preferences.jmasarServiceUrl + "/composite-snapshot");
 
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(compositeSnapshot, CONTENT_TYPE_JSON)
@@ -494,7 +476,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
 
     @Override
     public SearchResult search(MultivaluedMap<String, String> searchParams) {
-        WebResource webResource = getClient().resource(jmasarServiceUrl + "/search")
+        WebResource webResource = getClient().resource(Preferences.jmasarServiceUrl + "/search")
                 .queryParams(searchParams);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .get(ClientResponse.class);
@@ -512,7 +494,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
 
     @Override
     public Filter saveFilter(Filter filter) {
-        WebResource webResource = getClient().resource(jmasarServiceUrl + "/filter");
+        WebResource webResource = getClient().resource(Preferences.jmasarServiceUrl + "/filter");
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .entity(filter, CONTENT_TYPE_JSON)
                 .put(ClientResponse.class);
@@ -530,7 +512,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
 
     @Override
     public List<Filter> getAllFilters() {
-        WebResource webResource = getClient().resource(jmasarServiceUrl + "/filters");
+        WebResource webResource = getClient().resource(Preferences.jmasarServiceUrl + "/filters");
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .get(ClientResponse.class);
         if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
@@ -550,7 +532,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     public void deleteFilter(String name) {
         // Filter name may contain space chars, need to URL encode these.
         String filterName = name.replace(" ", "%20");
-        WebResource webResource = getClient().resource(jmasarServiceUrl + "/filter/" + filterName);
+        WebResource webResource = getClient().resource(Preferences.jmasarServiceUrl + "/filter/" + filterName);
         ClientResponse response = webResource.accept(CONTENT_TYPE_JSON)
                 .delete(ClientResponse.class);
         if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
@@ -574,7 +556,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     public List<Node> addTag(TagData tagData) {
 
         WebResource webResource =
-                getClient().resource(jmasarServiceUrl + "/tags");
+                getClient().resource(Preferences.jmasarServiceUrl + "/tags");
         ClientResponse response;
         try {
             response = webResource.accept(CONTENT_TYPE_JSON)
@@ -605,7 +587,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
      */
     public List<Node> deleteTag(TagData tagData) {
         WebResource webResource =
-                getClient().resource(jmasarServiceUrl + "/tags");
+                getClient().resource(Preferences.jmasarServiceUrl + "/tags");
         ClientResponse response;
         try {
             response = webResource.accept(CONTENT_TYPE_JSON)
@@ -630,7 +612,7 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
     @Override
     public UserData authenticate(String userName, String password) {
         WebResource webResource =
-                getClient().resource(jmasarServiceUrl + "/login")
+                getClient().resource(Preferences.jmasarServiceUrl + "/login")
                         .queryParam("username", userName)
                         .queryParam("password", password);
         ClientResponse response;

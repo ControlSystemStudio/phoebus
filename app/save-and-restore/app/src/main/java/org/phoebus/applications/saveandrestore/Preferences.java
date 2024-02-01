@@ -21,18 +21,56 @@ package org.phoebus.applications.saveandrestore;
 import org.phoebus.framework.preferences.AnnotatedPreferences;
 import org.phoebus.framework.preferences.Preference;
 
+/**
+ * Preferences for save-and-restore client.
+ */
 public class Preferences {
+
+    /**
+     * Timeout for PV read operations when taking snapshot.
+     */
     @Preference
     public static int readTimeout;
+
+    /**
+     * Page size used in search UI.
+     */
     @Preference
     public static int search_result_page_size;
+
+    /**
+     * Default search query in search UI.
+     */
     @Preference
     public static String default_search_query;
+
+    /**
+     * Date format of default/automatic snapshot name.
+     */
     @Preference
     public static String default_snapshot_name_date_format;
 
-    static
-    {
+    /**
+     * Where to find the service...
+     */
+    @Preference(name = "jmasar.service.url")
+    public static String jmasarServiceUrl;
+
+    /**
+     * Timeout to read response from service. This may need to be increased from default 5000 ms
+     * if client is handling snapshots with very large number of PVs.
+     */
+    @Preference(name = "httpClient.readTimeout")
+    public static int httpClientReadTimeout;
+
+    /**
+     * Timeout for client connection to service.
+     */
+    @Preference(name = "httpClient.connectTimeout")
+    public static int httpClientConnectTimeout;
+
+    static {
         AnnotatedPreferences.initialize(Preferences.class, "/save_and_restore_preferences.properties");
+        AnnotatedPreferences.initialize(Preferences.class, "/save_and_restore_client_preferences.properties");
     }
 }
