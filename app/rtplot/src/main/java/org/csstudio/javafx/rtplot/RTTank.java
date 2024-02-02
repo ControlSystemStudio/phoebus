@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014-2017 Oak Ridge National Laboratory.
+ * Copyright (c) 2014-2023 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -275,7 +275,14 @@ public class RTTank extends Canvas
             level = plot_bounds.height;
         else if (max == min)
             level = 0;
-        else
+        else if (scale.isLogarithmic()) // by mellguth2, https://github.com/ControlSystemStudio/phoebus/issues/2726
+        {   // refuse to try any mapping if negatives or zero are involved
+            if (min <= 0 || max <= 0.0 || current <= 0.0)
+                level = 0;
+            else
+                level = (int) (plot_bounds.height * Math.log(current/min) / Math.log(max/min));
+        }
+        else // linear scale
             level = (int) (plot_bounds.height * (current - min) / (max - min) + 0.5);
 
         final int arc = Math.min(plot_bounds.width, plot_bounds.height) / 10;

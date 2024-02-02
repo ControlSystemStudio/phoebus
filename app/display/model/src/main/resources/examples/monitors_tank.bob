@@ -60,4 +60,29 @@
     <y>60</y>
     <width>60</width>
   </widget>
+  <widget type="tank" version="2.0.0">
+    <name>Tank_2</name>
+    <pv_name>sim://sine(10, 1000, 10, 1)</pv_name>
+    <x>440</x>
+    <y>90</y>
+    <width>110</width>
+    <height>310</height>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <limits_from_pv>false</limits_from_pv>
+    <minimum>10.0</minimum>
+    <maximum>1000.0</maximum>
+  </widget>
+  <widget type="tank" version="2.0.0">
+    <name>Tank_3</name>
+    <pv_name>sim://sine(10, 1000, 10, 1)</pv_name>
+    <x>580</x>
+    <y>90</y>
+    <width>110</width>
+    <height>310</height>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <limits_from_pv>false</limits_from_pv>
+    <minimum>10.0</minimum>
+    <maximum>1000.0</maximum>
+    <log_scale>true</log_scale>
+  </widget>
 </display>
