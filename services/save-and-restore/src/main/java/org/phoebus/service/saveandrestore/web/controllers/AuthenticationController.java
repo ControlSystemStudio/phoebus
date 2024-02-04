@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 European Spallation Source ERIC.
+ * Copyright (C) 2024 European Spallation Source ERIC.
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -20,10 +20,7 @@
 package org.phoebus.service.saveandrestore.web.controllers;
 
 import org.phoebus.applications.saveandrestore.model.UserData;
-import org.phoebus.service.saveandrestore.web.config.AuthEnabledCondition;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -36,6 +33,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("unused")
@@ -61,6 +60,7 @@ public class AuthenticationController extends BaseController {
         try {
             authentication = authenticationManager.authenticate(authentication);
         } catch (AuthenticationException e) {
+            Logger.getLogger(AuthenticationController.class.getName()).log(Level.WARNING, "Unable to authenticate", e);
             return new ResponseEntity<>(
                     null,
                     HttpStatus.UNAUTHORIZED);
