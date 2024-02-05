@@ -122,6 +122,7 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
     protected final SimpleBooleanProperty showDeltaPercentageProperty = new SimpleBooleanProperty(false);
 
     private final SimpleBooleanProperty hideEqualItemsProperty = new SimpleBooleanProperty(false);
+    private final SimpleBooleanProperty isCompositeSnapshot = new SimpleBooleanProperty();
 
     /**
      * Property used to indicate if there is new snapshot data to save, or if snapshot metadata
@@ -139,9 +140,13 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
     public void initialize() {
 
         snapshotName.textProperty().bindBidirectional(snapshotNameProperty);
-        snapshotName.disableProperty().bind(userIdentity.isNull());
+        snapshotName.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                isCompositeSnapshot.get() || userIdentity.isNull().get(),
+                isCompositeSnapshot, userIdentity));
         snapshotComment.textProperty().bindBidirectional(snapshotCommentProperty);
-        snapshotComment.disableProperty().bind(userIdentity.isNull());
+        snapshotComment.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                        isCompositeSnapshot.get() || userIdentity.isNull().get(),
+                isCompositeSnapshot, userIdentity));
         createdBy.textProperty().bind(createdByTextProperty);
         createdDate.textProperty().bind(createdDateTextProperty);
         snapshotLastModifiedLabel.textProperty().bind(lastModifiedDateTextProperty);
@@ -156,18 +161,20 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
                 snapshotDataDirty.set(newValue != null && (snapshotNodeProperty.isNull().get() || snapshotNodeProperty.isNotNull().get() && !newValue.equals(snapshotNodeProperty.get().getDescription())))));
 
         saveSnapshotButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                        (snapshotNodeProperty.get() != null && !snapshotNodeProperty.get().getNodeType().equals(NodeType.SNAPSHOT)) ||
                         snapshotDataDirty.not().get() ||
                                 snapshotNameProperty.isEmpty().get() ||
                                 snapshotCommentProperty.isEmpty().get() ||
                                 userIdentity.isNull().get(),
-                snapshotDataDirty, snapshotNameProperty, snapshotCommentProperty, userIdentity));
+                snapshotNodeProperty, snapshotDataDirty, snapshotNameProperty, snapshotCommentProperty, userIdentity));
 
-        saveSnapshotAndCreateLogEntryButton.disableProperty().bind(Bindings.createBooleanBinding(() -> (
-                        snapshotDataDirty.not().get()) ||
+        saveSnapshotAndCreateLogEntryButton.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                        (snapshotNodeProperty.get() != null && !snapshotNodeProperty.get().getNodeType().equals(NodeType.SNAPSHOT)) ||
+                        snapshotDataDirty.not().get() ||
                         snapshotNameProperty.isEmpty().get() ||
                         snapshotCommentProperty.isEmpty().get() ||
                         userIdentity.isNull().get(),
-                snapshotDataDirty, snapshotNameProperty, snapshotCommentProperty, userIdentity));
+                snapshotNodeProperty, snapshotDataDirty, snapshotNameProperty, snapshotCommentProperty, userIdentity));
 
         // Do not show the create log entry button if no event receivers have been registered
         saveSnapshotAndCreateLogEntryButton.visibleProperty().set(ServiceLoader.load(SaveAndRestoreEventReceiver.class).iterator().hasNext());
@@ -270,6 +277,7 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
                     lastModifiedDateTextProperty.set(node.getLastModified() != null ? TimestampFormats.SECONDS_FORMAT.format(node.getLastModified().toInstant()) : null);
                     createdByTextProperty.set(node.getUserName());
                     filterToolbar.disableProperty().set(node.getName() == null);
+                    isCompositeSnapshot.set(node.getNodeType().equals(NodeType.COMPOSITE_SNAPSHOT));
                 });
             }
         });
