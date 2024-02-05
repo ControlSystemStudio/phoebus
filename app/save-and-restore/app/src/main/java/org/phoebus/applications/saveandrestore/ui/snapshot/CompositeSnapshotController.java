@@ -198,7 +198,7 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController {
 
         snapshotTable.setContextMenu(contextMenu);
         snapshotTable.setOnContextMenuRequested(event -> {
-            if (snapshotTable.getSelectionModel().getSelectedItems().size() == 0) {
+            if (snapshotTable.getSelectionModel().getSelectedItems().isEmpty()) {
                 contextMenu.hide();
                 event.consume();
             }
@@ -306,11 +306,11 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController {
 
     @FXML
     public void save() {
-        doSave(compositeSnapshot ->
-                loadCompositeSnapshot(compositeSnapshot.getCompositeSnapshotNode(), Collections.emptyList()));
+        doSave(node ->
+                loadCompositeSnapshot(node, Collections.emptyList()));
     }
 
-    private void doSave(Consumer<CompositeSnapshot> completion) {
+    private void doSave(Consumer<Node> completion) {
         disabledUi.set(true);
         JobManager.schedule("Save/update composite snapshot", monitor -> {
             try {
@@ -333,13 +333,17 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController {
                 }
                 compositeSnapshotTab.setNodeName(compositeSnapshot.getCompositeSnapshotNode().getName());
                 dirty.set(false);
-                completion.accept(compositeSnapshot);
+                //completion.accept(compositeSnapshot);
             } catch (Exception e1) {
-                ExceptionDetailsErrorDialog.openError(snapshotTable,
+                Platform.runLater(() -> ExceptionDetailsErrorDialog.openError(snapshotTable,
                         Messages.errorActionFailed,
                         Messages.errorCreateConfigurationFailed,
-                        e1);
+                        e1));
             } finally {
+                if(compositeSnapshotNode != null && compositeSnapshotNode.getUniqueId() != null){
+                    Node node = saveAndRestoreService.getNode(compositeSnapshotNode.getUniqueId());
+                    completion.accept(node);
+                }
                 disabledUi.set(false);
             }
         });
@@ -374,7 +378,6 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController {
                     createdByProperty.set(compositeSnapshotNode.getUserName());
                     addToCompositeSnapshot(snapshotNodes);
                     addListeners();
-
                 });
             } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError(root, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
