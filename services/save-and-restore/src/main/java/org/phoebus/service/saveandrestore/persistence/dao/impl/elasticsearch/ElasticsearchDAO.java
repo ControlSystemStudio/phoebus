@@ -755,15 +755,19 @@ public class ElasticsearchDAO implements NodeDAO {
 
         snapshot.getSnapshotNode().setNodeType(NodeType.SNAPSHOT); // Force node type
         SnapshotData newSnapshotData;
+        ESTreeNode esTreeNode;
         try {
             newSnapshotData = snapshotDataRepository.save(snapshot.getSnapshotData());
+            esTreeNode = elasticsearchTreeRepository.findById(snapshot.getSnapshotNode().getUniqueId()).get();
+            esTreeNode.setNode(snapshot.getSnapshotNode());
+            elasticsearchTreeRepository.save(esTreeNode);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
         Snapshot newSnapshot = new Snapshot();
         newSnapshot.setSnapshotData(newSnapshotData);
-        newSnapshot.setSnapshotNode(snapshot.getSnapshotNode());
+        newSnapshot.setSnapshotNode(esTreeNode.getNode());
 
         return newSnapshot;
     }
