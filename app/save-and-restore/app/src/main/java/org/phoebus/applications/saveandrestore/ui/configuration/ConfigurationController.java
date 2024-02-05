@@ -41,6 +41,7 @@ import org.phoebus.applications.saveandrestore.ui.NodeChangedListener;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreBaseController;
 import org.phoebus.applications.saveandrestore.ui.SaveAndRestoreService;
 import org.phoebus.core.types.ProcessVariable;
+import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
@@ -245,11 +246,43 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
 
         addPVsPane.disableProperty().bind(userIdentity.isNull());
 
-        SaveAndRestoreService.getInstance().addNodeChangeListener(this);
+        saveAndRestoreService.addNodeChangeListener(this);
     }
 
     @FXML
     public void saveConfiguration() {
+        JobManager.schedule("Save configuration", monitor -> {
+            try {
+                configurationNode.get().setName(configurationNameProperty.get());
+                configurationNode.get().setDescription(configurationDescriptionProperty.get());
+                configurationData.setPvList(configurationEntries);
+                Configuration configuration = new Configuration();
+                configuration.setConfigurationNode(configurationNode.get());
+                configuration.setConfigurationData(configurationData);
+                if (configurationNode.get().getUniqueId() == null) { // New configuration
+                    configuration = saveAndRestoreService.createConfiguration(configurationNodeParent,
+                            configuration);
+                    configurationTab.setId(configuration.getConfigurationNode().getUniqueId());
+                    configurationTab.updateTabTitle(configuration.getConfigurationNode().getName());
+                } else {
+                    configuration = saveAndRestoreService.updateConfiguration(configuration);
+                }
+                configurationData = configuration.getConfigurationData();
+                dirty.set(false);
+            } catch (Exception e1) {
+                ExceptionDetailsErrorDialog.openError(pvTable,
+                        Messages.errorActionFailed,
+                        Messages.errorCreateConfigurationFailed,
+                        e1);
+            }
+            finally {
+                if(configurationNode.get() != null && configurationNode.get().getUniqueId() != null){
+                    Node node = saveAndRestoreService.getNode(configurationNode.get().getUniqueId());
+                    loadConfiguration(node);
+                }
+            }
+        });
+        /*
         UI_EXECUTOR.execute(() -> {
             try {
                 configurationNode.get().setName(configurationNameProperty.get());
@@ -276,6 +309,8 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                         e1);
             }
         });
+
+         */
     }
 
     @FXML
@@ -340,6 +375,10 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
     public void loadConfiguration(final Node node) {
         try {
             configurationData = saveAndRestoreService.getConfiguration(node.getUniqueId());
+            configurationNode.set(node);
+            configurationTab.updateTabTitle(node.getName());
+            configurationNameProperty.set(node.getName());
+            configurationDescriptionProperty.set(node.getDescription());
         } catch (Exception e) {
             ExceptionDetailsErrorDialog.openError(root, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
             return;

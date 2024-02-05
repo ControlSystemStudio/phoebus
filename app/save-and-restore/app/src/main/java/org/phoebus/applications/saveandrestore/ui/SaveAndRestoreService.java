@@ -65,7 +65,7 @@ public class SaveAndRestoreService {
     private final SaveAndRestoreClient saveAndRestoreClient;
 
     private SaveAndRestoreService() {
-        saveAndRestoreClient = new SaveAndRestoreJerseyClient();
+        saveAndRestoreClient = SaveAndRestoreJerseyClient.getInstance();
         executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     }
 

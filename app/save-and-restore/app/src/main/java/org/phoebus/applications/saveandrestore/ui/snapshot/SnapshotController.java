@@ -117,7 +117,7 @@ public class SnapshotController extends SaveAndRestoreBaseController {
         JobManager.schedule("Get configuration", monitor -> {
             ConfigurationData configuration;
             try {
-                configuration = SaveAndRestoreService.getInstance().getConfiguration(configurationNode.getUniqueId());
+                configuration = saveAndRestoreService.getConfiguration(configurationNode.getUniqueId());
             } catch (Exception e) {
                 ExceptionDetailsErrorDialog.openError(borderPane, Messages.errorGeneric, Messages.errorUnableToRetrieveData, e);
                 LOGGER.log(Level.INFO, "Error loading configuration", e);
@@ -178,16 +178,10 @@ public class SnapshotController extends SaveAndRestoreBaseController {
                 snapshotControlsViewController.snapshotDataDirty.set(false);
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, "Failed to save snapshot", e);
-                Platform.runLater(() -> {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle(Messages.errorActionFailed);
-                    alert.setContentText(e.getMessage());
-                    alert.setHeaderText(Messages.saveSnapshotErrorContent);
-                    DialogHelper.positionDialog(alert, borderPane, -150, -150);
-                    alert.showAndWait();
-                });
+                Platform.runLater(() -> ExceptionDetailsErrorDialog.openError(borderPane, Messages.errorActionFailed, Messages.saveSnapshotErrorContent, e));
             } finally {
                 if(snapshot.getSnapshotNode() != null && snapshot.getSnapshotNode().getUniqueId() != null){
+                    // Load the persisted Node as the current instance may be dirty in UI.
                     Node savedNode = saveAndRestoreService.getNode(snapshot.getSnapshotNode().getUniqueId());
                     Platform.runLater(() -> {
                         // Load snapshot via the tab as that will also update the tab title and id.
@@ -380,10 +374,10 @@ public class SnapshotController extends SaveAndRestoreBaseController {
         SnapshotData snapshotData;
         try {
             if (snapshotNode.getNodeType().equals(NodeType.SNAPSHOT)) {
-                this.configurationNode = SaveAndRestoreService.getInstance().getParentNode(snapshotNode.getUniqueId());
-                snapshotData = SaveAndRestoreService.getInstance().getSnapshot(snapshotNode.getUniqueId());
+                this.configurationNode = saveAndRestoreService.getParentNode(snapshotNode.getUniqueId());
+                snapshotData = saveAndRestoreService.getSnapshot(snapshotNode.getUniqueId());
             } else {
-                List<SnapshotItem> snapshotItems = SaveAndRestoreService.getInstance().getCompositeSnapshotItems(snapshotNode.getUniqueId());
+                List<SnapshotItem> snapshotItems = saveAndRestoreService.getCompositeSnapshotItems(snapshotNode.getUniqueId());
                 snapshotData = new SnapshotData();
                 snapshotData.setSnapshotItems(snapshotItems);
             }

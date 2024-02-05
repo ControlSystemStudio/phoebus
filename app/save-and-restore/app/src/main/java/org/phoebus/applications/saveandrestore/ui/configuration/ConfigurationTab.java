@@ -97,7 +97,7 @@ public class ConfigurationTab extends SaveAndRestoreTab {
     @Override
     public void nodeChanged(Node node) {
         if (node.getUniqueId().equals(getId())) {
-            textProperty().set(node.getName());
+            Platform.runLater(() -> textProperty().set(node.getName()));
         }
     }
 

@@ -44,28 +44,38 @@ import java.util.logging.Logger;
 public class SaveAndRestoreJerseyClient implements org.phoebus.applications.saveandrestore.client.SaveAndRestoreClient {
 
     private static final String CONTENT_TYPE_JSON = "application/json; charset=UTF-8";
-    private final Logger logger = Logger.getLogger(SaveAndRestoreJerseyClient.class.getName());
+    private static final Logger logger = Logger.getLogger(SaveAndRestoreJerseyClient.class.getName());
 
     private static final int DEFAULT_READ_TIMEOUT = 5000; // ms
     private static final int DEFAULT_CONNECT_TIMEOUT = 5000; // ms
 
-    ObjectMapper mapper = new ObjectMapper();
+    private static ObjectMapper mapper = new ObjectMapper();
 
-    private HTTPBasicAuthFilter httpBasicAuthFilter;
+    private static HTTPBasicAuthFilter httpBasicAuthFilter;
 
-    public SaveAndRestoreJerseyClient() {
+    private static SaveAndRestoreJerseyClient instance;
 
+    private static Client client;
+
+    private SaveAndRestoreJerseyClient() {
         mapper.registerModule(new JavaTimeModule());
         mapper.setSerializationInclusion(Include.NON_NULL);
+        logger.log(Level.FINE, "Save&restore client using read timeout " + Preferences.httpClientReadTimeout + " ms");
+        logger.log(Level.FINE, "Save&restore client using connect timeout " + Preferences.httpClientConnectTimeout + " ms");
     }
 
-    private Client getClient() {
+    public static SaveAndRestoreClient getInstance(){
+        if(instance == null){
+            instance = new SaveAndRestoreJerseyClient();
+            client = getClient();
+        }
+        return instance;
+    }
+
+
+    private static Client getClient() {
         int httpClientReadTimeout = Preferences.httpClientReadTimeout > 0 ? Preferences.httpClientReadTimeout : DEFAULT_READ_TIMEOUT;
-        logger.log(Level.INFO, "Save&restore client using read timeout " + httpClientReadTimeout + " ms");
-
         int httpClientConnectTimeout = Preferences.httpClientConnectTimeout > 0 ? Preferences.httpClientConnectTimeout : DEFAULT_CONNECT_TIMEOUT;
-        logger.log(Level.INFO, "Save&restore client using connect timeout " + httpClientConnectTimeout + " ms");
-
         DefaultClientConfig defaultClientConfig = new DefaultClientConfig();
         defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_READ_TIMEOUT, httpClientReadTimeout);
         defaultClientConfig.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, httpClientConnectTimeout);

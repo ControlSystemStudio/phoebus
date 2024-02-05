@@ -42,7 +42,10 @@ public class SecureStoreChangeHandlerImpl implements SecureStoreChangeHandler {
         if (appDescriptor != null && appDescriptor instanceof SaveAndRestoreApplication) {
             SaveAndRestoreApplication saveAndRestoreApplication = (SaveAndRestoreApplication) appDescriptor;
             SaveAndRestoreInstance saveAndRestoreInstance = (SaveAndRestoreInstance) saveAndRestoreApplication.getInstance();
-            saveAndRestoreInstance.secureStoreChanged(validTokens);
+            // User may sign in before save-and-restore app has been launched
+            if(saveAndRestoreInstance != null){
+                saveAndRestoreInstance.secureStoreChanged(validTokens);
+            }
         }
     }
 }

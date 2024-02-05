@@ -583,7 +583,7 @@ public class SearchAndFilterViewController extends SaveAndRestoreBaseController 
             List<String> availableTags = new ArrayList<>();
             try {
                 List<String> tagNames = new ArrayList<>();
-                SaveAndRestoreService.getInstance().getAllTags().forEach(tag -> {
+                saveAndRestoreService.getAllTags().forEach(tag -> {
                     if (!tagNames.contains(tag.getName()) && !tag.getName().equalsIgnoreCase(Tag.GOLDEN)) {
                         tagNames.add(tag.getName());
                     }
