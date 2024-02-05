@@ -85,6 +85,8 @@ public class SnapshotController extends SaveAndRestoreBaseController {
 
     private final SimpleObjectProperty<Snapshot> snapshotProperty = new SimpleObjectProperty<>();
 
+    private final SaveAndRestoreService saveAndRestoreService = SaveAndRestoreService.getInstance();
+
     @FXML
     public void initialize() {
 
@@ -165,7 +167,7 @@ public class SnapshotController extends SaveAndRestoreBaseController {
             snapshot.setSnapshotData(snapshotData);
 
             try {
-                snapshot = SaveAndRestoreService.getInstance().saveSnapshot(configurationNode, snapshot);
+                snapshot = saveAndRestoreService.saveSnapshot(configurationNode, snapshot);
                 snapshotProperty.set(snapshot);
                 Node _snapshotNode = snapshot.getSnapshotNode();
                 javafx.scene.Node jfxNode = (javafx.scene.Node) actionEvent.getSource();
@@ -174,10 +176,6 @@ public class SnapshotController extends SaveAndRestoreBaseController {
                     eventReceivers.forEach(r -> r.snapshotSaved(_snapshotNode, this::showLoggingError));
                 }
                 snapshotControlsViewController.snapshotDataDirty.set(false);
-                Platform.runLater(() -> {
-                    // Load snapshot via the tab as that will also update the tab title and id.
-                    snapshotTab.loadSnapshot(_snapshotNode);
-                });
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, "Failed to save snapshot", e);
                 Platform.runLater(() -> {
@@ -189,6 +187,13 @@ public class SnapshotController extends SaveAndRestoreBaseController {
                     alert.showAndWait();
                 });
             } finally {
+                if(snapshot.getSnapshotNode() != null && snapshot.getSnapshotNode().getUniqueId() != null){
+                    Node savedNode = saveAndRestoreService.getNode(snapshot.getSnapshotNode().getUniqueId());
+                    Platform.runLater(() -> {
+                        // Load snapshot via the tab as that will also update the tab title and id.
+                        snapshotTab.loadSnapshot(savedNode);
+                    });
+                }
                 disabledUi.set(false);
             }
         });

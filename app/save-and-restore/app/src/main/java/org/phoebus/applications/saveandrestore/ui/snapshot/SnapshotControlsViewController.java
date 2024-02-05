@@ -308,6 +308,8 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
 
     public void setSnapshotNode(Node node) {
         snapshotNodeProperty.set(node);
+        snapshotNameProperty.set(node.getName());
+        snapshotCommentProperty.set(node.getDescription());
     }
 
     private void parseAndUpdateThreshold(String value) {
