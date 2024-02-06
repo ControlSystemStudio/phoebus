@@ -102,13 +102,6 @@ public class CompositeSnapshotTab extends SaveAndRestoreTab {
         Platform.runLater(() -> tabTitleProperty.set("[" + Messages.Edit + "] " + nodeName));
     }
 
-    public void annotateDirty(boolean dirty) {
-        String tabTitle = tabTitleProperty.get();
-        if (dirty) {
-            Platform.runLater(() -> tabTitleProperty.set("* " + tabTitle));
-        }
-    }
-
     public void configureForNewCompositeSnapshot(Node parentNode, List<Node> snapshotNodes) {
         tabTitleProperty.set(Messages.contextMenuNewCompositeSnapshot);
         ((CompositeSnapshotController) controller).newCompositeSnapshot(parentNode, snapshotNodes);

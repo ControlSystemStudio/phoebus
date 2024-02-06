@@ -296,12 +296,6 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController {
 
         progressIndicator.visibleProperty().bind(disabledUi);
         disabledUi.addListener((observable, oldValue, newValue) -> borderPane.setDisable(newValue));
-
-        dirty.addListener((ob, o, n) -> {
-            if (dirty.get()) {
-                compositeSnapshotTab.annotateDirty(n);
-            }
-        });
     }
 
     @FXML
@@ -332,8 +326,6 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController {
                     compositeSnapshot = saveAndRestoreService.updateCompositeSnapshot(compositeSnapshot);
                 }
                 compositeSnapshotTab.setNodeName(compositeSnapshot.getCompositeSnapshotNode().getName());
-                dirty.set(false);
-                //completion.accept(compositeSnapshot);
             } catch (Exception e1) {
                 Platform.runLater(() -> ExceptionDetailsErrorDialog.openError(snapshotTable,
                         Messages.errorActionFailed,
@@ -368,6 +360,7 @@ public class CompositeSnapshotController extends SaveAndRestoreBaseController {
                 // Add change listener added only after the saved entries have been loaded.
                 Collections.sort(snapshotEntries);
                 Platform.runLater(() -> {
+                    dirty.set(false);
                     snapshotTable.setItems(snapshotEntries);
                     compositeSnapshotNameProperty.set(compositeSnapshotNode.getName());
                     compositeSnapshotDescriptionProperty.set(compositeSnapshotNode.getDescription());
