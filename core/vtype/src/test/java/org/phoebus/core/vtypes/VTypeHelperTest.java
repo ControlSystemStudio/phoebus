@@ -24,16 +24,19 @@ import org.epics.util.array.ListULong;
 import org.epics.util.array.ListUShort;
 
 import org.epics.vtype.*;
-import org.junit.jupiter.api.Test;
+import org.epics.pva.data.*;
 
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.List;
 
+import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 public class VTypeHelperTest {
 
@@ -616,6 +619,19 @@ public class VTypeHelperTest {
         d = VTypeHelper.toObject(val);
         assertTrue(d instanceof Boolean);
         assertTrue(((Boolean) d));
+
+        List<Class<?>> types = Arrays.asList(Integer.TYPE, Integer.TYPE, Integer.TYPE);
+        List<Object> values = Arrays.asList(ArrayInteger.of(-1, 2, 3), ArrayInteger.of(1, 2, 3), ArrayUInteger.of(11, 22, 33));
+        List<String> names = Arrays.asList("a", "b", "c");
+        VTable vTable = VTable.of(types, names, values);
+
+        d = VTypeHelper.toObject(vTable);
+        assertInstanceOf(PVAStructure.class, d);
+        PVAStructure pvaStructure = (PVAStructure) d;
+        assertEquals(3, pvaStructure.get().size());
+        assertInstanceOf(PVAIntArray.class, pvaStructure.get().get(0));
+        assertInstanceOf(PVAIntArray.class, pvaStructure.get().get(1));
+        assertInstanceOf(PVAIntArray.class, pvaStructure.get().get(2));
 
         assertNull(VTypeHelper.toObject(VDisconnectedData.INSTANCE));
     }
