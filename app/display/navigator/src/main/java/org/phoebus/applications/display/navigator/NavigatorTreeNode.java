@@ -195,7 +195,7 @@ class NavigatorTreeNode {
                             activeDockPane.getSelectionModel().select(indexOfActiveDockItem);
                         }
 
-                        if (target == Target.CurrentTab) {
+                        if (target == Target.CurrentTab && activeDockItem != null) {
                             activeDockItem.close();
                         }
 
