@@ -43,6 +43,8 @@ import org.phoebus.security.authorization.AuthorizationService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
+import org.phoebus.ui.docking.DockItem;
+import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.spi.ContextMenuEntry;
@@ -79,6 +81,23 @@ class ContextMenuSupport {
             @Override
             public void handleContextMenu(final Widget widget, final int screen_x, final int screen_y) {
                 final Node node = JFXBaseRepresentation.getJFXNode(widget);
+
+                {
+                    // Set the DockPane that contains 'widget' as the active
+                    // DockPane, so that applications are launched in the
+                    // same DockPane:
+                    DisplayModel displayModel;
+                    try {
+                        displayModel = widget.getTopDisplayModel();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                    DisplayRuntimeInstance displayRuntimeInstance = DisplayRuntimeInstance.ofDisplayModel(displayModel);
+                    DockItem dockItem = displayRuntimeInstance.getDockItem();
+                    DockPane dockPane = dockItem.getDockPane();
+                    DockPane.setActiveDockPane(dockPane);
+                }
+
                 fillMenu(node, widget);
                 // Use window, not node, to show menu for two reasons:
                 // 1) menu.show(node, ..) means menu is attached to node,

@@ -47,18 +47,6 @@ public class ContextMenuHelper
      */
     public static boolean addSupportedEntries(final Node parent_node, final ContextMenu menu)
     {
-        final Window window = parent_node.getScene().getWindow();
-        if (! (window instanceof Stage))
-        {
-            logger.log(Level.WARNING, "Expected 'Stage' for context menu, got " + window);
-            return false;
-        }
-        final Stage stage = (Stage) window;
-        // Assert that this window's dock pane is the active one.
-        // (on Mac and Linux, invoking the context menu will not
-        //  always activate the stage)
-        DockStage.setActiveDockStage(stage);
-
         final List<ContextMenuEntry> entries = ContextMenuService.getInstance().listSupportedContextMenuEntries();
         if (entries.isEmpty())
             return false;
