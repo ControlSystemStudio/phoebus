@@ -25,6 +25,8 @@ import org.phoebus.pv.PVPool;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.docking.DockStage;
+import org.phoebus.ui.focus.FocusUtility;
+import org.phoebus.ui.javafx.FocusUtil;
 import org.phoebus.ui.javafx.JFXUtil;
 import org.phoebus.ui.pv.SeverityColors;
 import org.phoebus.ui.vtype.FormatOption;
@@ -177,21 +179,7 @@ public class ProbeController {
                         List.of(new ProcessVariable(txtPVName.getText().trim())));
             }
 
-            Runnable setFocus;
-            {
-                Window window = txtPVName.getScene().getWindow().getScene().getWindow();
-                if (window instanceof Stage)
-                {
-                    final Stage stage = (Stage) window;
-                    setFocus = () -> DockStage.setActiveDockStage(stage);
-                }
-                else {
-                    PhoebusApplication.logger.log(Level.WARNING, "Expected 'Stage' for context menu, got " + window);
-                    return;
-                }
-            }
-
-            ContextMenuHelper.addSupportedEntries(setFocus, menu);
+            ContextMenuHelper.addSupportedEntries(FocusUtility.setFocusOn(txtAlarm), menu);
             menu.show(txtPVName.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
 
