@@ -15,8 +15,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
-import javafx.stage.Stage;
-import javafx.stage.Window;
 import org.csstudio.display.pace.Messages;
 import org.csstudio.display.pace.PACEApp;
 import org.csstudio.display.pace.model.Cell;
@@ -40,8 +38,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TablePosition;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
-import org.phoebus.ui.application.PhoebusApplication;
-import org.phoebus.ui.docking.DockStage;
+import org.phoebus.ui.focus.FocusUtility;
 
 /** GUI for PACE {@link Model}
  *  @author Kay Kasemir
@@ -204,22 +201,7 @@ public class GUI extends BorderPane
             {
                 items.add(new SeparatorMenuItem());
                 SelectionService.getInstance().setSelection("AlarmUI", pvnames);
-
-                Runnable setFocus;
-                {
-                    Window window = table.getScene().getWindow().getScene().getWindow();
-                    if (window instanceof Stage)
-                    {
-                        final Stage stage = (Stage) window;
-                        setFocus = () -> DockStage.setActiveDockStage(stage);
-                    }
-                    else {
-                        PhoebusApplication.logger.log(Level.WARNING, "Expected 'Stage' for context menu, got " + window);
-                        return;
-                    }
-                }
-
-                ContextMenuHelper.addSupportedEntries(setFocus, menu);
+                ContextMenuHelper.addSupportedEntries(FocusUtility.setFocusOn(table), menu);
             }
         });
 

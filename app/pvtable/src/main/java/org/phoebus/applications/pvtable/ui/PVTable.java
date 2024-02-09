@@ -16,8 +16,6 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javafx.stage.Stage;
-import javafx.stage.Window;
 import org.epics.vtype.VEnum;
 import org.epics.vtype.VType;
 import org.phoebus.applications.pvtable.PVTableApplication;
@@ -37,7 +35,7 @@ import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.NumericInputDialog;
 import org.phoebus.ui.dnd.DataFormats;
-import org.phoebus.ui.docking.DockStage;
+import org.phoebus.ui.focus.FocusUtility;
 import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.ToolbarHelper;
@@ -693,22 +691,8 @@ public class PVTable extends VBox
                 menu.getItems().addAll(disableSaveRestore, new SeparatorMenuItem());
             }
 
-            Runnable setFocus;
-            {
-                Window window = table.getScene().getWindow().getScene().getWindow();
-                if (window instanceof Stage)
-                {
-                    final Stage stage = (Stage) window;
-                    setFocus = () -> DockStage.setActiveDockStage(stage);
-                }
-                else {
-                    logger.log(Level.WARNING, "Expected 'Stage' for context menu, got " + window);
-                    return;
-                }
-            }
-
             // Add PV entries
-            if (ContextMenuHelper.addSupportedEntries(setFocus, menu))
+            if (ContextMenuHelper.addSupportedEntries(FocusUtility.setFocusOn(table), menu))
                 menu.getItems().add(new SeparatorMenuItem());
 
             menu.getItems().add(new PrintAction(this));

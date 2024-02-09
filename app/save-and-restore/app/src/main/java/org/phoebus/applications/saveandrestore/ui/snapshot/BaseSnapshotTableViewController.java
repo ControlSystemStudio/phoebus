@@ -30,8 +30,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.stage.Stage;
-import javafx.stage.Window;
+
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
@@ -40,7 +39,7 @@ import org.phoebus.applications.saveandrestore.ui.VTypePair;
 import org.phoebus.core.types.TimeStampedProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
-import org.phoebus.ui.docking.DockStage;
+import org.phoebus.ui.focus.FocusUtility;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.lang.reflect.Field;
@@ -200,21 +199,7 @@ public abstract class BaseSnapshotTableViewController {
                         contextMenu.getItems().clear();
                         SelectionService.getInstance().setSelection(SaveAndRestoreApplication.NAME, selectedPVList);
 
-                        Runnable setFocus;
-                        {
-                            Window window = getScene().getWindow().getScene().getWindow();
-                            if (window instanceof Stage)
-                            {
-                                final Stage stage = (Stage) window;
-                                setFocus = () -> DockStage.setActiveDockStage(stage);
-                            }
-                            else {
-                                logger.log(Level.WARNING, "Expected 'Stage' for context menu, got " + window);
-                                return;
-                            }
-                        }
-
-                        ContextMenuHelper.addSupportedEntries(setFocus, contextMenu);
+                        ContextMenuHelper.addSupportedEntries(FocusUtility.setFocusOn(this), contextMenu);
                         contextMenu.getItems().add(new SeparatorMenuItem());
                         MenuItem toggle = new MenuItem();
                         toggle.setText(item.readOnlyProperty().get() ? Messages.makeRestorable : Messages.makeReadOnly);

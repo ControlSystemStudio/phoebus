@@ -8,8 +8,16 @@ import org.phoebus.ui.docking.DockStage;
 
 import java.util.logging.Level;
 
+/**
+ * A utility class which provides support for handling Focus
+ */
 public class FocusUtility {
 
+    /**
+     * Create a Runnable which when called sets the focus on the DockPane hosting the provided Node
+     * @param node A node
+     * @return A Runnable to set the Focus on the Pane which holds the Node
+     */
     public static Runnable setFocusOn(final Node node){
         {
             Window window = node.getScene().getWindow().getScene().getWindow();

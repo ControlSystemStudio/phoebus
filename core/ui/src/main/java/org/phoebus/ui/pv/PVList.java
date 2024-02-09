@@ -9,12 +9,9 @@ package org.phoebus.ui.pv;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.stage.Stage;
-import javafx.stage.Window;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.VNumberArray;
@@ -28,7 +25,7 @@ import org.phoebus.pv.PVPool;
 import org.phoebus.pv.RefCountMap.ReferencedEntry;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.application.Messages;
-import org.phoebus.ui.docking.DockStage;
+import org.phoebus.ui.focus.FocusUtility;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Platform;
@@ -194,21 +191,7 @@ public class PVList extends BorderPane
         {
             menu.getItems().clear();
 
-            Runnable setFocus;
-            {
-                Window window = table.getScene().getWindow().getScene().getWindow();
-                if (window instanceof Stage)
-                {
-                    final Stage stage = (Stage) window;
-                    setFocus = () -> DockStage.setActiveDockStage(stage);
-                }
-                else {
-                    logger.log(Level.WARNING, "Expected 'Stage' for context menu, got " + window);
-                    return;
-                }
-            }
-
-            ContextMenuHelper.addSupportedEntries(setFocus, menu);
+            ContextMenuHelper.addSupportedEntries(FocusUtility.setFocusOn(table), menu);
             menu.show(table.getScene().getWindow());
         });
         table.setContextMenu(menu);

@@ -18,8 +18,6 @@ import java.util.logging.Level;
 
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.ImageView;
-import javafx.stage.Stage;
-import javafx.stage.Window;
 import org.phoebus.applications.pvtree.PVTreeApplication;
 import org.phoebus.applications.pvtree.model.TreeModel;
 import org.phoebus.applications.pvtree.model.TreeModelItem;
@@ -29,9 +27,8 @@ import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.application.ContextMenuService;
-import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.application.SaveSnapshotAction;
-import org.phoebus.ui.docking.DockStage;
+import org.phoebus.ui.focus.FocusUtility;
 import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.TreeHelper;
@@ -142,21 +139,7 @@ public class FXTree
         {
             menu.getItems().clear();
 
-            Runnable setFocus;
-            {
-                Window window = tree_view.getScene().getWindow().getScene().getWindow();
-                if (window instanceof Stage)
-                {
-                    final Stage stage = (Stage) window;
-                    setFocus = () -> DockStage.setActiveDockStage(stage);
-                }
-                else {
-                    PhoebusApplication.logger.log(Level.WARNING, "Expected 'Stage' for context menu, got " + window);
-                    return;
-                }
-            }
-
-            if (ContextMenuHelper.addSupportedEntries(setFocus, menu))
+            if (ContextMenuHelper.addSupportedEntries(FocusUtility.setFocusOn(tree_view), menu))
                 menu.getItems().add(new SeparatorMenuItem());
             menu.getItems().add(new PrintAction(tree_view));
             menu.getItems().add(new SaveSnapshotAction(tree_view));
