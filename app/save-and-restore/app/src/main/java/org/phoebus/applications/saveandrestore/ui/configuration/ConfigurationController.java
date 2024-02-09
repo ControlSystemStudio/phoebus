@@ -33,6 +33,8 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 import javafx.util.Callback;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
@@ -44,6 +46,7 @@ import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -56,6 +59,8 @@ import java.util.concurrent.Executor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import static org.phoebus.ui.application.PhoebusApplication.logger;
 
 public class ConfigurationController extends SaveAndRestoreBaseController implements NodeChangedListener {
 
@@ -188,7 +193,22 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                                 .map(tableEntry -> new ProcessVariable(tableEntry.getPvName()))
                                 .collect(Collectors.toList());
                         SelectionService.getInstance().setSelection(SaveAndRestoreApplication.NAME, selectedPVList);
-                        ContextMenuHelper.addSupportedEntries(cell, pvNameContextMenu);
+
+                        Runnable setFocus;
+                        {
+                            Window window = cell.getScene().getWindow().getScene().getWindow();
+                            if (window instanceof Stage)
+                            {
+                                final Stage stage = (Stage) window;
+                                setFocus = () -> DockStage.setActiveDockStage(stage);
+                            }
+                            else {
+                                logger.log(Level.WARNING, "Expected 'Stage' for context menu, got " + window);
+                                return;
+                            }
+                        }
+
+                        ContextMenuHelper.addSupportedEntries(setFocus, pvNameContextMenu);
                     }
                     pvNameContextMenu.show(cell, event.getScreenX(), event.getScreenY());
                 });

@@ -41,11 +41,11 @@ public class ContextMenuHelper
      *  after adding application specific menu entries,
      *  to add entries based on the current selection.
      *
-     *  @param parent_node Parent node, usually owner of the context menu
+     *  @param setFocus Sets the correct focus (typically on a DockPane or Window) before running the action associated with a menu entry
      *  @param menu Menu where selection-based entries will be added
      *  @return <code>true</code> if a supported entry was added.
      */
-    public static boolean addSupportedEntries(final Node parent_node, final ContextMenu menu)
+    public static boolean addSupportedEntries(Runnable setFocus, final ContextMenu menu)
     {
         final List<ContextMenuEntry> entries = ContextMenuService.getInstance().listSupportedContextMenuEntries();
         if (entries.isEmpty())
@@ -60,6 +60,7 @@ public class ContextMenuHelper
                 item.setGraphic(new ImageView(icon));
             item.setOnAction(e ->
             {
+                setFocus.run();
                 try
                 {
                     List<Object> selection = new ArrayList<>();

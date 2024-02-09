@@ -10,8 +10,11 @@ package org.csstudio.trends.databrowser3.ui.search;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import javafx.stage.Stage;
+import javafx.stage.Window;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.archive.SearchJob;
 import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
@@ -22,6 +25,7 @@ import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.docking.DockStage;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.application.Platform;
@@ -51,6 +55,8 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+
+import static org.phoebus.ui.application.PhoebusApplication.logger;
 
 /** Panel for searching the archive
  *  @author Kay Kasemir
@@ -161,9 +167,22 @@ public class SearchView extends SplitPane
         {
             menu.getItems().setAll(new AddToPlotAction(channel_table, model, undo, selection),
                                    new SeparatorMenuItem());
+            Runnable setFocus;
+            {
+                Window window = channel_table.getScene().getWindow().getScene().getWindow();
+                if (window instanceof Stage)
+                {
+                    final Stage stage = (Stage) window;
+                    setFocus = () -> DockStage.setActiveDockStage(stage);
+                }
+                else {
+                    logger.log(Level.WARNING, "Expected 'Stage' for context menu, got " + window);
+                    return;
+                }
+            }
 
             SelectionService.getInstance().setSelection(channel_table, selection);
-            ContextMenuHelper.addSupportedEntries(channel_table, menu);
+            ContextMenuHelper.addSupportedEntries(setFocus, menu);
             menu.show(channel_table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         }
     }

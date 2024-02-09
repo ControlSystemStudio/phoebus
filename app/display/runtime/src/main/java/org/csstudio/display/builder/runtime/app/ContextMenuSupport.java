@@ -82,6 +82,7 @@ class ContextMenuSupport {
             public void handleContextMenu(final Widget widget, final int screen_x, final int screen_y) {
                 final Node node = JFXBaseRepresentation.getJFXNode(widget);
 
+                Runnable setFocus;
                 {
                     // Set the DockPane that contains 'widget' as the active
                     // DockPane, so that applications are launched in the
@@ -95,10 +96,10 @@ class ContextMenuSupport {
                     DisplayRuntimeInstance displayRuntimeInstance = DisplayRuntimeInstance.ofDisplayModel(displayModel);
                     DockItem dockItem = displayRuntimeInstance.getDockItem();
                     DockPane dockPane = dockItem.getDockPane();
-                    DockPane.setActiveDockPane(dockPane);
+                    setFocus = () -> DockPane.setActiveDockPane(dockPane);
                 }
 
-                fillMenu(node, widget);
+                fillMenu(setFocus, widget);
                 // Use window, not node, to show menu for two reasons:
                 // 1) menu.show(node, ..) means menu is attached to node,
                 //    inheriting styles of nodes. For widgets that change background color
@@ -114,10 +115,10 @@ class ContextMenuSupport {
 
     /** Fill context menu with items for widget
      *
-     * @param node
+     * @param setFocus
      * @param widget
      */
-    private void fillMenu(final Node node, final Widget widget)
+    private void fillMenu(Runnable setFocus, final Widget widget)
     {
         final ObservableList<MenuItem> items = menu.getItems();
         items.setAll(new WidgetInfoAction(widget));
@@ -208,7 +209,7 @@ class ContextMenuSupport {
             // Set the 'selection' to the PV of this widget
             SelectionService.getInstance().setSelection(DisplayRuntimeApplication.NAME, processVariables);
             // Add PV-based menu entries
-            ContextMenuHelper.addSupportedEntries(node, menu);
+            ContextMenuHelper.addSupportedEntries(setFocus, menu);
             items.add(new SeparatorMenuItem());
         }
 
