@@ -53,7 +53,7 @@ public class AuthorizationHelper {
     private String roleUser;
 
     @Value("${authorization.permitall:true}")
-    public boolean permitAll;
+    private boolean permitAll;
 
     private static final String ROLE_PREFIX = "ROLE_";
 

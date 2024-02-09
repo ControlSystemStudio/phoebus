@@ -45,6 +45,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -58,18 +59,21 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-
+/**
+ * Repository class for {@link Filter} objects.
+ */
 @Repository
 public class FilterRepository implements CrudRepository<Filter, String> {
 
     private static final Logger logger = Logger.getLogger(FilterRepository.class.getName());
 
+    @SuppressWarnings("unused")
     @Value("${elasticsearch.filter.index:saveandrestore_filter}")
-    public String ES_FILTER_INDEX;
+    private String ES_FILTER_INDEX;
 
     @Autowired
     @Qualifier("client")
-    ElasticsearchClient client;
+    private ElasticsearchClient client;
 
     /**
      * Saves an {@link Filter} object.
@@ -104,13 +108,22 @@ public class FilterRepository implements CrudRepository<Filter, String> {
         return null;
     }
 
+    /**
+     * Not implemented, will always throw {@link RuntimeException}
+     * @param entities must not be {@literal null} nor must it contain {@literal null}.
+     * @throws RuntimeException always
+     */
     @Override
-    public <S extends Filter> Iterable<S> saveAll(Iterable<S> entities) {
+    public <S extends Filter> Iterable<S> saveAll(@NonNull Iterable<S> entities) {
         throw new RuntimeException("Not implemented");
     }
 
+    /**
+     * @param name Unique {@link Filter} name.
+     * @return {@link Optional}, may be empty.
+     */
     @Override
-    public Optional<Filter> findById(String name) {
+    public Optional<Filter> findById(@NonNull String name) {
         try {
             GetRequest getRequest =
                     GetRequest.of(g ->

@@ -29,6 +29,9 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.util.List;
 
+/**
+ * Controller class for {@link Snapshot} endppoints
+ */
 @SuppressWarnings("unused")
 @RestController
 public class SnapshotController extends BaseController {
@@ -36,16 +39,32 @@ public class SnapshotController extends BaseController {
     @Autowired
     private NodeDAO nodeDAO;
 
+    /**
+     *
+     * @param uniqueId Unique {@link Node} id of a snapshot.
+     * @return SnapshotData object associated with #uniqueId.
+     */
     @GetMapping(value = "/snapshot/{uniqueId}", produces = JSON)
     public SnapshotData getSnapshotData(@PathVariable String uniqueId) {
         return nodeDAO.getSnapshotData(uniqueId);
     }
 
+    /**
+     *
+     * @return All persisted snapshot {@link Node}s
+     */
     @GetMapping(value = "/snapshots", produces = JSON)
     public List<Node> getAllSnapshots() {
         return nodeDAO.getAllSnapshots();
     }
 
+    /**
+     * Creates a new {@link Snapshot}
+     * @param parentNodeId Unique {@link Node} id of the new {@link Snapshot}.
+     * @param snapshot {@link Snapshot} data.
+     * @param principal User {@link Principal} as injected by Spring.
+     * @return The new {@link Snapshot}.
+     */
     @PutMapping(value = "/snapshot", produces = JSON)
     @PreAuthorize("@authorizationHelper.mayCreate(#root)")
     public Snapshot createSnapshot(@RequestParam(value = "parentNodeId") String parentNodeId,
@@ -58,6 +77,12 @@ public class SnapshotController extends BaseController {
         return nodeDAO.createSnapshot(parentNodeId, snapshot);
     }
 
+    /**
+     * Updates a {@link Snapshot}.
+     * @param snapshot The {@link Snapshot} subject to update.
+     * @param principal User {@link Principal} as injected by Spring.
+     * @return The updated {@link Snapshot}
+     */
     @PostMapping(value = "/snapshot", produces = JSON)
     @PreAuthorize("@authorizationHelper.mayUpdate(#snapshot, #root)")
     public Snapshot updateSnapshot(@RequestBody Snapshot snapshot,

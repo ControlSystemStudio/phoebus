@@ -5,6 +5,9 @@ import java.io.InputStream;
 import java.util.Properties;
 import java.util.logging.Logger;
 
+/**
+ * Helper class to read application properties.
+ */
 public class PropertiesHelper {
 
     static Properties prop = new Properties();
@@ -26,6 +29,10 @@ public class PropertiesHelper {
         }
     }
 
+    /**
+     *
+     * @return Properties read from application properties file.
+     */
     public static Properties getProperties() {
         return prop;
     }

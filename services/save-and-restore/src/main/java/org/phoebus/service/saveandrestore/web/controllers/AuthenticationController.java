@@ -37,6 +37,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+/**
+ * Controller class for user authentication endpoints.
+ */
 @SuppressWarnings("unused")
 @RestController
 public class AuthenticationController extends BaseController {
