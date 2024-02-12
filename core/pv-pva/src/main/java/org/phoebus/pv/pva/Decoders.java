@@ -76,7 +76,6 @@ import org.epics.vtype.VULong;
 import org.epics.vtype.VULongArray;
 import org.epics.vtype.VUShort;
 import org.epics.vtype.VUShortArray;
-import org.phoebus.pv.ca.DBRHelper;
 
 /** Decodes {@link Time}, {@link Alarm}, {@link Display}, ...
  *  @author Kay Kasemir
@@ -84,6 +83,9 @@ import org.phoebus.pv.ca.DBRHelper;
 @SuppressWarnings("nls")
 public class Decoders
 {
+    /** 1990/01/01 00:00:00 epoch used by Channel Access and records on IOC */
+    private static final long EPICS_EPOCH = 631152000L;
+
     private static final Instant NO_TIME = Instant.ofEpochSecond(0, 0);
     private static final Integer NO_USERTAG = Integer.valueOf(0);
 
@@ -171,7 +173,7 @@ public class Decoders
         // as used for the Channel Access and IOC time stamp epoch
         // is considered invalid because IOCs send it for never processed records
         final boolean valid = timestamp.getNano() != 0  &&
-                              (timestamp.getEpochSecond() > 0 &&  timestamp.getEpochSecond() != DBRHelper.EPICS_EPOCH);
+                              (timestamp.getEpochSecond() > 0 &&  timestamp.getEpochSecond() != EPICS_EPOCH);
         return Time.of(timestamp, usertag, valid);
     }
 

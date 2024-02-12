@@ -5,10 +5,12 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.phoebus.pv;
+package org.phoebus.pv.ca;
 
 import org.epics.vtype.VType;
 import org.junit.jupiter.api.Test;
+import org.phoebus.pv.PV;
+import org.phoebus.pv.PVPool;
 
 import java.util.ArrayList;
 import java.util.List;

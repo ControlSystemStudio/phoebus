@@ -5,7 +5,10 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  ******************************************************************************/
-package org.phoebus.pv;
+package org.phoebus.pv.pva;
+
+import org.phoebus.pv.PV;
+import org.phoebus.pv.PVPool;
 
 import java.util.concurrent.CountDownLatch;
 
