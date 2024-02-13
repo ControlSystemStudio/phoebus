@@ -20,7 +20,7 @@ public class FocusUtility {
      */
     public static Runnable setFocusOn(final Node node){
         {
-            Window window = node.getScene().getWindow().getScene().getWindow();
+            Window window = node.getScene().getWindow();
             if (window instanceof Stage)
             {
                 final Stage stage = (Stage) window;
