@@ -7,15 +7,12 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-
-import javafx.stage.Stage;
-import javafx.stage.Window;
+import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
@@ -27,16 +24,13 @@ import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.focus.FocusUtility;
 
-import javafx.scene.Node;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
-import org.phoebus.ui.docking.DockStage;
-
-import static org.phoebus.ui.application.PhoebusApplication.logger;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /** Helper for adding guidance, displays, commands to context menu
  *  @author Kay Kasemir
@@ -134,30 +128,17 @@ public class AlarmContextMenuHelper
                 menu_items.add(0, new UnAcknowledgeAction(model, acked));
         }
         // Add context menu actions for PVs
-        Runnable setFocus;
-        {
-            Window window = node.getScene().getWindow().getScene().getWindow();
-            if (window instanceof Stage)
-            {
-                final Stage stage = (Stage) window;
-                setFocus = () -> DockStage.setActiveDockStage(stage);
-            }
-            else {
-                logger.log(Level.WARNING, "Expected 'Stage' for context menu, got " + window);
-                return;
-            }
-        }
         if (pvnames.size() > 0)
         {
             menu_items.add(new SeparatorMenuItem());
             SelectionService.getInstance().setSelection("AlarmUI", pvnames);
-            ContextMenuHelper.addSupportedEntries(setFocus, menu);
+            ContextMenuHelper.addSupportedEntries(FocusUtility.setFocusOn(node), menu);
         }
         else
         {
             // search for other context menu actions registered for AlarmTreeItem
             SelectionService.getInstance().setSelection("AlarmUI", selection);
-            ContextMenuHelper.addSupportedEntries(setFocus, menu);
+            ContextMenuHelper.addSupportedEntries(FocusUtility.setFocusOn(node), menu);
         }
     }
 

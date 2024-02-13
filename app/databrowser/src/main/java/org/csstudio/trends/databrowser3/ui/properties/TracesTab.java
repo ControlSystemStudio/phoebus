@@ -16,8 +16,6 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import javafx.stage.Stage;
-import javafx.stage.Window;
 import org.csstudio.javafx.rtplot.LineStyle;
 import org.csstudio.javafx.rtplot.PointType;
 import org.csstudio.javafx.rtplot.TraceType;
@@ -39,7 +37,7 @@ import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.AlertWithToggle;
 import org.phoebus.ui.dialog.DialogHelper;
-import org.phoebus.ui.docking.DockStage;
+import org.phoebus.ui.focus.FocusUtility;
 import org.phoebus.ui.undo.UndoableActionManager;
 import org.phoebus.util.time.SecondsParser;
 
@@ -79,8 +77,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.converter.DefaultStringConverter;
-
-import static org.phoebus.ui.application.PhoebusApplication.logger;
 
 /** Property tab for traces (items, archives)
  *  @author Kay Kasemir
@@ -746,22 +742,7 @@ public class TracesTab extends Tab
             if (pvs.size() > 0)
             {
                 SelectionService.getInstance().setSelection(this, pvs);
-
-                Runnable setFocus;
-                {
-                    Window window = trace_table.getScene().getWindow().getScene().getWindow();
-                    if (window instanceof Stage)
-                    {
-                        final Stage stage = (Stage) window;
-                        setFocus = () -> DockStage.setActiveDockStage(stage);
-                    }
-                    else {
-                        logger.log(Level.WARNING, "Expected 'Stage' for context menu, got " + window);
-                        return;
-                    }
-                }
-
-                ContextMenuHelper.addSupportedEntries(setFocus, menu);
+                ContextMenuHelper.addSupportedEntries(FocusUtility.setFocusOn(trace_table), menu);
             }
 
             menu.show(trace_table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
