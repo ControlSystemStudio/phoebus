@@ -14,9 +14,9 @@ import java.util.logging.Level;
 public class FocusUtility {
 
     /**
-     * Create a Runnable which when called sets the focus on the DockPane hosting the provided Node
+     * Create a Runnable which when called sets the focus on the first DockPane of the Stage hosting the provided Node
      * @param node A node
-     * @return A Runnable to set the Focus on the Pane which holds the Node
+     * @return A Runnable to set the Focus on the first DockPane of the Stage which holds the Node
      */
     public static Runnable setFocusOn(final Node node){
         {
