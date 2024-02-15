@@ -28,6 +28,7 @@ import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.application.ContextMenuService;
 import org.phoebus.ui.application.SaveSnapshotAction;
+import org.phoebus.ui.focus.FocusUtility;
 import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.TreeHelper;
@@ -137,7 +138,8 @@ public class FXTree
         tree_view.setOnContextMenuRequested(event ->
         {
             menu.getItems().clear();
-            if (ContextMenuHelper.addSupportedEntries(tree_view, menu))
+
+            if (ContextMenuHelper.addSupportedEntries(FocusUtility.setFocusOn(tree_view), menu))
                 menu.getItems().add(new SeparatorMenuItem());
             menu.getItems().add(new PrintAction(tree_view));
             menu.getItems().add(new SaveSnapshotAction(tree_view));

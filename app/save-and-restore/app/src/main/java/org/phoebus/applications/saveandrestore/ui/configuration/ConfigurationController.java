@@ -34,6 +34,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
+
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
 import org.phoebus.applications.saveandrestore.model.*;
@@ -44,6 +45,7 @@ import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.focus.FocusUtility;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -188,7 +190,8 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                                 .map(tableEntry -> new ProcessVariable(tableEntry.getPvName()))
                                 .collect(Collectors.toList());
                         SelectionService.getInstance().setSelection(SaveAndRestoreApplication.NAME, selectedPVList);
-                        ContextMenuHelper.addSupportedEntries(cell, pvNameContextMenu);
+
+                        ContextMenuHelper.addSupportedEntries(FocusUtility.setFocusOn(cell), pvNameContextMenu);
                     }
                     pvNameContextMenu.show(cell, event.getScreenX(), event.getScreenY());
                 });

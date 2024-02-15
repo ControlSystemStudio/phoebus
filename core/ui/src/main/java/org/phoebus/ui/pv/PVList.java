@@ -25,6 +25,7 @@ import org.phoebus.pv.PVPool;
 import org.phoebus.pv.RefCountMap.ReferencedEntry;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.application.Messages;
+import org.phoebus.ui.focus.FocusUtility;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Platform;
@@ -54,6 +55,8 @@ import javafx.scene.layout.BorderPane;
 import org.phoebus.ui.javafx.JFXUtil;
 import org.phoebus.ui.vtype.FormatOption;
 import org.phoebus.ui.vtype.FormatOptionHandler;
+
+import static org.phoebus.ui.application.PhoebusApplication.logger;
 
 /** Table that lists PVs, their reference count etc.
  *  @author Kay Kasemir
@@ -187,7 +190,8 @@ public class PVList extends BorderPane
         table.setOnContextMenuRequested(event ->
         {
             menu.getItems().clear();
-            ContextMenuHelper.addSupportedEntries(table, menu);
+
+            ContextMenuHelper.addSupportedEntries(FocusUtility.setFocusOn(table), menu);
             menu.show(table.getScene().getWindow());
         });
         table.setContextMenu(menu);

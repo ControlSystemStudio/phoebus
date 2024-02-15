@@ -8,6 +8,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
+import javafx.stage.Stage;
+import javafx.stage.Window;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.Display;
@@ -21,6 +23,10 @@ import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
 import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.application.PhoebusApplication;
+import org.phoebus.ui.docking.DockStage;
+import org.phoebus.ui.focus.FocusUtility;
+import org.phoebus.ui.javafx.FocusUtil;
 import org.phoebus.ui.javafx.JFXUtil;
 import org.phoebus.ui.pv.SeverityColors;
 import org.phoebus.ui.vtype.FormatOption;
@@ -172,7 +178,8 @@ public class ProbeController {
                 SelectionService.getInstance().setSelection("Probe",
                         List.of(new ProcessVariable(txtPVName.getText().trim())));
             }
-            ContextMenuHelper.addSupportedEntries(txtPVName, menu);
+
+            ContextMenuHelper.addSupportedEntries(FocusUtility.setFocusOn(txtAlarm), menu);
             menu.show(txtPVName.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
 
