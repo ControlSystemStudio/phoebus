@@ -419,6 +419,7 @@ public class Model
 
         fireAxisChangedEvent(Optional.of(lowerIndexAxis));
         fireAxisChangedEvent(Optional.of(higherIndexAxis));
+        fireAxisChangedEvent(Optional.empty()); // Updates the order of the axes in the UI under the "Value Axes" tab
 
         for (ModelItem item : items) {
             if (item.getAxis() == lowerIndexAxis || item.getAxis() == higherIndexAxis) {
