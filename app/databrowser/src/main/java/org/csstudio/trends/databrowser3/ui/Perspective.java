@@ -32,6 +32,7 @@ import org.csstudio.trends.databrowser3.ui.export.ExportView;
 import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
 import org.csstudio.trends.databrowser3.ui.plot.PlotListener;
 import org.csstudio.trends.databrowser3.ui.properties.AddPVorFormulaMenuItem;
+import org.csstudio.trends.databrowser3.ui.properties.DeleteAxes;
 import org.csstudio.trends.databrowser3.ui.properties.MoveAxisToTheLeft;
 import org.csstudio.trends.databrowser3.ui.properties.MoveAxisToTheRight;
 import org.csstudio.trends.databrowser3.ui.properties.PropertyPanel;
@@ -247,6 +248,12 @@ public class Perspective extends SplitPane
                                 items.add(new SeparatorMenuItem());
                                 separatorForAxisOptionsAdded = true;
                             }
+
+                            if (model.getFirstItemOnAxis(model.getAxes().get(i)) == null) {
+                                // Axis is empty
+                                items.add(new DeleteAxes(this, model, undo, Arrays.asList(model.getAxes().get(i))));
+                            }
+
                             MenuItem moveAxisToTheLeft = new MoveAxisToTheLeft(model, undo, i);
                             items.add(moveAxisToTheLeft);
                             MenuItem moveAxisToTheRight = new MoveAxisToTheRight(model, undo, i);
