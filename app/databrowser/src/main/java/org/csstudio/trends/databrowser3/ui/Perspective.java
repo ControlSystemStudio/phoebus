@@ -218,31 +218,40 @@ public class Perspective extends SplitPane
                 items.add(menuItem);
             });
 
-            if (model.getEmptyAxis().isPresent())
             {
-                items.add(new SeparatorMenuItem());
-                items.add(new RemoveUnusedAxes(model, undo));
-            }
+                boolean separatorForAxisOptionsAdded = false;
 
-            var yAxes = plot.getPlot().getYAxes();
-            int numberOfYAxes = yAxes.size();
+                if (model.getEmptyAxis().isPresent())
+                {
+                    items.add(new SeparatorMenuItem());
+                    separatorForAxisOptionsAdded = true;
+                    items.add(new RemoveUnusedAxes(model, undo));
+                }
 
-            for (int i=0; i<numberOfYAxes; i++) {
-                var yAxis = yAxes.get(i);
-                if (yAxis instanceof YAxisImpl<?>) {
-                    YAxisImpl<?> yAxisImpl = (YAxisImpl<?>) yAxis;
+                var yAxes = plot.getPlot().getYAxes();
+                int numberOfYAxes = yAxes.size();
 
-                    var region = yAxisImpl.getBounds();
+                for (int i=0; i<numberOfYAxes; i++) {
+                    var yAxis = yAxes.get(i);
+                    if (yAxis instanceof YAxisImpl<?>) {
+                        YAxisImpl<?> yAxisImpl = (YAxisImpl<?>) yAxis;
 
-                    var axisX1 = region.x;
-                    var axisX2 = region.x + region.width;
+                        var region = yAxisImpl.getBounds();
 
-                    var sceneX = event.getX();
-                    if (sceneX >= axisX1 && sceneX <= axisX2) {
-                        MenuItem moveAxisToTheLeft = new MoveAxisToTheLeft(model, undo, i);
-                        items.add(moveAxisToTheLeft);
-                        MenuItem moveAxisToTheRight = new MoveAxisToTheRight(model, undo, i);
-                        items.add(moveAxisToTheRight);
+                        var axisX1 = region.x;
+                        var axisX2 = region.x + region.width;
+
+                        var sceneX = event.getX();
+                        if (sceneX >= axisX1 && sceneX <= axisX2) {
+                            if (!separatorForAxisOptionsAdded) {
+                                items.add(new SeparatorMenuItem());
+                                separatorForAxisOptionsAdded = true;
+                            }
+                            MenuItem moveAxisToTheLeft = new MoveAxisToTheLeft(model, undo, i);
+                            items.add(moveAxisToTheLeft);
+                            MenuItem moveAxisToTheRight = new MoveAxisToTheRight(model, undo, i);
+                            items.add(moveAxisToTheRight);
+                        }
                     }
                 }
             }
