@@ -397,7 +397,7 @@ public class Model
 
     public void exchangeAxes(int i, int j) {
         int lowerIndex, higherIndex;
-        if (j == 0) {
+        if (i == j) {
             return;
         }
         else if (j < i) {
