@@ -79,5 +79,46 @@
 				</includes>
 			</resource>
 		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>aspectj-maven-plugin</artifactId>
+				<version>1.15.0</version>
+				<configuration>
+					<includes>
+						<include>**/*.java</include>
+					</includes>
+					<source>17</source>
+					<target>17</target>
+					<complianceLevel>17</complianceLevel>
+					<showWeaveInfo>true</showWeaveInfo>
+					<aspectLibraries>
+						<aspectLibrary>
+							<groupId>org.phoebus</groupId>
+							<artifactId>core-ui</artifactId>
+						</aspectLibrary>
+					</aspectLibraries>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>org.aspectj</groupId>
+						<artifactId>aspectjtools</artifactId>
+						<version>1.9.21</version>
+					</dependency>
+					<dependency>
+						<groupId>org.phoebus</groupId>
+						<artifactId>core-ui</artifactId>
+						<version>4.7.4-SNAPSHOT</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+		</plugins>
 	</build>
 </project>
