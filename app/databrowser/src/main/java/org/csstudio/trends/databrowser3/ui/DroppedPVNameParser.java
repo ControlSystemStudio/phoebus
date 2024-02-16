@@ -49,7 +49,7 @@ public class DroppedPVNameParser
                 pos = locateClosingQuote(text, pos+1);
             else if (c == '(')
                 pos = locateClosingBrace(text, pos+1);
-            else if ("\r\n\t,; ".indexOf(c) >= 0)
+            else if ("\r\n".indexOf(c) >= 0)
             {   // Found one of the separators
                 final String name = text.substring(start, pos).trim();
                 if (! name.isEmpty())
