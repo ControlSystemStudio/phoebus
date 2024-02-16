@@ -2,6 +2,7 @@ package org.csstudio.trends.databrowser3.ui.properties;
 
 import javafx.scene.control.MenuItem;
 import org.csstudio.trends.databrowser3.Activator;
+import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.phoebus.ui.undo.UndoableAction;
 import org.phoebus.ui.undo.UndoableActionManager;
@@ -21,7 +22,7 @@ public class MoveAxisToTheRight extends MenuItem
                              UndoableActionManager undoableActionManager,
                              int axisToMoveToTheRight_index)
     {
-        super("Move Axis to the Right", Activator.getIcon("right"));
+        super(Messages.MoveAxisToTheRight, Activator.getIcon("right"));
 
         var axisToMoveToTheRight = model.getAxes().get(axisToMoveToTheRight_index);
 
@@ -52,7 +53,7 @@ public class MoveAxisToTheRight extends MenuItem
                 var axisOnTheRight = allAxesOnTheRight.get(axisToMoveToTheRight_index_allAxesOnTheRight - 1); // On the right side of the graph, axes are stored in "opposite" relative ordering
                 axisIndex1 = allAxes.indexOf(axisOnTheRight);
                 axisIndex2 = axisToMoveToTheRight_index;
-                UndoableAction moveAxisToTheRight = new ExchangeAxesUndoableAction("Move Axis to the Right",
+                UndoableAction moveAxisToTheRight = new ExchangeAxesUndoableAction(Messages.MoveAxisToTheRight,
                                                                                    model,
                                                                                    axisIndex1,
                                                                                    axisIndex2);

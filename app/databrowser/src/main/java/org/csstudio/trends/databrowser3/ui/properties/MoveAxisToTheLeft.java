@@ -2,6 +2,7 @@ package org.csstudio.trends.databrowser3.ui.properties;
 
 import javafx.scene.control.MenuItem;
 import org.csstudio.trends.databrowser3.Activator;
+import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.Model;
 import org.phoebus.ui.undo.UndoableAction;
 import org.phoebus.ui.undo.UndoableActionManager;
@@ -21,7 +22,7 @@ public class MoveAxisToTheLeft extends MenuItem
                              UndoableActionManager undoableActionManager,
                              int axisToMoveToTheLeft_index)
     {
-        super("Move Axis to the Left", Activator.getIcon("left"));
+        super(Messages.MoveAxisToTheLeft, Activator.getIcon("left"));
 
         var axisToMoveToTheLeft = model.getAxes().get(axisToMoveToTheLeft_index);
 
@@ -37,7 +38,7 @@ public class MoveAxisToTheLeft extends MenuItem
                 var axisOnTheLeft = allAxesOnTheLeft.get(axisToMoveToTheLeft_index_allAxesOnTheLeft - 1);
                 axisIndex1 = allAxes.indexOf(axisOnTheLeft);
                 axisIndex2 = axisToMoveToTheLeft_index;
-                UndoableAction moveAxisToTheLeft = new ExchangeAxesUndoableAction("Move Axis to the Left",
+                UndoableAction moveAxisToTheLeft = new ExchangeAxesUndoableAction(Messages.MoveAxisToTheLeft,
                                                                                   model,
                                                                                   axisIndex1,
                                                                                   axisIndex2);
