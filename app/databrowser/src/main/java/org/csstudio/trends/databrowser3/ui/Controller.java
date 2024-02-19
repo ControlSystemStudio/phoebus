@@ -20,6 +20,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import javafx.util.Pair;
 import org.csstudio.javafx.rtplot.Trace;
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.archive.ArchiveFetchJob;
@@ -238,14 +239,14 @@ public class Controller
         }
 
         @Override
-        public void droppedNames(final List<String> names)
+        public void droppedNames(final List<Pair<String, String>> names)
         {
             // Offer potential PV name in dialog so user can edit/cancel
             // sim://sine sim://ramp sim://noise
             final AddPVDialog dlg = new AddPVDialog(names.size(), model, false);
             DialogHelper.positionDialog(dlg, plot.getPlot(), -200, -200);
             for (int i=0; i<names.size(); ++i)
-                dlg.setName(i, names.get(i));
+                dlg.setName(i, names.get(i).getKey());
             if (! dlg.showAndWait().orElse(false))
                 return;
 

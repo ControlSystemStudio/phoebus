@@ -11,6 +11,7 @@ import java.io.File;
 import java.time.Instant;
 import java.util.List;
 
+import javafx.util.Pair;
 import org.csstudio.trends.databrowser3.model.AnnotationInfo;
 import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
 import org.phoebus.core.types.ProcessVariable;
@@ -45,7 +46,7 @@ public interface PlotListener
     /** Received names, presumably for PVs, via drag and drop
      *  @param name PV(?) names
      */
-    public void droppedNames(List<String> name);
+    public void droppedNames(List<Pair<String, String>> name);
 
     /** Received PV names and/or archive data sources via drag and drop
      *

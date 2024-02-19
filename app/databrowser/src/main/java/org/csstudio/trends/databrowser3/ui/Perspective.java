@@ -18,6 +18,7 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
+import javafx.util.Pair;
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.imports.SampleImportAction;
@@ -306,7 +307,7 @@ public class Perspective extends SplitPane
                 final String dropped = db.getString();
                 try
                 {
-                    final List<String> pvs = DroppedPVNameParser.parseDroppedPVs(dropped);
+                    final List<Pair<String, String>> pvs = DroppedPVNameParser.parseDroppedPVs(dropped);
                     if (pvs.size() > 0)
                         Platform.runLater(() -> lst.droppedNames(pvs));
                 }
