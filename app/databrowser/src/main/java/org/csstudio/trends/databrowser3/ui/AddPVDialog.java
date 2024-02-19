@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javafx.util.Pair;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.AxisConfig;
 import org.csstudio.trends.databrowser3.model.Model;
@@ -53,7 +54,7 @@ public class AddPVDialog extends Dialog<Boolean>
 {
     private final boolean formula;
     private final List<String> existing_names;
-    private final List<TextField> names = new ArrayList<>();
+    private final List<Pair<TextField, TextField>> nameAndDisplayNames = new ArrayList<>();
     private final List<TextField> periods = new ArrayList<>();
     private final List<CheckBox> monitors = new ArrayList<>();
     private final List<ChoiceBox<String>> axes = new ArrayList<>();
@@ -90,10 +91,10 @@ public class AddPVDialog extends Dialog<Boolean>
         {
             // Many names: Focus on OK to just confirm.
             // Otherwise focus on first name so it can be entered
-            if (names.size() > 1)
+            if (nameAndDisplayNames.size() > 1)
                 ok.requestFocus();
             else
-                names.get(0).requestFocus();
+                nameAndDisplayNames.get(0).getKey().requestFocus();
         }));
     }
 
@@ -121,7 +122,6 @@ public class AddPVDialog extends Dialog<Boolean>
             name.setTooltip(new Tooltip(formula ? Messages.AddFormula_NameTT : Messages.AddPV_NameTT));
             if (! formula)
                 PVAutocompleteMenu.INSTANCE.attachField(name);
-            names.add(name);
             layout.add(name, 1, row, 2, 1);
 
             row += 1;
@@ -132,6 +132,8 @@ public class AddPVDialog extends Dialog<Boolean>
             Tooltip displayNameTextFieldTooltip = new Tooltip(Messages.TraceDisplayNameTT);
             displayNameTextField.setTooltip(displayNameTextFieldTooltip);
             layout.add(displayNameTextField, 1, row, 2, 1);
+
+            nameAndDisplayNames.add(new Pair(name, displayNameTextField));
 
             if (! formula)
             {
@@ -164,11 +166,12 @@ public class AddPVDialog extends Dialog<Boolean>
 
     /** Set initial name. Only effective when called before dialog is opened.
      *  @param i Index
-     *  @param name Suggested name
+     *  @param nameAndDisplayName Suggested name
      */
-    public void setName(final int i, final String name)
+    public void setNameAndDisplayName(final int i, final Pair<String, String> nameAndDisplayName)
     {
-        names.get(i).setText(name);
+        nameAndDisplayNames.get(i).getKey().setText(nameAndDisplayName.getKey());
+        nameAndDisplayNames.get(i).getValue().setText(nameAndDisplayName.getValue());
     }
 
     /** @param i Index
@@ -176,7 +179,7 @@ public class AddPVDialog extends Dialog<Boolean>
      */
     public String getName(final int i)
     {
-        return names.get(i).getText().trim();
+        return nameAndDisplayNames.get(i).getKey().getText().trim();
     }
 
     /** @param i Index
@@ -231,14 +234,14 @@ public class AddPVDialog extends Dialog<Boolean>
      */
     private boolean updateAndValidate()
     {
-        for (int i=0; i<names.size(); ++i)
+        for (int i = 0; i< nameAndDisplayNames.size(); ++i)
         {
             // Valid name?
             final String name = getName(i);
             if (name.isEmpty())
             {
                 setHeaderText(Messages.EmptyNameError);
-                names.get(i).requestFocus();
+                nameAndDisplayNames.get(i).getKey().requestFocus();
                 return false;
             }
 

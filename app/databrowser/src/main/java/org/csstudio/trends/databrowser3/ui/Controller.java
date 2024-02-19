@@ -246,7 +246,7 @@ public class Controller
             final AddPVDialog dlg = new AddPVDialog(names.size(), model, false);
             DialogHelper.positionDialog(dlg, plot.getPlot(), -200, -200);
             for (int i=0; i<names.size(); ++i)
-                dlg.setName(i, names.get(i).getKey());
+                dlg.setNameAndDisplayName(i, names.get(i));
             if (! dlg.showAndWait().orElse(false))
                 return;
 
@@ -293,8 +293,10 @@ public class Controller
 
                 final AddPVDialog dlg = new AddPVDialog(names.size(), model, false);
                 DialogHelper.positionDialog(dlg, plot.getPlot(), -200, -200);
-                for (int i=0; i<names.size(); ++i)
-                    dlg.setName(i, names.get(i).getName());
+                for (int i=0; i<names.size(); ++i) {
+                    String pvName = names.get(i).getName();
+                    dlg.setNameAndDisplayName(i, new Pair(pvName, pvName));
+                }
                 if (! dlg.showAndWait().orElse(false))
                     return;
 

@@ -9,6 +9,7 @@ package org.csstudio.trends.databrowser3.ui.search;
 
 import java.util.List;
 
+import javafx.util.Pair;
 import org.csstudio.trends.databrowser3.Activator;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.AxisConfig;
@@ -47,8 +48,10 @@ class AddToPlotAction extends MenuItem
 
             final AddPVDialog dlg = new AddPVDialog(channels.size(), model, false);
             DialogHelper.positionDialog(dlg, node, 200, -200);
-            for (int i=0; i<channels.size(); ++i)
-                dlg.setName(i, channels.get(i).getName());
+            for (int i=0; i<channels.size(); ++i) {
+                String channelName = channels.get(i).getName();
+                dlg.setNameAndDisplayName(i, new Pair(channelName, channelName));
+            }
             if (! dlg.showAndWait().orElse(false))
                 return;
 
