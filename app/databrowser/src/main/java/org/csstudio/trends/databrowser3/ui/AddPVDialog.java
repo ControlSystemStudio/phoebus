@@ -124,6 +124,15 @@ public class AddPVDialog extends Dialog<Boolean>
             names.add(name);
             layout.add(name, 1, row, 2, 1);
 
+            row += 1;
+            String displayNameLabelText = Messages.TraceDisplayName;
+            Label displayNameLabel = new Label(displayNameLabelText);
+            layout.add(displayNameLabel, 0, row);
+            TextField displayNameTextField = new TextField();
+            Tooltip displayNameTextFieldTooltip = new Tooltip(Messages.TraceDisplayNameTT);
+            displayNameTextField.setTooltip(displayNameTextFieldTooltip);
+            layout.add(displayNameTextField, 1, row, 2, 1);
+
             if (! formula)
             {
                 layout.add(new Label(Messages.AddPV_Period), 0, ++row);
