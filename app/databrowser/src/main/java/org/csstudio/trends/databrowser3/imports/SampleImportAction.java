@@ -64,7 +64,7 @@ public class SampleImportAction extends MenuItem
             final ArchiveDataSource imported = new ArchiveDataSource(url, type);
             // Add PV Item with data to model
             AddModelItemCommand.forPV(op_manager, model,
-                                      type, Preferences.scan_period, axis, imported);
+                                      type, type, Preferences.scan_period, axis, imported);
         }
         catch (Exception ex)
         {

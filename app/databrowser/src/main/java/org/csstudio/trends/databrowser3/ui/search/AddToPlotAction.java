@@ -61,6 +61,7 @@ class AddToPlotAction extends MenuItem
                 final AxisConfig axis = AddPVDialog.getOrCreateAxis(model, undo, dlg.getAxisIndex(i));
                 AddModelItemCommand.forPV(undo, model,
                         channel.getName(),
+                        channel.getName(),
                         0.0,
                         axis,
                         channel.getArchiveDataSource());

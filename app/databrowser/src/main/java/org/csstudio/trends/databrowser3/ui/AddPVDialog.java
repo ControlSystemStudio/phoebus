@@ -183,6 +183,14 @@ public class AddPVDialog extends Dialog<Boolean>
     }
 
     /** @param i Index
+     *  @return Display name associated with PV
+     */
+    public String getDisplayName(final int i)
+    {
+        return nameAndDisplayNames.get(i).getValue().getText().trim();
+    }
+
+    /** @param i Index
      *  @return Entered scan period in seconds. 0 for 'scan'
      */
     public double getScanPeriod(final int i)

@@ -255,7 +255,7 @@ public class Controller
             {
                 final AxisConfig axis = AddPVDialog.getOrCreateAxis(model, undo, dlg.getAxisIndex(i));
                 AddModelItemCommand.forPV(undo,
-                        model, dlg.getName(i), dlg.getScanPeriod(i),
+                        model, dlg.getName(i), dlg.getDisplayName(i), dlg.getScanPeriod(i),
                         axis, null);
             }
         }
@@ -306,7 +306,7 @@ public class Controller
                     final ArchiveDataSource archive =
                             (archives == null || i>=archives.size()) ? null : archives.get(i);
                     AddModelItemCommand.forPV(undo,
-                            model, dlg.getName(i), dlg.getScanPeriod(i),
+                            model, dlg.getName(i), dlg.getDisplayName(i), dlg.getScanPeriod(i),
                             axis, archive);
                 }
 //                return;
