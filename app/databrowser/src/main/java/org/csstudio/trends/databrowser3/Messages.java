@@ -210,7 +210,6 @@ public class Messages
                          Model_Disconnected,
                          MoveItemDown,
                          MoveItemUp,
-                         Name,
                          NegErrColumn,
                          NewPlot,
                          NewPlotFailed,

@@ -114,7 +114,7 @@ public class AddPVDialog extends Dialog<Boolean>
         int row = -1;
         for (int i=0; i<count; ++i)
         {
-            final String nm = count == 1 ? Messages.Name : Messages.Name + " " + (i+1);
+            final String nm = count == 1 ? Messages.PVName : Messages.PVName + " " + (i+1);
             layout.add(new Label(nm), 0, ++row);
             final TextField name = new TextField();
             name.textProperty().addListener(event -> checkDuplicateName(name));
