@@ -63,7 +63,7 @@ public class DroppedPVNameParser
                     displayName = displayName.trim();
                     names.add(new Pair<>(pvName, displayName));
                 }
-                start = pos++;
+                start = ++pos;
             }
             else if ("\r\n".indexOf(c) >= 0)
             {   // Found one of the separators
