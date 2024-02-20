@@ -33,6 +33,7 @@ import org.csstudio.trends.databrowser3.ui.export.ExportView;
 import org.csstudio.trends.databrowser3.ui.plot.ModelBasedPlot;
 import org.csstudio.trends.databrowser3.ui.plot.PlotListener;
 import org.csstudio.trends.databrowser3.ui.properties.AddPVorFormulaMenuItem;
+import org.csstudio.trends.databrowser3.ui.properties.AddPVsFromTheClipboardMenuItem;
 import org.csstudio.trends.databrowser3.ui.properties.DeleteAxes;
 import org.csstudio.trends.databrowser3.ui.properties.MoveAxisToTheLeft;
 import org.csstudio.trends.databrowser3.ui.properties.MoveAxisToTheRight;
@@ -153,6 +154,7 @@ public class Perspective extends SplitPane
         final List<MenuItem> add_data = new ArrayList<>();
         add_data.add(new AddPVorFormulaMenuItem(plot.getPlot(), model, undo, false));
         add_data.add(new AddPVorFormulaMenuItem(plot.getPlot(), model, undo, true));
+        add_data.add(new AddPVsFromTheClipboardMenuItem(plot));
 
         for (String type : SampleImporters.getTypes())
             add_data.add(new SampleImportAction(model, type, undo));
