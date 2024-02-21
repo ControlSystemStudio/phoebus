@@ -12,6 +12,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.util.Pair;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.AxisConfig;
@@ -27,15 +37,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
@@ -100,14 +101,14 @@ public class AddPVDialog extends Dialog<Boolean>
 
     private Node createContent(final Model model, final int count)
     {
-        final GridPane layout = new GridPane();
+        final GridPane gridPane = new GridPane();
         // layout.setGridLinesVisible(true);
-        layout.setHgap(5);
-        layout.setVgap(5);
+        gridPane.setHgap(5);
+        gridPane.setVgap(5);
         final ColumnConstraints stay = new ColumnConstraints();
         final ColumnConstraints fill = new ColumnConstraints();
         fill.setHgrow(Priority.ALWAYS);
-        layout.getColumnConstraints().addAll(stay, stay, fill);
+        gridPane.getColumnConstraints().addAll(stay, stay, fill);
 
         axis_options = FXCollections.observableArrayList(model.getAxes().stream().map(AxisConfig::getName).collect(Collectors.toList()));
         axis_options.add(0, Messages.AddPV_NewOrEmptyAxis);
@@ -116,52 +117,53 @@ public class AddPVDialog extends Dialog<Boolean>
         for (int i=0; i<count; ++i)
         {
             final String nm = count == 1 ? Messages.PVName : Messages.PVName + " " + (i+1);
-            layout.add(new Label(nm), 0, ++row);
+            gridPane.add(new Label(nm), 0, ++row);
             final TextField name = new TextField();
             name.textProperty().addListener(event -> checkDuplicateName(name));
             name.setTooltip(new Tooltip(formula ? Messages.AddFormula_NameTT : Messages.AddPV_NameTT));
             if (! formula)
                 PVAutocompleteMenu.INSTANCE.attachField(name);
-            layout.add(name, 1, row, 2, 1);
+            gridPane.add(name, 1, row, 2, 1);
 
             row += 1;
             String displayNameLabelText = Messages.TraceDisplayName;
             Label displayNameLabel = new Label(displayNameLabelText);
-            layout.add(displayNameLabel, 0, row);
+            gridPane.add(displayNameLabel, 0, row);
             TextField displayNameTextField = new TextField();
             Tooltip displayNameTextFieldTooltip = new Tooltip(Messages.TraceDisplayNameTT);
             displayNameTextField.setTooltip(displayNameTextFieldTooltip);
-            layout.add(displayNameTextField, 1, row, 2, 1);
+            gridPane.add(displayNameTextField, 1, row, 2, 1);
 
             nameAndDisplayNames.add(new Pair(name, displayNameTextField));
 
             if (! formula)
             {
-                layout.add(new Label(Messages.AddPV_Period), 0, ++row);
+                gridPane.add(new Label(Messages.AddPV_Period), 0, ++row);
                 final TextField period = new TextField(Double.toString(Preferences.scan_period));
                 period.setTooltip(new Tooltip(Messages.AddPV_PeriodTT));
                 periods.add(period);
                 period.setDisable(true);
-                layout.add(period, 1, row);
+                gridPane.add(period, 1, row);
 
                 final CheckBox monitor = new CheckBox(Messages.AddPV_OnChange);
                 monitor.setTooltip(new Tooltip(Messages.AddPV_OnChangeTT));
                 monitor.setSelected(true);
                 monitors.add(monitor);
                 monitor.setOnAction(event -> period.setDisable(monitor.isSelected()));
-                layout.add(monitors.get(i), 2, row);
+                gridPane.add(monitors.get(i), 2, row);
             }
 
-            layout.add(new Label(Messages.AddPV_Axis), 0, ++row);
+            gridPane.add(new Label(Messages.AddPV_Axis), 0, ++row);
             final ChoiceBox<String> axis = new ChoiceBox<>(axis_options);
             axis.setTooltip(new Tooltip(Messages.AddPV_AxisTT));
             axis.getSelectionModel().select(0);
             axes.add(axis);
-            layout.add(axes.get(i), 1, row);
+            gridPane.add(axes.get(i), 1, row);
 
-            layout.add(new Separator(), 0, ++row, 3, 1);
+            gridPane.add(new Separator(), 0, ++row, 3, 1);
         }
-        return layout;
+        ScrollPane scrollPane = new ScrollPane(gridPane);
+        return scrollPane;
     }
 
     /** Set initial name. Only effective when called before dialog is opened.
