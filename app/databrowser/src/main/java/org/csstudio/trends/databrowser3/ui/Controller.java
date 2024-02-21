@@ -241,23 +241,7 @@ public class Controller
         @Override
         public void droppedNames(final List<Pair<String, String>> names)
         {
-            // Offer potential PV name in dialog so user can edit/cancel
-            // sim://sine sim://ramp sim://noise
-            final AddPVDialog dlg = new AddPVDialog(names.size(), model, false);
-            DialogHelper.positionDialog(dlg, plot.getPlot(), -200, -200);
-            for (int i=0; i<names.size(); ++i)
-                dlg.setNameAndDisplayName(i, names.get(i));
-            if (! dlg.showAndWait().orElse(false))
-                return;
-
-            final UndoableActionManager undo = plot.getPlot().getUndoableActionManager();
-            for (int i=0; i<names.size(); ++i)
-            {
-                final AxisConfig axis = AddPVDialog.getOrCreateAxis(model, undo, dlg.getAxisIndex(i));
-                AddModelItemCommand.forPV(undo,
-                        model, dlg.getName(i), dlg.getDisplayName(i), dlg.getScanPeriod(i),
-                        axis, null);
-            }
+            Activator.droppedNames(names, plot.getPlot().getUndoableActionManager(), model, plot.getPlot());
         }
 
         @Override

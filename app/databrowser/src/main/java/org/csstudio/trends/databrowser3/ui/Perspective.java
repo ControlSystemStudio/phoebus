@@ -154,7 +154,7 @@ public class Perspective extends SplitPane
         final List<MenuItem> add_data = new ArrayList<>();
         add_data.add(new AddPVorFormulaMenuItem(plot.getPlot(), model, undo, false));
         add_data.add(new AddPVorFormulaMenuItem(plot.getPlot(), model, undo, true));
-        add_data.add(new AddPVsFromTheClipboardMenuItem(plot));
+        add_data.add(new AddPVsFromTheClipboardMenuItem(undo, model, plot.getPlot()));
 
         for (String type : SampleImporters.getTypes())
             add_data.add(new SampleImportAction(model, type, undo));

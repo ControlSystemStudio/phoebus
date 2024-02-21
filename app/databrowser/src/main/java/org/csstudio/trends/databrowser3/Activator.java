@@ -7,6 +7,7 @@
  ******************************************************************************/
 package org.csstudio.trends.databrowser3;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -14,11 +15,19 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
+import javafx.scene.Node;
+import javafx.util.Pair;
+import org.csstudio.trends.databrowser3.model.AxisConfig;
+import org.csstudio.trends.databrowser3.model.Model;
+import org.csstudio.trends.databrowser3.ui.AddModelItemCommand;
+import org.csstudio.trends.databrowser3.ui.AddPVDialog;
 import org.phoebus.framework.jobs.NamedThreadFactory;
+import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import org.phoebus.ui.undo.UndoableActionManager;
 
 /** Global Data Browser helper
  *  @author Kay Kasemir
@@ -69,6 +78,36 @@ public class Activator
     public static ImageView getIcon(final String base_name)
     {
         return new ImageView(getImage(base_name));
+    }
+
+    public static void droppedNames(List<Pair<String, String>> names,
+                                    UndoableActionManager undoableActionManager,
+                                    Model model,
+                                    Node nodeToPositionDialogOver)
+    {
+        // Offer potential PV name in dialog so user can edit/cancel
+        // sim://sine sim://ramp sim://noise
+        AddPVDialog dlg = new AddPVDialog(names.size(), model, false);
+        DialogHelper.positionDialog(dlg, nodeToPositionDialogOver, 0, 0);
+
+        for (int i=0; i<names.size(); ++i) {
+            dlg.setNameAndDisplayName(i, names.get(i));
+        }
+
+        if (!dlg.showAndWait().orElse(false)) {
+            return;
+        }
+
+        for (int i=0; i<names.size(); ++i) {
+            AxisConfig axis = AddPVDialog.getOrCreateAxis(model, undoableActionManager, dlg.getAxisIndex(i));
+            AddModelItemCommand.forPV(undoableActionManager,
+                                      model,
+                                      dlg.getName(i),
+                                      dlg.getDisplayName(i),
+                                      dlg.getScanPeriod(i),
+                                      axis,
+                                      null);
+        }
     }
 
     /*
