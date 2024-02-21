@@ -80,10 +80,10 @@ public class Activator
         return new ImageView(getImage(base_name));
     }
 
-    public static void droppedNames(List<Pair<String, String>> names,
-                                    UndoableActionManager undoableActionManager,
-                                    Model model,
-                                    Node nodeToPositionDialogOver)
+    public static void addPVsToPlotDialog(List<Pair<String, String>> names,
+                                          UndoableActionManager undoableActionManager,
+                                          Model model,
+                                          Node nodeToPositionDialogOver)
     {
         // Offer potential PV name in dialog so user can edit/cancel
         // sim://sine sim://ramp sim://noise

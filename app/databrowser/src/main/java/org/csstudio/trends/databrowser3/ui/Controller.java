@@ -241,7 +241,7 @@ public class Controller
         @Override
         public void droppedNames(final List<Pair<String, String>> names)
         {
-            Activator.droppedNames(names, plot.getPlot().getUndoableActionManager(), model, plot.getPlot());
+            Activator.addPVsToPlotDialog(names, plot.getPlot().getUndoableActionManager(), model, plot.getPlot());
         }
 
         @Override

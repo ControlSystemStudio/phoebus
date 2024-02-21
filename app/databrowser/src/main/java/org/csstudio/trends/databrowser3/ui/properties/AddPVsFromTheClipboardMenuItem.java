@@ -27,10 +27,10 @@ public class AddPVsFromTheClipboardMenuItem extends MenuItem {
                 try {
                     var pvNameAndDisplayNames = DroppedPVNameParser.parseDroppedPVs(clipboardContents);
                     if (pvNameAndDisplayNames.size() > 0) {
-                        Activator.droppedNames(pvNameAndDisplayNames,
-                                               undoableActionManager,
-                                               model,
-                                               nodeToPositionDialogOver);
+                        Activator.addPVsToPlotDialog(pvNameAndDisplayNames,
+                                                     undoableActionManager,
+                                                     model,
+                                                     nodeToPositionDialogOver);
                     }
                     else {
                         showNoPVsFoundInClipboardWarning();
