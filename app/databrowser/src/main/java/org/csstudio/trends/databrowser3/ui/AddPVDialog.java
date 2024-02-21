@@ -126,7 +126,13 @@ public class AddPVDialog extends Dialog<Boolean>
         int row = -1;
         for (int i=0; i<count; ++i)
         {
-            final String nm = count == 1 ? Messages.PVName : Messages.PVName + " " + (i+1);
+            final String nm;
+            if (formula) {
+                nm = Messages.Name;
+            }
+            else {
+                nm = count == 1 ? Messages.PVName : Messages.PVName + " " + (i+1);
+            }
             gridPane.add(new Label(nm), 0, ++row);
             final TextField name = new TextField();
             name.textProperty().addListener(event -> checkDuplicateName(name));
@@ -135,16 +141,20 @@ public class AddPVDialog extends Dialog<Boolean>
                 PVAutocompleteMenu.INSTANCE.attachField(name);
             gridPane.add(name, 1, row, 2, 1);
 
-            row += 1;
-            String displayNameLabelText = Messages.TraceDisplayName;
-            Label displayNameLabel = new Label(displayNameLabelText);
-            gridPane.add(displayNameLabel, 0, row);
-            TextField displayNameTextField = new TextField();
-            Tooltip displayNameTextFieldTooltip = new Tooltip(Messages.TraceDisplayNameTT);
-            displayNameTextField.setTooltip(displayNameTextFieldTooltip);
-            gridPane.add(displayNameTextField, 1, row, 2, 1);
-
-            nameAndDisplayNames.add(new Pair(name, displayNameTextField));
+            if (!formula) {
+                row += 1;
+                String displayNameLabelText = Messages.TraceDisplayName;
+                Label displayNameLabel = new Label(displayNameLabelText);
+                gridPane.add(displayNameLabel, 0, row);
+                TextField displayNameTextField = new TextField();
+                Tooltip displayNameTextFieldTooltip = new Tooltip(Messages.TraceDisplayNameTT);
+                displayNameTextField.setTooltip(displayNameTextFieldTooltip);
+                gridPane.add(displayNameTextField, 1, row, 2, 1);
+                nameAndDisplayNames.add(new Pair(name, displayNameTextField));
+            }
+            else {
+                nameAndDisplayNames.add(new Pair(name, name));
+            }
 
             if (! formula)
             {

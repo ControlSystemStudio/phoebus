@@ -213,6 +213,7 @@ public class Messages
                          MoveAxisToTheRight,
                          MoveItemDown,
                          MoveItemUp,
+                         Name,
                          NegErrColumn,
                          NewPlot,
                          NewPlotFailed,
