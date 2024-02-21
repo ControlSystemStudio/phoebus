@@ -173,6 +173,7 @@ public class AddPVDialog extends Dialog<Boolean>
             gridPane.add(new Separator(), 0, ++row, 3, 1);
         }
         ScrollPane scrollPane = new ScrollPane(gridPane);
+        scrollPane.setFitToWidth(true);
         return scrollPane;
     }
 

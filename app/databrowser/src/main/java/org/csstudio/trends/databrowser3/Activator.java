@@ -108,15 +108,6 @@ public class Activator
             dialogPane.setMaxWidth(Double.MAX_VALUE);
             dialogPane.setMaxHeight(Double.MAX_VALUE);
 
-            Node content = dialogPane.getContent();
-            if (content instanceof ScrollPane) {
-                ScrollPane scrollPane = (ScrollPane) content;
-                scrollPane.setFitToWidth(true);
-            }
-            else {
-                logger.log(Level.WARNING, "Expected an instance of 'ScrollPane', but got an instance of '" + content.getClass().toString() + "'!");
-            }
-
             DialogHelper.positionDialog(addPVDialog, nodeToPositionDialogOver, (int) -addPVDialowWindow.getWidth()/2, (int) -addPVDialowWindow.getHeight()/2);
         }
 
