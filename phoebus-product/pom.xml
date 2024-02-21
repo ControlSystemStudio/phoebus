@@ -259,6 +259,11 @@
             <artifactId>phoebus-target</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
+            <artifactId>core-pv-jackie</artifactId>
+            <version>4.7.4-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
