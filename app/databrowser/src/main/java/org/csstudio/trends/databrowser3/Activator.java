@@ -13,9 +13,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javafx.scene.Node;
+import javafx.scene.control.DialogPane;
+import javafx.scene.control.ScrollPane;
+import javafx.stage.Window;
 import javafx.util.Pair;
 import org.csstudio.trends.databrowser3.model.AxisConfig;
 import org.csstudio.trends.databrowser3.model.Model;
@@ -87,24 +91,50 @@ public class Activator
     {
         // Offer potential PV name in dialog so user can edit/cancel
         // sim://sine sim://ramp sim://noise
-        AddPVDialog dlg = new AddPVDialog(names.size(), model, false);
-        DialogHelper.positionDialog(dlg, nodeToPositionDialogOver, 0, 0);
+        AddPVDialog addPVDialog = new AddPVDialog(names.size(), model, false);
 
-        for (int i=0; i<names.size(); ++i) {
-            dlg.setNameAndDisplayName(i, names.get(i));
+        { // Set layout of addPVDialog:
+            int addPVDialogWidth = 750;
+            int addPVDialogHeight = 600;
+
+            Window addPVDialowWindow = addPVDialog.getDialogPane().getScene().getWindow();
+            addPVDialowWindow.setWidth(addPVDialogWidth);
+            addPVDialowWindow.setHeight(addPVDialogHeight);
+            addPVDialog.setResizable(false);
+
+            DialogPane dialogPane = addPVDialog.getDialogPane();
+            dialogPane.setPrefWidth(addPVDialogWidth);
+            dialogPane.setPrefHeight(addPVDialogHeight);
+            dialogPane.setMaxWidth(Double.MAX_VALUE);
+            dialogPane.setMaxHeight(Double.MAX_VALUE);
+
+            Node content = dialogPane.getContent();
+            if (content instanceof ScrollPane) {
+                ScrollPane scrollPane = (ScrollPane) content;
+                scrollPane.setFitToWidth(true);
+            }
+            else {
+                logger.log(Level.WARNING, "Expected an instance of 'ScrollPane', but got an instance of '" + content.getClass().toString() + "'!");
+            }
+
+            DialogHelper.positionDialog(addPVDialog, nodeToPositionDialogOver, (int) -addPVDialowWindow.getWidth()/2, (int) -addPVDialowWindow.getHeight()/2);
         }
 
-        if (!dlg.showAndWait().orElse(false)) {
+        for (int i=0; i<names.size(); ++i) {
+            addPVDialog.setNameAndDisplayName(i, names.get(i));
+        }
+
+        if (!addPVDialog.showAndWait().orElse(false)) {
             return;
         }
 
         for (int i=0; i<names.size(); ++i) {
-            AxisConfig axis = AddPVDialog.getOrCreateAxis(model, undoableActionManager, dlg.getAxisIndex(i));
+            AxisConfig axis = AddPVDialog.getOrCreateAxis(model, undoableActionManager, addPVDialog.getAxisIndex(i));
             AddModelItemCommand.forPV(undoableActionManager,
                                       model,
-                                      dlg.getName(i),
-                                      dlg.getDisplayName(i),
-                                      dlg.getScanPeriod(i),
+                                      addPVDialog.getName(i),
+                                      addPVDialog.getDisplayName(i),
+                                      addPVDialog.getScanPeriod(i),
                                       axis,
                                       null);
         }
