@@ -53,23 +53,37 @@ including those used to create daily, weekly or monthly indices.
 The alarm logger can be configured via command line switches when running the jar, see option `-help` for details, 
 or via properties documented in [here](https://github.com/ControlSystemStudio/phoebus/blob/master/services/alarm-logger/src/main/resources/alarm_logger.properties)
 
+#### Check Service Status
 
+```
+http://localhost:8080
+```
 
+Will provide information regarding the version of the service along with information about the connection status with the elastic backend.
+
+e.g.
+
+```
+{
+    "name": "Alarm logging Service",
+    "version": "4.7.4-SNAPSHOT",
+    "elastic": {
+        "status": "Connected",
+        "clusterName": "elasticsearch",
+        "clusterUuid": "hwn6nGDwTKSm8vzVTqR9Sw",
+        "version": "co.elastic.clients.elasticsearch._types.ElasticsearchVersionInfo@51e5581d"
+    }
+}
+```
 
 ### Query the Data
 
-For more elaborate queries, use Kibana or other elasticsearch clients.
-For a first test, this should list one or more `*alarm*` indices:
+Alarm logs can be retrieved using the alarm logging services query REST API's
 
 ```
-curl -X GET 'http://localhost:9200/_cat/indices?v'
+curl -X GET 'localhost:8080/search/alarm?pv=*'
 ```
 
-This dumps records from one specific index:
-
-```
-curl -X GET 'http://localhost:9200/accelerator_alarms_state_2019-02-01/_search?format=json&pretty'
-```
 
 ## Data Management
 

@@ -158,22 +158,13 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
                     }
                 }
             }
-            // Set bit for the field to write
-            changed.set(data.getIndex(field));
-
-            // Bitset to describe which field we're about to write
-            //final BitSet changed = new BitSet();
-            changed.set(data.getIndex(field));
-            if (field instanceof PVAStructure) {
-                final PVAStructure struct = (PVAStructure) field;
-                List<PVAData> elements = struct.get();
-                if(elements != null){
-                    for(int i = 0; i < elements.size(); i++){
-                        changed.set(data.getIndex(elements.get(i)));
-                    }
-                }
+            else{
+                // Set bit for the field to write
+                changed.set(data.getIndex(field));
             }
+
             logger.log(Level.FINE, () -> "Updated structure elements: " + changed);
+
             PVABitSet.encodeBitSet(changed, buffer);
 
             // Write the updated field

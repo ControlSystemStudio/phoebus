@@ -360,21 +360,7 @@ public class AlarmLogSearchUtil {
             if (fromIndex.equalsIgnoreCase(toIndex)) {
                 indexList.add(fromIndex);
             } else {
-                int indexDateSpanDayValue = -1;
-                switch (indexDateSpanUnits) {
-                    case "Y":
-                        indexDateSpanDayValue = 365;
-                        break;
-                    case "M":
-                        indexDateSpanDayValue = 30;
-                        break;
-                    case "W":
-                        indexDateSpanDayValue = 7;
-                        break;
-                    case "D":
-                        indexDateSpanDayValue = 1;
-                        break;
-                }
+                int indexDateSpanDayValue = getDateSpanInDays(indexDateSpanUnits);
                 indexList.add(fromIndex);
                 while (!fromIndex.equalsIgnoreCase(toIndex)) {
                     fromInstant = fromInstant.plus(indexDateSpanDayValue, ChronoUnit.DAYS);
@@ -385,5 +371,26 @@ public class AlarmLogSearchUtil {
         }
 
         return indexList;
+    }
+
+    /**
+     *
+     * @param indexDateSpanUnits A single char string from [Y, M, W, D]
+     * @return Number of days corresponding to the unit, or -1 if the input does not match
+     * supported chars.
+     */
+    public static int getDateSpanInDays(String indexDateSpanUnits){
+        switch (indexDateSpanUnits) {
+            case "Y":
+                return 365;
+            case "M":
+                return 30;
+            case "W":
+                return 7;
+            case "D":
+                return 1;
+            default:
+                return -1;
+        }
     }
 }

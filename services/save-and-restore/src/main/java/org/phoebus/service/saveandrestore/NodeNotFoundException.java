@@ -18,10 +18,18 @@
  */
 package org.phoebus.service.saveandrestore;
 
+/**
+ * Custom {@link Exception} used to indicate that a wanted {@link org.phoebus.applications.saveandrestore.model.Node}
+ * requested by client could not be found.
+ */
 public class NodeNotFoundException extends RuntimeException {
 
 	private static final long serialVersionUID = -1828621412391490962L;
-	
+
+	/**
+	 *
+	 * @param message Some error message...
+	 */
 	public NodeNotFoundException(String message) {
 		super(message);
 	}

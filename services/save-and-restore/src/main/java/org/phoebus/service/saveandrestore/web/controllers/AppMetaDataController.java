@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 European Spallation Source ERIC.
+ * Copyright (C) 2024 European Spallation Source ERIC.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author georgweiss
  * Created 13 Dec 2018
  */
+@SuppressWarnings("unused")
 @RestController
 public class AppMetaDataController extends BaseController {
 	
@@ -34,7 +35,10 @@ public class AppMetaDataController extends BaseController {
 
 	@Value("${app.version}")
 	private String appVersion;
-	
+
+	/**
+	 * @return Current version of the save-and-restore service.
+	 */
 	@GetMapping("/version")
 	public String version() {
 		return appName + ", version " + appVersion;

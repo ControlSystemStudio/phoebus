@@ -107,12 +107,22 @@ public class NodeController extends BaseController {
         return nodeDAO.getNodes(uniqueNodeIds);
     }
 
+    /**
+     *
+     * @param uniqueNodeId Unique {@link Node} id.
+     * @return The parent {@link Node} of #uniqueNodeId.
+     */
     @SuppressWarnings("unused")
     @GetMapping(value = "/node/{uniqueNodeId}/parent", produces = JSON)
     public Node getParentNode(@PathVariable String uniqueNodeId) {
         return nodeDAO.getParentNode(uniqueNodeId);
     }
 
+    /**
+     *
+     * @param uniqueNodeId Unique {@link Node} id.
+     * @return Potentially empty list of child {@link Node}s of the {@link Node} identified by #uniqueNodeId.
+     */
     @SuppressWarnings("unused")
     @GetMapping(value = "/node/{uniqueNodeId}/children", produces = JSON)
     public List<Node> getChildNodes(@PathVariable final String uniqueNodeId) {
@@ -159,7 +169,7 @@ public class NodeController extends BaseController {
      * <br>
      * Note also that an unauthenticated user (e.g. no basic authentication header in client's request) will
      * receive a HTTP 401 response, i.e. the {@link PreAuthorize} check is not invoked.
-     * @param nodeIds
+     * @param nodeIds List of {@link Node} ids to remove.
      */
     @SuppressWarnings("unused")
     @DeleteMapping(value = "/node", produces = JSON)

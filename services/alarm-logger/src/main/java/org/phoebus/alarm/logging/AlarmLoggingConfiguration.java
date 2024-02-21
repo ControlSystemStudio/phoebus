@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 European Spallation Source ERIC.
+ * Copyright (C) 2023 European Spallation Source ERIC.
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -16,21 +16,21 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
  */
-package org.phoebus.service.saveandrestore;
 
-/**
- * Custom {@link Exception} used to indicate that a {@link org.phoebus.applications.saveandrestore.model.Snapshot}
- * request by client could not be found.
- */
-public class SnapshotNotFoundException extends RuntimeException {
+package org.phoebus.alarm.logging;
 
-	private static final long serialVersionUID = -980968730210448760L;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-	/**
-	 *
-	 * @param message Suitable error message.
-	 */
-	public SnapshotNotFoundException(String message) {
-		super(message);
-	}
+@Configuration
+public class AlarmLoggingConfiguration {
+
+    @Value("${days:150}")
+    public int days;
+
+    @Bean
+    public int getDays(){
+        return days;
+    }
 }

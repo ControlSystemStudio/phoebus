@@ -6,47 +6,8 @@
     <three>Macro "three"</three>
     <two>Macro "two"</two>
   </macros>
-  <widget type="textupdate" version="2.0.0">
-    <name>Text Update</name>
-    <pv_name>loc://test&lt;String&gt;</pv_name>
-    <y>448</y>
-    <width>150</width>
-    <height>25</height>
-  </widget>
-  <widget type="label" version="2.0.0">
-    <name>Label</name>
-    <text>Items from property</text>
-    <y>341</y>
-    <width>221</width>
-    <font>
-      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
-      </font>
-    </font>
-  </widget>
-  <widget type="textupdate" version="2.0.0">
-    <name>Text Update_2</name>
-    <pv_name>loc://test3&lt;VEnum&gt;(0, "High", "Medium", "Low")</pv_name>
-    <y>291</y>
-    <width>190</width>
-    <height>25</height>
-  </widget>
-  <widget type="textupdate" version="2.0.0">
-    <name>Text Update_3</name>
-    <pv_name>loc://test2&lt;String&gt;</pv_name>
-    <y>548</y>
-    <width>150</width>
-    <height>25</height>
-  </widget>
-  <widget type="label" version="2.0.0">
-    <name>Label</name>
-    <text>Items with macros</text>
-    <y>491</y>
-    <width>150</width>
-    <font>
-      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
-      </font>
-    </font>
-  </widget>
+  <width>803</width>
+  <height>573</height>
   <widget type="label" version="2.0.0">
     <name>Label_5</name>
     <text>Radio Button Widget</text>
@@ -72,14 +33,6 @@ is written.</text>
     <height>150</height>
   </widget>
   <widget type="label" version="2.0.0">
-    <name>Label_9</name>
-    <text>By default, the property "Items From PV" is set
-and the widget obtains its items from an enumerated PV.</text>
-    <y>210</y>
-    <width>378</width>
-    <height>61</height>
-  </widget>
-  <widget type="label" version="2.0.0">
     <name>Label_10</name>
     <text>Items from PV</text>
     <y>180</y>
@@ -88,6 +41,14 @@ and the widget obtains its items from an enumerated PV.</text>
       <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
       </font>
     </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_9</name>
+    <text>By default, the property "Items From PV" is set
+and the widget obtains its items from an enumerated PV.</text>
+    <y>210</y>
+    <width>378</width>
+    <height>61</height>
   </widget>
   <widget type="radio" version="2.0.0">
     <name>Combo_ItemsFromPV</name>
@@ -99,6 +60,50 @@ and the widget obtains its items from an enumerated PV.</text>
       <item>Item 1</item>
       <item>Item 2</item>
     </items>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_2</name>
+    <pv_name>loc://test3&lt;VEnum&gt;(0, "High", "Medium", "Low")</pv_name>
+    <y>291</y>
+    <width>190</width>
+    <height>25</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Items from property</text>
+    <y>341</y>
+    <width>221</width>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_1</name>
+    <text>Choice Button Widget</text>
+    <x>420</x>
+    <y>341</y>
+    <width>221</width>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_11</name>
+    <text>Alternatively, the items can be configured on the widget,
+not reading them from a PV.</text>
+    <y>371</y>
+    <width>378</width>
+    <height>40</height>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_12</name>
+    <text>The choice button widget is very similar to radio buttons.</text>
+    <x>420</x>
+    <y>371</y>
+    <width>378</width>
+    <height>40</height>
   </widget>
   <widget type="radio" version="2.0.0">
     <name>Combo</name>
@@ -113,13 +118,53 @@ and the widget obtains its items from an enumerated PV.</text>
     </items>
     <items_from_pv>false</items_from_pv>
   </widget>
+  <widget type="choice" version="2.0.0">
+    <name>Combo_1</name>
+    <pv_name>loc://test&lt;String&gt;</pv_name>
+    <x>420</x>
+    <y>421</y>
+    <width>383</width>
+    <height>27</height>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <items>
+      <item>One Item</item>
+      <item>Another Item</item>
+      <item>Yet another</item>
+    </items>
+    <items_from_pv>false</items_from_pv>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <pv_name>loc://test&lt;String&gt;</pv_name>
+    <y>448</y>
+    <width>150</width>
+    <height>25</height>
+  </widget>
+  <widget type="choice" version="2.0.0">
+    <name>Combo_2</name>
+    <pv_name>loc://test&lt;String&gt;</pv_name>
+    <x>550</x>
+    <y>460</y>
+    <width>130</width>
+    <height>73</height>
+    <horizontal>false</horizontal>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <items>
+      <item>One Item</item>
+      <item>Another Item</item>
+      <item>Yet another</item>
+    </items>
+    <items_from_pv>false</items_from_pv>
+  </widget>
   <widget type="label" version="2.0.0">
-    <name>Label_11</name>
-    <text>Alternatively, the items can be configured on the widget,
-not reading them from a PV.</text>
-    <y>371</y>
-    <width>378</width>
-    <height>40</height>
+    <name>Label</name>
+    <text>Items with macros</text>
+    <y>491</y>
+    <width>150</width>
+    <font>
+      <font name="Default Bold" family="Liberation Sans" style="BOLD" size="14.0">
+      </font>
+    </font>
   </widget>
   <widget type="radio" version="2.0.0">
     <name>Combo_Macros</name>
@@ -133,5 +178,12 @@ not reading them from a PV.</text>
       <item>$(three)</item>
     </items>
     <items_from_pv>false</items_from_pv>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_3</name>
+    <pv_name>loc://test2&lt;String&gt;</pv_name>
+    <y>548</y>
+    <width>150</width>
+    <height>25</height>
   </widget>
 </display>
