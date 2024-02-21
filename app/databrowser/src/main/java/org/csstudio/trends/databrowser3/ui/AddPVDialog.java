@@ -71,7 +71,17 @@ public class AddPVDialog extends Dialog<Boolean>
 
         existing_names = model.getItems().stream().map(ModelItem::getName).collect(Collectors.toList());
 
-        setTitle(formula ? Messages.AddFormula : Messages.AddPV);
+        if (formula) {
+            setTitle(Messages.AddFormula);
+        }
+        else {
+            if (count == 1) {
+                setTitle(Messages.AddPV);
+            }
+            else {
+                setTitle(Messages.AddPVs);
+            }
+        }
         setHeaderText(formula ? Messages.AddFormulaMsg : Messages.AddPVMsg);
 
         getDialogPane().setContent(createContent(model, count));

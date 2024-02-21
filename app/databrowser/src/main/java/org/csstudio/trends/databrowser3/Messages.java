@@ -24,6 +24,7 @@ public class Messages
                          AddFormula_NameTT,
                          AddItemErrorFmt,
                          AddPV,
+                         AddPVs,
                          AddPV_Axis,
                          AddPV_AxisTT,
                          AddPVMsg,
