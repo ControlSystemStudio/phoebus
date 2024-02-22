@@ -34,9 +34,8 @@ import org.epics.vtype.VShort;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.archive.reader.ValueIterator;
+import org.phoebus.archive.reader.util.ChannelAccessStatusUtil;
 import org.phoebus.pv.TimeHelper;
-
-import gov.aps.jca.dbr.Status;
 
 /** Obtains channel archiver samples from channel archiver
  *  data files, and translates them to ArchiveVTypes.
@@ -394,15 +393,6 @@ public class ArchiveFileSampleReader implements ValueIterator
         if (severity == 0x0f02)
             return "Change Sampling Period";
 
-        try
-        {
-            final Status stat = Status.forValue(status);
-            // stat.toString()?
-            return stat.getName();
-        }
-        catch (Exception ex)
-        {
-            return  "<" + status + ">";
-        }
+        return ChannelAccessStatusUtil.idToName(status);
     }
 }

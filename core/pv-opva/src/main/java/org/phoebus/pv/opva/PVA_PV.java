@@ -9,7 +9,6 @@ package org.phoebus.pv.opva;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.logging.Level;
 
 import org.epics.pvaccess.client.Channel;
