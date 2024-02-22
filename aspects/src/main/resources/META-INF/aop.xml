@@ -21,12 +21,13 @@
 
     <aspects>
         <!-- Aspects -->
-        <aspect name="org.phoebus.ui.aspects.ModalDialogLaunchAspect"/>
+        <aspect name="org.phoebus.aspects.ui.ModalDialogLaunchAspect">
+        </aspect>
     </aspects>
 
     <weaver options="-verbose -showWeaveInfo -Xset:weaveJavaxPackages=true -Xset:weaveJavaPackages=true">
-        <include within="javafx.scene.control.Alert"/>
         <include within="javafx.scene.control.Dialog"/>
+        <include within="javafx.scene.control.Alert"/>
     </weaver>
 
 </aspectj>

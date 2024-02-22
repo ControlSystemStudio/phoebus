@@ -56,7 +56,6 @@
             <artifactId>javafx-fxml</artifactId>
             <version>${openjfx.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.phoebus</groupId>
             <artifactId>core-framework</artifactId>
@@ -93,6 +92,16 @@
             <groupId>org.apache.xmlgraphics</groupId>
             <artifactId>batik-transcoder</artifactId>
             <version>${batik.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>xml-apis</groupId>
+                    <artifactId>xml-apis</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>xml-apis</groupId>
+                    <artifactId>xml-apis-ext</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.xmlgraphics</groupId>
@@ -104,17 +113,22 @@
             <artifactId>batik-xml</artifactId>
             <version>${batik.version}</version>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjtools</artifactId>
-            <version>1.9.21</version>
+            <version>${aspectj.version}</version>
         </dependency>
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjrt</artifactId>
-            <version>1.9.21</version>
+            <version>${aspectj.version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
+            <artifactId>core-aspects</artifactId>
+            <version>4.7.4-SNAPSHOT</version>
+        </dependency>-->
     </dependencies>
 
     <build>
@@ -124,67 +138,5 @@
                 <filtering>true</filtering>
             </resource>
         </resources>
-        <!--<pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>aspectj-maven-plugin</artifactId>
-                    <version>1.15.0</version>
-                    <configuration>
-                        <showWeaveInfo>true</showWeaveInfo>
-                        <source>17</source>
-                        <target>17</target>
-                        <complianceLevel>17</complianceLevel>
-                        <encoding>UTF-8</encoding>
-                        <verbose>true</verbose>
-                        <includes>**/aspects/*.java</includes>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <goals>
-                                <goal>compile</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                    <dependencies>
-                      <dependency>
-                        <groupId>org.aspectj</groupId>
-                        <artifactId>aspectjtools</artifactId>
-                        <version>1.9.21</version>
-                      </dependency>
-                    </dependencies>
-                </plugin>
-            </plugins>
-        </pluginManagement>-->
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>aspectj-maven-plugin</artifactId>
-                <version>1.15.0</version>
-                <configuration>
-                    <showWeaveInfo>true</showWeaveInfo>
-                    <source>17</source>
-                    <target>17</target>
-                    <complianceLevel>17</complianceLevel>
-                    <encoding>UTF-8</encoding>
-                    <verbose>true</verbose>
-                    <includes>**/aspects/*.java</includes>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.aspectj</groupId>
-                        <artifactId>aspectjtools</artifactId>
-                        <version>1.9.21</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-        </plugins>
     </build>
 </project>

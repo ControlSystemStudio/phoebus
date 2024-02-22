@@ -33,6 +33,12 @@
       <groupId>org.phoebus</groupId>
       <artifactId>core-ui</artifactId>
       <version>4.7.4-SNAPSHOT</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.xmlgraphics</groupId>
+          <artifactId>batik-transcoder</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>

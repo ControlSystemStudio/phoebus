@@ -79,7 +79,7 @@
 				</includes>
 			</resource>
 		</resources>
-		<plugins>
+		<!--<plugins>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>aspectj-maven-plugin</artifactId>
@@ -119,6 +119,6 @@
 					</dependency>
 				</dependencies>
 			</plugin>
-		</plugins>
+		</plugins>-->
 	</build>
 </project>

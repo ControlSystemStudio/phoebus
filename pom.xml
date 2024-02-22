@@ -88,6 +88,7 @@
     <jython.version>2.7.3</jython.version>
     <jgit.version>6.7.0.202309050840-r</jgit.version>
     <maven.compiler.target>17</maven.compiler.target>
+    <aspectj.version>1.9.21</aspectj.version>
   </properties>
   <build>
     <plugins>
@@ -132,7 +133,7 @@
             </goals>
           </execution>
         </executions>
-      </plugin>  
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
@@ -285,7 +286,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-project-info-reports-plugin</artifactId>
             <version>3.0.0</version>
-          </plugin>          
+          </plugin>
           <!-- Generate the documentation for the Phoebus -->
           <plugin>
             <groupId>kr.motd.maven</groupId>
@@ -394,6 +395,7 @@
   <modules>
     <module>dependencies</module>
     <module>core</module>
+    <module>aspects</module>
     <module>app</module>
     <module>phoebus-product</module>
     <module>services</module>

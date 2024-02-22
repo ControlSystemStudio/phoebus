@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import javafx.scene.control.*;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
@@ -52,16 +53,6 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.ToolBar;
-import javafx.scene.control.Tooltip;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
@@ -613,6 +604,9 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
                 menu_items.add(menuItem);
             });
             SelectionService.getInstance().setSelection("AlarmTree", originalSelection);
+
+            System.out.println("Alarm tree view " + menu.getScene());
+            System.out.println("Alarm tree view " + menu.getScene().getRoot().disableProperty());
 
             menu.show(tree_view.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
