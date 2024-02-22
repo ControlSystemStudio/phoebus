@@ -38,19 +38,19 @@ public class FocusUtil
      * @param node A node
      * @return A Runnable to set the Focus on the first DockPane of the Stage which holds the Node
      */
-    public static Runnable setFocusOn(final Node node){
+    public static Runnable setFocusOn(final Node node)
+    {
+        Window window = node.getScene().getWindow();
+        if (window instanceof Stage)
         {
-            Window window = node.getScene().getWindow();
-            if (window instanceof Stage)
-            {
-                final Stage stage = (Stage) window;
-                return () -> DockStage.setActiveDockStage(stage);
-            } else
-            {
-                PhoebusApplication.logger.log(Level.WARNING, "Expected 'Stage' for context menu, got " + window);
-                return () -> {
-                };
-            }
+            final Stage stage = (Stage) window;
+            return () -> DockStage.setActiveDockStage(stage);
+        }
+        else
+        {
+            PhoebusApplication.logger.log(Level.WARNING, "Expected 'Stage' for context menu, got " + window);
+            return () -> {
+            };
         }
     }
 }
