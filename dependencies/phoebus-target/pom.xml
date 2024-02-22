@@ -588,6 +588,13 @@
       <version>5.18.2</version>
     </dependency>
 
+    <!-- EPICS Jackie client for Jackie PV source -->
+    <dependency>
+      <groupId>com.aquenos.epics.jackie</groupId>
+      <artifactId>epics-jackie-client</artifactId>
+      <version>3.1.0</version>
+    </dependency>
+
   </dependencies>
 
   <build>
