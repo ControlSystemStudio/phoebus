@@ -22,7 +22,7 @@ import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
-import org.phoebus.ui.focus.FocusUtility;
+import org.phoebus.ui.javafx.FocusUtil;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.application.Platform;
@@ -165,7 +165,7 @@ public class SearchView extends SplitPane
             menu.getItems().setAll(new AddToPlotAction(channel_table, model, undo, selection),
                                    new SeparatorMenuItem());
             SelectionService.getInstance().setSelection(channel_table, selection);
-            ContextMenuHelper.addSupportedEntries(FocusUtility.setFocusOn(channel_table), menu);
+            ContextMenuHelper.addSupportedEntries(FocusUtil.setFocusOn(channel_table), menu);
             menu.show(channel_table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         }
     }

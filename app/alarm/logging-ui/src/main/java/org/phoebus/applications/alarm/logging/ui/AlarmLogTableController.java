@@ -45,7 +45,7 @@ import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
-import org.phoebus.ui.focus.FocusUtility;
+import org.phoebus.ui.javafx.FocusUtil;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.JFXUtil;
 import org.phoebus.util.time.TimeParser;
@@ -572,7 +572,7 @@ public class AlarmLogTableController {
         // search for other context menu actions registered for AlarmLogTableType
         SelectionService.getInstance().setSelection("AlarmLogTable", tableView.getSelectionModel().getSelectedItems());
 
-        ContextMenuHelper.addSupportedEntries(FocusUtility.setFocusOn(tableView), contextMenu);
+        ContextMenuHelper.addSupportedEntries(FocusUtil.setFocusOn(tableView), contextMenu);
 
         tableView.setContextMenu(contextMenu);
 

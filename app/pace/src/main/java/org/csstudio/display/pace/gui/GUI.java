@@ -38,7 +38,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TablePosition;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
-import org.phoebus.ui.focus.FocusUtility;
+import org.phoebus.ui.javafx.FocusUtil;
 
 /** GUI for PACE {@link Model}
  *  @author Kay Kasemir
@@ -201,7 +201,7 @@ public class GUI extends BorderPane
             {
                 items.add(new SeparatorMenuItem());
                 SelectionService.getInstance().setSelection("AlarmUI", pvnames);
-                ContextMenuHelper.addSupportedEntries(FocusUtility.setFocusOn(table), menu);
+                ContextMenuHelper.addSupportedEntries(FocusUtil.setFocusOn(table), menu);
             }
         });
 

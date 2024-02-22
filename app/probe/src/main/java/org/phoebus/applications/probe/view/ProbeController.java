@@ -25,7 +25,7 @@ import org.phoebus.pv.PVPool;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.docking.DockStage;
-import org.phoebus.ui.focus.FocusUtility;
+import org.phoebus.ui.javafx.FocusUtil;
 import org.phoebus.ui.javafx.FocusUtil;
 import org.phoebus.ui.javafx.JFXUtil;
 import org.phoebus.ui.pv.SeverityColors;
@@ -179,7 +179,7 @@ public class ProbeController {
                         List.of(new ProcessVariable(txtPVName.getText().trim())));
             }
 
-            ContextMenuHelper.addSupportedEntries(FocusUtility.setFocusOn(txtAlarm), menu);
+            ContextMenuHelper.addSupportedEntries(FocusUtil.setFocusOn(txtAlarm), menu);
             menu.show(txtPVName.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
 
