@@ -39,7 +39,7 @@ import org.phoebus.applications.saveandrestore.ui.VTypePair;
 import org.phoebus.core.types.TimeStampedProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
-import org.phoebus.ui.focus.FocusUtility;
+import org.phoebus.ui.javafx.FocusUtil;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.lang.reflect.Field;
@@ -199,7 +199,7 @@ public abstract class BaseSnapshotTableViewController {
                         contextMenu.getItems().clear();
                         SelectionService.getInstance().setSelection(SaveAndRestoreApplication.NAME, selectedPVList);
 
-                        ContextMenuHelper.addSupportedEntries(FocusUtility.setFocusOn(this), contextMenu);
+                        ContextMenuHelper.addSupportedEntries(FocusUtil.setFocusOn(this), contextMenu);
                         contextMenu.getItems().add(new SeparatorMenuItem());
                         MenuItem toggle = new MenuItem();
                         toggle.setText(item.readOnlyProperty().get() ? Messages.makeRestorable : Messages.makeReadOnly);

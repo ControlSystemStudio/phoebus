@@ -8,9 +8,15 @@
 package org.phoebus.ui.javafx;
 
 import javafx.scene.Node;
+import javafx.stage.Stage;
+import javafx.stage.Window;
+import org.phoebus.ui.application.PhoebusApplication;
+import org.phoebus.ui.docking.DockStage;
+
+import java.util.logging.Level;
 
 /** Helper for handling focus
- *  @author Kay Kasemir
+ *  @author Kay Kasemir, Kunal Shroff, Abraham Wolk
  */
 public class FocusUtil
 {
@@ -25,5 +31,26 @@ public class FocusUtil
         while (parent.getParent() != null)
             parent = parent.getParent();
         parent.requestFocus();
+    }
+
+    /**
+     * Create a Runnable which when called sets the focus on the first DockPane of the Stage hosting the provided Node
+     * @param node A node
+     * @return A Runnable to set the Focus on the first DockPane of the Stage which holds the Node
+     */
+    public static Runnable setFocusOn(final Node node){
+        {
+            Window window = node.getScene().getWindow();
+            if (window instanceof Stage)
+            {
+                final Stage stage = (Stage) window;
+                return () -> DockStage.setActiveDockStage(stage);
+            } else
+            {
+                PhoebusApplication.logger.log(Level.WARNING, "Expected 'Stage' for context menu, got " + window);
+                return () -> {
+                };
+            }
+        }
     }
 }

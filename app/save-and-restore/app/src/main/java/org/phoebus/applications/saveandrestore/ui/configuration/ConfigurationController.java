@@ -45,7 +45,7 @@ import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
-import org.phoebus.ui.focus.FocusUtility;
+import org.phoebus.ui.javafx.FocusUtil;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -191,7 +191,7 @@ public class ConfigurationController extends SaveAndRestoreBaseController implem
                                 .collect(Collectors.toList());
                         SelectionService.getInstance().setSelection(SaveAndRestoreApplication.NAME, selectedPVList);
 
-                        ContextMenuHelper.addSupportedEntries(FocusUtility.setFocusOn(cell), pvNameContextMenu);
+                        ContextMenuHelper.addSupportedEntries(FocusUtil.setFocusOn(cell), pvNameContextMenu);
                     }
                     pvNameContextMenu.show(cell, event.getScreenX(), event.getScreenY());
                 });

@@ -25,7 +25,7 @@ import org.phoebus.pv.PVPool;
 import org.phoebus.pv.RefCountMap.ReferencedEntry;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.application.Messages;
-import org.phoebus.ui.focus.FocusUtility;
+import org.phoebus.ui.javafx.FocusUtil;
 import org.phoebus.ui.javafx.ImageCache;
 
 import javafx.application.Platform;
@@ -191,7 +191,7 @@ public class PVList extends BorderPane
         {
             menu.getItems().clear();
 
-            ContextMenuHelper.addSupportedEntries(FocusUtility.setFocusOn(table), menu);
+            ContextMenuHelper.addSupportedEntries(FocusUtil.setFocusOn(table), menu);
             menu.show(table.getScene().getWindow());
         });
         table.setContextMenu(menu);

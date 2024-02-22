@@ -24,7 +24,7 @@ import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.DialogHelper;
-import org.phoebus.ui.focus.FocusUtility;
+import org.phoebus.ui.javafx.FocusUtil;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -132,13 +132,13 @@ public class AlarmContextMenuHelper
         {
             menu_items.add(new SeparatorMenuItem());
             SelectionService.getInstance().setSelection("AlarmUI", pvnames);
-            ContextMenuHelper.addSupportedEntries(FocusUtility.setFocusOn(node), menu);
+            ContextMenuHelper.addSupportedEntries(FocusUtil.setFocusOn(node), menu);
         }
         else
         {
             // search for other context menu actions registered for AlarmTreeItem
             SelectionService.getInstance().setSelection("AlarmUI", selection);
-            ContextMenuHelper.addSupportedEntries(FocusUtility.setFocusOn(node), menu);
+            ContextMenuHelper.addSupportedEntries(FocusUtil.setFocusOn(node), menu);
         }
     }
 
