@@ -171,18 +171,16 @@ public class DialogHelper
         positionAndSize(dialog, owner, prefs, initialWidth, initialHeight, null, null);
     }
 
-    /** Position the given {@code dialog} initially relative to {@code owner},
-     *  then it saves/restore the dialog's position and size into/from the
-     *  provided {@link Preferences}.
+    /** Position the given {@code dialog}. Saves/restores the dialog's
+     *  position and size into/from the provided {@link Preferences}.
      *
-     *  <p>{@code "dialog.x"} and {@code "dialog.y"} will be the preferences names
-     *  used to save and restore the dialog's location. {@code "content.width"}
-     *  and {@code "content.height"} the ones used for saving the size of the
-     *  dialog's pane ({@link Dialog#getDialogPane()}).
+     *  <p> {@code "content.width"} and {@code "content.height"} are the
+     *  preference names used for saving the size of the dialog's pane
+     *  ({@link Dialog#getDialogPane()}).
      *
      *  @param dialog The dialog to be positioned and sized.
      *  @param owner The node starting this dialog.
-     *  @param prefs The {@link Preferences} used to save/restore position and size.
+     *  @param prefs The {@link Preferences} used to save/restore size.
      *  @param initialWidth The (very) initial width. {@link Double#NaN} must be
      *                      used if the default, automatically computed width and height
      *                      should be used instead.
@@ -197,37 +195,26 @@ public class DialogHelper
     public static void positionAndSize(final Dialog<?> dialog, final Node owner, final Preferences prefs,
                                        final double initialWidth, final double initialHeight,
                                        final Consumer<Preferences> injector,
-                                       final Consumer<Preferences> projector)
-    {
+                                       final Consumer<Preferences> projector) {
         Objects.requireNonNull(dialog, "Null dialog.");
 
-        if (injector != null  &&  prefs != null)
+        if (injector != null && prefs != null)
             injector.accept(prefs);
 
         if (owner != null)
             dialog.initOwner(owner.getScene().getWindow());
 
-        double prefX, prefY;
         final double prefWidth, prefHeight;
-        if (prefs == null)
-        {   // Use available defaults
-            prefX = Double.NaN;
-            prefY = Double.NaN;
+        if (prefs == null) {   // Use available defaults
             prefWidth = initialWidth;
             prefHeight = initialHeight;
-        }
-        else
-        {   // Read preferences
-            prefX = prefs.getDouble("dialog.x", Double.NaN);
-            prefY = prefs.getDouble("dialog.y", Double.NaN);
+        } else {   // Read preferences
             prefWidth = prefs.getDouble("content.width", initialWidth);
             prefHeight = prefs.getDouble("content.height", initialHeight);
 
             //  .. and arrange for saving location to prefs on close
             dialog.setOnHidden(event ->
             {
-                prefs.putDouble("dialog.x", dialog.getX());
-                prefs.putDouble("dialog.y", dialog.getY());
                 prefs.putDouble("content.width", dialog.getDialogPane().getWidth());
                 prefs.putDouble("content.height", dialog.getDialogPane().getHeight());
 
@@ -235,52 +222,23 @@ public class DialogHelper
                     projector.accept(prefs);
 
                 // TODO Flush prefs in background thread?
-                try
-                {
+                try {
                     prefs.flush();
-                }
-                catch (BackingStoreException ex)
-                {
+                } catch (BackingStoreException ex) {
                     logger.log(Level.WARNING, "Unable to flush preferences", ex);
                 }
             });
         }
 
-        if (!Double.isNaN(prefX)  &&  !Double.isNaN(prefY))
-        {
-            // Check if prefX, Y are inside available screens
-            // Find bounds of all screens together, assuming same display size
-            // Can be enhanced, checking all displays individually
-            // Finding maxX,Y, while minX,Y = 0. is constant so no need to check
-            List<Screen> screens = Screen.getScreens();
-            double maxX = 0.;
-            double maxY = 0.;
-            for (Screen screen : screens)
-            {
-                Rectangle2D sb = screen.getVisualBounds();
-                maxX = Math.max(sb.getMaxX(), maxX);
-                maxY = Math.max(sb.getMaxY(), maxY);
-            }
-            // When no width/height available, set a reasonable
-            // default to take dialog to screen but not influence small dialog windows
-            final double dw = Double.isNaN(prefWidth) ? 100 : prefWidth;
-            final double dh = Double.isNaN(prefHeight) ? 100 : prefHeight;
-            prefX = prefX + dw > maxX ? maxX - dw : prefX;
-            prefY = prefY + dh > maxY ? maxY - dh : prefY;
-
-            dialog.setX(prefX);
-            dialog.setY(prefY);
-        }
-        else if (owner != null)
-        {
+        if (owner != null) {
             // Position relative to owner
             final Bounds pos = owner.localToScreen(owner.getBoundsInLocal());
 
-            dialog.setX(pos.getMinX());
-            dialog.setY(pos.getMinY() + pos.getHeight()/3);
+            dialog.setX(pos.getMinX() - prefWidth);
+            dialog.setY(pos.getMinY() - prefHeight/3);
         }
 
-        if (!Double.isNaN(prefWidth)  &&  !Double.isNaN(prefHeight))
+        if (!Double.isNaN(prefWidth) && !Double.isNaN(prefHeight))
             dialog.getDialogPane().setPrefSize(prefWidth, prefHeight);
     }
 }
