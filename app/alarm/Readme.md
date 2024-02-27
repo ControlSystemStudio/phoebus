@@ -25,7 +25,7 @@ kafka in `/opt/kafka`.
     cd examples
 
     # Use wget, 'curl -O', or web browser to fetch a recent version of kafka
-    wget https://downloads.apache.org/kafka/3.3.1/kafka_2.13-3.6.1.tgz
+    wget https://downloads.apache.org/kafka/3.6.1/kafka_2.13-3.6.1.tgz
     tar vzxf kafka_2.13-3.6.1.tgz
     ln -s kafka_2.13-3.6.1 kafka
 
