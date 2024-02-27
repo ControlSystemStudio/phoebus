@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2024 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -72,7 +72,7 @@ public class LegendPart<XTYPE extends Comparable<XTYPE>> extends PlotPart
 
         gc.setFont(orig_font);
 
-        final int items = traces.size();
+        final int items = (int) traces.stream().filter(Trace::isVisible).count();
         final int items_per_row = Math.max(1, bounds_width / grid_x); // Round down, counting full items
         final int rows = (items + items_per_row-1) / items_per_row;   // Round up
         return rows * grid_y;
@@ -84,9 +84,8 @@ public class LegendPart<XTYPE extends Comparable<XTYPE>> extends PlotPart
         int max_width = 1; // Start with 1 pixel to avoid later div-by-0
         for (Trace<XTYPE> trace : traces)
         {
-            if (!trace.isVisible()) {
+            if (!trace.isVisible())
                 continue;
-            }
             final int width = metrics.stringWidth(trace.getLabel());
             if (width > max_width)
                 max_width = width;
@@ -118,7 +117,7 @@ public class LegendPart<XTYPE extends Comparable<XTYPE>> extends PlotPart
 
         // Need to compute grid since labels may have changed in case unit string was added when PV connects.
         computeGrid(gc, traces);
-        
+
         super.paint(gc);
 
         int x = bounds.x, y = bounds.y + base_offset;
