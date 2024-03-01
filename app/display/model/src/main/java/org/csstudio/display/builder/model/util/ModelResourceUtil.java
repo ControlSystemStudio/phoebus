@@ -421,7 +421,7 @@ public class ModelResourceUtil
 //            final long milli = Math.round(1000 + Math.random()*4000);
 //            Thread.sleep(milli);
 //        }
-        if (resource_name.startsWith("http"))
+        if (resource_name.startsWith("http") || resource_name.startsWith("file:/"))
             return openURL(resource_name);
 
         // Handle legacy RCP URL
