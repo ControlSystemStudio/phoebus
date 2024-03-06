@@ -18,10 +18,15 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import javafx.util.Pair;
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.AxisConfig;
@@ -37,9 +42,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
 
 /** Dialog for creating a new PV or Formula Item: Get name, axis.
  *  For PV, also scan period.
@@ -58,6 +60,9 @@ public class AddPVDialog extends Dialog<Boolean>
     private final List<Pair<TextField, TextField>> nameAndDisplayNames = new ArrayList<>();
     private final List<TextField> periods = new ArrayList<>();
     private final List<CheckBox> monitors = new ArrayList<>();
+    boolean useTheSameAxisForAllPVs = false;
+    private ChoiceBox<String> axisForAllPVsChoiceBox = null;
+    private AxisConfig axisForAllPVs = null;
     private final List<ChoiceBox<String>> axes = new ArrayList<>();
     private ObservableList<String> axis_options;
 
@@ -123,7 +128,49 @@ public class AddPVDialog extends Dialog<Boolean>
         axis_options = FXCollections.observableArrayList(model.getAxes().stream().map(AxisConfig::getName).collect(Collectors.toList()));
         axis_options.add(0, Messages.AddPV_NewOrEmptyAxis);
 
-        int row = -1;
+        int row = 0;
+        if (count > 1) {
+            Label label_useTheSameQuestion = new Label("Use the same value axis for all added PVs?");
+            gridPane.add(label_useTheSameQuestion, 0, row);
+
+            row += 1;
+            ToggleGroup toggleGroup = new ToggleGroup();
+            RadioButton radioButton_useTheSame = new RadioButton("Yes, all PVs are added to the axis:");
+            radioButton_useTheSame.setToggleGroup(toggleGroup);
+
+            gridPane.add(radioButton_useTheSame, 0, row);
+
+            axisForAllPVsChoiceBox = new ChoiceBox<>(axis_options);
+            axisForAllPVsChoiceBox.setTooltip(new Tooltip(Messages.AddPV_AxisTT));
+            axisForAllPVsChoiceBox.getSelectionModel().select(0);
+            gridPane.add(axisForAllPVsChoiceBox, 1, row);
+
+            radioButton_useTheSame.setOnAction(actionEvent -> {
+                axisForAllPVsChoiceBox.setDisable(false);
+                axes.forEach(axis -> axis.setDisable(true));
+                useTheSameAxisForAllPVs = true;
+            });
+
+            row += 1;
+            RadioButton radioButton_useDifferent = new RadioButton("No, each PV is assigned an value axis individually.");
+            radioButton_useDifferent.setToggleGroup(toggleGroup);
+            gridPane.add(radioButton_useDifferent, 0, row);
+
+            radioButton_useDifferent.setOnAction(actionEvent -> {
+                axisForAllPVsChoiceBox.setDisable(true);
+                axes.forEach(axis -> axis.setDisable(false));
+                useTheSameAxisForAllPVs = false;
+            });
+
+            row += 1;
+            Separator separator = new Separator();
+            gridPane.add(separator, 0, row, 3, 1);
+
+            useTheSameAxisForAllPVs = true;
+            radioButton_useTheSame.setSelected(true);
+            row += 1;
+        }
+
         for (int i=0; i<count; ++i)
         {
             final String nm;
@@ -133,7 +180,7 @@ public class AddPVDialog extends Dialog<Boolean>
             else {
                 nm = count == 1 ? Messages.PVName : Messages.PVName + " " + (i+1);
             }
-            gridPane.add(new Label(nm), 0, ++row);
+            gridPane.add(new Label(nm), 0, row);
             final TextField name = new TextField();
             name.textProperty().addListener(event -> checkDuplicateName(name));
             name.setTooltip(new Tooltip(formula ? Messages.AddFormula_NameTT : Messages.AddPV_NameTT));
@@ -181,9 +228,11 @@ public class AddPVDialog extends Dialog<Boolean>
             gridPane.add(axes.get(i), 1, row);
 
             gridPane.add(new Separator(), 0, ++row, 3, 1);
+            row += 1;
         }
         ScrollPane scrollPane = new ScrollPane(gridPane);
         scrollPane.setFitToWidth(true);
+        axes.forEach(axis -> axis.setDisable(true)); // By default, the "yes" radio button is selected, and individual axes for each PV are disabled.
         return scrollPane;
     }
 
@@ -224,11 +273,22 @@ public class AddPVDialog extends Dialog<Boolean>
     }
 
     /** @param i Index
-     *  @return Index of Value Axis or -1 for 'create new'
+     *  @return Index of Value Axis, or 0 for 'create new for an individual PV', or -1 for 'create one new axis to which all PVs are assigned'.
      */
     public int getAxisIndex(final int i)
     {
-        return axes.get(i).getSelectionModel().getSelectedIndex();
+        if (useTheSameAxisForAllPVs) {
+            int selectedIndex = axisForAllPVsChoiceBox.getSelectionModel().getSelectedIndex();
+            if (selectedIndex == 0) {
+                return -1;
+            }
+            else {
+                return selectedIndex;
+            }
+        }
+        else {
+            return axes.get(i).getSelectionModel().getSelectedIndex();
+        }
     }
 
     /** Helper for getting or creating an axis
@@ -237,13 +297,28 @@ public class AddPVDialog extends Dialog<Boolean>
      *  @param axis_index Axis index from {@link AddPVDialog#getAxisIndex(int)}
      *  @return Corresponding model axis, which might have been created as necessary
      */
-    public static AxisConfig getOrCreateAxis(final Model model, final UndoableActionManager undo, final int axis_index)
+    public AxisConfig getOrCreateAxis(final Model model, final UndoableActionManager undo, final int axis_index)
     {
         // Did user select axis?
-        if (axis_index > 0)
+        if (axis_index > 0) {
             return model.getAxis(axis_index-1);
-        // Use first empty axis, or create a new one
-        return model.getEmptyAxis().orElseGet(() -> new AddAxisCommand(undo, model).getAxis());
+        }
+        else if (axis_index == 0){
+            // Use first empty axis, or create a new one
+            return model.getEmptyAxis().orElseGet(() -> new AddAxisCommand(undo, model).getAxis());
+        }
+        else if (axis_index == -1) {
+            if (axisForAllPVs != null) {
+                return axisForAllPVs;
+            }
+            else {
+                axisForAllPVs = model.getEmptyAxis().orElseGet(() -> new AddAxisCommand(undo, model).getAxis());
+                return axisForAllPVs;
+            }
+        }
+        else {
+            throw new RuntimeException("Unhandled case: " + axis_index);
+        }
     }
 
     private void checkDuplicateName(final TextField name)

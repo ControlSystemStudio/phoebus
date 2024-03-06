@@ -286,7 +286,7 @@ public class Controller
 
                 for (int i=0; i<names.size(); ++i)
                 {
-                    final AxisConfig axis = AddPVDialog.getOrCreateAxis(model, undo, dlg.getAxisIndex(i));
+                    final AxisConfig axis = dlg.getOrCreateAxis(model, undo, dlg.getAxisIndex(i));
                     final ArchiveDataSource archive =
                             (archives == null || i>=archives.size()) ? null : archives.get(i);
                     AddModelItemCommand.forPV(undo,

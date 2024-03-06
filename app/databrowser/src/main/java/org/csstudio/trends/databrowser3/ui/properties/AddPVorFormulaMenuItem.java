@@ -44,7 +44,7 @@ public class AddPVorFormulaMenuItem extends MenuItem
             if (! dlg.showAndWait().orElse(false))
                 return;
 
-            final AxisConfig axis = AddPVDialog.getOrCreateAxis(model, undo, dlg.getAxisIndex(0));
+            final AxisConfig axis = dlg.getOrCreateAxis(model, undo, dlg.getAxisIndex(0));
 
             if (formula)
             {

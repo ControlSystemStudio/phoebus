@@ -120,7 +120,7 @@ public class Activator
         }
 
         for (int i=0; i<names.size(); ++i) {
-            AxisConfig axis = AddPVDialog.getOrCreateAxis(model, undoableActionManager, addPVDialog.getAxisIndex(i));
+            AxisConfig axis = addPVDialog.getOrCreateAxis(model, undoableActionManager, addPVDialog.getAxisIndex(i));
             AddModelItemCommand.forPV(undoableActionManager,
                                       model,
                                       addPVDialog.getName(i),
