@@ -129,12 +129,12 @@ public class AddPVDialog extends Dialog<Boolean>
 
         int row = 0;
         if (count > 1) {
-            Label label_useTheSameQuestion = new Label("Use the same value axis for all added PVs?");
+            Label label_useTheSameQuestion = new Label(Messages.UseTheSameValueAxisForAllAddedPVs);
             gridPane.add(label_useTheSameQuestion, 0, row);
 
             row += 1;
             ToggleGroup toggleGroup = new ToggleGroup();
-            RadioButton radioButton_useTheSame = new RadioButton("Yes, all PVs are added to the axis:");
+            RadioButton radioButton_useTheSame = new RadioButton(Messages.YesAllPVsAreAddedToTheAxis);
             radioButton_useTheSame.setToggleGroup(toggleGroup);
 
             gridPane.add(radioButton_useTheSame, 0, row);
@@ -151,7 +151,7 @@ public class AddPVDialog extends Dialog<Boolean>
             });
 
             row += 1;
-            RadioButton radioButton_useDifferent = new RadioButton("No, each PV is assigned an value axis individually.");
+            RadioButton radioButton_useDifferent = new RadioButton(Messages.NoEachPVIsAssignedAnValueAxisIndividually);
             radioButton_useDifferent.setToggleGroup(toggleGroup);
             gridPane.add(radioButton_useDifferent, 0, row);
 

@@ -222,6 +222,7 @@ public class Messages
                          NewPlotFileCreateFailed,
                          NewPlotOverwriteExisting,
                          NewPlotOverwriteExistingTitle,
+                         NoEachPVIsAssignedAnValueAxisIndividually,
                          NotApplicable,
                          OpenExportView,
                          OpenPropertiesView,
@@ -305,6 +306,7 @@ public class Messages
                          UseAxisName,
                          UseLines,
                          UsePoints,
+                         UseTheSameValueAxisForAllAddedPVs,
                          UseTraceNames,
                          UseUnixTimeStamp,
                          ValueAxes,
@@ -317,7 +319,8 @@ public class Messages
                          WaveformTimeSelector,
                          WaveformTimestamp,
                          WaveformView,
-                         WaveformViewSelect;
+                         WaveformViewSelect,
+                         YesAllPVsAreAddedToTheAxis;
     // ---
     // --- Keep alphabetically sorted and 'in sync' with messages.properties!
     // ---
