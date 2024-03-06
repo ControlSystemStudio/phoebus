@@ -117,7 +117,6 @@ public class AddPVDialog extends Dialog<Boolean>
     private Node createContent(final Model model, final int count)
     {
         final GridPane gridPane = new GridPane();
-        // layout.setGridLinesVisible(true);
         gridPane.setHgap(5);
         gridPane.setVgap(5);
         final ColumnConstraints stay = new ColumnConstraints();
