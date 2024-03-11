@@ -5,23 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.representation.javafx.widgets;
-
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.concurrent.TimeUnit;
-
-import org.csstudio.display.builder.model.DirtyFlag;
-import org.csstudio.display.builder.model.ModelPlugin;
-import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
-import org.csstudio.display.builder.model.WidgetProperty;
-import org.csstudio.display.builder.model.WidgetPropertyListener;
-import org.csstudio.display.builder.model.util.ModelResourceUtil;
-import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
-import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.framework.util.IOUtils;
-import org.phoebus.ui.javafx.ImageCache;
-import org.phoebus.ui.javafx.ToolbarHelper;
+package org.csstudio.display.widget;
 
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
@@ -35,6 +19,21 @@ import javafx.scene.layout.Priority;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebView;
+import org.csstudio.display.builder.model.DirtyFlag;
+import org.csstudio.display.builder.model.ModelPlugin;
+import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
+import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.WidgetPropertyListener;
+import org.csstudio.display.builder.model.util.ModelResourceUtil;
+import org.csstudio.display.builder.representation.javafx.widgets.RegionBaseRepresentation;
+import org.phoebus.framework.jobs.JobManager;
+import org.phoebus.framework.util.IOUtils;
+import org.phoebus.ui.javafx.ImageCache;
+import org.phoebus.ui.javafx.ToolbarHelper;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.concurrent.TimeUnit;
 
 /** Creates JavaFX item for model widget
  *  @author Amanda Carpenter

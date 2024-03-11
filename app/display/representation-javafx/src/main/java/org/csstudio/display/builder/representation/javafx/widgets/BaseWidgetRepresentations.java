@@ -50,7 +50,6 @@ import org.csstudio.display.builder.model.widgets.TextSymbolWidget;
 import org.csstudio.display.builder.model.widgets.TextUpdateWidget;
 import org.csstudio.display.builder.model.widgets.ThermometerWidget;
 import org.csstudio.display.builder.model.widgets.Viewer3dWidget;
-import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.DataBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget;
 import org.csstudio.display.builder.model.widgets.plots.StripchartWidget;
@@ -123,7 +122,6 @@ public class BaseWidgetRepresentations implements WidgetRepresentationsService
             entry(TextUpdateWidget.WIDGET_DESCRIPTOR,      () -> (WidgetRepresentation) new TextUpdateRepresentation()),
             entry(ThermometerWidget.WIDGET_DESCRIPTOR,     () -> (WidgetRepresentation) new ThermometerRepresentation()),
             entry(Viewer3dWidget.WIDGET_DESCRIPTOR,        () -> (WidgetRepresentation) new Viewer3dRepresentation()),
-            entry(WebBrowserWidget.WIDGET_DESCRIPTOR,      () -> (WidgetRepresentation) new WebBrowserRepresentation()),
             entry(XYPlotWidget.WIDGET_DESCRIPTOR,          () -> (WidgetRepresentation) new XYPlotRepresentation()),
             entry(unknown_widget,                          () -> (WidgetRepresentation) new UnknownRepresentation()));
     }

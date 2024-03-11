@@ -1,0 +1,20 @@
+<project default="app-display-webbrowser">
+  <import file="../../../dependencies/ant_settings.xml"/>
+
+  <target name="app-display-webbrowser">
+    <mkdir dir="${classes}"/>
+    <javac destdir="${classes}" debug="${debug}">
+      <src path="${src}"/>
+      <classpath>
+        <path refid="app-classpath"/>
+        <pathelement path="../representation-javafx/${build}/app-display-representation-javafx-${version}.jar"/>
+      </classpath>
+    </javac>
+  	
+    <jar destfile="${build}/app-display-webbrowser-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+	
+</project>
