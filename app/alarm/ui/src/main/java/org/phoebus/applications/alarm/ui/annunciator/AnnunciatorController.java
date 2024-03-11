@@ -10,11 +10,13 @@ package org.phoebus.applications.alarm.ui.annunciator;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ServiceLoader;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 
 import org.phoebus.applications.alarm.model.SeverityLevel;
+import org.phoebus.framework.adapter.AdapterFactory;
 
 /** Controller class for an annunciator.
  *
@@ -44,7 +46,8 @@ public class AnnunciatorController
 
     private final BlockingQueue<AnnunciatorMessage> to_annunciate = new LinkedBlockingQueue<>();
 
-    private final Annunciator annunciator = new Annunciator();
+    private static ServiceLoader<Annunciator> loader;
+
     private final Thread process_thread = new Thread(this::processMessages, "Annunciator");
 
     // Muted _IS_ read from multiple threads, so it should always be fetched from memory.
@@ -81,6 +84,8 @@ public class AnnunciatorController
     {
         final List<AnnunciatorMessage> batch = new ArrayList<>();
 
+        loader = ServiceLoader.load(Annunciator.class);
+
         // Process new messages until receiving LAST_MESSAGE
         while (true)
         {
@@ -115,7 +120,9 @@ public class AnnunciatorController
                 {
                     addToTable.accept(message);
                     if (! muted)
-                        annunciator.speak(message.message);
+                        loader.stream().forEach(annunciatorProvider -> {
+                            annunciatorProvider.get().speak(message.message);
+                        });
                 }
             }
             else
@@ -130,7 +137,9 @@ public class AnnunciatorController
                     {   // Annunciate if marked as stand out.
                         addToTable.accept(message);
                         if (! muted)
-                            annunciator.speak(message.message);
+                        {
+                            loader.stream().forEach(annunciatorProvider -> annunciatorProvider.get().speak(message.message));
+                        }
                     }
                     else
                     {   // Increment count of non stand out messages.
@@ -144,7 +153,9 @@ public class AnnunciatorController
                     final AnnunciatorMessage message = new AnnunciatorMessage(false, null, earliest, "There are " + flurry + " new messages");
                     addToTable.accept(message);
                     if (! muted)
-                        annunciator.speak(message.message);
+                    {
+                        loader.stream().forEach(annunciatorProvider -> annunciatorProvider.get().speak(message.message));
+                    }
                 }
             }
         }
@@ -161,6 +172,7 @@ public class AnnunciatorController
         process_thread.join(2000);
 
         // Deallocate the annunciator's voice.
-        annunciator.shutdown();
+        loader.stream().forEach(annunciatorProvider -> annunciatorProvider.get().shutdown());
+
     }
 }
