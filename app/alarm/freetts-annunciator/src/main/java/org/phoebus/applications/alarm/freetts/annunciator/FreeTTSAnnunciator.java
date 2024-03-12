@@ -10,6 +10,7 @@ package org.phoebus.applications.alarm.freetts.annunciator;
 import com.sun.speech.freetts.Voice;
 import com.sun.speech.freetts.VoiceManager;
 import org.phoebus.applications.alarm.ui.annunciator.Annunciator;
+import org.phoebus.applications.alarm.ui.annunciator.AnnunciatorMessage;
 
 /**
  * Annunciator class. Uses freeTTS to annunciate passed messages.
@@ -37,10 +38,10 @@ public class FreeTTSAnnunciator implements Annunciator
      * @param message Message text
      */
     @Override
-    public void speak(final String message)
+    public void speak(final AnnunciatorMessage message)
     {
         if (null != message)
-            voice.speak(message);
+            voice.speak(message.message);
     }
 
     /**
