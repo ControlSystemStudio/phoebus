@@ -121,7 +121,7 @@ public class AnnunciatorController
                     addToTable.accept(message);
                     if (! muted)
                         loader.stream().forEach(annunciatorProvider -> {
-                            annunciatorProvider.get().speak(message.message);
+                            annunciatorProvider.get().speak(message);
                         });
                 }
             }
@@ -138,7 +138,7 @@ public class AnnunciatorController
                         addToTable.accept(message);
                         if (! muted)
                         {
-                            loader.stream().forEach(annunciatorProvider -> annunciatorProvider.get().speak(message.message));
+                            loader.stream().forEach(annunciatorProvider -> annunciatorProvider.get().speak(message));
                         }
                     }
                     else
@@ -154,7 +154,7 @@ public class AnnunciatorController
                     addToTable.accept(message);
                     if (! muted)
                     {
-                        loader.stream().forEach(annunciatorProvider -> annunciatorProvider.get().speak(message.message));
+                        loader.stream().forEach(annunciatorProvider -> annunciatorProvider.get().speak(message));
                     }
                 }
             }
