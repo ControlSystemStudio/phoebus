@@ -153,11 +153,6 @@
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
-            <artifactId>app-display-webbrowser</artifactId>
-            <version>4.7.4-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.phoebus</groupId>
             <artifactId>app-display-editor</artifactId>
             <version>4.7.4-SNAPSHOT</version>
         </dependency>
