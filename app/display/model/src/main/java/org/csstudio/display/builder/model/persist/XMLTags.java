@@ -46,5 +46,6 @@ public interface XMLTags
                                WIDGET = "widget",
                                WIDTH = "width",
                                X = "x",
-                               Y = "y";
+                               Y = "y",
+                               RETURN_PV = "return_pv";
 }
