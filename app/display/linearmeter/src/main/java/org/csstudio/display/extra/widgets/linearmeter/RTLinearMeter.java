@@ -587,7 +587,7 @@ public class RTLinearMeter extends ImageView
         if (lag) {
             return WARNING.LAG;
         }
-        else if (showUnits && units == "") {
+        else if (showUnits && units.equals("")) {
             return WARNING.NO_UNIT;
         }
         else if (!validRange) {
