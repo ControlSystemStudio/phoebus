@@ -556,10 +556,10 @@ public class RTLinearMeter extends ImageView
         double oldValue = currentValue;
         currentValue = newValue;
 
-        if (newValue > linearMeterScale.getValueRange().getHigh() && newValue < linearMeterScale.getValueRange().getHigh() + minMaxTolerance) {
+        if (newValue > linearMeterScale.getValueRange().getHigh() && newValue <= linearMeterScale.getValueRange().getHigh() + minMaxTolerance) {
             newValue = linearMeterScale.getValueRange().getHigh();
         }
-        if (newValue < linearMeterScale.getValueRange().getLow() && newValue > linearMeterScale.getValueRange().getLow() - minMaxTolerance) {
+        if (newValue < linearMeterScale.getValueRange().getLow() && newValue >= linearMeterScale.getValueRange().getLow() - minMaxTolerance) {
             newValue = linearMeterScale.getValueRange().getLow();
         }
 
