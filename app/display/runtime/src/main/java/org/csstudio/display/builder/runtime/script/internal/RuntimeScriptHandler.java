@@ -19,8 +19,6 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.properties.ScriptPV;
-import org.csstudio.display.builder.model.rules.RuleInfo;
-import org.csstudio.display.builder.model.rules.RuleToScript;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.runtime.RuntimeUtil;
 import org.csstudio.display.builder.runtime.WidgetRuntime;
@@ -30,7 +28,6 @@ import org.csstudio.display.builder.runtime.pv.RuntimePVListener;
 import org.epics.vtype.VType;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.MacroValueProvider;
-import org.phoebus.pv.PV;
 
 /** Handler for one script of a widget.
  *
@@ -45,8 +42,7 @@ public class RuntimeScriptHandler implements RuntimePVListener
     private final Widget widget;
     private final List<ScriptPV> infos;
     private final Script script;
-    private final boolean is_rule;
-    private volatile boolean check_connections;
+    private final boolean check_connections;
 
     /** 'pvs' is aligned with 'infos', i.e. pvs[i] goes with infos.get(i) */
     private final RuntimePV[] pvs;
@@ -63,7 +59,7 @@ public class RuntimeScriptHandler implements RuntimePVListener
      *  can be invoked by other code.
      *
      *  @param widget Widget on which the script is invoked
-     *  @param macros Macros
+     *  @param macros
      *  @param script_info Script to compile
      *  @return Compiled script
      *  @throws Exception on error
@@ -83,45 +79,14 @@ public class RuntimeScriptHandler implements RuntimePVListener
         {   // Load external script
             final String resolved = ModelResourceUtil.resolveResource(parent_display, script_name);
             stream = ModelResourceUtil.openResourceStream(resolved);
-            path = ModelResourceUtil.getDirectory(resolved);
+            path = ModelResourceUtil.getDirectory(ModelResourceUtil.getLocalPath(resolved));
         }
         else
         {   // Use script text that was embedded in display
             stream = new ByteArrayInputStream(script_info.getText().getBytes());
-            path = ModelResourceUtil.getDirectory(parent_display);
+            path = ModelResourceUtil.getDirectory(ModelResourceUtil.getLocalPath(parent_display));
         }
         return scripting.compile(path, script_name, stream);
-    }
-
-
-    /** Helper to compile rules script
-     *
-     *  <p>Gets text of script from rules utility
-     *
-     *  @param widget Widget on which the rule is invoked
-     *  @param rule_info Rule to compile
-     *  @return Compiled script
-     *  @throws Exception on error
-     */
-    public static Script compileScript(final Widget widget,
-            final RuleInfo rule_info) throws Exception
-    {
-        // Compile script
-        final ScriptSupport scripting = RuntimeUtil.getScriptSupport(widget);
-
-        final String script = rule_info.getTextPy(widget);
-        final InputStream stream = new ByteArrayInputStream(script.getBytes());
-        String dummy_name = widget.getType() + ":" + widget.getName() + ":" + rule_info.getName() + ".rule.py";
-
-        logger.log(Level.FINER, () -> "Compiling rule script for " + dummy_name + "\n" + RuleToScript.addLineNumbers(script));
-        try
-        {
-            return scripting.compile(null, dummy_name, stream);
-        }
-        catch (Exception e)
-        {
-            throw new Exception("Cannot compile rule: " + dummy_name + "\n" + RuleToScript.addLineNumbers(script), e);
-        }
     }
 
     /** @param widget Widget on which the script is invoked
@@ -130,17 +95,10 @@ public class RuntimeScriptHandler implements RuntimePVListener
      */
     public RuntimeScriptHandler(final Widget widget, final ScriptInfo script_info) throws Exception
     {
-        this(widget, compileScript(widget, widget.getMacrosOrProperties(), script_info), script_info.getCheckConnections(), false, script_info.getPVs());
+        this(widget, compileScript(widget, widget.getMacrosOrProperties(), script_info), script_info.getCheckConnections(), script_info.getPVs());
     }
 
-    /** @param widget Widget on which the rule is invoked
-     *  @param rule_info Rule to handle
-     *  @throws Exception on error
-     */
-    public RuntimeScriptHandler(final Widget widget, final RuleInfo rule_info) throws Exception
-    {
-        this(widget, compileScript(widget, rule_info), true, true, rule_info.getPVs());
-    }
+
 
     /** @param widget Widget on which the script is invoked
      *  @param script Script to execute
@@ -148,12 +106,11 @@ public class RuntimeScriptHandler implements RuntimePVListener
      *  @param infos PV infos
      *  @throws Exception on error
      */
-    private RuntimeScriptHandler(final Widget widget, final Script script, final boolean check_connections, final boolean is_rule, final List<ScriptPV> infos) throws Exception
+    private RuntimeScriptHandler(final Widget widget, final Script script, final boolean check_connections, final List<ScriptPV> infos) throws Exception
     {
         this.widget = widget;
         this.infos = infos;
         this.script = script;
-        this.is_rule = is_rule;
         this.check_connections = check_connections;
         pvs = new RuntimePV[infos.size()];
         subscribed = new AtomicBoolean[infos.size()];
@@ -222,7 +179,7 @@ public class RuntimeScriptHandler implements RuntimePVListener
         // Skip script execution unless all PVs are connected?
         if (check_connections)
             for (RuntimePV p : pvs)
-                if (PV.isDisconnected(p.read()))
+                if (p.read() == null)
                     return;
 
         // If this is a trigger PV, execute the script.
@@ -242,10 +199,6 @@ public class RuntimeScriptHandler implements RuntimePVListener
             if (executed_once.getAndSet(true))
                 return;
         }
-
-        // Do not check connections for rule after the first run
-        if (is_rule && check_connections)
-            check_connections = false;
 
         // Request execution of script
         script.submit(widget, pvs);
