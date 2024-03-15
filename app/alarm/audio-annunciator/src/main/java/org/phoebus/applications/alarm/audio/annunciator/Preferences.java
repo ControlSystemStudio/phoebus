@@ -47,7 +47,7 @@ public class Preferences {
 
     private static String useLocalResourceIfUnspecified(String alarmResource) {
         if (alarmResource == null || alarmResource.isEmpty()) {
-            return Preferences.class.getResource("/sound/mixkit-classic-alarm-995.wav").toString();
+            return Preferences.class.getResource("/sounds/mixkit-classic-alarm-995.wav").toString();
         } else {
             return alarmResource;
         }
