@@ -51,7 +51,6 @@ public class AlarmLogTableApp implements AppResourceDescriptor {
     @Override
     public AppInstance create(URI resource) {
         AlarmLogTable alarmLogTable = new AlarmLogTable(this, resource);
-        //alarmLogTable.s
         return alarmLogTable;
     }
 
