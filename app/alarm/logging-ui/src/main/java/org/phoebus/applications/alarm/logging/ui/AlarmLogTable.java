@@ -23,7 +23,8 @@ public class AlarmLogTable implements AppInstance {
     private DockItem tab;
     private AlarmLogTableController controller;
 
-    AlarmLogTable(final AlarmLogTableApp app) {
+    AlarmLogTable(final AlarmLogTableApp app, URI resource) {
+        // If URI resource == null, the default search query is used.
         this.app = app;
         try {
             ResourceBundle resourceBundle = NLS.getMessages(Messages.class);
@@ -50,6 +51,9 @@ public class AlarmLogTable implements AppInstance {
             tab.setOnClosed(event -> {
                 controller.shutdown();
             });
+            if (resource != null) {
+                setPVResource(resource);
+            }
             DockPane.getActiveDockPane().addTab(tab);
         } catch (IOException e) {
             Logger.getLogger(getClass().getName()).log(Level.WARNING, "Cannot load UI", e);

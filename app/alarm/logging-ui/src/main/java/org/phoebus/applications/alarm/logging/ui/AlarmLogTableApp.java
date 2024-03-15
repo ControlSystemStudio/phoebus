@@ -40,7 +40,7 @@ public class AlarmLogTableApp implements AppResourceDescriptor {
 
     @Override
     public AppInstance create() {
-        return new AlarmLogTable(this);
+        return new AlarmLogTable(this, null);
     }
 
     /**
@@ -50,7 +50,7 @@ public class AlarmLogTableApp implements AppResourceDescriptor {
      */
     @Override
     public AppInstance create(URI resource) {
-        AlarmLogTable alarmLogTable = new AlarmLogTable(this);
+        AlarmLogTable alarmLogTable = new AlarmLogTable(this, resource);
         //alarmLogTable.s
         return alarmLogTable;
     }
