@@ -13,5 +13,6 @@
     <module>logging-ui</module>
     <module>datasource</module>
     <module>freetts-annunciator</module>
+    <module>audio-annunciator</module>
   </modules>
 </project>
