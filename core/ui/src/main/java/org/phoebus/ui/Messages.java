@@ -30,6 +30,10 @@ public class Messages
     public static String Clear;
     /**Clear_Tooltip */
     public static String Clear_Tooltip;
+    public static String credentialsDialogError;
+    public static String credentialsDialogHeader;
+    public static String credentialsDialogLogin;
+
     /**DefaultNewColumnName */
     public static String DefaultNewColumnName;
     /**DoNotShow */
