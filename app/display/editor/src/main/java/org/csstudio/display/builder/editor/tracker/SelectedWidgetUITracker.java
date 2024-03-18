@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2024 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -301,7 +301,8 @@ public class SelectedWidgetUITracker extends Tracker
 
         // Create text field, aligned with widget, but assert minimum size
         final MacroizedWidgetProperty<String> property = (MacroizedWidgetProperty<String>)check.get();
-        inline_editor = new TextField(property.getSpecification());
+        // Allow editing newlines as '\n'
+        inline_editor = new TextField(property.getSpecification().replace("\n", "\\n"));
         // 'Managed' text field would assume some default size,
         // but we set the exact size in here
         inline_editor.setManaged(false);
@@ -320,8 +321,9 @@ public class SelectedWidgetUITracker extends Tracker
         {
             if (! focused)
             {
-                if (!property.getSpecification().equals(inline_editor.getText()))
-                    undo.execute(new SetMacroizedWidgetPropertyAction(property, inline_editor.getText()));
+                final String new_text = inline_editor.getText().replace("\\n", "\n");
+                if (!property.getSpecification().equals(new_text))
+                    undo.execute(new SetMacroizedWidgetPropertyAction(property, new_text));
                 // Close when focus lost
                 closeInlineEditor();
             }
@@ -329,7 +331,9 @@ public class SelectedWidgetUITracker extends Tracker
 
         inline_editor.setOnAction(event ->
         {
-            undo.execute(new SetMacroizedWidgetPropertyAction(property, inline_editor.getText()));
+            final String new_text = inline_editor.getText().replace("\\n", "\n");
+            if (!property.getSpecification().equals(new_text))
+                undo.execute(new SetMacroizedWidgetPropertyAction(property, new_text));
             inline_editor.focusedProperty().removeListener(focused_listener);
             closeInlineEditor();
         });
