@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.RecursiveTask;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -317,24 +318,27 @@ public class SelectedWidgetUITracker extends Tracker
             PVAutocompleteMenu.INSTANCE.attachField(inline_editor);
 
         // On enter or lost focus, update the property. On Escape, just close.
-        final ChangeListener<? super Boolean> focused_listener = (prop, old, focused) ->
+        // Using atomic ref as holder so that focused_listener can remove itself
+        final AtomicReference<ChangeListener<? super Boolean>> focused_listener = new AtomicReference<>();
+        focused_listener.set((prop, old, focused) ->
         {
             if (! focused)
             {
                 final String new_text = inline_editor.getText().replace("\\n", "\n");
                 if (!property.getSpecification().equals(new_text))
                     undo.execute(new SetMacroizedWidgetPropertyAction(property, new_text));
+                inline_editor.focusedProperty().removeListener(focused_listener.get());
                 // Close when focus lost
                 closeInlineEditor();
             }
-        };
+        });
 
         inline_editor.setOnAction(event ->
         {
             final String new_text = inline_editor.getText().replace("\\n", "\n");
             if (!property.getSpecification().equals(new_text))
                 undo.execute(new SetMacroizedWidgetPropertyAction(property, new_text));
-            inline_editor.focusedProperty().removeListener(focused_listener);
+            inline_editor.focusedProperty().removeListener(focused_listener.get());
             closeInlineEditor();
         });
 
@@ -344,13 +348,13 @@ public class SelectedWidgetUITracker extends Tracker
             {
             case ESCAPE:
                 event.consume();
-                inline_editor.focusedProperty().removeListener(focused_listener);
+                inline_editor.focusedProperty().removeListener(focused_listener.get());
                 closeInlineEditor();
             default:
             }
         });
 
-        inline_editor.focusedProperty().addListener(focused_listener);
+        inline_editor.focusedProperty().addListener(focused_listener.get());
 
         inline_editor.selectAll();
         inline_editor.requestFocus();
