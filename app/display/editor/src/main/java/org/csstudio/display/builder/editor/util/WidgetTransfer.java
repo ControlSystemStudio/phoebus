@@ -44,7 +44,6 @@ import org.csstudio.display.builder.model.widgets.LabelWidget;
 import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.PictureWidget;
 import org.csstudio.display.builder.model.widgets.SymbolWidget;
-import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
 import org.csstudio.display.builder.representation.javafx.widgets.SymbolRepresentation;
 
@@ -705,8 +704,7 @@ public class WidgetTransfer {
             final List<String> choices = Arrays.asList(
                 LabelWidget.WIDGET_DESCRIPTOR.getName(),
                 EmbeddedDisplayWidget.WIDGET_DESCRIPTOR.getName(),
-                PictureWidget.WIDGET_DESCRIPTOR.getName(),
-                WebBrowserWidget.WIDGET_DESCRIPTOR.getName()
+                PictureWidget.WIDGET_DESCRIPTOR.getName()
             );
             final ChoiceDialog<String> dialog = new ChoiceDialog<>(choices.get(3), choices);
 
@@ -735,15 +733,6 @@ public class WidgetTransfer {
             final LabelWidget widget = (LabelWidget) LabelWidget.WIDGET_DESCRIPTOR.createWidget();
 
             widget.propText().setValue(url);
-            widgets.add(widget);
-
-        } else if ( WebBrowserWidget.WIDGET_DESCRIPTOR.getName().equals(choice) ) {
-
-            logger.log(Level.FINE, "Creating WebBrowserWidget for {0}", url);
-
-            final WebBrowserWidget widget = (WebBrowserWidget) WebBrowserWidget.WIDGET_DESCRIPTOR.createWidget();
-
-            widget.propWidgetURL().setValue(url);
             widgets.add(widget);
 
         } else if ( PictureWidget.WIDGET_DESCRIPTOR.getName().equals(choice) ) {

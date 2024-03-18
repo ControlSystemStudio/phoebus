@@ -51,7 +51,6 @@ import org.csstudio.display.builder.model.widgets.TextSymbolWidget;
 import org.csstudio.display.builder.model.widgets.TextUpdateWidget;
 import org.csstudio.display.builder.model.widgets.ThermometerWidget;
 import org.csstudio.display.builder.model.widgets.Viewer3dWidget;
-import org.csstudio.display.builder.model.widgets.WebBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.DataBrowserWidget;
 import org.csstudio.display.builder.model.widgets.plots.ImageWidget;
 import org.csstudio.display.builder.model.widgets.plots.StripchartWidget;
@@ -109,7 +108,6 @@ public class BaseWidgetsService implements WidgetsService
             TextUpdateWidget.WIDGET_DESCRIPTOR,
             ThermometerWidget.WIDGET_DESCRIPTOR,
             Viewer3dWidget.WIDGET_DESCRIPTOR,
-            WebBrowserWidget.WIDGET_DESCRIPTOR,
             XYPlotWidget.WIDGET_DESCRIPTOR);
     }
 }

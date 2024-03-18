@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.csstudio.display.builder.model.widgets;
+package org.csstudio.display.widget;
 
 import java.util.Arrays;
 import java.util.List;
@@ -18,6 +18,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.properties.CommonWidgetProperties;
+import org.csstudio.display.builder.model.widgets.VisibleWidget;
 
 /**
  * Widget for a limited embedded web browser
@@ -33,7 +34,7 @@ public class WebBrowserWidget extends VisibleWidget
             "Web Browser",
             "/icons/web_browser.png",
             "A simple embedded web browser",
-            Arrays.asList("org.csstudio.opibuilder.widgets.webbrowser"))
+            Arrays.asList("org.csstudio.opibuilder.widgets.WebBrowser"))
     {
         @Override
         public Widget createWidget()
