@@ -86,6 +86,7 @@ public class Preferences
     @Preference public static int[] alarm_area_panel_undefined_severity_background_color;
     /** cache_hint_for_picture_and_symbol_widgets */
     @Preference public static String cache_hint_for_picture_and_symbol_widgets;
+    @Preference public static boolean save_credentials;
 
     static
     {
