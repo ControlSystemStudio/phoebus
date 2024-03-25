@@ -20,6 +20,7 @@ public class Messages
     public static String AppRevision;
     public static String AppVersionHeader;
     public static String CloseAllTabs;
+    public static String CopyResourcePath;
     public static String DeleteLayouts;
     public static String DeleteLayoutsConfirmFmt;
     public static String DeleteLayoutsInfo;
@@ -130,6 +131,9 @@ public class Messages
     public static String ScreenshotErrHdr;
     public static String ScreenshotErrMsg;
     public static String SelectTab;
+    public static String ShowIn;
+    public static String ShowInFileBrowserApp;
+    public static String ShowInNativeFileBrowser;
     public static String ShowStatusbar;
     public static String ShowToolbar;
     public static String Time12h;

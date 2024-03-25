@@ -137,6 +137,23 @@ public class DockItem extends Tab
     /** Called after tab was closed */
     private List<Runnable> closed_callback = null;
 
+    private MenuItem info;
+    private MenuItem detach;
+
+    private MenuItem split_horiz;
+
+    private MenuItem split_vert;
+
+    private MenuItem save_window;
+
+    private MenuItem close;
+
+    private MenuItem close_other;
+
+    private MenuItem close_all;
+
+    private ContextMenu menu;
+
     /** Create dock item for instance of an application
      *  @param applicationInstance {@link AppInstance}
      *  @param content Content for this application instance
@@ -224,19 +241,19 @@ public class DockItem extends Tab
 
     private void createContextMenu()
     {
-        final MenuItem info = new MenuItem(Messages.DockInfo, new ImageView(info_icon));
+        info = new MenuItem(Messages.DockInfo, new ImageView(info_icon));
         info.setOnAction(event -> showInfo());
 
-        final MenuItem detach = new MenuItem(Messages.DockDetach, new ImageView(detach_icon));
+        detach = new MenuItem(Messages.DockDetach, new ImageView(detach_icon));
         detach.setOnAction(event -> detach());
 
-        final MenuItem split_horiz = new MenuItem(Messages.DockSplitH, new ImageView(split_horiz_icon));
+        split_horiz = new MenuItem(Messages.DockSplitH, new ImageView(split_horiz_icon));
         split_horiz.setOnAction(event -> split(true));
 
-        final MenuItem split_vert = new MenuItem(Messages.DockSplitV, new ImageView(split_vert_icon));
+        split_vert = new MenuItem(Messages.DockSplitV, new ImageView(split_vert_icon));
         split_vert.setOnAction(event -> split(false));
 
-        final MenuItem save_window = new MenuItem(Messages.SaveLayoutOfContainingWindowAs, new ImageView(save_window_layout_icon));
+        save_window = new MenuItem(Messages.SaveLayoutOfContainingWindowAs, new ImageView(save_window_layout_icon));
         save_window.setOnAction(event -> {
             DockPane activeDockPane = getActiveDockPane();
             List<Stage> stagesContainingActiveDockPane = DockStage.getDockStages().stream().filter(stage -> getDockPanes(stage).contains(activeDockPane)).collect(Collectors.toList());
@@ -251,12 +268,12 @@ public class DockItem extends Tab
             }
         });
 
-        final MenuItem close = new MenuItem(Messages.DockClose, new ImageView(DockPane.close_icon));
+        close = new MenuItem(Messages.DockClose, new ImageView(DockPane.close_icon));
         ArrayList<DockItem> arrayList = new ArrayList<DockItem>();
         arrayList.add(this);
         close.setOnAction(event -> close(arrayList));
 
-        final MenuItem close_other = new MenuItem(Messages.DockCloseOthers, new ImageView(close_many_icon));
+        close_other = new MenuItem(Messages.DockCloseOthers, new ImageView(close_many_icon));
         close_other.setOnAction(event ->
         {
             // Close all other tabs in non-fixed panes of this window
@@ -270,7 +287,7 @@ public class DockItem extends Tab
             close(tabs);
         });
 
-        final MenuItem close_all = new MenuItem(Messages.DockCloseAll, new ImageView(close_many_icon));
+        close_all = new MenuItem(Messages.DockCloseAll, new ImageView(close_many_icon));
         close_all.setOnAction(event ->
         {
             // Close all tabs in non-fixed panes of this window
@@ -284,39 +301,42 @@ public class DockItem extends Tab
             close(tabs);
         });
 
-        final ContextMenu menu = new ContextMenu(info);
-
+        menu = new ContextMenu(info);
         menu.setOnShowing(event ->
         {
-            menu.getItems().setAll(info);
-
-            final boolean may_lock = AuthorizationService.hasAuthorization("lock_ui");
-            final DockPane pane = getDockPane();
-            if (pane.isFixed())
-            {
-                if (may_lock)
-                    menu.getItems().addAll(new NamePaneMenuItem(pane), new UnlockMenuItem(pane));
-            }
-            else
-            {
-                menu.getItems().addAll(new SeparatorMenuItem(),
-                                       detach,
-                                       split_horiz,
-                                       split_vert);
-
-                if (may_lock)
-                    menu.getItems().addAll(new NamePaneMenuItem(pane), new LockMenuItem(pane));
-
-                menu.getItems().addAll(new SeparatorMenuItem(),
-                                       close,
-                                       close_other,
-                                       new SeparatorMenuItem(),
-                                       close_all);
-            }
-            menu.getItems().addAll(new SeparatorMenuItem(), save_window);
+            configureContextMenu(menu);
         });
 
         name_tab.setContextMenu(menu);
+    }
+
+    protected void configureContextMenu(ContextMenu menu){
+        menu.getItems().setAll(info);
+
+        final boolean may_lock = AuthorizationService.hasAuthorization("lock_ui");
+        final DockPane pane = getDockPane();
+        if (pane.isFixed())
+        {
+            if (may_lock)
+                menu.getItems().addAll(new NamePaneMenuItem(pane), new UnlockMenuItem(pane));
+        }
+        else
+        {
+            menu.getItems().addAll(new SeparatorMenuItem(),
+                    detach,
+                    split_horiz,
+                    split_vert);
+
+            if (may_lock)
+                menu.getItems().addAll(new NamePaneMenuItem(pane), new LockMenuItem(pane));
+
+            menu.getItems().addAll(new SeparatorMenuItem(),
+                    close,
+                    close_other,
+                    new SeparatorMenuItem(),
+                    close_all);
+        }
+        menu.getItems().addAll(new SeparatorMenuItem(), save_window);
     }
 
     /** @param tabs Tabs to prepare and then close */
