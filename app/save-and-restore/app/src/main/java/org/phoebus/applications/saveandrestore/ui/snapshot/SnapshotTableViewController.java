@@ -353,7 +353,9 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
             for (SnapshotItem entry : snapshot.getSnapshotData().getSnapshotItems()) {
                 TableEntry e = tableEntryItems.get(getPVKey(entry.getConfigPv().getPvName(), entry.getConfigPv().isReadOnly()));
 
-                boolean restorable = e.selectedProperty().get() && !e.readOnlyProperty().get() &&
+                boolean restorable = e.selectedProperty().get() &&
+                        !e.readOnlyProperty().get() &&
+                        entry.getValue() != null &&
                         !entry.getValue().equals(VNoData.INSTANCE);
 
                 if (restorable) {
