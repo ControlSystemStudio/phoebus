@@ -7,8 +7,6 @@
  *******************************************************************************/
 package org.csstudio.display.builder.model.util;
 
-import static org.csstudio.display.builder.model.ModelPlugin.logger;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -24,6 +22,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.ModelPlugin;
@@ -37,6 +36,7 @@ import org.phoebus.framework.util.ResourceParser;
 @SuppressWarnings("nls")
 public class ModelResourceUtil
 {
+    public final static Logger logger = Logger.getLogger(ModelResourceUtil.class.getPackageName());
     /** Schema used for the built-in display examples */
     public static final String EXAMPLES_SCHEMA = "examples";
 
@@ -309,49 +309,59 @@ public class ModelResourceUtil
      */
     private static boolean canOpenUrl(final String resource_name)
     {
+        boolean canOpenUrl = false;
         final URL example = getExampleURL(resource_name);
         if (example != null)
         {
             try
             {
                 example.openStream().close();
-                return true;
+                canOpenUrl = true;
             }
             catch (Exception ex)
             {
-                return false;
+                logger.log(Level.SEVERE, "URL cannot open " + resource_name , ex);
             }
         }
 
-        if (! isURL(resource_name))
-            return false;
-        // This implementation is expensive:
-        // On success, caller will soon open the URL again.
-        // In practice, not too bad because second time around
-        // is usually quite fast as result of web server cache.
-        //
-        // Alternative would be to always return the stream as
-        // a result, updating all callers from
-        //
-        //  resolved = ModelResourceUtil.resolveResource(parent_display, display_file);
-        //  stream = ModelResourceUtil.openResourceStream(resolved)
-        //
-        // to just
-        //
-        //  stream = ModelResourceUtil.resolveResource(parent_display, display_file);
-        //
-        // This can break code which really just needs the resolved name.
+        if (isURL(resource_name)) {
+            // This implementation is expensive:
+            // On success, caller will soon open the URL again.
+            // In practice, not too bad because second time around
+            // is usually quite fast as result of web server cache.
+            //
+            // Alternative would be to always return the stream as
+            // a result, updating all callers from
+            //
+            //  resolved = ModelResourceUtil.resolveResource(parent_display, display_file);
+            //  stream = ModelResourceUtil.openResourceStream(resolved)
+            //
+            // to just
+            //
+            //  stream = ModelResourceUtil.resolveResource(parent_display, display_file);
+            //
+            // This can break code which really just needs the resolved name.
 
-        try
-        {
-            final InputStream stream = openURL(resource_name);
-            stream.close();
-            return true;
+            try
+            {
+                //In case of https an authentication is request
+                //It sends an Exception Connection refused:
+                //Use openConnection instead of openStream
+                //Stream is not OK for a https
+                URL url = new URL(resource_name);
+                url.openConnection();
+                //  int responseCode = huc.getResponseCode();
+                //  Assert.assertEquals(HttpURLConnection.HTTP_OK, responseCode);
+                canOpenUrl = true;
+            }
+            catch (Exception ex)
+            {
+                ex.printStackTrace();
+                logger.log(Level.SEVERE, "URL cannot open " + resource_name , ex);
+            }
         }
-        catch (Exception ex)
-        {
-            return false;
-        }
+
+        return canOpenUrl;
     }
 
     /** Check for "examples:.."
@@ -421,7 +431,7 @@ public class ModelResourceUtil
 //            final long milli = Math.round(1000 + Math.random()*4000);
 //            Thread.sleep(milli);
 //        }
-        if (resource_name.startsWith("http") || resource_name.startsWith("file:/"))
+        if (resource_name.startsWith("http"))
             return openURL(resource_name);
 
         // Handle legacy RCP URL
