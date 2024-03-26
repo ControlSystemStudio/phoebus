@@ -19,106 +19,56 @@
 
 package org.phoebus.aspects.ui;
 
-import javafx.collections.ObservableList;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Dialog;
 import javafx.stage.Modality;
-import javafx.stage.Stage;
 import javafx.stage.Window;
 import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.After;
-import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 
+import java.util.List;
+
+/**
+ * Aspect used to intercept launch/dismissal of modal dialogs in order to disable/enable all other windows.
+ */
+@SuppressWarnings("unused")
 @Aspect
 public class ModalDialogLaunchAspect {
 
-
-    @Before("call(* javafx.scene.control.Dialog.showAndWait())")
-    public  void beforeShowDialog(JoinPoint joinPoint) {
-        System.out.println("A");
-        Dialog dialog = (Dialog) joinPoint.getTarget();
-        Parent scene = dialog.getOwner().getScene().getRoot();
-        System.out.println("Before " + scene);
-        scene.disableProperty().setValue(true);
-        ObservableList<Window> windows = Stage.getWindows();
-        dialog.setOnHiding(e -> {
-            windows.forEach(w -> {
-                w.getScene().getRoot().getChildrenUnmodifiable().forEach(c -> System.out.println(c));
-                System.out.println("After loop " + w.getScene());
-                w.getScene().getRoot().disableProperty().setValue(false);
-
-            });
-        });
-        if (!dialog.getModality().equals(Modality.NONE)) {
-            windows.forEach(w -> {
-                w.getScene().getRoot().getChildrenUnmodifiable().forEach(c -> System.out.println(c));
-                System.out.println("Before loop " + w.getScene());
-                w.getScene().getRoot().disableProperty().setValue(true);
-            });
-        }
-    }
-
-    /*
-    @Before("call(* javafx.scene.control.Dialog.showAndWait())")
-    public void beforeShowDialogBefore(JoinPoint joinPoint) {
-        System.out.println("AA");
-        Dialog dialog = (Dialog) joinPoint.getTarget();
-        ObservableList<Window> windows = Window.getWindows();
-        if (!dialog.getModality().equals(Modality.NONE)) {
-            windows.forEach(w -> {
-                System.out.println("Before " + w.getScene());
-                w.getScene().getRoot().setOpacity(0.5);
-            });
-        }
-    }
-
+    /**
+     * If {@link JoinPoint} target is a modal {@link Dialog}, this will disable all
+     * other windows when {@link Dialog#showAndWait()} is called.
+     * @param joinPoint {@link JoinPoint} who's target should be a {@link Dialog}
      */
-
-    /*
-
-    @After("call(* javafx.scene.control.Dialog.showAndWait())")
-    public  void afterDismissDialog(JoinPoint joinPoint){
-        System.out.println("B");
-        Dialog dialog = (Dialog) joinPoint.getTarget();
-        Parent scene = dialog.getOwner().getScene().getRoot();
-        System.out.println("After " + scene);
-        scene.disableProperty().setValue(false);
-        ObservableList<Window> windows = Stage.getWindows();
-        if (!dialog.getModality().equals(Modality.NONE)) {
-            windows.forEach(w -> {
-                w.getScene().getRoot().getChildrenUnmodifiable().forEach(c -> System.out.println(c));
-                System.out.println("After loop " + w.getScene());
-                w.getScene().getRoot().disableProperty().setValue(false);
-
-            });
-        }
-    }
-
-     */
-
-
-    /*
-    @After("call(Object javafx.scene.control.Alert.showAndWait())")
-    public void afterDismissAlert(JoinPoint joinPoint){
-        System.out.println("C");
-        Dialog dialog = (Dialog) joinPoint.getTarget();
-        if(!dialog.getModality().equals(Modality.NONE)){
-            synchronized (syncObject){
-                Window.getWindows().forEach(w -> {
-                    System.out.println("After " + w.getScene());
-                    Platform.runLater(() ->  w.getScene().getRoot().setOpacity(1.0));
-
-                });
+    @Before("call(* javafx.scene.control.Dialog.showAndWait())")
+    public void beforeShow(JoinPoint joinPoint) {
+        // Consider only modal dialogs
+        if(joinPoint.getTarget() instanceof Dialog<?> && !((Dialog)joinPoint.getTarget()).getModality().equals(Modality.NONE)){
+            List<Window> windows = Window.getWindows();
+            for (Window window : windows) {
+                if (window instanceof ContextMenu) { // Must not disable context menus!
+                    continue;
+                }
+                window.getScene().getRoot().setDisable(true);
             }
         }
-        else{
-            System.out.println("After: Non-modal");
-        }
     }
 
+    /**
+     * If {@link JoinPoint} target is a modal {@link Dialog}, this will enable all
+     * other windows when {@link Dialog#showAndWait()} returns.
+     * @param joinPoint {@link JoinPoint} who's target should be a {@link Dialog}
      */
+    @After("call(* javafx.scene.control.Dialog.showAndWait())")
+    public void afterDismiss(JoinPoint joinPoint) {
+        // Consider only modal dialogs
+        if(joinPoint.getTarget() instanceof Dialog<?> && !((Dialog)joinPoint.getTarget()).getModality().equals(Modality.NONE)) {
+            List<Window> windows = Window.getWindows();
+            for (Window window : windows) {
+                window.getScene().getRoot().setDisable(false);
+            }
+        }
+    }
 }

@@ -33,15 +33,11 @@
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+        <aspectj.version>1.9.21</aspectj.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <dependencies>
-        <!--<dependency>
-            <groupId>org.phoebus</groupId>
-            <artifactId>core-ui</artifactId>
-            <version>4.7.4-SNAPSHOT</version>
-        </dependency>-->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
@@ -60,36 +56,6 @@
         </dependency>
     </dependencies>
     <build>
-        <!--<pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>aspectj-maven-plugin</artifactId>
-                    <version>1.15.0</version>
-                    <configuration>
-                        <showWeaveInfo>true</showWeaveInfo>
-                        <complianceLevel>17</complianceLevel>
-                        <encoding>UTF-8</encoding>
-                        <verbose>true</verbose>
-                        <includes>**/aspects/*.java</includes>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <goals>
-                                <goal>compile</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.aspectj</groupId>
-                            <artifactId>aspectjtools</artifactId>
-                            <version>1.9.21</version>
-                        </dependency>
-                    </dependencies>
-                </plugin>
-            </plugins>
-        </pluginManagement>-->
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -97,12 +63,9 @@
                 <version>1.15.0</version>
                 <configuration>
                     <showWeaveInfo>true</showWeaveInfo>
-                    <!--<source>17</source>
-                    <target>17</target>-->
                     <complianceLevel>17</complianceLevel>
                     <encoding>UTF-8</encoding>
                     <verbose>true</verbose>
-                    <!--<includes>**/aspects/*.java</includes>-->
                 </configuration>
                 <executions>
                     <execution>
@@ -121,5 +84,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
