@@ -350,8 +350,6 @@ public class ModelResourceUtil
                 //Stream is not OK for a https
                 URL url = new URL(resource_name);
                 url.openConnection();
-                //  int responseCode = huc.getResponseCode();
-                //  Assert.assertEquals(HttpURLConnection.HTTP_OK, responseCode);
                 canOpenUrl = true;
             }
             catch (Exception ex)
@@ -431,7 +429,7 @@ public class ModelResourceUtil
 //            final long milli = Math.round(1000 + Math.random()*4000);
 //            Thread.sleep(milli);
 //        }
-        if (resource_name.startsWith("http"))
+        if (resource_name.startsWith("http") || resource_name.startsWith("file:/"))
             return openURL(resource_name);
 
         // Handle legacy RCP URL
