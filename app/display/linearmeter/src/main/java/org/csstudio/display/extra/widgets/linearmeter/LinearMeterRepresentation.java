@@ -61,11 +61,14 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
             hiHi = model_widget.propLevelHiHi().getValue();
         }
 
+        double minMaxTolerance = model_widget.propMinMaxTolerance().getValue();
+
         meter = new RTLinearMeter(initialValue,
                                   model_widget.propWidth().getValue(),
                                   model_widget.propHeight().getValue(),
                                   minimum,
                                   maximum,
+                                  minMaxTolerance,
                                   loLo,
                                   low,
                                   high,
@@ -179,6 +182,11 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
                 }
             }
 
+            layoutChanged(null, null, null);
+        });
+
+        addWidgetPropertyListener(model_widget.propMinMaxTolerance(), (property, old_value, new_value) -> {
+            meter.setMinMaxTolerance(new_value);
             layoutChanged(null, null, null);
         });
 

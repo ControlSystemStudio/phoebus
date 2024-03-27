@@ -66,6 +66,7 @@
   <properties>
     <project.build.outputTimestamp>2024-01-10T19:23:58Z</project.build.outputTimestamp>
     <epics.version>7.0.10</epics.version>
+    <epics.util.version>1.0.7</epics.util.version>
     <vtype.version>1.0.7</vtype.version>
     <openjfx.version>19</openjfx.version>
     <jackson.version>2.12.3</jackson.version>
@@ -88,6 +89,7 @@
     <jython.version>2.7.3</jython.version>
     <jgit.version>6.7.0.202309050840-r</jgit.version>
     <maven.compiler.target>17</maven.compiler.target>
+    <aspectj.version>1.9.21</aspectj.version>
   </properties>
   <build>
     <plugins>
@@ -161,7 +163,6 @@
       </plugin>
     </plugins>
   </build>
-
 
   <profiles>
     <!-- The it-tests profile when used will run all integration tests, these

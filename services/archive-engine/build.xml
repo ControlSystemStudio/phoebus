@@ -26,6 +26,8 @@
       	<include name="dependencies/**/mysql-connector-*.jar"/>
   		<include name="dependencies/**/ojdbc8-*.jar"/>
       	<include name="dependencies/**/org.eclipse.paho.client*.jar"/>
+        <include name="dependencies/**/epics-jackie*.jar"/>
+        <include name="dependencies/**/commons-lang*.jar"/>
   		<include name="dependencies/**/postgresql-*.jar"/>
       	
       	<include name="core/**/core-framework-*.jar"/>

@@ -30,6 +30,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+
 import org.epics.vtype.VType;
 import org.phoebus.applications.saveandrestore.Messages;
 import org.phoebus.applications.saveandrestore.SaveAndRestoreApplication;
@@ -38,6 +39,7 @@ import org.phoebus.applications.saveandrestore.ui.VTypePair;
 import org.phoebus.core.types.TimeStampedProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
+import org.phoebus.ui.javafx.FocusUtil;
 import org.phoebus.util.time.TimestampFormats;
 
 import java.lang.reflect.Field;
@@ -46,8 +48,11 @@ import java.security.PrivilegedAction;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import static org.phoebus.ui.application.PhoebusApplication.logger;
 
 /**
  * Base controller class for the snapshot table view. It handles common items (UI components, methods) needed
@@ -193,7 +198,8 @@ public abstract class BaseSnapshotTableViewController {
                         contextMenu.hide();
                         contextMenu.getItems().clear();
                         SelectionService.getInstance().setSelection(SaveAndRestoreApplication.NAME, selectedPVList);
-                        ContextMenuHelper.addSupportedEntries(this, contextMenu);
+
+                        ContextMenuHelper.addSupportedEntries(FocusUtil.setFocusOn(this), contextMenu);
                         contextMenu.getItems().add(new SeparatorMenuItem());
                         MenuItem toggle = new MenuItem();
                         toggle.setText(item.readOnlyProperty().get() ? Messages.makeRestorable : Messages.makeReadOnly);

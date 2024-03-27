@@ -38,6 +38,16 @@
     </dependency>
     <dependency>
       <groupId>org.phoebus</groupId>
+      <artifactId>core-pv-ca</artifactId>
+      <version>4.7.4-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>core-pv-pva</artifactId>
+      <version>4.7.4-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.phoebus</groupId>
       <artifactId>core-formula</artifactId>
       <version>4.7.4-SNAPSHOT</version>
     </dependency>

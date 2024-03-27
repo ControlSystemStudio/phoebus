@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import org.csstudio.javafx.rtplot.LineStyle;
@@ -36,6 +37,7 @@ import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.AlertWithToggle;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.javafx.FocusUtil;
 import org.phoebus.ui.undo.UndoableActionManager;
 import org.phoebus.util.time.SecondsParser;
 
@@ -740,7 +742,7 @@ public class TracesTab extends Tab
             if (pvs.size() > 0)
             {
                 SelectionService.getInstance().setSelection(this, pvs);
-                ContextMenuHelper.addSupportedEntries(trace_table, menu);
+                ContextMenuHelper.addSupportedEntries(FocusUtil.setFocusOn(trace_table), menu);
             }
 
             menu.show(trace_table.getScene().getWindow(), event.getScreenX(), event.getScreenY());

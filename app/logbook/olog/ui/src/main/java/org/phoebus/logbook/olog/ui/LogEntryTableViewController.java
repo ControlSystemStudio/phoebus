@@ -14,21 +14,8 @@ import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
+import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.Pagination;
-import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -39,12 +26,7 @@ import javafx.util.Callback;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
 import org.phoebus.framework.jobs.JobManager;
-import org.phoebus.logbook.LogClient;
-import org.phoebus.logbook.LogEntry;
-import org.phoebus.logbook.LogService;
-import org.phoebus.logbook.LogbookException;
-import org.phoebus.logbook.LogbookPreferences;
-import org.phoebus.logbook.SearchResult;
+import org.phoebus.logbook.*;
 import org.phoebus.logbook.olog.ui.query.OlogQuery;
 import org.phoebus.logbook.olog.ui.query.OlogQueryManager;
 import org.phoebus.logbook.olog.ui.write.LogEntryEditorStage;
@@ -58,8 +40,10 @@ import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -137,10 +121,11 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     private final SearchParameters searchParameters;
 
-    private LogEntry selectedLogEntry;
 
     @FXML
     public void initialize() {
+
+        logEntryDisplayController.setLogEntryTableViewController(this);
 
         advancedSearchViewController.setSearchCallback(this::search);
 
@@ -171,7 +156,7 @@ public class LogEntryTableViewController extends LogbookSearchController {
         menuItemNewLogEntry.setOnAction(ae -> new LogEntryEditorStage(new OlogLog(), null, null).show());
 
         MenuItem menuItemUpdateLogEntry = new MenuItem(Messages.UpdateLogEntry);
-        menuItemUpdateLogEntry.visibleProperty().bind(Bindings.createBooleanBinding(()-> selectedLogEntries.size() == 1, selectedLogEntries));
+        menuItemUpdateLogEntry.visibleProperty().bind(Bindings.createBooleanBinding(() -> selectedLogEntries.size() == 1, selectedLogEntries));
         menuItemUpdateLogEntry.acceleratorProperty().setValue(new KeyCodeCombination(KeyCode.U, KeyCombination.CONTROL_DOWN));
         menuItemUpdateLogEntry.setOnAction(ae -> new LogEntryUpdateStage(selectedLogEntries.get(0), null).show());
 
@@ -195,8 +180,8 @@ public class LogEntryTableViewController extends LogbookSearchController {
         tableView.getColumns().clear();
         tableView.setEditable(false);
         tableView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            // Update detailed view, but only if selection contains a single item.
             if (newValue != null && tableView.getSelectionModel().getSelectedItems().size() == 1) {
-                selectedLogEntry = newValue.getLogEntry();
                 logEntryDisplayController.setLogEntry(newValue.getLogEntry());
             }
             List<LogEntry> logEntries = tableView.getSelectionModel().getSelectedItems()
@@ -398,16 +383,16 @@ public class LogEntryTableViewController extends LogbookSearchController {
 
     private void refresh() {
         if (this.searchResult != null) {
+            List<TableViewListItem> selectedLogEntries = new ArrayList<>(tableView.getSelectionModel().getSelectedItems());
             ObservableList<TableViewListItem> logsList = FXCollections.observableArrayList();
-            logsList.addAll(searchResult.getLogs().stream().map(le -> new TableViewListItem(le, showDetails.get())).collect(Collectors.toList()));
+            logsList.addAll(searchResult.getLogs().stream().map(le -> new TableViewListItem(le, showDetails.get())).toList());
             tableView.setItems(logsList);
-            // This will ensure that if an entry was selected, it stays selected after the list has been
-            // updated from the search result, even if it is empty.
-            if (selectedLogEntry != null) {
+            // This will ensure that selected entries stay selected after the list has been
+            // updated from the search result.
+            for (TableViewListItem selectedItem : selectedLogEntries) {
                 for (TableViewListItem item : tableView.getItems()) {
-                    if (item.getLogEntry().getId().equals(selectedLogEntry.getId())) {
+                    if (item.getLogEntry().getId().equals(selectedItem.getLogEntry().getId())) {
                         Platform.runLater(() -> tableView.getSelectionModel().select(item));
-                        break;
                     }
                 }
             }
@@ -537,10 +522,29 @@ public class LogEntryTableViewController extends LogbookSearchController {
      * Handler for a {@link LogEntry} change, new or updated.
      * A search is triggered to make sure the result list reflects the change, and
      * the detail view controller is called to refresh, if applicable.
-     * @param logEntry
+     *
+     * @param logEntry A {@link LogEntry}
      */
-    public void logEntryChanged(LogEntry logEntry){
+    public void logEntryChanged(LogEntry logEntry) {
         search();
         logEntryDisplayController.updateLogEntry(logEntry);
+    }
+
+    /**
+     * Selects a log entry as a result of an action outside the {@link TreeView}, but selection happens on the
+     * {@link TreeView} item, if it exists (match on log entry id). If it does not exist, selection is cleared
+     * anyway to indicate that user selected log entry is not visible in {@link TreeView}.
+     * @param logEntry User selected log entry.
+     * @return <code>true</code> if user selected log entry is present in {@link TreeView}, otherwise
+     * <code>false</code>.
+     */
+    public boolean selectLogEntry(LogEntry logEntry){
+        tableView.getSelectionModel().clearSelection();
+        Optional<TableViewListItem> optional = tableView.getItems().stream().filter(i -> i.getLogEntry().getId().equals(logEntry.getId())).findFirst();
+        if(optional.isPresent()){
+            tableView.getSelectionModel().select(optional.get());
+            return true;
+        }
+        return false;
     }
 }

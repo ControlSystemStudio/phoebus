@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 European Spallation Source ERIC.
+ * Copyright (C) 2024 European Spallation Source ERIC.
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -104,20 +104,7 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
      * @param logEntry The log entry selected by user in the table/list view.
      */
     public void setLogEntry(LogEntry logEntry) {
-        getLogEntries(logEntry);
-    }
-
-    private void mergeAndRender() {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("<html><body>");
-        logEntries.forEach(l -> {
-            stringBuilder.append(createSeparator(l));
-            stringBuilder.append("<div class='olog-merged'>");
-            stringBuilder.append(toHtml(l.getSource()));
-            stringBuilder.append("</div>");
-        });
-        stringBuilder.append("</body><html>");
-        webEngine.loadContent(stringBuilder.toString());
+        getLogEntriesAndMerge(logEntry);
     }
 
     /**
@@ -129,7 +116,7 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
      */
     private String createSeparator(LogEntry logEntry) {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("<div class='separator' onClick='window.javaConnector.toLowerCase(").append(logEntry.getId()).append(")'>");
+        stringBuilder.append("<div class='separator' onClick='window.javaConnector.select(").append(logEntry.getId()).append(")'>");
         stringBuilder.append(SECONDS_FORMAT.format(logEntry.getCreatedDate())).append(", ");
         stringBuilder.append(logEntry.getOwner()).append(", ");
         stringBuilder.append(logEntry.getTitle());
@@ -137,14 +124,14 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
             stringBuilder.append(" *");
         }
         stringBuilder.append("<div class='entry-id'>").append(logEntry.getId()).append("</div>");
-        if(logEntry.getAttachments().size() > 0){
+        if(!logEntry.getAttachments().isEmpty()){
             stringBuilder.append("<div class='attachment-icon'>&nbsp;</div>");
         }
         stringBuilder.append("</div>");
         return stringBuilder.toString();
     }
 
-    private void getLogEntries(LogEntry logEntry) {
+    private void getLogEntriesAndMerge(LogEntry logEntry) {
 
         Optional<Property> property =
                 logEntry.getProperties().stream()
@@ -164,7 +151,16 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
             logger.log(Level.SEVERE, "Unable to locate log entry items using log entry group id " + id, e);
         }
 
-        mergeAndRender();
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("<html><body>");
+        logEntries.forEach(l -> {
+            stringBuilder.append(createSeparator(l));
+            stringBuilder.append("<div class='olog-merged'>");
+            stringBuilder.append(toHtml(l.getSource()));
+            stringBuilder.append("</div>");
+        });
+        stringBuilder.append("</body><html>");
+        webEngine.loadContent(stringBuilder.toString());
     }
 
     public class JavaConnector {
@@ -176,7 +172,7 @@ public class MergedLogEntryDisplayController extends HtmlAwareController {
          *         the String to convert
          */
         @SuppressWarnings("unused")
-        public void toLowerCase(String value) {
+        public void select(String value) {
             Optional<LogEntry> logEntry = logEntries.stream().filter(l -> Long.toString(l.getId()).equals(value)).findFirst();
             if(logEntry.isEmpty()){
                 return;

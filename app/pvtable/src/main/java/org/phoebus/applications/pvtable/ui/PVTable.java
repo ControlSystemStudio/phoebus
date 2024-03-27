@@ -35,6 +35,7 @@ import org.phoebus.ui.autocomplete.PVAutocompleteMenu;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.NumericInputDialog;
 import org.phoebus.ui.dnd.DataFormats;
+import org.phoebus.ui.javafx.FocusUtil;
 import org.phoebus.ui.javafx.PrintAction;
 import org.phoebus.ui.javafx.Screenshot;
 import org.phoebus.ui.javafx.ToolbarHelper;
@@ -81,6 +82,8 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.converter.DefaultStringConverter;
+
+import static org.phoebus.ui.application.PhoebusApplication.logger;
 
 
 /** PV Table and its toolbar
@@ -689,7 +692,7 @@ public class PVTable extends VBox
             }
 
             // Add PV entries
-            if (ContextMenuHelper.addSupportedEntries(table, menu))
+            if (ContextMenuHelper.addSupportedEntries(FocusUtil.setFocusOn(table), menu))
                 menu.getItems().add(new SeparatorMenuItem());
 
             menu.getItems().add(new PrintAction(this));

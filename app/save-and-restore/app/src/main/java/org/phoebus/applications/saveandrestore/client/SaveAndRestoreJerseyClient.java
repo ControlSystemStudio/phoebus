@@ -44,22 +44,21 @@ import java.util.logging.Logger;
 public class SaveAndRestoreJerseyClient implements org.phoebus.applications.saveandrestore.client.SaveAndRestoreClient {
 
     private static final String CONTENT_TYPE_JSON = "application/json; charset=UTF-8";
-    private final Logger logger = Logger.getLogger(SaveAndRestoreJerseyClient.class.getName());
+    private static final Logger logger = Logger.getLogger(SaveAndRestoreJerseyClient.class.getName());
 
     private static final int DEFAULT_READ_TIMEOUT = 5000; // ms
     private static final int DEFAULT_CONNECT_TIMEOUT = 5000; // ms
 
-    ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper mapper = new ObjectMapper();
 
-    private HTTPBasicAuthFilter httpBasicAuthFilter;
+    /**
+     * Should be accessed through {@link #getClient()} to ensure proper usage of cached credentials, if available.
+     */
+    private static final Client client;
 
-    public SaveAndRestoreJerseyClient() {
+    private static HTTPBasicAuthFilter httpBasicAuthFilter;
 
-        mapper.registerModule(new JavaTimeModule());
-        mapper.setSerializationInclusion(Include.NON_NULL);
-    }
-
-    private Client getClient() {
+    static {
         int httpClientReadTimeout = Preferences.httpClientReadTimeout > 0 ? Preferences.httpClientReadTimeout : DEFAULT_READ_TIMEOUT;
         logger.log(Level.INFO, "Save&restore client using read timeout " + httpClientReadTimeout + " ms");
 
@@ -73,8 +72,15 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
         JacksonJsonProvider jacksonJsonProvider = new JacksonJsonProvider(mapper);
         defaultClientConfig.getSingletons().add(jacksonJsonProvider);
 
-        Client client = Client.create(defaultClientConfig);
+        client = Client.create(defaultClientConfig);
+    }
 
+    public SaveAndRestoreJerseyClient() {
+        mapper.registerModule(new JavaTimeModule());
+        mapper.setSerializationInclusion(Include.NON_NULL);
+    }
+
+    private Client getClient(){
         try {
             SecureStore store = new SecureStore();
             ScopedAuthenticationToken scopedAuthenticationToken = store.getScopedAuthenticationToken(AuthenticationScope.SAVE_AND_RESTORE);
@@ -89,7 +95,6 @@ public class SaveAndRestoreJerseyClient implements org.phoebus.applications.save
         } catch (Exception e) {
             logger.log(Level.WARNING, "Unable to retrieve credentials from secure store", e);
         }
-
         return client;
     }
 

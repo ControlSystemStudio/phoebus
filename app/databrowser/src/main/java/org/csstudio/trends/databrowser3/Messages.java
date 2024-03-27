@@ -208,6 +208,8 @@ public class Messages
                          LogScale,
                          Miscellaneous,
                          Model_Disconnected,
+                         MoveAxisToTheLeft,
+                         MoveAxisToTheRight,
                          MoveItemDown,
                          MoveItemUp,
                          Name,

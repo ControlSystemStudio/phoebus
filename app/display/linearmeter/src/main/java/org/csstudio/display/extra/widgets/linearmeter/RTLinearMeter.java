@@ -57,6 +57,7 @@ public class RTLinearMeter extends ImageView
                          int height,
                          double min,
                          double max,
+                         double minMaxTolerance,
                          double loLo,
                          double low,
                          double high,
@@ -98,6 +99,7 @@ public class RTLinearMeter extends ImageView
                                                 min,
                                                 max);
 
+        this.minMaxTolerance = minMaxTolerance;
         this.loLo = loLo;
         this.low = low;
         this.high = high;
@@ -177,6 +179,7 @@ public class RTLinearMeter extends ImageView
     };
 
     private boolean validRange;
+    private double minMaxTolerance;
 
     public boolean getValidRange() {
         return validRange;
@@ -391,6 +394,12 @@ public class RTLinearMeter extends ImageView
         redrawIndicator(currentValue, currentWarning);
     }
 
+    public synchronized void setMinMaxTolerance(double minMaxTolerance) {
+        this.minMaxTolerance = minMaxTolerance;
+        determineWarning();
+        redrawIndicator(currentValue, currentWarning);
+    }
+
     public double getLoLo() {
         return loLo;
     }
@@ -547,6 +556,13 @@ public class RTLinearMeter extends ImageView
         double oldValue = currentValue;
         currentValue = newValue;
 
+        if (newValue > linearMeterScale.getValueRange().getHigh() && newValue <= linearMeterScale.getValueRange().getHigh() + minMaxTolerance) {
+            newValue = linearMeterScale.getValueRange().getHigh();
+        }
+        if (newValue < linearMeterScale.getValueRange().getLow() && newValue >= linearMeterScale.getValueRange().getLow() - minMaxTolerance) {
+            newValue = linearMeterScale.getValueRange().getLow();
+        }
+
         if (oldValue != newValue) {
             if (!Double.isNaN(newValue)){
                 int newIndicatorPosition;
@@ -571,16 +587,16 @@ public class RTLinearMeter extends ImageView
         if (lag) {
             return WARNING.LAG;
         }
-        else if (showUnits && units == "") {
+        else if (showUnits && units.equals("")) {
             return WARNING.NO_UNIT;
         }
         else if (!validRange) {
             return WARNING.MIN_AND_MAX_NOT_DEFINED;
         }
-        else if (currentValue < linearMeterScale.getValueRange().getLow()) {
+        else if (currentValue < linearMeterScale.getValueRange().getLow() - minMaxTolerance) {
             return WARNING.VALUE_LESS_THAN_MIN;
         }
-        else if (currentValue > linearMeterScale.getValueRange().getHigh()) {
+        else if (currentValue > linearMeterScale.getValueRange().getHigh() + minMaxTolerance) {
             return WARNING.VALUE_GREATER_THAN_MAX;
         }
         else {

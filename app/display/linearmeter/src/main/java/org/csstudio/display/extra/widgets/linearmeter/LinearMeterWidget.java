@@ -130,6 +130,11 @@ public class LinearMeterWidget extends PVWidget
     public static WidgetPropertyDescriptor<Double> propLevelLow =
         newDoublePropertyDescriptor (WidgetPropertyCategory.BEHAVIOR,  "level_low", Messages.WidgetProperties_LevelLow);
 
+
+    /** 'min_max_tolerance' property: Treat the value range [min - min_max_tolerance, max + min_max_tolerance] as the valid value range for the widget (can be used to avoid warnings due to precision errors in cases such as when a PV sends -0.0000001 when the value is actually 0.0. */
+    public static final WidgetPropertyDescriptor<Double> propMinMaxTolerance =
+            newDoublePropertyDescriptor(WidgetPropertyCategory.BEHAVIOR, "min_max_tolerance", Messages.WidgetProperties_MinMaxTolerance);
+
     public static StructuredWidgetProperty.Descriptor colorsStructuredWidget_descriptor =
             new StructuredWidgetProperty.Descriptor(WidgetPropertyCategory.DISPLAY, "colors", "Colors");
 
@@ -168,6 +173,7 @@ public class LinearMeterWidget extends PVWidget
     private WidgetProperty<Double> level_hihi;
     private WidgetProperty<Double> level_lolo;
     private WidgetProperty<Double> level_low;
+    private WidgetProperty<Double> minMaxTolerance;
     private WidgetProperty<Boolean> displayHorizontal;
 
     private StructuredWidgetProperty colorsStructuredWidget;
@@ -230,6 +236,7 @@ public class LinearMeterWidget extends PVWidget
         properties.add(level_low = propLevelLow.createProperty(this, 20.0));
         properties.add(level_high = propLevelHigh.createProperty(this, 80.0));
         properties.add(level_hihi = propLevelHiHi.createProperty(this, 90.0));
+        properties.add(minMaxTolerance = propMinMaxTolerance.createProperty(this, 0.0));
     }
 
     /** @return 'foreground_color' property */
@@ -322,6 +329,10 @@ public class LinearMeterWidget extends PVWidget
 
     public WidgetProperty<Double> propLevelLow ( ) {
         return level_low;
+    }
+
+    public WidgetProperty<Double> propMinMaxTolerance ( ) {
+        return minMaxTolerance;
     }
 
     public WidgetProperty<Boolean> propIsGradientEnabled () {
