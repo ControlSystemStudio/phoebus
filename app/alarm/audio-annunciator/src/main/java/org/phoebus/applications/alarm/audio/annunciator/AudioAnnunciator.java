@@ -11,6 +11,8 @@ import javafx.scene.media.AudioClip;
 import org.phoebus.applications.alarm.ui.annunciator.Annunciator;
 import org.phoebus.applications.alarm.ui.annunciator.AnnunciatorMessage;
 
+import java.util.List;
+
 /**
  * Annunciator class. Uses Audio files to annunciate passed messages.
  *
@@ -56,5 +58,7 @@ public class AudioAnnunciator implements Annunciator {
      */
     @Override
     public void shutdown() {
+        List.of(alarmSound, minorAlarmSound, majorAlarmSound, invalidAlarmSound, undefinedAlarmSound)
+                .forEach(sound -> sound.stop());
     }
 }
