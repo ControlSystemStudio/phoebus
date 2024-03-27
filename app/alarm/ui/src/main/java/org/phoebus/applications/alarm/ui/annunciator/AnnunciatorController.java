@@ -168,11 +168,11 @@ public class AnnunciatorController
     {
         // Send magic message that wakes annunciatorThread and causes it to exit
         to_annunciate.offer(LAST_MESSAGE);
-        // The thread should shutdown
-        process_thread.join(2000);
-
         // Deallocate the annunciator's voice.
         loader.stream().forEach(annunciatorProvider -> annunciatorProvider.get().shutdown());
+
+        // The thread should shutdown
+        process_thread.join(2000);
 
     }
 }
