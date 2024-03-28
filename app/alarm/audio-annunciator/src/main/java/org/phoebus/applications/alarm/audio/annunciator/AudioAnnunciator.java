@@ -8,6 +8,9 @@
 package org.phoebus.applications.alarm.audio.annunciator;
 
 import javafx.scene.media.AudioClip;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.util.Duration;
 import org.phoebus.applications.alarm.ui.annunciator.Annunciator;
 import org.phoebus.applications.alarm.ui.annunciator.AnnunciatorMessage;
 
@@ -20,21 +23,27 @@ import java.util.List;
  */
 @SuppressWarnings("nls")
 public class AudioAnnunciator implements Annunciator {
-    private final AudioClip alarmSound;
-    private final AudioClip minorAlarmSound;
-    private final AudioClip majorAlarmSound;
-    private final AudioClip invalidAlarmSound;
-    private final AudioClip undefinedAlarmSound;
+    private final MediaPlayer alarmSound;
+    private final MediaPlayer minorAlarmSound;
+    private final MediaPlayer majorAlarmSound;
+    private final MediaPlayer invalidAlarmSound;
+    private final MediaPlayer undefinedAlarmSound;
 
     /**
      * Constructor
      */
     public AudioAnnunciator() {
-        alarmSound = new AudioClip(Preferences.alarm_sound_url);
-        minorAlarmSound = new AudioClip(Preferences.minor_alarm_sound_url);
-        majorAlarmSound = new AudioClip(Preferences.major_alarm_sound_url);
-        invalidAlarmSound = new AudioClip(Preferences.invalid_alarm_sound_url);
-        undefinedAlarmSound = new AudioClip(Preferences.undefined_alarm_sound_url);
+        alarmSound = new MediaPlayer(new Media(Preferences.alarm_sound_url));
+        minorAlarmSound = new MediaPlayer(new Media(Preferences.minor_alarm_sound_url));
+        majorAlarmSound = new MediaPlayer(new Media(Preferences.major_alarm_sound_url));
+        invalidAlarmSound = new MediaPlayer(new Media(Preferences.invalid_alarm_sound_url));
+        undefinedAlarmSound = new MediaPlayer(new Media(Preferences.undefined_alarm_sound_url));
+        // configure the media players for the different alarm sounds
+        List.of(alarmSound, minorAlarmSound, majorAlarmSound, invalidAlarmSound, undefinedAlarmSound)
+                .forEach(sound -> {
+                    sound.setStopTime(Duration.seconds(Preferences.max_alarm_duration));
+                    sound.setVolume(Preferences.volume);
+                });
     }
 
     /**
@@ -45,11 +54,11 @@ public class AudioAnnunciator implements Annunciator {
     @Override
     public void speak(final AnnunciatorMessage message) {
         switch (message.severity) {
-            case MINOR -> minorAlarmSound.play(Preferences.volume);
-            case MAJOR -> majorAlarmSound.play(Preferences.volume);
-            case INVALID -> invalidAlarmSound.play(Preferences.volume);
-            case UNDEFINED -> undefinedAlarmSound.play(Preferences.volume);
-            default -> alarmSound.play(Preferences.volume);
+            case MINOR -> minorAlarmSound.play();
+            case MAJOR -> majorAlarmSound.play();
+            case INVALID -> invalidAlarmSound.play();
+            case UNDEFINED -> undefinedAlarmSound.play();
+            default -> alarmSound.play();
         }
     }
 
@@ -59,6 +68,9 @@ public class AudioAnnunciator implements Annunciator {
     @Override
     public void shutdown() {
         List.of(alarmSound, minorAlarmSound, majorAlarmSound, invalidAlarmSound, undefinedAlarmSound)
-                .forEach(sound -> sound.stop());
+                .forEach(sound -> {
+                    sound.stop();
+                    sound.dispose();
+                });
     }
 }
