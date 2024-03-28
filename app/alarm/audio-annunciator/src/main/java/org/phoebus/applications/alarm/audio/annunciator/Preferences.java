@@ -35,6 +35,8 @@ public class Preferences {
     public static String undefined_alarm_sound_url;
     @Preference
     public static int volume;
+    @Preference
+    public static int max_alarm_duration;
 
     static {
         final PreferencesReader prefs = AnnotatedPreferences.initialize(AudioAnnunciator.class, Preferences.class, "/audio_annunciator_preferences.properties");
@@ -47,7 +49,12 @@ public class Preferences {
 
     private static String useLocalResourceIfUnspecified(String alarmResource) {
         if (alarmResource == null || alarmResource.isEmpty()) {
-            return Preferences.class.getResource("/sounds/mixkit-classic-alarm-995.wav").toString();
+            // If only the alarm sound url is set, in a case where we want to use the same alarm sound for all severties
+            if (!alarm_sound_url.isEmpty()) {
+                return alarm_sound_url;
+            } else {
+                return Preferences.class.getResource("/sounds/mixkit-classic-alarm-995.wav").toString();
+            }
         } else {
             return alarmResource;
         }
