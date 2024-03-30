@@ -41,11 +41,10 @@
                     <groupId>org.aspectj</groupId>
                     <artifactId>aspectjrt</artifactId>
                     <version>${aspectj.version}</version>
-                    <scope>provided</scope>
                 </dependency>
                 <dependency>
                     <groupId>org.phoebus</groupId>
-                    <artifactId>aspects</artifactId>
+                    <artifactId>phoebus-aspects</artifactId>
                     <version>4.7.4-SNAPSHOT</version>
                 </dependency>
             </dependencies>
@@ -66,9 +65,13 @@
                             <aspectLibraries>
                                 <aspectLibrary>
                                     <groupId>org.phoebus</groupId>
-                                    <artifactId>aspects</artifactId>
+                                    <artifactId>phoebus-aspects</artifactId>
                                 </aspectLibrary>
                             </aspectLibraries>
+                            <excludes>
+                                <exclude>org/phoebus/ui/javafx/svg/*</exclude>
+                                <exclude>org/phoebus/ui/web/*</exclude>
+                            </excludes>
                         </configuration>
                         <executions>
                             <execution>

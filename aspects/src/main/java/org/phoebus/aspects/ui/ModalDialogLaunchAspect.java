@@ -31,43 +31,42 @@ import org.aspectj.lang.annotation.Before;
 import java.util.List;
 
 /**
- * Aspect used to intercept launch/dismissal of modal dialogs in order to disable/enable all other windows.
+ * Aspect used to intercept launch/dismissal of modal dialogs in order to set opacity all other windows.
  */
 @SuppressWarnings("unused")
 @Aspect
 public class ModalDialogLaunchAspect {
 
     /**
-     * If {@link JoinPoint} target is a modal {@link Dialog}, this will disable all
+     * If {@link JoinPoint} target is a modal {@link Dialog}, this will set 0.5 opacity
      * other windows when {@link Dialog#showAndWait()} is called.
+     *
      * @param joinPoint {@link JoinPoint} who's target should be a {@link Dialog}
      */
     @Before("call(* javafx.scene.control.Dialog.showAndWait())")
     public void beforeShow(JoinPoint joinPoint) {
-        // Consider only modal dialogs
-        if(joinPoint.getTarget() instanceof Dialog<?> && !((Dialog)joinPoint.getTarget()).getModality().equals(Modality.NONE)){
-            List<Window> windows = Window.getWindows();
-            for (Window window : windows) {
-                if (window instanceof ContextMenu) { // Must not disable context menus!
-                    continue;
-                }
-                window.getScene().getRoot().setDisable(true);
-            }
-        }
+        setOpacity(joinPoint, 0.5);
     }
 
     /**
-     * If {@link JoinPoint} target is a modal {@link Dialog}, this will enable all
+     * If {@link JoinPoint} target is a modal {@link Dialog}, this will set opacity 1.0 on
      * other windows when {@link Dialog#showAndWait()} returns.
+     *
      * @param joinPoint {@link JoinPoint} who's target should be a {@link Dialog}
      */
     @After("call(* javafx.scene.control.Dialog.showAndWait())")
     public void afterDismiss(JoinPoint joinPoint) {
+        setOpacity(joinPoint, 1.0);
+    }
+    private void setOpacity(JoinPoint joinPoint, double opacity) {
         // Consider only modal dialogs
-        if(joinPoint.getTarget() instanceof Dialog<?> && !((Dialog)joinPoint.getTarget()).getModality().equals(Modality.NONE)) {
+        if (joinPoint.getTarget() instanceof Dialog<?> && !((Dialog) joinPoint.getTarget()).getModality().equals(Modality.NONE)) {
             List<Window> windows = Window.getWindows();
             for (Window window : windows) {
-                window.getScene().getRoot().setDisable(false);
+                if (window instanceof ContextMenu) { // Must not tweak context menus!
+                    continue;
+                }
+                window.getScene().getRoot().setOpacity(opacity);
             }
         }
     }

@@ -28,12 +28,11 @@
         <version>4.7.4-SNAPSHOT</version>
     </parent>
 
-    <artifactId>aspects</artifactId>
+    <artifactId>phoebus-aspects</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <aspectj.version>1.9.21</aspectj.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -52,7 +51,6 @@
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjrt</artifactId>
             <version>${aspectj.version}</version>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
     <build>

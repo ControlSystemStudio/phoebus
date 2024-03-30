@@ -89,7 +89,7 @@
     <jython.version>2.7.3</jython.version>
     <jgit.version>6.7.0.202309050840-r</jgit.version>
     <maven.compiler.target>17</maven.compiler.target>
-    <aspectj.version>1.9.21</aspectj.version>
+    <aspectj.version>1.9.22</aspectj.version>
   </properties>
   <build>
     <plugins>
