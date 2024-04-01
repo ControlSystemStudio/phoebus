@@ -63,7 +63,9 @@ public class ModalDialogLaunchAspect {
         if (joinPoint.getTarget() instanceof Dialog<?> && !((Dialog) joinPoint.getTarget()).getModality().equals(Modality.NONE)) {
             List<Window> windows = Window.getWindows();
             for (Window window : windows) {
-                if (window instanceof ContextMenu) { // Must not tweak context menus!
+                // ContextMenu is a Window, so do not disable as it may not be present in
+                // the Window.getWindows() list when Dialog.showAndWait() returns.
+                if (window instanceof ContextMenu) {
                     continue;
                 }
                 window.getScene().getRoot().setOpacity(opacity);
