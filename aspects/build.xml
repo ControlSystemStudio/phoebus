@@ -1,0 +1,44 @@
+<!--
+  ~ Copyright (C) 2023 European Spallation Source ERIC.
+  ~
+  ~  This program is free software; you can redistribute it and/or
+  ~  modify it under the terms of the GNU General Public License
+  ~  as published by the Free Software Foundation; either version 2
+  ~  of the License, or (at your option) any later version.
+  ~
+  ~  This program is distributed in the hope that it will be useful,
+  ~  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~  GNU General Public License for more details.
+  ~
+  ~  You should have received a copy of the GNU General Public License
+  ~  along with this program; if not, write to the Free Software
+  ~  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+  ~
+  -->
+
+<project name="phoebus-aspects" default="compile">
+    <import file="../dependencies/ant_settings.xml"/>
+
+    <taskdef
+            resource="org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties">
+        <!--<classpath>
+            <pathelement location="${home.dir}/tools/aspectj/lib/aspectjtools.jar"/>
+        </classpath>-->
+    </taskdef>
+
+    <target name="compile" >
+        <mkdir dir="${classes}"/>
+        <javac destdir="${classes}" debug="${debug}">
+            <src path="${src}"/>
+            <src path="${test}"/>
+            <classpath>
+                <path refid="app-classpath"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="ajc" depends="compile">
+        <iajc sourceroots="${src}" outjar="${build}/phoebus-aspects-${version}.jar"/>
+    </target>
+</project>
