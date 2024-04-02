@@ -285,10 +285,10 @@ public class FileBrowserController {
         treeView.setOnKeyPressed(this::handleKeys);
 
         // Listen for changes in expanded item count and then highlight file on change.
-        // The call to #highlightFile is put here as update of the TreeView is controlled
-        // by JavaFX whenever a new root is set.
+        // The call to #highlightFile is put here as update of the TreeView is executed
+        // asynchronously by JavaFX whenever a new root is set.
         treeView.expandedItemCountProperty().addListener((observableValue, oldValue, newValue) ->  {
-            if(oldValue.intValue() > 0 && !newValue.equals(oldValue)){
+            if(newValue.intValue() > 0){
                 highlightFile();
             }
         });
@@ -511,25 +511,27 @@ public class FileBrowserController {
         setRoot(p.toFile());
     }
 
-    /**
-     * Set a new root directory, or set a new root directory and then highlight the file.
-     * @param file A {@link File} object representing a directory or a file. In the latter case the
-     *             file's parent is used to set the root of the {@link TreeView}.
-     */
-    public void setRoot(final File file)
+    /** @param directory Desired root directory */
+    public void setRoot(final File directory)
     {
-        File directory;
-        if(file.isFile()){
-            directory = file.getParentFile();
-            this.fileToHighlight = file;
-        }
-        else{
-            directory = file;
-            this.fileToHighlight = null;
-        }
         monitor.setRoot(directory);
         path.setText(directory.toString());
         treeView.setRoot(new FileTreeItem(monitor, directory));
+    }
+
+    /**
+     * Set a new root directory and highlight the file provided (unless it is a directory).
+     * @param file A {@link File} object representing a file (or directory).
+     */
+    public void setRootAndHighlight(final File file){
+        if(file.isDirectory()){
+            this.fileToHighlight = null;
+            setRoot(file);
+        }
+        else{
+            this.fileToHighlight = file;
+            setRoot(file.getParentFile());
+        }
     }
 
     /** @return Root directory */

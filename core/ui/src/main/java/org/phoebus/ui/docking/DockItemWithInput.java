@@ -123,28 +123,35 @@ public class DockItemWithInput extends DockItem {
 
     protected void configureContextMenu(ContextMenu menu) {
         super.configureContextMenu(menu);
-        final Menu showInMenu = new Menu(Messages.ShowIn, new ImageView(showInIcon));
-        final MenuItem showInFileBrowser = new MenuItem(Messages.ShowInFileBrowserApp);
-        showInFileBrowser.setOnAction(e -> {
-            ApplicationService.createInstance("file_browser", new File(input.getPath()).toURI());
-        });
-        final MenuItem showInNativeFileBrowser = new MenuItem(Messages.ShowInNativeFileBrowser);
-        showInNativeFileBrowser.setOnAction(e -> {
-            try {
-                Desktop.getDesktop().open(new File(input.getPath()).getParentFile());
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
-        });
+        if(input == null){
+            return;
+        }
+        boolean isHttpResource = input.toString().toLowerCase().startsWith("http");
         final MenuItem copyResourceToClipboard = new MenuItem(Messages.CopyResourcePath, new ImageView(copyToClipboardIcon));
         copyResourceToClipboard.setOnAction(e -> {
             final ClipboardContent content = new ClipboardContent();
-            content.putString(input.getPath());
+            content.putString(isHttpResource ? input.toString() : input.getPath());
             Clipboard.getSystemClipboard().setContent(content);
         });
 
-        showInMenu.getItems().addAll(showInFileBrowser, showInNativeFileBrowser);
-        name_tab.getContextMenu().getItems().add(1, showInMenu);
+        if(!isHttpResource){
+            final Menu showInMenu = new Menu(Messages.ShowIn, new ImageView(showInIcon));
+            final MenuItem showInFileBrowser = new MenuItem(Messages.ShowInFileBrowserApp);
+            showInFileBrowser.setOnAction(e -> {
+                ApplicationService.createInstance("file_browser", new File(input.getPath()).toURI());
+            });
+            final MenuItem showInNativeFileBrowser = new MenuItem(Messages.ShowInNativeFileBrowser);
+            showInNativeFileBrowser.setOnAction(e -> {
+                try {
+                    Desktop.getDesktop().open(new File(input.getPath()).getParentFile());
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+            });
+            showInMenu.getItems().addAll(showInFileBrowser, showInNativeFileBrowser);
+            name_tab.getContextMenu().getItems().add(1, showInMenu);
+        }
+
         name_tab.getContextMenu().getItems().add(2, copyResourceToClipboard);
     }
 
