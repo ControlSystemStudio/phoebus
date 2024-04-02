@@ -24,7 +24,6 @@ public class LogbookUiPreferences
 {
     @Preference public static String[] default_logbooks;
     @Preference public static String default_logbook_query;
-    @Preference public static boolean  save_credentials;
     @Preference public static String calendar_view_item_stylesheet;
     @Preference public static String level_field_name;
 
