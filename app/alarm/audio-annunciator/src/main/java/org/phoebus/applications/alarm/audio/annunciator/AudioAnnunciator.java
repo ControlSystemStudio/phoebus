@@ -54,12 +54,20 @@ public class AudioAnnunciator implements Annunciator {
     @Override
     public void speak(final AnnunciatorMessage message) {
         switch (message.severity) {
-            case MINOR -> minorAlarmSound.play();
-            case MAJOR -> majorAlarmSound.play();
-            case INVALID -> invalidAlarmSound.play();
-            case UNDEFINED -> undefinedAlarmSound.play();
-            default -> alarmSound.play();
+            case MINOR -> speakAlone(minorAlarmSound);
+            case MAJOR -> speakAlone(majorAlarmSound);
+            case INVALID -> speakAlone(invalidAlarmSound);
+            case UNDEFINED -> speakAlone(undefinedAlarmSound);
+            default -> speakAlone(alarmSound);
         }
+    }
+
+    synchronized private void speakAlone(MediaPlayer alarm) {
+        List.of(alarmSound, minorAlarmSound, majorAlarmSound, invalidAlarmSound, undefinedAlarmSound)
+                .forEach(sound -> {
+                    sound.stop();
+                });
+        alarm.play();
     }
 
     /**
