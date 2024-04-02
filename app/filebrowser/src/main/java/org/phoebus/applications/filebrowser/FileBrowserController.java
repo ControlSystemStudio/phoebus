@@ -59,6 +59,13 @@ public class FileBrowserController {
     private final Menu openWith = new Menu(Messages.OpenWith, ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
     private final ContextMenu contextMenu = new ContextMenu();
 
+    /**
+     * A {@link File} object representing a file (i.e. not a directory) in case client calls
+     * {@link #setRoot(File)} using a file. If the {@link #setRoot(File)} call specifies a directory,
+     * this is set to <code>null</code>.
+     */
+    private File fileToHighlight;
+
     public FileBrowserController()
     {
         monitor = new DirectoryMonitor(this::handleFilesystemChanges);
@@ -276,6 +283,34 @@ public class FileBrowserController {
         contextMenu.getItems().addAll(open, openWith);
 
         treeView.setOnKeyPressed(this::handleKeys);
+
+        // Listen for changes in expanded item count and then highlight file on change.
+        // The call to #highlightFile is put here as update of the TreeView is controlled
+        // by JavaFX whenever a new root is set.
+        treeView.expandedItemCountProperty().addListener((observableValue, oldValue, newValue) ->  {
+            if(oldValue.intValue() > 0 && !newValue.equals(oldValue)){
+                highlightFile();
+            }
+        });
+    }
+
+    /**
+     * Highlights and scrolls to a file if {@link #setRoot(File)} was called with
+     * a file and not directory object.
+     */
+    private void highlightFile(){
+        if(fileToHighlight == null){
+            return;
+        }
+        TreeItem root = treeView.getRoot();
+        List<TreeItem> children = root.getChildren();
+        for(TreeItem child : children){
+            if(((FileInfo)child.getValue()).file.equals(fileToHighlight)){
+                treeView.getSelectionModel().select(child);
+                treeView.scrollTo(treeView.getSelectionModel().getSelectedIndex());
+                return;
+            }
+        }
     }
 
     TreeTableView<FileInfo> getView()
@@ -476,9 +511,22 @@ public class FileBrowserController {
         setRoot(p.toFile());
     }
 
-    /** @param directory Desired root directory */
-    public void setRoot(final File directory)
+    /**
+     * Set a new root directory, or set a new root directory and then highlight the file.
+     * @param file A {@link File} object representing a directory or a file. In the latter case the
+     *             file's parent is used to set the root of the {@link TreeView}.
+     */
+    public void setRoot(final File file)
     {
+        File directory;
+        if(file.isFile()){
+            directory = file.getParentFile();
+            this.fileToHighlight = file;
+        }
+        else{
+            directory = file;
+            this.fileToHighlight = null;
+        }
         monitor.setRoot(directory);
         path.setText(directory.toString());
         treeView.setRoot(new FileTreeItem(monitor, directory));

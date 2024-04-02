@@ -126,7 +126,7 @@ public class DockItemWithInput extends DockItem {
         final Menu showInMenu = new Menu(Messages.ShowIn, new ImageView(showInIcon));
         final MenuItem showInFileBrowser = new MenuItem(Messages.ShowInFileBrowserApp);
         showInFileBrowser.setOnAction(e -> {
-            ApplicationService.createInstance("file_browser", new File(input.getPath()).getParentFile().toURI());
+            ApplicationService.createInstance("file_browser", new File(input.getPath()).toURI());
         });
         final MenuItem showInNativeFileBrowser = new MenuItem(Messages.ShowInNativeFileBrowser);
         showInNativeFileBrowser.setOnAction(e -> {
