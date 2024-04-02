@@ -24,14 +24,13 @@ import javafx.scene.control.Dialog;
 import javafx.stage.Modality;
 import javafx.stage.Window;
 import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 
 import java.util.List;
 
 /**
- * Aspect used to intercept launch/dismissal of modal dialogs in order to set opacity all other windows.
+ * Aspect used to intercept launch/close of modal dialogs in order to set opacity all other windows.
  */
 @SuppressWarnings("unused")
 @Aspect
@@ -44,20 +43,21 @@ public class ModalDialogLaunchAspect {
      * @param joinPoint {@link JoinPoint} who's target should be a {@link Dialog}
      */
     @Before("call(* javafx.scene.control.Dialog.showAndWait())")
-    public void beforeShow(JoinPoint joinPoint) {
+    public void beforeShowAndWait(JoinPoint joinPoint) {
         setOpacity(joinPoint, 0.5);
     }
 
     /**
-     * If {@link JoinPoint} target is a modal {@link Dialog}, this will set opacity 1.0 on
-     * other windows when {@link Dialog#showAndWait()} returns.
+     * If {@link JoinPoint} target is a modal {@link Dialog}, this will set 0.5 opacity
+     * other windows when {@link Dialog#show()} is called.
      *
      * @param joinPoint {@link JoinPoint} who's target should be a {@link Dialog}
      */
-    @After("call(* javafx.scene.control.Dialog.showAndWait())")
-    public void afterDismiss(JoinPoint joinPoint) {
-        setOpacity(joinPoint, 1.0);
+    @Before("call(* javafx.scene.control.Dialog.show())")
+    public void beforeShow(JoinPoint joinPoint) {
+        beforeShowAndWait(joinPoint);
     }
+
     private void setOpacity(JoinPoint joinPoint, double opacity) {
         // Consider only modal dialogs
         if (joinPoint.getTarget() instanceof Dialog<?> && !((Dialog) joinPoint.getTarget()).getModality().equals(Modality.NONE)) {
@@ -68,7 +68,14 @@ public class ModalDialogLaunchAspect {
                 if (window instanceof ContextMenu) {
                     continue;
                 }
-                window.getScene().getRoot().setOpacity(opacity);
+                // Add null checks just in case.
+                if(window.getScene() != null && window.getScene().getRoot() != null){
+                    window.getScene().getRoot().setOpacity(opacity);
+                }
+            }
+            // Install onClose handler to restore opacity
+            if(opacity < 1.0){
+                ((Dialog)joinPoint.getTarget()).setOnCloseRequest(e -> setOpacity(joinPoint, 1.0));
             }
         }
     }

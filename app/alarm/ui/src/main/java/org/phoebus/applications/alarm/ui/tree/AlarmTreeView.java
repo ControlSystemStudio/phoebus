@@ -23,7 +23,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import javafx.scene.control.*;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
@@ -53,6 +52,16 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
@@ -119,14 +128,14 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
     /** Clear the change indicator */
     private final Runnable clear_change_indicator = () ->
-        Platform.runLater(() ->
-        {
-            logger.log(Level.INFO, "Alarm tree changes end");
-            ongoing_change.set(null);
-            setCursor(null);
-            final ObservableList<Node> items = getToolbar().getItems();
-            items.remove(changing);
-        });
+            Platform.runLater(() ->
+            {
+                logger.log(Level.INFO, "Alarm tree changes end");
+                ongoing_change.set(null);
+                setCursor(null);
+                final ObservableList<Node> items = getToolbar().getItems();
+                items.remove(changing);
+            });
 
     // Javadoc for TreeItem shows example for overriding isLeaf() and getChildren()
     // to dynamically create TreeItem as TreeView requests information.
@@ -241,7 +250,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         // but this will show all the top-level elements.
         // In addition, expand those items which are in active alarm.
         final boolean expand = node.getValue().getState().severity.isActive() ||
-                               node == tree_view.getRoot();
+                node == tree_view.getRoot();
         node.setExpanded(expand);
         for (TreeItem<AlarmTreeItem<?>> sub : node.getChildren())
             expandAlarms(sub);
@@ -364,7 +373,7 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
         if (view_parent == null)
         {
-        	dumpTree(tree_view.getRoot());
+            dumpTree(tree_view.getRoot());
             throw new IllegalStateException("Missing parent view item for " + item.getPathName());
         }
         // Create view item ASAP so that following updates will find it..
@@ -378,8 +387,8 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             // Keep sorted by inserting at appropriate index
             final List<TreeItem<AlarmTreeItem<?>>> items = view_parent.getChildren();
             final int index = Collections.binarySearch(items, view_item,
-                                                       (a, b) -> CompareNatural.compareTo(a.getValue().getName(),
-                                                                                          b.getValue().getName()));
+                    (a, b) -> CompareNatural.compareTo(a.getValue().getName(),
+                            b.getValue().getName()));
             if (index < 0)
                 items.add(-index-1, view_item);
             else
@@ -605,9 +614,6 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
             });
             SelectionService.getInstance().setSelection("AlarmTree", originalSelection);
 
-            System.out.println("Alarm tree view " + menu.getScene());
-            System.out.println("Alarm tree view " + menu.getScene().getRoot().disableProperty());
-
             menu.show(tree_view.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         });
     }
@@ -618,8 +624,8 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
         tree_view.setOnMouseClicked(event ->
         {
             if (!AlarmUI.mayConfigure(model)       ||
-                event.getClickCount() != 2    ||
-                tree_view.getSelectionModel().getSelectedItems().size() != 1)
+                    event.getClickCount() != 2    ||
+                    tree_view.getSelectionModel().getSelectedItems().size() != 1)
                 return;
 
             final AlarmTreeItem<?> item = tree_view.getSelectionModel().getSelectedItems().get(0).getValue();
@@ -669,12 +675,12 @@ public class AlarmTreeView extends BorderPane implements AlarmClientListener
 
     private void dumpTree(TreeItem<AlarmTreeItem<?>> item)
     {
-    	final ObservableList<TreeItem<AlarmTreeItem<?>>> children = item.getChildren();
-    	System.out.printf("item: %s , has %d children.\n", item.getValue().getName(), children.size());
-    	for (final TreeItem<AlarmTreeItem<?>> child : children)
-    	{
-    		System.out.println(child.getValue().getName());
-    		dumpTree(child);
-    	}
+        final ObservableList<TreeItem<AlarmTreeItem<?>>> children = item.getChildren();
+        System.out.printf("item: %s , has %d children.\n", item.getValue().getName(), children.size());
+        for (final TreeItem<AlarmTreeItem<?>> child : children)
+        {
+            System.out.println(child.getValue().getName());
+            dumpTree(child);
+        }
     }
 }
