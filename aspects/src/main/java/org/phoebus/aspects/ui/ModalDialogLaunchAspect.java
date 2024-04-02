@@ -19,8 +19,10 @@
 
 package org.phoebus.aspects.ui;
 
+import javafx.event.EventHandler;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogEvent;
 import javafx.stage.Modality;
 import javafx.stage.Window;
 import org.aspectj.lang.JoinPoint;
@@ -44,7 +46,11 @@ public class ModalDialogLaunchAspect {
      */
     @Before("call(* javafx.scene.control.Dialog.showAndWait())")
     public void beforeShowAndWait(JoinPoint joinPoint) {
-        setOpacity(joinPoint, 0.5);
+        // Consider only modal dialogs
+        if (joinPoint.getTarget() instanceof Dialog<?> && !((Dialog) joinPoint.getTarget()).getModality().equals(Modality.NONE)) {
+            setOpacity(0.5);
+            addOnCloseHandler((Dialog) joinPoint.getTarget());
+        }
     }
 
     /**
@@ -58,25 +64,30 @@ public class ModalDialogLaunchAspect {
         beforeShowAndWait(joinPoint);
     }
 
-    private void setOpacity(JoinPoint joinPoint, double opacity) {
-        // Consider only modal dialogs
-        if (joinPoint.getTarget() instanceof Dialog<?> && !((Dialog) joinPoint.getTarget()).getModality().equals(Modality.NONE)) {
-            List<Window> windows = Window.getWindows();
-            for (Window window : windows) {
-                // ContextMenu is a Window, so do not disable as it may not be present in
-                // the Window.getWindows() list when Dialog.showAndWait() returns.
-                if (window instanceof ContextMenu) {
-                    continue;
-                }
-                // Add null checks just in case.
-                if(window.getScene() != null && window.getScene().getRoot() != null){
-                    window.getScene().getRoot().setOpacity(opacity);
-                }
+    private void setOpacity(double opacity) {
+       List<Window> windows = Window.getWindows();
+        for (Window window : windows) {
+            // ContextMenu is a Window, so do not disable as it may not be present in
+            // the Window.getWindows() list when Dialog.showAndWait() returns.
+            if (window instanceof ContextMenu) {
+                continue;
             }
-            // Install onClose handler to restore opacity
-            if(opacity < 1.0){
-                ((Dialog)joinPoint.getTarget()).setOnCloseRequest(e -> setOpacity(joinPoint, 1.0));
+            // Add null checks just in case.
+            if(window.getScene() != null && window.getScene().getRoot() != null){
+                window.getScene().getRoot().setOpacity(opacity);
             }
         }
+    }
+
+    private void addOnCloseHandler(Dialog dialog){
+        final EventHandler<DialogEvent> eventHandler = dialog.getOnCloseRequest();
+        dialog.setOnCloseRequest(e -> {
+            // Dialog may already have an onClose handler.
+            // If so, call it, then restore opacity.c
+            if(eventHandler != null){
+                eventHandler.handle((DialogEvent)e);
+            }
+            setOpacity(1.0);
+        });
     }
 }
