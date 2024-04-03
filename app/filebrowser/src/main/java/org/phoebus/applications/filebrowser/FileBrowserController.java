@@ -61,8 +61,8 @@ public class FileBrowserController {
 
     /**
      * A {@link File} object representing a file (i.e. not a directory) in case client calls
-     * {@link #setRoot(File)} using a file. If the {@link #setRoot(File)} call specifies a directory,
-     * this is set to <code>null</code>.
+     * {@link #setRootAndHighlight(File)} using a file. If the {@link #setRootAndHighlight(File)} call
+     * specifies a directory, this is set to <code>null</code>.
      */
     private File fileToHighlight;
 
@@ -295,8 +295,8 @@ public class FileBrowserController {
     }
 
     /**
-     * Highlights and scrolls to a file if {@link #setRoot(File)} was called with
-     * a file and not directory object.
+     * Highlights and scrolls to a file if {@link #setRootAndHighlight(File)} was called with
+     * a file and not directory {@link File} object.
      */
     private void highlightFile(){
         if(fileToHighlight == null){

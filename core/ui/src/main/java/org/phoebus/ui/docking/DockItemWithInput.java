@@ -121,6 +121,18 @@ public class DockItemWithInput extends DockItem {
         });
     }
 
+    /**
+     * Configures additional and optional items in the context menu if the <code>resource</code> filed is non-null:
+     * <ul>
+     *     <li>Copy the resource to clipboard</li>
+     *     <li>For file resources a sub-menu with items:</li>
+     *     <ul>
+     *         <li>Open and highlight file in Phoebus File Browser app</li>
+     *         <li>Open file's parent directory in native file browser</li>
+     *     </ul>
+     * </ul>
+     * @param menu The {@link ContextMenu} to update.
+     */
     protected void configureContextMenu(ContextMenu menu) {
         super.configureContextMenu(menu);
         if(input == null){
