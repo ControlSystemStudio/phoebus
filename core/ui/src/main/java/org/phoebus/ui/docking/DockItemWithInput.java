@@ -122,12 +122,12 @@ public class DockItemWithInput extends DockItem {
     }
 
     /**
-     * Configures additional and optional items in the context menu if the <code>resource</code> filed is non-null:
-     * <ul>
+     * Configures additional and optional items in the tab header context menu if the <code>resource</code> field is non-null:
+     * <ull>
      *     <li>Copy the resource to clipboard</li>
      *     <li>For file resources a sub-menu with items:</li>
      *     <ul>
-     *         <li>Open and highlight file in Phoebus File Browser app</li>
+     *         <li>Open and highlight file in new File Browser instance</li>
      *         <li>Open file's parent directory in native file browser</li>
      *     </ul>
      * </ul>
