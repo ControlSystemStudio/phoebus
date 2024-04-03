@@ -152,15 +152,18 @@ public class DockItemWithInput extends DockItem {
             showInFileBrowser.setOnAction(e -> {
                 ApplicationService.createInstance("file_browser", new File(input.getPath()).toURI());
             });
-            final MenuItem showInNativeFileBrowser = new MenuItem(Messages.ShowInNativeFileBrowser);
-            showInNativeFileBrowser.setOnAction(e -> {
-                try {
-                    Desktop.getDesktop().open(new File(input.getPath()).getParentFile());
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
-            });
-            showInMenu.getItems().addAll(showInFileBrowser, showInNativeFileBrowser);
+            showInMenu.getItems().add(showInFileBrowser);
+            if(Desktop.isDesktopSupported()){
+                final MenuItem showInNativeFileBrowser = new MenuItem(Messages.ShowInNativeFileBrowser);
+                showInNativeFileBrowser.setOnAction(e -> {
+                    try {
+                        Desktop.getDesktop().open(new File(input.getPath()).getParentFile());
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                });
+                showInMenu.getItems().add(showInNativeFileBrowser);
+            }
             name_tab.getContextMenu().getItems().add(1, showInMenu);
         }
 
