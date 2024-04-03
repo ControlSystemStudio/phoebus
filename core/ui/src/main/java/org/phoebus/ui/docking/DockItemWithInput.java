@@ -89,6 +89,8 @@ public class DockItemWithInput extends DockItem {
 
     private final static Image copyToClipboardIcon = ImageCache.getImage(DockItem.class, "/icons/copy.png");
 
+    private final static Image fileBrowserIcon = ImageCache.getImage(DockItem.class, "/icons/filebrowser.png");
+
     private final static Image showInIcon = ImageCache.getImage(DockItem.class, "/icons/fldr_obj.png");
 
     /**
@@ -147,24 +149,11 @@ public class DockItemWithInput extends DockItem {
         });
 
         if(!isHttpResource){
-            final Menu showInMenu = new Menu(Messages.ShowIn, new ImageView(showInIcon));
-            final MenuItem showInFileBrowser = new MenuItem(Messages.ShowInFileBrowserApp);
+            final MenuItem showInFileBrowser = new MenuItem(Messages.ShowInFileBrowserApp, new ImageView(fileBrowserIcon));
             showInFileBrowser.setOnAction(e -> {
                 ApplicationService.createInstance("file_browser", new File(input.getPath()).toURI());
             });
-            showInMenu.getItems().add(showInFileBrowser);
-            if(Desktop.isDesktopSupported()){
-                final MenuItem showInNativeFileBrowser = new MenuItem(Messages.ShowInNativeFileBrowser);
-                showInNativeFileBrowser.setOnAction(e -> {
-                    try {
-                        Desktop.getDesktop().open(new File(input.getPath()).getParentFile());
-                    } catch (IOException ex) {
-                        throw new RuntimeException(ex);
-                    }
-                });
-                showInMenu.getItems().add(showInNativeFileBrowser);
-            }
-            name_tab.getContextMenu().getItems().add(1, showInMenu);
+            name_tab.getContextMenu().getItems().add(1, showInFileBrowser);
         }
 
         name_tab.getContextMenu().getItems().add(2, copyResourceToClipboard);

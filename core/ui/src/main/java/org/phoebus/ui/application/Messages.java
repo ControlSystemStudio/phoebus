@@ -131,9 +131,7 @@ public class Messages
     public static String ScreenshotErrHdr;
     public static String ScreenshotErrMsg;
     public static String SelectTab;
-    public static String ShowIn;
     public static String ShowInFileBrowserApp;
-    public static String ShowInNativeFileBrowser;
     public static String ShowStatusbar;
     public static String ShowToolbar;
     public static String Time12h;
