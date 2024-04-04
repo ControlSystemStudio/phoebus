@@ -26,6 +26,7 @@ import javafx.scene.control.DialogEvent;
 import javafx.stage.Modality;
 import javafx.stage.Window;
 import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 
@@ -62,6 +63,25 @@ public class ModalDialogLaunchAspect {
     @Before("call(* javafx.scene.control.Dialog.show())")
     public void beforeShow(JoinPoint joinPoint) {
         beforeShowAndWait(joinPoint);
+    }
+
+    /**
+     * Called if exception is thrown in {@link Dialog}.
+     */
+    @AfterThrowing("call(* javafx.scene.control.Dialog.showAndWait())")
+    public void afterThrowingShowAndWait(JoinPoint joinPoint){
+        // Consider only modal dialogs
+        if (joinPoint.getTarget() instanceof Dialog<?> && !((Dialog) joinPoint.getTarget()).getModality().equals(Modality.NONE)) {
+            setOpacity(1.0);
+        }
+    }
+
+    /**
+     * Called if exception is thrown in {@link Dialog}.
+     */
+    @AfterThrowing("call(* javafx.scene.control.Dialog.show())")
+    public void afterThrowingShow(JoinPoint joinPoint){
+        afterThrowingShowAndWait(joinPoint);
     }
 
     private void setOpacity(double opacity) {
