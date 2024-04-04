@@ -9,10 +9,13 @@ package org.phoebus.ui.docking;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Menu;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.Tab;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
@@ -33,9 +36,7 @@ import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
 import org.phoebus.ui.dialog.SaveAsDialog;
 import org.phoebus.ui.javafx.ImageCache;
 
-import java.awt.*;
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -91,8 +92,6 @@ public class DockItemWithInput extends DockItem {
 
     private final static Image fileBrowserIcon = ImageCache.getImage(DockItem.class, "/icons/filebrowser.png");
 
-    private final static Image showInIcon = ImageCache.getImage(DockItem.class, "/icons/fldr_obj.png");
-
     /**
      * Create dock item
      *
@@ -126,29 +125,30 @@ public class DockItemWithInput extends DockItem {
     /**
      * Configures additional and optional items in the tab header context menu if the <code>resource</code> field is non-null:
      * <ull>
-     *     <li>Copy the resource to clipboard</li>
-     *     <li>For file resources a sub-menu with items:</li>
+     * <li>Copy the resource to clipboard</li>
+     * <li>For file resources a sub-menu with items:</li>
      *     <ul>
      *         <li>Open and highlight file in new File Browser instance</li>
      *         <li>Open file's parent directory in native file browser</li>
      *     </ul>
      * </ul>
+     *
      * @param menu The {@link ContextMenu} to update.
      */
     protected void configureContextMenu(ContextMenu menu) {
         super.configureContextMenu(menu);
-        if(input == null){
+        if (input == null) {
             return;
         }
-        boolean isHttpResource = input.toString().toLowerCase().startsWith("http");
+        boolean isFileResource = input.getScheme().toLowerCase().startsWith("file");
         final MenuItem copyResourceToClipboard = new MenuItem(Messages.CopyResourcePath, new ImageView(copyToClipboardIcon));
         copyResourceToClipboard.setOnAction(e -> {
             final ClipboardContent content = new ClipboardContent();
-            content.putString(isHttpResource ? input.toString() : input.getPath());
+            content.putString(isFileResource ? input.toString() : input.getPath());
             Clipboard.getSystemClipboard().setContent(content);
         });
 
-        if(!isHttpResource){
+        if (isFileResource) {
             final MenuItem showInFileBrowser = new MenuItem(Messages.ShowInFileBrowserApp, new ImageView(fileBrowserIcon));
             showInFileBrowser.setOnAction(e -> {
                 ApplicationService.createInstance("file_browser", new File(input.getPath()).toURI());

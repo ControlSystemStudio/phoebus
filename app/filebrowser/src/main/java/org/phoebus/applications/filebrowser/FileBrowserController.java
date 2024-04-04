@@ -3,10 +3,22 @@ package org.phoebus.applications.filebrowser;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeTableColumn;
+import javafx.scene.control.TreeTableView;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ContextMenuEvent;
@@ -59,6 +71,8 @@ public class FileBrowserController {
     private final Menu openWith = new Menu(Messages.OpenWith, ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
     private final ContextMenu contextMenu = new ContextMenu();
 
+    private ExandedCountChangeListener exandedCountChangeListener;
+
     /**
      * A {@link File} object representing a file (i.e. not a directory) in case client calls
      * {@link #setRootAndHighlight(File)} using a file. If the {@link #setRootAndHighlight(File)} call
@@ -66,22 +80,17 @@ public class FileBrowserController {
      */
     private File fileToHighlight;
 
-    public FileBrowserController()
-    {
+    public FileBrowserController() {
         monitor = new DirectoryMonitor(this::handleFilesystemChanges);
     }
 
-    private void handleFilesystemChanges(final File file, final DirectoryMonitor.Change change)
-    {
+    private void handleFilesystemChanges(final File file, final DirectoryMonitor.Change change) {
         // The notification might address a file that the file browser itself just added/renamed/removed,
         // and the file browser is already in the process of updating itself.
         // Wait a little to allow that to happen
-        try
-        {
+        try {
             Thread.sleep(1000);
-        }
-        catch (InterruptedException ex)
-        {
+        } catch (InterruptedException ex) {
             return;
         }
 
@@ -94,11 +103,9 @@ public class FileBrowserController {
             assertTreeDoesntContain(treeView.getRoot(), file.toPath());
     }
 
-    private void assertTreeContains(final TreeItem<FileInfo> item, final Path file)
-    {
+    private void assertTreeContains(final TreeItem<FileInfo> item, final Path file) {
         final Path dir = item.getValue().file.toPath();
-        if (! file.startsWith(dir))
-        {
+        if (!file.startsWith(dir)) {
             logger.log(Level.WARNING, "Cannot check for " + file + " within " + dir);
             return;
         }
@@ -112,23 +119,20 @@ public class FileBrowserController {
         logger.log(Level.FINE, () -> "Looking for " + sub + " in " + dir);
 
         for (TreeItem<FileInfo> child : item.getChildren())
-            if (sub.equals(child.getValue().file))
-            {
-                logger.log(Level.FINE,"Found it!");
+            if (sub.equals(child.getValue().file)) {
+                logger.log(Level.FINE, "Found it!");
                 if (sub.isDirectory())
                     assertTreeContains(child, file);
                 return;
             }
 
         logger.log(Level.FINE, () -> "Forcing refresh of " + dir + " to show " + sub);
-        Platform.runLater(() -> ((FileTreeItem)item).forceRefresh());
+        Platform.runLater(() -> ((FileTreeItem) item).forceRefresh());
     }
 
-    private void refreshTreeItem(final TreeItem<FileInfo> item, final Path file)
-    {
+    private void refreshTreeItem(final TreeItem<FileInfo> item, final Path file) {
         final Path dir = item.getValue().file.toPath();
-        if (dir.equals(file))
-        {
+        if (dir.equals(file)) {
             logger.log(Level.FINE, () -> "Forcing refresh of " + item);
             Platform.runLater(() ->
             {
@@ -140,8 +144,7 @@ public class FileBrowserController {
             return;
         }
 
-        if (! file.startsWith(dir))
-        {
+        if (!file.startsWith(dir)) {
             logger.log(Level.WARNING, "Cannot refresh " + file + " within " + dir);
             return;
         }
@@ -156,12 +159,10 @@ public class FileBrowserController {
     }
 
 
-    private void assertTreeDoesntContain(final TreeItem<FileInfo> item, final Path file)
-    {
+    private void assertTreeDoesntContain(final TreeItem<FileInfo> item, final Path file) {
         final Path dir = item.getValue().file.toPath();
         logger.log(Level.FINE, () -> "Does " + dir + " still contain " + file + "?");
-        if (! file.startsWith(dir))
-        {
+        if (!file.startsWith(dir)) {
             logger.log(Level.FINE, "Can't!");
             return;
         }
@@ -169,16 +170,14 @@ public class FileBrowserController {
         final int dir_len = dir.getNameCount();
         final File sub = new File(item.getValue().file, file.getName(dir_len).toString());
         for (TreeItem<FileInfo> child : item.getChildren())
-            if (sub.equals(child.getValue().file))
-            {
+            if (sub.equals(child.getValue().file)) {
                 // Found file or sub path to it..
                 if (sub.isDirectory())
                     assertTreeDoesntContain(child, file);
-                else
-                {   // Found the file still listed as a child of 'item',
+                else {   // Found the file still listed as a child of 'item',
                     // so refresh 'item'
                     logger.log(Level.FINE, () -> "Forcing refresh of " + dir + " to hide " + sub);
-                    Platform.runLater(() -> ((FileTreeItem)item).forceRefresh());
+                    Platform.runLater(() -> ((FileTreeItem) item).forceRefresh());
                 }
                 return;
             }
@@ -186,15 +185,15 @@ public class FileBrowserController {
         logger.log(Level.FINE, "Not found, all good");
     }
 
-    /** Try to open resource, show error dialog on failure
-     *  @param file Resource to open
-     *  @param stage Stage to use to prompt for specific app.
-     *               Otherwise <code>null</code> to use default app.
+    /**
+     * Try to open resource, show error dialog on failure
+     *
+     * @param file  Resource to open
+     * @param stage Stage to use to prompt for specific app.
+     *              Otherwise <code>null</code> to use default app.
      */
-    private void openResource(final File file, final Stage stage)
-    {
-        if (! ApplicationLauncherService.openFile(file, stage != null, stage))
-        {
+    private void openResource(final File file, final Stage stage) {
+        if (!ApplicationLauncherService.openFile(file, stage != null, stage)) {
             final Alert alert = new Alert(AlertType.ERROR);
             alert.setHeaderText(Messages.OpenAlert1 + file + Messages.OpenAlert2);
             DialogHelper.positionDialog(alert, treeView, -300, -200);
@@ -202,17 +201,18 @@ public class FileBrowserController {
         }
     }
 
-    /** Try to open all the currently selected resources */
-    private void openSelectedResources()
-    {
+    /**
+     * Try to open all the currently selected resources
+     */
+    private void openSelectedResources() {
         treeView.selectionModelProperty()
                 .getValue()
                 .getSelectedItems()
                 .forEach(item ->
-        {
-            if (item.isLeaf())
-                openResource(item.getValue().file, null);
-        });
+                {
+                    if (item.isLeaf())
+                        openResource(item.getValue().file, null);
+                });
     }
 
     @FXML
@@ -250,17 +250,15 @@ public class FileBrowserController {
             // Available with, less space used for the TableMenuButton '+' on the right
             // so that the up/down column sort markers remain visible
             double available = treeView.getWidth() - 10;
-            if (name_col.isVisible())
-            {
+            if (name_col.isVisible()) {
                 // Only name visible? Use the space!
                 if (!size_col.isVisible() && !time_col.isVisible())
                     name_col.setPrefWidth(available);
                 else
                     available -= name_col.getWidth();
             }
-            if (size_col.isVisible())
-            {
-                if (! time_col.isVisible())
+            if (size_col.isVisible()) {
+                if (!time_col.isVisible())
                     size_col.setPrefWidth(available);
                 else
                     available -= size_col.getWidth();
@@ -283,128 +281,88 @@ public class FileBrowserController {
         contextMenu.getItems().addAll(open, openWith);
 
         treeView.setOnKeyPressed(this::handleKeys);
-
-        // Listen for changes in expanded item count and then highlight file on change.
-        // The call to #highlightFile is put here as update of the TreeView is executed
-        // asynchronously by JavaFX whenever a new root is set.
-        treeView.expandedItemCountProperty().addListener((observableValue, oldValue, newValue) ->  {
-            if(newValue.intValue() > 0){
-                highlightFile();
-            }
-        });
     }
 
-    /**
-     * Highlights and scrolls to a file if {@link #setRootAndHighlight(File)} was called with
-     * a file and not directory {@link File} object.
-     */
-    private void highlightFile(){
-        if(fileToHighlight == null){
-            return;
-        }
-        TreeItem root = treeView.getRoot();
-        List<TreeItem> children = root.getChildren();
-        for(TreeItem child : children){
-            if(((FileInfo)child.getValue()).file.equals(fileToHighlight)){
-                treeView.getSelectionModel().select(child);
-                treeView.scrollTo(treeView.getSelectionModel().getSelectedIndex());
-                return;
-            }
-        }
-    }
-
-    TreeTableView<FileInfo> getView()
-    {
+    TreeTableView<FileInfo> getView() {
         return treeView;
     }
 
-    private void handleKeys(final KeyEvent event)
-    {
-        switch(event.getCode())
-        {
-        case ENTER: // Open
-        {
-            openSelectedResources();
-            event.consume();
-            break;
-        }
-        case F2: // Rename file
-        {
-            final ObservableList<TreeItem<FileInfo>> items = treeView.selectionModelProperty().getValue().getSelectedItems();
-            if (items.size() == 1)
+    private void handleKeys(final KeyEvent event) {
+        switch (event.getCode()) {
+            case ENTER: // Open
             {
-                final TreeItem<FileInfo> item = items.get(0);
-                if (item.isLeaf())
-                    new RenameAction(treeView, item).fire();
+                openSelectedResources();
+                event.consume();
+                break;
             }
-            event.consume();
-            break;
-        }
-        case DELETE: // Delete
-        {
-            final ObservableList<TreeItem<FileInfo>> items = treeView.selectionModelProperty().getValue().getSelectedItems();
-            if (items.size() > 0)
-                new DeleteAction(treeView, items).fire();
-            event.consume();
-            break;
-        }
-        case C: // Copy
-        {
-            if (event.isShortcutDown())
+            case F2: // Rename file
             {
                 final ObservableList<TreeItem<FileInfo>> items = treeView.selectionModelProperty().getValue().getSelectedItems();
-                new CopyPath(items).fire();
+                if (items.size() == 1) {
+                    final TreeItem<FileInfo> item = items.get(0);
+                    if (item.isLeaf())
+                        new RenameAction(treeView, item).fire();
+                }
                 event.consume();
+                break;
             }
-            break;
-        }
-        case V: // Paste
-        {
-            if (event.isShortcutDown())
+            case DELETE: // Delete
             {
-                TreeItem<FileInfo> item = treeView.selectionModelProperty().getValue().getSelectedItem();
-                if (item == null)
-                    item = treeView.getRoot();
-                else if (item.isLeaf())
-                    item = item.getParent();
-                new PasteFiles(treeView, item).fire();
+                final ObservableList<TreeItem<FileInfo>> items = treeView.selectionModelProperty().getValue().getSelectedItems();
+                if (items.size() > 0)
+                    new DeleteAction(treeView, items).fire();
                 event.consume();
+                break;
             }
-            break;
-        }
-        case ESCAPE: // De-select
-            treeView.selectionModelProperty().get().clearSelection();
-            break;
-        default:
-            if ((event.getCode().compareTo(KeyCode.A) >= 0  &&  event.getCode().compareTo(KeyCode.Z) <= 0) ||
-                (event.getCode().compareTo(KeyCode.DIGIT0) >= 0  &&  event.getCode().compareTo(KeyCode.DIGIT9) <= 0))
+            case C: // Copy
             {
-                // Move selection to first/next file that starts with that character
-                final String ch = event.getCode().getChar().toLowerCase();
+                if (event.isShortcutDown()) {
+                    final ObservableList<TreeItem<FileInfo>> items = treeView.selectionModelProperty().getValue().getSelectedItems();
+                    new CopyPath(items).fire();
+                    event.consume();
+                }
+                break;
+            }
+            case V: // Paste
+            {
+                if (event.isShortcutDown()) {
+                    TreeItem<FileInfo> item = treeView.selectionModelProperty().getValue().getSelectedItem();
+                    if (item == null)
+                        item = treeView.getRoot();
+                    else if (item.isLeaf())
+                        item = item.getParent();
+                    new PasteFiles(treeView, item).fire();
+                    event.consume();
+                }
+                break;
+            }
+            case ESCAPE: // De-select
+                treeView.selectionModelProperty().get().clearSelection();
+                break;
+            default:
+                if ((event.getCode().compareTo(KeyCode.A) >= 0 && event.getCode().compareTo(KeyCode.Z) <= 0) ||
+                        (event.getCode().compareTo(KeyCode.DIGIT0) >= 0 && event.getCode().compareTo(KeyCode.DIGIT9) <= 0)) {
+                    // Move selection to first/next file that starts with that character
+                    final String ch = event.getCode().getChar().toLowerCase();
 
-                final TreeItem<FileInfo> selected = treeView.selectionModelProperty().getValue().getSelectedItem();
-                final ObservableList<TreeItem<FileInfo>> siblings;
-                int index;
-                if (selected != null)
-                {   // Start after the selected item
-                    siblings = selected.getParent().getChildren();
-                    index = siblings.indexOf(selected);
-                }
-                else if (!treeView.getRoot().getChildren().isEmpty())
-                {   // Start at the root
-                    siblings = treeView.getRoot().getChildren();
-                    index = -1;
-                }
-                else
-                    break;
-                for (++index;  index < siblings.size();  ++index)
-                    if (siblings.get(index).getValue().file.getName().toLowerCase().startsWith(ch))
-                    {
-                        treeView.selectionModelProperty().get().clearSelection();
-                        treeView.selectionModelProperty().get().select(siblings.get(index));
+                    final TreeItem<FileInfo> selected = treeView.selectionModelProperty().getValue().getSelectedItem();
+                    final ObservableList<TreeItem<FileInfo>> siblings;
+                    int index;
+                    if (selected != null) {   // Start after the selected item
+                        siblings = selected.getParent().getChildren();
+                        index = siblings.indexOf(selected);
+                    } else if (!treeView.getRoot().getChildren().isEmpty()) {   // Start at the root
+                        siblings = treeView.getRoot().getChildren();
+                        index = -1;
+                    } else
                         break;
-                    }
-            }
+                    for (++index; index < siblings.size(); ++index)
+                        if (siblings.get(index).getValue().file.getName().toLowerCase().startsWith(ch)) {
+                            treeView.selectionModelProperty().get().clearSelection();
+                            treeView.selectionModelProperty().get().select(siblings.get(index));
+                            break;
+                        }
+                }
         }
     }
 
@@ -414,18 +372,15 @@ public class FileBrowserController {
 
         contextMenu.getItems().clear();
 
-        if (selectedItems.isEmpty())
-        {
+        if (selectedItems.isEmpty()) {
             // Create directory at root
             contextMenu.getItems().addAll(new CreateDirectoryAction(treeView, treeView.getRoot()));
             // Paste files at root
             if (Clipboard.getSystemClipboard().hasFiles())
                 contextMenu.getItems().addAll(new PasteFiles(treeView, treeView.getRoot()));
-        }
-        else
-        {
+        } else {
             // allMatch() would return true for empty, so only check if there are items
-            if (selectedItems.stream().allMatch(item -> item.isLeaf())){
+            if (selectedItems.stream().allMatch(item -> item.isLeaf())) {
                 contextMenu.getItems().add(open);
             }
 
@@ -433,7 +388,7 @@ public class FileBrowserController {
             configureOpenWithMenuItem(selectedItems);
 
             if (selectedItems.size() == 1) {
-                if(file.isDirectory()){
+                if (file.isDirectory()) {
                     contextMenu.getItems().add(new SetBaseDirectory(file, this::setRoot));
                     contextMenu.getItems().add(new SeparatorMenuItem());
 
@@ -459,25 +414,21 @@ public class FileBrowserController {
             contextMenu.getItems().add(new CopyPath(selectedItems));
             contextMenu.getItems().add(new SeparatorMenuItem());
         }
-        if (selectedItems.size() >= 1)
-        {
+        if (selectedItems.size() >= 1) {
             final TreeItem<FileInfo> item = selectedItems.get(0);
             final boolean is_file = item.isLeaf();
 
-            if (selectedItems.size() == 1)
-            {
-                if (is_file)
-                {
+            if (selectedItems.size() == 1) {
+                if (is_file) {
                     // Create directory within the _parent_
                     contextMenu.getItems().addAll(new CreateDirectoryAction(treeView, item.getParent()));
 
                     // Plain file can be duplicated, directory can't
                     contextMenu.getItems().add(new DuplicateAction(treeView, item));
-                }
-                else
+                } else
                     // Within a directory, a new directory can be created
                     contextMenu.getItems().addAll(new CreateDirectoryAction(treeView, item));
-                contextMenu.getItems().addAll(new RenameAction(treeView,  selectedItems.get(0)));
+                contextMenu.getItems().addAll(new RenameAction(treeView, selectedItems.get(0)));
 
                 if (Clipboard.getSystemClipboard().hasFiles())
                     contextMenu.getItems().addAll(new PasteFiles(treeView, selectedItems.get(0)));
@@ -492,15 +443,14 @@ public class FileBrowserController {
                 contextMenu.getItems().add(new RefreshAction(treeView, item));
         }
 
-        if (selectedItems.size() == 1){
-            contextMenu.getItems().addAll(new PropertiesAction(treeView,  selectedItems.get(0)));
+        if (selectedItems.size() == 1) {
+            contextMenu.getItems().addAll(new PropertiesAction(treeView, selectedItems.get(0)));
         }
         contextMenu.show(treeView.getScene().getWindow(), e.getScreenX(), e.getScreenY());
     }
 
     @FXML
-    public void handleMouseClickEvents(final MouseEvent event)
-    {
+    public void handleMouseClickEvents(final MouseEvent event) {
         if (event.getClickCount() == 2)
             openSelectedResources();
     }
@@ -511,9 +461,10 @@ public class FileBrowserController {
         setRoot(p.toFile());
     }
 
-    /** @param directory Desired root directory */
-    public void setRoot(final File directory)
-    {
+    /**
+     * @param directory Desired root directory
+     */
+    public void setRoot(final File directory) {
         monitor.setRoot(directory);
         path.setText(directory.toString());
         treeView.setRoot(new FileTreeItem(monitor, directory));
@@ -521,22 +472,24 @@ public class FileBrowserController {
 
     /**
      * Set a new root directory and highlight the file provided (unless it is a directory).
+     *
      * @param file A {@link File} object representing a file (or directory).
      */
-    public void setRootAndHighlight(final File file){
-        if(file.isDirectory()){
-            this.fileToHighlight = null;
+    public void setRootAndHighlight(final File file) {
+        if (file.isDirectory()) {
             setRoot(file);
-        }
-        else{
+        } else {
+            this.exandedCountChangeListener = new ExandedCountChangeListener();
             this.fileToHighlight = file;
+            treeView.expandedItemCountProperty().addListener(exandedCountChangeListener);
             setRoot(file.getParentFile());
         }
     }
 
-    /** @return Root directory */
-    public File getRoot()
-    {
+    /**
+     * @return Root directory
+     */
+    public File getRoot() {
         return treeView.getRoot().getValue().file;
     }
 
@@ -558,9 +511,10 @@ public class FileBrowserController {
             setRoot(newRootFile);
     }
 
-    /** Call when no longer needed */
-    public void shutdown()
-    {
+    /**
+     * Call when no longer needed
+     */
+    public void shutdown() {
         monitor.shutdown();
     }
 
@@ -572,10 +526,11 @@ public class FileBrowserController {
      *     <li>If all selected items are of same type, the Open With menu item will be added and the
      *     the sub-menu items will open all items. This also covers the case when only one item is selected.</li>
      * </ul>
+     *
      * @param selectedItems List of items selected by user in the tree table view.
      */
-    private void configureOpenWithMenuItem(List<TreeItem<FileInfo>> selectedItems){
-        if(!areSelectedFilesOfSameType(selectedItems)) {
+    private void configureOpenWithMenuItem(List<TreeItem<FileInfo>> selectedItems) {
+        if (!areSelectedFilesOfSameType(selectedItems)) {
             openWith.getItems().clear();
             return;
         }
@@ -584,17 +539,15 @@ public class FileBrowserController {
         final File file = selectedItems.get(0).getValue().file;
         final URI resource = ResourceParser.getURI(file);
         final List<AppResourceDescriptor> applications = ApplicationService.getApplications(resource);
-        if (applications.size() > 0)
-        {
+        if (applications.size() > 0) {
             openWith.getItems().clear();
-            for (AppResourceDescriptor app : applications)
-            {
+            for (AppResourceDescriptor app : applications) {
                 final MenuItem open_app = new MenuItem(app.getDisplayName());
                 final URL icon_url = app.getIconURL();
                 if (icon_url != null)
                     open_app.setGraphic(new ImageView(icon_url.toExternalForm()));
                 open_app.setOnAction(event -> {
-                    for(TreeItem<FileInfo> item : selectedItems){
+                    for (TreeItem<FileInfo> item : selectedItems) {
                         URI u = ResourceParser.getURI(item.getValue().file);
                         app.create(u);
                     }
@@ -608,20 +561,37 @@ public class FileBrowserController {
     /**
      * Examines the file selection to determine whether all files are of the same type. A type is
      * defined by the file extension (case-insensitive substring after last dot).
+     *
      * @param selectedItems Items selected by user in the tree table view
      * @return <code>true</code> if all selected files have same (case-insensitive) extension.
      */
-    private boolean areSelectedFilesOfSameType(List<TreeItem<FileInfo>> selectedItems){
+    private boolean areSelectedFilesOfSameType(List<TreeItem<FileInfo>> selectedItems) {
         File file = selectedItems.get(0).getValue().file;
         String firstExtension = file.getPath().substring(file.getPath().lastIndexOf(".") + 1).toLowerCase();
-        for(int i = 1; i < selectedItems.size(); i++){
+        for (int i = 1; i < selectedItems.size(); i++) {
             file = selectedItems.get(i).getValue().file;
             String nextExtension = file.getPath().substring(file.getPath().lastIndexOf(".") + 1).toLowerCase();
-            if(!firstExtension.equals(nextExtension)){
+            if (!firstExtension.equals(nextExtension)) {
                 return false;
             }
         }
 
         return true;
+    }
+
+    private class ExandedCountChangeListener implements ChangeListener {
+        @Override
+        public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+            TreeItem root = treeView.getRoot();
+            List<TreeItem> children = root.getChildren();
+            for (TreeItem child : children) {
+                if (((FileInfo) child.getValue()).file.equals(fileToHighlight)) {
+                    treeView.getSelectionModel().select(child);
+                    treeView.scrollTo(treeView.getSelectionModel().getSelectedIndex());
+                    treeView.expandedItemCountProperty().removeListener(exandedCountChangeListener);
+                    return;
+                }
+            }
+        }
     }
 }
