@@ -71,7 +71,7 @@ public class FileBrowserController {
     private final Menu openWith = new Menu(Messages.OpenWith, ImageCache.getImageView(PhoebusApplication.class, "/icons/fldr_obj.png"));
     private final ContextMenu contextMenu = new ContextMenu();
 
-    private ExandedCountChangeListener exandedCountChangeListener;
+    private ExpandedCountChangeListener expandedCountChangeListener;
 
     /**
      * A {@link File} object representing a file (i.e. not a directory) in case client calls
@@ -479,9 +479,9 @@ public class FileBrowserController {
         if (file.isDirectory()) {
             setRoot(file);
         } else {
-            this.exandedCountChangeListener = new ExandedCountChangeListener();
+            this.expandedCountChangeListener = new ExpandedCountChangeListener();
             this.fileToHighlight = file;
-            treeView.expandedItemCountProperty().addListener(exandedCountChangeListener);
+            treeView.expandedItemCountProperty().addListener(expandedCountChangeListener);
             setRoot(file.getParentFile());
         }
     }
@@ -579,7 +579,7 @@ public class FileBrowserController {
         return true;
     }
 
-    private class ExandedCountChangeListener implements ChangeListener {
+    private class ExpandedCountChangeListener implements ChangeListener {
         @Override
         public void changed(ObservableValue observable, Object oldValue, Object newValue) {
             TreeItem root = treeView.getRoot();
@@ -588,7 +588,7 @@ public class FileBrowserController {
                 if (((FileInfo) child.getValue()).file.equals(fileToHighlight)) {
                     treeView.getSelectionModel().select(child);
                     treeView.scrollTo(treeView.getSelectionModel().getSelectedIndex());
-                    treeView.expandedItemCountProperty().removeListener(exandedCountChangeListener);
+                    treeView.expandedItemCountProperty().removeListener(expandedCountChangeListener);
                     return;
                 }
             }
