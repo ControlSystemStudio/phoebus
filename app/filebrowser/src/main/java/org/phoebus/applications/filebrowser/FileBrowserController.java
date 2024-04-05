@@ -73,13 +73,6 @@ public class FileBrowserController {
 
     private ExpandedCountChangeListener expandedCountChangeListener;
 
-    /**
-     * A {@link File} object representing a file (i.e. not a directory) in case client calls
-     * {@link #setRootAndHighlight(File)} using a file. If the {@link #setRootAndHighlight(File)} call
-     * specifies a directory, this is set to <code>null</code>.
-     */
-    private File fileToHighlight;
-
     public FileBrowserController() {
         monitor = new DirectoryMonitor(this::handleFilesystemChanges);
     }
@@ -479,8 +472,7 @@ public class FileBrowserController {
         if (file.isDirectory()) {
             setRoot(file);
         } else {
-            this.expandedCountChangeListener = new ExpandedCountChangeListener();
-            this.fileToHighlight = file;
+            this.expandedCountChangeListener = new ExpandedCountChangeListener(file);
             treeView.expandedItemCountProperty().addListener(expandedCountChangeListener);
             setRoot(file.getParentFile());
         }
@@ -580,6 +572,17 @@ public class FileBrowserController {
     }
 
     private class ExpandedCountChangeListener implements ChangeListener {
+
+        /**
+         * A {@link File} object representing a file (i.e. not a directory) in case client calls
+         * {@link #setRootAndHighlight(File)} using a file. If the {@link #setRootAndHighlight(File)} call
+         * specifies a directory, this is set to <code>null</code>.
+         */
+        private File fileToHighlight;
+
+        public ExpandedCountChangeListener(File fileToHighlight){
+            this.fileToHighlight = fileToHighlight;
+        }
         @Override
         public void changed(ObservableValue observable, Object oldValue, Object newValue) {
             TreeItem root = treeView.getRoot();
