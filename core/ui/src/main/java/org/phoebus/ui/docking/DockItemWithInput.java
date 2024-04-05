@@ -144,7 +144,7 @@ public class DockItemWithInput extends DockItem {
         final MenuItem copyResourceToClipboard = new MenuItem(Messages.CopyResourcePath, new ImageView(copyToClipboardIcon));
         copyResourceToClipboard.setOnAction(e -> {
             final ClipboardContent content = new ClipboardContent();
-            content.putString(isFileResource ? input.toString() : input.getPath());
+            content.putString(isFileResource ? input.getPath() : input.toString());
             Clipboard.getSystemClipboard().setContent(content);
         });
 
