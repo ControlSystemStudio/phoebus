@@ -28,6 +28,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -36,6 +38,8 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Dialog;
+import javafx.scene.control.ListView;
+import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuButton;
@@ -44,14 +48,26 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.SubJobMonitor;
 import org.phoebus.framework.persistence.MementoTree;
 import org.phoebus.framework.persistence.XMLMementoTree;
+import org.phoebus.framework.preferences.PropertyPreferenceLoader;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 import org.phoebus.framework.util.ResourceParser;
@@ -85,12 +101,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
-import javafx.scene.input.MouseEvent;
-import javafx.stage.Stage;
-import javafx.stage.Window;
 
 /**
  * Primary UI for a phoebus application
@@ -289,12 +299,108 @@ public class PhoebusApplication extends Application {
         // Show splash screen as soon as possible..
         final Splash splash = Preferences.splash ? new Splash(initial_stage) : null;
 
+        Platform.setImplicitExit(false);
+        possiblySelectIniFile(application_parameters);
+
         // .. then read saved state etc. in background job
         JobManager.schedule("Startup", monitor ->
         {
             final JobMonitor splash_monitor = new SplashJobMonitor(monitor, splash);
             backgroundStartup(splash_monitor, splash);
+            Platform.setImplicitExit(true);
         });
+    }
+
+    private void possiblySelectIniFile(CopyOnWriteArrayList<String> application_parameters) {
+        if (application_parameters.contains("-select_settings")) {
+            int indexOfFlag = application_parameters.indexOf("-select_settings", 0);
+            if (indexOfFlag < 0) {
+                throw new RuntimeException("Error, this should never happen!");
+            }
+            if (application_parameters.size() >= indexOfFlag) {
+                String iniFilesLocation_String = application_parameters.get(indexOfFlag + 1);
+                File iniFilesLocation_File = new File(iniFilesLocation_String);
+                if (iniFilesLocation_File.isDirectory()) {
+                    List<File> iniFilesInDirectory_List = Arrays.stream(iniFilesLocation_File.listFiles()).filter(file -> file.getAbsolutePath().endsWith(".ini")).collect(Collectors.toList());
+                    ObservableList<File> iniFilesInDirectory_ObservableList = FXCollections.observableArrayList(iniFilesInDirectory_List);
+
+                    if (iniFilesInDirectory_List.size() > 0) {
+                        Dialog<File> iniFileSelectionDialog = new Dialog();
+                        iniFileSelectionDialog.setTitle("Select Phoebus configuration");
+                        iniFileSelectionDialog.setHeaderText("Select Phoebus configuration");
+                        iniFileSelectionDialog.setGraphic(null);
+
+                        iniFileSelectionDialog.setWidth(500);
+                        iniFileSelectionDialog.setHeight(400);
+                        iniFileSelectionDialog.setResizable(false);
+
+                        ListView listView = new ListView(iniFilesInDirectory_ObservableList);
+                        listView.getSelectionModel().select(0);
+
+                        Runnable setReturnValueAndCloseDialog = () -> {
+                            File selectedFile = (File) listView.getSelectionModel().getSelectedItem();
+                            if (selectedFile == null) {
+                                selectedFile = (File) listView.getItems().get(0);
+                            }
+                            iniFileSelectionDialog.setResult(selectedFile);
+                            iniFileSelectionDialog.close();
+                        };
+                        listView.setOnKeyPressed(keyEvent -> {
+                            if (keyEvent.getCode() == KeyCode.ENTER) {
+                                setReturnValueAndCloseDialog.run();
+                            }
+                        });
+
+                        iniFileSelectionDialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+                        Button closeButton = (Button) iniFileSelectionDialog.getDialogPane().lookupButton(ButtonType.CLOSE);
+                        closeButton.setVisible(false); // In JavaFX, a button of type ButtonType.CLOSE must exist so that the "X"-button closes the window.
+
+                        Button okButton = new Button("OK");
+                        okButton.setOnAction(actionEvent -> setReturnValueAndCloseDialog.run());
+                        okButton.setPrefWidth(500);
+
+                        VBox vBox = new VBox(listView, okButton);
+                        iniFileSelectionDialog.getDialogPane().setContent(vBox);
+                        listView.requestFocus();
+
+                        iniFileSelectionDialog.getDialogPane().addEventFilter(KeyEvent.KEY_PRESSED, keyEvent -> {
+                            if (keyEvent.getCode() == KeyCode.ESCAPE) {
+                                iniFileSelectionDialog.close();
+                                keyEvent.consume();
+                            }
+                        });
+
+                        iniFileSelectionDialog.setOnCloseRequest(dialogEvent -> {
+                            Object currentResult = iniFileSelectionDialog.getResult();
+                            if (currentResult == null || !(currentResult instanceof File)) {
+                                // Return null when closing the dialog by clicking the "X"-button or the ESC-key.
+                                iniFileSelectionDialog.setResult(null);
+                            }
+                        });
+
+                        Optional<File> maybeSelectedFile = iniFileSelectionDialog.showAndWait();
+                        if (maybeSelectedFile.isPresent()) {
+                            File selectedFile = maybeSelectedFile.get();
+                            try {
+                                PropertyPreferenceLoader.load(new FileInputStream(selectedFile));
+                            } catch (Exception exception) {
+                                logger.log(Level.SEVERE, "Error parsing Phoebus configuration '" + selectedFile.getAbsolutePath() + "': " + exception.getMessage());
+                                stop();
+                            }
+                        } else {
+                            // Selecting a configuration was cancelled either by pressing the "X"-button or by pressing the ESC-key.
+                            stop();
+                        }
+                    } else {
+                        logger.log(Level.SEVERE, "Error during evaluation of the flag '-set_settings': the directory '" + iniFilesLocation_String + "' does not contain any .ini files!");
+                        stop();
+                    }
+                } else {
+                    logger.log(Level.SEVERE, "Error during evaluation of the flag '-set_settings': the argument '" + iniFilesLocation_String + "' is not a directory!");
+                    stop();
+                }
+            }
+        }
     }
 
     /**
