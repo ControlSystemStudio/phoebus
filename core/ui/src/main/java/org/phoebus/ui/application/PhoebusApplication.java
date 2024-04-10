@@ -296,7 +296,7 @@ public class PhoebusApplication extends Application {
         application_parameters.addAll(getParameters().getRaw());
 
         Platform.setImplicitExit(false); // Avoids shutdown of Phoebus when the '-select_settings' option is used after the dialog to select configuration file has been closed. Platform.setImplicitExit(true) is called below to restore the option again.
-        possiblySelectIniFile(application_parameters); // possiblySelectIniFile() be called before preferences are initialized, to ensure that the selected configuration options are applied before old configuration options are loaded.
+        possiblySelectIniFile(application_parameters); // possiblySelectIniFile() must be called before preferences are initialized, to ensure that the selected configuration options are applied before old configuration options are loaded.
 
         // Show splash screen as soon as possible..
         final Splash splash = Preferences.splash ? new Splash(initial_stage) : null;
