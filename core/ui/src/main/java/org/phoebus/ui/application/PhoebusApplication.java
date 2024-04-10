@@ -321,7 +321,7 @@ public class PhoebusApplication extends Application {
                 String iniFilesLocation_String = application_parameters.get(indexOfFlag + 1);
                 File iniFilesLocation_File = new File(iniFilesLocation_String);
                 if (iniFilesLocation_File.isDirectory()) {
-                    List<File> iniFilesInDirectory_List = Arrays.stream(iniFilesLocation_File.listFiles()).filter(file -> file.getAbsolutePath().endsWith(".ini")).collect(Collectors.toList());
+                    List<File> iniFilesInDirectory_List = Arrays.stream(iniFilesLocation_File.listFiles()).filter(file -> file.getAbsolutePath().endsWith(".ini") || file.getAbsolutePath().endsWith(".xml")).collect(Collectors.toList());
                     ObservableList<File> iniFilesInDirectory_ObservableList = FXCollections.observableArrayList(iniFilesInDirectory_List);
 
                     if (iniFilesInDirectory_List.size() > 0) {
@@ -382,9 +382,20 @@ public class PhoebusApplication extends Application {
                         if (maybeSelectedFile.isPresent()) {
                             File selectedFile = maybeSelectedFile.get();
                             try {
-                                PropertyPreferenceLoader.load(new FileInputStream(selectedFile));
-                            } catch (Exception exception) {
-                                logger.log(Level.SEVERE, "Error parsing Phoebus configuration '" + selectedFile.getAbsolutePath() + "': " + exception.getMessage());
+                                FileInputStream selectedFile_FileInputStream = new FileInputStream(selectedFile);
+                                try {
+                                    if (selectedFile.getAbsolutePath().endsWith(".xml")) {
+                                        java.util.prefs.Preferences.importPreferences(selectedFile_FileInputStream);
+                                    }
+                                    else {
+                                        PropertyPreferenceLoader.load(selectedFile_FileInputStream);
+                                    }
+                                } catch (Exception exception) {
+                                    logger.log(Level.SEVERE, "Error parsing Phoebus configuration '" + selectedFile.getAbsolutePath() + "': " + exception.getMessage());
+                                    stop();
+                                }
+                            } catch (FileNotFoundException e) {
+                                logger.log(Level.SEVERE, "Error loading Phoebus configuration '" + selectedFile.getAbsolutePath() + "': File does not exist!");
                                 stop();
                             }
                         } else {
