@@ -296,11 +296,11 @@ public class PhoebusApplication extends Application {
         // Save original application parameters
         application_parameters.addAll(getParameters().getRaw());
 
+        Platform.setImplicitExit(false);
+        possiblySelectIniFile(application_parameters); // possiblySelectIniFile() be called before preferences are initialized, to ensure that the selected configuration options are applied before old configuration options are loaded.
+
         // Show splash screen as soon as possible..
         final Splash splash = Preferences.splash ? new Splash(initial_stage) : null;
-
-        Platform.setImplicitExit(false);
-        possiblySelectIniFile(application_parameters);
 
         // .. then read saved state etc. in background job
         JobManager.schedule("Startup", monitor ->
