@@ -96,6 +96,9 @@ public class Launcher
                 }
                 else if (cmd.equals("-settings"))
                 {
+                    if (args.contains("-select_settings")) {
+                        throw new Exception("The flag '-settings' cannot be used in conjunction with the flag '-select_settings'.");
+                    }
                     if (! iter.hasNext())
                         throw new Exception("Missing -settings file name");
                     iter.remove();
