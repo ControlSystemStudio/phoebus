@@ -345,6 +345,11 @@ public class PhoebusApplication extends Application {
                             iniFileSelectionDialog.setResult(selectedFile);
                             iniFileSelectionDialog.close();
                         };
+                        listView.setOnMouseClicked(mouseEvent -> {
+                            if (mouseEvent.getClickCount() == 2) {
+                                setReturnValueAndCloseDialog.run();
+                            }
+                        });
                         listView.setOnKeyPressed(keyEvent -> {
                             if (keyEvent.getCode() == KeyCode.ENTER) {
                                 setReturnValueAndCloseDialog.run();
