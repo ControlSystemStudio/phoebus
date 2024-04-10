@@ -407,7 +407,7 @@ public class PhoebusApplication extends Application {
                             stop();
                         }
                     } else {
-                        logger.log(Level.SEVERE, "Error during evaluation of the flag '-set_settings': the directory '" + iniFilesLocation_String + "' does not contain any .ini files!");
+                        logger.log(Level.SEVERE, "Error during evaluation of the flag '-set_settings': the directory '" + iniFilesLocation_String + "' does not contain any .ini or .xml file(s)!");
                         stop();
                     }
                 } else {
