@@ -324,7 +324,7 @@ public class PhoebusApplication extends Application {
             Dialog errorDialog = new Alert(AlertType.ERROR);
             errorDialog.setTitle(errorTitle);
             errorDialog.setHeaderText(errorTitle);
-            errorDialog.setContentText(errorMessage + "\n\nPhoebus will quit.");
+            errorDialog.setContentText(errorMessage + "\n\n" + Messages.PhoebusWillQuit);
             errorDialog.showAndWait();
 
             stop();

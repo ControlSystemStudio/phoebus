@@ -98,6 +98,7 @@ public class Messages
     public static String OpenHdr;
     public static String OpenTitle;
     public static String OpenWith;
+    public static String PhoebusWillQuit;
     public static String ProgressTitle;
     public static String PVListAppName;
     public static String PVListJobName;
