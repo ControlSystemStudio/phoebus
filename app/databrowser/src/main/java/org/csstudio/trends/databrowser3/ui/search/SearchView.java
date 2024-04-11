@@ -22,6 +22,7 @@ import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.javafx.FocusUtil;
 import org.phoebus.ui.undo.UndoableActionManager;
 
 import javafx.application.Platform;
@@ -51,6 +52,8 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+
+import static org.phoebus.ui.application.PhoebusApplication.logger;
 
 /** Panel for searching the archive
  *  @author Kay Kasemir
@@ -161,9 +164,8 @@ public class SearchView extends SplitPane
         {
             menu.getItems().setAll(new AddToPlotAction(channel_table, model, undo, selection),
                                    new SeparatorMenuItem());
-
             SelectionService.getInstance().setSelection(channel_table, selection);
-            ContextMenuHelper.addSupportedEntries(channel_table, menu);
+            ContextMenuHelper.addSupportedEntries(FocusUtil.setFocusOn(channel_table), menu);
             menu.show(channel_table.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         }
     }

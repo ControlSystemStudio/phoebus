@@ -15,12 +15,19 @@ import org.phoebus.ui.spi.MenuEntry;
 
 import javafx.scene.image.Image;
 
+import java.net.URI;
+
 /** Menu entry for alarm tree
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
 public class AlarmTreeMenuEntry implements MenuEntry
 {
+    /**
+     * Identifies alarm configuration.
+     */
+    private URI resource;
+
     @Override
     public String getName()
     {
@@ -39,10 +46,19 @@ public class AlarmTreeMenuEntry implements MenuEntry
         return "Alarm";
     }
 
+    public void setResource(URI resource){
+        this.resource = resource;
+    }
+
     @Override
     public Void call() throws Exception
     {
-        ApplicationService.createInstance(AlarmTreeApplication.NAME);
+        if(resource == null){
+            ApplicationService.createInstance(AlarmTreeApplication.NAME);
+        }
+        else{
+            ApplicationService.createInstance(AlarmTreeApplication.NAME, resource);
+        }
         return null;
     }
 }

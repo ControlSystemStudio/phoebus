@@ -40,6 +40,11 @@ import java.util.logging.Logger;
 /**
  * Tab for creating or editing composite snapshots,
  * i.e. for node type {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}.
+ *
+ * <p>
+ *     Note that this class is only for editing of {@link Node}s of type {@link org.phoebus.applications.saveandrestore.model.NodeType#COMPOSITE_SNAPSHOT}.
+ *     {@link SnapshotTab} is used to show actual snapshot data.
+ * </p>
  */
 public class CompositeSnapshotTab extends SaveAndRestoreTab {
 

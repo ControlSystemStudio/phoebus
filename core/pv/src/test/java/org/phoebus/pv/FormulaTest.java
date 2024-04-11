@@ -137,7 +137,7 @@ public class FormulaTest
     public void initialDisconnect() throws Exception
     {
         // Formula with missing PV needs to be 'disconnected'
-        PV pv = PVPool.getPV("= `missing_PV` + 5");
+        PV pv = PVPool.getPV("= `disconnected://missing_PV` + 5");
 
         VType value = pv.read();
         System.out.println(pv.getName() + " = " + value);
@@ -147,7 +147,7 @@ public class FormulaTest
 
 
         // 'if' still evaluates OK, since the missing PV is not used
-        pv = PVPool.getPV("= 1 ? 42 : `missing_PV`");
+        pv = PVPool.getPV("= 1 ? 42 : `disconnected://missing_PV`");
 
         value = pv.read();
         System.out.println(pv.getName() + " = " + value);
@@ -158,7 +158,7 @@ public class FormulaTest
 
 
         // This gets an error because the missing PV _is_ used
-        pv = PVPool.getPV("= 0 ? 42 : `missing_PV`");
+        pv = PVPool.getPV("= 0 ? 42 : `disconnected://missing_PV`");
 
         value = pv.read();
         System.out.println(pv.getName() + " = " + value);
@@ -167,7 +167,7 @@ public class FormulaTest
         PVPool.releasePV(pv);
 
         // Error because missing PV is needed for the condition
-        pv = PVPool.getPV("=`missing_PV` ? 0 : 1");
+        pv = PVPool.getPV("=`disconnected://missing_PV` ? 0 : 1");
 
         value = pv.read();
         System.out.println(pv.getName() + " = " + value);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019-2023 Oak Ridge National Laboratory.
+ * Copyright (c) 2019-2024 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -354,17 +354,20 @@ public class ChoiceButtonRepresentation extends RegionBaseRepresentation<TilePan
         final int N = Math.max(1, jfx_node.getChildren().size());
         final int width, height;
 
+        // For the exact size, we should only consider (N-1) gaps, the gaps between buttons.
+        // Add one more gap to avoid layout rounding errors that lead to occasional spill-over
+        // https://github.com/ControlSystemStudio/phoebus/issues/2783
         if (model_widget.propHorizontal().getValue())
         {
             jfx_node.setPrefColumns(N);
-            width = (int) ((model_widget.propWidth().getValue() - (N-1)*jfx_node.getHgap()) / N);
+            width = (int) (model_widget.propWidth().getValue() / N - jfx_node.getHgap());
             height = model_widget.propHeight().getValue();
         }
         else
         {
             jfx_node.setPrefRows(N);
             width = model_widget.propWidth().getValue();
-            height = (int) ((model_widget.propHeight().getValue() - (N-1)*jfx_node.getVgap()) / N);
+            height = (int) (model_widget.propHeight().getValue() / N - jfx_node.getVgap());
         }
         for (Node node : jfx_node.getChildren())
         {

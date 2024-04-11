@@ -29,6 +29,8 @@
         <include name="dependencies/**/snappy-java*.jar"/>
         <include name="dependencies/**/javax.activation*.jar"/>
         <include name="dependencies/**/javax.mail*.jar"/>
+        <include name="dependencies/**/epics-jackie*.jar"/>
+        <include name="dependencies/**/commons-lang*.jar"/>
       	
       	<include name="core/**/core-framework-*.jar"/>
       	<include name="core/**/core-formula-*.jar"/>

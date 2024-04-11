@@ -34,6 +34,8 @@ import org.phoebus.applications.saveandrestore.Preferences;
 import org.phoebus.applications.saveandrestore.SafeMultiply;
 import org.phoebus.applications.saveandrestore.model.*;
 import org.phoebus.applications.saveandrestore.ui.*;
+import org.phoebus.core.vtypes.VTypeHelper;
+import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.util.time.TimestampFormats;
 
@@ -173,7 +175,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
                     snapshotData.setSnapshotItems(entries);
                     snapshot.setSnapshotData(snapshotData);
                     showSnapshotInTable(snapshot);
-                    if (!Preferences.default_snapshot_name_date_format.equals("")) {
+                    if (!Preferences.default_snapshot_name_date_format.isEmpty()) {
                         SimpleDateFormat formatter = new SimpleDateFormat(Preferences.default_snapshot_name_date_format);
                         snapshot.getSnapshotNode().setName(formatter.format(new Date()));
                     }
@@ -351,14 +353,16 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
             for (SnapshotItem entry : snapshot.getSnapshotData().getSnapshotItems()) {
                 TableEntry e = tableEntryItems.get(getPVKey(entry.getConfigPv().getPvName(), entry.getConfigPv().isReadOnly()));
 
-                boolean restorable = e.selectedProperty().get() && !e.readOnlyProperty().get() &&
+                boolean restorable = e.selectedProperty().get() &&
+                        !e.readOnlyProperty().get() &&
+                        entry.getValue() != null &&
                         !entry.getValue().equals(VNoData.INSTANCE);
 
                 if (restorable) {
                     final SaveAndRestorePV pv = pvs.get(getPVKey(e.pvNameProperty().get(), e.readOnlyProperty().get()));
                     if (entry.getValue() != null) {
                         try {
-                            pv.getPv().write(Utilities.toRawValue(entry.getValue()));
+                            pv.getPv().write(VTypeHelper.toObject(entry.getValue()));
                         } catch (Exception writeException) {
                             restoreFailedPVNames.add(entry.getConfigPv().getPvName());
                         } finally {
@@ -371,7 +375,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
             }
 
             try {
-                countDownLatch.await();
+                countDownLatch.await(10, TimeUnit.MINUTES);
             } catch (InterruptedException e) {
                 LOGGER.log(Level.INFO, "Encountered InterruptedException", e);
             }

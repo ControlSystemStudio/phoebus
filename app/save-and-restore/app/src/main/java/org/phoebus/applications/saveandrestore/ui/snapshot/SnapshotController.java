@@ -346,12 +346,7 @@ public class SnapshotController extends SaveAndRestoreBaseController {
         snapshotControlsViewController.setSnapshotRestorableProperty(true);
         snapshotTableViewController.setSelectionColumnVisible(true);
 
-        if (snapshotNode.getNodeType().equals(NodeType.SNAPSHOT)) {
-            loadSnapshotInternal(snapshotNode);
-        } else {
-            snapshotControlsViewController.setNameAndCommentDisabled(true);
-            loadSnapshotInternal(snapshotNode);
-        }
+        loadSnapshotInternal(snapshotNode);
     }
 
     public void restore(ActionEvent actionEvent) {

@@ -65,6 +65,11 @@ public class MigrateRdbToElastic {
 
     private final Logger logger = Logger.getLogger(MigrateRdbToElastic.class.getName());
 
+    /**
+     * @param elasticsearchDAO An {@link ElasticsearchDAO} object.
+     * @param legacyServiceUrl The URL to the legacy RDB-based save-and-restore service.
+     * @param dryRun <code>true</code> for a dry run.
+     */
     public MigrateRdbToElastic(ElasticsearchDAO elasticsearchDAO, String legacyServiceUrl, boolean dryRun) {
         this.legacyServiceUrl = legacyServiceUrl;
         this.dryRun = dryRun;
@@ -72,6 +77,9 @@ public class MigrateRdbToElastic {
 
     }
 
+    /**
+     * Runs the migration.
+     */
     public void runMigration() {
         RestTemplate restTemplate = new RestTemplate();
         Node legacyRootNode = restTemplate.getForObject(legacyServiceUrl + "/root", Node.class);

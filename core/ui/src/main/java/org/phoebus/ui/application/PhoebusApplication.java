@@ -605,6 +605,11 @@ public class PhoebusApplication extends Application {
         return menuBar;
     }
 
+    private List<String> listOfLayouts = new LinkedList<>();
+    protected List<String> getListOfLayouts() {
+        return listOfLayouts;
+    }
+
     /**
      * Create the load past layouts menu
      */
@@ -646,6 +651,7 @@ public class PhoebusApplication extends Application {
             }
 
 
+            listOfLayouts = new LinkedList<>();
             // For every non default memento file create a menu item for the load layout menu.
             if (!layoutFiles.keySet().isEmpty()) {
                 // Sort layout files alphabetically.
@@ -658,6 +664,8 @@ public class PhoebusApplication extends Application {
                             if (file.isFile() && filename.endsWith(".memento")) {
                                 // Remove ".memento"
                                 filename = filename.substring(0, filename.length() - 8);
+
+                                listOfLayouts.add(filename);
 
                                 // Build the list of memento files.
                                 memento_files.add(filename);

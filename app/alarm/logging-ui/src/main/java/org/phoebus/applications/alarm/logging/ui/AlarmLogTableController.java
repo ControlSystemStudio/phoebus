@@ -35,6 +35,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
+
 import javafx.util.Duration;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.logging.ui.AlarmLogTableQueryUtil.Keys;
@@ -44,6 +45,7 @@ import org.phoebus.framework.jobs.Job;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.javafx.FocusUtil;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.javafx.JFXUtil;
 import org.phoebus.util.time.TimeParser;
@@ -569,7 +571,8 @@ public class AlarmLogTableController {
 
         // search for other context menu actions registered for AlarmLogTableType
         SelectionService.getInstance().setSelection("AlarmLogTable", tableView.getSelectionModel().getSelectedItems());
-        ContextMenuHelper.addSupportedEntries(tableView, contextMenu);
+
+        ContextMenuHelper.addSupportedEntries(FocusUtil.setFocusOn(tableView), contextMenu);
 
         tableView.setContextMenu(contextMenu);
 

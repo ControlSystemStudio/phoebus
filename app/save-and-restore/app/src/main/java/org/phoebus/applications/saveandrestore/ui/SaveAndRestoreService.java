@@ -34,6 +34,8 @@ import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.applications.saveandrestore.client.SaveAndRestoreClient;
 import org.phoebus.applications.saveandrestore.client.SaveAndRestoreJerseyClient;
 
+import org.phoebus.core.vtypes.VDisconnectedData;
+
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
 import java.util.Collections;

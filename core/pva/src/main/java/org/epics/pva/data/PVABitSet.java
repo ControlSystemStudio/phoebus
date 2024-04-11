@@ -22,7 +22,7 @@ public class PVABitSet
     {
         final byte[] bytes = bits.toByteArray();
         PVASize.encodeSize(bytes.length, buffer);
-        buffer.put(bits.toByteArray());
+        buffer.put(bytes);
     }
 
     /** @param buffer Source buffer

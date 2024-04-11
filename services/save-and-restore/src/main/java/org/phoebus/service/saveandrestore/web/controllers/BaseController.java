@@ -40,13 +40,19 @@ import java.util.logging.Logger;
 @SuppressWarnings("unused")
 public abstract class BaseController {
 
-    public static final String JSON = "application/json";
+    protected static final String JSON = "application/json";
 
     private final Logger logger = Logger.getLogger(BaseController.class.getName());
 
+    /**
+     * Identity of the admin role
+     */
     @Autowired
     public String roleAdmin; // This MUST be public!!!
 
+    /**
+     * Identity of regular user.
+     */
     @Autowired
     public String roleUser; // This MUST be public!!!
 

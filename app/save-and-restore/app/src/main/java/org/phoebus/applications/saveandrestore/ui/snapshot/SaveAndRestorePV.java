@@ -20,7 +20,7 @@
 package org.phoebus.applications.saveandrestore.ui.snapshot;
 
 import org.epics.vtype.VType;
-import org.phoebus.applications.saveandrestore.ui.VDisconnectedData;
+import org.phoebus.core.vtypes.VDisconnectedData;
 import org.phoebus.applications.saveandrestore.ui.VNoData;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
@@ -73,7 +73,7 @@ public class SaveAndRestorePV {
                             this.snapshotTableEntry.setReadbackValue(this.readbackValue);
                         });
             } else {
-                // If configuration does not define readback PV, then UI should show "no data" rather than "disconnected"
+                // If configuration does not define read-back PV, then UI should show "no data" rather than "disconnected"
                 this.snapshotTableEntry.setReadbackValue(VNoData.INSTANCE);
             }
         } catch (Exception e) {

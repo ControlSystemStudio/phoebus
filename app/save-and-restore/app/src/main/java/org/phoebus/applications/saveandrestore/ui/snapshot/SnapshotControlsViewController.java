@@ -306,11 +306,6 @@ public class SnapshotControlsViewController extends SaveAndRestoreBaseController
         return snapshotRestorableProperty;
     }
 
-    public void setNameAndCommentDisabled(boolean disabled) {
-        snapshotName.disableProperty().set(disabled);
-        snapshotComment.disableProperty().set(disabled);
-    }
-
     public void setSnapshotNode(Node node) {
         snapshotNodeProperty.set(node);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 European Spallation Source ERIC.
+ * Copyright (C) 2024 European Spallation Source ERIC.
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -21,18 +21,38 @@ package org.phoebus.applications.saveandrestore;
 import org.phoebus.framework.preferences.AnnotatedPreferences;
 import org.phoebus.framework.preferences.Preference;
 
+/**
+ * Preferences for save-and-restore. HTTP connection preferences managed in sub-package class
+ * {@link org.phoebus.applications.saveandrestore.client.Preferences}
+ */
 public class Preferences {
+
+    /**
+     * Timeout for PV read operations when taking snapshot.
+     */
     @Preference
     public static int readTimeout;
+
+    /**
+     * Page size used in search UI.
+     */
     @Preference
     public static int search_result_page_size;
+
+    /**
+     * Default search query in search UI.
+     */
     @Preference
     public static String default_search_query;
+
+    /**
+     * Date format of default/automatic snapshot name.
+     */
     @Preference
     public static String default_snapshot_name_date_format;
 
-    static
-    {
+
+    static {
         AnnotatedPreferences.initialize(Preferences.class, "/save_and_restore_preferences.properties");
     }
 }

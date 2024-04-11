@@ -19,15 +19,19 @@
 
 package org.phoebus.service.saveandrestore.web.controllers;
 
+import co.elastic.clients.elasticsearch.core.SearchRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.NodeType;
 import org.phoebus.applications.saveandrestore.model.search.SearchResult;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
+import org.phoebus.service.saveandrestore.search.SearchUtil;
 import org.phoebus.service.saveandrestore.web.config.ControllersTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -37,6 +41,8 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.util.LinkedMultiValueMap;
 
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -61,12 +67,17 @@ public class SearchControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private SearchUtil searchUtil;
+
+    @Value("${elasticsearch.configuration_node.index:saveandrestore_configuration}")
+    public String ES_CONFIGURATION_INDEX;
+
     @Test
     public void testSearch() throws Exception {
         SearchResult searchResult = new SearchResult();
         searchResult.setHitCount(1);
         searchResult.setNodes(List.of(Node.builder().name("node").build()));
-
 
         when(nodeDAO.search(Mockito.any())).thenReturn(searchResult);
 
@@ -79,5 +90,17 @@ public class SearchControllerTest {
         // Make sure response contains expected data
         SearchResult searchResult1 = objectMapper.readValue(s, SearchResult.class);
         assertEquals(1, searchResult1.getHitCount());
+    }
+
+    @Test
+    public void testSearchForPVs() {
+        MultivaluedMap<String, List<String>> searchParams = new MultivaluedHashMap<>();
+        searchParams.put("type", List.of(List.of(NodeType.CONFIGURATION.toString())));
+        searchParams.put("pvs", List.of(List.of("abc")));
+
+        SearchRequest searchRequest = searchUtil.buildSearchRequestForPvs(List.of("abc"));
+        assertEquals(ES_CONFIGURATION_INDEX, searchRequest.index().get(0));
+        assertEquals("pvList", searchRequest.query().bool().must().get(0).disMax().queries().get(0).match().field());
+        assertEquals("abc", searchRequest.query().bool().must().get(0).disMax().queries().get(0).match().query().stringValue());
     }
 }

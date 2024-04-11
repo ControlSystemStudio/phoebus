@@ -1,0 +1,29 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>core-pv-opva</artifactId>
+  <parent>
+    <groupId>org.phoebus</groupId>
+    <artifactId>core</artifactId>
+    <version>4.7.4-SNAPSHOT</version>
+  </parent>
+  <dependencies>
+    <dependency>
+      <groupId>org.epics</groupId>
+      <artifactId>epics-core</artifactId>
+      <version>${epics.version}</version>
+      <type>pom</type>
+    </dependency>
+
+    <dependency>
+      <groupId>org.epics</groupId>
+      <artifactId>vtype</artifactId>
+      <version>${vtype.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.phoebus</groupId>
+      <artifactId>core-pv</artifactId>
+      <version>4.7.4-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
+</project>

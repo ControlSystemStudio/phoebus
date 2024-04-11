@@ -8,11 +8,13 @@
 package org.phoebus.core.vtypes;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Collection;
 
-import org.epics.util.array.ListBoolean;
-import org.epics.util.array.ListInteger;
-import org.epics.util.array.ListNumber;
+import org.epics.util.array.*;
+import org.epics.pva.data.*;
+import org.epics.pva.data.nt.PVATable;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.AlarmSeverity;
 import org.epics.vtype.Array;
@@ -505,5 +507,120 @@ public class VTypeHelper {
             return Boolean.parseBoolean(((VString) vtype).getValue());
         }
         return false;
+    }
+    /**
+     * @param name Data item name
+     * @param object The object subject to conversion
+     * @return Converted object
+     */
+    public static Object toPVArrayType(String name, Object object) {
+        if (object instanceof ListBoolean) {
+            ListBoolean listBoolean = (ListBoolean) object;
+            boolean[] booleans = new boolean[listBoolean.size()];
+            for (int i = 0; i < listBoolean.size(); i++) {
+                booleans[i] = listBoolean.getBoolean(i);
+            }
+            return new PVABoolArray(name, booleans);
+        } else if (object instanceof ListNumber) {
+            ListNumber listNumber = (ListNumber) object;
+            if (object instanceof ArrayByte || object instanceof ArrayUByte) {
+                byte[] bytes = new byte[listNumber.size()];
+                for (int i = 0; i < listNumber.size(); i++) {
+                    bytes[i] = listNumber.getByte(i);
+                }
+                return new PVAByteArray(name, object instanceof ArrayUByte, bytes);
+            } else if (object instanceof ArrayShort || object instanceof ArrayUShort) {
+                short[] shorts = new short[listNumber.size()];
+                for (int i = 0; i < listNumber.size(); i++) {
+                    shorts[i] = listNumber.getShort(i);
+                }
+                return new PVAShortArray(name, object instanceof ArrayUShort, shorts);
+            } else if (object instanceof ArrayInteger || object instanceof ArrayUInteger) {
+                int[] ints = new int[listNumber.size()];
+                for (int i = 0; i < listNumber.size(); i++) {
+                    ints[i] = listNumber.getInt(i);
+                }
+                return new PVAIntArray(name, object instanceof ArrayUInteger, ints);
+            } else if (object instanceof ArrayLong || object instanceof ArrayULong) {
+                long[] longs = new long[listNumber.size()];
+                for (int i = 0; i < listNumber.size(); i++) {
+                    longs[i] = listNumber.getLong(i);
+                }
+                return new PVALongArray(name, object instanceof ArrayULong, longs);
+            } else if (object instanceof ArrayFloat) {
+                float[] floats = new float[listNumber.size()];
+                for (int i = 0; i < listNumber.size(); i++) {
+                    floats[i] = listNumber.getFloat(i);
+                }
+                return new PVAFloatArray(name, floats);
+            } else if (object instanceof ArrayDouble) {
+                double[] doubles = new double[listNumber.size()];
+                for (int i = 0; i < listNumber.size(); i++) {
+                    doubles[i] = listNumber.getDouble(i);
+                }
+                return new PVADoubleArray(name, doubles);
+            } else {
+                throw new IllegalArgumentException("Conversion of type " + object.getClass().getCanonicalName() + " not supported");
+            }
+        } else { // Assume this always is for string arrays
+            Collection<String> list = (Collection<String>) object;
+            String[] strings = new String[list.size()];
+            strings = list.toArray(strings);
+            return new PVAStringArray(name, strings);
+        }
+    }
+
+    /**
+     * Extracts the raw value from the given data object. The raw value is either one of the primitive wrappers or some
+     * kind of a list type if the value is an {@link Array}.
+     *
+     * @param type the value to extract the raw data from
+     * @return the raw data
+     */
+    public static Object toObject(VType type) {
+        if (type == null) {
+            return null;
+        }
+        if (type instanceof VNumberArray) {
+            if (type instanceof VIntArray || type instanceof VUIntArray) {
+                return VTypeHelper.toIntegers(type);
+            } else if (type instanceof VDoubleArray) {
+                return VTypeHelper.toDoubles(type);
+            } else if (type instanceof VFloatArray) {
+                return VTypeHelper.toFloats(type);
+            } else if (type instanceof VLongArray || type instanceof VULongArray) {
+                return VTypeHelper.toLongs(type);
+            } else if (type instanceof VShortArray || type instanceof VUShortArray) {
+                return VTypeHelper.toShorts(type);
+            } else if (type instanceof VByteArray || type instanceof VUByteArray) {
+                return VTypeHelper.toBytes(type);
+            }
+        } else if (type instanceof VEnumArray) {
+            var indexes = ((VEnumArray) type).getIndexes();
+            var array = new int[indexes.size()];
+            return indexes.toArray(array);
+        } else if (type instanceof VStringArray) {
+            List<String> data = ((VStringArray) type).getData();
+            return data.toArray(new String[data.size()]);
+        } else if (type instanceof VBooleanArray) {
+            return VTypeHelper.toBooleans(type);
+        } else if (type instanceof VNumber) {
+            return ((VNumber) type).getValue();
+        } else if (type instanceof VEnum) {
+            return ((VEnum) type).getIndex();
+        } else if (type instanceof VString) {
+            return ((VString) type).getValue();
+        } else if (type instanceof VBoolean) {
+            return ((VBoolean) type).getValue();
+        } else if (type instanceof VTable) {
+            VTable vTable = (VTable) type;
+            int columnCount = vTable.getColumnCount();
+            List dataArrays = new ArrayList();
+            for (int i = 0; i < columnCount; i++) {
+                dataArrays.add(toPVArrayType("Col " + i, vTable.getColumnData(i)));
+            }
+            return new PVAStructure(PVATable.STRUCT_NAME, "", dataArrays);
+        }
+        return null;
     }
 }

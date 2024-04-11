@@ -66,6 +66,7 @@
   <properties>
     <project.build.outputTimestamp>2024-01-10T19:23:58Z</project.build.outputTimestamp>
     <epics.version>7.0.10</epics.version>
+    <epics.util.version>1.0.7</epics.util.version>
     <vtype.version>1.0.7</vtype.version>
     <openjfx.version>19</openjfx.version>
     <jackson.version>2.12.3</jackson.version>
@@ -86,6 +87,8 @@
     <log4j-to-slf4j.version>2.17.1</log4j-to-slf4j.version>
     <derby.version>10.16.1.1</derby.version>
     <jython.version>2.7.3</jython.version>
+    <jgit.version>6.7.0.202309050840-r</jgit.version>
+    <maven.compiler.target>17</maven.compiler.target>
   </properties>
   <build>
     <plugins>
@@ -93,8 +96,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.6.2</version>
         <configuration>
-          <source>11</source>
-          <target>11</target>
+          <source>17</source>
+          <target>17</target>
           <fork>true</fork>
           <compilerArgs>
             <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
@@ -134,7 +137,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.1.1</version>
+        <version>3.2.0</version>
         <configuration>
           <!-- Only document 'public' code -->
           <show>public</show>
@@ -143,7 +146,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
-        <version>3.0.0-M5</version>
+        <version>3.0.1</version>
         <configuration>
           <tagNameFormat>v@{project.version}</tagNameFormat>
           <autoVersionSubmodules>true</autoVersionSubmodules>

@@ -45,6 +45,10 @@ public class TagController extends BaseController {
     @Autowired
     private NodeDAO nodeDAO;
 
+    /**
+     *
+     * @return A {@link List} of all {@link Tag}s.
+     */
     @GetMapping("/tags")
     public List<Tag> getTags() {
         return nodeDAO.getAllTags();

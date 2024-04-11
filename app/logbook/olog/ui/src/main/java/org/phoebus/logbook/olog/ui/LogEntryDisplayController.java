@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 European Spallation Source ERIC.
+ * Copyright (C) 2024 European Spallation Source ERIC.
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -43,6 +43,8 @@ public class LogEntryDisplayController {
     @FXML
     @SuppressWarnings("unused")
     private MergedLogEntryDisplayController mergedLogEntryDisplayController;
+
+    private LogEntryTableViewController logEntryTableViewController;
     @FXML
     private ToggleButton showHideLogEntryGroupButton;
     @FXML
@@ -90,7 +92,9 @@ public class LogEntryDisplayController {
             mergedLogEntryDisplayController.setLogSelectionHandler((logEntry) -> {
                 Platform.runLater(() -> {
                     currentViewProperty.set(SINGLE);
-                    setLogEntry(logEntry);
+                    if(logEntryTableViewController.selectLogEntry(logEntry)){
+                        singleLogEntryDisplayController.setLogEntry(logEntry);
+                    }
                 });
                 return null;
             });
@@ -135,8 +139,13 @@ public class LogEntryDisplayController {
      * @param logEntry A log entry that has been updated by user and saved by service.
      */
     public void updateLogEntry(LogEntry logEntry){
-        if(logEntryProperty.get().getId() == logEntry.getId()){
+        // Log entry display may be "empty", i.e. logEntryProperty not set yet
+        if(!logEntryProperty.isNull().get() && logEntryProperty.get().getId().equals(logEntry.getId())){
             setLogEntry(logEntry);
         }
+    }
+
+    public void setLogEntryTableViewController(LogEntryTableViewController logEntryTableViewController){
+        this.logEntryTableViewController = logEntryTableViewController;
     }
 }

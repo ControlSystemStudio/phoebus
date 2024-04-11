@@ -565,7 +565,7 @@ public class SaveAndRestoreController extends SaveAndRestoreBaseController
                 TreeItem<Node> treeItem = browserSelectionModel.getSelectedItems().get(0);
                 tab = new SnapshotTab(treeItem.getValue(), saveAndRestoreService);
                 ((SnapshotTab) tab).loadSnapshot(treeItem.getValue());
-                return;
+                break;
             case FOLDER:
             default:
                 return;

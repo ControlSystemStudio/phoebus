@@ -60,6 +60,9 @@ import java.util.stream.Collectors;
 
 import static org.phoebus.applications.saveandrestore.model.Node.ROOT_FOLDER_UNIQUE_ID;
 
+/**
+ * Data Access Object interfacing Elasticsearch as defined by {@link NodeDAO} interface.
+ */
 public class ElasticsearchDAO implements NodeDAO {
 
     @SuppressWarnings("unused")
@@ -805,6 +808,12 @@ public class ElasticsearchDAO implements NodeDAO {
         return null;
     }
 
+    /**
+     * Checks if a {@link Node} is present in a subtree. This is called recursively.
+     * @param startNode {@link Node} id from which the search will start.
+     * @param nodeToLookFor Self-explanatory.
+     * @return <code>true</code> if the #nodeToLookFor is found in the subtree, otherwise <code>false</code>.
+     */
     public boolean isContainedInSubtree(String startNode, String nodeToLookFor) {
         Optional<ESTreeNode> esStartNode = elasticsearchTreeRepository.findById(startNode);
         if (esStartNode.isEmpty()) {
@@ -1079,7 +1088,26 @@ public class ElasticsearchDAO implements NodeDAO {
 
     @Override
     public SearchResult search(MultiValueMap<String, String> searchParameters) {
-        return elasticsearchTreeRepository.search(searchParameters);
+        return searchInternal(searchParameters);
+    }
+
+    private SearchResult searchInternal(MultiValueMap<String, String> searchParameters){
+        // Did client specify search on pv name(s)?
+        if(searchParameters.keySet().stream().anyMatch(k -> k.strip().toLowerCase().contains("pvs"))){
+            List<ConfigurationData> configurationDataList = configurationDataRepository.searchOnPvName(searchParameters);
+            if(configurationDataList.isEmpty()){
+                // No matching configurations found, return empty SearchResult
+                return new SearchResult(0, Collections.emptyList());
+            }
+            List<String> uniqueIds = configurationDataList.stream().map(ConfigurationData::getUniqueId).collect(Collectors.toList());
+            MultiValueMap<String, String> augmented = new LinkedMultiValueMap<>();
+            augmented.putAll(searchParameters);
+            augmented.put("uniqueid", uniqueIds);
+            return elasticsearchTreeRepository.search(augmented);
+        }
+        else{
+            return elasticsearchTreeRepository.search(searchParameters);
+        }
     }
 
     /**
@@ -1236,6 +1264,9 @@ public class ElasticsearchDAO implements NodeDAO {
         }
     }
 
+    /**
+     * Compares {@link Node} names for the purpose of ordering.
+     */
     public static class NodeNameComparator implements Comparator<String>{
 
         @Override

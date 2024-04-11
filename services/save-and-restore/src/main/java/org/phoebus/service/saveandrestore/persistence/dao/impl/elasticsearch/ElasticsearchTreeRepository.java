@@ -21,26 +21,9 @@ package org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.Refresh;
 import co.elastic.clients.elasticsearch._types.Result;
-import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.*;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery.Builder;
-import co.elastic.clients.elasticsearch._types.query_dsl.ExistsQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.MatchAllQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.NestedQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.TermQuery;
-import co.elastic.clients.elasticsearch.core.DeleteByQueryRequest;
-import co.elastic.clients.elasticsearch.core.DeleteByQueryResponse;
-import co.elastic.clients.elasticsearch.core.DeleteRequest;
-import co.elastic.clients.elasticsearch.core.DeleteResponse;
-import co.elastic.clients.elasticsearch.core.ExistsRequest;
-import co.elastic.clients.elasticsearch.core.GetRequest;
-import co.elastic.clients.elasticsearch.core.GetResponse;
-import co.elastic.clients.elasticsearch.core.IndexRequest;
-import co.elastic.clients.elasticsearch.core.IndexResponse;
-import co.elastic.clients.elasticsearch.core.MgetRequest;
-import co.elastic.clients.elasticsearch.core.MgetResponse;
-import co.elastic.clients.elasticsearch.core.SearchRequest;
-import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.*;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
 import org.phoebus.applications.saveandrestore.model.Tag;
@@ -52,28 +35,27 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.MultiValueMap;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-
+/**
+ * Repository for {@link ESTreeNode} objects.
+ */
 @Repository
 public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, String> {
 
     private static final Logger logger = Logger.getLogger(ElasticsearchTreeRepository.class.getName());
 
+    @SuppressWarnings("unused")
     @Value("${elasticsearch.tree_node.index:saveandrestore_tree}")
-    public String ES_TREE_INDEX;
+    private String ES_TREE_INDEX;
 
     /**
      * Used to determine if the {@link ESTreeNode} is saved or updated in connection to a migration
@@ -89,6 +71,9 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
     @Autowired
     private SearchUtil searchUtil;
 
+    /**
+     * Constructor checking if this is called in connection to a data migration (from legacy RDB) operation.
+     */
     public ElasticsearchTreeRepository() {
         String isMigrationContext = System.getProperty("migrationContext");
         if (isMigrationContext != null) {
@@ -110,7 +95,7 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
      * @return An {@link ESTreeNode} as persisted in Elasticsearch.
      */
     @Override
-    public <S extends ESTreeNode> S save(S elasticTreeNode) {
+    public <S extends ESTreeNode> S save(@NonNull S elasticTreeNode) {
         Date now = new Date();
         try {
             if (elasticTreeNode.getNode().getCreated() == null) {
@@ -149,13 +134,23 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
         return null;
     }
 
+    /**
+     * Not implemented.
+     *
+     * @param entities {@link Iterable} of {@link ESTreeNode}s.
+     * @throws RuntimeException as it is not implemented.
+     */
     @Override
-    public <S extends ESTreeNode> Iterable<S> saveAll(Iterable<S> entities) {
+    public <S extends ESTreeNode> Iterable<S> saveAll(@NonNull Iterable<S> entities) {
         throw new RuntimeException("Not implemented");
     }
 
+    /**
+     * @param id Non-null unique id of a {@link ESTreeNode}.
+     * @return Optional object.
+     */
     @Override
-    public Optional<ESTreeNode> findById(String id) {
+    public Optional<ESTreeNode> findById(@NonNull String id) {
         try {
             GetRequest getRequest =
                     GetRequest.of(g ->
@@ -173,19 +168,27 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
         }
     }
 
+    /**
+     * @param id Non-null unique id of a {@link ESTreeNode}.
+     * @return <code>true</code> if document is found, otherwise <code>false</code>
+     */
     @Override
-    public boolean existsById(String s) {
+    public boolean existsById(@NonNull String id) {
 
         try {
-            ExistsRequest existsRequest = ExistsRequest.of(e -> e.index(ES_TREE_INDEX).id(s));
+            ExistsRequest existsRequest = ExistsRequest.of(e -> e.index(ES_TREE_INDEX).id(id));
             BooleanResponse existsResponse = client.exists(existsRequest);
             return existsResponse.value();
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "Failed to query if ESTreeNode with id " + s + " exists");
+            logger.log(Level.SEVERE, "Failed to query if ESTreeNode with id " + id + " exists");
         }
         return false;
     }
 
+    /**
+     *
+     * @return Always <code>null</code>.
+     */
     @Override
     public Iterable<ESTreeNode> findAll() {
         return null;
@@ -225,24 +228,32 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
         }
     }
 
+    /**
+     *
+     * @return Always 0.
+     */
     @Override
     public long count() {
         return 0;
     }
 
+    /**
+     * Deletes a {@link ESTreeNode}.
+     * @param id unique {@link org.phoebus.applications.saveandrestore.model.Node} id.
+     */
     @Override
-    public void deleteById(String s) {
+    public void deleteById(@NonNull String id) {
         try {
             DeleteRequest deleteRequest = DeleteRequest.of(d ->
-                    d.index(ES_TREE_INDEX).id(s).refresh(Refresh.True));
+                    d.index(ES_TREE_INDEX).id(id).refresh(Refresh.True));
             DeleteResponse deleteResponse = client.delete(deleteRequest);
             if (deleteResponse.result().equals(Result.Deleted)) {
-                logger.log(Level.WARNING, "Node with id " + s + " deleted.");
+                logger.log(Level.WARNING, "Node with id " + id + " deleted.");
             } else {
-                logger.log(Level.WARNING, "Node with id " + s + " NOT deleted.");
+                logger.log(Level.WARNING, "Node with id " + id + " NOT deleted.");
             }
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "Failed to delete node with id: " + s, e);
+            logger.log(Level.SEVERE, "Failed to delete node with id: " + id, e);
             throw new RuntimeException(e);
         }
     }
@@ -338,6 +349,12 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
         }
     }
 
+    /**
+     * Performs search for {@link ESTreeNode}s matching the search parameters
+     * @param searchParameters {@link MultiValueMap} of search parameters.
+     * @return A {@link SearchResult} with {@link org.phoebus.applications.saveandrestore.model.Node} objects matching
+     * the search criteria. May of course be empty.
+     */
     public SearchResult search(MultiValueMap<String, String> searchParameters) {
 
         SearchRequest searchRequest = searchUtil.buildSearchRequest(searchParameters);
@@ -347,24 +364,6 @@ public class ElasticsearchTreeRepository implements CrudRepository<ESTreeNode, S
             searchResult.setHitCount((int) searchResponse.hits().total().value());
             searchResult.setNodes(searchResponse.hits().hits().stream().map(e -> e.source().getNode()).collect(Collectors.toList()));
             return searchResult;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public List<ESTreeNode> getByNodeName(String nodeName) {
-        BoolQuery.Builder boolQueryBuilder = new Builder();
-        NestedQuery innerNestedQuery;
-        MatchQuery matchQuery = MatchQuery.of(m -> m.field("node.name").query(nodeName));
-        innerNestedQuery = NestedQuery.of(n1 -> n1.path("node").query(matchQuery._toQuery()));
-        boolQueryBuilder.must(innerNestedQuery._toQuery());
-        SearchRequest searchRequest = SearchRequest.of(s -> s.index(ES_TREE_INDEX)
-                .query(boolQueryBuilder.build()._toQuery())
-                .timeout("60s")
-                .size(1000));
-        try {
-            SearchResponse<ESTreeNode> esTreeNodeSearchResponse = client.search(searchRequest, ESTreeNode.class);
-            return esTreeNodeSearchResponse.hits().hits().stream().map(Hit::source).collect(Collectors.toList());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

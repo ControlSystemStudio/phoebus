@@ -34,6 +34,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.security.Principal;
 import java.util.List;
 
+/**
+ * Controller class for {@link NodeType#COMPOSITE_SNAPSHOT} {@link Node} endpoints.
+ */
 @SuppressWarnings("unused")
 @RestController
 public class CompositeSnapshotController extends BaseController {
@@ -41,6 +44,13 @@ public class CompositeSnapshotController extends BaseController {
     @Autowired
     private NodeDAO nodeDAO;
 
+    /**
+     * Creates a new {@link CompositeSnapshot} {@link Node}.
+     * @param parentNodeId Valid id of the {@link Node}s intended parent.
+     * @param compositeSnapshot {@link CompositeSnapshot} data.
+     * @param principal User {@link Principal} injected by Spring.
+     * @return The new {@link CompositeSnapshot}.
+     */
     @PutMapping(value = "/composite-snapshot", produces = JSON)
     @PreAuthorize("@authorizationHelper.mayCreate(#root)")
     public CompositeSnapshot createCompositeSnapshot(@RequestParam(value = "parentNodeId") String parentNodeId,
@@ -53,6 +63,12 @@ public class CompositeSnapshotController extends BaseController {
         return nodeDAO.createCompositeSnapshot(parentNodeId, compositeSnapshot);
     }
 
+    /**
+     * Updates/overwrites a {@link CompositeSnapshot} {@link Node}.
+     * @param compositeSnapshot {@link CompositeSnapshot} data.
+     * @param principal User {@link Principal} injected by Spring.
+     * @return The new {@link CompositeSnapshot}.
+     */
     @PostMapping(value = "/composite-snapshot", produces = JSON)
     @PreAuthorize("@authorizationHelper.mayUpdate(#compositeSnapshot, #root)")
     public CompositeSnapshot updateCompositeSnapshot(@RequestBody CompositeSnapshot compositeSnapshot,
@@ -64,17 +80,31 @@ public class CompositeSnapshotController extends BaseController {
         return nodeDAO.updateCompositeSnapshot(compositeSnapshot);
     }
 
+    /**
+     * @param uniqueId Unique {@link Node} id of a {@link CompositeSnapshot}
+     * @return The {@link CompositeSnapshotData} associated with the {@link CompositeSnapshot} {@link Node}.
+     */
     @GetMapping(value = "/composite-snapshot/{uniqueId}", produces = JSON)
     public CompositeSnapshotData getCompositeSnapshotData(@PathVariable String uniqueId) {
         return nodeDAO.getCompositeSnapshotData(uniqueId);
     }
 
+    /**
+     *
+     * @param uniqueId Unique {@link Node} id of a {@link CompositeSnapshot}
+     * @return A list of references {@link Node}s, that are either of type {@link NodeType#SNAPSHOT} or
+     * {@link NodeType#COMPOSITE_SNAPSHOT}.
+     */
     @GetMapping(value = "/composite-snapshot/{uniqueId}/nodes", produces = JSON)
     public List<Node> getCompositeSnapshotNodes(@PathVariable String uniqueId) {
         CompositeSnapshotData compositeSnapshotData = nodeDAO.getCompositeSnapshotData(uniqueId);
         return nodeDAO.getNodes(compositeSnapshotData.getReferencedSnapshotNodes());
     }
 
+    /**
+     * @param uniqueId Unique {@link Node} id of a {@link CompositeSnapshot}
+     * @return List of {@link SnapshotItem}s contained in the referenced {@link Node}s
+     */
     @GetMapping(value = "/composite-snapshot/{uniqueId}/items", produces = JSON)
     public List<SnapshotItem> getCompositeSnapshotItems(@PathVariable String uniqueId) {
         return nodeDAO.getSnapshotItemsFromCompositeSnapshot(uniqueId);

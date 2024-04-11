@@ -66,6 +66,10 @@
     <h3>name</h3>
     A search for nodes by name will match on the name as specified by the user when the node was created or updated.
     The value for this key is <b>case insensitive</b>.
+    <p>
+    The space character along with other &quot;special&quot; characters is used by the underlying search engine to tokenize
+        text when it is indexed. Consequently, a search for a name that includes a space character must be quoted.
+    </p>
 
     <h3>user</h3>
     This is the username associated with a node when it was saved. The value for this key is <b>case insensitive</b>.
@@ -97,6 +101,15 @@
     <b>NOTE 2</b>: Search for nodes by name or description works on sub-strings, but search on tags works differently.
     To match a sub-string of a tag name or comment, one must use wildcards. For instance, to find nodes tagged with a tag named <code>Beam60mA</code>,
     <code>tags=Beam*</code> will work, while <code>tags=Beam</code> will not.
+    </p>
+
+    <h3>PV name(s)</h3>
+    This is used to perform a search for configuration nodes containing the specified PV name(s). The input
+    field is backed by the PV name completion mechanism used in other parts of the application, i.e. a list of
+    PV names - supplied by the Channel Finder service - is shown as user types in the input field.
+
+    <p>
+        Search on PV names will consider both setpoint PVs as well readback PVs in configurations.
     </p>
 
     <h3>Combining keys</h3>

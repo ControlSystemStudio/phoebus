@@ -46,6 +46,7 @@ import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.AuthenticationScope;
 import org.phoebus.security.tokens.ScopedAuthenticationToken;
 import org.phoebus.security.tokens.SimpleAuthenticationToken;
+import org.phoebus.ui.Preferences;
 import org.phoebus.ui.dialog.ListSelectionPopOver;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.util.time.TimestampFormats;
@@ -241,7 +242,7 @@ public class LogEntryUpdateController {
                 }
             });
         });
-        if (LogbookUIPreferences.save_credentials) {
+        if (Preferences.save_credentials) {
             fetchStoredUserCredentials();
         }
 
@@ -420,7 +421,7 @@ public class LogEntryUpdateController {
                         completionHandler.handleResult(result);
                     }
                     // Set username and password in secure store if submission of log entry completes successfully
-                    if (LogbookUIPreferences.save_credentials) {
+                    if (Preferences.save_credentials) {
                         // Get the SecureStore. Store username and password.
                         try {
                             SecureStore store = new SecureStore();

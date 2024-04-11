@@ -723,6 +723,102 @@ Body:
       }
     ]
 
+Server Restore Endpoints
+----------------------------
+
+Restore from snapshot items
+"""""""""""""""""""""""""""
+
+**.../restore/items**
+
+Method: POST
+
+This endpoint allows you to send a list of ``SnapshotItem`` and the save-and-restore server
+will set the values of the PVs in your system to the values supplied. 
+This allows restoring from clients which do not support EPICS access, for example web clients.
+
+Body:
+
+.. code-block:: JSON
+
+    [
+        {
+            "configPv": {
+                "pvName":"COUNTER10",
+                "readOnly":false
+            },
+            "value":{
+                "type":{
+                    "name":"VDouble",
+                    "version":1
+                },
+                "value":11941.0,
+                "alarm":{
+                    "severity":"NONE",
+                    "status":"NONE",
+                    "name":"NO_ALARM"
+                },
+                "time":{
+                    "unixSec":1664550284,
+                    "nanoSec":870687555
+                },
+                "display":{
+                    "lowDisplay":0.0,
+                    "highDisplay":0.0,
+                    "units":""
+                }
+            }
+        }
+    ]
+
+Return: A list of the snapshot items restored, and optionally the error message. 
+If there was no error in PV restoration then the error message is null.
+
+.. code-block:: JSON
+
+    [
+        {
+        "snapshotItem": {
+                "configPv": {
+                    "pvName":"COUNTER10",
+                    "readOnly":false
+                },
+                "value":{
+                    "type":{
+                        "name":"VDouble",
+                        "version":1
+                    },
+                    "value":11941.0,
+                    "alarm":{
+                        "severity":"NONE",
+                        "status":"NONE",
+                        "name":"NO_ALARM"
+                    },
+                    "time":{
+                        "unixSec":1664550284,
+                        "nanoSec":870687555
+                    },
+                    "display":{
+                        "lowDisplay":0.0,
+                        "highDisplay":0.0,
+                        "units":""
+                    }
+                }
+            },
+        "errorMsg": null
+        }
+    ]
+
+Restore from snapshot node
+"""""""""""""""""""""""""""
+
+**.../restore/node?parentNodeId=<snapshot node id>**
+
+Method: POST
+
+This is the same as the endpoint to restore from snapshot items, however it uses snapshot items
+from an existing node rather than providing them explicitly. It returns the same result.
+
 Authentication and Authorization
 ================================
 

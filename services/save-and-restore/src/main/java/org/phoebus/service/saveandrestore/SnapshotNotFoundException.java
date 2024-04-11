@@ -18,10 +18,18 @@
  */
 package org.phoebus.service.saveandrestore;
 
+/**
+ * Custom {@link Exception} used to indicate that a {@link org.phoebus.applications.saveandrestore.model.Snapshot}
+ * request by client could not be found.
+ */
 public class SnapshotNotFoundException extends RuntimeException {
 
 	private static final long serialVersionUID = -980968730210448760L;
-	
+
+	/**
+	 *
+	 * @param message Suitable error message.
+	 */
 	public SnapshotNotFoundException(String message) {
 		super(message);
 	}

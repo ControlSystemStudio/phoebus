@@ -17,7 +17,6 @@ import java.util.prefs.Preferences;
 
 import org.junit.jupiter.api.Test;
 import org.phoebus.pv.PVPool.TypedName;
-import org.phoebus.pv.ca.JCA_Preferences;
 
 /** @author Kay Kasemir */
 @SuppressWarnings("nls")
@@ -28,8 +27,10 @@ public class PVPoolTest
     {
         final Collection<String> prefs = PVPool.getSupportedPrefixes();
         System.out.println("Prefixes: " + prefs);
-        assertThat(prefs, hasItem("ca"));
+        assertThat(prefs, hasItem("eq"));
+        assertThat(prefs, hasItem("loc"));
         assertThat(prefs, hasItem("sim"));
+        assertThat(prefs, hasItem("sys"));
     }
 
     @Test
@@ -104,7 +105,6 @@ public class PVPoolTest
     @Test
     public void dumpPreferences() throws Exception
     {
-        JCA_Preferences.getInstance();
         final Preferences prefs = Preferences.userNodeForPackage(PV.class);
         prefs.exportSubtree(System.out);
     }

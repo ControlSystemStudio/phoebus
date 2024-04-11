@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -42,20 +43,28 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * {@link Repository} class for {@link SnapshotData} objects.
+ */
 @Repository
 public class SnapshotDataRepository implements CrudRepository<SnapshotData, String> {
 
     @Value("${elasticsearch.snapshot_node.index:saveandrestore_snapshot}")
-    public String ES_SNAPSHOT_INDEX;
+    private String ES_SNAPSHOT_INDEX;
 
     @Autowired
     @Qualifier("client")
-    ElasticsearchClient client;
+    private ElasticsearchClient client;
 
     private final Logger logger = Logger.getLogger(SnapshotDataRepository.class.getName());
 
+    /**
+     * Saves a {@link org.phoebus.applications.saveandrestore.model.SnapshotData}.
+     * @param entity A {@link org.phoebus.applications.saveandrestore.model.SnapshotData} object.
+     * @return The persisted {@link SnapshotData} object.
+     */
     @Override
-    public <S extends SnapshotData> S save(S entity) {
+    public <S extends SnapshotData> S save(@NonNull S entity) {
         try {
             IndexRequest<SnapshotData> indexRequest =
                     IndexRequest.of(i ->
@@ -119,26 +128,46 @@ public class SnapshotDataRepository implements CrudRepository<SnapshotData, Stri
         return null;
     }
 
+    /**
+     *
+     * @return Always 0.
+     */
     @Override
     public long count() {
         return 0;
     }
 
+    /**
+     * Not implemented, i.e. does nothing
+     * @param id Unique id of a {@link SnapshotData} object.
+     */
     @Override
-    public void deleteById(String s) {
+    public void deleteById(String id) {
 
     }
 
+    /**
+     * Not implemented, i.e. does nothing
+     * @param entity A {@link SnapshotData} object.
+     */
     @Override
     public void delete(SnapshotData entity) {
 
     }
 
+    /**
+     * Not implemented, i.e. does nothing
+     * @param strings A list of {@link SnapshotData} ids.
+     */
     @Override
     public void deleteAllById(Iterable<? extends String> strings) {
 
     }
 
+    /**
+     * Not implemented, i.e. does nothing
+     * @param entities A list of {@link SnapshotData} objects.
+     */
     @Override
     public void deleteAll(Iterable<? extends SnapshotData> entities) {
 
