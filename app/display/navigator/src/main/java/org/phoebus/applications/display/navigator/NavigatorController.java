@@ -884,9 +884,16 @@ public class NavigatorController implements Initializable {
 
     private void moveTreeItem(TreeItem<NavigatorTreeNode> targetTreeItem,
                               TreeItem<NavigatorTreeNode> treeItemToMove) {
+
+        if (targetTreeItem == null) {
+            // treeItemToMove was dropped on a blank space.
+            targetTreeItem = lastTreeItem(treeView.getRoot());
+        }
+
         if (isDescendantOf(targetTreeItem, treeItemToMove)) {
             return;
         }
+
         setUnsavedChanges(true);
         var siblingsOfTreeItemToMove = treeItemToMove.getParent().getChildren();
         int indexOfTreeItemToMove = siblingsOfTreeItemToMove.indexOf(treeItemToMove);
@@ -909,6 +916,15 @@ public class NavigatorController implements Initializable {
         }
         siblingsOfTreeItemToMove.remove(temporaryMarker);
         treeView.refresh();
+    }
+
+    private TreeItem<NavigatorTreeNode> lastTreeItem(TreeItem<NavigatorTreeNode> treeItem) {
+        if (treeItem.isLeaf()) {
+            return treeItem;
+        }
+        else {
+            return lastTreeItem(treeItem.getChildren().get(treeItem.getChildren().size()-1));
+        }
     }
 
     private boolean isDescendantOf(TreeItem<NavigatorTreeNode> tree1, TreeItem<NavigatorTreeNode> tree2) {
