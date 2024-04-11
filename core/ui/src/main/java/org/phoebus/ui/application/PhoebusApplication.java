@@ -61,6 +61,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.util.Pair;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.framework.jobs.JobMonitor;
 import org.phoebus.framework.jobs.SubJobMonitor;
@@ -311,6 +312,23 @@ public class PhoebusApplication extends Application {
     }
 
     private void possiblySelectIniFile(CopyOnWriteArrayList<String> application_parameters) {
+
+        Consumer<Pair<String, String>> displayErrorMessageAndQuit = errorTitleAndErrorMessage -> {
+
+            String errorTitle = errorTitleAndErrorMessage.getKey();
+            String errorMessage = errorTitleAndErrorMessage.getValue();
+
+            logger.log(Level.SEVERE, errorMessage);
+
+            Dialog errorDialog = new Alert(AlertType.ERROR);
+            errorDialog.setTitle(errorTitle);
+            errorDialog.setHeaderText(errorTitle);
+            errorDialog.setContentText(errorMessage + "\n\nPhoebus will quit.");
+            errorDialog.showAndWait();
+
+            stop();
+        };
+
         if (application_parameters.contains("-select_settings")) {
             int indexOfFlag = application_parameters.indexOf("-select_settings", 0);
             if (indexOfFlag < 0) {
@@ -395,24 +413,20 @@ public class PhoebusApplication extends Application {
                                         PropertyPreferenceLoader.load(selectedFile_FileInputStream);
                                     }
                                 } catch (Exception exception) {
-                                    logger.log(Level.SEVERE, "Error parsing Phoebus configuration '" + selectedFile.getAbsolutePath() + "': " + exception.getMessage());
-                                    stop();
+                                    displayErrorMessageAndQuit.accept(new Pair("Error loading Phoebus configuration", "Error loading Phoebus configuration '" + selectedFile.getAbsolutePath() + "': " + exception.getMessage()));
                                 }
                             } catch (FileNotFoundException e) {
-                                logger.log(Level.SEVERE, "Error loading Phoebus configuration '" + selectedFile.getAbsolutePath() + "': File does not exist!");
-                                stop();
+                                displayErrorMessageAndQuit.accept(new Pair("Error loading Phoebus configuration", "Error loading Phoebus configuration '" + selectedFile.getAbsolutePath() + "': File does not exist!"));
                             }
                         } else {
                             // Selecting a configuration was cancelled either by pressing the "X"-button or by pressing the ESC-key.
                             stop();
                         }
                     } else {
-                        logger.log(Level.SEVERE, "Error during evaluation of the flag '-set_settings': the directory '" + iniFilesLocation_String + "' does not contain any .ini or .xml file(s)!");
-                        stop();
+                        displayErrorMessageAndQuit.accept(new Pair("Error during evaluation of the flag '-set_settings'", "Error during evaluation of the flag '-set_settings': the directory '" + iniFilesLocation_String + "' does not contain any .ini or .xml file(s)!"));
                     }
                 } else {
-                    logger.log(Level.SEVERE, "Error during evaluation of the flag '-set_settings': the argument '" + iniFilesLocation_String + "' is not a directory!");
-                    stop();
+                    displayErrorMessageAndQuit.accept(new Pair("Error during evaluation of the flag '-set_settings'", "Error during evaluation of the flag '-set_settings': the argument '" + iniFilesLocation_String + "' is not a directory!"));
                 }
             }
         }
