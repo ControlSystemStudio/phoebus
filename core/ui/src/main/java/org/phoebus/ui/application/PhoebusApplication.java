@@ -335,7 +335,7 @@ public class PhoebusApplication extends Application {
             if (indexOfFlag < 0) {
                 throw new RuntimeException("Error, this should never happen!");
             }
-            if (application_parameters.size() >= indexOfFlag) {
+            if (application_parameters.size() > indexOfFlag) {
                 String iniFilesLocation_String = application_parameters.get(indexOfFlag + 1);
                 File iniFilesLocation_File = new File(iniFilesLocation_String);
                 if (iniFilesLocation_File.isDirectory()) {
