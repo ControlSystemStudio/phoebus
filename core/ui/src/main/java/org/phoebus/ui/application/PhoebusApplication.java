@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.lang.ref.WeakReference;
 import java.net.URI;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -343,8 +344,8 @@ public class PhoebusApplication extends Application {
 
                     if (iniFilesInDirectory_List.size() > 0) {
                         Dialog<File> iniFileSelectionDialog = new Dialog();
-                        iniFileSelectionDialog.setTitle("Select Phoebus configuration");
-                        iniFileSelectionDialog.setHeaderText("Select Phoebus configuration");
+                        iniFileSelectionDialog.setTitle(Messages.SelectPhoebusConfiguration);
+                        iniFileSelectionDialog.setHeaderText(Messages.SelectPhoebusConfiguration);
                         iniFileSelectionDialog.setGraphic(null);
 
                         iniFileSelectionDialog.setWidth(500);
@@ -377,7 +378,7 @@ public class PhoebusApplication extends Application {
                         Button closeButton = (Button) iniFileSelectionDialog.getDialogPane().lookupButton(ButtonType.CLOSE);
                         closeButton.setVisible(false); // In JavaFX, a button of type ButtonType.CLOSE must exist so that the "X"-button closes the window.
 
-                        Button okButton = new Button("OK");
+                        Button okButton = new Button(Messages.OK);
                         okButton.setOnAction(actionEvent -> setReturnValueAndCloseDialog.run());
                         okButton.setPrefWidth(500);
 
@@ -413,20 +414,20 @@ public class PhoebusApplication extends Application {
                                         PropertyPreferenceLoader.load(selectedFile_FileInputStream);
                                     }
                                 } catch (Exception exception) {
-                                    displayErrorMessageAndQuit.accept(new Pair("Error loading Phoebus configuration", "Error loading Phoebus configuration '" + selectedFile.getAbsolutePath() + "': " + exception.getMessage()));
+                                    displayErrorMessageAndQuit.accept(new Pair(Messages.ErrorLoadingPhoebusConfiguration, Messages.ErrorLoadingPhoebusConfiguration + " '" + selectedFile.getAbsolutePath() + "': " + exception.getMessage()));
                                 }
                             } catch (FileNotFoundException e) {
-                                displayErrorMessageAndQuit.accept(new Pair("Error loading Phoebus configuration", "Error loading Phoebus configuration '" + selectedFile.getAbsolutePath() + "': File does not exist!"));
+                                displayErrorMessageAndQuit.accept(new Pair(Messages.ErrorLoadingPhoebusConfiguration, Messages.ErrorLoadingPhoebusConfiguration + " '" + selectedFile.getAbsolutePath() + "': " + Messages.FileDoesNotExist));
                             }
                         } else {
                             // Selecting a configuration was cancelled either by pressing the "X"-button or by pressing the ESC-key.
                             stop();
                         }
                     } else {
-                        displayErrorMessageAndQuit.accept(new Pair("Error during evaluation of the flag '-set_settings'", "Error during evaluation of the flag '-set_settings': the directory '" + iniFilesLocation_String + "' does not contain any .ini or .xml file(s)!"));
+                        displayErrorMessageAndQuit.accept(new Pair(Messages.ErrorDuringEvalutationOfTheFlagSelectSettings, Messages.ErrorDuringEvalutationOfTheFlagSelectSettings + ": " + MessageFormat.format(Messages.TheDirectoryDoesNotContainConfigurationFiles, iniFilesLocation_String)));
                     }
                 } else {
-                    displayErrorMessageAndQuit.accept(new Pair("Error during evaluation of the flag '-set_settings'", "Error during evaluation of the flag '-set_settings': the argument '" + iniFilesLocation_String + "' is not a directory!"));
+                    displayErrorMessageAndQuit.accept(new Pair(Messages.ErrorDuringEvalutationOfTheFlagSelectSettings, Messages.ErrorDuringEvalutationOfTheFlagSelectSettings + ": " + MessageFormat.format(Messages.TheArgumentIsNotADirectory, iniFilesLocation_String)));
                 }
             }
         }

@@ -40,11 +40,14 @@ public class Messages
     public static String DockSplitH;
     public static String DockSplitV;
     public static String Enjoy;
+    public static String ErrorDuringEvalutationOfTheFlagSelectSettings;
+    public static String ErrorLoadingPhoebusConfiguration;
     public static String Exit;
     public static String ExitContent;
     public static String ExitHdr;
     public static String ExitTitle;
     public static String File;
+    public static String FileDoesNotExist;
     public static String FileExists;
     public static String FixedTitle;
     public static String Help;
@@ -90,6 +93,7 @@ public class Messages
     public static String MonitorTaskUi;
     public static String NamePane;
     public static String NamePaneHdr;
+    public static String OK;
     public static String Open;
     public static String OpenHdr;
     public static String OpenTitle;
@@ -129,9 +133,12 @@ public class Messages
     public static String SavingHdr;
     public static String ScreenshotErrHdr;
     public static String ScreenshotErrMsg;
+    public static String SelectPhoebusConfiguration;
     public static String SelectTab;
     public static String ShowStatusbar;
     public static String ShowToolbar;
+    public static String TheArgumentIsNotADirectory;
+    public static String TheDirectoryDoesNotContainConfigurationFiles;
     public static String Time12h;
     public static String Time1d;
     public static String Time3d;
