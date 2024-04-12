@@ -404,9 +404,6 @@ public class NavigatorController implements Initializable {
                 itemToSet.setExpanded(itemWithExpandedStatus.isExpanded());
                 setExpandedStatusOnTree(itemToSet, itemWithExpandedStatus);
             }
-            else {
-                return;
-            }
         }
     }
 
