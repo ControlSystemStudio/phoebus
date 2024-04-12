@@ -1368,6 +1368,8 @@ public class NavigatorController implements Initializable {
             }
 
             if (editable) {
+                boolean directoryWritable = navigationTree.getValue().getFile().canWrite();
+
                 newMenu.getItems().add(new SeparatorMenuItem());
                 MenuItem menuItem_newFolder = new MenuItem(Messages.CreateNewSubFolder);
                 menuItem_newFolder.setStyle(menuStyle);
@@ -1398,6 +1400,7 @@ public class NavigatorController implements Initializable {
                     });
                 }
                 newMenu.getItems().add(menuItem_newFolder);
+                menuItem_newFolder.setDisable(!directoryWritable);
 
                 MenuItem menuItem_newNavigator = new MenuItem(Messages.CreateNewNavigator);
                 menuItem_newNavigator.setStyle(menuStyle);
@@ -1420,6 +1423,7 @@ public class NavigatorController implements Initializable {
                 }
 
                 newMenu.getItems().add(menuItem_newNavigator);
+                menuItem_newNavigator.setDisable(!directoryWritable);
 
                 if (!isRootFolder) {
                     MenuItem menuItem_renameParentFolder = new MenuItem(Messages.RenameFolder);
@@ -1456,6 +1460,7 @@ public class NavigatorController implements Initializable {
                         });
                     }
                     newMenu.getItems().add(menuItem_renameParentFolder);
+                    menuItem_renameParentFolder.setDisable(!directoryWritable);
                 }
             }
 
