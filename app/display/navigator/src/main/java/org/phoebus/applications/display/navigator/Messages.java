@@ -12,6 +12,7 @@ public class Messages {
     public static String RenameNavigator;
     public static String CreateNewFolder;
     public static String NewFolderNamePrompt;
+    public static String NewFolderDefaultName;
     public static String GenericDataBrowserName;
     public static String UnknownFileExtensionWarning;
     public static String FileIsNotInTheNavigatorDataDirectoryWarning;

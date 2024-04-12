@@ -1393,7 +1393,7 @@ public class NavigatorController implements Initializable {
 
                     menuItem_newFolder.setOnAction(actionEvent -> {
                         promptForTextInput(Messages.NewFolderNamePrompt,
-                                           Messages.NewNavigatorDefaultName,
+                                           Messages.NewFolderDefaultName,
                                            createNewFolder);
                     });
                 }
