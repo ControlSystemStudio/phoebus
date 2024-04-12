@@ -180,8 +180,7 @@ public class NavigatorController implements Initializable {
             }
             else {
                 LOGGER.log(Level.WARNING, "The specified initial navigator doesn't exist.");
-                displayWarning(Messages.TheSpecifiedInitialNavigatorDoesntExist + " " + initialNavigatorAbsolutePath);
-                loadTopMostNavigator();
+                displayWarning(Messages.TheSpecifiedInitialNavigatorDoesntExist + " " + initialNavigatorAbsolutePath, () -> loadTopMostNavigator());
             }
         }
     }
@@ -291,12 +290,12 @@ public class NavigatorController implements Initializable {
                             renameNavigator_thunk = null;
                         }
                         else {
-                            displayWarning("Error: renaming of file was unsuccessful!");
                             LOGGER.log(Level.WARNING, "Error: renaming of file was unsuccessful!");
+                            displayWarning("Error: renaming of file was unsuccessful!", () -> {});
                         }
                     }
                     else {
-                        displayWarning("Error: there already exists a navigator with that name!");
+                        displayWarning("Error: there already exists a navigator with that name!", () -> {});
                     }
                     return navigatorWasRenamed;
                 };
@@ -309,8 +308,8 @@ public class NavigatorController implements Initializable {
             }
             else {
                 // File exists
-                displayWarning("Error renaming the navigator: a file with the chosen filename exists already!");
                 LOGGER.log(Level.WARNING, "Error renaming the navigator: a file with the chosen filename exists already!");
+                displayWarning("Error renaming the navigator: a file with the chosen filename exists already!", () -> {});
             }
         };
         promptForTextInput(Messages.NewNavigatorNamePrompt, navigatorName_displayed, renameNavigator);
@@ -605,7 +604,7 @@ public class NavigatorController implements Initializable {
             displayModel = ModelLoader.resolveAndLoadModel("", absolutePath);
         }
         catch (Exception exception) {
-            displayWarning(exception.getMessage());
+            displayWarning(exception.getMessage(), () -> {});
             throw new XMLStreamException(exception.getMessage(), exception);
         }
         String opiName = displayModel.getDisplayName();
@@ -656,20 +655,20 @@ public class NavigatorController implements Initializable {
                         return createDataBrowserNavigatorTreeNode(relativePath);
                     }
                     else {
-                        displayWarning(Messages.UnknownFileExtensionWarning + " " + fileExtension);
                         LOGGER.log(Level.WARNING, "Unknown file extension: " + fileExtension);
+                        displayWarning(Messages.UnknownFileExtensionWarning + " " + fileExtension, () -> {});
                         throw new Exception("Unknown file extension: " + fileExtension);
                     }
                 }
             } catch (Exception exception) {
-                displayWarning(exception.getMessage());
                 LOGGER.log(Level.WARNING, exception.getMessage(), exception);
+                displayWarning(exception.getMessage(), () -> {});
             }
         }
         else {
             String warningText = Messages.FileIsNotInTheNavigatorDataDirectoryWarning + " '" + absolutePath + "'.";
-            displayWarning(warningText);
             LOGGER.log(Level.WARNING, warningText);
+            displayWarning(warningText, () -> {});
         }
 
         return null;
@@ -749,16 +748,16 @@ public class NavigatorController implements Initializable {
                     disableMenuButtons.run();
                 }
                 String warningMessage = Messages.FileNotFoundWarning + " '" + navigatorFile.getAbsolutePath() + "'.";
-                displayWarning(warningMessage);
                 LOGGER.log(Level.WARNING, warningMessage);
+                displayWarning(warningMessage,  () -> {});
                 return;
             } catch (XMLStreamException xmlStreamException) {
                 if (currentlySelectedNavigator == null) {
                     disableMenuButtons.run();
                 }
                 String warningMessage = Messages.ErrorLoadingTheNavigatorWarning + " '" + navigatorName_original + "': " + xmlStreamException.getMessage();
-                displayWarning(warningMessage);
                 LOGGER.log(Level.WARNING, warningMessage);
+                displayWarning(warningMessage, () -> {});
                 return;
             }
             if (navigatorTreeRoot != null) {
@@ -850,7 +849,7 @@ public class NavigatorController implements Initializable {
         try {
             navigatorSelectionTree = buildNavigatorSelectionTree(locationOfNavigators);
         } catch (Exception exception) {
-            displayWarning(exception.getMessage());
+            displayWarning(exception.getMessage(), () -> {});
             throw exception;
         }
 
@@ -1272,8 +1271,8 @@ public class NavigatorController implements Initializable {
         }
         else {
             String warningMessage = Messages.UnknownNodeTypeWarning + " '" + navigatorTreeNode.getNodeType() + "'.";
-            displayWarning(warningMessage);
             LOGGER.log(Level.WARNING, warningMessage);
+            displayWarning(warningMessage, () -> {});
         }
     }
 
@@ -1378,8 +1377,8 @@ public class NavigatorController implements Initializable {
                         boolean newFolderWasCreated = newDirectory.mkdir();
                         if (!newFolderWasCreated) {
                             String warningMessage = Messages.ErrorCreatingNewFolderWarning;
-                            displayWarning(warningMessage);
                             LOGGER.log(Level.WARNING, warningMessage);
+                            displayWarning(warningMessage, () -> {});
                         }
                         else {
                             try {
@@ -1433,8 +1432,8 @@ public class NavigatorController implements Initializable {
                                 boolean directoryWasMoved = currentDirectory.renameTo(destination);
                                 if (!directoryWasMoved) {
                                     String warningMessage = Messages.ErrorRenamingFolderWarning;
-                                    displayWarning(warningMessage);
                                     LOGGER.log(Level.WARNING, warningMessage);
+                                    displayWarning(warningMessage, () -> {});
                                 } else {
                                     // If the folder containing the current navigator is renamed, then the current location needs to be updated:
                                     String canonicalPathOfCurrentlySelectedNavigator = currentlySelectedNavigator.getPath();
@@ -1477,15 +1476,15 @@ public class NavigatorController implements Initializable {
             newNavigatorFileWasCreated = newNavigatorFile.createNewFile();
         } catch (Exception exception) {
             String warningMessage = Messages.ErrorCreatingNewNavigatorFileWarning;
-            displayWarning(warningMessage);
             LOGGER.log(Level.WARNING, warningMessage);
+            displayWarning(warningMessage, () -> {});
             return;
         }
 
         if (!newNavigatorFileWasCreated) {
             String warningMessage = Messages.ErrorCreatingNewNavigatorFileWarning;
-            displayWarning(warningMessage);
             LOGGER.log(Level.WARNING, warningMessage);
+            displayWarning(warningMessage, () -> {});
             return;
         } else {
             TreeItem<NavigatorTreeNode> newNavigator = createEmptyNavigator();
@@ -1596,7 +1595,7 @@ public class NavigatorController implements Initializable {
         noButton.requestFocus();
     }
 
-    private void displayWarning(String prompt) {
+    private void displayWarning(String prompt, Runnable continuation) {
         disableEverythingExceptUserInput();
 
         userInputVBox.setStyle("-fx-background-color: red");
@@ -1613,6 +1612,7 @@ public class NavigatorController implements Initializable {
         okButton.setOnAction(actionEvent -> {
             closeConfirmDialog.run();
             treeView.requestFocus();
+            continuation.run();
         });
 
         HBox hBox = new HBox(promptLabel,
