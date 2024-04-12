@@ -67,6 +67,7 @@ import java.io.FileWriter;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
+import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -180,7 +181,8 @@ public class NavigatorController implements Initializable {
             }
             else {
                 LOGGER.log(Level.WARNING, "The specified initial navigator doesn't exist.");
-                displayWarning(Messages.TheSpecifiedInitialNavigatorDoesntExist + " " + initialNavigatorAbsolutePath, () -> loadTopMostNavigator());
+                displayWarning(MessageFormat.format(Messages.TheSpecifiedInitialNavigatorDoesntExist, initialNavigatorRelativePath),
+                               () -> loadTopMostNavigator());
             }
         }
     }
