@@ -1468,6 +1468,12 @@ public class NavigatorController implements Initializable {
                 navigationTree.getValue().getAction().run();
             });
             newMenuItem.setStyle(menuStyle);
+            if (editable && !navigationTree.getValue().getFile().canWrite()) {
+                newMenuItem.setDisable(true); // In edit mode, disable loading of read-only navigators.
+            }
+            else {
+                newMenuItem.setDisable(false);
+            }
             return newMenuItem;
         }
     }
