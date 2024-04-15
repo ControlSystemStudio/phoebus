@@ -33,6 +33,7 @@ import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.util.ResourceParser;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.docking.DockItem;
 import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 
@@ -158,6 +159,10 @@ public class DataBrowserInstance implements AppInstance
         dock_item.addClosedNotification(this::dispose);
 
         perspective.getModel().addListener(model_listener);
+    }
+
+    public DockItem getDockItem() {
+        return dock_item;
     }
 
     @Override
