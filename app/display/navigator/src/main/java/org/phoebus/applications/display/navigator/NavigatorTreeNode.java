@@ -20,6 +20,7 @@ import org.phoebus.ui.javafx.ImageCache;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static org.phoebus.applications.display.navigator.NavigatorController.OPI_ROOT;
 
@@ -110,10 +111,12 @@ class NavigatorTreeNode {
             navigatorController.disableNavigator();
             DataBrowserApp dataBrowserApp = new DataBrowserApp();
 
-            Runnable createDataBrowserInstance = () -> {
+            Supplier<DockItem> createDataBrowserInstance = () -> {
                 try {
                     DataBrowserInstance dataBrowserInstance = dataBrowserApp.create();
                     dataBrowserInstance.loadResource(new URI("file:" + OPI_ROOT + relativePath));
+
+                    return dataBrowserInstance.getDockItem();
                 }
                 catch (URISyntaxException uriSyntaxException) {
                     throw new RuntimeException(uriSyntaxException.getMessage());
@@ -142,10 +145,12 @@ class NavigatorTreeNode {
                 navigatorController.enableNavigator();
             }
             else {
-                Runnable createDisplayRuntimeInstance = () -> {
+                Supplier<DockItem> createDisplayRuntimeInstance = () -> {
                     DisplayRuntimeApplication displayRuntimeApplication = new DisplayRuntimeApplication();
                     DisplayRuntimeInstance displayRuntimeInstance = displayRuntimeApplication.create();
                     displayRuntimeInstance.loadDisplayFile(new DisplayInfo(absolutePath, "Name", new Macros(), false));
+
+                    return displayRuntimeInstance.getDockItem();
                 };
 
                 openAppInstance(createDisplayRuntimeInstance, navigatorController, target);
@@ -155,7 +160,7 @@ class NavigatorTreeNode {
     }
 
 
-    private static void openAppInstance(Runnable createAppInstance,
+    private static void openAppInstance(Supplier<DockItem> createAppInstance,
                                         NavigatorController navigatorController,
                                         Target target) {
         DockPane activeDockPane = DockPane.getActiveDockPane();
@@ -181,15 +186,11 @@ class NavigatorTreeNode {
                 if (shouldProceed) {
                     Platform.runLater(() -> {
                         activeDockPane.setStyle("-fx-open-tab-animation: NONE; -fx-close-tab-animation: NONE;");
-                        createAppInstance.run();
 
-                        int indexOfAddedItem = activeDockPane.getDockItems().size() - 1;
-                        if (indexOfAddedItem > 0) {
-                            // The instance is not the only running instance.
-                            Tab dataBrowserDockItem = activeDockItems.get(indexOfAddedItem);
-                            activeDockItems.remove(dataBrowserDockItem);
-                            activeDockItems.add(indexOfActiveDockItem + 1, dataBrowserDockItem);
-                        }
+                        DockItem dockItemOfCreatedApplication = createAppInstance.get(); // The new application instance may not have been created in activeDockPane if the navigator is located in a different window from activeDockPane.
+
+                        dockItemOfCreatedApplication.getDockPane().getTabs().remove(dockItemOfCreatedApplication);
+                        activeDockItems.add(indexOfActiveDockItem + 1, dockItemOfCreatedApplication);
 
                         if (target == Target.CurrentTab || target == Target.NewTab) {
                             activeDockPane.getSelectionModel().select(indexOfActiveDockItem + 1);
