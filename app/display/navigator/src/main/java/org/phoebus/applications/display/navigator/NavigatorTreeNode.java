@@ -183,10 +183,10 @@ class NavigatorTreeNode {
                         activeDockPane.setStyle("-fx-open-tab-animation: NONE; -fx-close-tab-animation: NONE;");
                         createAppInstance.run();
 
-                        int indexOfDataBrowserItem = activeDockPane.getDockItems().size() - 1;
-                        if (indexOfDataBrowserItem > 0) {
+                        int indexOfAddedItem = activeDockPane.getDockItems().size() - 1;
+                        if (indexOfAddedItem > 0) {
                             // The instance is not the only running instance.
-                            Tab dataBrowserDockItem = activeDockItems.get(indexOfDataBrowserItem);
+                            Tab dataBrowserDockItem = activeDockItems.get(indexOfAddedItem);
                             activeDockItems.remove(dataBrowserDockItem);
                             activeDockItems.add(indexOfActiveDockItem + 1, dataBrowserDockItem);
                         }
