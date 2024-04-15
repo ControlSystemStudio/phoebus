@@ -2,6 +2,7 @@ package org.phoebus.applications.display.navigator;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToolBar;
@@ -11,12 +12,14 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import org.phoebus.framework.persistence.Memento;
 import org.phoebus.framework.spi.AppDescriptor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.ui.application.PhoebusApplication;
 import org.phoebus.ui.docking.DockPane;
 import org.phoebus.ui.docking.DockStage;
+import org.phoebus.ui.docking.SplitDock;
 import org.phoebus.ui.javafx.ImageCache;
 
 import java.awt.geom.Rectangle2D;
@@ -49,18 +52,8 @@ public class NavigatorInstance implements AppInstance {
         }
 
         navigator = navigatorAppResourceDescriptor;
-        BorderPane borderPane = DockStage.getLayout((Stage) DockPane.getActiveDockPane().getScene().getWindow());
 
-        Node oldCenterPane = borderPane.getCenter();
-        SplitPane splitPane = new SplitPane(oldCenterPane);
-        borderPane.setCenter(splitPane);
-        if (oldCenterPane instanceof DockPane) {
-            DockPane dockPane = (DockPane) oldCenterPane;
-            dockPane.setDockParent(splitPane);
-        }
-        else {
-            throw new RuntimeException("Error loading navigator: object of type 'DockPane' expected, but received object of type '" + oldCenterPane.getClass().toString() + "'.");
-        }
+        SplitPane splitPane = new SplitPane();
 
         phoebusApplicationToolbar = PhoebusApplication.INSTANCE.getToolbar();
         ImageView homeIcon = ImageCache.getImageView(ImageCache.class, "/icons/navigator.png");
@@ -88,6 +81,23 @@ public class NavigatorInstance implements AppInstance {
         phoebusApplicationToolbar.getItems().add(0, navigatorButton);
 
         DockPane.getActiveDockPane().deferUntilInScene(scene -> {
+
+            Stage activeWindow = (Stage) scene.getWindow();
+            BorderPane borderPane = DockStage.getLayout(activeWindow);
+
+            Node oldCenterPane = borderPane.getCenter();
+            splitPane.getItems().add(oldCenterPane);
+            borderPane.setCenter(splitPane);
+            if (oldCenterPane instanceof DockPane dockPane) {
+                dockPane.setDockParent(splitPane);
+            }
+            else if (oldCenterPane instanceof SplitPane oldSplitPane) {
+                // Do nothing.
+            }
+            else {
+                throw new RuntimeException("Error loading navigator: object of type 'DockPane' expected, but received object of type '" + oldCenterPane.getClass().toString() + "'.");
+            }
+
             var window = scene.getWindow();
             window.addEventFilter(KeyEvent.KEY_PRESSED, keyEvent -> {
                 if (keyEvent.isControlDown() && keyEvent.isShiftDown()) {
