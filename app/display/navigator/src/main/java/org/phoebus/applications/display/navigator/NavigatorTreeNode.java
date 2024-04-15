@@ -184,9 +184,12 @@ class NavigatorTreeNode {
                         createAppInstance.run();
 
                         int indexOfDataBrowserItem = activeDockPane.getDockItems().size() - 1;
-                        Tab dataBrowserDockItem = activeDockItems.get(indexOfDataBrowserItem);
-                        activeDockItems.remove(dataBrowserDockItem);
-                        activeDockItems.add(indexOfActiveDockItem + 1, dataBrowserDockItem);
+                        if (indexOfDataBrowserItem > 0) {
+                            // The instance is not the only running instance.
+                            Tab dataBrowserDockItem = activeDockItems.get(indexOfDataBrowserItem);
+                            activeDockItems.remove(dataBrowserDockItem);
+                            activeDockItems.add(indexOfActiveDockItem + 1, dataBrowserDockItem);
+                        }
 
                         if (target == Target.CurrentTab || target == Target.NewTab) {
                             activeDockPane.getSelectionModel().select(indexOfActiveDockItem + 1);
