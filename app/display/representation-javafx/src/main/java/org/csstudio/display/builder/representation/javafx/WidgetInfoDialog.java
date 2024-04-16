@@ -16,9 +16,42 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
+import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javafx.application.Platform;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ObservableBooleanValue;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
+import javafx.scene.control.cell.CheckBoxTableCell;
+import javafx.scene.control.cell.ComboBoxTableCell;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
+import javafx.stage.Window;
+import javafx.util.Pair;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetDescriptor;
@@ -35,6 +68,8 @@ import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.ui.dialog.ExceptionDetailsErrorDialog;
+import org.phoebus.ui.docking.DockPane;
+import org.phoebus.ui.javafx.EditCell;
 import org.phoebus.ui.javafx.ReadOnlyTextCell;
 import org.phoebus.ui.javafx.StringTable;
 import org.phoebus.ui.pv.SeverityColors;
@@ -44,22 +79,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
 /** Dialog for displaying widget information
@@ -77,6 +100,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
     /** PV info */
     public static class NameStateValue
     {
+        public SimpleBooleanProperty selected;
         /** PV Name */
         public final String name;
         /** State, incl. read-only or writable? */
@@ -93,6 +117,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
          */
         public NameStateValue(final String name, final String state, final VType value, final String path)
         {
+            this.selected = new SimpleBooleanProperty(false);
             this.name = name;
             this.state = state;
             this.value = value;
@@ -290,6 +315,10 @@ public class WidgetInfoDialog extends Dialog<Boolean>
 
     private Tab createPVs(final Collection<NameStateValue> pvs)
     {
+        final TableColumn<NameStateValue, Boolean> checkbox = new TableColumn<>("Selection");
+        checkbox.setCellFactory(col -> new CheckBoxTableCell<>());
+        checkbox.setCellValueFactory(param -> param.getValue().selected);
+
         // Use text field to allow users to copy the name, value to clipboard
         final TableColumn<NameStateValue, String> name = new TableColumn<>(Messages.WidgetInfoDialog_Name);
         name.setCellFactory(col -> new ReadOnlyTextCell<>());
@@ -314,6 +343,8 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         final ObservableList<NameStateValue> pv_data = FXCollections.observableArrayList(pvs);
         pv_data.sort(Comparator.comparing(a -> a.name));
         final TableView<NameStateValue> table = new TableView<>(pv_data);
+        table.setEditable(true);
+        table.getColumns().add(checkbox);
         table.getColumns().add(name);
         table.getColumns().add(state);
         table.getColumns().add(value);
