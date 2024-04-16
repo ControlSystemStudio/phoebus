@@ -27,7 +27,7 @@ import org.phoebus.util.time.TimestampFormats;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ContextMenuPvAndValueToClipboard extends ContextMenuPvToClipboard
+public class ContextMenuCopyPvAndValueToClipboard extends ContextMenuCopyPvToClipboard
 {
     @Override
     public String getName()

@@ -27,9 +27,10 @@ public class ContextMenuCopySubMenu implements ContextMenuEntry {
 
     @Override
     public List<ContextMenuEntry> getChildren() {
-        ContextMenuPvToClipboard contextMenuPvToClipboard = new ContextMenuPvToClipboard();
-        ContextMenuPvAndValueToClipboard contextMenuPvAndValueToClipboard = new ContextMenuPvAndValueToClipboard();
-        return Arrays.asList(contextMenuPvToClipboard,
-                             contextMenuPvAndValueToClipboard);
+        return Arrays.asList(new ContextMenuCopyPvToClipboard(),
+                             new ContextMenuCopyPvToClipboardWithDescription(),
+                             new ContextMenuAppendPvToClipboard(),
+                             new ContextMenuAppendPvToClipboardWithDescription(),
+                             new ContextMenuCopyPvAndValueToClipboard());
     }
 }

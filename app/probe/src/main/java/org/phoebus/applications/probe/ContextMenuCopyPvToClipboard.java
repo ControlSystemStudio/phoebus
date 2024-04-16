@@ -27,7 +27,7 @@ import javafx.scene.input.ClipboardContent;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ContextMenuPvToClipboard implements ContextMenuEntry
+public class ContextMenuCopyPvToClipboard implements ContextMenuEntry
 {
     private static final Class<?> supportedTypes = ProcessVariable.class;
 

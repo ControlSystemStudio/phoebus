@@ -271,6 +271,10 @@ public class DisplayRuntimeInstance implements AppInstance
         return display_info.orElse(null);
     }
 
+    public String getDisplayName() {
+        return active_model.getDisplayName();
+    }
+
     /** Load display file, represent it, start runtime
      *  @param info Display file to load and represent
      */
