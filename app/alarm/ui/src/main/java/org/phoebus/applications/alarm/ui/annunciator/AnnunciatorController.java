@@ -10,11 +10,14 @@ package org.phoebus.applications.alarm.ui.annunciator;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ServiceLoader;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import org.phoebus.applications.alarm.model.SeverityLevel;
+import org.phoebus.framework.adapter.AdapterFactory;
 
 /** Controller class for an annunciator.
  *
@@ -44,7 +47,8 @@ public class AnnunciatorController
 
     private final BlockingQueue<AnnunciatorMessage> to_annunciate = new LinkedBlockingQueue<>();
 
-    private final Annunciator annunciator = new Annunciator();
+    private final List<Annunciator> annunciators;
+
     private final Thread process_thread = new Thread(this::processMessages, "Annunciator");
 
     // Muted _IS_ read from multiple threads, so it should always be fetched from memory.
@@ -58,6 +62,10 @@ public class AnnunciatorController
     {
         this.threshold = threshold;
         this.addToTable = addToTable;
+
+        // Initialize the annunciators
+        ServiceLoader<Annunciator> loader = ServiceLoader.load(Annunciator.class);
+        annunciators = loader.stream().map(ServiceLoader.Provider::get).collect(Collectors.toList());
 
         // The thread should exit when requested by shutdown() call, but set to daemon so it dies
         // when program closes regardless.
@@ -115,7 +123,9 @@ public class AnnunciatorController
                 {
                     addToTable.accept(message);
                     if (! muted)
-                        annunciator.speak(message.message);
+                        annunciators.stream().forEach(annunciator -> {
+                            annunciator.speak(message);
+                        });
                 }
             }
             else
@@ -130,7 +140,11 @@ public class AnnunciatorController
                     {   // Annunciate if marked as stand out.
                         addToTable.accept(message);
                         if (! muted)
-                            annunciator.speak(message.message);
+                        {
+                            annunciators.stream().forEach(annunciator -> {
+                                annunciator.speak(message);
+                            });
+                        }
                     }
                     else
                     {   // Increment count of non stand out messages.
@@ -144,7 +158,11 @@ public class AnnunciatorController
                     final AnnunciatorMessage message = new AnnunciatorMessage(false, null, earliest, "There are " + flurry + " new messages");
                     addToTable.accept(message);
                     if (! muted)
-                        annunciator.speak(message.message);
+                    {
+                        annunciators.stream().forEach(annunciator -> {
+                            annunciator.speak(message);
+                        });
+                    }
                 }
             }
         }
@@ -157,10 +175,13 @@ public class AnnunciatorController
     {
         // Send magic message that wakes annunciatorThread and causes it to exit
         to_annunciate.offer(LAST_MESSAGE);
+
         // The thread should shutdown
         process_thread.join(2000);
 
         // Deallocate the annunciator's voice.
-        annunciator.shutdown();
+        annunciators.stream().forEach(annunciator -> {
+            annunciator.shutdown();
+        });
     }
 }
