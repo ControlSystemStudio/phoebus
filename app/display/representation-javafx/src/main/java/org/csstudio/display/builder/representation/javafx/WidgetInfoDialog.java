@@ -193,7 +193,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
             tabs.getSelectionModel().select(1);
 
         final ButtonType export = new ButtonType(Messages.ExportWidgetInfo, ButtonData.LEFT);
-        final ButtonType copyPvNamesButtonType = new ButtonType("Copy...", ButtonData.LEFT);
+        final ButtonType copyPvNamesButtonType = new ButtonType(Messages.Copy + "...", ButtonData.LEFT);
 
         getDialogPane().setContent(tabs);
         getDialogPane().getButtonTypes().addAll(export, copyPvNamesButtonType, ButtonType.CLOSE);
@@ -390,7 +390,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
 
     private TableView<NameStateValue> createPVs(final Collection<NameStateValue> pvs)
     {
-        final TableColumn<NameStateValue, Boolean> selectionColumn = new TableColumn<>("Selected");
+        final TableColumn<NameStateValue, Boolean> selectionColumn = new TableColumn<>(Messages.Selected);
         {
             double columnWidth = 85;
             selectionColumn.setMinWidth(columnWidth);
@@ -398,9 +398,9 @@ public class WidgetInfoDialog extends Dialog<Boolean>
             selectionColumn.setMaxWidth(columnWidth);
         }
 
-        MenuItem selectAllMenuItem = new MenuItem("Select All");
+        MenuItem selectAllMenuItem = new MenuItem(Messages.SelectAll);
         selectAllMenuItem.setOnAction(actionEvent -> pvs.forEach(nameStateValue -> nameStateValue.selected.set(true)));
-        MenuItem deSelectAllMenuItem = new MenuItem("De-Select All");
+        MenuItem deSelectAllMenuItem = new MenuItem(Messages.DeSelectAll);
         deSelectAllMenuItem.setOnAction(actionEvent -> pvs.forEach(nameStateValue -> nameStateValue.selected.set(false)));
 
         ContextMenu selectionContextMenu = new ContextMenu(selectAllMenuItem, deSelectAllMenuItem);
@@ -554,8 +554,8 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         FutureTask<Optional<Pair<String, String>>> displayCopyDialog = new FutureTask(() -> {
             final Dialog copyDialog = new Dialog();
 
-            copyDialog.setTitle("Copy PV Names");
-            copyDialog.setHeaderText("Copy PV Name(s)");
+            copyDialog.setTitle(Messages.CopyPVNames);
+            copyDialog.setHeaderText(Messages.CopyPVNames);
 
             {
                 // In JavaFX, a button of type ButtonType.CLOSE must be present for the 'X'-button to work.
@@ -570,7 +570,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
             // Custom close-button with correct alignment:
             final Button closeButton;
             {
-                ButtonType closeButtonType = new ButtonType("Close", ButtonData.LEFT);
+                ButtonType closeButtonType = new ButtonType(Messages.Close, ButtonData.LEFT);
                 copyDialog.getDialogPane().getButtonTypes().add(closeButtonType);
                 closeButton = (Button) copyDialog.getDialogPane().lookupButton(closeButtonType);
                 ButtonBar.setButtonUniformSize(closeButton, false);
@@ -578,7 +578,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
 
             final Button copyWithoutDescriptionButton;
             {
-                ButtonType copyWithoutDescriptionButtonType = new ButtonType("Copy PV Name(s)", ButtonData.RIGHT);
+                ButtonType copyWithoutDescriptionButtonType = new ButtonType(Messages.CopyPVNames, ButtonData.RIGHT);
                 copyDialog.getDialogPane().getButtonTypes().add(copyWithoutDescriptionButtonType);
                 copyWithoutDescriptionButton = (Button) copyDialog.getDialogPane().lookupButton(copyWithoutDescriptionButtonType);
                 copyWithoutDescriptionButton.setTooltip(new Tooltip(copyWithoutDescriptionButton.getText()));
@@ -587,7 +587,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
 
             final Button copyWithDescriptionButton;
             {
-                ButtonType copyWithDescriptionButtonType = new ButtonType("Copy PV Name(s) & description(s)", ButtonData.RIGHT);
+                ButtonType copyWithDescriptionButtonType = new ButtonType(Messages.CopyPVNamesAndDescriptions, ButtonData.RIGHT);
                 copyDialog.getDialogPane().getButtonTypes().add(copyWithDescriptionButtonType);
                 copyWithDescriptionButton = (Button) copyDialog.getDialogPane().lookupButton(copyWithDescriptionButtonType);
                 copyWithDescriptionButton.setTooltip(new Tooltip(copyWithDescriptionButton.getText()));
@@ -628,7 +628,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
                     currentRow++;
                 }
 
-                Text pvNameLabelText = new Text("PV Name: ");
+                Text pvNameLabelText = new Text(Messages.PVName + ":");
                 pvNameLabelText.setStyle("-fx-font-size: 14; -fx-font-weight: bold; ");
                 gridPane.add(pvNameLabelText, 0, currentRow);
 
@@ -637,7 +637,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
                 gridPane.add(pvNameText, 2, currentRow);
                 currentRow++;
 
-                Text descriptionLabelText = new Text("Description: ");
+                Text descriptionLabelText = new Text(Messages.Description + ":");
                 descriptionLabelText.setStyle("-fx-font-size: 14; -fx-font-weight: bold; ");
                 gridPane.add(descriptionLabelText, 0, currentRow);
 
