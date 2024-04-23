@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 public class ContextMenuAppendPvToClipboard implements ContextMenuEntry {
     @Override
     public String getName() {
-        return "Append PV Name to Clipboard";
+        return Messages.AppendPVNameToClipboard;
     }
 
     private Image icon = ImageCache.getImage(ImageCache.class, "/icons/copy.png");
