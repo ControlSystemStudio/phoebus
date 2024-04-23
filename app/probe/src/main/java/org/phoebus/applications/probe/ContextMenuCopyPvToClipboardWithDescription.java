@@ -51,7 +51,7 @@ public class ContextMenuCopyPvToClipboardWithDescription implements ContextMenuE
             }
         }
 
-        BiConsumer<String, String> appendPVAndDescriptionToClipboardContinuation = (pvName, description) -> {
+        BiConsumer<String, String> copyPVAndDescriptionToClipboardContinuation = (pvName, description) -> {
             String newContentInClipboard;
             {
                 newContentInClipboard = pvName + "," + description;
@@ -67,6 +67,6 @@ public class ContextMenuCopyPvToClipboardWithDescription implements ContextMenuE
         ContextMenuAppendPvToClipboardWithDescription.addDescriptionToPvNameModalDialog(pvName,
                                                                                         defaultDescription,
                                                                                         "Copy",
-                                                                                        appendPVAndDescriptionToClipboardContinuation);
+                                                                                        copyPVAndDescriptionToClipboardContinuation);
     }
 }
