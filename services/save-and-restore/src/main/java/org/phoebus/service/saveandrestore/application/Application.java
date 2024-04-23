@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2018 European Spallation Source ERIC.
+ * Copyright (C) 2024 European Spallation Source ERIC.
  * <p>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,14 +17,12 @@
  */
 package org.phoebus.service.saveandrestore.application;
 
-import com.fasterxml.jackson.databind.annotation.JsonAppend.Prop;
 import org.phoebus.service.saveandrestore.migration.MigrateRdbToElastic;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchDAO;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.ArrayList;
@@ -32,6 +30,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
+/**
+ * Save-and-restore service main class.
+ */
 @SpringBootApplication(scanBasePackages = "org.phoebus.service.saveandrestore")
 @EnableScheduling
 @EnableAutoConfiguration
@@ -48,6 +49,10 @@ public class Application {
         System.out.println();
     }
 
+    /**
+     * Main class
+     * @param args Program arguments. Specifying -help will print options.
+     */
     public static void main(String[] args) {
 
         // load the default properties
@@ -85,7 +90,6 @@ public class Application {
             System.exit(-1);
             return;
         }
-
 
 
         context = SpringApplication.run(Application.class, args);

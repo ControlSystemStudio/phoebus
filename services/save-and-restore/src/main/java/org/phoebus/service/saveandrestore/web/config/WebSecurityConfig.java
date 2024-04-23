@@ -29,6 +29,10 @@ import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 import org.springframework.security.ldap.userdetails.PersonContextMapper;
 import org.springframework.security.web.SecurityFilterChain;
 
+/**
+ * {@link Configuration} class setting up authentication/authorization depending on the
+ * auth.impl application property.
+ */
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -71,73 +75,115 @@ public class WebSecurityConfig {
     String ldap_user_search_filter;
 
     @Value("${role.user:sar-user}")
-    public String roleUser;
+    private String roleUser;
 
     @Value("${role.admin:sar-admin}")
-    public String roleAdmin;
+    private String roleAdmin;
 
     @Value("${demo.user:user}")
-    public String demoUser;
+    private String demoUser;
 
     @Value("${demo.user.password:userPass}")
-    public String demoUserPassword;
+    private String demoUserPassword;
 
     @Value("${demo.admin:admin}")
-    public String demoAdmin;
+    private String demoAdmin;
 
     @Value("${demo.admin.password:adminPass}")
-    public String demoAdminPassword;
+    private String demoAdminPassword;
 
     @Value("${demo.readOnly:johndoe}")
-    public String demoReadOnly;
+    private String demoReadOnly;
 
     @Value("${demo.readOnly.password:1234}")
-    public String demoReadOnlyPassword;
+    private String demoReadOnlyPassword;
 
+    /**
+     *
+     * @return name of regular user role
+     */
     @Bean
     public String roleUser() {
         return roleUser.toUpperCase();
     }
 
+    /**
+     *
+     * @return name of admin user role
+     */
     @Bean
     public String roleAdmin() {
         return roleAdmin.toUpperCase();
     }
 
+    /**
+     *
+     * @return Identity of demo regular user
+     */
     @Bean
     public String demoUser(){
         return demoUser;
     }
 
+    /**
+     *
+     * @return Password of demo regular user
+     */
     @Bean
     public String demoUserPassword(){
         return demoUserPassword;
     }
 
+    /**
+     *
+     * @return Identity of the demo admin user.
+     */
     @Bean
     public String demoAdmin(){
         return demoAdmin;
     }
 
+    /**
+     *
+     * @return Password of the demo admin user.
+     */
     @Bean
     public String demoAdminPassword(){
         return demoAdminPassword;
     }
 
+    /**
+     *
+     * @return Identity of the demo read-only user.
+     */
     @Bean
     public String demoReadOnly(){
         return demoReadOnly;
     }
 
+    /**
+     *
+     * @return Password of the demo read-only user.
+     */
     @Bean
     public String demoReadOnlyPassword(){
         return demoReadOnlyPassword;
     }
 
+    /**
+     *
+     * @return The authentication implementation as specified in application property auth.impl.
+     */
+    @SuppressWarnings("unused")
     @Bean
     public String authenticationImplementation(){
         return authenitcationImplementation;
     }
+
+    /**
+     * Configures endpoints not subject to authentication.
+     * @return A {@link WebSecurityCustomizer} object.
+     */
     @Bean
     public WebSecurityCustomizer ignoringCustomizer() {
         return web -> {
@@ -147,6 +193,12 @@ public class WebSecurityConfig {
         };
     }
 
+    /**
+     * Configures http security policy.
+     * @param http A {@link HttpSecurity} object provided by Spring
+     * @return A {@link SecurityFilterChain} object.
+     * @throws Exception on failure
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf().disable();
@@ -155,6 +207,10 @@ public class WebSecurityConfig {
         return http.build();
     }
 
+    /**
+     * Created based on condition implemented in {@link LdapAuthCondition}.
+     * @return A {@link DefaultSpringSecurityContextSource} object
+     */
     @Bean
     @Conditional(LdapAuthCondition.class)
     public DefaultSpringSecurityContextSource contextSourceFactoryBeanLdap() {
@@ -167,6 +223,12 @@ public class WebSecurityConfig {
         return contextSource;
     }
 
+
+    /**
+     * Created based on condition implemented in {@link LdapAuthCondition}.
+     * @param contextSource provided by Spring
+     * @return A {@link AuthenticationManager} object
+     */
     @Bean
     @Conditional(LdapAuthCondition.class)
     public AuthenticationManager ldapAuthenticationManager(
@@ -180,6 +242,11 @@ public class WebSecurityConfig {
         return factory.createAuthenticationManager();
     }
 
+    /**
+     * Created based on condition implemented in {@link LdapAuthCondition}.
+     * @param contextSource provided by Spring
+     * @return A {@link LdapAuthoritiesPopulator} object
+     */
     @Bean
     @Conditional(LdapAuthCondition.class)
     public LdapAuthoritiesPopulator authorities(BaseLdapPathContextSource contextSource) {
@@ -201,6 +268,11 @@ public class WebSecurityConfig {
         return myAuthPopulator;
     }
 
+    /**
+     * Created only if application property auth.impl = ad.
+     * @return A {@link AuthenticationManager} object
+     * @throws Exception on error
+     */
     @Bean
     @ConditionalOnProperty(name = "auth.impl", havingValue = "ad")
     public AuthenticationManager authenticationProvider() throws Exception {
@@ -220,6 +292,12 @@ public class WebSecurityConfig {
         }).authenticationProvider(adProvider).build();
     }
 
+    /**
+     * Created only if application property auth.impl = demo.
+     * @param auth Injected by Spring
+     * @return A {@link AuthenticationManager} object
+     * @throws Exception on error
+     */
     @Bean
     @ConditionalOnProperty(name = "auth.impl", havingValue = "demo")
     public AuthenticationManager demoAuthenticationManager(AuthenticationManagerBuilder auth) throws Exception {
@@ -235,12 +313,20 @@ public class WebSecurityConfig {
                 .withUser(demoReadOnly).password(encoder().encode(demoReadOnlyPassword)).roles().and().and().build();
     }
 
+    /**
+     *
+     * @return A {@link PasswordEncoder} object.
+     */
     @Bean
     @Scope("singleton")
     public PasswordEncoder encoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     *
+     * @return An {@link ObjectMapper} object used for serialization/deserialization.
+     */
     @SuppressWarnings("unused")
     @Bean
     @Scope("singleton")
@@ -252,7 +338,7 @@ public class WebSecurityConfig {
 
     /**
      * Configures role hierarchy, i.e. user - superuser - admin. Do not remove this {@link Bean}!
-     * <h2>NOTE!</h2>
+     * <h4>NOTE!</h4>
      * Some Spring Security documentation will state that &quot;and&quot; can be used instead of new-line char to
      * separate rule items. But that does NOT work, at least not with the Spring Security version used in this project.
      *

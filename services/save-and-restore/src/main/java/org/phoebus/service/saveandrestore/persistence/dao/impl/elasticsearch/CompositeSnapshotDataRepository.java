@@ -56,11 +56,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+/**
+ * {@link Repository} class for {@link CompositeSnapshotData}.
+ */
 @Repository
 public class CompositeSnapshotDataRepository implements CrudRepository<CompositeSnapshotData, String> {
 
     @Value("${elasticsearch.composite_snapshot_node.index:saveandrestore_composite_snapshot}")
-    public String ES_COMPOSITE_SNAPSHOT_INDEX;
+    private String ES_COMPOSITE_SNAPSHOT_INDEX;
 
     @Autowired
     @Qualifier("client")

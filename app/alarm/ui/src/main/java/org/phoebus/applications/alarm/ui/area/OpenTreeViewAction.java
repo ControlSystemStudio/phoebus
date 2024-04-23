@@ -10,6 +10,7 @@ package org.phoebus.applications.alarm.ui.area;
 import java.util.logging.Level;
 
 import org.phoebus.applications.alarm.AlarmSystem;
+import org.phoebus.applications.alarm.ui.AlarmURI;
 import org.phoebus.applications.alarm.ui.tree.AlarmTreeMenuEntry;
 
 import javafx.scene.control.MenuItem;
@@ -21,10 +22,15 @@ import javafx.scene.image.ImageView;
 @SuppressWarnings("nls")
 public class OpenTreeViewAction extends MenuItem
 {
-    /** Constructor */
-    public OpenTreeViewAction()
+
+    /**
+     * Constructor
+     * @param alarmConfigName The alarm configuration name
+     */
+    public OpenTreeViewAction(String alarmConfigName)
     {
         final AlarmTreeMenuEntry entry = new AlarmTreeMenuEntry();
+        entry.setResource(AlarmURI.createURI(AlarmSystem.server, alarmConfigName));
         setText(entry.getName());
         setGraphic(new ImageView(entry.getIcon()));
         setOnAction(event ->

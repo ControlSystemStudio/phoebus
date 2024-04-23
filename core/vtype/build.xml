@@ -8,6 +8,7 @@
         <fileset dir="${dependencies}/phoebus-target/target/lib">
           <include name="*.jar"/>
         </fileset>
+        <pathelement path="../pva/${build}/core-pva-${version}.jar"/>
       </classpath>
     </javac>
   	<jar destfile="${build}/core-vtype-${version}.jar">

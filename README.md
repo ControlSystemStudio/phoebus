@@ -8,7 +8,7 @@ https://control-system-studio.readthedocs.io
 
 
 ## Requirements
- - [JDK11 or later, suggested is OpenJDK](http://jdk.java.net/12).
+ - [JDK17 or later, suggested is OpenJDK](https://adoptium.net/en-GB/temurin/archive/?version=17).
  - [maven 3.x](https://maven.apache.org/) or [ant](http://ant.apache.org/)
 
 
@@ -27,7 +27,7 @@ mvn clean verify -f dependencies/pom.xml
 Define the JAVA_HOME environment variable to point to your Java installation directory. 
 Mac OS users should use something like:
 ```
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-11.0.5+10/Contents/Home
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-17.0.10+7/Contents/Home
 ```
 Verify through:
 ```
@@ -73,13 +73,13 @@ Download Eclipse Oxygen 4.7.1a or later from http://download.eclipse.org/eclipse
 
 Start Eclipse like this:
 
-    export JAVA_HOME=/path/to/your/jdk-9-or-later
+    export JAVA_HOME=/path/to/your/jdk-17-or-later
     export PATH="$JAVA_HOME/bin:$PATH"
     eclipse/eclipse -consoleLog
 
 Check Eclipse Preferences:
 
- * Java, Installed JREs: JDK 9-or-later should be the default
+ * Java, Installed JREs: JDK 17-or-later should be the default
  * Java, Compiler: JDK Compliance should be "9" or higher
 
 
@@ -108,7 +108,7 @@ In Help/Eclipse Marketplace, search for Maven Integration for Eclipse Luna or ne
 Use File/Import/Maven/Existing Maven Projects to import the phoebus source code.
 
 There can be a compiler error because the "JRE System Library" in the Package Explorer shows "[J2SE-1.4]".
-Right click on the affected projects (greeting-app, probe), Build Path, Configure Build Path, Libraries, Edit the JRE System Library to use the Workspace default (jdk-9).
+Right click on the affected projects (greeting-app, probe), Build Path, Configure Build Path, Libraries, Edit the JRE System Library to use the Workspace default (jdk-17).
 Restart Eclipse IDE.
 
 Can now start product/src/main/java/org.phoebus.product/Launcher.java.
@@ -129,7 +129,7 @@ To run the Phoebus application:
 
 * Run | Edit Configurations...
 * Select + | Application
-* Module: Your JRE 11
+* Module: Your JRE 17
 * Classpath `-cp`: select `product` from drop-down
 * Main class: `org.phoebus.product.Launcher`
 * Set the name to Phoebus

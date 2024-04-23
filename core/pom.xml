@@ -8,6 +8,12 @@
     <module>util</module>
     <module>pva</module>
     <module>pv</module>
+    <module>pv-ca</module>
+    <module>pv-jackie</module>
+    <module>pv-mqtt</module>
+    <module>pv-opva</module>
+    <module>pv-pva</module>
+    <module>pv-tango</module>
     <module>security</module>
     <module>formula</module>
     <module>ui</module>

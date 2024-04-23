@@ -373,83 +373,14 @@
     <!-- Apache Batik (for SVG) -->
     <dependency>
       <groupId>org.apache.xmlgraphics</groupId>
-      <artifactId>batik-anim</artifactId>
+      <artifactId>batik-all</artifactId>
       <version>${batik.version}</version>
-    </dependency>
-    <dependency>
-        <groupId>org.apache.xmlgraphics</groupId>
-        <artifactId>batik-awt-util</artifactId>
-        <version>${batik.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.xmlgraphics</groupId>
-      <artifactId>batik-bridge</artifactId>
-      <version>${batik.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.xmlgraphics</groupId>
-      <artifactId>batik-constants</artifactId>
-      <version>${batik.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.xmlgraphics</groupId>
-      <artifactId>batik-css</artifactId>
-      <version>${batik.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.xmlgraphics</groupId>
-      <artifactId>batik-dom</artifactId>
-      <version>${batik.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.xmlgraphics</groupId>
-      <artifactId>batik-ext</artifactId>
-      <version>${batik.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.xmlgraphics</groupId>
-      <artifactId>batik-gvt</artifactId>
-      <version>${batik.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.xmlgraphics</groupId>
-      <artifactId>batik-i18n</artifactId>
-      <version>${batik.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.xmlgraphics</groupId>
-      <artifactId>batik-parser</artifactId>
-      <version>${batik.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.xmlgraphics</groupId>
-      <artifactId>batik-script</artifactId>
-      <version>${batik.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.xmlgraphics</groupId>
-      <artifactId>batik-svg-dom</artifactId>
-      <version>${batik.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.xmlgraphics</groupId>
-      <artifactId>batik-svggen</artifactId>
-      <version>${batik.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.xmlgraphics</groupId>
-      <artifactId>batik-transcoder</artifactId>
-      <version>${batik.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.xmlgraphics</groupId>
-      <artifactId>batik-util</artifactId>
-      <version>${batik.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.xmlgraphics</groupId>
-      <artifactId>batik-xml</artifactId>
-      <version>${batik.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>xml-apis</groupId>
+          <artifactId>xml-apis</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.xmlgraphics</groupId>
@@ -501,22 +432,22 @@
     <dependency>
       <groupId>org.eclipse.jgit</groupId>
       <artifactId>org.eclipse.jgit</artifactId>
-      <version>6.6.0.202305301015-r</version>
+      <version>${jgit.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jgit</groupId>
       <artifactId>org.eclipse.jgit.archive</artifactId>
-      <version>6.6.0.202305301015-r</version>
+      <version>${jgit.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jgit</groupId>
       <artifactId>org.eclipse.jgit.ssh.jsch</artifactId>
-      <version>6.6.0.202305301015-r</version>
+      <version>${jgit.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jgit</groupId>
       <artifactId>org.eclipse.jgit.ssh.apache</artifactId>
-      <version>6.6.0.202305301015-r</version>
+      <version>${jgit.version}</version>
     </dependency>
     <!-- Spring Boot -->
     <dependency>
@@ -580,6 +511,21 @@
       <artifactId>javax.json-api</artifactId>
       <version>1.1.4</version>
     </dependency>
+
+    <!-- https://mvnrepository.com/artifact/org.apache.activemq/activemq-client -->
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-client</artifactId>
+      <version>5.18.2</version>
+    </dependency>
+
+    <!-- EPICS Jackie client for Jackie PV source -->
+    <dependency>
+      <groupId>com.aquenos.epics.jackie</groupId>
+      <artifactId>epics-jackie-client</artifactId>
+      <version>3.1.0</version>
+    </dependency>
+
   </dependencies>
 
   <build>

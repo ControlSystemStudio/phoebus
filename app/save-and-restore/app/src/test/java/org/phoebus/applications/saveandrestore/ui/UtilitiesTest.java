@@ -23,6 +23,7 @@ import org.epics.util.array.*;
 import org.epics.vtype.*;
 import org.junit.jupiter.api.Test;
 import org.phoebus.core.vtypes.VDisconnectedData;
+import org.phoebus.core.vtypes.VTypeHelper;
 
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -1471,14 +1472,14 @@ public class UtilitiesTest {
     public void testToPVArrayType() {
 
         boolean[] bools = new boolean[]{true, false, true};
-        Object converted = Utilities.toPVArrayType("bools", ArrayBoolean.of(bools));
+        Object converted = VTypeHelper.toPVArrayType("bools", ArrayBoolean.of(bools));
         assertInstanceOf(PVABoolArray.class, converted);
         assertEquals(3, ((PVABoolArray) converted).get().length);
         assertArrayEquals(bools, ((PVABoolArray) converted).get());
         assertEquals("bools", ((PVABoolArray) converted).getName());
 
         byte[] bytes = new byte[]{(byte) -1, (byte) 2, (byte) 3};
-        converted = Utilities.toPVArrayType("bytes", ArrayByte.of(bytes));
+        converted = VTypeHelper.toPVArrayType("bytes", ArrayByte.of(bytes));
         assertInstanceOf(PVAByteArray.class, converted);
         assertEquals(3, ((PVAByteArray) converted).get().length);
         assertArrayEquals(bytes, ((PVAByteArray) converted).get());
@@ -1486,7 +1487,7 @@ public class UtilitiesTest {
         assertFalse(((PVAByteArray) converted).isUnsigned());
 
         bytes = new byte[]{(byte) 1, (byte) 2, (byte) 3};
-        converted = Utilities.toPVArrayType("ubytes", ArrayUByte.of(bytes));
+        converted = VTypeHelper.toPVArrayType("ubytes", ArrayUByte.of(bytes));
         assertInstanceOf(PVAByteArray.class, converted);
         assertEquals(3, ((PVAByteArray) converted).get().length);
         assertArrayEquals(bytes, ((PVAByteArray) converted).get());
@@ -1494,7 +1495,7 @@ public class UtilitiesTest {
         assertTrue(((PVAByteArray) converted).isUnsigned());
 
         short[] shorts = new short[]{(short) -1, (short) 2, (short) 3};
-        converted = Utilities.toPVArrayType("shorts", ArrayShort.of(shorts));
+        converted = VTypeHelper.toPVArrayType("shorts", ArrayShort.of(shorts));
         assertInstanceOf(PVAShortArray.class, converted);
         assertEquals(3, ((PVAShortArray) converted).get().length);
         assertArrayEquals(shorts, ((PVAShortArray) converted).get());
@@ -1502,7 +1503,7 @@ public class UtilitiesTest {
         assertFalse(((PVAShortArray) converted).isUnsigned());
 
         shorts = new short[]{(short) 1, (short) 2, (short) 3};
-        converted = Utilities.toPVArrayType("ushorts", ArrayUShort.of(shorts));
+        converted = VTypeHelper.toPVArrayType("ushorts", ArrayUShort.of(shorts));
         assertInstanceOf(PVAShortArray.class, converted);
         assertEquals(3, ((PVAShortArray) converted).get().length);
         assertArrayEquals(shorts, ((PVAShortArray) converted).get());
@@ -1510,7 +1511,7 @@ public class UtilitiesTest {
         assertTrue(((PVAShortArray) converted).isUnsigned());
 
         int[] ints = new int[]{-1, 2, 3};
-        converted = Utilities.toPVArrayType("ints", ArrayInteger.of(ints));
+        converted = VTypeHelper.toPVArrayType("ints", ArrayInteger.of(ints));
         assertInstanceOf(PVAIntArray.class, converted);
         assertEquals(3, ((PVAIntArray) converted).get().length);
         assertArrayEquals(ints, ((PVAIntArray) converted).get());
@@ -1518,7 +1519,7 @@ public class UtilitiesTest {
         assertFalse(((PVAIntArray) converted).isUnsigned());
 
         ints = new int[]{1, 2, 3};
-        converted = Utilities.toPVArrayType("uints", ArrayUInteger.of(ints));
+        converted = VTypeHelper.toPVArrayType("uints", ArrayUInteger.of(ints));
         assertInstanceOf(PVAIntArray.class, converted);
         assertEquals(3, ((PVAIntArray) converted).get().length);
         assertArrayEquals(ints, ((PVAIntArray) converted).get());
@@ -1526,7 +1527,7 @@ public class UtilitiesTest {
         assertTrue(((PVAIntArray) converted).isUnsigned());
 
         long[] longs = new long[]{-1L, 2L, 3L};
-        converted = Utilities.toPVArrayType("longs", ArrayLong.of(longs));
+        converted = VTypeHelper.toPVArrayType("longs", ArrayLong.of(longs));
         assertInstanceOf(PVALongArray.class, converted);
         assertEquals(3, ((PVALongArray) converted).get().length);
         assertArrayEquals(longs, ((PVALongArray) converted).get());
@@ -1534,7 +1535,7 @@ public class UtilitiesTest {
         assertFalse(((PVALongArray) converted).isUnsigned());
 
         longs = new long[]{1L, 2L, 3L};
-        converted = Utilities.toPVArrayType("ulongs", ArrayULong.of(longs));
+        converted = VTypeHelper.toPVArrayType("ulongs", ArrayULong.of(longs));
         assertInstanceOf(PVALongArray.class, converted);
         assertEquals(3, ((PVALongArray) converted).get().length);
         assertArrayEquals(longs, ((PVALongArray) converted).get());
@@ -1542,14 +1543,14 @@ public class UtilitiesTest {
         assertTrue(((PVALongArray) converted).isUnsigned());
 
         float[] floats = new float[]{-1.0f, 2.0f, 3.0f};
-        converted = Utilities.toPVArrayType("floats", ArrayFloat.of(floats));
+        converted = VTypeHelper.toPVArrayType("floats", ArrayFloat.of(floats));
         assertInstanceOf(PVAFloatArray.class, converted);
         assertEquals(3, ((PVAFloatArray) converted).get().length);
         assertArrayEquals(floats, ((PVAFloatArray) converted).get());
         assertEquals("floats", ((PVAFloatArray) converted).getName());
 
         double[] doubles = new double[]{-1.0, 2.0, 3.0};
-        converted = Utilities.toPVArrayType("doubles", ArrayDouble.of(doubles));
+        converted = VTypeHelper.toPVArrayType("doubles", ArrayDouble.of(doubles));
         assertInstanceOf(PVADoubleArray.class, converted);
         assertEquals(3, ((PVADoubleArray) converted).get().length);
         assertArrayEquals(doubles, ((PVADoubleArray) converted).get());
@@ -1559,7 +1560,7 @@ public class UtilitiesTest {
         strings.add("a");
         strings.add("b");
         strings.add("c");
-        converted = Utilities.toPVArrayType("strings", strings);
+        converted = VTypeHelper.toPVArrayType("strings", strings);
         assertInstanceOf(PVAStringArray.class, converted);
         assertEquals(3, ((PVAStringArray) converted).get().length);
         assertArrayEquals(new String[]{"a", "b", "c"}, ((PVAStringArray) converted).get());

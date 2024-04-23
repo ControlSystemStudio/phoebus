@@ -23,23 +23,42 @@ import org.phoebus.applications.saveandrestore.model.Node;
 
 import java.util.List;
 
+/**
+ * Pojo class representing a tree node and a list of child nodes.
+ */
 public class ESTreeNode {
 
     private Node node;
     private List<String> childNodes;
 
+    /**
+     * @return The {@link Node} object represented by this class.
+     */
     public Node getNode() {
         return node;
     }
 
+    /**
+     * Setter
+     * @param node A {@link Node} object
+     */
     public void setNode(Node node) {
         this.node = node;
     }
 
+    /**
+     *
+     * @return List of child {@link Node}s for the {@link Node} object represented by this class. May be <code>null</code>
+     * or empty.
+     */
     public List<String> getChildNodes() {
         return childNodes;
     }
 
+    /**
+     *
+     * @param childNodes {@link List} of child {@link Node}s
+     */
     public void setChildNodes(List<String> childNodes) {
         this.childNodes = childNodes;
     }

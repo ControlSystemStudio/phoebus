@@ -175,7 +175,7 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
                     snapshotData.setSnapshotItems(entries);
                     snapshot.setSnapshotData(snapshotData);
                     showSnapshotInTable(snapshot);
-                    if (!Preferences.default_snapshot_name_date_format.equals("")) {
+                    if (!Preferences.default_snapshot_name_date_format.isEmpty()) {
                         SimpleDateFormat formatter = new SimpleDateFormat(Preferences.default_snapshot_name_date_format);
                         snapshot.getSnapshotNode().setName(formatter.format(new Date()));
                     }
@@ -353,7 +353,9 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
             for (SnapshotItem entry : snapshot.getSnapshotData().getSnapshotItems()) {
                 TableEntry e = tableEntryItems.get(getPVKey(entry.getConfigPv().getPvName(), entry.getConfigPv().isReadOnly()));
 
-                boolean restorable = e.selectedProperty().get() && !e.readOnlyProperty().get() &&
+                boolean restorable = e.selectedProperty().get() &&
+                        !e.readOnlyProperty().get() &&
+                        entry.getValue() != null &&
                         !entry.getValue().equals(VNoData.INSTANCE);
 
                 if (restorable) {

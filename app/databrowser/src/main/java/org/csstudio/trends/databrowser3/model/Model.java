@@ -395,6 +395,39 @@ public class Model
         fireAxisChangedEvent(Optional.empty());
     }
 
+    public void exchangeAxes(int i, int j) {
+        int lowerIndex, higherIndex;
+        if (i == j) {
+            return;
+        }
+        else if (j < i) {
+            lowerIndex = j;
+            higherIndex = i;
+        }
+        else {
+            lowerIndex = i;
+            higherIndex = j;
+        }
+        var lowerIndexAxis = getAxis(lowerIndex);
+        var higherIndexAxis = getAxis(higherIndex);
+
+        axes.remove(lowerIndexAxis);
+        axes.remove(higherIndexAxis);
+
+        axes.add(lowerIndex, higherIndexAxis);
+        axes.add(higherIndex, lowerIndexAxis);
+
+        fireAxisChangedEvent(Optional.of(lowerIndexAxis));
+        fireAxisChangedEvent(Optional.of(higherIndexAxis));
+        fireAxisChangedEvent(Optional.empty()); // Updates the order of the axes in the UI under the "Value Axes" tab
+
+        for (ModelItem item : items) {
+            if (item.getAxis() == lowerIndexAxis || item.getAxis() == higherIndexAxis) {
+                item.fireItemLookChanged(); // Prevents the "Axis" UI-setting (under the "Traces" tab) from sometimes not displaying in the UI when moving axes.
+            }
+        }
+    };
+
     /** @return How should plot rescale after archived data arrived? */
     public ArchiveRescale getArchiveRescale()
     {

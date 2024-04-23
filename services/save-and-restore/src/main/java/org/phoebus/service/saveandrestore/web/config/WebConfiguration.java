@@ -22,16 +22,26 @@ import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.Ela
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-
+/**
+ * {@link Configuration} class setting up beans for {@link org.springframework.stereotype.Controller} classes.
+ */
 @Configuration
 public class WebConfiguration {
 
+    /**
+     *
+     * @return A {@link NodeDAO} instance.
+     */
     @SuppressWarnings("unused")
     @Bean
     public NodeDAO nodeDAO() {
         return new ElasticsearchDAO();
     }
 
+    /**
+     *
+     * @return An {@link AcceptHeaderResolver} instance.
+     */
     @SuppressWarnings("unused")
     @Bean
     public AcceptHeaderResolver acceptHeaderResolver() {

@@ -31,6 +31,7 @@ import org.epics.vtype.VNumber;
 import org.epics.vtype.VString;
 import org.epics.vtype.VType;
 import org.phoebus.archive.reader.ValueIterator;
+import org.phoebus.archive.reader.util.ChannelAccessStatusUtil;
 import org.phoebus.archive.vtype.TimestampHelper;
 import org.phoebus.pv.TimeHelper;
 
@@ -40,8 +41,6 @@ import com.google.protobuf.Descriptors.FieldDescriptor;
 import edu.stanford.slac.archiverappliance.PB.EPICSEvent.FieldValue;
 import edu.stanford.slac.archiverappliance.PB.EPICSEvent.PayloadInfo;
 import edu.stanford.slac.archiverappliance.PB.EPICSEvent.PayloadType;
-
-import gov.aps.jca.dbr.Status;
 
 /**
  *
@@ -359,6 +358,6 @@ public abstract class ApplianceValueIterator implements ValueIterator {
      * @return alarm status
      */
     protected static String getStatus(int status) {
-        return Status.forValue(status).getName();
+        return ChannelAccessStatusUtil.idToName(status);
     }
 }

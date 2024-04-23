@@ -7,12 +7,12 @@
  *******************************************************************************/
 package org.phoebus.applications.alarm.ui;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-
+import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import org.phoebus.applications.alarm.AlarmSystem;
 import org.phoebus.applications.alarm.client.AlarmClient;
 import org.phoebus.applications.alarm.client.AlarmClientLeaf;
@@ -24,13 +24,13 @@ import org.phoebus.core.types.ProcessVariable;
 import org.phoebus.framework.selection.SelectionService;
 import org.phoebus.ui.application.ContextMenuHelper;
 import org.phoebus.ui.dialog.DialogHelper;
+import org.phoebus.ui.javafx.FocusUtil;
 
-import javafx.scene.Node;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /** Helper for adding guidance, displays, commands to context menu
  *  @author Kay Kasemir
@@ -132,13 +132,13 @@ public class AlarmContextMenuHelper
         {
             menu_items.add(new SeparatorMenuItem());
             SelectionService.getInstance().setSelection("AlarmUI", pvnames);
-            ContextMenuHelper.addSupportedEntries(node, menu);
+            ContextMenuHelper.addSupportedEntries(FocusUtil.setFocusOn(node), menu);
         }
         else
         {
             // search for other context menu actions registered for AlarmTreeItem
             SelectionService.getInstance().setSelection("AlarmUI", selection);
-            ContextMenuHelper.addSupportedEntries(node, menu);
+            ContextMenuHelper.addSupportedEntries(FocusUtil.setFocusOn(node), menu);
         }
     }
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2012-2024 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -211,6 +211,9 @@ public class JythonSupport implements AutoCloseable
     public static String getExceptionMessage(final PyException ex)
     {
         final StringBuilder buf = new StringBuilder();
+        if (ex.getLocalizedMessage() != null)
+            buf.append(" ").append(ex.getLocalizedMessage());
+
         if (ex.value instanceof PyString)
             buf.append(" ").append(ex.value.asString());
         else if (ex.getCause() != null)

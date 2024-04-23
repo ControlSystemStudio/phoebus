@@ -37,6 +37,9 @@ import java.util.logging.Logger;
 
 import static org.phoebus.applications.saveandrestore.model.Node.ROOT_FOLDER_UNIQUE_ID;
 
+/**
+ * Configures the Elasticsearch environment, e.g. creates indices if they do not exist.
+ */
 @Configuration
 @ComponentScan(basePackages = {"org.phoebus.service.saveandrestore"})
 @PropertySource("classpath:application.properties")
@@ -44,30 +47,38 @@ public class ElasticConfig {
 
     private static final Logger logger = Logger.getLogger(ElasticConfig.class.getName());
 
+    @SuppressWarnings("unused")
     @Value("${elasticsearch.tree_node.index:saveandrestore_tree}")
-    public String ES_TREE_INDEX;
+    private String ES_TREE_INDEX;
 
+    @SuppressWarnings("unused")
     @Value("${elasticsearch.configuration_node.index:saveandrestore_configuration}")
-    public String ES_CONFIGURATION_INDEX;
+    private String ES_CONFIGURATION_INDEX;
 
+    @SuppressWarnings("unused")
     @Value("${elasticsearch.snapshot_node.index:saveandrestore_snapshot}")
-    public String ES_SNAPSHOT_INDEX;
+    private String ES_SNAPSHOT_INDEX;
 
+    @SuppressWarnings("unused")
     @Value("${elasticsearch.composite_snapshot_node.index:saveandrestore_composite_snapshot}")
-    public String ES_COMPOSITE_SNAPSHOT_INDEX;
+    private String ES_COMPOSITE_SNAPSHOT_INDEX;
 
+    @SuppressWarnings("unused")
     @Value("${elasticsearch.filter.index:saveandrestore_filter}")
-    public String ES_FILTER_INDEX;
+    private String ES_FILTER_INDEX;
 
+    @SuppressWarnings("unused")
     @Value("${elasticsearch.network.host:localhost}")
     private String host;
+
+    @SuppressWarnings("unused")
     @Value("${elasticsearch.http.port:9200}")
     private int port;
 
     private ElasticsearchClient client;
     private static final AtomicBoolean esInitialized = new AtomicBoolean();
 
-    public static final Node ROOT_NODE;
+    private static final Node ROOT_NODE;
 
     static{
         Date now = new Date();
@@ -76,6 +87,10 @@ public class ElasticConfig {
 
     }
 
+    /**
+     *
+     * @return The {@link org.elasticsearch.client.ElasticsearchClient} bean.
+     */
     @Bean({"client"})
     public ElasticsearchClient getClient() {
         if (client == null) {
@@ -210,6 +225,11 @@ public class ElasticConfig {
         }
     }
 
+    /**
+     *
+     * @return A {@link SearchUtil} instance.
+     */
+    @SuppressWarnings("unused")
     @Bean
     public SearchUtil searchUtil(){
         return new SearchUtil();

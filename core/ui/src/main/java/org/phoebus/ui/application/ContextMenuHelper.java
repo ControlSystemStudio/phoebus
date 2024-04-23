@@ -14,8 +14,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 
-import javafx.scene.control.Menu;
-import javafx.scene.input.MouseEvent;
 import org.phoebus.framework.adapter.AdapterService;
 import org.phoebus.framework.selection.Selection;
 import org.phoebus.framework.selection.SelectionService;
@@ -43,75 +41,44 @@ public class ContextMenuHelper
      *  after adding application specific menu entries,
      *  to add entries based on the current selection.
      *
-     *  @param parent_node Parent node, usually owner of the context menu
-     *  @param contextMenu Menu where selection-based entries will be added
+     *  @param setFocus Sets the correct focus (typically on a DockPane or Window) before running the action associated with a menu entry
+     *  @param menu Menu where selection-based entries will be added
      *  @return <code>true</code> if a supported entry was added.
      */
-    public static boolean addSupportedEntries(final Node parent_node, final ContextMenu contextMenu)
+    public static boolean addSupportedEntries(Runnable setFocus, final ContextMenu menu)
     {
-        final Window window = parent_node.getScene().getWindow();
-        if (! (window instanceof Stage))
-        {
-            logger.log(Level.WARNING, "Expected 'Stage' for context menu, got " + window);
-            return false;
-        }
-        final Stage stage = (Stage) window;
-        // Assert that this window's dock pane is the active one.
-        // (on Mac and Linux, invoking the context menu will not
-        //  always activate the stage)
-        DockStage.setActiveDockStage(stage);
-
         final List<ContextMenuEntry> entries = ContextMenuService.getInstance().listSupportedContextMenuEntries();
         if (entries.isEmpty())
             return false;
 
-        Menu menu = new Menu();
-        Runnable hideContextMenu = () -> contextMenu.hide();
-        addEntriesToMenu(entries, menu, hideContextMenu);
-        menu.getItems().forEach(item -> contextMenu.getItems().add(item));
-
-        return true;
-    }
-
-    private static void addEntriesToMenu(List<ContextMenuEntry> entries,
-                                         Menu menu,
-                                         Runnable hideContextMenu) {
         for (ContextMenuEntry entry : entries)
         {
-            final MenuItem item;
-            if (entry.getChildren().isEmpty()) {
-                item = new MenuItem();
+            final MenuItem item = new MenuItem(entry.getName());
 
-                item.setOnAction(e ->
-                {
-                    try
-                    {
-                        List<Object> selection = new ArrayList<>();
-                        SelectionService.getInstance().getSelection()
-                                .getSelections().stream().forEach(s -> {
-                                    AdapterService.adapt(s, entry.getSupportedType())
-                                            .ifPresent(found -> selection.add(found));
-                                });
-                        entry.call(SelectionUtil.createSelection(selection));
-                        hideContextMenu.run();
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.log(Level.WARNING, "Cannot invoke context menu", ex);
-                    }
-                });
-            }
-            else {
-                Menu subMenu = new Menu();
-                addEntriesToMenu(entry.getChildren(), subMenu, hideContextMenu);
-                item = subMenu;
-            }
-
-            item.setText(entry.getName());
             final Image icon = entry.getIcon();
             if (icon != null)
                 item.setGraphic(new ImageView(icon));
+            item.setOnAction(e ->
+            {
+                setFocus.run();
+                try
+                {
+                    List<Object> selection = new ArrayList<>();
+                    SelectionService.getInstance().getSelection()
+                            .getSelections().stream().forEach(s -> {
+                                AdapterService.adapt(s, entry.getSupportedType())
+                                        .ifPresent(found -> selection.add(found));
+                    });
+                    entry.call(SelectionUtil.createSelection(selection));
+                }
+                catch (Exception ex)
+                {
+                    logger.log(Level.WARNING, "Cannot invoke context menu", ex);
+                }
+            });
             menu.getItems().add(item);
         }
+
+        return true;
     }
 }

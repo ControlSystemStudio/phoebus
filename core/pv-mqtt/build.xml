@@ -1,0 +1,24 @@
+<project default="core-pv-mqtt">
+  <import file="../../dependencies/ant_settings.xml"/>
+
+  <target name="core-pv-mqtt">
+    <mkdir dir="${classes}"/>
+    <javac destdir="${classes}" debug="${debug}">
+      <src path="${src}"/>
+      <classpath>
+        <fileset dir="${dependencies}/phoebus-target/target/lib">
+          <include name="*.jar"/>
+        </fileset>
+        <pathelement path="../framework/${build}/core-framework-${version}.jar"/>
+        <pathelement path="../util/${build}/core-util-${version}.jar"/>
+        <pathelement path="../vtype/${build}/core-vtype-${version}.jar"/>
+        <pathelement path="../pv/${build}/core-pv-${version}.jar"/>
+      </classpath>
+    </javac>
+  	<jar destfile="${build}/core-pv-mqtt-${version}.jar">
+      <fileset dir="${classes}"/>
+      <fileset dir="${resources}"/>
+    </jar>
+  </target>
+	
+</project>

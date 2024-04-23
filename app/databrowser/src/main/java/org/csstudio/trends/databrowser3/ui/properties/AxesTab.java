@@ -272,6 +272,12 @@ public class AxesTab extends Tab
             if (selection.size() > 0)
                 items.add(new DeleteAxes(axes_table, model, undo, selection));
 
+            if (selection.size() == 1) {
+                int index = axes_table.getItems().indexOf(selection.get(0));
+                items.add(new MoveAxisToTheLeft(model, undo, index));
+                items.add(new MoveAxisToTheRight(model, undo, index));
+            }
+
             if (model.getEmptyAxis().isPresent())
                 items.add(new RemoveUnusedAxes(model, undo));
 

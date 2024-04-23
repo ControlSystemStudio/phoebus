@@ -86,11 +86,15 @@ public class AlarmAreaView extends StackPane implements AlarmClientListener
     private final Font font = new Font(AlarmSystem.alarm_area_font_size);
     private final Border border = new Border(new BorderStroke(Color.BLACK, style, radii, new BorderWidths(2)));
 
+    private final String alarmConfigName;
+
     /** @param model Model */
     public AlarmAreaView(final AlarmClient model)
     {
         if (model.isRunning())
             throw new IllegalStateException();
+
+        alarmConfigName = model.getRoot().getName();
 
         grid.setHgap(AlarmSystem.alarm_area_gap);
         grid.setVgap(AlarmSystem.alarm_area_gap);
@@ -241,7 +245,7 @@ public class AlarmAreaView extends StackPane implements AlarmClientListener
     {
         final ObservableList<MenuItem> menu_items = menu.getItems();
 
-        menu_items.add(new OpenTreeViewAction());
+        menu_items.add(new OpenTreeViewAction(alarmConfigName));
         this.setOnContextMenuRequested(event ->
             menu.show(this.getScene().getWindow(), event.getScreenX(), event.getScreenY())
         );

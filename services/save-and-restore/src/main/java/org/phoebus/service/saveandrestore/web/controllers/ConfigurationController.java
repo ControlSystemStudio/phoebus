@@ -34,6 +34,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 
+/**
+ * Controller class for {@link Configuration} endpoints.
+ */
 @RestController
 @RequestMapping("/config")
 public class ConfigurationController extends BaseController {
@@ -42,6 +45,13 @@ public class ConfigurationController extends BaseController {
     @Autowired
     private NodeDAO nodeDAO;
 
+    /**
+     * Creates new {@link Configuration} {@link Node}.
+     * @param parentNodeId Valid id of the {@link Node}s intended parent.
+     * @param configuration {@link Configuration} data.
+     * @param principal User {@link Principal} injected by Spring.
+     * @return The new {@link Configuration}.
+     */
     @SuppressWarnings("unused")
     @PutMapping(produces = JSON)
     @PreAuthorize("@authorizationHelper.mayCreate(#root)")
@@ -52,12 +62,23 @@ public class ConfigurationController extends BaseController {
         return nodeDAO.createConfiguration(parentNodeId, configuration);
     }
 
+    /**
+     * Retrieves data associated with a {@link Configuration} {@link Node}-.
+     * @param uniqueId unique {@link Node} id of a {@link Configuration}.
+     * @return A {@link ConfigurationData} object.
+     */
     @SuppressWarnings("unused")
     @GetMapping(value = "/{uniqueId}", produces = JSON)
     public ConfigurationData getConfigurationData(@PathVariable String uniqueId) {
         return nodeDAO.getConfigurationData(uniqueId);
     }
 
+    /**
+     * Updates/overwrites an existing {@link Configuration}
+     * @param configuration The {@link Configuration} subject to update.
+     * @param principal User {@link Principal} injected by Spring.
+     * @return The updated {@link Configuration}.
+     */
     @SuppressWarnings("unused")
     @PostMapping(produces = JSON)
     @PreAuthorize("@authorizationHelper.mayUpdate(#configuration, #root)")
