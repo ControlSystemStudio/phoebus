@@ -94,6 +94,12 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <!-- Native menus on macOS -->
+    <dependency>
+      <groupId>de.jangassen</groupId>
+      <artifactId>nsmenufx</artifactId>
+      <version>3.1.0</version>
+    </dependency>
   </dependencies>
 
   <build>
