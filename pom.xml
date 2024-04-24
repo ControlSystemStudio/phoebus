@@ -66,10 +66,11 @@
   <properties>
     <project.build.outputTimestamp>2024-01-10T19:23:58Z</project.build.outputTimestamp>
     <epics.version>7.0.10</epics.version>
+    <epics.util.version>1.0.7</epics.util.version>
     <vtype.version>1.0.7</vtype.version>
     <openjfx.version>19</openjfx.version>
     <jackson.version>2.12.3</jackson.version>
-    <batik.version>1.14</batik.version>
+    <batik.version>1.17</batik.version>
     <mockito.version>2.23.4</mockito.version>
     <postgresql.driver.version>42.6.0</postgresql.driver.version>
     <!-- When connections to older MySQL server fail because of CLIENT_PLUGIN_AUTH, downgrade to 5.1.45 -->
@@ -78,6 +79,7 @@
     <apache.commons.math.version>3.6.1</apache.commons.math.version>
     <junit.version>5.8.2</junit.version>
     <elasticsearch.version>8.2.0</elasticsearch.version>
+    <kafka.version>3.6.1</kafka.version>
     <!--<maven.repo.local>${project.build.directory}/.m2</maven.repo.local> -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

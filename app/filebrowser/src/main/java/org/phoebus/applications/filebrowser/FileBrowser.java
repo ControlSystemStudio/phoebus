@@ -34,7 +34,7 @@ public class FileBrowser implements AppInstance
 
     private FileBrowserController controller;
 
-    FileBrowser(final AppDescriptor app, final File directory)
+    FileBrowser(final AppDescriptor app, final File file)
     {
         this.app = app;
 
@@ -58,8 +58,14 @@ public class FileBrowser implements AppInstance
         final DockItem tab = new DockItem(this, content);
         DockPane.getActiveDockPane().addTab(tab);
 
-        if (controller != null  &&  directory != null)
-            controller.setRoot(directory);
+        if (controller != null  &&  file != null){
+            if(file.isDirectory()){
+                controller.setRoot(file);
+            }
+            else{
+                controller.setRootAndHighlight(file);
+            }
+        }
 
         tab.addClosedNotification(controller::shutdown);
     }

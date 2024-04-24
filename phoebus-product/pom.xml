@@ -14,6 +14,31 @@
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
+            <artifactId>core-pv-ca</artifactId>
+            <version>4.7.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
+            <artifactId>core-pv-mqtt</artifactId>
+            <version>4.7.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
+            <artifactId>core-pv-opva</artifactId>
+            <version>4.7.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
+            <artifactId>core-pv-pva</artifactId>
+            <version>4.7.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
+            <artifactId>core-pv-tango</artifactId>
+            <version>4.7.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
             <artifactId>app-diag</artifactId>
             <version>4.7.4-SNAPSHOT</version>
         </dependency>
@@ -93,6 +118,11 @@
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
+            <artifactId>app-databrowser-json</artifactId>
+            <version>4.7.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
             <artifactId>app-databrowser-timescale</artifactId>
             <version>4.7.4-SNAPSHOT</version>
         </dependency>
@@ -155,6 +185,12 @@
             <groupId>org.phoebus</groupId>
             <artifactId>app-alarm-ui</artifactId>
             <version>4.7.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
+            <artifactId>app-alarm-freetts-annunciator</artifactId>
+            <version>4.7.4-SNAPSHOT</version>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
@@ -233,6 +269,11 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>phoebus-target</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
+            <artifactId>core-pv-jackie</artifactId>
+            <version>4.7.4-SNAPSHOT</version>
         </dependency>
     </dependencies>
     <build>

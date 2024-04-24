@@ -28,6 +28,8 @@
         <include name="dependencies/**/jetty*.jar"/>
         <include name="dependencies/**/jython-standalone*.jar"/>
         <include name="dependencies/**/org.eclipse.paho.client.mqttv*.jar"/>
+        <include name="dependencies/**/epics-jackie*.jar"/>
+        <include name="dependencies/**/commons-lang*.jar"/>
       	
       	<include name="core/**/core-framework-*.jar"/>
       	<include name="core/**/core-formula-*.jar"/>

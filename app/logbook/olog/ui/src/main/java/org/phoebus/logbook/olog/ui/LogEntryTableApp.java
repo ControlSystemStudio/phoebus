@@ -74,6 +74,10 @@ public class LogEntryTableApp implements AppResourceDescriptor {
      * @param logEntry A new or updated {@link LogEntry}
      */
     public void handleLogEntryChange(LogEntry logEntry){
-        logEntryTable.logEntryChanged(logEntry);
+        // At this point the logEntryTable might be null, e.g. if log entry editor is launched
+        // before first launch of log entry table app.
+        if(logEntryTable != null){
+            logEntryTable.logEntryChanged(logEntry);
+        }
     }
 }

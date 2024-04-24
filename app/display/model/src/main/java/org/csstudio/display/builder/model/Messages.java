@@ -249,6 +249,7 @@ public class Messages
                          WidgetProperties_Maximum,
                          WidgetProperties_MediumTickVisible,
                          WidgetProperties_Minimum,
+                         WidgetProperties_MinMaxTolerance,
                          WidgetProperties_MinorTickSpace,
                          WidgetProperties_MinorTickVisible,
                          WidgetProperties_MinuteColor,

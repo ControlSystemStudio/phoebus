@@ -31,6 +31,7 @@ import org.phoebus.logbook.TagImpl;
 import org.phoebus.logbook.ui.LogbookUiPreferences;
 import org.phoebus.security.store.SecureStore;
 import org.phoebus.security.tokens.SimpleAuthenticationToken;
+import org.phoebus.ui.Preferences;
 
 import javax.imageio.ImageIO;
 import java.io.File;
@@ -84,7 +85,8 @@ public class LogEntryModel {
     private final SimpleBooleanProperty readyToSubmit;         // Used internally. Backs read only property above.
 
     /**
-     * Property that allows the model to define when the application needs to update the username and password text fields. Only used if save_credentials=true
+     * Property that allows the model to define when the application needs to update the username and password text fields.
+     * Only used if save_credentials=true
      */
     private final ReadOnlyBooleanProperty updateCredentialsProperty; // To be broadcast through getUpdateCredentialsProperty.
     private final SimpleBooleanProperty updateCredentials;         // Used internally. Backs read only property above.
@@ -517,7 +519,7 @@ public class LogEntryModel {
 
         // Sumission should be synchronous such that clients can intercept failures
 
-        if (LogbookUiPreferences.save_credentials) {
+        if (Preferences.save_credentials) {
             // Get the SecureStore. Store username and password.
             try {
                 SecureStore store = new SecureStore();
