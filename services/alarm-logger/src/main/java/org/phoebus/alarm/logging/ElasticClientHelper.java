@@ -85,8 +85,22 @@ public class ElasticClientHelper {
             }));
 
             // Create the low-level client
-            restClient = RestClient.builder(
-                    new HttpHost(props.getProperty("es_host"), Integer.parseInt(props.getProperty("es_port")))).build();
+            final var esHost = props.getProperty("es_host", "");
+            final var esPort = props.getProperty("es_port", "");
+            final var esUrls = props.getProperty("es_urls", "");
+            HttpHost[] esHttpHosts;
+            if (esUrls.isEmpty()) {
+                final var http_host = new HttpHost(
+                        esHost.isEmpty() ? "localhost" : esHost,
+                        esPort.isEmpty() ? 9200 : Integer.parseInt(esPort));
+                esHttpHosts = new HttpHost[] {http_host};
+            } else {
+                if (!esHost.isEmpty() || !esPort.isEmpty()) {
+                    logger.warning("Only one of es_urls or es_host and es_port can be specified, ignoring es_host and es_port.");
+                }
+                esHttpHosts = Arrays.stream(esUrls.split(",")).map(HttpHost::create).toArray(HttpHost[]::new);
+            }
+            restClient = RestClient.builder(esHttpHosts).build();
 
             mapper.registerModule(new JavaTimeModule());
             transport = new RestClientTransport(

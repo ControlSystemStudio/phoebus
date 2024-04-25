@@ -52,6 +52,7 @@ public class AlarmLoggingService {
         System.out.println("-topics   Accelerator                    - Alarm topics to be logged, they can be defined as a comma separated list");
         System.out.println("-es_host  localhost                      - elastic server host");
         System.out.println("-es_port  9200                           - elastic server port");
+        System.out.println("-es_urls  http://localhost:9200          - comma-separated list of elastic server URLs");
         System.out.println("-es_sniff  false                         - elastic server sniff feature");
         System.out.println("-bootstrap.servers localhost:9092        - Kafka server address");
         System.out.println("-kafka_properties /opt/client.properties - Properties file to load kafka client settings from");
@@ -123,13 +124,27 @@ public class AlarmLoggingService {
                     if (!iter.hasNext())
                         throw new Exception("Missing -es_host hostname");
                     iter.remove();
+                    if (!properties.getProperty("es_urls", "").isEmpty())
+                        throw new Exception("es_host must not be specified if es_urls is specified.");
                     properties.put("es_host",iter.next());
                     iter.remove();
                 } else if (cmd.equals("-es_port")) {
                     if (!iter.hasNext())
                         throw new Exception("Missing -es_port port number");
                     iter.remove();
+                    if (!properties.getProperty("es_urls", "").isEmpty())
+                        throw new Exception("es_port must not be specified if es_urls is specified.");
                     properties.put("es_port",iter.next());
+                    iter.remove();
+                } else if (cmd.equals("-es_urls")) {
+                    if (!iter.hasNext())
+                        throw new Exception("Missing -es_urls URLs");
+                    if (!properties.getProperty("es_host", "").isEmpty())
+                        throw new Exception("es_urls must not be specified if es_host is specified.");
+                    if (!properties.getProperty("es_port", "").isEmpty())
+                        throw new Exception("es_urls must not be specified if es_port is specified.");
+                    iter.remove();
+                    properties.put("es_urls",iter.next());
                     iter.remove();
                 } else if (cmd.equals("-es_sniff")) {
                     if (!iter.hasNext())
