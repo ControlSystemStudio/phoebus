@@ -15,7 +15,12 @@ import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.apache.http.Header;
 import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.message.BasicHeader;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.sniff.Sniffer;
 import org.phoebus.applications.alarm.messages.AlarmCommandMessage;
@@ -100,7 +105,22 @@ public class ElasticClientHelper {
                 }
                 esHttpHosts = Arrays.stream(esUrls.split(",")).map(HttpHost::create).toArray(HttpHost[]::new);
             }
-            restClient = RestClient.builder(esHttpHosts).build();
+            final var esAuthHeader = props.getProperty("es_auth_header", "");
+            final var esAuthUsername = props.getProperty("es_auth_username", "");
+            final var esAuthPassword = props.getProperty("es_auth_password", "");
+            final var restClientBuilder = RestClient.builder(esHttpHosts);
+            if (!esAuthHeader.isEmpty()) {
+                if (!esAuthUsername.isEmpty() || !esAuthPassword.isEmpty()) {
+                    logger.warning("Only one of es_auth_header or es_auth_username and es_auth_password can be specified. Ignoring es_auth_username and es_auth_password.");
+                }
+                restClientBuilder.setDefaultHeaders(
+                        new Header[] {new BasicHeader("Authorization", esAuthHeader)});
+            } else if (!esAuthUsername.isEmpty() || !esAuthPassword.isEmpty()) {
+                final var credentialsProvider = new BasicCredentialsProvider();
+                credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(esAuthUsername, esAuthPassword));
+                restClientBuilder.setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
+            }
+            restClient = restClientBuilder.build();
 
             mapper.registerModule(new JavaTimeModule());
             transport = new RestClientTransport(
