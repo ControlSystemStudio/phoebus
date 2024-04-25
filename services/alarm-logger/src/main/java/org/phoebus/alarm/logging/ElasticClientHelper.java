@@ -41,6 +41,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import static org.phoebus.alarm.logging.AlarmLoggingService.logger;
@@ -58,7 +59,7 @@ public class ElasticClientHelper {
     private static ElasticsearchTransport transport;
 
     private static ElasticsearchClient client;
-    private static ElasticClientHelper instance;
+    private static AtomicReference<ElasticClientHelper> instance = new AtomicReference<>();
     private static Sniffer sniffer;
 
     private static final AtomicBoolean esInitialized = new AtomicBoolean();
@@ -152,10 +153,26 @@ public class ElasticClientHelper {
     }
 
     public static ElasticClientHelper getInstance() {
-        if (instance == null) {
-            instance = new ElasticClientHelper();
+        var helper = instance.get();
+        if (helper == null) {
+            // The helper instance is associated with static resources, so we
+            // want to be certain that it is never created twice. In order to
+            // ensure this, we have to create it inside a synchronized block,
+            // but we only do this if we expect that there is no instance yet.
+            // This looks like the double-checked-locking anti-pattern, but it
+            // is not an anti-pattern here, because instance is an atomic
+            // reference, so getting the value establishes a happens-before
+            // relationship, and we can be sure that we won’t retrieve an
+            // uninitialized object.
+            synchronized (instance) {
+                helper = instance.get();
+                if (helper == null) {
+                    helper = new ElasticClientHelper();
+                    instance.set(helper);
+                }
+            }
         }
-        return instance;
+        return helper;
     }
 
     public ElasticsearchClient getClient() {
