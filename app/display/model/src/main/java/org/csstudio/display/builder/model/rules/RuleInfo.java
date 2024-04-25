@@ -18,41 +18,46 @@ import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.properties.ActionsWidgetProperty;
 import org.csstudio.display.builder.model.properties.MacrosWidgetProperty;
 import org.csstudio.display.builder.model.properties.RulesWidgetProperty;
-import org.csstudio.display.builder.model.properties.ScriptPV;
 import org.csstudio.display.builder.model.properties.ScriptsWidgetProperty;
 
 /** Information about a rule
- *
- *
- *  <p>PVs will be created for each input/output.
- *  The rule is executed whenever one or
- *  more of the 'triggering' inputs receive
- *  a new value.
- *
+ *  A rule is comprised of one or more logical expressions which are evaluated to dynamically set the property of a widget
  *  @author Megan Grodowitz
  */
 @SuppressWarnings("nls")
 public class RuleInfo
 {
-    /** Expression within a rule */
-    public static abstract class ExpressionInfo<T>
+    /**
+     * An object describing an expression associated with a widget property.
+     * The expressions can be of 2 types.
+     * 1. boolean expressions, when true the predefined output value is set to the widget property
+     * 2. value expression, the output of the expression itself is set to the widget property
+     *
+     * @author Kunal Shroff
+     */
+    public static class ExpressionInfo<T>
     {
-        private final String bool_exp;
+        private final String exp;
+        private final boolean boolean_exp;
         private final T prop_val;
 
-        /** @param bool_exp Boolean expression
-         *  @param prop_val Value to use when expression is met
+        /**
+         * Constructor for creating an Expression
+         * @param exp the expression to be evaluated
+         * @param boolean_exp a flag indicating if this expression is a boolean expression or a value expression
+         * @param prop_val the value to be set if a boolean expression is evaluated true
          */
-        public ExpressionInfo(final String bool_exp, final T prop_val)
+        public ExpressionInfo(final String exp, final boolean boolean_exp, final T prop_val)
         {
-            this.bool_exp = bool_exp;
+            this.exp = exp;
+            this.boolean_exp = boolean_exp;
             this.prop_val = prop_val;
         }
 
-        /** @return Boolean expression */
-        public String getBoolExp()
+        public String getExp()
+
         {
-            return bool_exp;
+            return exp;
         }
 
         /** @return Value to use when expression is met */
@@ -61,56 +66,20 @@ public class RuleInfo
             return prop_val;
         }
 
-        /** @return Is value a widget property, or text? */
-        abstract boolean isWidgetProperty();
+        public boolean isBooleanExp() {
+            return boolean_exp;
+        }
 
         @Override
         public String toString()
         {
-            return "(" + this.bool_exp + ") ? " + prop_val;
-        }
-    };
-
-    /** Expression with text as value */
-    public static class ExprInfoString extends ExpressionInfo<String> {
-
-        /** Create string-valued rule expression
-         *  @param bool_exp Boolean expression for value to apply
-         *  @param prop_val Value as string
-         */
-        public ExprInfoString(String bool_exp, String prop_val)
-        {
-            super(bool_exp, prop_val);
-        }
-
-        @Override
-        boolean isWidgetProperty()
-        {
-            return false;
-        }
-    };
-
-    /** Expression with property as value */
-    public static class ExprInfoValue<T> extends ExpressionInfo< WidgetProperty<T> > {
-
-        /** Instantiate Expression with bool_exp string and widget property value
-         *
-         * @param bool_exp String for the boolean expression, e.g. (pv0 == 9)
-         * @param prop_val Widget Property to set if the boolean expression evaluates true
-         *
-         * Do NOT pass in a widget property object that belongs to a widget!
-         * The expression will alter the property value. This needs to be a property
-         * object created for this expression, probably by the containing rule.
-         */
-        public ExprInfoValue(final String bool_exp, WidgetProperty<T> prop_val)
-        {
-            super(bool_exp, prop_val);
-        }
-
-        @Override
-        boolean isWidgetProperty()
-        {
-            return true;
+            if (isBooleanExp())
+            {
+                return "if " + this.exp +"==true : " + prop_val;
+            }
+            else {
+                return this.exp;
+            }
         }
     };
 
@@ -158,7 +127,6 @@ public class RuleInfo
     }
 
     private final List<ExpressionInfo<?>> expressions;
-    private final List<ScriptPV> pvs;
     private final String name;
     private final String prop_id;
     private final boolean prop_as_expr_flag;
@@ -169,16 +137,16 @@ public class RuleInfo
      *  @param prop_id property that this rule applies to
      *  @param prop_as_expr_flag Set to true if expressions output expressions, false if output values
      *  @param exprs Pairs of (boolean expression , output), where output is either a value or another expression
-     *  @param pvs PVs
      */
-    public RuleInfo(final String name, final String prop_id, final boolean prop_as_expr_flag,
-            final List<ExpressionInfo<?>> exprs, final List<ScriptPV> pvs)
+    public RuleInfo(final String name,
+            final String prop_id,
+            final boolean prop_as_expr_flag,
+            final List<ExpressionInfo<?>> exprs)
     {
         this.name = name;
         this.prop_as_expr_flag = prop_as_expr_flag;
         this.prop_id = prop_id;
         this.expressions = Collections.unmodifiableList(Objects.requireNonNull(exprs));
-        this.pvs = Collections.unmodifiableList(Objects.requireNonNull(pvs));
     }
 
     /** Some properties cannot be the target of rules.
@@ -222,13 +190,8 @@ public class RuleInfo
         return expressions;
     }
 
-    /** @return Input/Output PVs used by the script */
-    public List<ScriptPV> getPVs()
-    {
-        return pvs;
-    }
-
     /** @return Name of rule */
+
     public String getName()
     {
         return name;
@@ -246,17 +209,9 @@ public class RuleInfo
         return prop_as_expr_flag;
     }
 
-    /** @param attached_widget Widget
-     *  @return Script text (python)
-     */
-    public String getTextPy(final Widget attached_widget)
-    {
-        return RuleToScript.generatePy(attached_widget, this);
-    }
-
     @Override
     public String toString()
     {
-        return "RuleInfo('" + name + ": " + expressions + "', " + pvs + ")";
+        return "RuleInfo('" + name + ": " + expressions + ")";
     }
 }

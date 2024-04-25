@@ -72,18 +72,10 @@ public class ConverterTest
 
             assertEquals("visible", rules.get(0).getPropID());
 
-            final List<String> pvs = rules.get(0)
-                                          .getPVs()
-                                          .stream()
-                                          .map(ScriptPV::getName)
-                                          .collect(Collectors.toList());
-            assertEquals(List.of("$(xx):A_SHUTTER_CLOSEDBI", "$(xx):A_BEAM_PRESENTBI", "$(xx):B_SHUTTER_CLOSEDBI", "$(xx):B_BEAM_PRESENTBI"),
-                         pvs);
-
             // Bug used to turn "A&&B&&C&&D" into "pv0&&pv1&&pv2&&", dropping "...pv3"
             final List<ExpressionInfo<?>> expressions = rules.get(0).getExpressions();
             assertEquals(expressions.size(), 1);
-            assertEquals("!(pv0&&pv1&&pv2&&pv3)", expressions.get(0).getBoolExp());
+            assertEquals("!(pv0&&pv1&&pv2&&pv3)", expressions.get(0).getExp());
         }
     }
 }
