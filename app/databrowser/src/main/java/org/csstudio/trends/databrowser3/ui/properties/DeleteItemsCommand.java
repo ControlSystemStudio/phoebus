@@ -9,7 +9,9 @@ package org.csstudio.trends.databrowser3.ui.properties;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.csstudio.trends.databrowser3.Messages;
 import org.csstudio.trends.databrowser3.model.AnnotationInfo;
@@ -25,6 +27,7 @@ import org.phoebus.ui.undo.UndoableActionManager;
 public class DeleteItemsCommand extends UndoableAction {
     final private Model model;
     final private List<ModelItem> items;
+    final private Map<ModelItem, List<AnnotationInfo>> mapModelItemAnnotations;
 
     /** Register and perform the command
      *  @param operations_manager OperationsManager where command will be registered
@@ -38,6 +41,7 @@ public class DeleteItemsCommand extends UndoableAction {
         // This list could be a reference to the model's list.
         // Since we will loop over this list, assert that there are no co-modification problems by creating a copy.
         this.items = new ArrayList<>(items);
+        this.mapModelItemAnnotations = new HashMap<>();
         operations_manager.execute(this);
     }
 
@@ -56,12 +60,19 @@ public class DeleteItemsCommand extends UndoableAction {
     }
 
     private List<AnnotationInfo> deleteAnnotations(ModelItem item) {
-        final List<AnnotationInfo> annotations = new ArrayList<>(model.getAnnotations());
+        // check for annotations to remove because their item is deleted
         final int item_index = model.getItems().indexOf(item);
+        final List<AnnotationInfo> deletedAnnotations = new ArrayList<>();
+        final List<AnnotationInfo> annotations = new ArrayList<>();
+        for (AnnotationInfo annotation : model.getAnnotations()) {
+            if (annotation.getItemIndex() == item_index)
+                deletedAnnotations.add(annotation);
+            else
+                annotations.add(annotation);
+        }
 
-        // Check for annotations to remove because their item is deleted
-        //     possibly recalculate item index for remaining annotations
-        if (annotations.removeIf(anno -> anno.getItemIndex() == item_index)
+        // possibly recalculate item index for remaining annotations
+        if (!deletedAnnotations.isEmpty()
                 && !annotations.isEmpty()
                 && item_index < (model.getItems().size() - 1)) {
             for (int i=0; i<annotations.size(); i++) {
@@ -74,6 +85,9 @@ public class DeleteItemsCommand extends UndoableAction {
             }
         }
 
+        // keep track of deleted annotations
+        mapModelItemAnnotations.put(item, deletedAnnotations);
+
         // annotations after item has been deleted
         return annotations;
     }
@@ -84,6 +98,12 @@ public class DeleteItemsCommand extends UndoableAction {
         for (ModelItem item : items) {
             try {
                 model.addItem(item);
+
+                final List<AnnotationInfo> annotations = restoreAnnotations(item);
+
+                // Any changes?
+                if (!annotations.equals(model.getAnnotations()))
+                    model.setAnnotations(annotations);
             } catch (Exception ex) {
                 ExceptionDetailsErrorDialog.openError(
                         Messages.Error,
@@ -91,7 +111,18 @@ public class DeleteItemsCommand extends UndoableAction {
                         ex);
             }
         }
-        // Note that we do not restore removed annotations at this time...
+    }
+
+    private List<AnnotationInfo> restoreAnnotations(ModelItem item) {
+        final List<AnnotationInfo> annotations = new ArrayList<>(model.getAnnotations());
+        final int item_index = model.getItems().indexOf(item);
+
+        // check for annotations to restore because their item was restored
+        for (AnnotationInfo ai : mapModelItemAnnotations.get(item))
+            annotations.add(new AnnotationInfo(ai.isInternal(), item_index, ai.getTime(), ai.getValue(), ai.getOffset(), ai.getText()));
+
+        // annotations after item has been restored
+        return annotations;
     }
 
 }
