@@ -124,6 +124,17 @@ public class ActionsDialogActionItem {
                         return null;
                     });
                     break;
+                case OPEN_APPLICATION:
+                    fxmlLoader.setLocation(this.getClass().getResource("OpenApplicationActionDetails.fxml"));
+                    fxmlLoader.setControllerFactory(clazz -> {
+                        try {
+                            return clazz.getConstructor(ActionInfo.class).newInstance(actionInfo);
+                        } catch (Exception e) {
+                            Logger.getLogger(ActionsDialogActionItem.class.getName()).log(Level.SEVERE, "Failed to construct OpenApplicationActionDetailsController", e);
+                        }
+                        return null;
+                    });
+                    break;
             }
             this.actionInfoEditor = fxmlLoader.load();
             this.controller = fxmlLoader.getController();

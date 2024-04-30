@@ -28,6 +28,7 @@ public class Messages
                          ActionsDialog_FilePath,
                          ActionsDialog_Info,
                          ActionsDialog_PVName,
+                         ActionsDialog_ResourceUri,
                          ActionsDialog_ScriptPath,
                          ActionsDialog_ScriptText,
                          ActionsDialog_Title,

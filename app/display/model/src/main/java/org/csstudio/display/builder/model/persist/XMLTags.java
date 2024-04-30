@@ -17,6 +17,7 @@ public interface XMLTags
     /** XML Tag */
     public static final String ACTION = "action",
                                ALPHA = "alpha",
+                               APPLICATION = "application",
                                BLUE = "blue",
                                CHECK_CONNECTIONS = "check_connections",
                                COLOR = "color",
@@ -28,6 +29,7 @@ public interface XMLTags
                                FONT = "font",
                                GREEN = "green",
                                HEIGHT = "height",
+                               INPUT_URI = "input_uri",
                                MACROS = "macros",
                                NAME = "name",
                                PATH = "path",

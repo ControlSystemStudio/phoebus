@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.RowConstraints?>
+<GridPane hgap="10.0" vgap="10.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="org.csstudio.display.builder.representation.javafx.actionsdialog.OpenApplicationActionDetailsController">
+   <children>
+      <Label text="%ActionsDialog_Description" />
+      <TextField fx:id="description" text="%ActionsDialog_Description" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" />
+      <Label text="%ActionsDialog_Application" GridPane.rowIndex="1"/>
+      <ComboBox fx:id="applicationSelector" editable="false" GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" maxWidth="Infinity"
+                style="-fx-padding: 4px">
+      </ComboBox>
+      <Label text="%ActionsDialog_InputUri" GridPane.rowIndex="2" />
+      <TextField fx:id="inputUri" text="%ActionsDialog_InputUri" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" />
+   </children>
+   <columnConstraints>
+      <ColumnConstraints />
+      <ColumnConstraints />
+   </columnConstraints>
+   <rowConstraints>
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+   </rowConstraints>
+</GridPane>

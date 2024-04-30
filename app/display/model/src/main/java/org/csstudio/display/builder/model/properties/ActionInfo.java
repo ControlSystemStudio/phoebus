@@ -36,7 +36,9 @@ public abstract class ActionInfo
         /** Open a file with its associated tool */
         OPEN_FILE(Messages.ActionOpenFile, "/icons/open_file.png"),
         /** Open a wen page in system browser */
-        OPEN_WEBPAGE(Messages.ActionOpenWebPage, "/icons/web_browser.png");
+        OPEN_WEBPAGE(Messages.ActionOpenWebPage, "/icons/web_browser.png"),
+        /** Open a resource of &quot;any&quot; kind */
+        OPEN_APPLICATION(Messages.ActionOpenApplication, "/icons/open_application.png");
 
         private final String name, icon_path;
 
@@ -83,6 +85,8 @@ public abstract class ActionInfo
             return new OpenFileActionInfo(type.toString(), "");
         case OPEN_WEBPAGE:
             return new OpenWebpageActionInfo(type.toString(), "");
+        case OPEN_APPLICATION:
+            return new OpenApplicationActionInfo(type.toString(), null, null);
         default:
             throw new IllegalStateException("Unknown type " + type);
         }

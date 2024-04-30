@@ -30,6 +30,9 @@ import org.csstudio.display.builder.model.persist.XMLTags;
 import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo.Target;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.framework.persistence.XMLUtil;
+import org.phoebus.framework.spi.AppDescriptor;
+import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.framework.workbench.ApplicationService;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -46,6 +49,7 @@ public class ActionsWidgetProperty extends WidgetProperty<ActionInfos>
     private static final String EXECUTE_COMMAND = "command";
     private static final String OPEN_FILE = "open_file";
     private static final String OPEN_WEBPAGE = "open_webpage";
+    private static final String OPEN_APPLICATION = "open_application";
 
     /** Constructor
      *  @param descriptor Property descriptor
@@ -179,6 +183,17 @@ public class ActionsWidgetProperty extends WidgetProperty<ActionInfos>
                 writer.writeAttribute(XMLTags.TYPE, EXECUTE_COMMAND);
                 writer.writeStartElement(XMLTags.COMMAND);
                 writer.writeCharacters(action.getCommand());
+                writer.writeEndElement();
+            }
+            else if (info instanceof OpenApplicationActionInfo)
+            {
+                final OpenApplicationActionInfo action = (OpenApplicationActionInfo) info;
+                writer.writeAttribute(XMLTags.TYPE, OPEN_APPLICATION);
+                writer.writeStartElement(XMLTags.APPLICATION);
+                writer.writeCharacters(action.getAppDescriptor().getDisplayName());
+                writer.writeEndElement();
+                writer.writeStartElement(XMLTags.INPUT_URI);
+                writer.writeCharacters(action.getInputUri());
                 writer.writeEndElement();
             }
             else
@@ -375,6 +390,16 @@ public class ActionsWidgetProperty extends WidgetProperty<ActionInfos>
                 if (description.isEmpty())
                     description = Messages.ActionExecuteCommand;
                 actions.add(new ExecuteCommandActionInfo(description, command));
+            }
+            else if(OPEN_APPLICATION.equalsIgnoreCase(type)){
+                final String application = XMLUtil.getChildString(action_xml, XMLTags.APPLICATION)
+                        .orElse("");
+                final String inputUri = XMLUtil.getChildString(action_xml, XMLTags.INPUT_URI)
+                                .orElse("");
+                Collection<AppDescriptor> appDescriptors = ApplicationService.getApplications();
+                AppDescriptor appDescriptor = appDescriptors.stream().filter(a -> a.getDisplayName().equalsIgnoreCase(application))
+                                .findFirst().orElse(null);
+                actions.add(new OpenApplicationActionInfo(description, appDescriptor, inputUri));
             }
             else
                 logger.log(Level.WARNING, "Ignoring action of unknown type '" + type + "'");

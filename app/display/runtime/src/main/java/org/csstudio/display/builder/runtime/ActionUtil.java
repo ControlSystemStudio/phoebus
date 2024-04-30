@@ -10,9 +10,13 @@ package org.csstudio.display.builder.runtime;
 import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.text.MessageFormat;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 
+import javafx.application.Platform;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.persist.ModelLoader;
@@ -21,6 +25,7 @@ import org.csstudio.display.builder.model.properties.ExecuteCommandActionInfo;
 import org.csstudio.display.builder.model.properties.ExecuteScriptActionInfo;
 import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
 import org.csstudio.display.builder.model.properties.OpenFileActionInfo;
+import org.csstudio.display.builder.model.properties.OpenApplicationActionInfo;
 import org.csstudio.display.builder.model.properties.OpenWebpageActionInfo;
 import org.csstudio.display.builder.model.properties.WritePVActionInfo;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
@@ -31,6 +36,9 @@ import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.MacroOrSystemProvider;
 import org.phoebus.framework.macros.MacroValueProvider;
 import org.phoebus.framework.macros.Macros;
+import org.phoebus.framework.spi.AppResourceDescriptor;
+import org.phoebus.framework.workbench.ApplicationService;
+import org.phoebus.ui.application.ApplicationLauncherService;
 
 /** Action Helper
  *  @author Kay Kasemir
@@ -57,6 +65,9 @@ public class ActionUtil
             RuntimeUtil.getExecutor().execute(() -> openFile(source_widget, (OpenFileActionInfo) action));
         else if (action instanceof OpenWebpageActionInfo)
             RuntimeUtil.getExecutor().execute(() -> openWebpage(source_widget, (OpenWebpageActionInfo) action));
+        else if(action instanceof OpenApplicationActionInfo){
+            RuntimeUtil.getExecutor().execute(() -> openApplication(source_widget, (OpenApplicationActionInfo) action));
+        }
         else
             logger.log(Level.SEVERE, "Cannot handle unknown " + action);
     }
@@ -373,6 +384,27 @@ public class ActionUtil
         {
             logger.log(Level.WARNING, "Error handling " + action, ex);
             ScriptUtil.showErrorDialog(source_widget, "Cannot open " + action.getURL() + ".\n\nSee log for details.");
+        }
+    }
+
+    /**
+     * Open an application. Should not be used for display files as this has a dedicated handler,
+     * see {@link #openDisplay(Widget, OpenDisplayActionInfo)}.
+     * @param sourceWidget Widget from which the action is invoked.
+     * @param openResourceActionInfo A {@link OpenApplicationActionInfo} wrapping the wanted application and an optional input URI string.
+     */
+    private static void openApplication(final Widget sourceWidget, final OpenApplicationActionInfo openResourceActionInfo){
+        if(openResourceActionInfo.getInputUri() == null || openResourceActionInfo.getInputUri().isBlank()){
+            Platform.runLater(() -> ApplicationService.createInstance(openResourceActionInfo.getAppDescriptor().getName()));
+        }
+        else{
+            try {
+                URI uri = new URI(openResourceActionInfo.getInputUri());
+                Platform.runLater(() -> ApplicationService.createInstance(openResourceActionInfo.getAppDescriptor().getName(), uri));
+            } catch (URISyntaxException e) {
+                logger.log(Level.WARNING, "Input URI invalid", e);
+                ScriptUtil.showErrorDialog(sourceWidget, MessageFormat.format(Messages.ErrorInputUriInvalid, openResourceActionInfo.getInputUri()));
+            }
         }
     }
 

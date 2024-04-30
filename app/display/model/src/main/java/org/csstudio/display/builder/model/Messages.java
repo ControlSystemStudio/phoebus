@@ -17,6 +17,7 @@ public class Messages
     /** Externalized strings */
     public static String ActionExecuteCommand,
                          ActionExecuteScript,
+                         ActionOpenApplication,
                          ActionOpenDisplay,
                          ActionOpenFile,
                          ActionOpenWebPage,
