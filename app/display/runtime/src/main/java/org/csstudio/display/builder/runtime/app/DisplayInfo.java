@@ -246,10 +246,18 @@ public class DisplayInfo
                .append('=')
                .append(encode(macros.getValue(name)));
         }
+        String strBuffer = buf.toString();
+
+        // macro can be defined after component creation
+        // replace again macros by the correct value
+        for (String name : macros.getNames())
+        {
+        	strBuffer = strBuffer.replaceAll("%24%28" + name + "%29", macros.getValue(name));
+        }
 
         try
         {
-            return new URI(buf.toString());
+            return new URI(strBuffer);
         }
         catch (URISyntaxException ex)
         {
