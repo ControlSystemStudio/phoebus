@@ -8,6 +8,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/core-util"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/core-ui"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-display-model"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

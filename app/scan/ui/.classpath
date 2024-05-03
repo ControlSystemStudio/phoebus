@@ -10,6 +10,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/app-scan-model"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-scan-client"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/app-rtplot"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
