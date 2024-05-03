@@ -69,7 +69,7 @@ ant clean run
 
 ## Developing with Eclipse
 
-Download Eclipse Oxygen 4.7.1a or later from http://download.eclipse.org/eclipse/downloads/
+Download "Eclipse for Java Developers" from https://www.eclipse.org/downloads/packages/
 
 Start Eclipse like this:
 
@@ -84,6 +84,10 @@ Check Eclipse Preferences:
 
 
 ### Use plain Java configuration
+
+This approach uses the Eclipse-specific `.classpath` and `.project` files,
+which may lag the maven-based settings or be incomplete,
+but for the time being can still be used.
 
 Use `File`, `Import`, `General`, `Existing Projects into Workspace`.
 Select the phoebus root directory, and check the option to "Search for nested projects".
