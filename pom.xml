@@ -84,12 +84,14 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <skipITTests>true</skipITTests>
-    <guava.version>32.1.1-jre</guava.version>
+    <guava.version>33.2.0-jre</guava.version>
     <log4j-to-slf4j.version>2.17.1</log4j-to-slf4j.version>
     <derby.version>10.16.1.1</derby.version>
     <jython.version>2.7.3</jython.version>
-    <jgit.version>6.7.0.202309050840-r</jgit.version>
+    <jgit.version>6.9.0.202403050737-r</jgit.version>
     <maven.compiler.target>17</maven.compiler.target>
+    <activemq.client.version>5.18.4</activemq.client.version>
+    <commons.compress.version>1.26.1</commons.compress.version>
   </properties>
   <build>
     <plugins>
