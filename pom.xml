@@ -87,7 +87,7 @@
     <guava.version>33.2.0-jre</guava.version>
     <log4j-to-slf4j.version>2.17.1</log4j-to-slf4j.version>
     <derby.version>10.16.1.1</derby.version>
-    <jython.version>2.7.3</jython.version>
+    <jython.version>2.7.4b1</jython.version>
     <jgit.version>6.9.0.202403050737-r</jgit.version>
     <maven.compiler.target>17</maven.compiler.target>
     <activemq.client.version>5.18.4</activemq.client.version>
