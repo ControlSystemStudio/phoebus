@@ -126,7 +126,7 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-compress</artifactId>
-      <version>1.21</version>
+      <version>${commons.compress.version}</version>
     </dependency>
 
     <dependency>
@@ -522,7 +522,7 @@
     <dependency>
       <groupId>org.apache.activemq</groupId>
       <artifactId>activemq-client</artifactId>
-      <version>5.18.2</version>
+      <version>${activemq.client.version}</version>
     </dependency>
 
     <!-- EPICS Jackie client for Jackie PV source -->
