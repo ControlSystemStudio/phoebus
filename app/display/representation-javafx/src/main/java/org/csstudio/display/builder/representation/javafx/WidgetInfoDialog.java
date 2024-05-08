@@ -29,6 +29,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
@@ -158,7 +159,8 @@ public class WidgetInfoDialog extends Dialog<Boolean>
      *  @param widget {@link Widget}
      *  @param pvs {@link Collection<NameStateValue>}s, may be empty
      */
-    public WidgetInfoDialog(final Widget widget, final Collection<NameStateValue> pvs)
+    public WidgetInfoDialog(final Widget widget,
+                            final Collection<NameStateValue> pvs)
     {
         this.pvs = pvs;
         this.widget = widget;
@@ -179,7 +181,8 @@ public class WidgetInfoDialog extends Dialog<Boolean>
                 // No icon, no problem
             }
         }
-        TableView<NameStateValue> pvsTable = createPVs(pvs);
+        final CheckBox selectAllPVsCheckBox = new CheckBox();
+        TableView<NameStateValue> pvsTable = createPVs(pvs, selectAllPVsCheckBox);
         Tab pvTab = new Tab(Messages.WidgetInfoDialog_TabPVs, pvsTable);
         final TabPane tabs = new TabPane(createProperties(widget), pvTab, createMacros(widget.getEffectiveMacros()));
 
@@ -255,22 +258,32 @@ public class WidgetInfoDialog extends Dialog<Boolean>
             // Disable copyPvNamesWithDescriptionsButton when no PV has been selected:
             List<SimpleBooleanProperty> selectedStatuses = pvs.stream().map(nameStateValue -> nameStateValue.selected).collect(Collectors.toList());
 
-            Runnable enableOrDisableButton = () -> {
+            Runnable enableOrDisableButtonsAndCheckbox = () -> {
                 if (selectedStatuses.stream().allMatch(selected -> !selected.get())) {
                     copyPvNamesButton.setDisable(true);
                     copyPvNamesWithDescriptionsButton.setDisable(true);
+                    selectAllPVsCheckBox.setIndeterminate(false);
+                    selectAllPVsCheckBox.setSelected(false);
                 }
                 else {
                     copyPvNamesButton.setDisable(false);
                     copyPvNamesWithDescriptionsButton.setDisable(false);
+                    if (selectedStatuses.stream().allMatch(selected -> selected.get())) {
+                        selectAllPVsCheckBox.setIndeterminate(false);
+                        selectAllPVsCheckBox.setSelected(true);
+                    }
+                    else {
+                        selectAllPVsCheckBox.setIndeterminate(true);
+                        selectAllPVsCheckBox.setSelected(false);
+                    }
                 }
             };
 
             for (var isPVSelectedProperty : selectedStatuses) {
-                isPVSelectedProperty.addListener((property, old_value, new_value) -> enableOrDisableButton.run());
+                isPVSelectedProperty.addListener((property, old_value, new_value) -> enableOrDisableButtonsAndCheckbox.run());
             }
 
-            enableOrDisableButton.run();
+            enableOrDisableButtonsAndCheckbox.run();
         }
 
         copyPvNamesButton.setOnAction(actionEvent -> {
@@ -407,7 +420,8 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         return new Tab(Messages.WidgetInfoDialog_TabMacros, table);
     }
 
-    private TableView<NameStateValue> createPVs(final Collection<NameStateValue> pvs)
+    private TableView<NameStateValue> createPVs(final Collection<NameStateValue> pvs,
+                                                final CheckBox selectAllPVsCheckBox)
     {
         final TableColumn<NameStateValue, Boolean> selectionColumn = new TableColumn<>();
         {
@@ -416,6 +430,17 @@ public class WidgetInfoDialog extends Dialog<Boolean>
             selectionColumn.setPrefWidth(columnWidth);
             selectionColumn.setMaxWidth(columnWidth);
         }
+
+        selectionColumn.graphicProperty().set(selectAllPVsCheckBox);
+        selectAllPVsCheckBox.setOnAction(actionEvent -> {
+            if (selectAllPVsCheckBox.isSelected() || selectAllPVsCheckBox.isIndeterminate()) {
+                selectAllPVsCheckBox.setSelected(true);
+                pvs.forEach(nameStateValue -> nameStateValue.selected.set(true));
+            }
+            else {
+                pvs.forEach(nameStateValue -> nameStateValue.selected.set(false));
+            }
+        });
 
         MenuItem selectAllMenuItem = new MenuItem(Messages.SelectAll);
         selectAllMenuItem.setOnAction(actionEvent -> pvs.forEach(nameStateValue -> nameStateValue.selected.set(true)));
