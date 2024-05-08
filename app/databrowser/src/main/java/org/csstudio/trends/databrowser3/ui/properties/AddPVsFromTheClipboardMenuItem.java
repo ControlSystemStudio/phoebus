@@ -50,6 +50,7 @@ public class AddPVsFromTheClipboardMenuItem extends MenuItem {
     private void showNoPVsFoundInClipboardWarning() {
         Alert warningAlert = new Alert(Alert.AlertType.INFORMATION,
                                        Messages.TheClipboardDoesNotContainPVs);
+        warningAlert.setTitle(Messages.NoPVsFoundInTheClipboard);
         warningAlert.setHeaderText(Messages.NoPVsFoundInTheClipboard);
         DialogHelper.positionDialog(warningAlert, nodeToPositionDialogOver, 0, 0);
         warningAlert.show();
