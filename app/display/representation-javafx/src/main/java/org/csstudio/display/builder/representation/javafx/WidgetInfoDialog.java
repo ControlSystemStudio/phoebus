@@ -193,10 +193,11 @@ public class WidgetInfoDialog extends Dialog<Boolean>
             tabs.getSelectionModel().select(1);
 
         final ButtonType export = new ButtonType(Messages.ExportWidgetInfo, ButtonData.LEFT);
-        final ButtonType copyPvNamesButtonType = new ButtonType(Messages.Copy + "...", ButtonData.LEFT);
+        final ButtonType copyPvNamesButtonType = new ButtonType(Messages.CopyPVNames, ButtonData.LEFT);
+        final ButtonType copyPvNamesWithDescriptionsButtonType = new ButtonType(Messages.CopyPVNamesAndDescriptions + "...", ButtonData.LEFT);
 
         getDialogPane().setContent(tabs);
-        getDialogPane().getButtonTypes().addAll(export, copyPvNamesButtonType, ButtonType.CLOSE);
+        getDialogPane().getButtonTypes().addAll(export, copyPvNamesButtonType, copyPvNamesWithDescriptionsButtonType, ButtonType.CLOSE);
         setResizable(true);
         tabs.setMinWidth(800);
 
@@ -216,44 +217,52 @@ public class WidgetInfoDialog extends Dialog<Boolean>
                 }
         );
 
-        Button copyPvNamesButton = (Button) getDialogPane().lookupButton(copyPvNamesButtonType);
+        Button copyPvNamesWithDescriptionsButton = (Button) getDialogPane().lookupButton(copyPvNamesWithDescriptionsButtonType);
 
         setOnCloseRequest(closeRequest -> {
-            // Prevent pressing copyPvNamesButton from closing the WidgetInfoDialog:
-            if (copyPvNamesButton.isPressed() || copyPvNamesButton.isArmed()) {
+            // Prevent pressing copyPvNamesWithDescriptionsButton from closing the WidgetInfoDialog:
+            if (copyPvNamesWithDescriptionsButton.isPressed() || copyPvNamesWithDescriptionsButton.isArmed()) {
                 closeRequest.consume();
             }
         });
 
+        Button copyPvNamesButton = (Button) getDialogPane().lookupButton(copyPvNamesButtonType);
+
         {
-            // copyPvNamesButton is only visible on the PV-tab:
+            // copyPvNamesButton and copyPvNamesWithDescriptionsButton are only visible on the PV-tab:
             tabs.getSelectionModel().selectedItemProperty().addListener((property, old_value, new_value) -> {
                 if (new_value == pvTab) {
                     copyPvNamesButton.setVisible(true);
+                    copyPvNamesWithDescriptionsButton.setVisible(true);
                 }
                 else {
                     copyPvNamesButton.setVisible(false);
+                    copyPvNamesWithDescriptionsButton.setVisible(false);
                 }
             });
 
             if (tabs.getSelectionModel().getSelectedItem() == pvTab) {
                 copyPvNamesButton.setVisible(true);
+                copyPvNamesWithDescriptionsButton.setVisible(true);
             }
             else {
                 copyPvNamesButton.setVisible(false);
+                copyPvNamesWithDescriptionsButton.setVisible(false);
             }
         }
 
         {
-            // Disable copyPvNamesButton when no PV has been selected:
+            // Disable copyPvNamesWithDescriptionsButton when no PV has been selected:
             List<SimpleBooleanProperty> selectedStatuses = pvs.stream().map(nameStateValue -> nameStateValue.selected).collect(Collectors.toList());
 
             Runnable enableOrDisableButton = () -> {
                 if (selectedStatuses.stream().allMatch(selected -> !selected.get())) {
                     copyPvNamesButton.setDisable(true);
+                    copyPvNamesWithDescriptionsButton.setDisable(true);
                 }
                 else {
                     copyPvNamesButton.setDisable(false);
+                    copyPvNamesWithDescriptionsButton.setDisable(false);
                 }
             };
 
@@ -265,6 +274,16 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         }
 
         copyPvNamesButton.setOnAction(actionEvent -> {
+            List<String> pvNames = new LinkedList<>();
+            for (NameStateValue nameStateValue : pvsTable.getItems()) {
+                if (nameStateValue.selected.get()) {
+                    pvNames.add(nameStateValue.name);
+                }
+            }
+            copyPVNamesToClipboard(pvNames);
+        });
+
+        copyPvNamesWithDescriptionsButton.setOnAction(actionEvent -> {
 
             List<Pair<String, String>> pvNamesAndDefaultDescriptions = new LinkedList<>();
             for (NameStateValue nameStateValue : pvsTable.getItems()) {
