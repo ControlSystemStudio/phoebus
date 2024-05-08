@@ -554,8 +554,15 @@ public class WidgetInfoDialog extends Dialog<Boolean>
         FutureTask<Optional<Pair<String, String>>> displayCopyDialog = new FutureTask(() -> {
             final Dialog copyDialog = new Dialog();
 
-            copyDialog.setTitle(Messages.CopyPVNames);
-            copyDialog.setHeaderText(Messages.CopyPVNames);
+            boolean usePlural = pvNamesAndDefaultDescriptions.size() > 1;
+            if (usePlural) {
+                copyDialog.setTitle(Messages.CopyPVNames);
+                copyDialog.setHeaderText(Messages.CopyPVNames);
+            }
+            else {
+                copyDialog.setTitle(Messages.CopyPVName);
+                copyDialog.setHeaderText(Messages.CopyPVName);
+            }
 
             {
                 // In JavaFX, a button of type ButtonType.CLOSE must be present for the 'X'-button to work.
@@ -578,7 +585,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
 
             final Button copyWithoutDescriptionButton;
             {
-                ButtonType copyWithoutDescriptionButtonType = new ButtonType(Messages.CopyPVNames, ButtonData.RIGHT);
+                ButtonType copyWithoutDescriptionButtonType = new ButtonType(usePlural ? Messages.CopyPVNames : Messages.CopyPVName, ButtonData.RIGHT);
                 copyDialog.getDialogPane().getButtonTypes().add(copyWithoutDescriptionButtonType);
                 copyWithoutDescriptionButton = (Button) copyDialog.getDialogPane().lookupButton(copyWithoutDescriptionButtonType);
                 copyWithoutDescriptionButton.setTooltip(new Tooltip(copyWithoutDescriptionButton.getText()));
@@ -587,7 +594,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
 
             final Button copyWithDescriptionButton;
             {
-                ButtonType copyWithDescriptionButtonType = new ButtonType(Messages.CopyPVNamesAndDescriptions, ButtonData.RIGHT);
+                ButtonType copyWithDescriptionButtonType = new ButtonType(usePlural ? Messages.CopyPVNamesAndDescriptions : Messages.CopyPVNameAndDescription, ButtonData.RIGHT);
                 copyDialog.getDialogPane().getButtonTypes().add(copyWithDescriptionButtonType);
                 copyWithDescriptionButton = (Button) copyDialog.getDialogPane().lookupButton(copyWithDescriptionButtonType);
                 copyWithDescriptionButton.setTooltip(new Tooltip(copyWithDescriptionButton.getText()));
