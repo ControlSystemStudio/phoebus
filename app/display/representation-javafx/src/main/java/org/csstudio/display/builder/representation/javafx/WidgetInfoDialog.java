@@ -762,7 +762,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
 
         for (String pvName : pvNames) {
             if (!newClipboardContent.equals("")) {
-                newClipboardContent += "\n";
+                newClipboardContent += System.lineSeparator();
             }
             newClipboardContent += pvName;
         }
@@ -782,7 +782,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
             String description = pvNameAndDescription.getValue();
 
             if (!newClipboardContent.equals("")) {
-                newClipboardContent += "\n";
+                newClipboardContent += System.lineSeparator();
             }
             newClipboardContent +=  pvName + "," + description;
         }
