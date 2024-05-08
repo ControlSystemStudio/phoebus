@@ -621,7 +621,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
             // Custom close-button with correct alignment:
             final Button closeButton;
             {
-                ButtonType closeButtonType = new ButtonType(Messages.Close, ButtonData.LEFT);
+                ButtonType closeButtonType = new ButtonType(Messages.Cancel, ButtonData.LEFT);
                 copyDialog.getDialogPane().getButtonTypes().add(closeButtonType);
                 closeButton = (Button) copyDialog.getDialogPane().lookupButton(closeButtonType);
                 ButtonBar.setButtonUniformSize(closeButton, false);
