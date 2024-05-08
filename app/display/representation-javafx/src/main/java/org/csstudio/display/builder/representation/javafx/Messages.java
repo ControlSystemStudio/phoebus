@@ -145,7 +145,6 @@ public class Messages
                          ScriptsDialog_Title,
                          Select,
                          SelectAll,
-                         Selected,
                          ShowConfirmationDialogTitle,
                          ShowErrorDialogTitle,
                          ShowMessageDialogTitle,

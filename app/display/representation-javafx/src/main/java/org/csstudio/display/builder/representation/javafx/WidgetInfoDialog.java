@@ -409,7 +409,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
 
     private TableView<NameStateValue> createPVs(final Collection<NameStateValue> pvs)
     {
-        final TableColumn<NameStateValue, Boolean> selectionColumn = new TableColumn<>(Messages.Selected);
+        final TableColumn<NameStateValue, Boolean> selectionColumn = new TableColumn<>();
         {
             double columnWidth = 85;
             selectionColumn.setMinWidth(columnWidth);
