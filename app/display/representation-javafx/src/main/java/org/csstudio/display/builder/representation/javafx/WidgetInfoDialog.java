@@ -425,7 +425,7 @@ public class WidgetInfoDialog extends Dialog<Boolean>
     {
         final TableColumn<NameStateValue, Boolean> selectionColumn = new TableColumn<>();
         {
-            double columnWidth = 85;
+            double columnWidth = 40;
             selectionColumn.setMinWidth(columnWidth);
             selectionColumn.setPrefWidth(columnWidth);
             selectionColumn.setMaxWidth(columnWidth);
