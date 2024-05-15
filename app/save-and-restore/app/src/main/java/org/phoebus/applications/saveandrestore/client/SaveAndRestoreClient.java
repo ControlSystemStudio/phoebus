@@ -232,7 +232,17 @@ public interface SaveAndRestoreClient {
      */
     UserData authenticate(String userName, String password);
 
+    /**
+     * Requests service to restore the specified {@link SnapshotItem}s
+     * @param snapshotItems A {@link List} of {@link SnapshotItem}s
+     * @return A {@link RestoreResult} with information on potentially failed {@link SnapshotItem}s.
+     */
     List<RestoreResult> restore(List<SnapshotItem> snapshotItems);
 
+    /**
+     * Requests service to restore the specified snapshot.
+     * @param snapshotNodeId Unique id of a snapshot
+     * @return A {@link RestoreResult} with information on potentially failed {@link SnapshotItem}s.
+     */
     List<RestoreResult> restore(String snapshotNodeId);
 }
