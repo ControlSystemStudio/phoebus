@@ -280,6 +280,8 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
 
     private double observedMin = Double.NaN;
     private double observedMax = Double.NaN;
+    boolean newObservedMinAndMaxValues = false;
+
     private void valueChanged(WidgetProperty<?> property, Object old_value, Object new_value)
     {
         synchronized (meter) {    // "synchronized (meter) { ... }" is due to the reading of values from "meter.linearMeter",
@@ -289,13 +291,16 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
                 double newValue = vDouble.getValue();
                 meter.setCurrentValue(newValue);
 
-                if (!Double.isNaN(newValue))
+                if (!Double.isNaN(newValue)) {
                     if (Double.isNaN(observedMin) || newValue < observedMin) {
                         observedMin = newValue;
+                        newObservedMinAndMaxValues = true;
                     }
 
-                if (Double.isNaN(observedMax) || newValue > observedMax) {
-                    observedMax = newValue;
+                    if (Double.isNaN(observedMax) || newValue > observedMax) {
+                        observedMax = newValue;
+                        newObservedMinAndMaxValues = true;
+                    }
                 }
 
                 Display display = vDouble.getDisplay();
@@ -325,8 +330,9 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
                                 meter.setRange(controlRange.getMinimum(), controlRange.getMaximum(), true);
                             }
                         }
-                        else if (!Double.isNaN(observedMin) && !Double.isNaN(observedMax)) {
+                        else if (newObservedMinAndMaxValues && !Double.isNaN(observedMin) && !Double.isNaN(observedMax)) {
                             meter.setRange(observedMin - 1, observedMax + 1, false);
+                            newObservedMinAndMaxValues = false;
                         }
                         else {
                             meter.setRange(0.0, 100.0, false);
