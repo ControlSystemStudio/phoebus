@@ -20,6 +20,7 @@ package org.csstudio.display.builder.representation.javafx.actionsdialog;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
+import java.util.ServiceLoader;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -27,6 +28,8 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.model.properties.ActionInfo.ActionType;
 import org.csstudio.display.builder.model.properties.ActionInfos;
+import org.csstudio.display.builder.model.properties.PluggableActionInfos;
+import org.csstudio.display.builder.model.spi.PluggableActionInfo;
 import org.csstudio.display.builder.representation.javafx.JFXUtil;
 
 import javafx.beans.binding.Bindings;
@@ -96,7 +99,7 @@ public class ActionsDialogController {
                 else
                 {
                     setText(actionsDialogActionItem.getDescription());
-                    setGraphic(new ImageView(new Image(actionsDialogActionItem.getActionType().getIconURL().toExternalForm())));
+                    setGraphic(new ImageView(actionsDialogActionItem.getPluggableActionInfo().getImage()));
                 }
             }
             catch (Exception ex)
@@ -115,15 +118,17 @@ public class ActionsDialogController {
         upButton.setGraphic(JFXUtil.getIcon("up.png"));
         downButton.setGraphic(JFXUtil.getIcon("down.png"));
 
-        for (ActionType type : ActionType.values())
+        ServiceLoader<PluggableActionInfo> pluggableActionInfos = ServiceLoader.load(PluggableActionInfo.class);
+
+        for (PluggableActionInfo actionInfo : pluggableActionInfos)
         {
-            final ImageView icon = new ImageView(new Image(type.getIconURL().toExternalForm()));
-            final MenuItem item = new MenuItem(type.toString(), icon);
+            final ImageView icon = new ImageView(actionInfo.getImage());
+            final MenuItem item = new MenuItem(actionInfo.toString(), icon);
             item.setOnAction(event ->
             {
-                final ActionInfo action = ActionInfo.createAction(type);
+                //final ActionInfo action = ActionInfo.createAction(type);
                 ActionsDialogActionItem actionsDialogActionItem =
-                        new ActionsDialogActionItem(widget, action);
+                        new ActionsDialogActionItem(widget, actionInfo);
                 actionList.add(actionsDialogActionItem);
                 actionsListView.setItems(actionList);
                 detailsPane.getChildren().add(actionsDialogActionItem.getActionInfoEditor());
@@ -166,7 +171,7 @@ public class ActionsDialogController {
      * {@link StackPane} and the top most item in the action list is selected.
      * @param actionInfos ActionInfos
      */
-    public void setActionInfos(ActionInfos actionInfos){
+    public void setActionInfos(PluggableActionInfos actionInfos){
         if(actionInfos == null || actionInfos.getActions() == null || actionInfos.getActions().isEmpty()){
             return;
         }
@@ -183,8 +188,8 @@ public class ActionsDialogController {
     }
 
     /** @return ActionInfos */
-    public ActionInfos getActionInfos(){
-        return new ActionInfos(actionList.stream().map(a -> a.getActionInfo()).collect(Collectors.toList()),
+    public PluggableActionInfos getActionInfos(){
+        return new PluggableActionInfos(actionList.stream().map(a -> a.getPluggableActionInfo()).collect(Collectors.toList()),
                 executeAll.get());
     }
 

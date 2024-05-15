@@ -31,9 +31,11 @@ import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.persist.WidgetClassesService;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.model.properties.ExecuteScriptActionInfo;
+import org.csstudio.display.builder.model.properties.PluggableActionInfos;
 import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.properties.WritePVActionInfo;
 import org.csstudio.display.builder.model.rules.RuleInfo;
+import org.csstudio.display.builder.model.spi.PluggableActionInfo;
 import org.csstudio.display.builder.runtime.internal.RuntimePVs;
 import org.csstudio.display.builder.runtime.pv.PVFactory;
 import org.csstudio.display.builder.runtime.pv.RuntimePV;
@@ -208,11 +210,11 @@ public class WidgetRuntime<MW extends Widget>
             pv_name_binding.set(new PVNameToValueBinding(this, name.get(), value.get(), true));
 
         // Prepare action-related PVs
-        final List<ActionInfo> actions = widget.propActions().getValue().getActions();
+        final List<PluggableActionInfo> actions = widget.propActions().getValue().getActions();
         if (actions.size() > 0)
         {
             final List<RuntimePV> action_pvs = new ArrayList<>();
-            for (final ActionInfo action : actions)
+            for (final PluggableActionInfo action : actions)
             {
                 if (action instanceof WritePVActionInfo)
                 {
@@ -250,10 +252,10 @@ public class WidgetRuntime<MW extends Widget>
             return true;
         if (widget.propRules().getValue().size() > 0)
             return true;
-        final List<ActionInfo> actions = widget.propActions().getValue().getActions();
+        final List<PluggableActionInfo> actions = widget.propActions().getValue().getActions();
         if (actions.size() > 0)
         {
-            for (ActionInfo action_info : actions)
+            for (PluggableActionInfo action_info : actions)
             {
                 if (action_info instanceof ExecuteScriptActionInfo)
                     return true;
@@ -325,11 +327,11 @@ public class WidgetRuntime<MW extends Widget>
 
 
         // Compile scripts invoked by actions
-        final List<ActionInfo> actions = widget.propActions().getValue().getActions();
+        final List<PluggableActionInfo> actions = widget.propActions().getValue().getActions();
         if (actions.size() > 0)
         {
             final Map<ExecuteScriptActionInfo, Script> scripts = new HashMap<>();
-            for (ActionInfo action_info : actions)
+            for (PluggableActionInfo action_info : actions)
             {
                 if (! (action_info instanceof ExecuteScriptActionInfo))
                     continue;

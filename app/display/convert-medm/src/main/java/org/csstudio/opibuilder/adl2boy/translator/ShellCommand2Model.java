@@ -36,7 +36,7 @@ public class ShellCommand2Model extends AbstractADL2Model<ActionButtonWidget> {
             }
 
         widgetModel.propText().setValue(commandWidget.getLabel());
-        widgetModel.propActions().setValue(new ActionInfos(actions));
+        //widgetModel.propActions().setValue(new ActionInfos(actions));
     }
 
     @Override

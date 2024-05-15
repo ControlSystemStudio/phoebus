@@ -68,7 +68,7 @@ public class RelatedDisplay2Model extends AbstractADL2Model<ActionButtonWidget> 
                     actions.add(action);
             }
 
-            widgetModel.propActions().setValue(new ActionInfos(actions));
+            //widgetModel.propActions().setValue(new ActionInfos(actions));
         }
 
         String label = rdWidget.getLabel();

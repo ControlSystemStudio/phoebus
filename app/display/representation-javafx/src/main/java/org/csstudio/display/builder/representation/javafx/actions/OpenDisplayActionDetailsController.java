@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 European Spallation Source ERIC.
+ * Copyright (C) 2023 European Spallation Source ERIC.
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -14,36 +14,29 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
  */
 
-package org.csstudio.display.builder.representation.javafx.actionsdialog;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import org.csstudio.display.builder.model.Widget;
-import org.csstudio.display.builder.model.properties.ActionInfo;
-import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
-import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo.Target;
-import org.csstudio.display.builder.representation.javafx.FilenameSupport;
-import org.csstudio.display.builder.representation.javafx.MacrosTable;
+package org.csstudio.display.builder.representation.javafx.actions;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.spi.PluggableActionInfo;
+import org.csstudio.display.builder.representation.javafx.FilenameSupport;
+import org.csstudio.display.builder.representation.javafx.MacrosTable;
 
-/** FXML Controller */
-public class OpenDisplayActionDetailsController implements ActionDetailsController{
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+public class OpenDisplayActionDetailsController {
     @FXML
     private RadioButton replaceRadioButton;
     @FXML
@@ -61,90 +54,85 @@ public class OpenDisplayActionDetailsController implements ActionDetailsControll
 
     private MacrosTable macrosTable;
 
-    private OpenDisplayActionInfo openDisplayActionInfo;
+    private final OpenDisplayAction openDisplayActionInfo;
 
-    private StringProperty paneProperty = new SimpleStringProperty();
-    private StringProperty displayPathProperty = new SimpleStringProperty();
-    private StringProperty descriptionProperty = new SimpleStringProperty();
+    private final StringProperty paneProperty = new SimpleStringProperty();
+    private final StringProperty displayPathProperty = new SimpleStringProperty();
+    private final StringProperty descriptionProperty = new SimpleStringProperty();
 
-    private OpenDisplayActionInfo.Target target;
+    private OpenDisplayAction.Target target;
 
-    private Widget widget;
+    private final Widget widget;
 
-    /** @param widget Widget
-     *  @param actionInfo ActionInfo
+    /**
+     * @param widget     Widget
+     * @param actionInfo ActionInfo
      */
-    public OpenDisplayActionDetailsController(Widget widget, ActionInfo actionInfo){
+    public OpenDisplayActionDetailsController(Widget widget, PluggableActionInfo actionInfo) {
         this.widget = widget;
-        this.openDisplayActionInfo = (OpenDisplayActionInfo)actionInfo;
+        this.openDisplayActionInfo = (OpenDisplayAction) actionInfo;
     }
 
-    /** Init */
+    /**
+     * Init
+     */
     @FXML
-    public void initialize(){
-        replaceRadioButton.setUserData(Target.REPLACE);
-        newTabRadioButton.setUserData(Target.TAB);
-        newWindowRadioButton.setUserData(Target.WINDOW);
+    public void initialize() {
+        replaceRadioButton.setUserData(OpenDisplayAction.Target.REPLACE);
+        newTabRadioButton.setUserData(OpenDisplayAction.Target.TAB);
+        newWindowRadioButton.setUserData(OpenDisplayAction.Target.WINDOW);
 
         ToggleGroup toggleGroup = new ToggleGroup();
         toggleGroup.getToggles().addAll(replaceRadioButton, newTabRadioButton, newWindowRadioButton);
-        toggleGroup.selectedToggleProperty().addListener(new ChangeListener<Toggle>() {
-            @Override
-            public void changed(ObservableValue<? extends Toggle> observableValue, Toggle toggle, Toggle t1) {
-                target = (Target)t1.getUserData();
-            }
+        toggleGroup.selectedToggleProperty().addListener((observableValue, toggle, t1) -> {
+            target = (OpenDisplayAction.Target) t1.getUserData();
+            openDisplayActionInfo.setTarget(target);
         });
+
         target = openDisplayActionInfo.getTarget();
         /*
          * Standalone is a deprecated name for Window
          */
-        if (target == Target.STANDALONE)
-            target = Target.WINDOW;
+        if (target == OpenDisplayAction.Target.STANDALONE) {
+            target = OpenDisplayAction.Target.WINDOW;
+        }
+
         toggleGroup.selectToggle(toggleGroup.getToggles().stream()
                 .filter(t -> t.getUserData().equals(target)).findFirst().get());
 
         descriptionProperty.setValue(openDisplayActionInfo.getDescription());
         description.textProperty().bindBidirectional(descriptionProperty);
+        descriptionProperty.addListener((obs, o, n) -> openDisplayActionInfo.setDescription(n));
 
         paneProperty.setValue(openDisplayActionInfo.getPane());
         pane.textProperty().bindBidirectional(paneProperty);
         pane.disableProperty().bind(newTabRadioButton.selectedProperty().not());
+        paneProperty.addListener((obs, o, n) -> openDisplayActionInfo.setPane(n));
 
         displayPathProperty.setValue(openDisplayActionInfo.getFile());
         displayPath.textProperty().bindBidirectional(displayPathProperty);
+        displayPathProperty.addListener((obs, o, n) -> openDisplayActionInfo.setFile(n));
 
         macrosTable = new MacrosTable(openDisplayActionInfo.getMacros());
         macrosTablePlaceholder.getChildren().add(macrosTable.getNode());
+        macrosTable.addListener(observable -> openDisplayActionInfo.setMacros(macrosTable.getMacros()));
         GridPane.setHgrow(macrosTable.getNode(), Priority.ALWAYS);
         VBox.setVgrow(macrosTable.getNode(), Priority.ALWAYS);
     }
 
-    /** Prompt for filename */
+    /**
+     * Prompt for filename
+     */
     @FXML
-    public void selectDisplayPath(){
+    public void selectDisplayPath() {
         try {
-            final String path = FilenameSupport.promptForRelativePath(widget, displayPathProperty.get());
-            if (path != null){
-                displayPathProperty.setValue(path);
+            final String path = FilenameSupport.promptForRelativePath(widget, openDisplayActionInfo.getFile());
+            if (path != null) {
+                displayPathProperty.set(path);
             }
         } catch (Exception e) {
             Logger.getLogger(OpenDisplayActionDetailsController.class.getName())
                     .log(Level.WARNING, "Cannot prompt for filename", e);
         }
-    }
-
-    /**
-     *
-     * @return A new {@link ActionInfo} object as the fields in the class are read-only. Values are taken
-     * from the observables in this controller.
-     */
-    @Override
-    public ActionInfo getActionInfo(){
-        return new OpenDisplayActionInfo(
-                descriptionProperty.get(),
-                displayPathProperty.get(),
-                macrosTable.getMacros(),
-                target,
-                paneProperty.get());
     }
 }

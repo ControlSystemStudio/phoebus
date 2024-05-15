@@ -38,7 +38,7 @@ public class Convert_activeExitButtonClass extends ConverterBase<ActionButtonWid
         convertColor(t.getFgColor(), widget.propForegroundColor());
         convertFont(t.getFont(), widget.propFont());
         widget.propText().setValue(t.getLabel());
-        widget.propActions().setValue(new ActionInfos(List.of(new ExecuteScriptActionInfo("close", script))));
+        //widget.propActions().setValue(new ActionInfos(List.of(new ExecuteScriptActionInfo("close", script))));
     }
 
     @Override

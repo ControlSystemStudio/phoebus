@@ -134,7 +134,7 @@ public class Convert_activeMessageButtonClass extends ConverterBase<Widget>
 
                 // Set the button's $(pv_name) macro to the PV name, and use that within the write-PV action
                 b.propPVName().setValue(pv);
-                b.propActions().setValue(new ActionInfos(List.of(new WritePVActionInfo(desc, "$(pv_name)", value))));
+                //b.propActions().setValue(new ActionInfos(List.of(new WritePVActionInfo(desc, "$(pv_name)", value))));
             }
 
             if (mb.getPassword() != null)

@@ -18,6 +18,8 @@ import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.ActionInfo;
+import org.csstudio.display.builder.model.properties.PluggableActionInfos;
+import org.csstudio.display.builder.model.spi.PluggableActionInfo;
 import org.csstudio.display.builder.model.util.NamedDaemonPool;
 import org.csstudio.display.builder.representation.ToolkitListener;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
@@ -41,6 +43,12 @@ public class RuntimeUtil
     {
         @Override
         public void handleAction(final Widget widget, final ActionInfo action)
+        {
+            ActionUtil.handleAction(widget, action);
+        }
+
+        @Override
+        public void handleAction(final Widget widget, final PluggableActionInfo action)
         {
             ActionUtil.handleAction(widget, action);
         }

@@ -10,6 +10,8 @@ package org.csstudio.display.builder.runtime;
 import static org.csstudio.display.builder.runtime.WidgetRuntime.logger;
 
 import java.io.File;
+import java.util.Optional;
+import java.util.ServiceLoader;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 
@@ -23,9 +25,11 @@ import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
 import org.csstudio.display.builder.model.properties.OpenFileActionInfo;
 import org.csstudio.display.builder.model.properties.OpenWebpageActionInfo;
 import org.csstudio.display.builder.model.properties.WritePVActionInfo;
+import org.csstudio.display.builder.model.spi.PluggableActionInfo;
 import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.representation.ToolkitRepresentation;
 import org.csstudio.display.builder.runtime.script.ScriptUtil;
+import org.csstudio.display.builder.runtime.spi.ActionHandler;
 import org.phoebus.framework.jobs.CommandExecutor;
 import org.phoebus.framework.macros.MacroHandler;
 import org.phoebus.framework.macros.MacroOrSystemProvider;
@@ -59,6 +63,37 @@ public class ActionUtil
             RuntimeUtil.getExecutor().execute(() -> openWebpage(source_widget, (OpenWebpageActionInfo) action));
         else
             logger.log(Level.SEVERE, "Cannot handle unknown " + action);
+    }
+
+    /** Handle an action
+     *  @param source_widget Widget from which the action is invoked.
+     *  @param action Information about the action to perform
+     */
+    public static void handleAction(final Widget source_widget, final PluggableActionInfo action)
+    {
+        ServiceLoader<ActionHandler> actionHandlers = ServiceLoader.load(ActionHandler.class);
+        Optional<ServiceLoader.Provider<ActionHandler>> handler = actionHandlers.stream().filter(p -> p.get().matches(action)).findFirst();
+        if(handler.isEmpty()){
+            throw new RuntimeException("No ActionHandler found for action " + action);
+        }
+        RuntimeUtil.getExecutor().execute(() -> handler.get().get().handleAction(source_widget, action));
+       /*
+        if (action instanceof OpenDisplayActionInfo)
+            RuntimeUtil.getExecutor().execute(() -> openDisplay(source_widget, (OpenDisplayActionInfo) action));
+        else if (action instanceof WritePVActionInfo)
+            RuntimeUtil.getExecutor().execute(() -> writePV(source_widget, (WritePVActionInfo) action));
+        else if (action instanceof ExecuteScriptActionInfo)
+            RuntimeUtil.getExecutor().execute(() -> executeScript(source_widget, (ExecuteScriptActionInfo) action));
+        else if (action instanceof ExecuteCommandActionInfo)
+            RuntimeUtil.getExecutor().execute(() -> executeCommand(source_widget, (ExecuteCommandActionInfo) action));
+        else if (action instanceof OpenFileActionInfo)
+            RuntimeUtil.getExecutor().execute(() -> openFile(source_widget, (OpenFileActionInfo) action));
+        else if (action instanceof OpenWebpageActionInfo)
+            RuntimeUtil.getExecutor().execute(() -> openWebpage(source_widget, (OpenWebpageActionInfo) action));
+        else
+            logger.log(Level.SEVERE, "Cannot handle unknown " + action);
+
+        */
     }
 
     /** Open a display

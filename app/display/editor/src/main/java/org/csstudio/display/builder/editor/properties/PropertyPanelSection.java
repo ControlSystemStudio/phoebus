@@ -41,6 +41,7 @@ import org.csstudio.display.builder.model.properties.FilenameWidgetProperty;
 import org.csstudio.display.builder.model.properties.FontWidgetProperty;
 import org.csstudio.display.builder.model.properties.MacrosWidgetProperty;
 import org.csstudio.display.builder.model.properties.PVNameWidgetProperty;
+import org.csstudio.display.builder.model.properties.PluggableActionsWidgetProperty;
 import org.csstudio.display.builder.model.properties.PointsWidgetProperty;
 import org.csstudio.display.builder.model.properties.RulesWidgetProperty;
 import org.csstudio.display.builder.model.properties.ScriptsWidgetProperty;
@@ -641,9 +642,9 @@ public class PropertyPanelSection extends GridPane
 
             field = macros_field;
         }
-        else if (property instanceof ActionsWidgetProperty)
+        else if (property instanceof PluggableActionsWidgetProperty)
         {
-            final ActionsWidgetProperty actions_prop = (ActionsWidgetProperty) property;
+            final PluggableActionsWidgetProperty actions_prop = (PluggableActionsWidgetProperty) property;
             final Button actions_field = new Button();
             actions_field.setMnemonicParsing(false);
             actions_field.setMaxWidth(Double.MAX_VALUE);

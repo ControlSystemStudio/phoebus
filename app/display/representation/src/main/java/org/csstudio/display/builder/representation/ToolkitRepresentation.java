@@ -32,6 +32,8 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetDescriptor;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.ActionInfo;
+import org.csstudio.display.builder.model.properties.PluggableActionInfos;
+import org.csstudio.display.builder.model.spi.PluggableActionInfo;
 import org.csstudio.display.builder.model.util.ModelThreadPool;
 import org.csstudio.display.builder.model.widgets.PlaceholderWidget;
 import org.csstudio.display.builder.representation.spi.WidgetRepresentationsService;
@@ -617,6 +619,21 @@ abstract public class ToolkitRepresentation<TWP extends Object, TW> implements E
      *  @param action Action to perform
      */
     public void fireAction(final Widget widget, final ActionInfo action)
+    {
+        for (final ToolkitListener listener : listeners)
+        {
+            try
+            {
+                listener.handleAction(widget, action);
+            }
+            catch (final Throwable ex)
+            {
+                logger.log(Level.WARNING, "Action failure when invoking " + action + " for " + widget, ex);
+            }
+        }
+    }
+
+    public void fireAction(final Widget widget, final PluggableActionInfo action)
     {
         for (final ToolkitListener listener : listeners)
         {

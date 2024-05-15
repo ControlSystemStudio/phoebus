@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.model.properties.ActionInfo.ActionType;
+import org.csstudio.display.builder.model.spi.PluggableActionInfo;
 import org.csstudio.display.builder.representation.javafx.Messages;
 import org.phoebus.framework.nls.NLS;
 
@@ -38,10 +39,11 @@ import javafx.scene.Node;
 public class ActionsDialogActionItem {
 
     private Node actionInfoEditor;
-    private ActionDetailsController controller;
+    //private ActionDetailsController controller;
     private String description;
-    private ActionType actionType;
-
+    //private ActionType actionType;
+    private PluggableActionInfo pluggableActionInfo;
+    private Widget widget;
     /**
      * Constructor.
      *
@@ -50,25 +52,18 @@ public class ActionsDialogActionItem {
      * @param widget Widget
      * @param actionInfo ActionInfo
      */
-    public ActionsDialogActionItem(Widget widget, ActionInfo actionInfo){
+    public ActionsDialogActionItem(Widget widget, PluggableActionInfo actionInfo){
         this.description = actionInfo.getDescription();
-        this.actionType = actionInfo.getType();
+        this.pluggableActionInfo = actionInfo;
+        this.widget = widget;
+        //this.actionType = actionInfo.getType();
+        /*
         ResourceBundle resourceBundle =  NLS.getMessages(Messages.class);
         FXMLLoader fxmlLoader = new FXMLLoader();
         fxmlLoader.setResources(resourceBundle);
         try {
             switch(actionInfo.getType()){
-                case OPEN_DISPLAY:
-                    fxmlLoader.setLocation(this.getClass().getResource("OpenDisplayActionDetails.fxml"));
-                    fxmlLoader.setControllerFactory(clazz -> {
-                        try {
-                           return clazz.getConstructor(Widget.class, ActionInfo.class).newInstance(widget, actionInfo);
-                        } catch (Exception e) {
-                            Logger.getLogger(ActionsDialogActionItem.class.getName()).log(Level.SEVERE, "Failed to construct OpenDisplayActionDetailsController", e);
-                        }
-                        return null;
-                    });
-                    break;
+
                 case WRITE_PV:
                     fxmlLoader.setLocation(this.getClass().getResource("WritePVActionDetails.fxml"));
                     fxmlLoader.setControllerFactory(clazz -> {
@@ -125,6 +120,7 @@ public class ActionsDialogActionItem {
                     });
                     break;
             }
+
             this.actionInfoEditor = fxmlLoader.load();
             this.controller = fxmlLoader.getController();
             this.actionInfoEditor.setVisible(false);
@@ -132,10 +128,15 @@ public class ActionsDialogActionItem {
             Logger.getLogger(ActionsDialogActionItem.class.getName())
                     .log(Level.WARNING, String.format("Unable to create editor for action type \"%s\"", actionInfo.getType()), e);
         }
+
+         */
     }
 
     /** @return Node for action info */
     public Node getActionInfoEditor(){
+        if(actionInfoEditor == null){
+            actionInfoEditor = pluggableActionInfo.getEditor(widget);
+        }
         return actionInfoEditor;
     }
 
@@ -144,15 +145,25 @@ public class ActionsDialogActionItem {
         return description;
     }
 
+    public PluggableActionInfo getPluggableActionInfo(){
+        return pluggableActionInfo;
+    }
+
     /** @return ActionType */
+    /*
     public ActionType getActionType(){
         return actionType;
     }
 
+     */
+
     /**
      * @return The {@link ActionInfo} object maintained by the controller for the editor component.
      */
+    /*
     public ActionInfo getActionInfo(){
         return controller.getActionInfo();
     }
+
+     */
 }

@@ -9,6 +9,7 @@ package org.csstudio.display.builder.representation;
 
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ActionInfo;
+import org.csstudio.display.builder.model.spi.PluggableActionInfo;
 
 /** Listener to a widget representation
  *
@@ -25,6 +26,8 @@ public interface ToolkitListener
      *  @param action Information about the action that user wants to be executed
      */
     default public void handleAction(Widget widget, ActionInfo action) {};
+
+    default public void handleAction(Widget widget, PluggableActionInfo action) {};
 
     /** User clicked (selected) a widget
      *  @param widget Widget that was clicked

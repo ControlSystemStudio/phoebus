@@ -10,6 +10,8 @@ package org.csstudio.display.builder.representation.javafx;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.ServiceLoader;
+import java.util.stream.Collectors;
 
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ActionInfo;
@@ -17,8 +19,10 @@ import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.properties.ExecuteScriptActionInfo;
 import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo;
 import org.csstudio.display.builder.model.properties.OpenDisplayActionInfo.Target;
+import org.csstudio.display.builder.model.properties.PluggableActionInfos;
 import org.csstudio.display.builder.model.properties.ScriptInfo;
 import org.csstudio.display.builder.model.properties.WritePVActionInfo;
+import org.csstudio.display.builder.model.spi.PluggableActionInfo;
 import org.phoebus.framework.macros.Macros;
 import org.phoebus.ui.javafx.ApplicationWrapper;
 import org.csstudio.display.builder.representation.javafx.actionsdialog.ActionsDialog;
@@ -39,22 +43,28 @@ public class ActionsDialogDemo extends ApplicationWrapper
     @Override
     public void start(final Stage stage)
     {
+
         final Widget widget = new Widget("demo");
         final Macros macros = new Macros();
         macros.add("S", "Test");
         macros.add("N", "17");
+        ServiceLoader<PluggableActionInfo> pluggableActionInfoList = ServiceLoader.load(PluggableActionInfo.class);
+        /*
         final ActionInfos actions = new ActionInfos(Arrays.asList(
                 new OpenDisplayActionInfo("Related Display", "../opi/some_file.opi", macros, Target.TAB, "Side"),
                 new WritePVActionInfo("Reset", "Test:CS:Reset", "1"),
                 new ExecuteScriptActionInfo("Script", new ScriptInfo(ScriptInfo.EMBEDDED_PYTHON, "print 'hi'", false, Collections.emptyList())))
                 );
-        final ActionsDialog dialog = new ActionsDialog(widget, actions, null);
-        final Optional<ActionInfos> result = dialog.showAndWait();
+
+         */
+        final PluggableActionInfos pluggableActionInfos = new PluggableActionInfos(pluggableActionInfoList.stream().map(p -> p.get()).collect(Collectors.toList()));
+        final ActionsDialog dialog = new ActionsDialog(widget, pluggableActionInfos, null);
+        final Optional<PluggableActionInfos> result = dialog.showAndWait();
         if (result.isPresent())
         {
             if (result.get().isExecutedAsOne())
                 System.out.println("Execute all commands as one:");
-            for (ActionInfo info : result.get().getActions())
+            for (PluggableActionInfo info : result.get().getActions())
             {
                 if (info instanceof ExecuteScriptActionInfo)
                 {
@@ -67,5 +77,7 @@ public class ActionsDialogDemo extends ApplicationWrapper
         }
         else
             System.out.println("Cancelled");
+
+
     }
 }

@@ -79,7 +79,7 @@ public class Convert_shellCmdClass extends ConverterBase<ActionButtonWidget>
             else
                 actions.add(new ExecuteCommandActionInfo(description, command));
         }
-        widget.propActions().setValue(new ActionInfos(actions));
+        //widget.propActions().setValue(new ActionInfos(actions));
 
         if (t.getButtonLabel() != null  &&  !t.isInvisible())
             widget.propText().setValue(t.getButtonLabel());

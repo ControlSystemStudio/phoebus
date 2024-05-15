@@ -15,6 +15,8 @@ import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.properties.ActionInfos;
 import org.csstudio.display.builder.model.properties.ActionsWidgetProperty;
+import org.csstudio.display.builder.model.properties.PluggableActionInfos;
+import org.csstudio.display.builder.model.properties.PluggableActionsWidgetProperty;
 import org.csstudio.display.builder.representation.javafx.actionsdialog.ActionsDialog;
 import org.phoebus.ui.undo.UndoableActionManager;
 
@@ -27,10 +29,10 @@ import javafx.scene.control.Button;
  */
 @SuppressWarnings("nls")
 public class ActionsPropertyBinding
-       extends WidgetPropertyBinding<Button, ActionsWidgetProperty>
+       extends WidgetPropertyBinding<Button, PluggableActionsWidgetProperty>
 {
     /** Update property panel field as model changes */
-    private final WidgetPropertyListener<ActionInfos> model_listener = (p, o, n) ->
+    private final WidgetPropertyListener<PluggableActionInfos> model_listener = (p, o, n) ->
     {
         jfx_node.setText(widget_property.toString());
     };
@@ -61,7 +63,7 @@ public class ActionsPropertyBinding
             dialog.setHeaderText(buf.toString());
         }
 
-        final Optional<ActionInfos> result = dialog.showAndWait();
+        final Optional<PluggableActionInfos> result = dialog.showAndWait();
         if (result.isPresent())
         {
             undo.execute(new SetWidgetPropertyAction<>(widget_property, result.get()));
@@ -70,7 +72,7 @@ public class ActionsPropertyBinding
                 final String path = widget_property.getPath();
                 for (Widget w : other)
                 {
-                    final ActionsWidgetProperty other_prop = (ActionsWidgetProperty) w.getProperty(path);
+                    final PluggableActionsWidgetProperty other_prop = (PluggableActionsWidgetProperty) w.getProperty(path);
                     undo.execute(new SetWidgetPropertyAction<>(other_prop, result.get()));
                 }
             }
@@ -84,7 +86,7 @@ public class ActionsPropertyBinding
      */
     public ActionsPropertyBinding(final UndoableActionManager undo,
                                   final Button field,
-                                  final ActionsWidgetProperty widget_property,
+                                  final PluggableActionsWidgetProperty widget_property,
                                   final List<Widget> other)
     {
         super(undo, field, widget_property, other);

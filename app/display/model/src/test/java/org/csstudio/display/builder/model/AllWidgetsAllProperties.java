@@ -48,8 +48,8 @@ public class AllWidgetsAllProperties
                 final Macros macros = new Macros();
                 macros.add("S", "Test");
                 macros.add("N", "2");
-                button.propActions().setValue(new ActionInfos(Arrays.asList(
-                    new OpenDisplayActionInfo("Display", "other.opi", macros, Target.REPLACE))));
+                //button.propActions().setValue(new ActionInfos(Arrays.asList(
+                //    new OpenDisplayActionInfo("Display", "other.opi", macros, Target.REPLACE))));
             }
 
             model.runtimeChildren().addChild(widget);

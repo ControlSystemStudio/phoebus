@@ -17,6 +17,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyCategory;
 import org.csstudio.display.builder.model.WidgetPropertyDescriptor;
 import org.csstudio.display.builder.model.rules.RuleInfo;
+import org.csstudio.display.builder.model.spi.PluggableActionInfo;
 import org.csstudio.display.builder.model.widgets.ActionButtonWidget;
 import org.epics.vtype.Alarm;
 import org.epics.vtype.Display;
@@ -620,6 +621,7 @@ public class CommonWidgetProperties
             newIntegerPropertyDescriptor(WidgetPropertyCategory.WIDGET, "bit", Messages.WidgetProperties_Bit);
 
     /** 'actions' property: Actions that user can invoke */
+    /*
     public static final WidgetPropertyDescriptor<ActionInfos> propActions =
             new WidgetPropertyDescriptor<>(
                     WidgetPropertyCategory.BEHAVIOR, "actions", Messages.WidgetProperties_Actions)
@@ -642,7 +644,31 @@ public class CommonWidgetProperties
                 }
             };
         }
-    };
+    };*/
+
+    public static final WidgetPropertyDescriptor<PluggableActionInfos> propActions =
+            new WidgetPropertyDescriptor<>(
+                    WidgetPropertyCategory.BEHAVIOR, "actions", Messages.WidgetProperties_Actions)
+            {
+                @Override
+                public WidgetProperty<PluggableActionInfos> createProperty(final Widget widget, final PluggableActionInfos actions)
+                {
+                    return new PluggableActionsWidgetProperty(this, widget, actions)
+                    {
+                        @Override
+                        public WidgetPropertyCategory getCategory()
+                        {
+                            // For action button, show "actions" as top-level property.
+                            // This violates the consistent order of properties,
+                            // but for an action button the actions are THE property
+                            // which should not be listed prominently, not somewhere down the list.
+                            if (widget instanceof ActionButtonWidget)
+                                return WidgetPropertyCategory.WIDGET;
+                            return super.getCategory();
+                        }
+                    };
+                }
+            };
 
     /** 'scripts' property: Scripts to execute */
     public static final WidgetPropertyDescriptor<List<ScriptInfo>> propScripts =

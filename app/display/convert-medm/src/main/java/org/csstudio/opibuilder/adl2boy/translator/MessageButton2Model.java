@@ -83,7 +83,7 @@ public class MessageButton2Model extends AbstractADL2Model<VisibleWidget> {
             }
             actions.add(new WritePVActionInfo("Write", messageButtonWidget.getAdlControl().getChan(), message));
 
-            widgetModel.propActions().setValue(new ActionInfos(actions));
+            //widgetModel.propActions().setValue(new ActionInfos(actions));
         }
     }
 
