@@ -306,11 +306,11 @@ public class LinearMeterRepresentation extends RegionBaseRepresentation<Pane, Li
                 Display display = vDouble.getDisplay();
 
                 // Set the units:
-                if (model_widget.propShowUnits().getValue() ) {
+                if (model_widget != null && model_widget.propShowUnits().getValue() ) {
                     meter.setUnits(display.getUnit());
                 }
 
-                if (model_widget.propLimitsFromPV().getValue()) {
+                if (model_widget != null && model_widget.propLimitsFromPV().getValue()) {
                     Range displayRange = display.getDisplayRange();
                     if (   displayRange != null
                             && Double.isFinite(displayRange.getMinimum())
