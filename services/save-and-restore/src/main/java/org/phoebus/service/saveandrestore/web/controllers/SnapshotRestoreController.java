@@ -48,9 +48,9 @@ public class SnapshotRestoreController extends BaseController {
 
     @PostMapping(value = "/restore/node", produces = JSON)
     public List<RestoreResult> restoreFromSnapshotNode(
-            @RequestParam(value = "parentNodeId") String parentNodeId) throws Exception {
+            @RequestParam(value = "nodeId") String nodeId) throws Exception {
         var snapshotRestorer = new SnapshotRestorer();
-        var snapshot = nodeDAO.getSnapshotData(parentNodeId);
+        var snapshot = nodeDAO.getSnapshotData(nodeId);
         return snapshotRestorer.restorePVValues(snapshot.getSnapshotItems());
     }
 

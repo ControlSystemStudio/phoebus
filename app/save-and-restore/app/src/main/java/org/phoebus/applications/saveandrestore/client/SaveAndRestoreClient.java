@@ -231,4 +231,8 @@ public interface SaveAndRestoreClient {
      * an exception.
      */
     UserData authenticate(String userName, String password);
+
+    List<RestoreResult> restore(List<SnapshotItem> snapshotItems);
+
+    List<RestoreResult> restore(String snapshotNodeId);
 }
