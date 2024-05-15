@@ -28,6 +28,7 @@ import org.epics.vtype.VUIntArray;
 import org.epics.vtype.VULongArray;
 import org.epics.vtype.VUShortArray;
 
+import org.phoebus.applications.saveandrestore.model.RestoreResult;
 import org.phoebus.framework.preferences.PropertyPreferenceLoader;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.core.vtypes.VTypeHelper;
