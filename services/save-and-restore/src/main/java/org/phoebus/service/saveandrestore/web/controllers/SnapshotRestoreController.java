@@ -39,17 +39,18 @@ public class SnapshotRestoreController extends BaseController {
     @Autowired
     private NodeDAO nodeDAO;
 
+    @Autowired
+    private SnapshotRestorer snapshotRestorer;
+
     @PostMapping(value = "/restore/items", produces = JSON)
     public List<RestoreResult> restoreFromSnapshotItems(
-            @RequestBody List<SnapshotItem> snapshotItems) throws Exception {
-        var snapshotRestorer = new SnapshotRestorer();
+            @RequestBody List<SnapshotItem> snapshotItems) {
         return snapshotRestorer.restorePVValues(snapshotItems);
     }
 
     @PostMapping(value = "/restore/node", produces = JSON)
     public List<RestoreResult> restoreFromSnapshotNode(
-            @RequestParam(value = "nodeId") String nodeId) throws Exception {
-        var snapshotRestorer = new SnapshotRestorer();
+            @RequestParam(value = "nodeId") String nodeId){
         var snapshot = nodeDAO.getSnapshotData(nodeId);
         return snapshotRestorer.restorePVValues(snapshot.getSnapshotItems());
     }
