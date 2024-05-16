@@ -232,19 +232,7 @@ public class RTLinearMeter extends ImageView
             runnable.run();
         }
         else {
-            FutureTask futureTask = new FutureTask(() -> {
-                runnable.run();
-                return null;
-            });
-            Platform.runLater(() -> futureTask.run());
-            try {
-                futureTask.get();
-            }
-            catch (ExecutionException e) {
-                throw new RuntimeException(e);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            Platform.runLater(() -> runnable.run());
         }
     }
 
