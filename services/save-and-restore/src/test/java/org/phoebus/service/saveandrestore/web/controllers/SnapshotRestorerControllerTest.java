@@ -73,7 +73,7 @@ public class SnapshotRestorerControllerTest {
 
         when(nodeDAO.getSnapshotData("uniqueId")).thenReturn(snapshotData);
 
-        MockHttpServletRequestBuilder request = post("/restore/node?parentNodeId=uniqueId")
+        MockHttpServletRequestBuilder request = post("/restore/node?nodeId=uniqueId")
                 .header(HttpHeaders.AUTHORIZATION, userAuthorization);
 
         MvcResult result = mockMvc.perform(request).andExpect(status().isOk()).andExpect(content().contentType(JSON))

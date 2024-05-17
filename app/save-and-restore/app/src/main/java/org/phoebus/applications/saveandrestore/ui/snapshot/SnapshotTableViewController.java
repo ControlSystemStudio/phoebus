@@ -50,6 +50,7 @@ import org.phoebus.applications.saveandrestore.ui.Utilities;
 import org.phoebus.applications.saveandrestore.ui.VNoData;
 import org.phoebus.applications.saveandrestore.ui.VTypePair;
 import org.phoebus.core.vtypes.VDisconnectedData;
+import org.phoebus.core.vtypes.VTypeHelper;
 import org.phoebus.framework.jobs.JobManager;
 import org.phoebus.ui.dialog.DialogHelper;
 import org.phoebus.util.time.TimestampFormats;
@@ -58,6 +59,7 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -401,6 +403,65 @@ public class SnapshotTableViewController extends BaseSnapshotTableViewController
             completion.accept(restoreResultList);
         });
     }
+
+    /**
+     * Restores a snapshot from client.
+     *
+     * @param snapshot   The {@link Snapshot} object subject to restore
+     * @param completion A handler for the outcome of the restore operation
+     */
+    @SuppressWarnings("unused")
+    public void restoreFromClient(Snapshot snapshot, Consumer<List<String>> completion) {
+        new Thread(() -> {
+            List<String> restoreFailedPVNames = new ArrayList<>();
+            CountDownLatch countDownLatch = new CountDownLatch(snapshot.getSnapshotData().getSnapshotItems().size());
+            snapshot.getSnapshotData().getSnapshotItems()
+                    .forEach(e -> pvs.get(getPVKey(e.getConfigPv().getPvName(), e.getConfigPv().isReadOnly())).setCountDownLatch(countDownLatch));
+
+            for (SnapshotItem entry : snapshot.getSnapshotData().getSnapshotItems()) {
+                TableEntry e = tableEntryItems.get(getPVKey(entry.getConfigPv().getPvName(), entry.getConfigPv().isReadOnly()));
+
+                boolean restorable = e.selectedProperty().get() &&
+                        !e.readOnlyProperty().get() &&
+                        entry.getValue() != null &&
+                        !entry.getValue().equals(VNoData.INSTANCE);
+
+                if (restorable) {
+                    final SaveAndRestorePV pv = pvs.get(getPVKey(e.pvNameProperty().get(), e.readOnlyProperty().get()));
+                    if (entry.getValue() != null) {
+                        try {
+                            pv.getPv().write(VTypeHelper.toObject(entry.getValue()));
+                        } catch (Exception writeException) {
+                            restoreFailedPVNames.add(entry.getConfigPv().getPvName());
+                        } finally {
+                            pv.countDown();
+                        }
+                    }
+                } else {
+                    countDownLatch.countDown();
+                }
+            }
+
+            try {
+                countDownLatch.await(10, TimeUnit.MINUTES);
+            } catch (InterruptedException e) {
+                LOGGER.log(Level.INFO, "Encountered InterruptedException", e);
+            }
+
+            if (restoreFailedPVNames.isEmpty()) {
+                LOGGER.log(Level.FINE, "Restored snapshot {0}", snapshot.getSnapshotNode().getName());
+            } else {
+                Collections.sort(restoreFailedPVNames);
+                StringBuilder sb = new StringBuilder(restoreFailedPVNames.size() * 200);
+                restoreFailedPVNames.forEach(e -> sb.append(e).append('\n'));
+                LOGGER.log(Level.WARNING,
+                        "Not all PVs could be restored for {0}: {1}. The following errors occurred:\n{2}",
+                        new Object[]{snapshot.getSnapshotNode().getName(), snapshot.getSnapshotNode(), sb.toString()});
+            }
+            completion.accept(restoreFailedPVNames);
+        }).start();
+    }
+
 
     public void setShowDeltaPercentage(boolean showDeltaPercentage) {
         this.showDeltaPercentage.set(showDeltaPercentage);

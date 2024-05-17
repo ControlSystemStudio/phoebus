@@ -16,17 +16,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package org.phoebus.service.saveandrestore.web.config;
+package org.phoebus.service.saveandrestore.epics;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import org.mockito.Mockito;
-import org.phoebus.service.saveandrestore.epics.SnapshotRestorer;
 import org.phoebus.service.saveandrestore.persistence.dao.NodeDAO;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ConfigurationDataRepository;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.ElasticsearchTreeRepository;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.FilterRepository;
 import org.phoebus.service.saveandrestore.persistence.dao.impl.elasticsearch.SnapshotDataRepository;
 import org.phoebus.service.saveandrestore.search.SearchUtil;
+import org.phoebus.service.saveandrestore.web.config.AcceptHeaderResolver;
+import org.phoebus.service.saveandrestore.web.config.WebSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -40,90 +41,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @SpringBootConfiguration
-@ComponentScan(basePackages = "org.phoebus.service.saveandrestore.web.controllers")
-@Import(WebSecurityConfig.class)
+@ComponentScan(basePackages = "org.phoebus.service.saveandrestore.epics")
 @SuppressWarnings("unused")
 @Profile("!IT")
-public class ControllersTestConfig {
-
-    @Autowired
-    private String demoUser;
-
-    @Autowired
-    private String demoUserPassword;
-
-    @Autowired
-    private String demoAdmin;
-
-    @Autowired
-    private String demoAdminPassword;
-
-    @Autowired
-    private String demoReadOnly;
-
-    @Autowired
-    private String demoReadOnlyPassword;
+public class SnapshotRestorerTestConfig {
 
     @Bean
-    public NodeDAO nodeDAO() {
-        return Mockito.mock(NodeDAO.class);
-    }
-
-    @Bean
-    public ElasticsearchTreeRepository elasticsearchTreeRepository() {
-        return Mockito.mock(ElasticsearchTreeRepository.class);
-    }
-
-    @Bean
-    public ConfigurationDataRepository configurationRepository() {
-        return Mockito.mock(ConfigurationDataRepository.class);
-    }
-
-    @Bean
-    public FilterRepository filterRepository() {
-        return Mockito.mock(FilterRepository.class);
-    }
-
-    @Bean
-    public SnapshotDataRepository snapshotRepository() {
-        return Mockito.mock(SnapshotDataRepository.class);
-    }
-
-    @Bean
-    public ElasticsearchClient client() {
-        return Mockito.mock(ElasticsearchClient.class);
-    }
-
-    @SuppressWarnings("unused")
-    @Bean
-    public AcceptHeaderResolver acceptHeaderResolver() {
-        return new AcceptHeaderResolver();
-    }
-
-    @SuppressWarnings("unused")
-    @Bean
-    public SearchUtil searchUtil() {
-        return new SearchUtil();
-    }
-
-    @Bean("userAuthorization")
-    public String userAuthorization() {
-        return "Basic " + Base64Utils.encodeToString((demoUser + ":" + demoUserPassword).getBytes());
-    }
-
-    @Bean("adminAuthorization")
-    public String adminAuthorization() {
-        return "Basic " + Base64Utils.encodeToString((demoAdmin + ":" + demoAdminPassword).getBytes());
-    }
-
-    @Bean("readOnlyAuthorization")
-    public String readOnlyAuthorization() {
-        return "Basic " + Base64Utils.encodeToString((demoReadOnly + ":" + demoReadOnlyPassword).getBytes());
-    }
-
-    @SuppressWarnings("unused")
-    @Bean
-    @Scope("singleton")
     public SnapshotRestorer snapshotRestorer(){
         return new SnapshotRestorer();
     }
