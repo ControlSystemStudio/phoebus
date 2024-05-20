@@ -1,8 +1,6 @@
-package org.phoebus.service.saveandrestore.epics;
+package org.phoebus.applications.saveandrestore.model;
 
 import java.io.Serializable;
-
-import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 
 public class RestoreResult implements Serializable {
     private SnapshotItem snapshotItem;
