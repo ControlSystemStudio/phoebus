@@ -9,8 +9,8 @@ package org.csstudio.display.builder.model.util;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -66,7 +66,7 @@ public class NamedDaemonPool
         // Downside: No way to avoid a gazillion threads.
         return new ThreadPoolExecutor(0, Integer.MAX_VALUE,
                 10L, TimeUnit.SECONDS,
-                new SynchronousQueue<Runnable>(),
+                new LinkedBlockingDeque<>(),
                 new NamedThreadFactory(name));
     }
 
