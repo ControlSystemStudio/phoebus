@@ -9,6 +9,7 @@ package org.csstudio.display.builder.representation.javafx.widgets;
 
 import static org.csstudio.display.builder.representation.ToolkitRepresentation.logger;
 
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import javafx.css.PseudoClass;
@@ -426,19 +427,22 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
             if (dirty_content.checkAndClear())
             {
                 // For middle-aligned multi-line text, keep the scroll position
-                TextArea area = null;
+                final TextArea area = jfx_node instanceof TextArea ? (TextArea) jfx_node : null;
+                final VerticalAlignment align = model_widget.propVerticalAlignment().getValue();
                 double pos = 0;
-                if (jfx_node instanceof TextArea  &&  
-                    model_widget.propVerticalAlignment().getValue() == VerticalAlignment.MIDDLE)
-                {
-                    area = (TextArea) jfx_node;
+                if (area != null  &&  align == VerticalAlignment.MIDDLE)
                     pos = area.getScrollTop();
-                }
 
                 jfx_node.setText(value_text);
 
-                if (area != null)
+                if (area != null  &&  pos != 0)
                     area.setScrollTop(pos);
+                // For bottom scroll detail, see comments in TextUpdateRepresentation
+                if (area != null && align == VerticalAlignment.BOTTOM)
+                {
+                    area.selectRange(0, 1);
+                    toolkit.schedule(() -> area.selectRange(value_text.length(), value_text.length()), 500, TimeUnit.MILLISECONDS);
+                }
             }
         }
         // When not managed, trigger layout
