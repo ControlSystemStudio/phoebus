@@ -14,6 +14,7 @@ import java.util.ServiceLoader;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import org.phoebus.applications.alarm.model.SeverityLevel;
 import org.phoebus.framework.adapter.AdapterFactory;
@@ -46,7 +47,7 @@ public class AnnunciatorController
 
     private final BlockingQueue<AnnunciatorMessage> to_annunciate = new LinkedBlockingQueue<>();
 
-    private static ServiceLoader<Annunciator> loader;
+    private final List<Annunciator> annunciators;
 
     private final Thread process_thread = new Thread(this::processMessages, "Annunciator");
 
@@ -61,6 +62,10 @@ public class AnnunciatorController
     {
         this.threshold = threshold;
         this.addToTable = addToTable;
+
+        // Initialize the annunciators
+        ServiceLoader<Annunciator> loader = ServiceLoader.load(Annunciator.class);
+        annunciators = loader.stream().map(ServiceLoader.Provider::get).collect(Collectors.toList());
 
         // The thread should exit when requested by shutdown() call, but set to daemon so it dies
         // when program closes regardless.
@@ -83,8 +88,6 @@ public class AnnunciatorController
     private void processMessages()
     {
         final List<AnnunciatorMessage> batch = new ArrayList<>();
-
-        loader = ServiceLoader.load(Annunciator.class);
 
         // Process new messages until receiving LAST_MESSAGE
         while (true)
@@ -120,8 +123,8 @@ public class AnnunciatorController
                 {
                     addToTable.accept(message);
                     if (! muted)
-                        loader.stream().forEach(annunciatorProvider -> {
-                            annunciatorProvider.get().speak(message);
+                        annunciators.stream().forEach(annunciator -> {
+                            annunciator.speak(message);
                         });
                 }
             }
@@ -138,7 +141,9 @@ public class AnnunciatorController
                         addToTable.accept(message);
                         if (! muted)
                         {
-                            loader.stream().forEach(annunciatorProvider -> annunciatorProvider.get().speak(message));
+                            annunciators.stream().forEach(annunciator -> {
+                                annunciator.speak(message);
+                            });
                         }
                     }
                     else
@@ -154,7 +159,9 @@ public class AnnunciatorController
                     addToTable.accept(message);
                     if (! muted)
                     {
-                        loader.stream().forEach(annunciatorProvider -> annunciatorProvider.get().speak(message));
+                        annunciators.stream().forEach(annunciator -> {
+                            annunciator.speak(message);
+                        });
                     }
                 }
             }
@@ -173,7 +180,8 @@ public class AnnunciatorController
         process_thread.join(2000);
 
         // Deallocate the annunciator's voice.
-        loader.stream().forEach(annunciatorProvider -> annunciatorProvider.get().shutdown());
-
+        annunciators.stream().forEach(annunciator -> {
+            annunciator.shutdown();
+        });
     }
 }
