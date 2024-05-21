@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2018 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2024 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,6 +20,7 @@ import org.csstudio.display.builder.model.WidgetProperty;
 import org.csstudio.display.builder.model.WidgetPropertyListener;
 import org.csstudio.display.builder.model.persist.NamedWidgetColors;
 import org.csstudio.display.builder.model.persist.WidgetColorService;
+import org.csstudio.display.builder.model.properties.VerticalAlignment;
 import org.csstudio.display.builder.model.properties.WidgetColor;
 import org.csstudio.display.builder.model.widgets.PVWidget;
 import org.csstudio.display.builder.model.widgets.TextEntryWidget;
@@ -423,7 +424,22 @@ public class TextEntryRepresentation extends RegionBaseRepresentation<TextInputC
         if (! active)
         {
             if (dirty_content.checkAndClear())
+            {
+                // For middle-aligned multi-line text, keep the scroll position
+                TextArea area = null;
+                double pos = 0;
+                if (jfx_node instanceof TextArea  &&  
+                    model_widget.propVerticalAlignment().getValue() == VerticalAlignment.MIDDLE)
+                {
+                    area = (TextArea) jfx_node;
+                    pos = area.getScrollTop();
+                }
+
                 jfx_node.setText(value_text);
+
+                if (area != null)
+                    area.setScrollTop(pos);
+            }
         }
         // When not managed, trigger layout
         if (!jfx_node.isManaged())
