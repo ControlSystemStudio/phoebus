@@ -11,6 +11,7 @@ import org.csstudio.scan.ScanSystem;
 import org.phoebus.framework.workbench.ApplicationService;
 import org.phoebus.ui.javafx.ImageCache;
 import org.phoebus.ui.spi.MenuEntry;
+import org.phoebus.ui.spi.ToolbarEntry;
 
 import javafx.scene.image.Image;
 
@@ -18,7 +19,7 @@ import javafx.scene.image.Image;
  *  @author Kay Kasemir
  */
 @SuppressWarnings("nls")
-public class ScanMonitorMenuEntry implements MenuEntry
+public class ScanMonitorMenuEntry implements MenuEntry, ToolbarEntry
 {
     @Override
     public String getName()
