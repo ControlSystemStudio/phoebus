@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2020 Oak Ridge National Laboratory.
+ * Copyright (c) 2015-2024 Oak Ridge National Laboratory.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -281,8 +281,18 @@ public class TextUpdateRepresentation extends RegionBaseRepresentation<Control, 
             else
             {   // Implies 'interactive' mode
                 final TextArea area = (TextArea)jfx_node;
+
+                // Before updating the text, get scroll position just in case we need it later
+                final double top = area.getScrollTop();
+
                 area.setText(value_text);
-                if (model_widget.propVerticalAlignment().getValue() == VerticalAlignment.BOTTOM)
+
+                final VerticalAlignment alignment = model_widget.propVerticalAlignment().getValue();
+                if (alignment == VerticalAlignment.MIDDLE)
+                {   // In 'middle' alignment mode, keep the scroll position.
+                    area.setScrollTop(top);
+                }
+                else if (alignment == VerticalAlignment.BOTTOM)
                 {
                     // For bottom-aligned widget, scroll to bottom,
                     // but area.setScrollTop(Double.MAX_VALUE) has no effect.
