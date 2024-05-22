@@ -242,6 +242,12 @@
         </dependency>
         <dependency>
             <groupId>org.phoebus</groupId>
+            <artifactId>app-trends-archive-datasource</artifactId>
+            <version>4.7.4-SNAPSHOT</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
             <artifactId>app-channel-views</artifactId>
             <version>4.7.4-SNAPSHOT</version>
         </dependency>
