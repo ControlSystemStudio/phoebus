@@ -5,6 +5,8 @@ import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.phoebus.applications.uxanalytics.monitor.GraphMonitorObserver;
+import org.phoebus.applications.uxanalytics.monitor.UXAMonitor;
 import org.phoebus.framework.spi.AppInstance;
 import org.phoebus.framework.spi.AppResourceDescriptor;
 
@@ -21,7 +23,9 @@ public class UXAnalyticsUI implements AppResourceDescriptor {
     public static final Logger logger = Logger.getLogger(UXAnalyticsUI.class.getPackageName());
     public static final String NAME = "uxanalyticsconfig";
     public static final String DISPLAY_NAME = "UX Analytics Config";
-
+    private final UXAController controller = new UXAController();
+    private final UXAMonitor monitor = UXAMonitor.getInstance();
+    private GraphMonitorObserver graphMonitorObserver = new GraphMonitorObserver();
     @Override
     public AppInstance create(URI resource) {
         return create();
@@ -39,7 +43,7 @@ public class UXAnalyticsUI implements AppResourceDescriptor {
 
     @Override
     public void start(){
-       System.out.println("Starting my thing");
+       logger.log(Level.INFO, "Load UX Analytics AppResource");
     }
 
     @Override
@@ -47,10 +51,15 @@ public class UXAnalyticsUI implements AppResourceDescriptor {
         try{
             final FXMLLoader loader = new FXMLLoader();
             loader.setLocation(UXAnalyticsUI.class.getResource("uxa-settings-dialog.fxml"));
+            //monitor.addMonitorObserver(graphMonitorObserver);
+            if (loader.getController() == null) {
+                loader.setController(controller);
+                controller.setObserver(monitor);
+            }
             Parent root = loader.load();
-            Scene scene = new Scene(root, 600, 800);
+            Scene scene = new Scene(root);
             Stage stage = new Stage();
-            stage.setTitle("Test");
+            stage.setTitle("UX Analytics Configuration");
             stage.setScene(scene);
             stage.show();
         }
