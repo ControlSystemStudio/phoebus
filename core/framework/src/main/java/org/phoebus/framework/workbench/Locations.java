@@ -21,6 +21,8 @@ public class Locations
     public static final String PHOEBUS_INSTALL = "phoebus.install";
     /** system property for phoebus logged user */
     public static final String PHOEBUS_USER = "phoebus.user";
+    /** system property for the name of the folder containing preferences and the memento file */
+    public static final String NAME_FOLDER_PREFERENCE = "phoebus.name.folder.preference";
 
     /** Initialize locations */
     public static void initialize()
@@ -66,9 +68,14 @@ public class Locations
     private static void initUser()
     {
         String phoebus_user = System.getProperty(PHOEBUS_USER);
+        String name_folder_preference = System.getProperty(NAME_FOLDER_PREFERENCE);
         if (phoebus_user == null)
         {
-            phoebus_user = new File(System.getProperty("user.home"), ".phoebus").getAbsolutePath();
+            if (name_folder_preference == null) 
+            {
+            name_folder_preference = ".phoebus";
+            }
+            phoebus_user = new File(System.getProperty("user.home"), name_folder_preference).getAbsolutePath();
             System.setProperty(PHOEBUS_USER, phoebus_user);
         }
     }
