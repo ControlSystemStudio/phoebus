@@ -992,9 +992,8 @@ public class NavigatorController implements Initializable {
 
                     if (getTreeItem() == null || getTreeItem().getValue() == null) {
                         treeView.getRoot().getChildren().add(newFolder);
-                    } else if (getTreeItem().getValue() != null && getTreeItem().getValue().getNodeType() == NavigatorTreeNode.NodeType.VirtualFolder && getTreeItem().isExpanded()) {
-                        getTreeItem().getChildren().add(0, newFolder);
-                    } else {
+                    }
+                    else {
                         var siblings = getTreeItem().getParent().getChildren();
                         int indexOfTreeItem = siblings.indexOf(getTreeItem());
                         siblings.add(indexOfTreeItem + 1, newFolder);
