@@ -76,6 +76,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -519,14 +520,16 @@ public class NavigatorController implements Initializable {
                 List<TreeItem<NavigatorTreeNode>> resourceNavigatorTreeItems = new LinkedList<>();
                 for (File file : files) {
                     String absolutePath = file.getAbsolutePath();
-                    NavigatorTreeNode resourceNavigatorTreeNode;
+                    Optional<NavigatorTreeNode> maybeResourceNavigatorTreeNode;
                     try {
-                        resourceNavigatorTreeNode = createResourceNavigatorTreeNode(absolutePath);
+                        maybeResourceNavigatorTreeNode = createResourceNavigatorTreeNode(absolutePath);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
-                    TreeItem newTreeItem = new TreeItem(resourceNavigatorTreeNode);
-                    resourceNavigatorTreeItems.add(newTreeItem);
+                    if (maybeResourceNavigatorTreeNode.isPresent()) {
+                        TreeItem<NavigatorTreeNode> newTreeItem = new TreeItem(maybeResourceNavigatorTreeNode.get());
+                        resourceNavigatorTreeItems.add(newTreeItem);
+                    }
                 }
 
                 Collections.reverse(resourceNavigatorTreeItems);
@@ -535,7 +538,9 @@ public class NavigatorController implements Initializable {
                     treeView.getRoot().getChildren().add(newTreeItem);
                     moveTreeItem(treeView.getRoot(), newTreeItem);
                 }
-                setUnsavedChanges(true);
+                if (resourceNavigatorTreeItems.size() > 0) {
+                    setUnsavedChanges(true);
+                }
             }
 
             if (dragboard.hasContent(navigationTreeDataFormat)) {
@@ -651,7 +656,7 @@ public class NavigatorController implements Initializable {
         }
     }
 
-    private NavigatorTreeNode createResourceNavigatorTreeNode(String absolutePath) {
+    private Optional<NavigatorTreeNode> createResourceNavigatorTreeNode(String absolutePath) {
         if (absolutePath.startsWith(OPI_ROOT)) {
             String relativePath = absolutePath.substring(OPI_ROOT.length());
             try {
@@ -667,10 +672,10 @@ public class NavigatorController implements Initializable {
                     String fileExtension = relativePath.substring(startIndex, endIndex);
 
                     if (fileExtension.equalsIgnoreCase("bob")) {
-                        return createOPINavigatorTreeNode(relativePath);
+                        return Optional.of(createOPINavigatorTreeNode(relativePath));
                     }
                     else if (fileExtension.equalsIgnoreCase("plt")) {
-                        return createDataBrowserNavigatorTreeNode(relativePath);
+                        return Optional.of(createDataBrowserNavigatorTreeNode(relativePath));
                     }
                     else {
                         LOGGER.log(Level.WARNING, "Unknown file extension: " + fileExtension);
@@ -689,7 +694,7 @@ public class NavigatorController implements Initializable {
             displayWarning(warningText, () -> {});
         }
 
-        return null;
+        return Optional.empty();
     }
 
     private void disableEverythingExceptUserInput() {
@@ -1135,14 +1140,16 @@ public class NavigatorController implements Initializable {
                             List<TreeItem<NavigatorTreeNode>> resourceNavigatorTreeItems = new LinkedList<>();
                             for (File file : files) {
                                 String absolutePath = file.getAbsolutePath();
-                                NavigatorTreeNode resourceNavigatorTreeNode;
+                                Optional<NavigatorTreeNode> maybeResourceNavigatorTreeNode;
                                 try {
-                                    resourceNavigatorTreeNode = createResourceNavigatorTreeNode(absolutePath);
+                                    maybeResourceNavigatorTreeNode = createResourceNavigatorTreeNode(absolutePath);
                                 } catch (Exception e) {
                                     throw new RuntimeException(e);
                                 }
-                                TreeItem newTreeItem = new TreeItem(resourceNavigatorTreeNode);
-                                resourceNavigatorTreeItems.add(newTreeItem);
+                                if (maybeResourceNavigatorTreeNode.isPresent()) {
+                                    TreeItem<NavigatorTreeNode> newTreeItem = new TreeItem(maybeResourceNavigatorTreeNode.get());
+                                    resourceNavigatorTreeItems.add(newTreeItem);
+                                }
                             }
 
                             Collections.reverse(resourceNavigatorTreeItems);
@@ -1151,7 +1158,9 @@ public class NavigatorController implements Initializable {
                                 treeView.getRoot().getChildren().add(newTreeItem);
                                 moveTreeItem(getTreeItem(), newTreeItem);
                             }
-                            setUnsavedChanges(true);
+                            if (resourceNavigatorTreeItems.size() > 0) {
+                                setUnsavedChanges(true);
+                            }
                         }
 
                         if (dragboard.hasContent(navigationTreeDataFormat)) {
