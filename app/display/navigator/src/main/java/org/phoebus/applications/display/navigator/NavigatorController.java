@@ -1,6 +1,9 @@
 package org.phoebus.applications.display.navigator;
 
 import com.google.common.collect.Streams;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -223,6 +226,7 @@ public class NavigatorController implements Initializable {
     @FXML
     void enterEditModeAction(ActionEvent actionEvent) {
         editModeEnabled = true;
+        editModeEnabledProperty.set(true);
         topBar.setStyle("-fx-alignment: center; -fx-background-color: fuchsia; ");
         enableDragNDropToTopBar();
         leaveEditModeMenuItem.setDisable(true);
@@ -256,6 +260,7 @@ public class NavigatorController implements Initializable {
     @FXML
     void leaveEditModeAction(ActionEvent actionEvent) {
         editModeEnabled = false;
+        editModeEnabledProperty.set(false);
         topBar.setStyle("-fx-alignment: center; -fx-background-color: #483d8b; ");
         disableDragNDropToTopBar();
         leaveEditModeMenuItem.setDisable(false);
@@ -460,6 +465,7 @@ public class NavigatorController implements Initializable {
     private File currentlySelectedNavigator;
     Supplier<Boolean> renameNavigator_thunk = null;
     private boolean editModeEnabled = false;
+    private BooleanProperty editModeEnabledProperty = new SimpleBooleanProperty(false);
 
     private String navigatorName_displayed;
     protected String navigatorName_original;
@@ -939,10 +945,107 @@ public class NavigatorController implements Initializable {
 
     protected class NavigationTree_TreeCellClass extends TreeCell<NavigatorTreeNode> {
         boolean dragAndDropIndicatorAbove = false;
+
         ContextMenu contextMenu = new ContextMenu();
+
+        ChangeListener<Boolean> editModeEnabledChangeListener = (property, oldValue, newValue) -> {
+            // Create the context menu:
+            contextMenu.getItems().clear();
+            if (getTreeItem() != null && getTreeItem().getValue() != null && (getTreeItem().getValue().getNodeType() == NavigatorTreeNode.NodeType.DisplayRuntime || getTreeItem().getValue().getNodeType() == NavigatorTreeNode.NodeType.DataBrowser)) {
+                MenuItem menuItem_openInNewTab = new MenuItem(Messages.OpenInNewTab);
+                menuItem_openInNewTab.setOnAction(actionEvent -> {
+                    getTreeItem().getValue().getAction().accept(NavigatorTreeNode.Target.NewTab);
+                });
+                contextMenu.getItems().add(menuItem_openInNewTab);
+
+                MenuItem menuItem_openInBackgroundTab = new MenuItem(Messages.OpenInBackgroundTab);
+                menuItem_openInBackgroundTab.setOnAction(actionEvent -> {
+                    getTreeItem().getValue().getAction().accept(NavigatorTreeNode.Target.NewTab_InBackground);
+                });
+                contextMenu.getItems().add(menuItem_openInBackgroundTab);
+            }
+
+            if (getTreeItem() != null && getTreeItem().getValue() != null && newValue) {
+                MenuItem menuItem_deleteItem = new MenuItem(Messages.DeleteItem);
+                menuItem_deleteItem.setOnAction(actionEvent -> {
+                    var treeItem = getTreeItem();
+                    Runnable deleteAction = () -> {
+                        disableNavigator();
+                        setUnsavedChanges(true);
+                        treeItem.getParent().getChildren().remove(treeItem);
+                        treeView.refresh();
+                        enableNavigator();
+                    };
+                    var treeItemName = treeItem.getValue().getLabel();
+                    promptForYesNo(Messages.DeletePrompt + " '" + treeItemName + "'?", deleteAction);
+                });
+
+                if (contextMenu.getItems().size() > 0) {
+                    contextMenu.getItems().add(new SeparatorMenuItem());
+                }
+                contextMenu.getItems().add(menuItem_deleteItem);
+                contextMenu.getItems().add(new SeparatorMenuItem());
+            }
+
+            if (newValue) {
+                MenuItem menuItem_createNewFolder = new MenuItem(Messages.CreateNewFolder);
+                menuItem_createNewFolder.setOnAction(actionEvent -> {
+                    TreeItem<NavigatorTreeNode> newFolder = createFolderTreeItem(NavigatorTreeNode.createVirtualFolderNode("New Folder"));
+                    newFolder.setExpanded(true);
+
+                    if (getTreeItem() == null || getTreeItem().getValue() == null) {
+                        treeView.getRoot().getChildren().add(newFolder);
+                    } else if (getTreeItem().getValue() != null && getTreeItem().getValue().getNodeType() == NavigatorTreeNode.NodeType.VirtualFolder && getTreeItem().isExpanded()) {
+                        getTreeItem().getChildren().add(0, newFolder);
+                    } else {
+                        var siblings = getTreeItem().getParent().getChildren();
+                        int indexOfTreeItem = siblings.indexOf(getTreeItem());
+                        siblings.add(indexOfTreeItem + 1, newFolder);
+                    }
+
+                    Consumer<String> setNewFolderName = newFolderName -> {
+                        if (!newFolder.getValue().getLabel().equals(newFolderName)) {
+                            setUnsavedChanges(true);
+                            newFolder.getValue().setLabel(newFolderName);
+                            treeView.refresh();
+                        }
+                    };
+
+                    promptForTextInput(Messages.NewFolderNamePrompt, newFolder.getValue().getLabel(), setNewFolderName);
+                    setUnsavedChanges(true);
+                    treeView.refresh();
+                });
+                contextMenu.getItems().add(menuItem_createNewFolder);
+            }
+
+
+            {
+                if (getTreeItem() != null && getTreeItem().getValue() != null && getTreeItem().getValue().getNodeType() == NavigatorTreeNode.NodeType.VirtualFolder) {
+                    Runnable renameFolder = () -> promptForTextInput(Messages.RenameFolderPrompt,
+                            getTreeItem().getValue().getLabel(),
+                            newName -> {
+                                if (!getTreeItem().getValue().getLabel().equals(newName)) {
+                                    setUnsavedChanges(true);
+                                    getTreeItem().getValue().setLabel(newName);
+                                    treeView.refresh();
+                                }
+                            });
+
+                    MenuItem menuItem_renameFolder = new MenuItem(Messages.RenameFolder);
+
+                    menuItem_renameFolder.setOnAction(actionEvent -> {
+                        renameFolder.run();
+                    });
+
+                    contextMenu.getItems().add(menuItem_renameFolder);
+                }
+            }
+        };
 
         public NavigationTree_TreeCellClass() {
             setContextMenu(contextMenu);
+
+            editModeEnabledProperty.addListener(editModeEnabledChangeListener);
         }
 
         @Override
@@ -1036,112 +1139,27 @@ public class NavigatorController implements Initializable {
                 });
             }
 
-            {   // Create the context menu:
-                contextMenu.getItems().clear();
-                if (!empty && newSelectionTreeNode != null && (newSelectionTreeNode.getNodeType() == NavigatorTreeNode.NodeType.DisplayRuntime || newSelectionTreeNode.getNodeType() == NavigatorTreeNode.NodeType.DataBrowser)) {
-                    MenuItem menuItem_openInNewTab = new MenuItem(Messages.OpenInNewTab);
-                    menuItem_openInNewTab.setOnAction(actionEvent -> {
-                        getTreeItem().getValue().getAction().accept(NavigatorTreeNode.Target.NewTab);
-                    });
-                    contextMenu.getItems().add(menuItem_openInNewTab);
-
-                    MenuItem menuItem_openInBackgroundTab = new MenuItem(Messages.OpenInBackgroundTab);
-                    menuItem_openInBackgroundTab.setOnAction(actionEvent -> {
-                        getTreeItem().getValue().getAction().accept(NavigatorTreeNode.Target.NewTab_InBackground);
-                    });
-                    contextMenu.getItems().add(menuItem_openInBackgroundTab);
-                }
-                if (!empty && newSelectionTreeNode != null && editModeEnabled) {
-                    MenuItem menuItem_deleteItem = new MenuItem(Messages.DeleteItem);
-                    menuItem_deleteItem.setOnAction(actionEvent -> {
-                        var treeItem = getTreeItem();
-                        Runnable deleteAction = () -> {
-                            disableNavigator();
-                            setUnsavedChanges(true);
-                            treeItem.getParent().getChildren().remove(treeItem);
-                            treeView.refresh();
-                            enableNavigator();
-                        };
-                        var treeItemName = treeItem.getValue().getLabel();
-                        promptForYesNo(Messages.DeletePrompt + " '" + treeItemName + "'?", deleteAction);
-                    });
-
-                    if (contextMenu.getItems().size() > 0) {
-                        contextMenu.getItems().add(new SeparatorMenuItem());
-                    }
-                    contextMenu.getItems().add(menuItem_deleteItem);
-                    contextMenu.getItems().add(new SeparatorMenuItem());
-
-                    {
-                        MenuItem menuItem_createNewFolder = new MenuItem(Messages.CreateNewFolder);
-                        menuItem_createNewFolder.setOnAction(actionEvent -> {
-                            TreeItem<NavigatorTreeNode> newFolder = createFolderTreeItem(NavigatorTreeNode.createVirtualFolderNode("New Folder"));
-                            newFolder.setExpanded(true);
-
-                            if (newSelectionTreeNode.getNodeType() == NavigatorTreeNode.NodeType.VirtualFolder && getTreeItem().isExpanded()) {
-                                getTreeItem().getChildren().add(0, newFolder);
-                            } else {
-                                var siblings = getTreeItem().getParent().getChildren();
-                                int indexOfTreeItem = siblings.indexOf(getTreeItem());
-                                siblings.add(indexOfTreeItem + 1, newFolder);
-                            }
-
-                            Consumer<String> setNewFolderName = newFolderName -> {
-                                if (!newFolder.getValue().getLabel().equals(newFolderName)) {
-                                    setUnsavedChanges(true);
-                                    newFolder.getValue().setLabel(newFolderName);
-                                    treeView.refresh();
-                                }
-                            };
-
-                            promptForTextInput(Messages.NewFolderNamePrompt, newFolder.getValue().getLabel(), setNewFolderName);
-                            setUnsavedChanges(true);
-                            treeView.refresh();
-                        });
-                        contextMenu.getItems().add(menuItem_createNewFolder);
-
-                        if (!empty && newSelectionTreeNode != null && newSelectionTreeNode.getNodeType() == NavigatorTreeNode.NodeType.VirtualFolder) {
-                            Runnable renameFolder = () -> promptForTextInput(Messages.RenameFolderPrompt,
-                                    newSelectionTreeNode.getLabel(),
-                                    newName -> {
-                                        if (!newSelectionTreeNode.getLabel().equals(newName)) {
-                                            setUnsavedChanges(true);
-                                            newSelectionTreeNode.setLabel(newName);
-                                            treeView.refresh();
-                                        }
-                                    });
-
-                            MenuItem menuItem_renameFolder = new MenuItem(Messages.RenameFolder);
-
-                            menuItem_renameFolder.setOnAction(actionEvent -> { renameFolder.run(); });
-
-                            contextMenu.getItems().add(menuItem_renameFolder);
-                        }
-                    }
-                }
-
-                if (!empty && newSelectionTreeNode != null) {
-                    super.setText(newSelectionTreeNode.getLabel());
-                    if (newSelectionTreeNode.getNodeType() == NavigatorTreeNode.NodeType.VirtualFolder) {
-                        if (getTreeItem().expandedProperty().get()) {
-                            var folderIcon = ImageCache.getImageView(NavigatorInstance.class, "/icons/folder.png");
-                            super.setGraphic(folderIcon);
-                        }
-                        else {
-                            var closedFolderIcon = ImageCache.getImageView(NavigatorInstance.class, "/icons/closed_folder.png");
-                            super.setGraphic(closedFolderIcon);
-                        }
-                    }
-                    else {
-                        super.setGraphic(newSelectionTreeNode.getIcon());
-                    }
-                }
-                else {
-                    super.setText(null);
-                    super.setGraphic(null);
-                }
-            }
             setContentDisplay(ContentDisplay.LEFT);
+
+            if (newSelectionTreeNode != null) {
+                super.setText(newSelectionTreeNode.getLabel());
+                if (newSelectionTreeNode.getNodeType() == NavigatorTreeNode.NodeType.VirtualFolder) {
+                    if (getTreeItem().expandedProperty().get()) {
+                        var folderIcon = ImageCache.getImageView(NavigatorInstance.class, "/icons/folder.png");
+                        super.setGraphic(folderIcon);
+                    } else {
+                        var closedFolderIcon = ImageCache.getImageView(NavigatorInstance.class, "/icons/closed_folder.png");
+                        super.setGraphic(closedFolderIcon);
+                    }
+                } else {
+                    super.setGraphic(newSelectionTreeNode.getIcon());
+                }
+            } else {
+                super.setText(null);
+                super.setGraphic(null);
+            }
+
+            editModeEnabledChangeListener.changed(editModeEnabledProperty, !editModeEnabledProperty.get(), editModeEnabledProperty.get());
         }
     }
 
