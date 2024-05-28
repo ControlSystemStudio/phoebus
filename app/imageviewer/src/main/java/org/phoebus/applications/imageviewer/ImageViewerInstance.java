@@ -27,6 +27,7 @@ import org.phoebus.ui.docking.DockItemWithInput;
 import org.phoebus.ui.docking.DockPane;
 
 import java.net.URI;
+import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -60,7 +61,8 @@ public class ImageViewerInstance implements AppInstance {
                 if (queryParams != null && queryParams.contains("watermark=true")) {
                     showWatermark = true;
                 }
-                imageViewerController.setImage(uri.toURL(), showWatermark);
+                URL url = new URL(sanitizeUri(uri));
+                imageViewerController.setImage(url, showWatermark);
             } catch (Exception e) {
                 Logger.getLogger(ImageViewerInstance.class.getName())
                         .log(Level.WARNING, "Unable to load fxml", e);
@@ -75,5 +77,28 @@ public class ImageViewerInstance implements AppInstance {
 
     public void raise() {
         dockItem.select();
+    }
+
+
+    /**
+     * This is a hack for Windows as a URI like &quot;file:/foo/bar?foo=bar&quot; will trigger exception
+     * when calling {@link javax.imageio.ImageIO#read(URL)}
+     * @param uri A {@link URI}, optionally with query params
+     * @return A string sanitized from query params
+     */
+    public static String sanitizeUri(URI uri){
+        String sanitizedUri = uri.toString();
+        String queryParams = uri.getQuery();
+        if (queryParams != null) {
+            int indexOfQueryParams = sanitizedUri.indexOf(queryParams);
+            if(indexOfQueryParams > 0){
+                sanitizedUri = sanitizedUri.substring(0, sanitizedUri.indexOf(queryParams));
+            }
+        }
+        // Also remove trailing ? if present
+        if(sanitizedUri.endsWith("?")){
+            sanitizedUri = sanitizedUri.substring(0, sanitizedUri.length() - 1);
+        }
+        return sanitizedUri;
     }
 }
