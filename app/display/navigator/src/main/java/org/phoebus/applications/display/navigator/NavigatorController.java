@@ -1132,6 +1132,11 @@ public class NavigatorController implements Initializable {
                     if (editModeEnabledProperty.get()) {
                         borderProperty().set(bottomBorder);
                         mouseEvent.acceptTransferModes(TransferMode.COPY);
+
+                        var transferMode = mouseEvent.getTransferMode();
+                        if (transferMode != TransferMode.COPY) {
+                            displayWarning("Wrong drag'n'drop transfer mode: " + transferMode.toString() + ". Only the transfer mode COPY is supported. If the Phoebus filebrowser is used to initiate the drag'n'drop action, the CTRL key needs to be pressed during the drag'n'drop operation.", () -> {});
+                        }
                     }
                 });
 
