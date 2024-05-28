@@ -44,6 +44,7 @@ import javafx.stage.Stage;
 import javafx.util.Pair;
 import org.csstudio.display.builder.model.DisplayModel;
 import org.csstudio.display.builder.model.persist.ModelLoader;
+import org.csstudio.display.builder.model.util.ModelResourceUtil;
 import org.csstudio.display.builder.runtime.app.DisplayRuntimeInstance;
 import org.csstudio.trends.databrowser3.DataBrowserInstance;
 import org.csstudio.trends.databrowser3.model.Model;
@@ -604,34 +605,46 @@ public class NavigatorController implements Initializable {
             throw new XMLStreamException("Unexpected file extension: " + relativePath + " (Expected a filename with the file extension '.bob'.");
         }
         DisplayModel displayModel;
-        try {
-            String absolutePath = OPI_ROOT + relativePath;
-            displayModel = ModelLoader.resolveAndLoadModel("", absolutePath);
-        }
-        catch (Exception exception) {
-            displayWarning(exception.getMessage(), () -> {});
-            throw new XMLStreamException(exception.getMessage(), exception);
-        }
-        String opiName = displayModel.getDisplayName();
+        String absolutePath = OPI_ROOT + relativePath;
+        String resolvedName = ModelResourceUtil.resolveResource("", absolutePath);
 
-        NavigatorTreeNode opiNode = NavigatorTreeNode.createDisplayRuntimeNode(opiName, relativePath, this);
-        return opiNode;
+        if (!new File(resolvedName).exists()) {
+            NavigatorTreeNode disabledOPINode = NavigatorTreeNode.createDisplayRuntimeNode(absolutePath + " doesn't exist!", relativePath, this, true);
+            return disabledOPINode;
+        }
+        else {
+            try {
+                displayModel = ModelLoader.loadModel(resolvedName);
+            }
+            catch (Exception exception) {
+                displayWarning(exception.getMessage(), () -> {});
+                throw new XMLStreamException(exception.getMessage(), exception);
+            }
+            String opiName = displayModel.getDisplayName();
+
+            NavigatorTreeNode opiNode = NavigatorTreeNode.createDisplayRuntimeNode(opiName, relativePath, this, false);
+            return opiNode;
+        }
     }
 
     private NavigatorTreeNode createDataBrowserNavigatorTreeNode(String relativePath) throws XMLStreamException {
         if (!checkFileExtension("plt", relativePath)) {
             throw new XMLStreamException("Unexpected file extension: " + relativePath + "(Expected a filename with the file extension '.plt'.");
         }
+        String absolutePath = OPI_ROOT + relativePath;
         InputStream stream;
         try {
-            String absolutePath = OPI_ROOT + relativePath;
             stream = ResourceParser.getContent(new URI("file:" + absolutePath));
             Model model = new Model();
             XMLPersistence.load(model, stream);
             String dataBrowserName = model.getTitle().orElse(Messages.GenericDataBrowserName);
 
-            NavigatorTreeNode dataBrowserNode = NavigatorTreeNode.createDataBrowserNode(dataBrowserName, relativePath, this);
+            NavigatorTreeNode dataBrowserNode = NavigatorTreeNode.createDataBrowserNode(dataBrowserName, relativePath, this, false);
             return dataBrowserNode;
+        }
+        catch (FileNotFoundException fileNotFoundException) {
+            NavigatorTreeNode disabledNode = NavigatorTreeNode.createDataBrowserNode(absolutePath + " doesn't exist!", relativePath, this, true);
+            return disabledNode;
         }
         catch (Exception exception) {
             throw new XMLStreamException(exception.getMessage());
@@ -946,6 +959,20 @@ public class NavigatorController implements Initializable {
         ContextMenu contextMenu = new ContextMenu();
 
         ChangeListener<Boolean> editModeEnabledChangeListener = (property, oldValue, newValue) -> {
+
+            // If node is a disabled node, disable it if not in edit mode:
+            if (!newValue) {
+                if (getTreeItem() != null && getTreeItem().getValue() != null && getTreeItem().getValue().getDisabled()) {
+                    setDisable(true);
+                }
+                else {
+                    setDisable(false);
+                }
+            }
+            else {
+                setDisable(false);
+            }
+
             // Create the context menu:
             contextMenu.getItems().clear();
             if (getTreeItem() != null && getTreeItem().getValue() != null && (getTreeItem().getValue().getNodeType() == NavigatorTreeNode.NodeType.DisplayRuntime || getTreeItem().getValue().getNodeType() == NavigatorTreeNode.NodeType.DataBrowser)) {

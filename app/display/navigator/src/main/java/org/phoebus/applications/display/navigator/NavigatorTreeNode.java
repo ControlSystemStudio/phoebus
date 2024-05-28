@@ -66,11 +66,16 @@ class NavigatorTreeNode {
         return relativePath;
     }
 
+    private boolean disabled;
+    public boolean getDisabled() {
+        return disabled;
+    }
+
     public static NavigatorTreeNode createVirtualFolderNode(String label) {
         ImageView icon = ImageCache.getImageView(NavigatorInstance.class, "/icons/folder.png");
         Consumer<Target> action = selectionTreeNodeTreeItem -> { };
         String URI = "";
-        NavigatorTreeNode navigatorTreeNode = new NavigatorTreeNode(NodeType.VirtualFolder, label, icon, URI, action);
+        NavigatorTreeNode navigatorTreeNode = new NavigatorTreeNode(NodeType.VirtualFolder, label, icon, URI, action, false);
         return navigatorTreeNode;
     }
 
@@ -79,29 +84,49 @@ class NavigatorTreeNode {
         Consumer<Target> action = selectionTreeNodeTreeItem -> { };
         String label = "";
         String URI = "";
-        NavigatorTreeNode navigatorTreeNode = new NavigatorTreeNode(NodeType.TemporaryMarker, label, icon, "", action);
+        NavigatorTreeNode navigatorTreeNode = new NavigatorTreeNode(NodeType.TemporaryMarker, label, icon, "", action, true);
         return navigatorTreeNode;
     }
 
     public static NavigatorTreeNode createDisplayRuntimeNode(String label,
                                                              String relativePath,
-                                                             NavigatorController navigatorController) {
-        ImageView icon = ImageCache.getImageView(NavigatorInstance.class, "/icons/display.png");
-        Consumer<Target> action = createLoadAction_OPI(OPI_ROOT + relativePath, navigatorController);
+                                                             NavigatorController navigatorController,
+                                                             boolean disabled) {
+        ImageView icon;
+        Consumer<Target> action;
+        if (!disabled) {
+            icon = ImageCache.getImageView(NavigatorInstance.class, "/icons/display.png");
+            action = createLoadAction_OPI(OPI_ROOT + relativePath, navigatorController);
+        }
+        else {
+            icon = ImageCache.getImageView(NavigatorInstance.class, "/icons/disabledNode.png");
+            action = target -> {};
+        }
         NavigatorTreeNode navigatorTreeNode = new NavigatorTreeNode(NodeType.DisplayRuntime,
                                                                     label,
                                                                     icon,
                                                                     relativePath,
-                                                                    action);
+                                                                    action,
+                                                                    disabled);
         return navigatorTreeNode;
     }
 
     public static NavigatorTreeNode createDataBrowserNode(String label,
                                                           String relativePath,
-                                                          NavigatorController navigatorController) {
-        ImageView icon = ImageCache.getImageView(NavigatorInstance.class, "/icons/databrowser.png");
-        Consumer<Target> action = createLoadAction_DataBrowser(relativePath, navigatorController);
-        NavigatorTreeNode navigatorTreeNode = new NavigatorTreeNode(NodeType.DataBrowser, label, icon, relativePath, action);
+                                                          NavigatorController navigatorController,
+                                                          boolean disabled) {
+        ImageView icon;
+        Consumer<Target> action;
+        if (!disabled) {
+            icon = ImageCache.getImageView(NavigatorInstance.class, "/icons/databrowser.png");
+            action = createLoadAction_DataBrowser(relativePath, navigatorController);
+        }
+        else {
+            icon = ImageCache.getImageView(NavigatorInstance.class, "/icons/disabledNode.png");
+            action = target -> {};
+        }
+
+        NavigatorTreeNode navigatorTreeNode = new NavigatorTreeNode(NodeType.DataBrowser, label, icon, relativePath, action, disabled);
         return navigatorTreeNode;
     }
 
@@ -218,11 +243,13 @@ class NavigatorTreeNode {
                              String label,
                              Node icon,
                              String relativePath,
-                             Consumer<Target> action) {
+                             Consumer<Target> action,
+                             boolean disabled) {
         this.nodeType = nodeType;
         this.label = label;
         this.icon = icon;
         this.relativePath = relativePath;
         this.action = action;
+        this.disabled = disabled;
     }
 }
