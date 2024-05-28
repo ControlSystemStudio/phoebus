@@ -225,7 +225,6 @@ public class NavigatorController implements Initializable {
 
     @FXML
     void enterEditModeAction(ActionEvent actionEvent) {
-        editModeEnabled = true;
         editModeEnabledProperty.set(true);
         topBar.setStyle("-fx-alignment: center; -fx-background-color: fuchsia; ");
         enableDragNDropToTopBar();
@@ -259,7 +258,6 @@ public class NavigatorController implements Initializable {
 
     @FXML
     void leaveEditModeAction(ActionEvent actionEvent) {
-        editModeEnabled = false;
         editModeEnabledProperty.set(false);
         topBar.setStyle("-fx-alignment: center; -fx-background-color: #483d8b; ");
         disableDragNDropToTopBar();
@@ -464,7 +462,6 @@ public class NavigatorController implements Initializable {
     HBox navigatorSelector;
     private File currentlySelectedNavigator;
     Supplier<Boolean> renameNavigator_thunk = null;
-    private boolean editModeEnabled = false;
     private BooleanProperty editModeEnabledProperty = new SimpleBooleanProperty(false);
 
     private String navigatorName_displayed;
@@ -775,7 +772,7 @@ public class NavigatorController implements Initializable {
 
                     navigatorSelector.getChildren().clear();
                     List<Node> treePathWidgetNodes = createTreePathWidgetNodes(selectedNavigator,
-                                                                               editModeEnabled,
+                                                                               editModeEnabledProperty.get(),
                                                                                NAVIGATOR_SELECTOR_BUTTONS_CSS,
                                                                                NAVIGATOR_SELECTOR_MENU_ITEMS_CSS);
                     navigatorSelector.getChildren().addAll(treePathWidgetNodes);
@@ -797,7 +794,7 @@ public class NavigatorController implements Initializable {
                 if (!navigatorFile.canWrite()) {
                     enterEditModeMenuItem.setDisable(true);
                     leaveEditModeMenuItem.setDisable(true);
-                } else if (editModeEnabled) {
+                } else if (editModeEnabledProperty.get()) {
                     enterEditModeMenuItem.setDisable(true);
                     leaveEditModeMenuItem.setDisable(false);
                 } else {
@@ -876,7 +873,7 @@ public class NavigatorController implements Initializable {
 
         navigatorSelector.getChildren().clear();
         navigatorSelector.getChildren().add(createTreePathWidget(selectedNavigatorTreeItem,
-                                                                 editModeEnabled,
+                                                                 editModeEnabledProperty.get(),
                                                                  NAVIGATOR_SELECTOR_BUTTONS_CSS,
                                                                  NAVIGATOR_SELECTOR_MENU_ITEMS_CSS));
     }
@@ -1074,14 +1071,14 @@ public class NavigatorController implements Initializable {
 
             {
                 setOnDragOver(dragEvent -> {
-                    if (editModeEnabled) {
+                    if (editModeEnabledProperty.get()) {
                         dragEvent.acceptTransferModes(TransferMode.COPY);
                         dragEvent.consume();
                     }
                 });
 
                 setOnDragDetected(mouseEvent -> {
-                    if (editModeEnabled && !empty) {
+                    if (editModeEnabledProperty.get() && !empty) {
                         Dragboard dragboard = startDragAndDrop(TransferMode.COPY);
                         ClipboardContent clipboardContent = new ClipboardContent();
                         clipboardContent.put(navigationTreeDataFormat, "");
@@ -1091,21 +1088,21 @@ public class NavigatorController implements Initializable {
                 });
 
                 setOnDragOver(mouseEvent -> {
-                    if (editModeEnabled) {
+                    if (editModeEnabledProperty.get()) {
                         borderProperty().set(bottomBorder);
                         mouseEvent.acceptTransferModes(TransferMode.COPY);
                     }
                 });
 
                 setOnDragExited(mouseEvent -> {
-                    if (editModeEnabled) {
+                    if (editModeEnabledProperty.get()) {
                         dragAndDropIndicatorAbove = false;
                         borderProperty().set(emptyBorder);
                     }
                 });
 
                 setOnDragDropped(dragEvent -> {
-                    if (editModeEnabled) {
+                    if (editModeEnabledProperty.get()) {
                         Dragboard dragboard = dragEvent.getDragboard();
                         if (dragboard.hasFiles()) {
                             List<File> files = dragboard.getFiles();
