@@ -1673,7 +1673,7 @@ public class NavigatorController implements Initializable {
         noButton.requestFocus();
     }
 
-    private void displayWarning(String prompt, Runnable continuation) {
+    protected void displayWarning(String prompt, Runnable continuation) {
         disableEverythingExceptUserInput();
 
         userInputVBox.setStyle("-fx-background-color: red");
