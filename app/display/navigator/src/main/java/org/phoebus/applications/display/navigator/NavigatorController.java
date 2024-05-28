@@ -640,7 +640,9 @@ public class NavigatorController implements Initializable {
         String absolutePath = OPI_ROOT + relativePath;
         InputStream stream;
         try {
-            stream = ResourceParser.getContent(new URI("file:" + absolutePath));
+            String URI_string = "file:" + (absolutePath.startsWith("/") ? absolutePath : ("/" + absolutePath.replace('\\', '/')));
+            URI uri = new URI(URI_string);
+            stream = ResourceParser.getContent(uri);
             Model model = new Model();
             XMLPersistence.load(model, stream);
             String dataBrowserName = model.getTitle().orElse(Messages.GenericDataBrowserName);
