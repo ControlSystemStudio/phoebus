@@ -69,6 +69,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.net.URI;
 import java.net.URL;
 import java.text.MessageFormat;
@@ -839,19 +840,28 @@ public class NavigatorController implements Initializable {
     private void writeNavigatorToXML(TreeItem<NavigatorTreeNode> treeItem,
                                      File file) {
         XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newFactory();
+        String stringToSave;
         try {
-            FileWriter fileWriter = new FileWriter(file);
-            XMLStreamWriter xmlStreamWriter = xmlOutputFactory.createXMLStreamWriter(fileWriter);
+            StringWriter stringWriter = new StringWriter();
+            XMLStreamWriter xmlStreamWriter = xmlOutputFactory.createXMLStreamWriter(stringWriter);
 
             convertCurrentNavigatorToXML_recurse(treeItem, xmlStreamWriter, 0);
 
             xmlStreamWriter.flush();
             xmlStreamWriter.close();
 
-            return;
+            stringToSave = stringWriter.toString();
+
+            if (file.exists() && file.canWrite()) {
+                FileWriter fileWriter = new FileWriter(file);
+                fileWriter.write(stringToSave);
+                fileWriter.flush();
+                fileWriter.close();
+            }
         }
         catch (Exception exception) {
             LOGGER.log(Level.SEVERE, "Error writing the navigator to file: " + exception.getMessage());
+            displayWarning("Error writing the navigator to file. Discarding changes." + exception.getMessage(), () -> {});
             return;
         }
     }
