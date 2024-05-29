@@ -20,11 +20,10 @@ import org.csstudio.display.builder.runtime.spi.WidgetRuntimesService;
 public class UXAMonitor{
     private static UXAMonitor instance = null;
     private ArrayList<Stage> activeStages;
-    private static ActiveWindowsService activeWindowsService;
+    private static ActiveWindowsService activeWindowsService= ActiveWindowsService.getInstance();
     private static final ExecutorService executor = RuntimeUtil.getExecutor();
 
     private UXAMonitor() {
-        activeWindowsService = ActiveWindowsService.getInstance();
     }
 
     public static UXAMonitor getInstance() {

@@ -1,8 +1,11 @@
 package org.phoebus.applications.uxanalytics.monitor;
 
+import com.sun.javafx.collections.UnmodifiableObservableMap;
+import javafx.stage.Window;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.model.properties.ActionInfo;
 import org.csstudio.display.builder.representation.ToolkitListener;
+
 
 public class GraphDatabaseToolkitListener implements ToolkitListener {
 
@@ -13,7 +16,8 @@ public class GraphDatabaseToolkitListener implements ToolkitListener {
 
     @Override
     public void handleWrite(Widget widget, Object value) {
-        System.out.println("wrote");
+        System.out.println("wrote from "+ widget+" from thread "+Thread.currentThread().getName());
+        //UnmodifiableObservableMap<Window, ActiveTabsService> m = ActiveWindowsService.getInstance().getActiveWindowsAndTabs();
     }
 
     @Override

@@ -553,6 +553,10 @@ public class DisplayRuntimeInstance implements AppInstance
         this.getRepresentation().addListener(listener);
     }
 
+    public void removeListener(ToolkitListener listener){
+        this.getRepresentation().removeListener(listener);
+    }
+
     @Override
     public Optional<Rectangle2D> getPositionAndSizeHint() {
         return Optional.ofNullable(active_model).flatMap(displayModel -> {

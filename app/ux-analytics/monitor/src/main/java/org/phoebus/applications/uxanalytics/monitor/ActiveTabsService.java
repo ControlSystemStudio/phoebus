@@ -12,40 +12,43 @@ import org.csstudio.display.builder.runtime.app.DockItemRepresentation;
 import org.phoebus.ui.docking.DockItemWithInput;
 
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
+import java.util.function.Supplier;
 
 public class ActiveTabsService {
 
     private final ActiveWindowsService activeWindowsService;
-    private final Window window;
-    private final ObservableMap<DockItemWithInput, ActiveWidgetsService> activeTabs = FXCollections.observableHashMap();
+    private final Window parentWindow;
+    private final ConcurrentHashMap<String, ActiveWidgetsService> activeTabs = new ConcurrentHashMap<>();
 
     public ActiveTabsService(Window window){
-        this.window = window;
+        this.parentWindow = window;
         activeWindowsService = ActiveWindowsService.getInstance();
     }
 
-    public void add(DockItemWithInput tab) throws Exception {
-        if (!activeTabs.containsKey(tab)){
-            activeTabs.put(tab, new ActiveWidgetsService(tab));
-            addAllWidgetsIn(tab);
-        }
+    public synchronized void add(DockItemWithInput tab) throws Exception {
+        this.remove(tab);
+        activeTabs.putIfAbsent(tab.toString(), new ActiveWidgetsService(tab));
+        addAllWidgetsIn(tab);
     }
 
-    public void remove(DockItemWithInput tab){
-        activeTabs.remove(tab);
+    public synchronized void remove(DockItemWithInput tab){
+        if(activeTabs.containsKey(tab.toString())){
+            activeTabs.get(tab.toString()).close();
+            activeTabs.remove(tab.toString());
+        }
     }
 
     public boolean contains(DockItemWithInput tab){
-        return activeTabs.containsKey(tab);
+        return activeTabs.containsKey(tab.toString());
     }
 
-    public void addWidget(DockItemWithInput tab, Widget widget){
-        if(activeTabs.containsKey(tab)){
-            activeTabs.get(tab).add(widget);
-        }
+    public synchronized void addWidget(DockItemWithInput tab, Widget widget){
+        activeTabs.get(tab.toString()).add(widget);
     }
 
-    public void addAllWidgetsIn(DockItemWithInput tab) throws Exception {
+    public synchronized void addAllWidgetsIn(DockItemWithInput tab) throws Exception {
         DisplayRuntimeInstance instance = (DisplayRuntimeInstance) tab.getProperties().get("application");
         for(Widget widget: instance.getActiveModel().getChildren()){
             if(widget instanceof EmbeddedDisplayWidget){
@@ -57,7 +60,7 @@ public class ActiveTabsService {
         }
     }
 
-    public void addAllWidgetsIn(EmbeddedDisplayWidget widget, DockItemWithInput parentTab) throws Exception {
+    public synchronized void addAllWidgetsIn(EmbeddedDisplayWidget widget, DockItemWithInput parentTab) throws Exception {
         DisplayModel model = (DisplayModel) widget.getProperty("embedded_model").getValue();
         for(Widget embeddedWidget: model.getChildren()){
             if(embeddedWidget instanceof EmbeddedDisplayWidget){
@@ -69,5 +72,9 @@ public class ActiveTabsService {
             }
         }
 
+    }
+
+    public ConcurrentHashMap<String, ActiveWidgetsService> getActiveTabs() {
+        return activeTabs;
     }
 }
