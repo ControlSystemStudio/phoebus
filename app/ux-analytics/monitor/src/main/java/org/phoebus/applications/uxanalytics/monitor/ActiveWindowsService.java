@@ -17,13 +17,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
 
-
-/*
-    * Get active @Window instances
-    * For each window, add it to a map with a set of tabs as the value,
-    * Attach our custom ToolkitListener to each writable Widget.
-    * @author Evan Daykin
- */
 public class ActiveWindowsService {
 
     private boolean started = false;
@@ -57,18 +50,9 @@ public class ActiveWindowsService {
                                         lock.lock();
                                         String windowID = (String) window.getProperties().get(DockStage.KEY_ID);
 
-                                        //FIXME: this shouldn't happen, I think
-                                        if(!activeWindowsAndTabs.containsKey(windowID)){
-                                            System.out.println("Window "+windowID+ "("+window.getClass()+ ") not found in activeWindowsAndTabs, adding it now.");
-                                            activeWindowsAndTabs.putIfAbsent(windowID, new ActiveTabsService(window));
-                                        }
-
                                         DockItemWithInput diwi = (DockItemWithInput)tab;
                                         activeWindowsAndTabs.get(windowID).add(diwi);
                                         lock.unlock();
-                                        System.out.println("There are now "+activeWindowsAndTabs.get(windowID).getActiveTabs().size()+" tabs in window "+windowID);
-                                        System.out.println("There are now "+activeWindowsAndTabs.size()+" windows tracked.");
-
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                     }
@@ -76,14 +60,6 @@ public class ActiveWindowsService {
                             } catch (Exception e) {
                                 throw new RuntimeException(e);
                             }
-                        }
-                    }
-                } else if (change.wasRemoved()) {
-                    Window window = change.getList().get(0).getTabPane().getScene().getWindow();
-                    String windowID = (String) window.getProperties().get(DockStage.KEY_ID);
-                    for(Tab tab: change.getRemoved()){
-                        if(tab instanceof DockItemWithInput && activeWindowsAndTabs.get(windowID).contains((DockItemWithInput) tab)){
-                            activeWindowsAndTabs.get(windowID).remove((DockItemWithInput) tab);
                         }
                     }
                 }
@@ -100,9 +76,6 @@ public class ActiveWindowsService {
                     for (javafx.stage.Window window : change.getAddedSubList()) {
                         if(window.getProperties().containsKey(DockStage.KEY_ID)){
                             String windowID = (String) window.getProperties().get(DockStage.KEY_ID);
-                            if(!activeWindowsAndTabs.containsKey(windowID)){
-                                System.out.println("Window "+windowID+ "("+window.getClass()+ ") not found in activeWindowsAndTabs, adding it now.");
-                            }
                             activeWindowsAndTabs.putIfAbsent(windowID, new ActiveTabsService(window));
                             for(DockPane item: DockStage.getDockPanes((Stage)window)){
                                 //initialize
@@ -125,8 +98,8 @@ public class ActiveWindowsService {
                 else if(change.wasRemoved()){
                     for(Window window: change.getRemoved()){
                         if(window.getProperties().containsKey(DockStage.KEY_ID)){
-                            System.out.println("close " + window.getProperties().get(DockStage.KEY_ID));
-                            activeWindowsAndTabs.remove(window);
+                            String windowID = (String) window.getProperties().get(DockStage.KEY_ID);
+                            activeWindowsAndTabs.remove(windowID);
                         }
                     }
                 }

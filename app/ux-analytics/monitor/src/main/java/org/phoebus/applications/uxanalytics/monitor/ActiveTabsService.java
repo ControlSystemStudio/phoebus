@@ -11,6 +11,7 @@ import org.csstudio.display.builder.runtime.app.DisplayRuntimeInstance;
 import org.csstudio.display.builder.runtime.app.DockItemRepresentation;
 import org.phoebus.ui.docking.DockItemWithInput;
 
+import javax.sound.midi.SysexMessage;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
@@ -27,13 +28,13 @@ public class ActiveTabsService {
         activeWindowsService = ActiveWindowsService.getInstance();
     }
 
-    public synchronized void add(DockItemWithInput tab) throws Exception {
+    public void add(DockItemWithInput tab) throws Exception {
         this.remove(tab);
         activeTabs.putIfAbsent(tab.toString(), new ActiveWidgetsService(tab));
         addAllWidgetsIn(tab);
     }
 
-    public synchronized void remove(DockItemWithInput tab){
+    public void remove(DockItemWithInput tab){
         if(activeTabs.containsKey(tab.toString())){
             activeTabs.get(tab.toString()).close();
             activeTabs.remove(tab.toString());
