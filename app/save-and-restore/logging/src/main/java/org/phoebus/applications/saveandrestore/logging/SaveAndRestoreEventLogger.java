@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 European Spallation Source ERIC.
+ * Copyright (C) 2024 European Spallation Source ERIC.
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -20,6 +20,7 @@ package org.phoebus.applications.saveandrestore.logging;
 
 import javafx.application.Platform;
 import org.phoebus.applications.saveandrestore.model.Node;
+import org.phoebus.applications.saveandrestore.model.RestoreResult;
 import org.phoebus.applications.saveandrestore.model.Tag;
 import org.phoebus.applications.saveandrestore.model.event.SaveAndRestoreEventReceiver;
 import org.phoebus.framework.selection.SelectionService;
@@ -74,7 +75,7 @@ public class SaveAndRestoreEventLogger implements SaveAndRestoreEventReceiver {
      * @param errorHandler An error handler callback.
      */
     @Override
-    public void snapshotRestored(Node node, List<String> failedPVs, Consumer<String> errorHandler) {
+    public void snapshotRestored(Node node, List<RestoreResult> failedPVs, Consumer<String> errorHandler) {
 
         if (!LogbookPreferences.is_supported) {
             return;
@@ -87,7 +88,7 @@ public class SaveAndRestoreEventLogger implements SaveAndRestoreEventReceiver {
         restoreSnapshotActionInfo.setComment(node.getDescription());
         restoreSnapshotActionInfo.setGolden(node.hasTag(Tag.GOLDEN));
         restoreSnapshotActionInfo.setSnapshotName(node.getName());
-        restoreSnapshotActionInfo.setFailedPVs(failedPVs);
+        restoreSnapshotActionInfo.setFailedPVs(failedPVs.stream().map(restoreResult -> restoreResult.getSnapshotItem().getConfigPv().getPvName()).toList());
         SelectionService.getInstance().setSelection("SaveAndRestoreLogging", List.of(restoreSnapshotActionInfo));
         Platform.runLater(() -> ApplicationService.createInstance("logbook"));
     }

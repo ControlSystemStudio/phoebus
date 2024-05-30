@@ -150,12 +150,13 @@ public abstract class AbstractADL2Model<WM extends Widget>
                             widgetModel);
                 else if (dynAttr.get_vis().equals("calc"))
                 {
-                    // Make widget visible, then add rule to make invisible
-                    WidgetProperty<Boolean> visible = widgetModel.getProperty(CommonWidgetProperties.propVisible);
-                    visible.setValue(true);
+                    // Make widget visible
+                    final WidgetProperty<Boolean> visible = widgetModel.getProperty(CommonWidgetProperties.propVisible);
+                    visible.setValue(true); // true is already the default, but just in case ...
 
-                    visible = visible.clone();
-                    visible.setValue(false);
+                    // Add rule to hide
+                    final WidgetProperty<Boolean> hide = visible.clone();
+                    hide.setValue(false);
 
                     final List<ScriptPV> pvs = new ArrayList<>();
                     for (String pv : List.of(dynAttr.get_chan(), dynAttr.get_chanb(), dynAttr.get_chanc(), dynAttr.get_chand()))
@@ -166,7 +167,7 @@ public abstract class AbstractADL2Model<WM extends Widget>
                     final RuleInfo rule = new RuleInfo("vis_calc",
                             CommonWidgetProperties.propVisible.getName(),
                             false,
-                            List.of(new RuleInfo.ExprInfoValue<>("!("+ newExpr + ")", visible)),
+                            List.of(new RuleInfo.ExprInfoValue<>("!("+ newExpr + ")", hide)),
                             pvs);
 
                     widgetModel.propRules().setValue(List.of(rule));
@@ -255,17 +256,22 @@ public abstract class AbstractADL2Model<WM extends Widget>
      * @return
      */
     private String translateExpression(String adlExpr) {
+        // Variable names
         String opiExpr = adlExpr.replace("A", "pv0")
                                 .replace("B", "pv1")
                                 .replace("C", "pv2")
-                                .replace("D", "pv3")
-                                .replace("=", "==")
-                                .replace("#", "!=");
+                                .replace("D", "pv3");
 
-        // The above can result in "pv0====7" or "pv1 !== 8"
-        // when exiting "==" or "!=" gets replaced.
-        // Patch that back into a plain "==" resp. "!="
-        opiExpr = opiExpr.replaceAll("==+", "==");
+        // MEDM allows both "#" and "!=", while jython would consider "#.." a comment
+        opiExpr = opiExpr.replace("#", "!=");
+
+        // Replace any sequence of "=" with "=="
+        opiExpr = opiExpr.replaceAll("=+", "==");
+
+        // The above can result in "pv1 !== 8"
+        // when exiting "!=" got replaced with "!==".
+        // Patch that back into "!="
+        opiExpr = opiExpr.replaceAll("!=+", "!=");
 
         return opiExpr;
     }

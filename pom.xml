@@ -68,7 +68,7 @@
     <epics.version>7.0.10</epics.version>
     <epics.util.version>1.0.7</epics.util.version>
     <vtype.version>1.0.7</vtype.version>
-    <openjfx.version>19</openjfx.version>
+    <openjfx.version>21.0.3</openjfx.version>
     <jackson.version>2.12.3</jackson.version>
     <batik.version>1.17</batik.version>
     <mockito.version>2.23.4</mockito.version>
@@ -84,12 +84,14 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <skipITTests>true</skipITTests>
-    <guava.version>32.1.1-jre</guava.version>
+    <guava.version>33.2.0-jre</guava.version>
     <log4j-to-slf4j.version>2.17.1</log4j-to-slf4j.version>
     <derby.version>10.16.1.1</derby.version>
-    <jython.version>2.7.3</jython.version>
-    <jgit.version>6.7.0.202309050840-r</jgit.version>
+    <jython.version>2.7.4b1</jython.version>
+    <jgit.version>6.9.0.202403050737-r</jgit.version>
     <maven.compiler.target>17</maven.compiler.target>
+    <activemq.client.version>5.18.4</activemq.client.version>
+    <commons.compress.version>1.26.1</commons.compress.version>
   </properties>
   <build>
     <plugins>

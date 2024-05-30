@@ -147,6 +147,8 @@ class PutRequest extends CompletableFuture<Void> implements RequestEncoder, Resp
                 if ("enum_t".equals(struct.getStructureName()) ||
                         data.getStructureName().toLowerCase().indexOf("ntenum") > 0){
                     field = struct.get("index");
+                    // Set bit for the field to write
+                    changed.set(data.getIndex(field));
                 }
                 else{
                     // Must also set bits for the elements of the structure

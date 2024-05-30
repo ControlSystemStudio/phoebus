@@ -1,50 +1,49 @@
 package org.phoebus.service.saveandrestore.epics;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
-import org.epics.pva.client.PVAClient;
-import org.epics.vtype.VBoolean;
-import org.epics.vtype.VBooleanArray;
-import org.epics.vtype.VByteArray;
-import org.epics.vtype.VDoubleArray;
-import org.epics.vtype.VEnum;
-import org.epics.vtype.VEnumArray;
-import org.epics.vtype.VFloatArray;
-import org.epics.vtype.VIntArray;
-import org.epics.vtype.VLongArray;
-import org.epics.vtype.VNumber;
-import org.epics.vtype.VNumberArray;
-import org.epics.vtype.VShortArray;
-import org.epics.vtype.VString;
-import org.epics.vtype.VStringArray;
-import org.epics.vtype.VType;
-import org.epics.vtype.VUByteArray;
-import org.epics.vtype.VUIntArray;
-import org.epics.vtype.VULongArray;
-import org.epics.vtype.VUShortArray;
-
-import org.phoebus.framework.preferences.PropertyPreferenceLoader;
+import org.phoebus.applications.saveandrestore.model.RestoreResult;
 import org.phoebus.applications.saveandrestore.model.SnapshotItem;
 import org.phoebus.core.vtypes.VTypeHelper;
+import org.phoebus.framework.preferences.PropertyPreferenceLoader;
 import org.phoebus.pv.PV;
 import org.phoebus.pv.PVPool;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SnapshotRestorer {
 
-    PVAClient pva;
     private final Logger LOG = Logger.getLogger(SnapshotRestorer.class.getName());
 
-    public SnapshotRestorer() throws Exception {
-        pva = new PVAClient();
+    @Value("${connection.timeout:5000}")
+    private int connectionTimeout;
+
+    @Value("${write.timeout:5000}")
+    private int writeTimeout;
+
+    @Autowired
+    private ExecutorService executorService;
+
+    public SnapshotRestorer() {
         final File site_settings = new File("settings.ini");
         if (site_settings.canRead()) {
             LOG.config("Loading settings from " + site_settings);
-            PropertyPreferenceLoader.load(new FileInputStream(site_settings));
+            try {
+                PropertyPreferenceLoader.load(new FileInputStream(site_settings));
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, "Unable to read settings.ini, falling back to default values.");
+            }
         }
     }
 
@@ -52,101 +51,105 @@ public class SnapshotRestorer {
      * Restore PV values from a list of snapshot items
      *
      * <p>
-     * Writes concurrently the pv value to the non null set PVs in
+     * Writes concurrently the pv value to the non-null set PVs in
      * the snapshot items.
-     * Uses synchonized to ensure only one frontend can write at a time.
+     * Uses synchronized to ensure only one frontend can write at a time.
      * Returns a list of the snapshot items you have set, with an error message if
      * an error occurred.
      *
      * @param snapshotItems {@link SnapshotItem}
      */
     public synchronized List<RestoreResult> restorePVValues(List<SnapshotItem> snapshotItems) {
+        // Attempt to connect to all PVs before trying to write/restore.
+        List<PV> connectedPvs = connectPVs(snapshotItems);
+        List<RestoreResult> failedPvs = new ArrayList<>();
+        final CountDownLatch countDownLatch = new CountDownLatch(snapshotItems.size());
+        snapshotItems.forEach(item -> {
+            String pvName = item.getConfigPv().getPvName();
+            Optional<PV> pvOptional = null;
+            try {
+                // Check if PV is connected. If not, do not even try to write/restore.
+                pvOptional = connectedPvs.stream().filter(pv -> pv.getName().equals(pvName)).findFirst();
+                if (pvOptional.isPresent()) {
+                    pvOptional.get().write(VTypeHelper.toObject(item.getValue()));
+                } else {
+                    RestoreResult restoreResult = new RestoreResult();
+                    restoreResult.setSnapshotItem(item);
+                    restoreResult.setErrorMsg("PV disconnected");
+                    failedPvs.add(restoreResult);
+                }
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, "Failed to restore PV " + pvName);
+                RestoreResult restoreResult = new RestoreResult();
+                restoreResult.setSnapshotItem(item);
+                restoreResult.setErrorMsg(e.getMessage());
+                failedPvs.add(restoreResult);
+            } finally {
+                if (pvOptional != null && pvOptional.isPresent()) {
+                    PVPool.releasePV(pvOptional.get());
+                }
+                countDownLatch.countDown();
+            }
+        });
 
-        var futures = snapshotItems.stream().filter(
-                (snapshot_item) -> snapshot_item.getConfigPv().getPvName() != null)
-                .map((snapshotItem) -> {
-                    var pvName = snapshotItem.getConfigPv().getPvName();
-                    var pvValue = snapshotItem.getValue();
-                    Object rawValue = vTypeToObject(pvValue);
-                    PV pv;
-                    CompletableFuture<?> future;
-                    try {
-                        pv = PVPool.getPV(pvName);
-                        future = pv.asyncWrite(rawValue);
-                    } catch (Exception e) {
-                        var restoreResult = new RestoreResult();
-                        var errorMsg = e.getMessage();
-                        restoreResult.setSnapshotItem(snapshotItem);
-                        restoreResult.setErrorMsg(errorMsg);
-                        LOG.warning(String.format("Error writing to channel %s %s", pvName, errorMsg));
-                        return CompletableFuture.completedFuture(restoreResult);
-                    }
-                    return future.handle((result, ex) -> {
-                        String errorMsg;
-                        if (ex != null) {
-                            errorMsg = ex.getMessage();
-                            LOG.warning(String.format("Error writing to channel %s %s", pvName, errorMsg));
-                        } else {
-                            errorMsg = null;
-                        }
-                        var restoreResult = new RestoreResult();
-                        restoreResult.setSnapshotItem(snapshotItem);
-                        restoreResult.setErrorMsg(errorMsg);
-                        return restoreResult;
-                    });
-                })
-                .collect(Collectors.toList());
+        try {
+            countDownLatch.await(writeTimeout, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            LOG.log(Level.INFO, "Encountered InterruptedException", e);
+        }
 
-        CompletableFuture<Void> all_done = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-
-        // Wait on the futures concurrently
-        all_done.join();
-
-        // Joins should not block as all the futures should be completed.
-        return futures.stream().map(
-                (future) -> future.join()).collect(Collectors.toList());
+        return failedPvs;
     }
 
     /**
-     * Convert a vType to its Object representation
-     * 
-     * @param type {@link VType}
+     * Attempts to connect to all PVs using {@link PVPool}. A connection is considered successful once an
+     * event is received that does not indicate disconnection.
+     *
+     * <p>
+     * A timeout of {@link #connectionTimeout} ms is used to wait for a PV to supply a value message indicating
+     * successful connection.
+     * </p>
+     * <p>
+     * An {@link ExecutorService} is used to run connection attempts concurrently. However, no timeout is employed
+     * for the overall execution of all connection attempts.
+     * </p>
+     *
+     * @param snapshotItems List of {@link SnapshotItem}s in a snapshot.
+     * @return A {@link List} of {@link PV}s for which connection succeeded. Ideally this should be all
+     * PVs as listed in the input argument.
      */
-    private Object vTypeToObject(VType type) {
-        if (type == null) {
-            return null;
+    private List<PV> connectPVs(List<SnapshotItem> snapshotItems) {
+        List<PV> connectedPvs = new ArrayList<>();
+
+        List<? extends Callable<Void>> callables = snapshotItems.stream().map(snapshotItem -> {
+            return (Callable<Void>) () -> {
+                CountDownLatch countDownLatch = new CountDownLatch(1);
+                try {
+                    PV pv = PVPool.getPV(snapshotItem.getConfigPv().getPvName());
+                    pv.onValueEvent().subscribe(value -> {
+                        if (!PV.isDisconnected(value)) {
+                            connectedPvs.add(pv);
+                            countDownLatch.countDown();
+                        }
+                    });
+                    // Wait for a value message indicating connection
+                    countDownLatch.await(connectionTimeout, TimeUnit.MILLISECONDS);
+                } catch (Exception e) {
+                    LOG.log(Level.WARNING, "Failed to connect to PV " + snapshotItem.getConfigPv().getPvName(), e);
+                    countDownLatch.countDown();
+                }
+                return null;
+            };
+        }).toList();
+
+        try {
+            executorService.invokeAll(callables);
+        } catch (InterruptedException e) {
+            LOG.log(Level.WARNING, "Got exception waiting for all tasks to finish", e);
+            // Return empty list here?
+            return Collections.emptyList();
         }
-        if (type instanceof VNumberArray) {
-            if (type instanceof VIntArray || type instanceof VUIntArray) {
-                return VTypeHelper.toIntegers(type);
-            } else if (type instanceof VDoubleArray) {
-                return VTypeHelper.toDoubles(type);
-            } else if (type instanceof VFloatArray) {
-                return VTypeHelper.toFloats(type);
-            } else if (type instanceof VLongArray || type instanceof VULongArray) {
-                return VTypeHelper.toLongs(type);
-            } else if (type instanceof VShortArray || type instanceof VUShortArray) {
-                return VTypeHelper.toShorts(type);
-            } else if (type instanceof VByteArray || type instanceof VUByteArray) {
-                return VTypeHelper.toBytes(type);
-            }
-        } else if (type instanceof VEnumArray) {
-            List<String> data = ((VEnumArray) type).getData();
-            return data.toArray(new String[data.size()]);
-        } else if (type instanceof VStringArray) {
-            List<String> data = ((VStringArray) type).getData();
-            return data.toArray(new String[data.size()]);
-        } else if (type instanceof VBooleanArray) {
-            return VTypeHelper.toBooleans(type);
-        } else if (type instanceof VNumber) {
-            return ((VNumber) type).getValue();
-        } else if (type instanceof VEnum) {
-            return ((VEnum) type).getIndex();
-        } else if (type instanceof VString) {
-            return ((VString) type).getValue();
-        } else if (type instanceof VBoolean) {
-            return ((VBoolean) type).getValue();
-        }
-        return null;
+
+        return connectedPvs;
     }
 }

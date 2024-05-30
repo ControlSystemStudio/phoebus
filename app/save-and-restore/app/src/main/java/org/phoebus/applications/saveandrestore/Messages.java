@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2019 European Spallation Source ERIC.
+ * Copyright (C) 2024 European Spallation Source ERIC.
  * <p>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -118,6 +118,8 @@ public class Messages {
     public static String nodeSelectionForConfiguration;
     public static String noValueAvailable;
     public static String readbackPVName;
+    public static String restoreFailed;
+    public static String restoreFailedPVs;
     public static String saveFilter;
 
     public static String saveFilterConfirmOverwrite;
