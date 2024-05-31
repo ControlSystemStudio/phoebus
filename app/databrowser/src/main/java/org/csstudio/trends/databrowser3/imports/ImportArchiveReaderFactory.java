@@ -10,9 +10,9 @@ package org.csstudio.trends.databrowser3.imports;
 import org.phoebus.archive.reader.ArchiveReader;
 import org.phoebus.archive.reader.spi.ArchiveReaderFactory;
 
+import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
-// TODO resolve the dependency between this archive reader and the app-databrowser
-//import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
+import org.csstudio.trends.databrowser3.model.ArchiveDataSource;
 
 /** Factory for {@link ArchiveReader} that imports data from file
  *  @author Kay Kasemir
@@ -103,13 +103,12 @@ public class ImportArchiveReaderFactory implements ArchiveReaderFactory
         }
     }
 
-    // TODO resolve the dependency without creating a cyclic dependency with app-databrowser
-//    /** Removed cached data for given archive data sources
-//     *  @param sources {@link ArchiveDataSource}[]
-//     */
-//    public static void removeCachedArchives(final Collection<ArchiveDataSource> sources)
-//    {
-//        for (ArchiveDataSource source : sources)
-//            cache.remove(source.getUrl());
-//    }
+    /** Removed cached data for given archive data sources
+     *  @param sources {@link ArchiveDataSource}[]
+     */
+    public static void removeCachedArchives(final Collection<ArchiveDataSource> sources)
+    {
+        for (ArchiveDataSource source : sources)
+            cache.remove(source.getUrl());
+    }
 }
