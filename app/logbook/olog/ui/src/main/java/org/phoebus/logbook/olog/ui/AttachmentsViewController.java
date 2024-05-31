@@ -171,7 +171,7 @@ public class AttachmentsViewController {
                 applications.forEach(app -> {
                     MenuItem appMenuItem = new MenuItem(app.getDisplayName());
                     appMenuItem.setGraphic(ImageCache.getImageView(app.getIconURL()));
-                    appMenuItem.setOnAction(actionEvent -> app.create(selectedResource));
+                    appMenuItem.setOnAction(actionEvent -> showImageAttachment());
                     contextMenu.getItems().add(appMenuItem);
                 });
             }
