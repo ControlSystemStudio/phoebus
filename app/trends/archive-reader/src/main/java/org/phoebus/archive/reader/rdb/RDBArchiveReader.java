@@ -340,7 +340,7 @@ public class RDBArchiveReader implements ArchiveReader
                 if (RDBPreferences.timeout_secs > 0)
                     statement.setQueryTimeout(RDBPreferences.timeout_secs);
                 // Loop over variants
-                for (String variant : PVPool.getNameVariants(name, org.csstudio.trends.databrowser3.preferences.Preferences.equivalent_pv_prefixes))
+                for (String variant : PVPool.getNameVariants(name, RDBPreferences.equivalent_pv_prefixes))
                 {
                     statement.setString(1, variant);
                     try (final ResultSet result = statement.executeQuery())

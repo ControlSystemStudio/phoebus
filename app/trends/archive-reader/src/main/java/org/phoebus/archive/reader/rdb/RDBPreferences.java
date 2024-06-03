@@ -22,9 +22,10 @@ public class RDBPreferences
     @Preference static String stored_procedure;
     @Preference static String starttime_function;
     @Preference static int fetch_size;
+    @Preference static String[] equivalent_pv_prefixes;
 
     static
     {
-    	AnnotatedPreferences.initialize(RDBPreferences.class, "/archive_reader_rdb_preferences.properties");
+        AnnotatedPreferences.initialize(RDBPreferences.class, "/archive_reader_rdb_preferences.properties");
     }
 }
